@@ -133,7 +133,7 @@ export function useAuth(): AuthContextType {
         const response = await apiRequest("POST", "/api/auth/login", { username, password });
         const userData = await response.json();
         setUser(userData as User);
-        navigate("/");
+        navigate("/dashboard");
       } catch (err) {
         console.error("Login error:", err);
         setError(err as Error);
@@ -155,7 +155,7 @@ export function useAuth(): AuthContextType {
         const response = await apiRequest("POST", "/api/auth/register", data);
         const userData = await response.json();
         setUser(userData as User);
-        navigate("/");
+        navigate("/dashboard");
       } catch (err) {
         console.error("Registration error:", err);
         setError(err as Error);
