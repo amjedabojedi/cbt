@@ -292,9 +292,9 @@ export default function EmotionWheel({
     
     // Define all radii here for consistency
     const middleRadiusStart = coreRadius; // Where middle ring starts
-    const middleRadiusEnd = 155; // Increased middle ring area
+    const middleRadiusEnd = 150; // Slightly reduced to give more space to outer ring
     const outerRadiusStart = middleRadiusEnd; // Where outer ring starts
-    const outerRadiusEnd = 195; // Slightly larger outer ring to maximize space
+    const outerRadiusEnd = 197; // Maximized outer ring to fill all available space
     
     const emotionsCount = emotionsData.length;
     const anglePerEmotion = (2 * Math.PI) / emotionsCount;
@@ -631,15 +631,15 @@ export default function EmotionWheel({
                     
                     {/* Background for tertiary text with rotation */}
                     <rect
-                      x={-18} 
+                      x={-20} 
                       y={-6}
-                      width={36}
+                      width={40}
                       height={12}
                       rx={6}
-                      fill="rgba(255,255,255,0.7)"
+                      fill="rgba(255,255,255,0.75)"
                       className="select-none pointer-events-none"
                       style={{
-                        opacity: isSelected || hoveredEmotion === tertiary.name ? 1 : 0.8
+                        opacity: isSelected || hoveredEmotion === tertiary.name ? 1 : 0.85
                       }}
                       transform={`translate(${labelX},${labelY}) rotate(${(midAngle * 180 / Math.PI)})`}
                     />
@@ -651,9 +651,9 @@ export default function EmotionWheel({
                       dominantBaseline="middle"
                       fill={isSelected ? "#000000" : "#333333"}
                       style={{
-                        fontSize: '7px',
+                        fontSize: '8px',
                         fontWeight: isSelected || hoveredEmotion === tertiary.name ? '700' : '600',
-                        opacity: isSelected || hoveredEmotion === tertiary.name ? 1 : 0.9
+                        opacity: isSelected || hoveredEmotion === tertiary.name ? 1 : 0.95
                       }}
                       className="select-none pointer-events-none"
                       transform={`translate(${labelX},${labelY}) rotate(${(midAngle * 180 / Math.PI)})`}
