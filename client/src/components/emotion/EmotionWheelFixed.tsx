@@ -292,9 +292,9 @@ export default function EmotionWheel({
     
     // Define all radii here for consistency
     const middleRadiusStart = coreRadius; // Where middle ring starts
-    const middleRadiusEnd = 150; // Slightly reduced to give more space to outer ring
+    const middleRadiusEnd = 145; // Reduced to give even more space to outer ring
     const outerRadiusStart = middleRadiusEnd; // Where outer ring starts
-    const outerRadiusEnd = 197; // Maximized outer ring to fill all available space
+    const outerRadiusEnd = 199; // Maximized outer ring to completely fill all available space
     
     const emotionsCount = emotionsData.length;
     const anglePerEmotion = (2 * Math.PI) / emotionsCount;
@@ -631,11 +631,11 @@ export default function EmotionWheel({
                     
                     {/* Background for tertiary text with rotation */}
                     <rect
-                      x={-20} 
-                      y={-6}
-                      width={40}
-                      height={12}
-                      rx={6}
+                      x={-23} 
+                      y={-7}
+                      width={46}
+                      height={14}
+                      rx={7}
                       fill="rgba(255,255,255,0.75)"
                       className="select-none pointer-events-none"
                       style={{
@@ -651,7 +651,7 @@ export default function EmotionWheel({
                       dominantBaseline="middle"
                       fill={isSelected ? "#000000" : "#333333"}
                       style={{
-                        fontSize: '8px',
+                        fontSize: '9px',
                         fontWeight: isSelected || hoveredEmotion === tertiary.name ? '700' : '600',
                         opacity: isSelected || hoveredEmotion === tertiary.name ? 1 : 0.95
                       }}
