@@ -14,11 +14,14 @@ import {
   insertCopingStrategyUsageSchema,
   insertGoalSchema,
   insertGoalMilestoneSchema,
-  insertActionSchema
+  insertActionSchema,
+  goals
 } from "@shared/schema";
 import cookieParser from "cookie-parser";
 import { sendClientInvitation } from "./services/email";
 import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Parse cookies
@@ -192,6 +195,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users/:userId/emotions", authenticate, checkUserAccess, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
+      
+      // Log the request body for debugging
+      console.log("Emotion record request:", {
+        body: req.body,
+        userId: userId,
+        schema: insertEmotionRecordSchema.safeParse({
+          ...req.body,
+          userId
+        })
+      });
+      
       const validatedData = insertEmotionRecordSchema.parse({
         ...req.body,
         userId
@@ -201,6 +215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(emotionRecord);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.log("Validation error:", error.errors);
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
       console.error("Create emotion record error:", error);

@@ -115,6 +115,20 @@ export default function EmotionTrackingForm({
         return;
       }
       
+      // Validate required fields manually before sending to server
+      if (!data.situation || data.situation.trim() === "") {
+        form.setError("situation", {
+          type: "manual",
+          message: "Please describe the situation that led to this emotion"
+        });
+        toast({
+          title: "Missing information",
+          description: "Please describe the situation that led to this emotion",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // Format data for API
       const emotionData = {
         userId: user.id,
@@ -122,7 +136,7 @@ export default function EmotionTrackingForm({
         primaryEmotion: data.primaryEmotion,
         tertiaryEmotion: data.tertiaryEmotion,
         intensity: data.intensity,
-        situation: data.situation,
+        situation: data.situation.trim(), // Ensure it's not empty
         location: data.location || "", // Ensure it's not undefined
         company: data.company || "", // Ensure it's not undefined
         timestamp: data.useCurrentTime ? new Date().toISOString() : new Date(data.timestamp || "").toISOString(),
