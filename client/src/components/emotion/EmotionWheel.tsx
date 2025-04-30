@@ -332,13 +332,17 @@ export default function EmotionWheel({
                   filter={selectedCore === emotion.name ? "url(#shadow)" : ""}
                 />
                 
+                {/* Centered text for core emotions */}
                 <text
                   x={labelX}
                   y={labelY}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="text-[10px] font-semibold select-none pointer-events-none"
+                  className="text-xs font-semibold select-none pointer-events-none"
                   fill="#FFFFFF"
+                  style={{
+                    textShadow: "0px 1px 2px rgba(0,0,0,0.3)"
+                  }}
                 >
                   {translate(emotion.name)}
                 </text>
@@ -411,16 +415,34 @@ export default function EmotionWheel({
                     filter={isSelected ? "url(#shadow)" : ""}
                   />
                   
+                  {/* Vertical text for primary emotions */}
                   <text
-                    x={labelX}
-                    y={labelY}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    className="text-[9px] font-medium select-none pointer-events-none"
+                    className="select-none pointer-events-none" 
                     fill="#2D3748"
+                    style={{
+                      fontSize: '9px',
+                      fontWeight: 'medium',
+                      filter: isSelected ? 'drop-shadow(0px 1px 1px rgba(0,0,0,0.2))' : ''
+                    }}
+                    transform={`rotate(${(midAngle * 180 / Math.PI) + (midAngle > Math.PI ? 180 : 0)})`}
                   >
-                    {translate(primary.name)}
+                    <textPath 
+                      href={`#primary-textpath-${coreEmotion.name}-${pIndex}`} 
+                      startOffset="50%" 
+                      textAnchor="middle"
+                    >
+                      {translate(primary.name)}
+                    </textPath>
                   </text>
+                  
+                  {/* Hidden path for text alignment */}
+                  <defs>
+                    <path 
+                      id={`primary-textpath-${coreEmotion.name}-${pIndex}`}
+                      d={`M ${centerX + (coreRadius + 5) * Math.cos(midAngle)},${centerY + (coreRadius + 5) * Math.sin(midAngle)} L ${centerX + (middleRadius - 5) * Math.cos(midAngle)},${centerY + (middleRadius - 5) * Math.sin(midAngle)}`}
+                      fill="none"
+                    />
+                  </defs>
                 </g>
               );
             }) || [];
@@ -509,19 +531,36 @@ export default function EmotionWheel({
                     
                     {/* Tertiary labels only show on hover or when selected to avoid clutter */}
                     {(hoveredEmotion === tertiary.name || isSelected) && (
-                      <text
-                        x={labelX}
-                        y={labelY}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        className={cn(
-                          "text-[8px] font-medium select-none pointer-events-none",
-                          isSelected ? "text-gray-800" : "text-gray-700"
-                        )}
-                        fill={isSelected ? "#000000" : "#333333"}
-                      >
-                        {translate(tertiary.name)}
-                      </text>
+                      <>
+                        {/* Vertical text for tertiary emotions */}
+                        <text
+                          className="select-none pointer-events-none" 
+                          fill={isSelected ? "#000000" : "#333333"}
+                          style={{
+                            fontSize: '8px',
+                            fontWeight: 'medium',
+                            filter: isSelected ? 'drop-shadow(0px 1px 1px rgba(0,0,0,0.2))' : ''
+                          }}
+                          transform={`rotate(${(midAngle * 180 / Math.PI) + (midAngle > Math.PI ? 180 : 0)})`}
+                        >
+                          <textPath 
+                            href={`#tertiary-textpath-${coreEmotion.name}-${primaryEmotion.name}-${tIndex}`} 
+                            startOffset="50%" 
+                            textAnchor="middle"
+                          >
+                            {translate(tertiary.name)}
+                          </textPath>
+                        </text>
+                        
+                        {/* Hidden path for text alignment */}
+                        <defs>
+                          <path 
+                            id={`tertiary-textpath-${coreEmotion.name}-${primaryEmotion.name}-${tIndex}`}
+                            d={`M ${centerX + (middleRadius + 5) * Math.cos(midAngle)},${centerY + (middleRadius + 5) * Math.sin(midAngle)} L ${centerX + (outerRadius - 5) * Math.cos(midAngle)},${centerY + (outerRadius - 5) * Math.sin(midAngle)}`}
+                            fill="none"
+                          />
+                        </defs>
+                      </>
                     )}
                   </g>
                 );
