@@ -130,6 +130,11 @@ export default function EmotionTrackingForm({
       }
       
       // Format data for API
+      // The timestamp validation expects a Date object, not a string
+      const timestampDate = data.useCurrentTime 
+        ? new Date() 
+        : new Date(data.timestamp || "");
+        
       const emotionData = {
         userId: user.id,
         coreEmotion: data.coreEmotion,
@@ -139,7 +144,7 @@ export default function EmotionTrackingForm({
         situation: data.situation.trim(), // Ensure it's not empty
         location: data.location || "", // Ensure it's not undefined
         company: data.company || "", // Ensure it's not undefined
-        timestamp: data.useCurrentTime ? new Date().toISOString() : new Date(data.timestamp || "").toISOString(),
+        timestamp: timestampDate,
       };
       
       // Submit to API

@@ -196,20 +196,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.params.userId);
       
+      // Handle timestamp conversion explicitly - convert string to Date object if needed
+      let requestData = { ...req.body, userId };
+      
+      // If timestamp is a string, convert it to a Date object
+      if (requestData.timestamp && typeof requestData.timestamp === 'string') {
+        requestData.timestamp = new Date(requestData.timestamp);
+      }
+      
       // Log the request body for debugging
       console.log("Emotion record request:", {
-        body: req.body,
+        originalBody: req.body,
+        processedData: requestData,
         userId: userId,
-        schema: insertEmotionRecordSchema.safeParse({
-          ...req.body,
-          userId
-        })
+        schema: insertEmotionRecordSchema.safeParse(requestData)
       });
       
-      const validatedData = insertEmotionRecordSchema.parse({
-        ...req.body,
-        userId
-      });
+      const validatedData = insertEmotionRecordSchema.parse(requestData);
       
       const emotionRecord = await storage.createEmotionRecord(validatedData);
       res.status(201).json(emotionRecord);
