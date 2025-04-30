@@ -411,23 +411,41 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
             <FormField
               control={form.control}
               name="automaticThoughts"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>What thoughts went through your mind?</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Type your thoughts here..."
-                      rows={4}
-                      value={field.value || ''}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      ref={field.ref}
-                      name={field.name}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const textareaRef = useRef<HTMLTextAreaElement>(null);
+                
+                return (
+                  <FormItem>
+                    <FormLabel>What thoughts went through your mind?</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Type your thoughts here..."
+                        rows={4}
+                        value={field.value || ''}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          form.setValue("automaticThoughts", e.target.value, { 
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true 
+                          });
+                        }}
+                        onBlur={field.onBlur}
+                        ref={(el) => {
+                          field.ref(el);
+                          if (textareaRef) {
+                            // @ts-ignore
+                            textareaRef.current = el;
+                          }
+                        }}
+                        name={field.name}
+                        className="focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             
             <FormField
@@ -633,26 +651,44 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
             <FormField
               control={form.control}
               name="alternativePerspective"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>What's a more balanced perspective?</FormLabel>
-                  <FormDescription>
-                    Consider the evidence for and against your thoughts to create a more balanced view.
-                  </FormDescription>
-                  <FormControl>
-                    <Textarea
-                      placeholder="A more realistic way to see this situation might be..."
-                      rows={4}
-                      value={field.value || ''}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      ref={field.ref}
-                      name={field.name}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const textareaRef = useRef<HTMLTextAreaElement>(null);
+                
+                return (
+                  <FormItem>
+                    <FormLabel>What's a more balanced perspective?</FormLabel>
+                    <FormDescription>
+                      Consider the evidence for and against your thoughts to create a more balanced view.
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea
+                        placeholder="A more realistic way to see this situation might be..."
+                        rows={4}
+                        value={field.value || ''}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          form.setValue("alternativePerspective", e.target.value, { 
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true 
+                          });
+                        }}
+                        onBlur={field.onBlur}
+                        ref={(el) => {
+                          field.ref(el);
+                          if (textareaRef) {
+                            // @ts-ignore
+                            textareaRef.current = el;
+                          }
+                        }}
+                        name={field.name}
+                        className="focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             
             <div className="space-y-3">
@@ -776,23 +812,41 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
             <FormField
               control={form.control}
               name="insightsGained"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>What insights did you gain from this reflection?</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="What did you learn that you can apply in the future..."
-                      rows={3}
-                      value={field.value || ''}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      ref={field.ref}
-                      name={field.name}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const textareaRef = useRef<HTMLTextAreaElement>(null);
+                
+                return (
+                  <FormItem>
+                    <FormLabel>What insights did you gain from this reflection?</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="What did you learn that you can apply in the future..."
+                        rows={3}
+                        value={field.value || ''}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          form.setValue("insightsGained", e.target.value, { 
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true 
+                          });
+                        }}
+                        onBlur={field.onBlur}
+                        ref={(el) => {
+                          field.ref(el);
+                          if (textareaRef) {
+                            // @ts-ignore
+                            textareaRef.current = el;
+                          }
+                        }}
+                        name={field.name}
+                        className="focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             
             <FormField
