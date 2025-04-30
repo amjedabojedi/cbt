@@ -272,7 +272,11 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                     <Textarea
                       placeholder="Type your thoughts here..."
                       rows={4}
-                      {...field}
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                      name={field.name}
                     />
                   </FormControl>
                   <FormMessage />
@@ -343,7 +347,11 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                     <Textarea
                       placeholder="List facts that support this thought..."
                       rows={3}
-                      {...field}
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                      name={field.name}
                     />
                   </FormControl>
                   <FormMessage />
@@ -361,7 +369,11 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                     <Textarea
                       placeholder="List facts that don't support this thought..."
                       rows={3}
-                      {...field}
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                      name={field.name}
                     />
                   </FormControl>
                   <FormMessage />
@@ -409,7 +421,11 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                     <Textarea
                       placeholder="A more realistic way to see this situation might be..."
                       rows={4}
-                      {...field}
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                      name={field.name}
                     />
                   </FormControl>
                   <FormMessage />
@@ -492,7 +508,11 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                     <Textarea
                       placeholder="What did you learn that you can apply in the future..."
                       rows={3}
-                      {...field}
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                      name={field.name}
                     />
                   </FormControl>
                   <FormMessage />
