@@ -50,13 +50,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Temporarily commenting out AuthProvider due to JSX parsing issues */}
-      {/* <AuthProvider> */}
+      <AuthProvider>
         <TooltipProvider>
           <Toaster />
           <Router />
         </TooltipProvider>
-      {/* </AuthProvider> */}
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
