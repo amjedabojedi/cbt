@@ -50,12 +50,12 @@ const cognitiveDistortions = [
 // Define schema for the thought record form
 const thoughtRecordSchema = z.object({
   automaticThoughts: z.string().min(3, "Please enter your thoughts"),
-  cognitiveDistortions: z.array(z.string()).optional(),
-  evidenceFor: z.string().optional(),
-  evidenceAgainst: z.string().optional(),
-  alternativePerspective: z.string().optional(),
-  insightsGained: z.string().optional(),
-  reflectionRating: z.number().min(1).max(10).optional(),
+  cognitiveDistortions: z.array(z.string()).default([]),
+  evidenceFor: z.string().default(""),
+  evidenceAgainst: z.string().default(""),
+  alternativePerspective: z.string().default(""),
+  insightsGained: z.string().default(""),
+  reflectionRating: z.number().min(1).max(10).default(5),
   // Fields for protective factors and coping strategies will be handled separately
 });
 
@@ -114,17 +114,15 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   // Handle next step
   const handleNext = () => {
     if (step === 1) {
-      form.trigger(["automaticThoughts", "cognitiveDistortions"]);
+      form.trigger(["automaticThoughts"]);
       if (form.formState.errors.automaticThoughts) return;
-    } else if (step === 2) {
-      form.trigger(["evidenceFor", "evidenceAgainst"]);
-      if (form.formState.errors.evidenceFor || form.formState.errors.evidenceAgainst) return;
-    } else if (step === 3) {
-      form.trigger(["alternativePerspective"]);
-      if (form.formState.errors.alternativePerspective) return;
     }
+    // Steps 2 and 3 have optional fields, so we don't need to validate them
     
     setStep(step + 1);
+    
+    // Log form values for debugging
+    console.log("Current form values:", form.getValues());
   };
   
   // Handle back button
