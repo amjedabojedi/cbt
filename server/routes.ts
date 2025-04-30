@@ -195,24 +195,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users/:userId/emotions", authenticate, checkUserAccess, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      const requestData = { ...req.body, userId };
+      
+      // Create a copy of the request data and manually convert the timestamp to a Date object
+      const requestData = { 
+        ...req.body, 
+        userId,
+        // Explicitly convert the timestamp string to a Date object
+        timestamp: req.body.timestamp ? new Date(req.body.timestamp) : new Date()
+      };
       
       // Log the request body for debugging
       console.log("Emotion record request:", {
         body: req.body,
-        userId: userId,
-        schema: insertEmotionRecordSchema.safeParse(requestData)
+        processedData: requestData,
+        userId: userId
       });
       
-      const validatedData = insertEmotionRecordSchema.parse(requestData);
+      // Try explicit schema validation
+      let validationResult = insertEmotionRecordSchema.safeParse(requestData);
+      if (!validationResult.success) {
+        console.log("Validation error:", validationResult.error);
+        return res.status(400).json({ 
+          message: "Invalid data", 
+          errors: validationResult.error.errors 
+        });
+      }
       
-      const emotionRecord = await storage.createEmotionRecord(validatedData);
+      const emotionRecord = await storage.createEmotionRecord(validationResult.data);
       res.status(201).json(emotionRecord);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        console.log("Validation error:", error.errors);
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
-      }
       console.error("Create emotion record error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
