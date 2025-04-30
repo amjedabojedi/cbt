@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -86,6 +86,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   // Initialize form with default values
   const form = useForm<ThoughtRecordFormValues>({
     resolver: zodResolver(thoughtRecordSchema),
+    mode: "onChange",
     defaultValues: {
       automaticThoughts: "",
       cognitiveDistortions: [],
@@ -96,6 +97,9 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
       reflectionRating: 5,
     },
   });
+  
+  // Force update on input fields for better responsiveness
+  const [formKey, setFormKey] = useState(Date.now());
   
   // Mock data for protective factors and coping strategies
   // In real app, this would be fetched from the API
@@ -482,45 +486,89 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
             <FormField
               control={form.control}
               name="evidenceFor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>What evidence supports this thought?</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="List facts that support this thought..."
-                      rows={3}
-                      value={field.value || ''}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      ref={field.ref}
-                      name={field.name}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                // Add a ref to directly access the textarea
+                const textareaRef = useRef<HTMLTextAreaElement>(null);
+                
+                return (
+                  <FormItem>
+                    <FormLabel>What evidence supports this thought?</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="List facts that support this thought..."
+                        rows={3}
+                        value={field.value || ''}
+                        onChange={(e) => {
+                          // Handle the change directly
+                          field.onChange(e);
+                          // Set the value in the form directly as well
+                          form.setValue("evidenceFor", e.target.value, { 
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true 
+                          });
+                        }}
+                        onBlur={field.onBlur}
+                        ref={(el) => {
+                          // Connect to both refs
+                          field.ref(el);
+                          if (textareaRef) {
+                            // @ts-ignore - the ref is a callback, but we want to store the element
+                            textareaRef.current = el;
+                          }
+                        }}
+                        name={field.name}
+                        className="focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             
             <FormField
               control={form.control}
               name="evidenceAgainst"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>What evidence contradicts this thought?</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="List facts that don't support this thought..."
-                      rows={3}
-                      value={field.value || ''}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      ref={field.ref}
-                      name={field.name}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                // Add a ref to directly access the textarea
+                const textareaRef = useRef<HTMLTextAreaElement>(null);
+                
+                return (
+                  <FormItem>
+                    <FormLabel>What evidence contradicts this thought?</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="List facts that don't support this thought..."
+                        rows={3}
+                        value={field.value || ''}
+                        onChange={(e) => {
+                          // Handle the change directly
+                          field.onChange(e);
+                          // Set the value in the form directly as well
+                          form.setValue("evidenceAgainst", e.target.value, { 
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true 
+                          });
+                        }}
+                        onBlur={field.onBlur}
+                        ref={(el) => {
+                          // Connect to both refs
+                          field.ref(el);
+                          if (textareaRef) {
+                            // @ts-ignore - the ref is a callback, but we want to store the element
+                            textareaRef.current = el;
+                          }
+                        }}
+                        name={field.name}
+                        className="focus:border-primary focus:ring-1 focus:ring-primary"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             
             <div className="space-y-3">
@@ -783,6 +831,11 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
     }
   };
 
+  // Force re-render form on step change
+  useEffect(() => {
+    setFormKey(Date.now());
+  }, [step]);
+
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[800px] md:max-w-[900px] p-6 max-h-[90vh] overflow-y-auto">
@@ -795,7 +848,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
         
         <Progress value={progress} className="my-2" />
         
-        <Form {...form}>
+        <Form {...form} key={formKey}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {renderStepContent()}
             
