@@ -288,13 +288,13 @@ export default function EmotionWheel({
     // Core geometry constants
     const centerX = 200;
     const centerY = 200;
-    const coreRadius = 90; // Even larger core circle for better visibility
+    const coreRadius = 80; // Balance core size with other rings
     
     // Define all radii here for consistency
     const middleRadiusStart = coreRadius; // Where middle ring starts
-    const middleRadiusEnd = 140; // Where middle ring ends
+    const middleRadiusEnd = 130; // Where middle ring ends
     const outerRadiusStart = middleRadiusEnd; // Where outer ring starts
-    const outerRadiusEnd = 180; // Where outer ring ends
+    const outerRadiusEnd = 190; // Larger outer ring for more space
     
     const emotionsCount = emotionsData.length;
     const anglePerEmotion = (2 * Math.PI) / emotionsCount;
@@ -608,28 +608,24 @@ export default function EmotionWheel({
                       filter={isSelected ? "url(#shadow)" : ""}
                     />
                     
-                    {/* Tertiary labels only show on hover or when selected to avoid clutter */}
-                    {(hoveredEmotion === tertiary.name || isSelected) && (
-                      <>
-                        {/* Vertical text along the segment radius */}
-                        <text
-                          x={labelX}
-                          y={labelY}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          fill={isSelected ? "#000000" : "#333333"}
-                          style={{
-                            fontSize: '7px',
-                            fontWeight: '600',
-                            textShadow: "0px 0px 3px rgba(255,255,255,0.9)"
-                          }}
-                          className="select-none pointer-events-none"
-                          transform={`rotate(${(midAngle * 180 / Math.PI)})`}
-                        >
-                          {translate(tertiary.name)}
-                        </text>
-                      </>
-                    )}
+                    {/* Always show tertiary labels since we have more space now */}
+                    <text
+                      x={labelX}
+                      y={labelY}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fill={isSelected ? "#000000" : "#333333"}
+                      style={{
+                        fontSize: '7px',
+                        fontWeight: isSelected || hoveredEmotion === tertiary.name ? '700' : '600',
+                        textShadow: "0px 0px 3px rgba(255,255,255,0.9)",
+                        opacity: isSelected || hoveredEmotion === tertiary.name ? 1 : 0.9
+                      }}
+                      className="select-none pointer-events-none"
+                      transform={`rotate(${(midAngle * 180 / Math.PI)})`}
+                    >
+                      {translate(tertiary.name)}
+                    </text>
                   </g>
                 );
               });
