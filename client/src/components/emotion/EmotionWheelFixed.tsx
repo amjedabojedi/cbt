@@ -288,13 +288,13 @@ export default function EmotionWheel({
     // Core geometry constants
     const centerX = 200;
     const centerY = 200;
-    const coreRadius = 80; // Balance core size with other rings
+    const coreRadius = 95; // Increased core size for better visibility
     
     // Define all radii here for consistency
     const middleRadiusStart = coreRadius; // Where middle ring starts
-    const middleRadiusEnd = 130; // Where middle ring ends
+    const middleRadiusEnd = 155; // Increased middle ring area
     const outerRadiusStart = middleRadiusEnd; // Where outer ring starts
-    const outerRadiusEnd = 190; // Larger outer ring for more space
+    const outerRadiusEnd = 195; // Slightly larger outer ring to maximize space
     
     const emotionsCount = emotionsData.length;
     const anglePerEmotion = (2 * Math.PI) / emotionsCount;
@@ -667,11 +667,11 @@ export default function EmotionWheel({
           })}
         </g>
 
-        {/* Center Circle with enhanced styling */}
+        {/* Center Circle with enhanced styling - increased size to match larger wheel */}
         <circle
           cx={centerX}
           cy={centerY}
-          r={30}
+          r={40}
           fill="url(#centerGradient)"
           stroke="#FFFFFF"
           strokeWidth={2}
@@ -682,7 +682,7 @@ export default function EmotionWheel({
         <circle
           cx={centerX}
           cy={centerY}
-          r={28}
+          r={37}
           fill="transparent"
           stroke="#FFFFFF"
           strokeWidth={1}
@@ -693,7 +693,7 @@ export default function EmotionWheel({
         <text
           x={centerX}
           y={centerY}
-          fontSize="11"
+          fontSize="13"
           fontWeight="bold"
           textAnchor="middle"
           fill="#FFFFFF"
@@ -703,8 +703,8 @@ export default function EmotionWheel({
         </text>
         <text
           x={centerX}
-          y={centerY + 14}
-          fontSize="11"
+          y={centerY + 16}
+          fontSize="13"
           fontWeight="bold"
           textAnchor="middle"
           fill="#FFFFFF"
