@@ -1,0 +1,167 @@
+import { useEffect, useState, useRef } from "react";
+import { cn } from "@/lib/utils";
+
+// Define the emotion structure
+interface EmotionData {
+  name: string;
+  color: string;
+  children?: EmotionData[];
+}
+
+// Core emotions data
+const emotionsData: EmotionData[] = [
+  {
+    name: "Joy",
+    color: "#FBBC05",
+    children: [
+      {
+        name: "Happiness",
+        color: "#F9CB9C",
+        children: [
+          { name: "Optimistic", color: "#FFF2CC" },
+          { name: "Cheerful", color: "#FFF2CC" },
+          { name: "Proud", color: "#FFF2CC" },
+        ],
+      },
+      {
+        name: "Contentment",
+        color: "#F9CB9C",
+        children: [
+          { name: "Peaceful", color: "#FFF2CC" },
+          { name: "Satisfied", color: "#FFF2CC" },
+          { name: "Grateful", color: "#FFF2CC" },
+        ],
+      },
+    ],
+  },
+  {
+    name: "Anger",
+    color: "#EA4335",
+    children: [
+      {
+        name: "Rage",
+        color: "#F28B82",
+        children: [
+          { name: "Furious", color: "#FADBD8" },
+          { name: "Irritated", color: "#FADBD8" },
+          { name: "Annoyed", color: "#FADBD8" },
+        ],
+      },
+      {
+        name: "Frustration",
+        color: "#F28B82",
+        children: [
+          { name: "Aggravated", color: "#FADBD8" },
+          { name: "Impatient", color: "#FADBD8" },
+          { name: "Resentful", color: "#FADBD8" },
+        ],
+      },
+    ],
+  },
+  {
+    name: "Sadness",
+    color: "#4285F4",
+    children: [
+      {
+        name: "Despair",
+        color: "#A4C2F4",
+        children: [
+          { name: "Hopeless", color: "#D2E3FC" },
+          { name: "Miserable", color: "#D2E3FC" },
+          { name: "Lonely", color: "#D2E3FC" },
+        ],
+      },
+      {
+        name: "Melancholy",
+        color: "#A4C2F4",
+        children: [
+          { name: "Nostalgic", color: "#D2E3FC" },
+          { name: "Disappointed", color: "#D2E3FC" },
+          { name: "Regretful", color: "#D2E3FC" },
+        ],
+      },
+    ],
+  },
+  {
+    name: "Fear",
+    color: "#34A853",
+    children: [
+      {
+        name: "Anxiety",
+        color: "#93C47D",
+        children: [
+          { name: "Worried", color: "#D9EAD3" },
+          { name: "Nervous", color: "#D9EAD3" },
+          { name: "Uneasy", color: "#D9EAD3" },
+        ],
+      },
+      {
+        name: "Terror",
+        color: "#93C47D",
+        children: [
+          { name: "Horrified", color: "#D9EAD3" },
+          { name: "Scared", color: "#D9EAD3" },
+          { name: "Panicked", color: "#D9EAD3" },
+        ],
+      },
+    ],
+  },
+];
+
+// Arabic translations (would be replaced with proper translation map in production)
+const arabicTranslations: Record<string, string> = {
+  "Joy": "الفرح",
+  "Anger": "الغضب",
+  "Sadness": "الحزن",
+  "Fear": "الخوف",
+  "Happiness": "السعادة",
+  "Contentment": "الرضا",
+  "Rage": "الثورة",
+  "Frustration": "الإحباط",
+  "Despair": "اليأس",
+  "Melancholy": "الكآبة",
+  "Anxiety": "القلق",
+  "Terror": "الرعب",
+  "Optimistic": "متفائل",
+  "Cheerful": "مبهج",
+  "Proud": "فخور",
+  "Peaceful": "مسالم",
+  "Satisfied": "راضي",
+  "Grateful": "ممتن",
+  "Furious": "غاضب جدا",
+  "Irritated": "منزعج",
+  "Annoyed": "مستاء",
+  "Aggravated": "متفاقم",
+  "Impatient": "غير صبور",
+  "Resentful": "حاقد",
+  "Hopeless": "يائس",
+  "Miserable": "بائس",
+  "Lonely": "وحيد",
+  "Nostalgic": "حنين",
+  "Disappointed": "خائب الأمل",
+  "Regretful": "نادم",
+  "Worried": "قلق",
+  "Nervous": "متوتر",
+  "Uneasy": "غير مرتاح",
+  "Horrified": "مرعوب",
+  "Scared": "خائف",
+  "Panicked": "مذعور",
+  "Emotion Path:": "مسار المشاعر:",
+  "Select an Emotion": "اختر شعورًا",
+};
+
+interface EmotionWheelProps {
+  language?: string;
+  direction?: "ltr" | "rtl";
+  onEmotionSelect?: (selection: {
+    coreEmotion: string;
+    primaryEmotion: string;
+    tertiaryEmotion: string;
+  }) => void;
+}
+
+export default function EmotionWheel({
+  language = "en",
+  direction = "ltr",
+  onEmotionSelect,
+}: EmotionWheelProps) {

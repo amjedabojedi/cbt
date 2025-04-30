@@ -1,107 +1,121 @@
 import { useEffect, useState, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 // Define the emotion structure
 interface EmotionData {
   name: string;
   color: string;
+  gradient?: [string, string]; // Start and end colors for gradient
   children?: EmotionData[];
 }
 
-// Core emotions data
+// Core emotions data with enhanced color schemes
 const emotionsData: EmotionData[] = [
   {
     name: "Joy",
-    color: "#FBBC05",
+    color: "#FFC107",
+    gradient: ["#FFC107", "#FFECB3"],
     children: [
       {
         name: "Happiness",
-        color: "#F9CB9C",
+        color: "#FFD54F",
+        gradient: ["#FFD54F", "#FFE082"],
         children: [
-          { name: "Optimistic", color: "#FFF2CC" },
-          { name: "Cheerful", color: "#FFF2CC" },
-          { name: "Proud", color: "#FFF2CC" },
+          { name: "Optimistic", color: "#FFECB3", gradient: ["#FFECB3", "#FFF8E1"] },
+          { name: "Cheerful", color: "#FFE082", gradient: ["#FFE082", "#FFF8E1"] },
+          { name: "Proud", color: "#FFDB58", gradient: ["#FFDB58", "#FFF8E1"] },
         ],
       },
       {
         name: "Contentment",
-        color: "#F9CB9C",
+        color: "#FFD180",
+        gradient: ["#FFD180", "#FFE0B2"],
         children: [
-          { name: "Peaceful", color: "#FFF2CC" },
-          { name: "Satisfied", color: "#FFF2CC" },
-          { name: "Grateful", color: "#FFF2CC" },
+          { name: "Peaceful", color: "#FFE0B2", gradient: ["#FFE0B2", "#FFF3E0"] },
+          { name: "Satisfied", color: "#FFCC80", gradient: ["#FFCC80", "#FFF3E0"] },
+          { name: "Grateful", color: "#FFD180", gradient: ["#FFD180", "#FFF3E0"] },
         ],
       },
     ],
   },
   {
     name: "Anger",
-    color: "#EA4335",
+    color: "#F44336",
+    gradient: ["#F44336", "#FFCDD2"],
     children: [
       {
         name: "Rage",
-        color: "#F28B82",
+        color: "#EF5350",
+        gradient: ["#EF5350", "#E57373"],
         children: [
-          { name: "Furious", color: "#FADBD8" },
-          { name: "Irritated", color: "#FADBD8" },
-          { name: "Annoyed", color: "#FADBD8" },
+          { name: "Furious", color: "#E57373", gradient: ["#E57373", "#FFCDD2"] },
+          { name: "Irritated", color: "#EF9A9A", gradient: ["#EF9A9A", "#FFCDD2"] },
+          { name: "Annoyed", color: "#FFCDD2", gradient: ["#FFCDD2", "#FFEBEE"] },
         ],
       },
       {
         name: "Frustration",
-        color: "#F28B82",
+        color: "#FF8A80",
+        gradient: ["#FF8A80", "#FFCCBC"],
         children: [
-          { name: "Aggravated", color: "#FADBD8" },
-          { name: "Impatient", color: "#FADBD8" },
-          { name: "Resentful", color: "#FADBD8" },
+          { name: "Aggravated", color: "#FF8A65", gradient: ["#FF8A65", "#FFCCBC"] },
+          { name: "Impatient", color: "#FFAB91", gradient: ["#FFAB91", "#FFCCBC"] },
+          { name: "Resentful", color: "#FFCCBC", gradient: ["#FFCCBC", "#FBE9E7"] },
         ],
       },
     ],
   },
   {
     name: "Sadness",
-    color: "#4285F4",
+    color: "#2196F3",
+    gradient: ["#2196F3", "#BBDEFB"],
     children: [
       {
         name: "Despair",
-        color: "#A4C2F4",
+        color: "#42A5F5",
+        gradient: ["#42A5F5", "#90CAF9"],
         children: [
-          { name: "Hopeless", color: "#D2E3FC" },
-          { name: "Miserable", color: "#D2E3FC" },
-          { name: "Lonely", color: "#D2E3FC" },
+          { name: "Hopeless", color: "#90CAF9", gradient: ["#90CAF9", "#BBDEFB"] },
+          { name: "Miserable", color: "#64B5F6", gradient: ["#64B5F6", "#BBDEFB"] },
+          { name: "Lonely", color: "#BBDEFB", gradient: ["#BBDEFB", "#E3F2FD"] },
         ],
       },
       {
         name: "Melancholy",
-        color: "#A4C2F4",
+        color: "#4FC3F7",
+        gradient: ["#4FC3F7", "#B3E5FC"],
         children: [
-          { name: "Nostalgic", color: "#D2E3FC" },
-          { name: "Disappointed", color: "#D2E3FC" },
-          { name: "Regretful", color: "#D2E3FC" },
+          { name: "Nostalgic", color: "#81D4FA", gradient: ["#81D4FA", "#B3E5FC"] },
+          { name: "Disappointed", color: "#4FC3F7", gradient: ["#4FC3F7", "#B3E5FC"] },
+          { name: "Regretful", color: "#B3E5FC", gradient: ["#B3E5FC", "#E1F5FE"] },
         ],
       },
     ],
   },
   {
     name: "Fear",
-    color: "#34A853",
+    color: "#4CAF50",
+    gradient: ["#4CAF50", "#C8E6C9"],
     children: [
       {
         name: "Anxiety",
-        color: "#93C47D",
+        color: "#66BB6A",
+        gradient: ["#66BB6A", "#A5D6A7"],
         children: [
-          { name: "Worried", color: "#D9EAD3" },
-          { name: "Nervous", color: "#D9EAD3" },
-          { name: "Uneasy", color: "#D9EAD3" },
+          { name: "Worried", color: "#A5D6A7", gradient: ["#A5D6A7", "#C8E6C9"] },
+          { name: "Nervous", color: "#81C784", gradient: ["#81C784", "#C8E6C9"] },
+          { name: "Uneasy", color: "#C8E6C9", gradient: ["#C8E6C9", "#E8F5E9"] },
         ],
       },
       {
         name: "Terror",
-        color: "#93C47D",
+        color: "#26A69A",
+        gradient: ["#26A69A", "#B2DFDB"],
         children: [
-          { name: "Horrified", color: "#D9EAD3" },
-          { name: "Scared", color: "#D9EAD3" },
-          { name: "Panicked", color: "#D9EAD3" },
+          { name: "Horrified", color: "#4DB6AC", gradient: ["#4DB6AC", "#B2DFDB"] },
+          { name: "Scared", color: "#80CBC4", gradient: ["#80CBC4", "#B2DFDB"] },
+          { name: "Panicked", color: "#B2DFDB", gradient: ["#B2DFDB", "#E0F2F1"] },
         ],
       },
     ],
@@ -199,8 +213,71 @@ export default function EmotionWheel({
     const emotionsCount = emotionsData.length;
     const anglePerEmotion = (2 * Math.PI) / emotionsCount;
 
+    // Define the gradient IDs
+    const defineGradients = () => {
+      return (
+        <defs>
+          {/* Core emotion gradients */}
+          {emotionsData.map((emotion, index) => (
+            <radialGradient
+              key={`gradient-core-${index}`}
+              id={`gradient-core-${emotion.name}`}
+              cx="0.5"
+              cy="0.5"
+              r="0.5"
+              fx="0.5"
+              fy="0.5"
+            >
+              <stop offset="0%" stopColor={emotion.gradient?.[0] || emotion.color} />
+              <stop offset="100%" stopColor={emotion.gradient?.[1] || emotion.color} />
+            </radialGradient>
+          ))}
+          
+          {/* Primary emotion gradients */}
+          {emotionsData.flatMap((core) => 
+            core.children?.map((primary, index) => (
+              <radialGradient
+                key={`gradient-primary-${core.name}-${index}`}
+                id={`gradient-primary-${primary.name}`}
+                cx="0.5"
+                cy="0.5" 
+                r="0.5"
+                fx="0.5"
+                fy="0.5"
+              >
+                <stop offset="0%" stopColor={primary.gradient?.[0] || primary.color} />
+                <stop offset="100%" stopColor={primary.gradient?.[1] || primary.color} />
+              </radialGradient>
+            )) || []
+          )}
+          
+          {/* Tertiary emotion gradients */}
+          {emotionsData.flatMap((core) => 
+            core.children?.flatMap((primary) => 
+              primary.children?.map((tertiary, index) => (
+                <radialGradient
+                  key={`gradient-tertiary-${primary.name}-${index}`}
+                  id={`gradient-tertiary-${tertiary.name}`}
+                  cx="0.5"
+                  cy="0.5"
+                  r="0.5"
+                  fx="0.5"
+                  fy="0.5"
+                >
+                  <stop offset="0%" stopColor={tertiary.gradient?.[0] || tertiary.color} />
+                  <stop offset="100%" stopColor={tertiary.gradient?.[1] || tertiary.color} />
+                </radialGradient>
+              )) || []
+            ) || []
+          )}
+        </defs>
+      );
+    };
+
     return (
       <g>
+        {defineGradients()}
+        
         {/* Core Emotions (Center) */}
         <g id="core-emotions">
           {emotionsData.map((emotion, index) => {
@@ -228,16 +305,17 @@ export default function EmotionWheel({
                 <path
                   d={pathData}
                   className={cn(
-                    "slice cursor-pointer transition-opacity",
-                    selectedCore === emotion.name ? "stroke-2" : "hover:opacity-80",
+                    "slice cursor-pointer transition-all duration-300 ease-in-out",
+                    selectedCore === emotion.name 
+                      ? "stroke-white stroke-2 shadow-lg" 
+                      : "hover:opacity-90 stroke-white stroke-1",
                     selectedCore && selectedCore !== emotion.name ? "opacity-50" : ""
                   )}
-                  fill={emotion.color}
-                  stroke="#fff"
-                  strokeWidth={selectedCore === emotion.name ? 2 : 1}
+                  fill={`url(#gradient-core-${emotion.name})`}
                   onClick={() => handleCoreSelect(emotion.name)}
                   onMouseEnter={() => setHoveredEmotion(emotion.name)}
                   onMouseLeave={() => setHoveredEmotion(null)}
+                  filter={selectedCore === emotion.name ? "url(#shadow)" : ""}
                 />
                 
                 {/* Only show label for core emotions if no core is selected or this is the selected core */}
@@ -246,7 +324,7 @@ export default function EmotionWheel({
                     x={labelX}
                     y={labelY}
                     textAnchor="middle"
-                    className="text-xs font-medium select-none pointer-events-none"
+                    className="text-xs font-semibold select-none pointer-events-none"
                     fill="#424242"
                   >
                     {translate(emotion.name)}
@@ -302,16 +380,17 @@ export default function EmotionWheel({
                     <path
                       d={pathData}
                       className={cn(
-                        "slice cursor-pointer transition-opacity",
-                        selectedPrimary === primary.name ? "stroke-2" : "hover:opacity-80",
-                        selectedPrimary && selectedPrimary !== primary.name ? "opacity-50" : ""
+                        "slice cursor-pointer transition-all duration-300 ease-in-out",
+                        selectedPrimary === primary.name 
+                          ? "stroke-white stroke-2 shadow-lg" 
+                          : "hover:opacity-90 hover:scale-[1.02] stroke-white stroke-1",
+                        selectedPrimary && selectedPrimary !== primary.name ? "opacity-40" : ""
                       )}
-                      fill={primary.color}
-                      stroke="#fff"
-                      strokeWidth={selectedPrimary === primary.name ? 2 : 1}
+                      fill={`url(#gradient-primary-${primary.name})`}
                       onClick={() => handlePrimarySelect(primary.name)}
                       onMouseEnter={() => setHoveredEmotion(primary.name)}
                       onMouseLeave={() => setHoveredEmotion(null)}
+                      filter={selectedPrimary === primary.name ? "url(#shadow)" : ""}
                     />
                     
                     {/* Only show label if no primary is selected or this is the selected primary */}
@@ -386,16 +465,17 @@ export default function EmotionWheel({
                     <path
                       d={pathData}
                       className={cn(
-                        "slice cursor-pointer transition-opacity",
-                        selectedTertiary === tertiary.name ? "stroke-2" : "hover:opacity-80",
-                        selectedTertiary && selectedTertiary !== tertiary.name ? "opacity-50" : ""
+                        "slice cursor-pointer transition-all duration-300 ease-in-out",
+                        selectedTertiary === tertiary.name 
+                          ? "stroke-white stroke-2 shadow-lg" 
+                          : "hover:opacity-90 hover:scale-[1.02] stroke-white stroke-1",
+                        selectedTertiary && selectedTertiary !== tertiary.name ? "opacity-40" : ""
                       )}
-                      fill={tertiary.color}
-                      stroke="#fff"
-                      strokeWidth={selectedTertiary === tertiary.name ? 2 : 1}
+                      fill={`url(#gradient-tertiary-${tertiary.name})`}
                       onClick={() => handleTertiarySelect(tertiary.name)}
                       onMouseEnter={() => setHoveredEmotion(tertiary.name)}
                       onMouseLeave={() => setHoveredEmotion(null)}
+                      filter={selectedTertiary === tertiary.name ? "url(#shadow)" : ""}
                     />
                     
                     <text
