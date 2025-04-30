@@ -13,184 +13,353 @@ interface EmotionData {
 // Core emotions data with enhanced color schemes
 const emotionsData: EmotionData[] = [
   {
-    name: "Joy",
-    color: "#FFC107",
-    gradient: ["#FFC107", "#FFECB3"],
+    name: "Anger",
+    color: "#E53E3E", // Red
+    gradient: ["#FC8181", "#C53030"],
     children: [
       {
-        name: "Happiness",
-        color: "#FFD54F",
-        gradient: ["#FFD54F", "#FFE082"],
+        name: "Rage",
+        color: "#F56565",
+        gradient: ["#FEB2B2", "#E53E3E"],
         children: [
-          { name: "Optimistic", color: "#FFECB3", gradient: ["#FFECB3", "#FFF8E1"] },
-          { name: "Cheerful", color: "#FFE082", gradient: ["#FFE082", "#FFF8E1"] },
-          { name: "Proud", color: "#FFDB58", gradient: ["#FFDB58", "#FFF8E1"] },
+          { name: "Hate", color: "#FC8181", gradient: ["#FED7D7", "#F56565"] },
+          { name: "Hostile", color: "#F56565", gradient: ["#FEB2B2", "#E53E3E"] }
         ],
       },
       {
-        name: "Gratitude",
-        color: "#FFCA28",
-        gradient: ["#FFCA28", "#FFE082"],
+        name: "Exasperated",
+        color: "#E53E3E",
+        gradient: ["#FC8181", "#C53030"],
         children: [
-          { name: "Thankful", color: "#FFE082", gradient: ["#FFE082", "#FFF8E1"] },
-          { name: "Appreciative", color: "#FFD54F", gradient: ["#FFD54F", "#FFF8E1"] },
+          { name: "Agitated", color: "#E53E3E", gradient: ["#FC8181", "#C53030"] },
+          { name: "Frustrated", color: "#C53030", gradient: ["#E53E3E", "#9B2C2C"] }
         ],
       },
       {
-        name: "Serenity",
-        color: "#FFB300",
-        gradient: ["#FFB300", "#FFD54F"],
+        name: "Irritable",
+        color: "#C53030",
+        gradient: ["#E53E3E", "#9B2C2C"],
         children: [
-          { name: "Peaceful", color: "#FFECB3", gradient: ["#FFECB3", "#FFF8E1"] },
-          { name: "Calm", color: "#FFE082", gradient: ["#FFE082", "#FFF8E1"] },
-          { name: "Content", color: "#FFD54F", gradient: ["#FFD54F", "#FFF8E1"] },
+          { name: "Annoyed", color: "#C53030", gradient: ["#E53E3E", "#9B2C2C"] },
+          { name: "Aggravated", color: "#9B2C2C", gradient: ["#C53030", "#742A2A"] }
         ],
       },
+      {
+        name: "Envy",
+        color: "#9B2C2C",
+        gradient: ["#C53030", "#742A2A"],
+        children: [
+          { name: "Resentful", color: "#9B2C2C", gradient: ["#C53030", "#742A2A"] },
+          { name: "Jealous", color: "#742A2A", gradient: ["#9B2C2C", "#63171B"] }
+        ],
+      },
+      {
+        name: "Disgust",
+        color: "#742A2A",
+        gradient: ["#9B2C2C", "#63171B"],
+        children: [
+          { name: "Contempt", color: "#742A2A", gradient: ["#9B2C2C", "#63171B"] },
+          { name: "Revolted", color: "#63171B", gradient: ["#742A2A", "#501212"] }
+        ],
+      }
     ],
   },
   {
     name: "Sadness",
-    color: "#2196F3",
-    gradient: ["#2196F3", "#BBDEFB"],
+    color: "#3182CE", // Blue
+    gradient: ["#63B3ED", "#2C5282"],
     children: [
+      {
+        name: "Suffering",
+        color: "#4299E1",
+        gradient: ["#90CDF4", "#2B6CB0"],
+        children: [
+          { name: "Agony", color: "#63B3ED", gradient: ["#BEE3F8", "#3182CE"] },
+          { name: "Hurt", color: "#4299E1", gradient: ["#90CDF4", "#2B6CB0"] }
+        ],
+      },
+      {
+        name: "Sadness",
+        color: "#3182CE",
+        gradient: ["#63B3ED", "#2C5282"],
+        children: [
+          { name: "Depressed", color: "#3182CE", gradient: ["#63B3ED", "#2C5282"] },
+          { name: "Sorrow", color: "#2B6CB0", gradient: ["#3182CE", "#2A4365"] }
+        ],
+      },
+      {
+        name: "Disappointed",
+        color: "#2C5282",
+        gradient: ["#3182CE", "#2A4365"],
+        children: [
+          { name: "Dismayed", color: "#2C5282", gradient: ["#3182CE", "#2A4365"] },
+          { name: "Displeased", color: "#2A4365", gradient: ["#2C5282", "#1A365D"] }
+        ],
+      },
+      {
+        name: "Shameful",
+        color: "#2B6CB0",
+        gradient: ["#3182CE", "#2A4365"],
+        children: [
+          { name: "Regretful", color: "#2B6CB0", gradient: ["#3182CE", "#2A4365"] },
+          { name: "Guilty", color: "#2A4365", gradient: ["#2B6CB0", "#1A365D"] }
+        ],
+      },
+      {
+        name: "Neglected",
+        color: "#2A4365",
+        gradient: ["#2B6CB0", "#1A365D"],
+        children: [
+          { name: "Isolated", color: "#2A4365", gradient: ["#2B6CB0", "#1A365D"] },
+          { name: "Lonely", color: "#1A365D", gradient: ["#2A4365", "#0C2D53"] }
+        ],
+      },
       {
         name: "Despair",
-        color: "#1E88E5",
-        gradient: ["#1E88E5", "#90CAF9"],
+        color: "#1A365D",
+        gradient: ["#2A4365", "#0C2D53"],
         children: [
-          { name: "Hopeless", color: "#BBDEFB", gradient: ["#BBDEFB", "#E3F2FD"] },
-          { name: "Powerless", color: "#90CAF9", gradient: ["#90CAF9", "#E3F2FD"] },
+          { name: "Grief", color: "#1A365D", gradient: ["#2A4365", "#0C2D53"] },
+          { name: "Powerless", color: "#0C2D53", gradient: ["#1A365D", "#0A2744"] }
         ],
-      },
-      {
-        name: "Grief",
-        color: "#1976D2",
-        gradient: ["#1976D2", "#64B5F6"],
-        children: [
-          { name: "Loss", color: "#BBDEFB", gradient: ["#BBDEFB", "#E3F2FD"] },
-          { name: "Heartbroken", color: "#90CAF9", gradient: ["#90CAF9", "#E3F2FD"] },
-        ],
-      },
-      {
-        name: "Loneliness",
-        color: "#1565C0",
-        gradient: ["#1565C0", "#42A5F5"],
-        children: [
-          { name: "Abandoned", color: "#BBDEFB", gradient: ["#BBDEFB", "#E3F2FD"] },
-          { name: "Isolated", color: "#90CAF9", gradient: ["#90CAF9", "#E3F2FD"] },
-        ],
-      },
-    ],
-  },
-  {
-    name: "Fear",
-    color: "#673AB7",
-    gradient: ["#673AB7", "#D1C4E9"],
-    children: [
-      {
-        name: "Terror",
-        color: "#5E35B1",
-        gradient: ["#5E35B1", "#B39DDB"],
-        children: [
-          { name: "Panicked", color: "#D1C4E9", gradient: ["#D1C4E9", "#EDE7F6"] },
-          { name: "Petrified", color: "#B39DDB", gradient: ["#B39DDB", "#EDE7F6"] },
-        ],
-      },
-      {
-        name: "Anxiety",
-        color: "#512DA8",
-        gradient: ["#512DA8", "#9575CD"],
-        children: [
-          { name: "Worried", color: "#D1C4E9", gradient: ["#D1C4E9", "#EDE7F6"] },
-          { name: "Nervous", color: "#B39DDB", gradient: ["#B39DDB", "#EDE7F6"] },
-          { name: "Restless", color: "#9575CD", gradient: ["#9575CD", "#EDE7F6"] },
-        ],
-      },
-    ],
-  },
-  {
-    name: "Anger",
-    color: "#F44336",
-    gradient: ["#F44336", "#FFCDD2"],
-    children: [
-      {
-        name: "Rage",
-        color: "#E53935",
-        gradient: ["#E53935", "#EF9A9A"],
-        children: [
-          { name: "Furious", color: "#FFCDD2", gradient: ["#FFCDD2", "#FFEBEE"] },
-          { name: "Violent", color: "#EF9A9A", gradient: ["#EF9A9A", "#FFEBEE"] },
-        ],
-      },
-      {
-        name: "Frustration",
-        color: "#D32F2F",
-        gradient: ["#D32F2F", "#E57373"],
-        children: [
-          { name: "Annoyed", color: "#FFCDD2", gradient: ["#FFCDD2", "#FFEBEE"] },
-          { name: "Impatient", color: "#EF9A9A", gradient: ["#EF9A9A", "#FFEBEE"] },
-        ],
-      },
-      {
-        name: "Resentment",
-        color: "#C62828",
-        gradient: ["#C62828", "#EF5350"],
-        children: [
-          { name: "Bitter", color: "#FFCDD2", gradient: ["#FFCDD2", "#FFEBEE"] },
-          { name: "Envious", color: "#EF9A9A", gradient: ["#EF9A9A", "#FFEBEE"] },
-        ],
-      },
-    ],
-  },
-  {
-    name: "Disgust",
-    color: "#4CAF50",
-    gradient: ["#4CAF50", "#C8E6C9"],
-    children: [
-      {
-        name: "Revulsion",
-        color: "#43A047",
-        gradient: ["#43A047", "#A5D6A7"],
-        children: [
-          { name: "Repulsed", color: "#C8E6C9", gradient: ["#C8E6C9", "#E8F5E9"] },
-        ],
-      },
-      {
-        name: "Contempt",
-        color: "#388E3C",
-        gradient: ["#388E3C", "#81C784"],
-        children: [
-          { name: "Disdain", color: "#C8E6C9", gradient: ["#C8E6C9", "#E8F5E9"] },
-          { name: "Scornful", color: "#A5D6A7", gradient: ["#A5D6A7", "#E8F5E9"] },
-        ],
-      },
+      }
     ],
   },
   {
     name: "Surprise",
-    color: "#FF9800",
-    gradient: ["#FF9800", "#FFE0B2"],
+    color: "#6B46C1", // Purple
+    gradient: ["#9F7AEA", "#553C9A"],
     children: [
       {
-        name: "Amazement",
-        color: "#FB8C00",
-        gradient: ["#FB8C00", "#FFCC80"],
+        name: "Stunned",
+        color: "#805AD5",
+        gradient: ["#B794F4", "#6B46C1"],
         children: [
-          { name: "Astonished", color: "#FFE0B2", gradient: ["#FFE0B2", "#FFF3E0"] },
-          { name: "Awe", color: "#FFCC80", gradient: ["#FFCC80", "#FFF3E0"] },
+          { name: "Shocked", color: "#9F7AEA", gradient: ["#D6BCFA", "#805AD5"] },
+          { name: "Dismayed", color: "#805AD5", gradient: ["#B794F4", "#6B46C1"] }
         ],
       },
       {
-        name: "Confusion",
-        color: "#F57C00",
-        gradient: ["#F57C00", "#FFB74D"],
+        name: "Confused",
+        color: "#6B46C1",
+        gradient: ["#9F7AEA", "#553C9A"],
         children: [
-          { name: "Bewildered", color: "#FFE0B2", gradient: ["#FFE0B2", "#FFF3E0"] },
-          { name: "Perplexed", color: "#FFCC80", gradient: ["#FFCC80", "#FFF3E0"] },
+          { name: "Disillusioned", color: "#6B46C1", gradient: ["#9F7AEA", "#553C9A"] },
+          { name: "Perplexed", color: "#553C9A", gradient: ["#6B46C1", "#44337A"] }
         ],
       },
+      {
+        name: "Amazed",
+        color: "#553C9A",
+        gradient: ["#6B46C1", "#44337A"],
+        children: [
+          { name: "Astonished", color: "#553C9A", gradient: ["#6B46C1", "#44337A"] },
+          { name: "Awe-struck", color: "#44337A", gradient: ["#553C9A", "#322659"] }
+        ],
+      },
+      {
+        name: "Overcome",
+        color: "#44337A",
+        gradient: ["#553C9A", "#322659"],
+        children: [
+          { name: "Speechless", color: "#44337A", gradient: ["#553C9A", "#322659"] },
+          { name: "Astounded", color: "#322659", gradient: ["#44337A", "#1F1746"] }
+        ],
+      },
+      {
+        name: "Moved",
+        color: "#322659",
+        gradient: ["#44337A", "#1F1746"],
+        children: [
+          { name: "Stimulated", color: "#322659", gradient: ["#44337A", "#1F1746"] },
+          { name: "Touched", color: "#1F1746", gradient: ["#322659", "#170B39"] }
+        ],
+      }
     ],
   },
+  {
+    name: "Joy",
+    color: "#D69E2E", // Yellow
+    gradient: ["#F6E05E", "#B7791F"],
+    children: [
+      {
+        name: "Content",
+        color: "#ECC94B",
+        gradient: ["#FAF089", "#D69E2E"],
+        children: [
+          { name: "Pleased", color: "#F6E05E", gradient: ["#FEFCBF", "#ECC94B"] },
+          { name: "Satisfied", color: "#ECC94B", gradient: ["#FAF089", "#D69E2E"] }
+        ],
+      },
+      {
+        name: "Happy",
+        color: "#D69E2E",
+        gradient: ["#F6E05E", "#B7791F"],
+        children: [
+          { name: "Amused", color: "#D69E2E", gradient: ["#F6E05E", "#B7791F"] },
+          { name: "Delighted", color: "#B7791F", gradient: ["#D69E2E", "#975A16"] }
+        ],
+      },
+      {
+        name: "Cheerful",
+        color: "#B7791F",
+        gradient: ["#D69E2E", "#975A16"],
+        children: [
+          { name: "Jovial", color: "#B7791F", gradient: ["#D69E2E", "#975A16"] },
+          { name: "Blissful", color: "#975A16", gradient: ["#B7791F", "#744210"] }
+        ],
+      },
+      {
+        name: "Proud",
+        color: "#975A16",
+        gradient: ["#B7791F", "#744210"],
+        children: [
+          { name: "Triumphant", color: "#975A16", gradient: ["#B7791F", "#744210"] },
+          { name: "Illustrious", color: "#744210", gradient: ["#975A16", "#5F370E"] }
+        ],
+      },
+      {
+        name: "Optimistic",
+        color: "#744210",
+        gradient: ["#975A16", "#5F370E"],
+        children: [
+          { name: "Eager", color: "#744210", gradient: ["#975A16", "#5F370E"] },
+          { name: "Hopeful", color: "#5F370E", gradient: ["#744210", "#473107"] }
+        ],
+      },
+      {
+        name: "Enthusiastic",
+        color: "#5F370E",
+        gradient: ["#744210", "#473107"],
+        children: [
+          { name: "Excited", color: "#5F370E", gradient: ["#744210", "#473107"] },
+          { name: "Zeal", color: "#473107", gradient: ["#5F370E", "#372303"] }
+        ],
+      },
+      {
+        name: "Elation",
+        color: "#473107",
+        gradient: ["#5F370E", "#372303"],
+        children: [
+          { name: "Euphoric", color: "#473107", gradient: ["#5F370E", "#372303"] },
+          { name: "Jubilation", color: "#372303", gradient: ["#473107", "#2C1D05"] }
+        ],
+      },
+      {
+        name: "Enthralled",
+        color: "#372303",
+        gradient: ["#473107", "#2C1D05"],
+        children: [
+          { name: "Enchanted", color: "#372303", gradient: ["#473107", "#2C1D05"] },
+          { name: "Rapture", color: "#2C1D05", gradient: ["#372303", "#211606"] }
+        ],
+      }
+    ],
+  },
+  {
+    name: "Love",
+    color: "#E6338F", // Pink
+    gradient: ["#FB77C8", "#BF2975"],
+    children: [
+      {
+        name: "Affectionate",
+        color: "#F54DAA",
+        gradient: ["#FAA3D9", "#D6277E"],
+        children: [
+          { name: "Romantic", color: "#FB77C8", gradient: ["#FDC4E9", "#F54DAA"] },
+          { name: "Fondness", color: "#F54DAA", gradient: ["#FAA3D9", "#D6277E"] }
+        ],
+      },
+      {
+        name: "Longing",
+        color: "#E6338F",
+        gradient: ["#FB77C8", "#BF2975"],
+        children: [
+          { name: "Sentimental", color: "#E6338F", gradient: ["#FB77C8", "#BF2975"] },
+          { name: "Attracted", color: "#D6277E", gradient: ["#E6338F", "#AC1E60"] }
+        ],
+      },
+      {
+        name: "Desire",
+        color: "#BF2975",
+        gradient: ["#E6338F", "#A31E60"],
+        children: [
+          { name: "Passion", color: "#BF2975", gradient: ["#E6338F", "#A31E60"] },
+          { name: "Infatuation", color: "#A31E60", gradient: ["#BF2975", "#82184B"] }
+        ],
+      },
+      {
+        name: "Tenderness",
+        color: "#A31E60",
+        gradient: ["#BF2975", "#82184B"],
+        children: [
+          { name: "Caring", color: "#A31E60", gradient: ["#BF2975", "#82184B"] },
+          { name: "Compassionate", color: "#82184B", gradient: ["#A31E60", "#641239"] }
+        ],
+      },
+      {
+        name: "Peaceful",
+        color: "#82184B",
+        gradient: ["#A31E60", "#641239"],
+        children: [
+          { name: "Relieved", color: "#82184B", gradient: ["#A31E60", "#641239"] },
+          { name: "Satisfied", color: "#641239", gradient: ["#82184B", "#500D2D"] }
+        ],
+      }
+    ],
+  },
+  {
+    name: "Fear",
+    color: "#38A169", // Green
+    gradient: ["#68D391", "#2F855A"],
+    children: [
+      {
+        name: "Scared",
+        color: "#48BB78",
+        gradient: ["#9AE6B4", "#38A169"],
+        children: [
+          { name: "Frightened", color: "#68D391", gradient: ["#C6F6D5", "#48BB78"] },
+          { name: "Helpless", color: "#48BB78", gradient: ["#9AE6B4", "#38A169"] }
+        ],
+      },
+      {
+        name: "Terror",
+        color: "#38A169",
+        gradient: ["#68D391", "#2F855A"],
+        children: [
+          { name: "Panic", color: "#38A169", gradient: ["#68D391", "#2F855A"] },
+          { name: "Hysterical", color: "#2F855A", gradient: ["#38A169", "#276749"] }
+        ],
+      },
+      {
+        name: "Insecure",
+        color: "#2F855A",
+        gradient: ["#38A169", "#276749"],
+        children: [
+          { name: "Inferior", color: "#2F855A", gradient: ["#38A169", "#276749"] },
+          { name: "Inadequate", color: "#276749", gradient: ["#2F855A", "#1C4532"] }
+        ],
+      },
+      {
+        name: "Nervous",
+        color: "#276749",
+        gradient: ["#2F855A", "#1C4532"],
+        children: [
+          { name: "Worried", color: "#276749", gradient: ["#2F855A", "#1C4532"] },
+          { name: "Anxious", color: "#1C4532", gradient: ["#276749", "#133B28"] }
+        ],
+      },
+      {
+        name: "Horror",
+        color: "#1C4532",
+        gradient: ["#276749", "#133B28"],
+        children: [
+          { name: "Mortified", color: "#1C4532", gradient: ["#276749", "#133B28"] },
+          { name: "Dread", color: "#133B28", gradient: ["#1C4532", "#0A301E"] }
+        ],
+      }
+    ],
+  }
 ];
 
 interface EmotionWheelProps {
@@ -228,45 +397,139 @@ export default function EmotionWheel({
 
   // Arabic translations (would be replaced with proper translation map in production)
   const arabicTranslations: Record<string, string> = {
+    // Core emotions
     "Joy": "الفرح",
     "Anger": "الغضب",
     "Sadness": "الحزن",
     "Fear": "الخوف",
-    "Happiness": "السعادة",
-    "Gratitude": "الامتنان",
-    "Serenity": "الصفاء",
-    "Rage": "الثورة",
-    "Frustration": "الإحباط",
-    "Despair": "اليأس",
-    "Grief": "الحزن العميق",
-    "Loneliness": "الوحدة",
-    "Anxiety": "القلق",
-    "Terror": "الرعب",
-    "Optimistic": "متفائل",
-    "Cheerful": "مبهج",
-    "Proud": "فخور",
-    "Peaceful": "مسالم",
-    "Calm": "هادئ",
-    "Content": "مكتفي",
-    "Thankful": "شاكر",
-    "Appreciative": "مقدر",
-    "Furious": "غاضب جدا",
-    "Irritated": "منزعج",
-    "Annoyed": "مستاء",
-    "Impatient": "غير صبور",
-    "Resentful": "حاقد",
-    "Hopeless": "يائس",
-    "Miserable": "بائس",
-    "Lonely": "وحيد",
-    "Nostalgic": "حنين",
+    "Love": "الحب",
+    "Surprise": "المفاجأة",
+    
+    // Anger secondary emotions
+    "Rage": "الغيظ",
+    "Exasperated": "مستفز",
+    "Irritable": "متهيج",
+    "Envy": "الحسد",
+    "Disgust": "الاشمئزاز",
+    
+    // Anger tertiary emotions
+    "Hate": "الكراهية",
+    "Hostile": "عدائي",
+    "Agitated": "مضطرب",
+    "Frustrated": "محبط",
+    "Annoyed": "منزعج",
+    "Aggravated": "متفاقم",
+    "Resentful": "استياء",
+    "Jealous": "غيور",
+    "Contempt": "احتقار",
+    "Revolted": "متقزز",
+    
+    // Sadness secondary emotions
+    "Suffering": "المعاناة",
     "Disappointed": "خائب الأمل",
+    "Shameful": "مخجل",
+    "Neglected": "مهمل",
+    "Despair": "اليأس",
+    
+    // Sadness tertiary emotions
+    "Agony": "ألم شديد",
+    "Hurt": "متألم",
+    "Depressed": "مكتئب",
+    "Sorrow": "أسى",
+    "Dismayed": "مصدوم",
+    "Displeased": "غير راض",
     "Regretful": "نادم",
-    "Worried": "قلق",
-    "Nervous": "متوتر",
-    "Uneasy": "غير مرتاح",
-    "Horrified": "مرعوب",
+    "Guilty": "مذنب",
+    "Isolated": "معزول",
+    "Lonely": "وحيد",
+    "Grief": "حزن عميق",
+    "Powerless": "عاجز",
+    
+    // Surprise secondary emotions
+    "Stunned": "مذهول",
+    "Confused": "مرتبك",
+    "Amazed": "مندهش",
+    "Overcome": "مغلوب",
+    "Moved": "متأثر",
+    
+    // Surprise tertiary emotions
+    "Shocked": "مصدوم",
+    "Stunned_Dismayed": "مفجوع", // Renamed to avoid duplicate keys
+    "Disillusioned": "خائب الظن",
+    "Perplexed": "محتار",
+    "Astonished": "متعجب",
+    "Awe-struck": "مبهور",
+    "Speechless": "عاجز عن الكلام",
+    "Astounded": "مندهش",
+    "Stimulated": "متحفز",
+    "Touched": "متأثر",
+    
+    // Joy secondary emotions
+    "Content": "راضي",
+    "Happy": "سعيد",
+    "Cheerful": "مرح",
+    "Proud": "فخور",
+    "Optimistic": "متفائل",
+    "Enthusiastic": "متحمس",
+    "Elation": "ابتهاج",
+    "Enthralled": "مأخوذ",
+    
+    // Joy tertiary emotions
+    "Pleased": "مسرور",
+    "Content_Satisfied": "راضي", // Renamed to avoid duplicate keys
+    "Amused": "مستمتع",
+    "Delighted": "مبتهج",
+    "Jovial": "مرح",
+    "Blissful": "سعيد",
+    "Triumphant": "منتصر",
+    "Illustrious": "بارز",
+    "Eager": "متلهف",
+    "Hopeful": "متفائل",
+    "Excited": "متحمس",
+    "Zeal": "حماس",
+    "Euphoric": "نشوة",
+    "Jubilation": "فرح شديد",
+    "Enchanted": "مفتون",
+    "Rapture": "نشوة",
+    
+    // Love secondary emotions
+    "Affectionate": "عاطفي",
+    "Longing": "شوق",
+    "Desire": "رغبة",
+    "Tenderness": "حنان",
+    "Peaceful": "هادئ",
+    
+    // Love tertiary emotions
+    "Romantic": "رومانسي",
+    "Fondness": "مودة",
+    "Sentimental": "عاطفي",
+    "Attracted": "منجذب",
+    "Passion": "شغف",
+    "Infatuation": "افتتان",
+    "Caring": "مهتم",
+    "Compassionate": "متعاطف",
+    "Relieved": "مرتاح",
+    
+    // Fear secondary emotions
     "Scared": "خائف",
-    "Panicked": "مذعور",
+    "Terror": "رعب",
+    "Insecure": "غير آمن",
+    "Nervous": "متوتر",
+    "Horror": "فزع",
+    
+    // Fear tertiary emotions
+    "Frightened": "مرعوب",
+    "Helpless": "عاجز",
+    "Panic": "ذعر",
+    "Hysterical": "هستيري",
+    "Inferior": "أدنى",
+    "Inadequate": "غير كافي",
+    "Worried": "قلق",
+    "Anxious": "قلق",
+    "Mortified": "مرعوب",
+    "Dread": "خوف",
+    
+    // UI elements
     "Emotion Path:": "مسار المشاعر:",
     "Select an": "اختر",
     "Emotion": "شعورًا",
@@ -277,6 +540,15 @@ export default function EmotionWheel({
 
   // Translation function
   const translate = (text: string): string => {
+    // Special cases for renamed keys to avoid duplication
+    if (text === "Dismayed" && language === "ar") {
+      return arabicTranslations["Stunned_Dismayed"];
+    }
+    
+    if (text === "Satisfied" && language === "ar") {
+      return arabicTranslations["Content_Satisfied"];
+    }
+    
     if (language === "ar" && arabicTranslations[text]) {
       return arabicTranslations[text];
     }
