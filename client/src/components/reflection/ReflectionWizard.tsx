@@ -75,6 +75,10 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedProtectiveFactors, setSelectedProtectiveFactors] = useState<number[]>([]);
   const [selectedCopingStrategies, setSelectedCopingStrategies] = useState<number[]>([]);
+  const [showAddProtectiveFactorForm, setShowAddProtectiveFactorForm] = useState(false);
+  const [showAddCopingStrategyForm, setShowAddCopingStrategyForm] = useState(false);
+  const [newProtectiveFactor, setNewProtectiveFactor] = useState("");
+  const [newCopingStrategy, setNewCopingStrategy] = useState("");
   
   const totalSteps = 4;
   const progress = (step / totalSteps) * 100;
@@ -146,6 +150,86 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
         ? prev.filter(itemId => itemId !== id) 
         : [...prev, id]
     );
+  };
+  
+  // Handle adding a new protective factor
+  const handleAddProtectiveFactor = async () => {
+    if (!newProtectiveFactor.trim() || !user) return;
+    
+    try {
+      const response = await apiRequest(
+        "POST",
+        `/api/users/${user.id}/protective-factors`,
+        {
+          userId: user.id,
+          name: newProtectiveFactor,
+          description: "",
+          isGlobal: false
+        }
+      );
+      
+      const factor = await response.json();
+      
+      // Add new factor to the list and select it
+      protectiveFactors.push(factor);
+      setSelectedProtectiveFactors(prev => [...prev, factor.id]);
+      
+      // Reset form
+      setNewProtectiveFactor("");
+      setShowAddProtectiveFactorForm(false);
+      
+      toast({
+        title: "Success",
+        description: "Added new protective factor",
+      });
+    } catch (error) {
+      console.error("Error adding protective factor:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add protective factor",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Handle adding a new coping strategy
+  const handleAddCopingStrategy = async () => {
+    if (!newCopingStrategy.trim() || !user) return;
+    
+    try {
+      const response = await apiRequest(
+        "POST",
+        `/api/users/${user.id}/coping-strategies`,
+        {
+          userId: user.id,
+          name: newCopingStrategy,
+          description: "",
+          isGlobal: false
+        }
+      );
+      
+      const strategy = await response.json();
+      
+      // Add new strategy to the list and select it
+      copingStrategies.push(strategy);
+      setSelectedCopingStrategies(prev => [...prev, strategy.id]);
+      
+      // Reset form
+      setNewCopingStrategy("");
+      setShowAddCopingStrategyForm(false);
+      
+      toast({
+        title: "Success",
+        description: "Added new coping strategy",
+      });
+    } catch (error) {
+      console.error("Error adding coping strategy:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add coping strategy",
+        variant: "destructive",
+      });
+    }
   };
   
   // Handle form submission
@@ -455,9 +539,41 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                     {factor.name}
                   </div>
                 ))}
-                <div className="px-3 py-2 text-sm border border-dashed border-neutral-400 rounded-full cursor-pointer hover:border-primary">
-                  + Add New
-                </div>
+                
+                {showAddProtectiveFactorForm ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      className="w-48"
+                      placeholder="Enter new factor..."
+                      value={newProtectiveFactor}
+                      onChange={(e) => setNewProtectiveFactor(e.target.value)}
+                    />
+                    <Button 
+                      size="sm" 
+                      onClick={handleAddProtectiveFactor}
+                      disabled={!newProtectiveFactor.trim()}
+                    >
+                      Add
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowAddProtectiveFactorForm(false);
+                        setNewProtectiveFactor("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <div 
+                    className="px-3 py-2 text-sm border border-dashed border-neutral-400 rounded-full cursor-pointer hover:border-primary"
+                    onClick={() => setShowAddProtectiveFactorForm(true)}
+                  >
+                    + Add New
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -507,31 +623,84 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                     {strategy.name}
                   </div>
                 ))}
-                <div className="px-3 py-2 text-sm border border-dashed border-neutral-400 rounded-full cursor-pointer hover:border-primary">
-                  + Add New
-                </div>
+                
+                {showAddCopingStrategyForm ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      className="w-48"
+                      placeholder="Enter new strategy..."
+                      value={newCopingStrategy}
+                      onChange={(e) => setNewCopingStrategy(e.target.value)}
+                    />
+                    <Button 
+                      size="sm" 
+                      onClick={handleAddCopingStrategy}
+                      disabled={!newCopingStrategy.trim()}
+                    >
+                      Add
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowAddCopingStrategyForm(false);
+                        setNewCopingStrategy("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <div 
+                    className="px-3 py-2 text-sm border border-dashed border-neutral-400 rounded-full cursor-pointer hover:border-primary"
+                    onClick={() => setShowAddCopingStrategyForm(true)}
+                  >
+                    + Add New
+                  </div>
+                )}
               </div>
             </div>
             
             {/* Before/After Emotion Chart */}
             <div className="mt-6 p-4 bg-neutral-100 rounded-md">
               <h4 className="text-sm font-medium mb-3">Emotion Intensity</h4>
-              <div className="flex justify-between items-center">
-                <div className="space-y-1">
-                  <p className="text-xs">Before</p>
-                  <div className="w-20 h-8 bg-primary-light rounded-md flex items-center justify-center">
-                    <span className="font-medium">{emotion.intensity}/10</span>
+              
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <div className="space-y-1">
+                    <p className="text-xs">Before</p>
+                    <div className="w-20 h-8 bg-primary-light rounded-md flex items-center justify-center">
+                      <span className="font-medium">{emotion.intensity}/10</span>
+                    </div>
+                  </div>
+                  <div className="h-8 flex items-center">
+                    <svg width="40" height="24" viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M0 12H38M38 12L28 2M38 12L28 22" stroke="#9E9E9E" strokeWidth="2"/>
+                    </svg>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs">After</p>
+                    <div className="w-20 h-8 bg-green-100 rounded-md flex items-center justify-center">
+                      <span className="font-medium">{form.getValues("reflectionRating") || 5}/10</span>
+                    </div>
                   </div>
                 </div>
-                <div className="h-8 flex items-center">
-                  <svg width="40" height="24" viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M0 12H38M38 12L28 2M38 12L28 22" stroke="#9E9E9E" strokeWidth="2"/>
-                  </svg>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs">After</p>
-                  <div className="w-20 h-8 bg-green-100 rounded-md flex items-center justify-center">
-                    <span className="font-medium">?/10</span>
+                
+                <div className="pt-2">
+                  <p className="text-xs mb-2">Adjust how you feel now after reflection:</p>
+                  <Slider
+                    value={[form.getValues("reflectionRating") || 5]}
+                    min={1}
+                    max={10}
+                    step={1}
+                    onValueChange={(value) => {
+                      form.setValue("reflectionRating", value[0]);
+                    }}
+                  />
+                  <div className="flex justify-between text-xs text-neutral-500 mt-1">
+                    <span>1</span>
+                    <span>5</span>
+                    <span>10</span>
                   </div>
                 </div>
               </div>
@@ -616,7 +785,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px] p-6">
+      <DialogContent className="sm:max-w-[800px] md:max-w-[900px] p-6 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Thought Reflection</DialogTitle>
           <DialogDescription>
