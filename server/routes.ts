@@ -196,36 +196,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.params.userId);
       
-      // Create a copy of the request data and manually convert the timestamp to a Date object
-      const requestData = { 
-        ...req.body, 
+      // Prepare emotion data with properly typed timestamp
+      const emotionData = { 
         userId,
-        // Explicitly convert the timestamp string to a Date object
+        coreEmotion: req.body.coreEmotion,
+        primaryEmotion: req.body.primaryEmotion,
+        tertiaryEmotion: req.body.tertiaryEmotion,
+        intensity: req.body.intensity,
+        situation: req.body.situation,
+        location: req.body.location || null,
+        company: req.body.company || null,
+        // Always convert timestamp to a Date object for database insertion
         timestamp: req.body.timestamp ? new Date(req.body.timestamp) : new Date()
       };
       
-      // Log the request body for debugging
-      console.log("Emotion record request:", {
-        body: req.body,
-        processedData: requestData,
-        userId: userId
+      // Log the processed data for debugging
+      console.log("Processing emotion record:", {
+        originalTimestamp: req.body.timestamp,
+        convertedTimestamp: emotionData.timestamp,
+        isDateObject: emotionData.timestamp instanceof Date,
+        validDate: !isNaN(emotionData.timestamp.getTime())
       });
       
-      // Try explicit schema validation
-      let validationResult = insertEmotionRecordSchema.safeParse(requestData);
+      // Validate the data using our schema
+      let validationResult = insertEmotionRecordSchema.safeParse(emotionData);
       if (!validationResult.success) {
         console.log("Validation error:", validationResult.error);
         return res.status(400).json({ 
-          message: "Invalid data", 
+          message: "Validation failed", 
           errors: validationResult.error.errors 
         });
       }
       
-      const emotionRecord = await storage.createEmotionRecord(validationResult.data);
+      // Create the emotion record with the processed data
+      const emotionRecord = await storage.createEmotionRecord(emotionData);
       res.status(201).json(emotionRecord);
     } catch (error) {
       console.error("Create emotion record error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ 
+        message: "Failed to record emotion",
+        error: error.message
+      });
     }
   });
   

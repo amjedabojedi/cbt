@@ -139,16 +139,19 @@ export const sessions = pgTable("sessions", {
 
 // Define all the insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
-// For emotion records, we need to adjust timestamp validation to handle ISO string dates
-export const insertEmotionRecordSchema = createInsertSchema(emotionRecords)
-  .omit({ id: true, createdAt: true })
-  .extend({
-    // Accept either a Date object or a string and convert it to a Date
-    timestamp: z.preprocess(
-      (val) => (typeof val === 'string' ? new Date(val) : val),
-      z.date()
-    )
-  });
+// For emotion records, we need a custom schema to handle the timestamp correctly
+export const insertEmotionRecordSchema = z.object({
+  userId: z.number(),
+  coreEmotion: z.string(),
+  primaryEmotion: z.string(),
+  tertiaryEmotion: z.string(),
+  intensity: z.number(),
+  situation: z.string(),
+  location: z.string().optional(),
+  company: z.string().optional(),
+  // Accept any valid date format (string or Date object)
+  timestamp: z.any()
+});
 export const insertThoughtRecordSchema = createInsertSchema(thoughtRecords).omit({ id: true, createdAt: true });
 export const insertProtectiveFactorSchema = createInsertSchema(protectiveFactors).omit({ id: true, createdAt: true });
 export const insertProtectiveFactorUsageSchema = createInsertSchema(protectiveFactorUsage).omit({ id: true, createdAt: true });
