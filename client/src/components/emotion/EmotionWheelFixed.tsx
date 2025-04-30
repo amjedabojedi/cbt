@@ -583,12 +583,6 @@ export default function EmotionWheel({
             <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="#000000" floodOpacity="0.3" />
           </filter>
           
-          {/* Center gradient */}
-          <radialGradient id="centerGradient" cx="0.5" cy="0.5" r="0.5" fx="0.5" fy="0.5">
-            <stop offset="0%" stopColor="#6366F1" />
-            <stop offset="100%" stopColor="#4F46E5" />
-          </radialGradient>
-          
           {/* Core emotion gradients */}
           {emotionsData.map((emotion, index) => (
             <radialGradient
@@ -939,51 +933,7 @@ export default function EmotionWheel({
           })}
         </g>
 
-        {/* Center Circle with enhanced styling - increased size to match larger wheel */}
-        <circle
-          cx={centerX}
-          cy={centerY}
-          r={40}
-          fill="url(#centerGradient)"
-          stroke="#FFFFFF"
-          strokeWidth={2}
-          onClick={resetSelections}
-          className="cursor-pointer transition-all duration-300 hover:opacity-90"
-          filter="url(#centerShadow)"
-        />
-        <circle
-          cx={centerX}
-          cy={centerY}
-          r={37}
-          fill="transparent"
-          stroke="#FFFFFF"
-          strokeWidth={1}
-          strokeOpacity={0.4}
-          strokeDasharray="2,2"
-          className="pointer-events-none"
-        />
-        <text
-          x={centerX}
-          y={centerY}
-          fontSize="13"
-          fontWeight="bold"
-          textAnchor="middle"
-          fill="#FFFFFF"
-          className="select-none pointer-events-none"
-        >
-          {hoveredEmotion ? translate(hoveredEmotion) : translate("Select an")}
-        </text>
-        <text
-          x={centerX}
-          y={centerY + 16}
-          fontSize="13"
-          fontWeight="bold"
-          textAnchor="middle"
-          fill="#FFFFFF"
-          className="select-none pointer-events-none"
-        >
-          {!hoveredEmotion && "Emotion"}
-        </text>
+        {/* Empty center - no more blue circle and text */}
       </g>
     );
   };
