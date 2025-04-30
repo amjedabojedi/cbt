@@ -288,11 +288,11 @@ export default function EmotionWheel({
     // Core geometry constants
     const centerX = 200;
     const centerY = 200;
-    const coreRadius = 70; // Much larger core circle
+    const coreRadius = 90; // Even larger core circle for better visibility
     
     // Define all radii here for consistency
     const middleRadiusStart = coreRadius; // Where middle ring starts
-    const middleRadiusEnd = 130; // Where middle ring ends
+    const middleRadiusEnd = 140; // Where middle ring ends
     const outerRadiusStart = middleRadiusEnd; // Where outer ring starts
     const outerRadiusEnd = 180; // Where outer ring ends
     
@@ -418,17 +418,7 @@ export default function EmotionWheel({
                   filter={selectedCore === emotion.name ? "url(#shadow)" : ""}
                 />
                 
-                {/* Background rectangle for core emotion text */}
-                <rect
-                  x={labelX - 30}
-                  y={labelY - 9}
-                  width={60}
-                  height={18}
-                  rx={9}
-                  fill="rgba(255,255,255,0.2)"
-                  className="select-none pointer-events-none"
-                />
-                {/* Core emotion text - horizontal for better readability */}
+                {/* Vertical text along the segment radius */}
                 <text
                   x={labelX}
                   y={labelY}
@@ -437,10 +427,11 @@ export default function EmotionWheel({
                   fill="#FFFFFF"
                   className="select-none pointer-events-none font-bold"
                   style={{
-                    fontSize: '14px',
+                    fontSize: '13px',
                     textShadow: "0px 1px 2px rgba(0,0,0,0.7)",
                     letterSpacing: '0.5px'
                   }}
+                  transform={`rotate(${(midAngle * 180 / Math.PI)})`}
                 >
                   {translate(emotion.name)}
                 </text>
@@ -514,17 +505,7 @@ export default function EmotionWheel({
                     filter={isSelected ? "url(#shadow)" : ""}
                   />
                   
-                  {/* Background rectangle for middle ring text */}
-                  <rect
-                    x={labelX - 25}
-                    y={labelY - 7}
-                    width={50}
-                    height={14}
-                    rx={7}
-                    fill="rgba(255,255,255,0.8)"
-                    className="select-none pointer-events-none"
-                  />
-                  {/* Horizontal text for better readability */}
+                  {/* Vertical text along the segment radius */}
                   <text
                     x={labelX}
                     y={labelY}
@@ -532,10 +513,12 @@ export default function EmotionWheel({
                     dominantBaseline="middle"
                     fill="#000000"
                     style={{
-                      fontSize: '10px',
+                      fontSize: '9px',
                       fontWeight: '600',
+                      textShadow: "0px 0px 4px rgba(255,255,255,0.9)"
                     }}
                     className="select-none pointer-events-none"
+                    transform={`rotate(${(midAngle * 180 / Math.PI)})`}
                   >
                     {translate(primary.name)}
                   </text>
@@ -628,17 +611,7 @@ export default function EmotionWheel({
                     {/* Tertiary labels only show on hover or when selected to avoid clutter */}
                     {(hoveredEmotion === tertiary.name || isSelected) && (
                       <>
-                        {/* Background rectangle for text */}
-                        <rect
-                          x={labelX - 20}
-                          y={labelY - 6}
-                          width={40}
-                          height={12}
-                          rx={6}
-                          fill="rgba(255,255,255,0.8)"
-                          className="select-none pointer-events-none"
-                        />
-                        {/* Horizontal text for outer ring */}
+                        {/* Vertical text along the segment radius */}
                         <text
                           x={labelX}
                           y={labelY}
@@ -646,10 +619,12 @@ export default function EmotionWheel({
                           dominantBaseline="middle"
                           fill={isSelected ? "#000000" : "#333333"}
                           style={{
-                            fontSize: '8px',
+                            fontSize: '7px',
                             fontWeight: '600',
+                            textShadow: "0px 0px 3px rgba(255,255,255,0.9)"
                           }}
                           className="select-none pointer-events-none"
+                          transform={`rotate(${(midAngle * 180 / Math.PI)})`}
                         >
                           {translate(tertiary.name)}
                         </text>
