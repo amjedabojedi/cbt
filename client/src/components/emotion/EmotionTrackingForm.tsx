@@ -112,9 +112,9 @@ export default function EmotionTrackingForm({
         tertiaryEmotion: data.tertiaryEmotion,
         intensity: data.intensity,
         situation: data.situation,
-        location: data.location,
-        company: data.company,
-        timestamp: data.useCurrentTime ? new Date() : new Date(data.timestamp || ""),
+        location: data.location || "", // Ensure it's not undefined
+        company: data.company || "", // Ensure it's not undefined
+        timestamp: data.useCurrentTime ? new Date().toISOString() : new Date(data.timestamp || "").toISOString(),
       };
       
       // Submit to API
@@ -145,9 +145,27 @@ export default function EmotionTrackingForm({
       }
     } catch (error) {
       console.error("Error recording emotion:", error);
+      
+      // Try to extract more detailed error information if available
+      let errorMsg = "Failed to record emotion. Please try again.";
+      try {
+        if (error instanceof Response || (error as any).json) {
+          const errorData = await (error as Response).json();
+          if (errorData && errorData.message) {
+            errorMsg = errorData.message;
+            if (errorData.errors && Array.isArray(errorData.errors)) {
+              errorMsg += ": " + errorData.errors.map((e: any) => e.message).join(", ");
+            }
+          }
+        }
+      } catch (e) {
+        // If parsing the error response fails, fall back to generic error
+        console.log("Could not parse error details:", e);
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to record emotion. Please try again.",
+        description: errorMsg,
         variant: "destructive",
       });
     }
