@@ -237,7 +237,6 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
     }
   };
   
-  // Render different step content based on current step
   // Debug function to log current form state
   const logFormState = () => {
     console.log("Form values:", {
@@ -258,7 +257,46 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
     return () => subscription.unsubscribe();
   }, [form]);
 
-  // We'll use the existing getEmotionColor function
+  // Helper function to get color based on emotion
+  const getEmotionColor = (emotion: string): string => {
+    const colorMap: Record<string, string> = {
+      // Core emotions
+      "Joy": "#F9D71C",
+      "Sadness": "#6D87C4",
+      "Fear": "#8A65AA",
+      "Disgust": "#7DB954",
+      "Anger": "#E43D40",
+      // Secondary/tertiary fallbacks
+      "Happy": "#F9D71C",
+      "Excited": "#E8B22B",
+      "Proud": "#D6A338",
+      "Content": "#C8953F",
+      "Hopeful": "#BAA150",
+      "Depressed": "#6D87C4",
+      "Lonely": "#5D78B5",
+      "Guilty": "#4C69A6",
+      "Disappointed": "#3B5A97",
+      "Hurt": "#2A4B88",
+      "Worried": "#8A65AA",
+      "Anxious": "#7A569B",
+      "Insecure": "#6A478C",
+      "Rejected": "#5A387D",
+      "Overwhelmed": "#4A296E",
+      "Disgusted": "#7DB954",
+      "Judgmental": "#6DAA45",
+      "Disapproving": "#5D9B36",
+      "Critical": "#4D8C27",
+      "Repulsed": "#3D7D18",
+      "Furious": "#E43D40",
+      "Annoyed": "#D42E31",
+      "Frustrated": "#C41F22",
+      "Irritated": "#B41013",
+      "Resentful": "#A40104"
+    };
+    
+    // Default color if emotion not found
+    return colorMap[emotion] || "#888888";
+  };
 
   const renderStepContent = () => {
     switch (step) {
@@ -511,10 +549,10 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                 <p><strong>Alternative Perspective:</strong> {form.getValues("alternativePerspective")}</p>
                 <p><strong>Protective Factors:</strong> {selectedProtectiveFactors.map(id => 
                   protectiveFactors.find(f => f.id === id)?.name
-                ).join(", ")}</p>
+                ).join(", ") || "None selected"}</p>
                 <p><strong>Coping Strategies:</strong> {selectedCopingStrategies.map(id => 
                   copingStrategies.find(s => s.id === id)?.name
-                ).join(", ")}</p>
+                ).join(", ") || "None selected"}</p>
               </div>
             </div>
             
@@ -546,25 +584,28 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>How helpful was this reflection? (1-10)</FormLabel>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-neutral-500">Not Helpful</span>
+                  <div className="pt-2">
                     <FormControl>
                       <Slider
+                        value={[field.value || 5]}
                         min={1}
                         max={10}
                         step={1}
-                        defaultValue={[field.value || 5]}
-                        onValueChange={(vals) => field.onChange(vals[0])}
-                        className="flex-grow"
+                        onValueChange={(value) => {
+                          field.onChange(value[0]);
+                        }}
                       />
                     </FormControl>
-                    <span className="text-xs text-neutral-500">Very Helpful</span>
-                    <span className="ml-2 w-8 text-center font-medium">{field.value || 5}</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-neutral-500">
+                    <span>Not helpful</span>
+                    <span>Very helpful</span>
                   </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            
           </div>
         );
       
@@ -572,100 +613,51 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
         return null;
     }
   };
-  
-  // Helper function to get color based on emotion
-  const getEmotionColor = (emotion: string) => {
-    const emotionColorMap: Record<string, string> = {
-      "Joy": "#FBBC05",
-      "Happiness": "#F9CB9C",
-      "Contentment": "#F9CB9C",
-      "Optimistic": "#FFF2CC",
-      "Cheerful": "#FFF2CC",
-      "Proud": "#FFF2CC",
-      "Peaceful": "#FFF2CC",
-      "Satisfied": "#FFF2CC",
-      "Grateful": "#FFF2CC",
-      
-      "Anger": "#EA4335",
-      "Rage": "#F28B82",
-      "Frustration": "#F28B82",
-      "Furious": "#FADBD8",
-      "Irritated": "#FADBD8",
-      "Annoyed": "#FADBD8",
-      "Aggravated": "#FADBD8",
-      "Impatient": "#FADBD8",
-      "Resentful": "#FADBD8",
-      
-      "Sadness": "#4285F4",
-      "Despair": "#A4C2F4",
-      "Melancholy": "#A4C2F4",
-      "Hopeless": "#D2E3FC",
-      "Miserable": "#D2E3FC",
-      "Lonely": "#D2E3FC",
-      "Nostalgic": "#D2E3FC",
-      "Disappointed": "#D2E3FC",
-      "Regretful": "#D2E3FC",
-      
-      "Fear": "#34A853",
-      "Anxiety": "#93C47D",
-      "Terror": "#93C47D",
-      "Worried": "#D9EAD3",
-      "Nervous": "#D9EAD3",
-      "Uneasy": "#D9EAD3",
-      "Horrified": "#D9EAD3",
-      "Scared": "#D9EAD3",
-      "Panicked": "#D9EAD3",
-    };
-    
-    return emotionColorMap[emotion] || "#9E9E9E";
-  };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[600px] p-6">
         <DialogHeader>
-          <DialogTitle>Guided Reflection</DialogTitle>
+          <DialogTitle>Thought Reflection</DialogTitle>
           <DialogDescription>
-            Follow the steps to reflect on your thoughts and emotions.
+            Examining your thoughts can help shift your emotional response.
           </DialogDescription>
         </DialogHeader>
         
-        {/* Progress Bar */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex-1">
-            <Progress value={progress} className="h-2" />
-            <div className="flex justify-between mt-2 text-xs text-neutral-500">
-              <span className={step >= 1 ? "font-medium text-primary" : ""}>Thoughts</span>
-              <span className={step >= 2 ? "font-medium text-primary" : ""}>Evidence</span>
-              <span className={step >= 3 ? "font-medium text-primary" : ""}>Alternatives</span>
-              <span className={step >= 4 ? "font-medium text-primary" : ""}>Action</span>
-            </div>
-          </div>
-        </div>
+        <Progress value={progress} className="my-2" />
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {renderStepContent()}
             
-            <div className="flex justify-between mt-6">
-              {step > 1 ? (
-                <Button type="button" variant="outline" onClick={handleBack}>
+            <DialogFooter className="gap-2 sm:gap-0">
+              {step > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={isSubmitting}
+                >
                   Back
                 </Button>
-              ) : (
-                <div></div>
               )}
               
               {step < totalSteps ? (
-                <Button type="button" onClick={handleNext}>
-                  Continue
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                >
+                  Next
                 </Button>
               ) : (
-                <Button type="submit" disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                >
                   {isSubmitting ? "Saving..." : "Complete Reflection"}
                 </Button>
               )}
-            </div>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
