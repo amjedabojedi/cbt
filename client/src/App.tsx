@@ -34,6 +34,7 @@ function Router() {
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/dashboard" component={Dashboard} />
+        <Route path="/emotion-tracking" component={EmotionTracking} />
         <Route path="/emotions" component={EmotionTracking} />
         <Route path="/thoughts" component={ThoughtRecords} />
         <Route path="/goals" component={GoalSetting} />
