@@ -973,9 +973,9 @@ export default function EmotionWheel({
 
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* Enhanced Breadcrumb Trail */}
-      <div id="emotion-breadcrumb" className="breadcrumb-container bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-5 shadow-sm flex items-center">
-        <span className="breadcrumb-label text-sm font-medium text-indigo-600 mr-3">
+      {/* Simple Breadcrumb Trail - Plain Text */}
+      <div id="emotion-breadcrumb" className="breadcrumb-container p-4 mb-5 flex items-center">
+        <span className="breadcrumb-label text-sm font-medium text-gray-600 mr-3">
           {translate("Emotion Path:")}
         </span>
         <div className={`breadcrumb-trail flex flex-wrap ${direction === "rtl" ? "flex-row-reverse" : ""}`}>
@@ -985,14 +985,11 @@ export default function EmotionWheel({
               animate={{ opacity: 1, y: 0 }}
               id="core-breadcrumb"
               className={cn(
-                "breadcrumb-item flex items-center bg-white text-sm py-1.5 px-3 border border-indigo-200 rounded-md shadow-sm relative",
-                direction === "rtl" ? "ml-6" : "mr-6"
+                "breadcrumb-item flex items-center text-sm py-1 px-2 relative",
+                direction === "rtl" ? "ml-4" : "mr-4"
               )}
-              style={{ 
-                backgroundColor: emotionsData.find(e => e.name === selectedCore)?.gradient?.[1] || "white",
-              }}
             >
-              <span className="font-medium text-gray-700">{translate(selectedCore)}</span>
+              <span className="font-medium text-gray-900">{translate(selectedCore)}</span>
               {!selectedPrimary && (
                 <button 
                   className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none" 
@@ -1002,10 +999,10 @@ export default function EmotionWheel({
                 </button>
               )}
               {(direction !== "rtl" && selectedPrimary) && (
-                <span className="absolute -right-4 top-1/2 transform -translate-y-1/2 text-gray-400">→</span>
+                <span className="ml-2 text-gray-400">→</span>
               )}
               {(direction === "rtl" && selectedPrimary) && (
-                <span className="absolute -left-4 top-1/2 transform -translate-y-1/2 text-gray-400">←</span>
+                <span className="mr-2 text-gray-400">←</span>
               )}
             </motion.span>
           )}
@@ -1016,16 +1013,11 @@ export default function EmotionWheel({
               animate={{ opacity: 1, y: 0 }}
               id="primary-breadcrumb"
               className={cn(
-                "breadcrumb-item flex items-center bg-white text-sm py-1.5 px-3 border border-indigo-200 rounded-md shadow-sm relative",
-                direction === "rtl" ? "ml-6" : "mr-6"
+                "breadcrumb-item flex items-center text-sm py-1 px-2 relative",
+                direction === "rtl" ? "ml-4" : "mr-4"
               )}
-              style={{ 
-                backgroundColor: emotionsData
-                  .find(e => e.name === selectedCore)
-                  ?.children?.find(p => p.name === selectedPrimary)?.gradient?.[1] || "white",
-              }}
             >
-              <span className="font-medium text-gray-700">{translate(selectedPrimary)}</span>
+              <span className="font-medium text-gray-900">{translate(selectedPrimary)}</span>
               {!selectedTertiary && (
                 <button 
                   className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none" 
@@ -1035,10 +1027,10 @@ export default function EmotionWheel({
                 </button>
               )}
               {(direction !== "rtl" && selectedTertiary) && (
-                <span className="absolute -right-4 top-1/2 transform -translate-y-1/2 text-gray-400">→</span>
+                <span className="ml-2 text-gray-400">→</span>
               )}
               {(direction === "rtl" && selectedTertiary) && (
-                <span className="absolute -left-4 top-1/2 transform -translate-y-1/2 text-gray-400">←</span>
+                <span className="mr-2 text-gray-400">←</span>
               )}
             </motion.span>
           )}
@@ -1048,15 +1040,9 @@ export default function EmotionWheel({
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
               id="tertiary-breadcrumb"
-              className="breadcrumb-item flex items-center bg-white text-sm py-1.5 px-3 border border-indigo-200 rounded-md shadow-sm"
-              style={{ 
-                backgroundColor: emotionsData
-                  .find(e => e.name === selectedCore)
-                  ?.children?.find(p => p.name === selectedPrimary)
-                  ?.children?.find(t => t.name === selectedTertiary)?.gradient?.[1] || "white",
-              }}
+              className="breadcrumb-item flex items-center text-sm py-1 px-2"
             >
-              <span className="font-medium text-gray-700">{translate(selectedTertiary)}</span>
+              <span className="font-medium text-gray-900">{translate(selectedTertiary)}</span>
               <button 
                 className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none" 
                 onClick={() => setSelectedTertiary(null)}
