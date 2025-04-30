@@ -304,8 +304,8 @@ export default function EmotionWheel({
             const y2 = centerY + coreRadius * Math.sin(endAngle);
             
             const midAngle = (startAngle + endAngle) / 2;
-            const labelX = centerX + (coreRadius + 35) * Math.cos(midAngle);
-            const labelY = centerY + (coreRadius + 35) * Math.sin(midAngle);
+            const labelX = centerX + (coreRadius / 2) * Math.cos(midAngle);
+            const labelY = centerY + (coreRadius / 2) * Math.sin(midAngle);
             
             const pathData = [
               `M ${centerX},${centerY}`,
@@ -323,7 +323,7 @@ export default function EmotionWheel({
                     selectedCore === emotion.name 
                       ? "stroke-white stroke-2 shadow-lg" 
                       : "hover:opacity-90 stroke-white stroke-1",
-                    selectedCore && selectedCore !== emotion.name ? "opacity-50" : ""
+                    selectedCore && selectedCore !== emotion.name ? "opacity-80" : ""
                   )}
                   fill={`url(#gradient-core-${emotion.name})`}
                   onClick={() => handleCoreSelect(emotion.name)}
@@ -332,120 +332,117 @@ export default function EmotionWheel({
                   filter={selectedCore === emotion.name ? "url(#shadow)" : ""}
                 />
                 
-                {/* Only show label for core emotions if no core is selected or this is the selected core */}
-                {(!selectedCore || selectedCore === emotion.name) && (
-                  <text
-                    x={labelX}
-                    y={labelY}
-                    textAnchor="middle"
-                    className="text-xs font-semibold select-none pointer-events-none"
-                    fill="#424242"
-                  >
-                    {translate(emotion.name)}
-                  </text>
-                )}
+                <text
+                  x={labelX}
+                  y={labelY}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className="text-[10px] font-semibold select-none pointer-events-none"
+                  fill="#FFFFFF"
+                >
+                  {translate(emotion.name)}
+                </text>
               </g>
             );
           })}
         </g>
 
-        {/* Primary Emotions (Middle Ring) */}
-        {selectedCore && (
-          <g id="primary-emotions">
-            {emotionsData
-              .find((e) => e.name === selectedCore)
-              ?.children?.map((primary, pIndex) => {
-                const coreIndex = emotionsData.findIndex((e) => e.name === selectedCore);
-                const totalPrimaries = emotionsData.find((e) => e.name === selectedCore)?.children?.length || 0;
-                
-                const coreStartAngle = coreIndex * anglePerEmotion - Math.PI / 2;
-                const coreEndAngle = (coreIndex + 1) * anglePerEmotion - Math.PI / 2;
-                const anglePerPrimary = (coreEndAngle - coreStartAngle) / totalPrimaries;
-                
-                const startAngle = coreStartAngle + pIndex * anglePerPrimary;
-                const endAngle = startAngle + anglePerPrimary;
-                
-                const middleRadius = 85;
-                
-                const x1 = centerX + coreRadius * Math.cos(startAngle);
-                const y1 = centerY + coreRadius * Math.sin(startAngle);
-                const x2 = centerX + middleRadius * Math.cos(startAngle);
-                const y2 = centerY + middleRadius * Math.sin(startAngle);
-                const x3 = centerX + middleRadius * Math.cos(endAngle);
-                const y3 = centerY + middleRadius * Math.sin(endAngle);
-                const x4 = centerX + coreRadius * Math.cos(endAngle);
-                const y4 = centerY + coreRadius * Math.sin(endAngle);
-                
-                const midAngle = (startAngle + endAngle) / 2;
-                const labelX = centerX + (coreRadius + middleRadius) / 2 * Math.cos(midAngle);
-                const labelY = centerY + (coreRadius + middleRadius) / 2 * Math.sin(midAngle);
-                
-                const pathData = [
-                  `M ${x1},${y1}`,
-                  `L ${x2},${y2}`,
-                  `A ${middleRadius},${middleRadius} 0 0,1 ${x3},${y3}`,
-                  `L ${x4},${y4}`,
-                  `A ${coreRadius},${coreRadius} 0 0,0 ${x1},${y1}`,
-                  "Z",
-                ].join(" ");
+        {/* Primary Emotions (Middle Ring) - Always show all primary emotions */}
+        <g id="primary-emotions">
+          {emotionsData.flatMap((coreEmotion, coreIndex) => {
+            const coreStartAngle = coreIndex * anglePerEmotion - Math.PI / 2;
+            const coreEndAngle = (coreIndex + 1) * anglePerEmotion - Math.PI / 2;
+            const totalPrimaries = coreEmotion.children?.length || 0;
+            
+            return coreEmotion.children?.map((primary, pIndex) => {
+              const anglePerPrimary = (coreEndAngle - coreStartAngle) / totalPrimaries;
+              const startAngle = coreStartAngle + pIndex * anglePerPrimary;
+              const endAngle = startAngle + anglePerPrimary;
+              
+              const middleRadius = 85;
+              
+              const x1 = centerX + coreRadius * Math.cos(startAngle);
+              const y1 = centerY + coreRadius * Math.sin(startAngle);
+              const x2 = centerX + middleRadius * Math.cos(startAngle);
+              const y2 = centerY + middleRadius * Math.sin(startAngle);
+              const x3 = centerX + middleRadius * Math.cos(endAngle);
+              const y3 = centerY + middleRadius * Math.sin(endAngle);
+              const x4 = centerX + coreRadius * Math.cos(endAngle);
+              const y4 = centerY + coreRadius * Math.sin(endAngle);
+              
+              const midAngle = (startAngle + endAngle) / 2;
+              const labelX = centerX + ((coreRadius + middleRadius) / 2) * Math.cos(midAngle);
+              const labelY = centerY + ((coreRadius + middleRadius) / 2) * Math.sin(midAngle);
+              
+              const pathData = [
+                `M ${x1},${y1}`,
+                `L ${x2},${y2}`,
+                `A ${middleRadius},${middleRadius} 0 0,1 ${x3},${y3}`,
+                `L ${x4},${y4}`,
+                `A ${coreRadius},${coreRadius} 0 0,0 ${x1},${y1}`,
+                "Z",
+              ].join(" ");
 
-                return (
-                  <g key={`primary-${pIndex}`}>
-                    <path
-                      d={pathData}
-                      className={cn(
-                        "slice cursor-pointer transition-all duration-300 ease-in-out",
-                        selectedPrimary === primary.name 
-                          ? "stroke-white stroke-2 shadow-lg" 
-                          : "hover:opacity-90 hover:scale-[1.02] stroke-white stroke-1",
-                        selectedPrimary && selectedPrimary !== primary.name ? "opacity-40" : ""
-                      )}
-                      fill={`url(#gradient-primary-${primary.name})`}
-                      onClick={() => handlePrimarySelect(primary.name)}
-                      onMouseEnter={() => setHoveredEmotion(primary.name)}
-                      onMouseLeave={() => setHoveredEmotion(null)}
-                      filter={selectedPrimary === primary.name ? "url(#shadow)" : ""}
-                    />
-                    
-                    {/* Only show label if no primary is selected or this is the selected primary */}
-                    {(!selectedPrimary || selectedPrimary === primary.name) && (
-                      <text
-                        x={labelX}
-                        y={labelY}
-                        textAnchor="middle"
-                        className="text-xs font-medium select-none pointer-events-none"
-                        fill="#424242"
-                      >
-                        {translate(primary.name)}
-                      </text>
+              const isCurrentCore = selectedCore === coreEmotion.name;
+              const isSelected = isCurrentCore && selectedPrimary === primary.name;
+              const isSiblingOfSelected = isCurrentCore && selectedPrimary && selectedPrimary !== primary.name;
+
+              return (
+                <g key={`primary-${coreEmotion.name}-${pIndex}`}>
+                  <path
+                    d={pathData}
+                    className={cn(
+                      "slice cursor-pointer transition-all duration-300 ease-in-out",
+                      isSelected 
+                        ? "stroke-white stroke-2 shadow-lg" 
+                        : "hover:opacity-90 hover:scale-[1.02] stroke-white stroke-1",
+                      isSiblingOfSelected ? "opacity-60" : "",
+                      !isCurrentCore ? "opacity-80" : ""
                     )}
-                  </g>
-                );
-              })}
-          </g>
-        )}
+                    fill={`url(#gradient-primary-${primary.name})`}
+                    onClick={() => {
+                      if (selectedCore !== coreEmotion.name) {
+                        handleCoreSelect(coreEmotion.name);
+                      }
+                      handlePrimarySelect(primary.name);
+                    }}
+                    onMouseEnter={() => setHoveredEmotion(primary.name)}
+                    onMouseLeave={() => setHoveredEmotion(null)}
+                    filter={isSelected ? "url(#shadow)" : ""}
+                  />
+                  
+                  <text
+                    x={labelX}
+                    y={labelY}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className="text-[9px] font-medium select-none pointer-events-none"
+                    fill="#2D3748"
+                  >
+                    {translate(primary.name)}
+                  </text>
+                </g>
+              );
+            }) || [];
+          })}
+        </g>
 
-        {/* Tertiary Emotions (Outer Ring) */}
-        {selectedCore && selectedPrimary && (
-          <g id="tertiary-emotions">
-            {emotionsData
-              .find((e) => e.name === selectedCore)
-              ?.children?.find((p) => p.name === selectedPrimary)
-              ?.children?.map((tertiary, tIndex) => {
-                const coreIndex = emotionsData.findIndex((e) => e.name === selectedCore);
-                const primaryData = emotionsData.find((e) => e.name === selectedCore)?.children;
-                const primaryIndex = primaryData?.findIndex((p) => p.name === selectedPrimary) || 0;
-                const totalPrimaries = primaryData?.length || 1;
-                const totalTertiaries = primaryData?.[primaryIndex]?.children?.length || 1;
-                
-                const coreStartAngle = coreIndex * anglePerEmotion - Math.PI / 2;
-                const coreEndAngle = (coreIndex + 1) * anglePerEmotion - Math.PI / 2;
-                const anglePerPrimary = (coreEndAngle - coreStartAngle) / totalPrimaries;
-                
-                const primaryStartAngle = coreStartAngle + primaryIndex * anglePerPrimary;
-                const primaryEndAngle = primaryStartAngle + anglePerPrimary;
+        {/* Tertiary Emotions (Outer Ring) - Always show all tertiary emotions */}
+        <g id="tertiary-emotions">
+          {emotionsData.flatMap((coreEmotion, coreIndex) => {
+            const coreStartAngle = coreIndex * anglePerEmotion - Math.PI / 2;
+            const coreEndAngle = (coreIndex + 1) * anglePerEmotion - Math.PI / 2;
+            
+            return (coreEmotion.children || []).flatMap((primaryEmotion, primaryIndex) => {
+              const totalPrimaries = coreEmotion.children?.length || 1;
+              const anglePerPrimary = (coreEndAngle - coreStartAngle) / totalPrimaries;
+              const primaryStartAngle = coreStartAngle + primaryIndex * anglePerPrimary;
+              const primaryEndAngle = primaryStartAngle + anglePerPrimary;
+              
+              const totalTertiaries = primaryEmotion.children?.length || 1;
+              
+              return (primaryEmotion.children || []).map((tertiary, tIndex) => {
                 const anglePerTertiary = (primaryEndAngle - primaryStartAngle) / totalTertiaries;
-                
                 const startAngle = primaryStartAngle + tIndex * anglePerTertiary;
                 const endAngle = startAngle + anglePerTertiary;
                 
@@ -474,38 +471,64 @@ export default function EmotionWheel({
                   "Z",
                 ].join(" ");
 
+                const isCurrentCore = selectedCore === coreEmotion.name;
+                const isCurrentPrimary = isCurrentCore && selectedPrimary === primaryEmotion.name;
+                const isSelected = isCurrentPrimary && selectedTertiary === tertiary.name;
+                
+                // Determine the level of opacity based on selection state
+                let opacity = 1;
+                if (!isCurrentCore) opacity = 0.7;
+                else if (!isCurrentPrimary) opacity = 0.8;
+                else if (selectedTertiary && selectedTertiary !== tertiary.name) opacity = 0.6;
+
                 return (
-                  <g key={`tertiary-${tIndex}`}>
+                  <g key={`tertiary-${coreEmotion.name}-${primaryEmotion.name}-${tIndex}`}>
                     <path
                       d={pathData}
                       className={cn(
                         "slice cursor-pointer transition-all duration-300 ease-in-out",
-                        selectedTertiary === tertiary.name 
+                        isSelected 
                           ? "stroke-white stroke-2 shadow-lg" 
-                          : "hover:opacity-90 hover:scale-[1.02] stroke-white stroke-1",
-                        selectedTertiary && selectedTertiary !== tertiary.name ? "opacity-40" : ""
+                          : "hover:opacity-100 hover:scale-[1.02] stroke-white stroke-1",
                       )}
+                      style={{ opacity }}
                       fill={`url(#gradient-tertiary-${tertiary.name})`}
-                      onClick={() => handleTertiarySelect(tertiary.name)}
+                      onClick={() => {
+                        if (selectedCore !== coreEmotion.name) {
+                          handleCoreSelect(coreEmotion.name);
+                        }
+                        if (selectedPrimary !== primaryEmotion.name) {
+                          handlePrimarySelect(primaryEmotion.name);
+                        }
+                        handleTertiarySelect(tertiary.name);
+                      }}
                       onMouseEnter={() => setHoveredEmotion(tertiary.name)}
                       onMouseLeave={() => setHoveredEmotion(null)}
-                      filter={selectedTertiary === tertiary.name ? "url(#shadow)" : ""}
+                      filter={isSelected ? "url(#shadow)" : ""}
                     />
                     
-                    <text
-                      x={labelX}
-                      y={labelY}
-                      textAnchor="middle"
-                      className="text-xs font-medium select-none pointer-events-none"
-                      fill="#424242"
-                    >
-                      {translate(tertiary.name)}
-                    </text>
+                    {/* Tertiary labels only show on hover or when selected to avoid clutter */}
+                    {(hoveredEmotion === tertiary.name || isSelected) && (
+                      <text
+                        x={labelX}
+                        y={labelY}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        className={cn(
+                          "text-[8px] font-medium select-none pointer-events-none",
+                          isSelected ? "text-gray-800" : "text-gray-700"
+                        )}
+                        fill={isSelected ? "#000000" : "#333333"}
+                      >
+                        {translate(tertiary.name)}
+                      </text>
+                    )}
                   </g>
                 );
-              })}
-          </g>
-        )}
+              });
+            });
+          })}
+        </g>
 
         {/* Center Circle with enhanced styling */}
         <circle
@@ -725,13 +748,7 @@ export default function EmotionWheel({
           }}
         ></div>
         
-        {/* Add CSS for the rotation animation */}
-        <style jsx>{`
-          @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
+        {/* The CSS for rotation animation is added in the main stylesheet */}
       </motion.div>
       
       <div className="mt-6 text-center text-sm text-gray-500">
