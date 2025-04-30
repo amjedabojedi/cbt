@@ -418,7 +418,17 @@ export default function EmotionWheel({
                   filter={selectedCore === emotion.name ? "url(#shadow)" : ""}
                 />
                 
-                {/* Much larger centered text for core emotions */}
+                {/* Background rectangle for core emotion text */}
+                <rect
+                  x={labelX - 30}
+                  y={labelY - 9}
+                  width={60}
+                  height={18}
+                  rx={9}
+                  fill="rgba(255,255,255,0.2)"
+                  className="select-none pointer-events-none"
+                />
+                {/* Core emotion text - horizontal for better readability */}
                 <text
                   x={labelX}
                   y={labelY}
@@ -427,8 +437,8 @@ export default function EmotionWheel({
                   fill="#FFFFFF"
                   className="select-none pointer-events-none font-bold"
                   style={{
-                    fontSize: '16px', // Significantly larger font
-                    textShadow: "0px 2px 3px rgba(0,0,0,0.6)",
+                    fontSize: '14px',
+                    textShadow: "0px 1px 2px rgba(0,0,0,0.7)",
                     letterSpacing: '0.5px'
                   }}
                 >
@@ -504,7 +514,17 @@ export default function EmotionWheel({
                     filter={isSelected ? "url(#shadow)" : ""}
                   />
                   
-                  {/* Better centered middle ring text */}
+                  {/* Background rectangle for middle ring text */}
+                  <rect
+                    x={labelX - 25}
+                    y={labelY - 7}
+                    width={50}
+                    height={14}
+                    rx={7}
+                    fill="rgba(255,255,255,0.8)"
+                    className="select-none pointer-events-none"
+                  />
+                  {/* Horizontal text for better readability */}
                   <text
                     x={labelX}
                     y={labelY}
@@ -512,12 +532,10 @@ export default function EmotionWheel({
                     dominantBaseline="middle"
                     fill="#000000"
                     style={{
-                      fontSize: '11px',
+                      fontSize: '10px',
                       fontWeight: '600',
-                      filter: isSelected ? 'drop-shadow(0px 1px 1px rgba(0,0,0,0.2))' : ''
                     }}
                     className="select-none pointer-events-none"
-                    transform={`rotate(${(midAngle * 180 / Math.PI) + 90})`}
                   >
                     {translate(primary.name)}
                   </text>
@@ -610,7 +628,17 @@ export default function EmotionWheel({
                     {/* Tertiary labels only show on hover or when selected to avoid clutter */}
                     {(hoveredEmotion === tertiary.name || isSelected) && (
                       <>
-                        {/* Better centered outer ring text */}
+                        {/* Background rectangle for text */}
+                        <rect
+                          x={labelX - 20}
+                          y={labelY - 6}
+                          width={40}
+                          height={12}
+                          rx={6}
+                          fill="rgba(255,255,255,0.8)"
+                          className="select-none pointer-events-none"
+                        />
+                        {/* Horizontal text for outer ring */}
                         <text
                           x={labelX}
                           y={labelY}
@@ -618,16 +646,12 @@ export default function EmotionWheel({
                           dominantBaseline="middle"
                           fill={isSelected ? "#000000" : "#333333"}
                           style={{
-                            fontSize: '9px',
-                            fontWeight: '500',
-                            filter: isSelected ? 'drop-shadow(0px 1px 1px rgba(0,0,0,0.2))' : ''
+                            fontSize: '8px',
+                            fontWeight: '600',
                           }}
                           className="select-none pointer-events-none"
-                          transform={`rotate(${(midAngle * 180 / Math.PI) + 90})`}
                         >
-                          <tspan className="text-shadow-sm">
-                            {translate(tertiary.name)}
-                          </tspan>
+                          {translate(tertiary.name)}
                         </text>
                       </>
                     )}
