@@ -213,10 +213,24 @@ export default function EmotionWheel({
     const emotionsCount = emotionsData.length;
     const anglePerEmotion = (2 * Math.PI) / emotionsCount;
 
-    // Define the gradient IDs
+    // Define the gradient IDs and filters
     const defineGradients = () => {
       return (
         <defs>
+          {/* Filters for drop shadows */}
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#000000" floodOpacity="0.2" />
+          </filter>
+          <filter id="centerShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="#000000" floodOpacity="0.3" />
+          </filter>
+          
+          {/* Center gradient */}
+          <radialGradient id="centerGradient" cx="0.5" cy="0.5" r="0.5" fx="0.5" fy="0.5">
+            <stop offset="0%" stopColor="#6366F1" />
+            <stop offset="100%" stopColor="#4F46E5" />
+          </radialGradient>
+          
           {/* Core emotion gradients */}
           {emotionsData.map((emotion, index) => (
             <radialGradient
@@ -493,26 +507,50 @@ export default function EmotionWheel({
           </g>
         )}
 
-        {/* Center Circle */}
+        {/* Center Circle with enhanced styling */}
         <circle
           cx={centerX}
           cy={centerY}
           r={30}
-          fill="#FFFFFF"
-          stroke="#E0E0E0"
-          strokeWidth={1}
+          fill="url(#centerGradient)"
+          stroke="#FFFFFF"
+          strokeWidth={2}
           onClick={resetSelections}
-          className="cursor-pointer"
+          className="cursor-pointer transition-all duration-300 hover:opacity-90"
+          filter="url(#centerShadow)"
+        />
+        <circle
+          cx={centerX}
+          cy={centerY}
+          r={28}
+          fill="transparent"
+          stroke="#FFFFFF"
+          strokeWidth={1}
+          strokeOpacity={0.4}
+          strokeDasharray="2,2"
+          className="pointer-events-none"
         />
         <text
           x={centerX}
-          y={centerY + 5}
-          fontSize="12"
+          y={centerY}
+          fontSize="11"
+          fontWeight="bold"
           textAnchor="middle"
-          fill="#424242"
+          fill="#FFFFFF"
           className="select-none pointer-events-none"
         >
-          {hoveredEmotion ? translate(hoveredEmotion) : translate("Select an Emotion")}
+          {hoveredEmotion ? translate(hoveredEmotion) : translate("Select an")}
+        </text>
+        <text
+          x={centerX}
+          y={centerY + 14}
+          fontSize="11"
+          fontWeight="bold"
+          textAnchor="middle"
+          fill="#FFFFFF"
+          className="select-none pointer-events-none"
+        >
+          {!hoveredEmotion && "Emotion"}
         </text>
       </g>
     );
@@ -553,58 +591,161 @@ export default function EmotionWheel({
 
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* Breadcrumb Trail */}
-      <div id="emotion-breadcrumb" className="breadcrumb-container bg-neutral-100 p-3 rounded-md mb-4 flex items-center">
-        <span className="breadcrumb-label text-sm text-neutral-600 mr-2">
+      {/* Enhanced Breadcrumb Trail */}
+      <div id="emotion-breadcrumb" className="breadcrumb-container bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-5 shadow-sm flex items-center">
+        <span className="breadcrumb-label text-sm font-medium text-indigo-600 mr-3">
           {translate("Emotion Path:")}
         </span>
-        <div className={`breadcrumb-trail flex ${direction === "rtl" ? "flex-row-reverse" : ""}`}>
-          <span
-            id="core-breadcrumb"
-            className={cn(
-              "breadcrumb-item bg-white text-sm py-1 px-2 border border-neutral-300 rounded relative",
-              direction === "rtl" ? "ml-3" : "mr-3",
-              !selectedCore ? "hidden" : ""
-            )}
-          >
-            {selectedCore && translate(selectedCore)}
-          </span>
-          <span
-            id="primary-breadcrumb"
-            className={cn(
-              "breadcrumb-item bg-white text-sm py-1 px-2 border border-neutral-300 rounded relative",
-              direction === "rtl" ? "ml-3" : "mr-3",
-              !selectedPrimary ? "hidden" : ""
-            )}
-          >
-            {selectedPrimary && translate(selectedPrimary)}
-          </span>
-          <span
-            id="tertiary-breadcrumb"
-            className={cn(
-              "breadcrumb-item bg-white text-sm py-1 px-2 border border-neutral-300 rounded",
-              !selectedTertiary ? "hidden" : ""
-            )}
-          >
-            {selectedTertiary && translate(selectedTertiary)}
-          </span>
+        <div className={`breadcrumb-trail flex flex-wrap ${direction === "rtl" ? "flex-row-reverse" : ""}`}>
+          {selectedCore && (
+            <motion.span
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              id="core-breadcrumb"
+              className={cn(
+                "breadcrumb-item flex items-center bg-white text-sm py-1.5 px-3 border border-indigo-200 rounded-md shadow-sm relative",
+                direction === "rtl" ? "ml-6" : "mr-6"
+              )}
+              style={{ 
+                backgroundColor: emotionsData.find(e => e.name === selectedCore)?.gradient?.[1] || "white",
+              }}
+            >
+              <span className="font-medium text-gray-700">{translate(selectedCore)}</span>
+              {!selectedPrimary && (
+                <button 
+                  className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none" 
+                  onClick={() => resetSelections()}
+                >
+                  ✕
+                </button>
+              )}
+              {(direction !== "rtl" && selectedPrimary) && (
+                <span className="absolute -right-4 top-1/2 transform -translate-y-1/2 text-gray-400">→</span>
+              )}
+              {(direction === "rtl" && selectedPrimary) && (
+                <span className="absolute -left-4 top-1/2 transform -translate-y-1/2 text-gray-400">←</span>
+              )}
+            </motion.span>
+          )}
+          
+          {selectedPrimary && (
+            <motion.span
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              id="primary-breadcrumb"
+              className={cn(
+                "breadcrumb-item flex items-center bg-white text-sm py-1.5 px-3 border border-indigo-200 rounded-md shadow-sm relative",
+                direction === "rtl" ? "ml-6" : "mr-6"
+              )}
+              style={{ 
+                backgroundColor: emotionsData
+                  .find(e => e.name === selectedCore)
+                  ?.children?.find(p => p.name === selectedPrimary)?.gradient?.[1] || "white",
+              }}
+            >
+              <span className="font-medium text-gray-700">{translate(selectedPrimary)}</span>
+              {!selectedTertiary && (
+                <button 
+                  className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none" 
+                  onClick={() => setSelectedPrimary(null)}
+                >
+                  ✕
+                </button>
+              )}
+              {(direction !== "rtl" && selectedTertiary) && (
+                <span className="absolute -right-4 top-1/2 transform -translate-y-1/2 text-gray-400">→</span>
+              )}
+              {(direction === "rtl" && selectedTertiary) && (
+                <span className="absolute -left-4 top-1/2 transform -translate-y-1/2 text-gray-400">←</span>
+              )}
+            </motion.span>
+          )}
+          
+          {selectedTertiary && (
+            <motion.span
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              id="tertiary-breadcrumb"
+              className="breadcrumb-item flex items-center bg-white text-sm py-1.5 px-3 border border-indigo-200 rounded-md shadow-sm"
+              style={{ 
+                backgroundColor: emotionsData
+                  .find(e => e.name === selectedCore)
+                  ?.children?.find(p => p.name === selectedPrimary)
+                  ?.children?.find(t => t.name === selectedTertiary)?.gradient?.[1] || "white",
+              }}
+            >
+              <span className="font-medium text-gray-700">{translate(selectedTertiary)}</span>
+              <button 
+                className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none" 
+                onClick={() => setSelectedTertiary(null)}
+              >
+                ✕
+              </button>
+            </motion.span>
+          )}
+          
+          {!selectedCore && (
+            <span className="text-sm text-gray-500 italic">
+              {translate("Select an emotion from the wheel below")}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* The SVG wheel */}
-      <div
+      {/* The SVG wheel with enhanced styling */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
         id="emotional-wheel"
-        className="wheel-container w-full aspect-square relative bg-gradient-to-b from-neutral-50 to-neutral-100 rounded-full shadow-md transition-transform duration-300 hover:scale-[1.02]"
+        className="wheel-container w-full aspect-square relative rounded-full p-4"
+        style={{ 
+          background: "linear-gradient(135deg, #f5f7ff 0%, #e0e7ff 100%)",
+          boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.1), 0 8px 10px -6px rgba(99, 102, 241, 0.05)"
+        }}
       >
+        <div className="absolute inset-0 rounded-full bg-white/50 backdrop-blur-sm" 
+          style={{ boxShadow: "inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)" }}></div>
+        
         <svg
           ref={svgRef}
           width="100%"
           height="100%"
           viewBox="0 0 400 400"
-          className={cn("emotion-wheel", direction === "rtl" ? "rtl" : "")}
+          className={cn("emotion-wheel relative z-10", direction === "rtl" ? "rtl" : "")}
         >
           {generateWheel()}
         </svg>
+        
+        {/* Add subtle rotating highlight effect */}
+        <div className="absolute inset-4 rounded-full opacity-30 pointer-events-none"
+          style={{ 
+            background: "linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0) 100%)",
+            animation: "rotate 10s linear infinite"
+          }}
+        ></div>
+        
+        {/* Add CSS for the rotation animation */}
+        <style jsx>{`
+          @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </motion.div>
+      
+      <div className="mt-6 text-center text-sm text-gray-500">
+        {selectedTertiary ? (
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="py-2 px-4 bg-indigo-50 inline-block rounded-full"
+          >
+            {translate("You selected")}: <span className="font-semibold text-indigo-700">{translate(selectedTertiary)}</span>
+          </motion.p>
+        ) : (
+          <p>{translate("Click on the wheel to select your emotion")}</p>
+        )}
       </div>
 
       {/* Hidden inputs for state */}
