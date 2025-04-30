@@ -566,7 +566,7 @@ export default function EmotionWheel({
     const middleRadiusStart = coreRadius; // Where middle ring starts
     const middleRadiusEnd = 145; // Reduced to give even more space to outer ring
     const outerRadiusStart = middleRadiusEnd; // Where outer ring starts
-    const outerRadiusEnd = 199; // Maximized outer ring to completely fill all available space
+    const outerRadiusEnd = 210; // Significantly expanded outer ring to maximize screen space
     
     const emotionsCount = emotionsData.length;
     const anglePerEmotion = (2 * Math.PI) / emotionsCount;
@@ -962,6 +962,7 @@ export default function EmotionWheel({
           strokeDasharray="2,2"
           className="pointer-events-none"
         />
+        {/* Only show emotion name when hovering, without "Select an" text */}
         <text
           x={centerX}
           y={centerY}
@@ -971,18 +972,7 @@ export default function EmotionWheel({
           fill="#FFFFFF"
           className="select-none pointer-events-none"
         >
-          {hoveredEmotion ? translate(hoveredEmotion) : translate("Select an")}
-        </text>
-        <text
-          x={centerX}
-          y={centerY + 16}
-          fontSize="13"
-          fontWeight="bold"
-          textAnchor="middle"
-          fill="#FFFFFF"
-          className="select-none pointer-events-none"
-        >
-          {!hoveredEmotion && "Emotion"}
+          {hoveredEmotion && translate(hoveredEmotion)}
         </text>
       </g>
     );
