@@ -418,10 +418,21 @@ export default function EmotionWheel({
                   filter={selectedCore === emotion.name ? "url(#shadow)" : ""}
                 />
                 
-                {/* Vertical text along the segment radius */}
+                {/* Background for text with rotation */}
+                <rect
+                  x={-25} 
+                  y={-8}
+                  width={50}
+                  height={16}
+                  rx={8}
+                  fill="rgba(0,0,0,0.3)"
+                  className="select-none pointer-events-none"
+                  transform={`translate(${labelX},${labelY}) rotate(${(midAngle * 180 / Math.PI)})`}
+                />
+                {/* Vertical text along the segment radius with corrected positioning */}
                 <text
-                  x={labelX}
-                  y={labelY}
+                  x={0}
+                  y={0}
                   textAnchor="middle"
                   dominantBaseline="middle"
                   fill="#FFFFFF"
@@ -431,7 +442,7 @@ export default function EmotionWheel({
                     textShadow: "0px 1px 2px rgba(0,0,0,0.7)",
                     letterSpacing: '0.5px'
                   }}
-                  transform={`rotate(${(midAngle * 180 / Math.PI)})`}
+                  transform={`translate(${labelX},${labelY}) rotate(${(midAngle * 180 / Math.PI)})`}
                 >
                   {translate(emotion.name)}
                 </text>
@@ -505,20 +516,30 @@ export default function EmotionWheel({
                     filter={isSelected ? "url(#shadow)" : ""}
                   />
                   
-                  {/* Vertical text along the segment radius */}
+                  {/* Background for text with rotation */}
+                  <rect
+                    x={-20} 
+                    y={-7}
+                    width={40}
+                    height={14}
+                    rx={7}
+                    fill="rgba(255,255,255,0.7)"
+                    className="select-none pointer-events-none"
+                    transform={`translate(${labelX},${labelY}) rotate(${(midAngle * 180 / Math.PI)})`}
+                  />
+                  {/* Vertical text along the segment radius with corrected positioning */}
                   <text
-                    x={labelX}
-                    y={labelY}
+                    x={0}
+                    y={0}
                     textAnchor="middle"
                     dominantBaseline="middle"
                     fill="#000000"
                     style={{
                       fontSize: '9px',
                       fontWeight: '600',
-                      textShadow: "0px 0px 4px rgba(255,255,255,0.9)"
                     }}
                     className="select-none pointer-events-none"
-                    transform={`rotate(${(midAngle * 180 / Math.PI)})`}
+                    transform={`translate(${labelX},${labelY}) rotate(${(midAngle * 180 / Math.PI)})`}
                   >
                     {translate(primary.name)}
                   </text>
@@ -608,21 +629,34 @@ export default function EmotionWheel({
                       filter={isSelected ? "url(#shadow)" : ""}
                     />
                     
-                    {/* Always show tertiary labels since we have more space now */}
+                    {/* Background for tertiary text with rotation */}
+                    <rect
+                      x={-18} 
+                      y={-6}
+                      width={36}
+                      height={12}
+                      rx={6}
+                      fill="rgba(255,255,255,0.7)"
+                      className="select-none pointer-events-none"
+                      style={{
+                        opacity: isSelected || hoveredEmotion === tertiary.name ? 1 : 0.8
+                      }}
+                      transform={`translate(${labelX},${labelY}) rotate(${(midAngle * 180 / Math.PI)})`}
+                    />
+                    {/* Vertical text along the segment radius with corrected positioning */}
                     <text
-                      x={labelX}
-                      y={labelY}
+                      x={0}
+                      y={0}
                       textAnchor="middle"
                       dominantBaseline="middle"
                       fill={isSelected ? "#000000" : "#333333"}
                       style={{
                         fontSize: '7px',
                         fontWeight: isSelected || hoveredEmotion === tertiary.name ? '700' : '600',
-                        textShadow: "0px 0px 3px rgba(255,255,255,0.9)",
                         opacity: isSelected || hoveredEmotion === tertiary.name ? 1 : 0.9
                       }}
                       className="select-none pointer-events-none"
-                      transform={`rotate(${(midAngle * 180 / Math.PI)})`}
+                      transform={`translate(${labelX},${labelY}) rotate(${(midAngle * 180 / Math.PI)})`}
                     >
                       {translate(tertiary.name)}
                     </text>
