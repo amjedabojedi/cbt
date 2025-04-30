@@ -8,6 +8,11 @@
   to { transform: rotate(360deg); }
 }
 
+/* Text shadow utility for emotion wheel */
+.text-shadow-sm {
+  text-shadow: 0 1px 1px rgba(255,255,255,0.8);
+}
+
 :root {
       --background: 0 0% 100%;
 --foreground: 20 14.3% 4.1%;
