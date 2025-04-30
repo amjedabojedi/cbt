@@ -882,13 +882,29 @@ export default function EmotionWheel({
                       style={{ opacity }}
                       fill={`url(#gradient-tertiary-${tertiary.name})`}
                       onClick={() => {
+                        // First update the internal state of this component
                         if (selectedCore !== coreEmotion.name) {
-                          handleCoreSelect(coreEmotion.name);
+                          setSelectedCore(coreEmotion.name);
                         }
                         if (selectedPrimary !== primaryEmotion.name) {
-                          handlePrimarySelect(primaryEmotion.name);
+                          setSelectedPrimary(primaryEmotion.name);
                         }
-                        handleTertiarySelect(tertiary.name);
+                        setSelectedTertiary(tertiary.name);
+                        
+                        // Then directly call the callback with full path information
+                        if (onEmotionSelect) {
+                          console.log("Direct callback with full path:", {
+                            coreEmotion: coreEmotion.name,
+                            primaryEmotion: primaryEmotion.name,
+                            tertiaryEmotion: tertiary.name
+                          });
+                          
+                          onEmotionSelect({
+                            coreEmotion: coreEmotion.name,
+                            primaryEmotion: primaryEmotion.name,
+                            tertiaryEmotion: tertiary.name
+                          });
+                        }
                       }}
                       onMouseEnter={() => setHoveredEmotion(tertiary.name)}
                       onMouseLeave={() => setHoveredEmotion(null)}
@@ -955,11 +971,27 @@ export default function EmotionWheel({
   const handleTertiarySelect = (emotionName: string) => {
     setSelectedTertiary(emotionName);
     
+    // Log the values for debugging
+    console.log("Selected emotions:", {
+      core: selectedCore,
+      primary: selectedPrimary,
+      tertiary: emotionName
+    });
+    
     if (selectedCore && selectedPrimary && onEmotionSelect) {
+      // Call the parent component's callback with the selected emotions
       onEmotionSelect({
         coreEmotion: selectedCore,
         primaryEmotion: selectedPrimary,
         tertiaryEmotion: emotionName,
+      });
+      
+      console.log("Emotion selection callback called");
+    } else {
+      console.log("Callback not called:", { 
+        hasCore: !!selectedCore, 
+        hasPrimary: !!selectedPrimary, 
+        hasCallback: !!onEmotionSelect 
       });
     }
   };

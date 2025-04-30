@@ -79,9 +79,20 @@ export default function EmotionTrackingForm({
     primaryEmotion: string; 
     tertiaryEmotion: string 
   }) => {
+    console.log("EmotionTrackingForm received selection:", selection);
+    
     form.setValue("coreEmotion", selection.coreEmotion);
     form.setValue("primaryEmotion", selection.primaryEmotion);
     form.setValue("tertiaryEmotion", selection.tertiaryEmotion);
+    
+    // Force form validation update to make the button enabled immediately
+    form.trigger("tertiaryEmotion");
+    
+    console.log("Updated form values:", {
+      core: form.getValues("coreEmotion"),
+      primary: form.getValues("primaryEmotion"),
+      tertiary: form.getValues("tertiaryEmotion")
+    });
   };
   
   // Handle current time checkbox change
@@ -382,9 +393,15 @@ export default function EmotionTrackingForm({
             <Button 
               type="submit" 
               disabled={!form.getValues("tertiaryEmotion")}
+              className={form.getValues("tertiaryEmotion") ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400"}
             >
-              Record Emotion
+              {form.getValues("tertiaryEmotion") ? "Record Emotion" : "Select an Emotion First"}
             </Button>
+          </div>
+          
+          {/* Debug info - remove in production */}
+          <div className="text-xs text-gray-400 mt-2">
+            Tertiary emotion value: "{form.getValues("tertiaryEmotion")}"
           </div>
         </form>
       </Form>
