@@ -30,8 +30,8 @@ function LoadingFallback() {
 function Router() {
   return (
     <Suspense fallback={<LoadingFallback />}>
-      <Switch>
-        <Route path="/" component={Dashboard} />
+      <div>
+        <Route path="/dashboard" component={Dashboard} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/emotions" component={EmotionTracking} />
@@ -41,8 +41,8 @@ function Router() {
         <Route path="/reports" component={Reports} />
         <Route path="/clients" component={Clients} />
         <Route path="/settings" component={Settings} />
-        <Route component={NotFound} />
-      </Switch>
+        <Route path="/" component={Dashboard} />
+      </div>
     </Suspense>
   );
 }

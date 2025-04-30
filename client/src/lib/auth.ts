@@ -27,9 +27,26 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Create a working AuthProvider without using JSX explicitly
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with loading true
   const [error, setError] = useState<Error | null>(null);
   const [, navigate] = useLocation();
+  
+  // Check if the user is already logged in on mount
+  React.useEffect(() => {
+    async function checkAuth() {
+      try {
+        const response = await apiRequest("GET", "/api/auth/me");
+        const userData = await response.json();
+        setUser(userData);
+      } catch (err) {
+        // Not logged in, that's fine, stay silent
+        console.log("Not logged in or auth check failed");
+      } finally {
+        setLoading(false);
+      }
+    }
+    checkAuth();
+  }, []);
 
   const login = async (username: string, password: string) => { 
     setLoading(true);
@@ -37,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await apiRequest("POST", "/api/auth/login", { username, password });
       const userData = await response.json();
       setUser(userData as User);
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       console.error("Login error:", err);
       setError(err as Error);
@@ -59,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await apiRequest("POST", "/api/auth/register", data);
       const userData = await response.json();
       setUser(userData as User);
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       console.error("Registration error:", err);
       setError(err as Error);
