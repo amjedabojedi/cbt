@@ -209,7 +209,7 @@ export default function EmotionWheel({
   const generateWheel = () => {
     const centerX = 200;
     const centerY = 200;
-    const coreRadius = 40;
+    const coreRadius = 70; // Much larger core circle (was 40)
     const emotionsCount = emotionsData.length;
     const anglePerEmotion = (2 * Math.PI) / emotionsCount;
 
@@ -332,19 +332,19 @@ export default function EmotionWheel({
                   filter={selectedCore === emotion.name ? "url(#shadow)" : ""}
                 />
                 
-                {/* Larger centered text for core emotions */}
+                {/* Much larger centered text for core emotions */}
                 <text
                   x={labelX}
                   y={labelY}
                   textAnchor="middle"
                   dominantBaseline="middle"
                   fill="#FFFFFF"
+                  className="select-none pointer-events-none font-bold"
                   style={{
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    textShadow: "0px 1px 2px rgba(0,0,0,0.5)"
+                    fontSize: '16px', // Significantly larger font
+                    textShadow: "0px 2px 3px rgba(0,0,0,0.6)",
+                    letterSpacing: '0.5px'
                   }}
-                  className="select-none pointer-events-none"
                 >
                   {translate(emotion.name)}
                 </text>
