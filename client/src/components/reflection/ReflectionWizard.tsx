@@ -79,6 +79,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   const [showAddCopingStrategyForm, setShowAddCopingStrategyForm] = useState(false);
   const [newProtectiveFactor, setNewProtectiveFactor] = useState("");
   const [newCopingStrategy, setNewCopingStrategy] = useState("");
+  const [expandedReflectionView, setExpandedReflectionView] = useState(false);
   
   // Create refs for all textareas at the component top level to avoid hook order issues
   const automaticThoughtsRef = useRef<HTMLTextAreaElement>(null);
@@ -439,8 +440,23 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
               
               {previousReflections.length > 0 && (
                 <div className="mt-3 border-t border-neutral-200 pt-3">
-                  <p className="text-sm font-medium mb-2">Previous reflections on this emotion:</p>
-                  <div className="max-h-28 overflow-y-auto">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-sm font-medium">Previous reflections on this emotion:</p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs h-7 px-2"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Toggle expanded view of reflections
+                        setExpandedReflectionView(!expandedReflectionView);
+                      }}
+                    >
+                      {expandedReflectionView ? "Show Less" : "Show More"}
+                    </Button>
+                  </div>
+                  <div className={`${expandedReflectionView ? 'max-h-60' : 'max-h-28'} overflow-y-auto transition-all duration-300`}>
                     {previousReflections.map((reflection, index) => (
                       <div 
                         key={reflection.id} 
@@ -452,7 +468,21 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                             {new Date(reflection.createdAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="line-clamp-2">{reflection.automaticThoughts}</p>
+                        <div className="flex flex-col gap-1">
+                          <p className={expandedReflectionView ? '' : 'line-clamp-2'}>
+                            <span className="font-medium">Thoughts:</span> {reflection.automaticThoughts}
+                          </p>
+                          {expandedReflectionView && reflection.alternativePerspective && (
+                            <p className="text-xs">
+                              <span className="font-medium">Alternative:</span> {reflection.alternativePerspective}
+                            </p>
+                          )}
+                          {expandedReflectionView && (
+                            <p className="text-xs">
+                              <span className="font-medium">Rating:</span> {reflection.reflectionRating}/10
+                            </p>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -673,7 +703,11 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                 ) : (
                   <div 
                     className="px-3 py-2 text-sm border border-dashed border-neutral-400 rounded-full cursor-pointer hover:border-primary"
-                    onClick={() => setShowAddProtectiveFactorForm(true)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowAddProtectiveFactorForm(true);
+                    }}
                   >
                     + Add New
                   </div>
@@ -771,7 +805,11 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                 ) : (
                   <div 
                     className="px-3 py-2 text-sm border border-dashed border-neutral-400 rounded-full cursor-pointer hover:border-primary"
-                    onClick={() => setShowAddCopingStrategyForm(true)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowAddCopingStrategyForm(true);
+                    }}
                   >
                     + Add New
                   </div>
@@ -806,15 +844,22 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                 
                 <div className="pt-2">
                   <p className="text-xs mb-2">Adjust how you feel now after reflection:</p>
-                  <Slider
-                    value={[form.getValues("reflectionRating") || 5]}
-                    min={1}
-                    max={10}
-                    step={1}
-                    onValueChange={(value) => {
-                      form.setValue("reflectionRating", value[0]);
-                    }}
-                  />
+                  <div className="space-y-2">
+                    <Slider
+                      value={[form.getValues("reflectionRating") || 5]}
+                      min={1}
+                      max={10}
+                      step={1}
+                      onValueChange={(value) => {
+                        form.setValue("reflectionRating", value[0]);
+                        // Force re-render to update the display
+                        setFormKey(Date.now());
+                      }}
+                    />
+                    <div className="text-center font-medium">
+                      Current rating: {form.getValues("reflectionRating") || 5}/10
+                    </div>
+                  </div>
                   <div className="flex justify-between text-xs text-neutral-500 mt-1">
                     <span>1</span>
                     <span>5</span>
@@ -887,15 +932,22 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                   <FormLabel>How helpful was this reflection? (1-10)</FormLabel>
                   <div className="pt-2">
                     <FormControl>
-                      <Slider
-                        value={[field.value || 5]}
-                        min={1}
-                        max={10}
-                        step={1}
-                        onValueChange={(value) => {
-                          field.onChange(value[0]);
-                        }}
-                      />
+                      <div className="space-y-2">
+                        <Slider
+                          value={[field.value || 5]}
+                          min={1}
+                          max={10}
+                          step={1}
+                          onValueChange={(value) => {
+                            field.onChange(value[0]);
+                            // Force re-render to update the display
+                            setFormKey(Date.now());
+                          }}
+                        />
+                        <div className="text-center font-medium">
+                          Rating: {field.value || 5}/10
+                        </div>
+                      </div>
                     </FormControl>
                   </div>
                   <div className="flex justify-between text-xs text-neutral-500">
@@ -924,7 +976,12 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[800px] md:max-w-[900px] p-6 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Thought Reflection</DialogTitle>
+          <DialogTitle>
+            {step === 1 && "Thought Reflection - Step 1: Identify Your Thoughts"}
+            {step === 2 && "Thought Reflection - Step 2: Challenge Your Thoughts"}
+            {step === 3 && "Thought Reflection - Step 3: Develop New Perspective"}
+            {step === 4 && "Thought Reflection - Step 4: Apply & Rate Your Progress"}
+          </DialogTitle>
           <DialogDescription>
             Examining your thoughts can help shift your emotional response.
           </DialogDescription>
