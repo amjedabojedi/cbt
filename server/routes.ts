@@ -23,6 +23,46 @@ import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./servi
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
+// Helper function to get emotion color by name
+function getEmotionColor(emotion: string): string {
+  const colorMap: Record<string, string> = {
+    // Core emotions
+    "Joy": "#F9D71C",
+    "Sadness": "#6D87C4",
+    "Fear": "#8A65AA",
+    "Disgust": "#7DB954",
+    "Anger": "#E43D40",
+    // Secondary/tertiary fallbacks
+    "Happy": "#F9D71C",
+    "Excited": "#E8B22B",
+    "Proud": "#D6A338",
+    "Content": "#C8953F",
+    "Hopeful": "#BAA150",
+    "Depressed": "#6D87C4",
+    "Lonely": "#5D78B5",
+    "Guilty": "#4C69A6",
+    "Disappointed": "#3B5A97",
+    "Hurt": "#2A4B88",
+    "Worried": "#8A65AA",
+    "Anxious": "#7A569B",
+    "Insecure": "#6A478C",
+    "Rejected": "#5A387D",
+    "Overwhelmed": "#4A296E",
+    "Disgusted": "#7DB954",
+    "Judgmental": "#6DAA45",
+    "Disapproving": "#5D9B36",
+    "Critical": "#4D8C27",
+    "Repulsed": "#3D7D18",
+    "Furious": "#E43D40",
+    "Annoyed": "#D42E31",
+    "Frustrated": "#C41F22",
+    "Irritated": "#B41013",
+    "Resentful": "#A40104"
+  };
+  
+  return colorMap[emotion] || "#888888";
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Parse cookies
   app.use(cookieParser());
@@ -251,6 +291,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get emotion statistics for charts/trends
+  app.get("/api/users/:userId/emotions/stats", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const days = parseInt(req.query.days as string) || 30;
+      
+      // Calculate date range
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+      
+      // Get all emotions within date range
+      const emotions = await storage.getEmotionRecordsByUser(userId);
+      const filteredEmotions = emotions.filter(emotion => {
+        const emotionDate = new Date(emotion.createdAt);
+        return emotionDate >= startDate && emotionDate <= endDate;
+      });
+      
+      // Count emotions by core emotion
+      const emotionCounts: Record<string, number> = {};
+      filteredEmotions.forEach(emotion => {
+        const coreEmotion = emotion.coreEmotion;
+        emotionCounts[coreEmotion] = (emotionCounts[coreEmotion] || 0) + 1;
+      });
+      
+      // Format for chart display
+      const result = Object.keys(emotionCounts).map(emotion => ({
+        emotion,
+        count: emotionCounts[emotion],
+        color: getEmotionColor(emotion)
+      }));
+      
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Error fetching emotion statistics:", error);
+      res.status(500).json({ message: "Failed to fetch emotion statistics" });
+    }
+  });
+  
   app.get("/api/emotions/:id", authenticate, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -303,11 +382,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/thoughts", authenticate, checkUserAccess, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
+      const emotionRecordId = req.query.emotionRecordId 
+        ? parseInt(req.query.emotionRecordId as string) 
+        : undefined;
+      
+      // Get all thoughts for this user
       const thoughts = await storage.getThoughtRecordsByUser(userId);
-      res.status(200).json(thoughts);
+      
+      // Filter by emotion record ID if provided
+      const filteredThoughts = emotionRecordId
+        ? thoughts.filter(t => t.emotionRecordId === emotionRecordId)
+        : thoughts;
+        
+      res.status(200).json(filteredThoughts);
     } catch (error) {
       console.error("Get thought records error:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get thought record ratings for trends/charts
+  app.get("/api/users/:userId/thoughts/ratings", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const days = parseInt(req.query.days as string) || 30;
+      
+      // Calculate date range
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+      
+      // Get all thought records within date range
+      const thoughts = await storage.getThoughtRecordsByUser(userId);
+      const filteredThoughts = thoughts.filter(thought => {
+        const thoughtDate = new Date(thought.createdAt);
+        return thoughtDate >= startDate && thoughtDate <= endDate && thought.reflectionRating != null;
+      });
+      
+      // Format data for time series chart
+      const ratingsByDate: Record<string, number[]> = {};
+      
+      filteredThoughts.forEach(thought => {
+        const date = new Date(thought.createdAt).toISOString().split('T')[0]; // YYYY-MM-DD
+        if (!ratingsByDate[date]) {
+          ratingsByDate[date] = [];
+        }
+        ratingsByDate[date].push(thought.reflectionRating);
+      });
+      
+      // Calculate average rating per day
+      const result = Object.keys(ratingsByDate).map(date => ({
+        date,
+        rating: Math.round(
+          ratingsByDate[date].reduce((sum, val) => sum + val, 0) / ratingsByDate[date].length * 10
+        ) / 10 // Round to 1 decimal place
+      }));
+      
+      // Sort by date
+      result.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Error fetching thought record ratings:", error);
+      res.status(500).json({ message: "Failed to fetch thought record ratings" });
     }
   });
   

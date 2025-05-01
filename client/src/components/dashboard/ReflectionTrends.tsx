@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from '@/lib/auth';
 import { apiRequest } from '@/lib/queryClient';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Cell } from 'recharts';
 
 interface ReflectionTrendsProps {
   userId: number;
@@ -127,7 +127,7 @@ export default function ReflectionTrends({ userId, days = 30 }: ReflectionTrends
                     barSize={30}
                   >
                     {emotionCounts.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={getEmotionColor(entry.emotion)} />
+                      <Cell key={`cell-${index}`} fill={entry.color || getEmotionColor(entry.emotion)} />
                     ))}
                   </Bar>
                 </BarChart>
