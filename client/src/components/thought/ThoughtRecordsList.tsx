@@ -80,8 +80,27 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
       setRecordToDelete(null);
       setDeleteConfirmOpen(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error deleting thought record:', error);
+      
+      // Check if it's a 404 error (record doesn't exist)
+      if (error?.response?.status === 404) {
+        // The record was likely already deleted (maybe as part of a cascade deletion)
+        // We'll treat this as a successful operation
+        toast({
+          title: "Record deleted",
+          description: "The record no longer exists.",
+          variant: "default",
+        });
+        
+        // Still refetch to update the UI
+        queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/thoughts`] });
+        setRecordToDelete(null);
+        setDeleteConfirmOpen(false);
+        return;
+      }
+      
+      // For other errors, show the error message
       toast({
         title: "Error",
         description: "Failed to delete the record. Please try again.",
@@ -200,7 +219,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Automatic Thoughts</TableHead>
                     <TableHead>Cognitive Distortions</TableHead>
-                    <TableHead>Alternative Thoughts</TableHead>
+                    <TableHead>Alternative Perspective</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
