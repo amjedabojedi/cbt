@@ -35,11 +35,14 @@ export interface IStorage {
   createEmotionRecord(record: InsertEmotionRecord): Promise<EmotionRecord>;
   getEmotionRecordsByUser(userId: number): Promise<EmotionRecord[]>;
   getEmotionRecordById(id: number): Promise<EmotionRecord | undefined>;
+  deleteEmotionRecord(id: number): Promise<void>;
   
   // Thought records
   createThoughtRecord(record: InsertThoughtRecord): Promise<ThoughtRecord>;
   getThoughtRecordsByUser(userId: number): Promise<ThoughtRecord[]>;
   getThoughtRecordById(id: number): Promise<ThoughtRecord | undefined>;
+  getThoughtRecordsByEmotionId(emotionRecordId: number): Promise<ThoughtRecord[]>;
+  deleteThoughtRecord(id: number): Promise<void>;
   
   // Protective factors
   createProtectiveFactor(factor: InsertProtectiveFactor): Promise<ProtectiveFactor>;

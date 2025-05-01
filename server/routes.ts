@@ -291,6 +291,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Delete an emotion record
+  app.delete("/api/users/:userId/emotions/:emotionId", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const emotionId = parseInt(req.params.emotionId);
+      
+      // Check if emotion exists and belongs to user
+      const emotion = await storage.getEmotionRecordById(emotionId);
+      if (!emotion) {
+        return res.status(404).json({ message: 'Emotion record not found' });
+      }
+      
+      if (emotion.userId !== userId) {
+        return res.status(403).json({ message: 'Not authorized to delete this record' });
+      }
+      
+      // Delete associated thought records first
+      const thoughts = await storage.getThoughtRecordsByEmotionId(emotionId);
+      if (thoughts && thoughts.length > 0) {
+        for (const thought of thoughts) {
+          await storage.deleteThoughtRecord(thought.id);
+        }
+      }
+      
+      // Then delete the emotion record
+      await storage.deleteEmotionRecord(emotionId);
+      
+      res.status(200).json({ message: 'Emotion record deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting emotion record:', error);
+      res.status(500).json({ message: 'Error deleting emotion record' });
+    }
+  });
+  
   // Get emotion statistics for charts/trends
   app.get("/api/users/:userId/emotions/stats", authenticate, checkUserAccess, async (req, res) => {
     try {
@@ -398,6 +432,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get thought records error:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Delete a thought record
+  app.delete("/api/users/:userId/thoughts/:thoughtId", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const thoughtId = parseInt(req.params.thoughtId);
+      
+      // Check if thought exists and belongs to user
+      const thought = await storage.getThoughtRecordById(thoughtId);
+      if (!thought) {
+        return res.status(404).json({ message: 'Thought record not found' });
+      }
+      
+      if (thought.userId !== userId) {
+        return res.status(403).json({ message: 'Not authorized to delete this record' });
+      }
+      
+      // Delete the thought record
+      await storage.deleteThoughtRecord(thoughtId);
+      
+      res.status(200).json({ message: 'Thought record deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting thought record:', error);
+      res.status(500).json({ message: 'Error deleting thought record' });
     }
   });
   
