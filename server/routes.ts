@@ -578,6 +578,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.put("/api/users/:userId/protective-factors/:factorId", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const factorId = parseInt(req.params.factorId);
+      
+      // Check if the factor exists
+      const factor = await storage.getProtectiveFactorById(factorId);
+      
+      if (!factor) {
+        return res.status(404).json({ message: "Protective factor not found" });
+      }
+      
+      // Check if the user has access to the factor
+      if (factor.userId !== userId && factor.userId !== null) {
+        // Allow therapists to update factors for their clients
+        if (req.user.role === 'therapist') {
+          const client = await storage.getUser(factor.userId);
+          if (!client || client.therapistId !== req.user.id) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        } else if (req.user.role !== 'admin') {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      // Validate the update data
+      const validatedData = insertProtectiveFactorSchema.partial().parse(req.body);
+      
+      // Prevent changes to userId field
+      delete validatedData.userId;
+      
+      // Update the factor
+      const updatedFactor = await storage.updateProtectiveFactor(factorId, validatedData);
+      res.status(200).json(updatedFactor);
+    } catch (error) {
+      console.error("Update protective factor error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   app.delete("/api/users/:userId/protective-factors/:factorId", authenticate, checkUserAccess, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);

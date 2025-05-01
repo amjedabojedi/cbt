@@ -48,6 +48,7 @@ export interface IStorage {
   createProtectiveFactor(factor: InsertProtectiveFactor): Promise<ProtectiveFactor>;
   getProtectiveFactorsByUser(userId: number, includeGlobal?: boolean): Promise<ProtectiveFactor[]>;
   getProtectiveFactorById(id: number): Promise<ProtectiveFactor | undefined>;
+  updateProtectiveFactor(id: number, data: Partial<InsertProtectiveFactor>): Promise<ProtectiveFactor>;
   deleteProtectiveFactor(id: number): Promise<void>;
   
   // Protective factor usage
@@ -57,6 +58,7 @@ export interface IStorage {
   createCopingStrategy(strategy: InsertCopingStrategy): Promise<CopingStrategy>;
   getCopingStrategiesByUser(userId: number, includeGlobal?: boolean): Promise<CopingStrategy[]>;
   getCopingStrategyById(id: number): Promise<CopingStrategy | undefined>;
+  updateCopingStrategy(id: number, data: Partial<InsertCopingStrategy>): Promise<CopingStrategy>;
   deleteCopingStrategy(id: number): Promise<void>;
   
   // Coping strategy usage
@@ -300,6 +302,16 @@ export class DatabaseStorage implements IStorage {
     return factor;
   }
   
+  async updateProtectiveFactor(id: number, data: Partial<InsertProtectiveFactor>): Promise<ProtectiveFactor> {
+    const [updatedFactor] = await db
+      .update(protectiveFactors)
+      .set(data)
+      .where(eq(protectiveFactors.id, id))
+      .returning();
+    
+    return updatedFactor;
+  }
+
   async deleteProtectiveFactor(id: number): Promise<void> {
     // First delete any usage records
     await db
@@ -370,6 +382,16 @@ export class DatabaseStorage implements IStorage {
     return strategy;
   }
   
+  async updateCopingStrategy(id: number, data: Partial<InsertCopingStrategy>): Promise<CopingStrategy> {
+    const [updatedStrategy] = await db
+      .update(copingStrategies)
+      .set(data)
+      .where(eq(copingStrategies.id, id))
+      .returning();
+    
+    return updatedStrategy;
+  }
+
   async deleteCopingStrategy(id: number): Promise<void> {
     // First delete any usage records
     await db
