@@ -665,7 +665,7 @@ export default function ResourceLibrary() {
                           <div className="flex justify-between items-start">
                             <CardTitle className="text-base font-medium">{factor.name}</CardTitle>
                             <div className="flex space-x-1">
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditFactor(factor)}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <Edit className="h-4 w-4 text-neutral-500" />
                               </Button>
                               <Button
@@ -943,7 +943,7 @@ export default function ResourceLibrary() {
                           <div className="flex justify-between items-start">
                             <CardTitle className="text-base font-medium">{strategy.name}</CardTitle>
                             <div className="flex space-x-1">
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditStrategy(strategy)}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <Edit className="h-4 w-4 text-neutral-500" />
                               </Button>
                               <Button
