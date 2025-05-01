@@ -8,6 +8,7 @@ import ReflectionTrends from "@/components/dashboard/ReflectionTrends";
 import ReflectionInsights from "@/components/dashboard/ReflectionInsights";
 import useActiveUser from "@/hooks/use-active-user";
 import { useClientContext } from "@/context/ClientContext";
+import { ClientDebug } from "@/components/debug/ClientDebug";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -31,6 +32,9 @@ export default function Dashboard() {
   return (
     <AppLayout title="Dashboard">
       <div className="container mx-auto px-4 py-6">
+        {/* Debug Information (Development Only) */}
+        <ClientDebug />
+        
         {/* Welcome Message */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-neutral-800">
