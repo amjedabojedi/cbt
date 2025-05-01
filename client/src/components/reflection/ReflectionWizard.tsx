@@ -108,23 +108,46 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   // Force update on input fields for better responsiveness
   const [formKey, setFormKey] = useState(Date.now());
   
-  // Mock data for protective factors and coping strategies
-  // In real app, this would be fetched from the API
-  const protectiveFactors = [
+  // State for protective factors and coping strategies
+  const [protectiveFactors, setProtectiveFactors] = useState([
     { id: 1, name: "Supportive relationships" },
     { id: 2, name: "Problem-solving skills" },
     { id: 3, name: "Self-care routine" },
     { id: 4, name: "Positive self-talk" },
     { id: 5, name: "Meaningful activities" },
-  ];
+  ]);
   
-  const copingStrategies = [
+  const [copingStrategies, setCopingStrategies] = useState([
     { id: 1, name: "Deep breathing" },
     { id: 2, name: "Progressive muscle relaxation" },
     { id: 3, name: "Mindfulness meditation" },
     { id: 4, name: "Physical exercise" },
     { id: 5, name: "Journaling" },
-  ];
+  ]);
+  
+  // State for previous reflections
+  const [previousReflections, setPreviousReflections] = useState<ThoughtRecord[]>([]);
+  
+  // Fetch previous reflections for this emotion
+  useEffect(() => {
+    if (user && emotion) {
+      const fetchPreviousReflections = async () => {
+        try {
+          const response = await apiRequest(
+            "GET",
+            `/api/users/${user.id}/thoughts?emotionRecordId=${emotion.id}`
+          );
+          const data = await response.json();
+          // Set previous reflections excluding the current one
+          setPreviousReflections(data);
+        } catch (error) {
+          console.error("Error fetching previous reflections:", error);
+        }
+      };
+      
+      fetchPreviousReflections();
+    }
+  }, [user, emotion]);
   
   // Handle next step
   const handleNext = () => {
@@ -182,7 +205,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
       const factor = await response.json();
       
       // Add new factor to the list and select it
-      protectiveFactors.push(factor);
+      setProtectiveFactors(prevFactors => [...prevFactors, factor]);
       setSelectedProtectiveFactors(prev => [...prev, factor.id]);
       
       // Reset form
@@ -222,7 +245,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
       const strategy = await response.json();
       
       // Add new strategy to the list and select it
-      copingStrategies.push(strategy);
+      setCopingStrategies(prevStrategies => [...prevStrategies, strategy]);
       setSelectedCopingStrategies(prev => [...prev, strategy.id]);
       
       // Reset form
@@ -413,6 +436,28 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                   </p>
                 </div>
               </div>
+              
+              {previousReflections.length > 0 && (
+                <div className="mt-3 border-t border-neutral-200 pt-3">
+                  <p className="text-sm font-medium mb-2">Previous reflections on this emotion:</p>
+                  <div className="max-h-28 overflow-y-auto">
+                    {previousReflections.map((reflection, index) => (
+                      <div 
+                        key={reflection.id} 
+                        className="text-xs bg-white p-2 rounded mb-2 border border-neutral-200"
+                      >
+                        <div className="flex justify-between mb-1">
+                          <span className="font-medium">Reflection #{index + 1}</span>
+                          <span className="text-neutral-500">
+                            {new Date(reflection.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="line-clamp-2">{reflection.automaticThoughts}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             
             <FormField
