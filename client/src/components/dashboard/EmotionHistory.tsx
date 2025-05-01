@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
+import { useAuth } from "@/lib/auth";
 
 import {
   Table,
