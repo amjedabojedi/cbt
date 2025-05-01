@@ -16,8 +16,8 @@ import {
   Cell
 } from 'recharts';
 import { apiRequest } from '@/lib/queryClient';
-import { useAuth } from '@/lib/auth';
 import { ThoughtRecord, EmotionRecord } from '@shared/schema';
+import useActiveUser from '@/hooks/use-active-user';
 
 type EmotionGroup = {
   coreEmotion: string;
@@ -47,7 +47,7 @@ const EMOTION_COLORS: Record<string, string> = {
 const DEFAULT_TABS = ['overview', 'emotions', 'strategies', 'distortions'];
 
 export default function ReflectionInsights() {
-  const { user } = useAuth();
+  const { activeUserId, isViewingClientData } = useActiveUser();
   const [activeTab, setActiveTab] = useState('overview');
   const [emotionGroups, setEmotionGroups] = useState<EmotionGroup[]>([]);
   const [emotionRecords, setEmotionRecords] = useState<EmotionRecord[]>([]);
@@ -60,18 +60,18 @@ export default function ReflectionInsights() {
   const [copingStrategyUsage, setCopingStrategyUsage] = useState<{[thoughtId: number]: {id: number, name: string}[]}>({});
   
   useEffect(() => {
-    if (!user) return;
+    if (!activeUserId) return;
 
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch all emotion records
-        const emotionsResponse = await apiRequest('GET', `/api/users/${user.id}/emotions`);
+        // Fetch all emotion records for the active user
+        const emotionsResponse = await apiRequest('GET', `/api/users/${activeUserId}/emotions`);
         const emotions: EmotionRecord[] = await emotionsResponse.json();
         setEmotionRecords(emotions);
 
-        // Fetch all thought records
-        const thoughtsResponse = await apiRequest('GET', `/api/users/${user.id}/thoughts`);
+        // Fetch all thought records for the active user
+        const thoughtsResponse = await apiRequest('GET', `/api/users/${activeUserId}/thoughts`);
         const thoughts: ThoughtRecord[] = await thoughtsResponse.json();
         setReflectionRecords(thoughts);
         
@@ -83,7 +83,7 @@ export default function ReflectionInsights() {
         await Promise.all(thoughts.map(async (thought) => {
           try {
             const pfResponse = await apiRequest('GET', 
-              `/api/users/${user.id}/thoughts/${thought.id}/protective-factors`);
+              `/api/users/${activeUserId}/thoughts/${thought.id}/protective-factors`);
             const pfData = await pfResponse.json();
             protectiveFactorsMap[thought.id] = pfData;
           } catch (err) {
@@ -96,7 +96,7 @@ export default function ReflectionInsights() {
         await Promise.all(thoughts.map(async (thought) => {
           try {
             const csResponse = await apiRequest('GET', 
-              `/api/users/${user.id}/thoughts/${thought.id}/coping-strategies`);
+              `/api/users/${activeUserId}/thoughts/${thought.id}/coping-strategies`);
             const csData = await csResponse.json();
             copingStrategiesMap[thought.id] = csData;
           } catch (err) {
@@ -118,7 +118,7 @@ export default function ReflectionInsights() {
     };
 
     fetchData();
-  }, [user]);
+  }, [activeUserId]);
 
   const processData = (
     emotions: EmotionRecord[], 

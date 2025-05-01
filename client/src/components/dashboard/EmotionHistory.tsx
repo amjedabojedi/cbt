@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { EmotionRecord } from "@shared/schema";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import useActiveUser from "@/hooks/use-active-user";
 
 import {
   Table,
@@ -49,7 +49,7 @@ interface EmotionHistoryProps {
 }
 
 export default function EmotionHistory({ limit }: EmotionHistoryProps) {
-  const { user } = useAuth();
+  const { activeUserId, isViewingClientData } = useActiveUser();
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionRecord | null>(null);
   const [showFullHistory, setShowFullHistory] = useState(false);
   const [showReflectionWizard, setShowReflectionWizard] = useState(false);
@@ -58,21 +58,21 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Fetch emotion records
+  // Fetch emotion records for the active user (could be a client viewed by a therapist)
   const { data: emotions, isLoading, error } = useQuery({
-    queryKey: user ? [`/api/users/${user.id}/emotions`] : [],
-    enabled: !!user,
+    queryKey: activeUserId ? [`/api/users/${activeUserId}/emotions`] : [],
+    enabled: !!activeUserId,
   });
   
-  // Delete emotion mutation
+  // Delete emotion mutation - only allowed for own records
   const deleteEmotionMutation = useMutation({
     mutationFn: async (emotionId: number) => {
-      if (!user) throw new Error('User not authenticated');
-      return apiRequest('DELETE', `/api/users/${user.id}/emotions/${emotionId}`);
+      if (!activeUserId) throw new Error('User not authenticated');
+      return apiRequest('DELETE', `/api/users/${activeUserId}/emotions/${emotionId}`);
     },
     onSuccess: () => {
       // Invalidate and refetch emotions
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/emotions`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/emotions`] });
       
       toast({
         title: "Record deleted",
@@ -97,7 +97,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
         });
         
         // Still refetch to update the UI
-        queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/emotions`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/emotions`] });
         setEmotionToDelete(null);
         setDeleteConfirmOpen(false);
         return;

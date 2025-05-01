@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { format, subDays, subMonths, startOfDay, endOfDay, eachDayOfInterval } from "date-fns";
 import { EmotionRecord } from "@shared/schema";
+import useActiveUser from "@/hooks/use-active-user";
 
 import {
   Card,
@@ -28,13 +28,13 @@ import {
 type TimeRange = "week" | "month" | "year";
 
 export default function MoodTrends() {
-  const { user } = useAuth();
+  const { activeUserId, isViewingClientData } = useActiveUser();
   const [timeRange, setTimeRange] = useState<TimeRange>("week");
   
-  // Fetch emotion records
+  // Fetch emotion records for the active user (could be client viewed by therapist)
   const { data: emotions, isLoading, error } = useQuery({
-    queryKey: user ? [`/api/users/${user.id}/emotions`] : [],
-    enabled: !!user,
+    queryKey: activeUserId ? [`/api/users/${activeUserId}/emotions`] : [],
+    enabled: !!activeUserId,
   });
   
   // Process data for chart based on selected time range
