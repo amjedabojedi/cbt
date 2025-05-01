@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import useActiveUser from "@/hooks/use-active-user";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +55,7 @@ export default function EmotionTrackingForm({
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isViewingClientData } = useActiveUser();
   const [showReflectionWizard, setShowReflectionWizard] = useState(false);
   const [recordedEmotion, setRecordedEmotion] = useState<any>(null);
   
@@ -163,9 +165,14 @@ export default function EmotionTrackingForm({
         description: "Your emotion has been recorded successfully.",
       });
       
-      // Store the recorded emotion and show reflection wizard
+      // Store the recorded emotion
       setRecordedEmotion(recordedEmotion);
-      setShowReflectionWizard(true);
+      
+      // Only show reflection wizard if user is not viewing a client's data
+      // Therapists should not be able to add reflections directly when viewing client data
+      if (!isViewingClientData) {
+        setShowReflectionWizard(true);
+      }
       
       // Notify parent component
       if (onEmotionRecorded) {
