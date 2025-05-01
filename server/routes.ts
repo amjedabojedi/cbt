@@ -15,7 +15,13 @@ import {
   insertGoalSchema,
   insertGoalMilestoneSchema,
   insertActionSchema,
-  goals
+  goals,
+  goalMilestones,
+  actions,
+  protectiveFactors,
+  protectiveFactorUsage,
+  copingStrategies,
+  copingStrategyUsage
 } from "@shared/schema";
 import cookieParser from "cookie-parser";
 import { sendClientInvitation } from "./services/email";
@@ -840,12 +846,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const goalId = parseInt(req.params.goalId);
       
-      // Check if the goal exists and the user has access
-      const goals = await storage.getGoalsByUser(req.user.id);
-      const goal = goals.find(g => g.id === goalId);
+      // First, retrieve the goal to check ownership and permissions
+      const [goal] = await db
+        .select()
+        .from(goals)
+        .where(eq(goals.id, goalId));
       
-      if (!goal && req.user.role !== 'therapist' && req.user.role !== 'admin') {
+      if (!goal) {
         return res.status(404).json({ message: "Goal not found" });
+      }
+      
+      // If it's the user's own goal - always allow
+      if (req.user.id === goal.userId) {
+        // Continue with request
+      }
+      // If therapist is viewing their client's goal - allow
+      else if (req.user.role === 'therapist') {
+        // Verify the goal belongs to their client
+        const client = await storage.getUser(goal.userId);
+        if (!client || client.therapistId !== req.user.id) {
+          return res.status(403).json({ message: 'Access denied. You can only view milestones for your clients\' goals.' });
+        }
+        // Continue with request
+      }
+      // Admin can view any goal's milestones
+      else if (req.user.role === 'admin') {
+        // Continue with request
+      }
+      else {
+        return res.status(403).json({ message: 'Access denied. You can only view milestones for your own goals.' });
       }
       
       const milestones = await storage.getGoalMilestonesByGoal(goalId);
@@ -865,6 +894,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const id = parseInt(req.params.id);
+      
+      // First get the milestone to check associated goal ownership
+      const [milestone] = await db
+        .select()
+        .from(goalMilestones)
+        .where(eq(goalMilestones.id, id));
+      
+      if (!milestone) {
+        return res.status(404).json({ message: "Milestone not found" });
+      }
+      
+      // Now get the associated goal to check permissions
+      const [goal] = await db
+        .select()
+        .from(goals)
+        .where(eq(goals.id, milestone.goalId));
+      
+      if (!goal) {
+        return res.status(404).json({ message: "Associated goal not found" });
+      }
+      
+      // If it's the user's own goal - always allow
+      if (req.user.id === goal.userId) {
+        // Continue with update
+      }
+      // If therapist is updating their client's goal milestone - allow
+      else if (req.user.role === 'therapist') {
+        // Verify the goal belongs to their client
+        const client = await storage.getUser(goal.userId);
+        if (!client || client.therapistId !== req.user.id) {
+          return res.status(403).json({ message: 'Access denied. You can only update milestones for your clients\' goals.' });
+        }
+        // Continue with update
+      }
+      // Admin can update any milestone
+      else if (req.user.role === 'admin') {
+        // Continue with update
+      }
+      else {
+        return res.status(403).json({ message: 'Access denied. You can only update milestones for your own goals.' });
+      }
+      
       const updatedMilestone = await storage.updateGoalMilestoneCompletion(id, isCompleted);
       res.status(200).json(updatedMilestone);
     } catch (error) {
@@ -913,6 +984,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const id = parseInt(req.params.id);
+      
+      // First get the action to check ownership
+      const [action] = await db
+        .select()
+        .from(actions)
+        .where(eq(actions.id, id));
+      
+      if (!action) {
+        return res.status(404).json({ message: "Action not found" });
+      }
+      
+      // If it's the user's own action - always allow
+      if (req.user.id === action.userId) {
+        // Continue with update
+      }
+      // If therapist is updating their client's action - allow
+      else if (req.user.role === 'therapist') {
+        // Verify the action belongs to their client
+        const client = await storage.getUser(action.userId);
+        if (!client || client.therapistId !== req.user.id) {
+          return res.status(403).json({ message: 'Access denied. You can only update actions for your clients.' });
+        }
+        // Continue with update
+      }
+      // Admin can update any action
+      else if (req.user.role === 'admin') {
+        // Continue with update
+      }
+      else {
+        return res.status(403).json({ message: 'Access denied. You can only update your own actions.' });
+      }
+      
       const updatedAction = await storage.updateActionCompletion(id, isCompleted, moodAfter, reflection);
       res.status(200).json(updatedAction);
     } catch (error) {

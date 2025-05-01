@@ -263,14 +263,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProtectiveFactorsByUser(userId: number, includeGlobal: boolean = true): Promise<ProtectiveFactor[]> {
+    // First get the user to check if they have a therapist
+    const user = await this.getUser(userId);
+    
     if (includeGlobal) {
+      let conditions = [
+        eq(protectiveFactors.userId, userId),
+        eq(protectiveFactors.isGlobal, true)
+      ];
+      
+      // If user has a therapist, include the therapist's factors too
+      if (user && user.therapistId) {
+        conditions.push(eq(protectiveFactors.userId, user.therapistId));
+      }
+      
       return db
         .select()
         .from(protectiveFactors)
-        .where(or(
-          eq(protectiveFactors.userId, userId),
-          eq(protectiveFactors.isGlobal, true)
-        ))
+        .where(or(...conditions))
         .orderBy(protectiveFactors.name);
     } else {
       return db
@@ -323,14 +333,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCopingStrategiesByUser(userId: number, includeGlobal: boolean = true): Promise<CopingStrategy[]> {
+    // First get the user to check if they have a therapist
+    const user = await this.getUser(userId);
+    
     if (includeGlobal) {
+      let conditions = [
+        eq(copingStrategies.userId, userId),
+        eq(copingStrategies.isGlobal, true)
+      ];
+      
+      // If user has a therapist, include the therapist's coping strategies too
+      if (user && user.therapistId) {
+        conditions.push(eq(copingStrategies.userId, user.therapistId));
+      }
+      
       return db
         .select()
         .from(copingStrategies)
-        .where(or(
-          eq(copingStrategies.userId, userId),
-          eq(copingStrategies.isGlobal, true)
-        ))
+        .where(or(...conditions))
         .orderBy(copingStrategies.name);
     } else {
       return db
