@@ -26,8 +26,8 @@ import {
 import cookieParser from "cookie-parser";
 import { sendClientInvitation } from "./services/email";
 import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
-import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { db, pool } from "./db";
+import { eq, or, isNull, desc, and } from "drizzle-orm";
 
 // Helper function to get emotion color by name
 function getEmotionColor(emotion: string): string {
