@@ -307,16 +307,20 @@ export default function GoalSetting() {
           <div className="flex justify-between items-center mb-4">
             <TabsList>
               <TabsTrigger value="goals">My Goals</TabsTrigger>
-              <TabsTrigger value="create">Create Goal</TabsTrigger>
+              {user?.role !== 'therapist' && (
+                <TabsTrigger value="create">Create Goal</TabsTrigger>
+              )}
             </TabsList>
             
             <Dialog open={isCreatingGoal} onOpenChange={setIsCreatingGoal}>
-              <DialogTrigger asChild>
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  New Goal
-                </Button>
-              </DialogTrigger>
+              {user?.role !== 'therapist' && (
+                <DialogTrigger asChild>
+                  <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    New Goal
+                  </Button>
+                </DialogTrigger>
+              )}
               <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Create a SMART Goal</DialogTitle>
@@ -492,9 +496,16 @@ export default function GoalSetting() {
                   <p className="text-neutral-500 text-center max-w-md mb-6">
                     Setting SMART goals helps you clarify your ideas, focus your efforts, and use your time and resources productively.
                   </p>
-                  <Button onClick={() => setIsCreatingGoal(true)}>
-                    Create Your First Goal
-                  </Button>
+                  {user?.role !== 'therapist' && (
+                    <Button onClick={() => setIsCreatingGoal(true)}>
+                      Create Your First Goal
+                    </Button>
+                  )}
+                  {user?.role === 'therapist' && (
+                    <p className="text-amber-700 text-center mt-2">
+                      As a therapist, you can only provide feedback on client goals.
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             ) : (
@@ -602,14 +613,16 @@ export default function GoalSetting() {
                           <div className="flex items-center justify-between mb-3">
                             <h4 className="font-medium">Milestones</h4>
                             
-                            <Dialog open={isAddingMilestone} onOpenChange={setIsAddingMilestone}>
-                              <DialogTrigger asChild>
-                                <Button size="sm" variant="outline">
-                                  <PlusCircle className="h-4 w-4 mr-1" />
-                                  Add Milestone
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
+                            {user?.role !== 'therapist' ? (
+                              <Dialog open={isAddingMilestone} onOpenChange={setIsAddingMilestone}>
+                                <DialogTrigger asChild>
+                                  <Button size="sm" variant="outline">
+                                    <PlusCircle className="h-4 w-4 mr-1" />
+                                    Add Milestone
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                
                                 <DialogHeader>
                                   <DialogTitle>Add a Milestone</DialogTitle>
                                   <DialogDescription>
