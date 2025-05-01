@@ -80,6 +80,13 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   const [newProtectiveFactor, setNewProtectiveFactor] = useState("");
   const [newCopingStrategy, setNewCopingStrategy] = useState("");
   
+  // Create refs for all textareas at the component top level to avoid hook order issues
+  const automaticThoughtsRef = useRef<HTMLTextAreaElement>(null);
+  const evidenceForRef = useRef<HTMLTextAreaElement>(null);
+  const evidenceAgainstRef = useRef<HTMLTextAreaElement>(null);
+  const alternativePerspectiveRef = useRef<HTMLTextAreaElement>(null);
+  const insightsGainedRef = useRef<HTMLTextAreaElement>(null);
+  
   const totalSteps = 4;
   const progress = (step / totalSteps) * 100;
   
@@ -411,41 +418,37 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
             <FormField
               control={form.control}
               name="automaticThoughts"
-              render={({ field }) => {
-                const textareaRef = useRef<HTMLTextAreaElement>(null);
-                
-                return (
-                  <FormItem>
-                    <FormLabel>What thoughts went through your mind?</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Type your thoughts here..."
-                        rows={4}
-                        value={field.value || ''}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          form.setValue("automaticThoughts", e.target.value, { 
-                            shouldValidate: true,
-                            shouldDirty: true,
-                            shouldTouch: true 
-                          });
-                        }}
-                        onBlur={field.onBlur}
-                        ref={(el) => {
-                          field.ref(el);
-                          if (textareaRef) {
-                            // @ts-ignore
-                            textareaRef.current = el;
-                          }
-                        }}
-                        name={field.name}
-                        className="focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>What thoughts went through your mind?</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Type your thoughts here..."
+                      rows={4}
+                      value={field.value || ''}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        form.setValue("automaticThoughts", e.target.value, { 
+                          shouldValidate: true,
+                          shouldDirty: true,
+                          shouldTouch: true 
+                        });
+                      }}
+                      onBlur={field.onBlur}
+                      ref={(el) => {
+                        field.ref(el);
+                        if (automaticThoughtsRef) {
+                          // @ts-ignore
+                          automaticThoughtsRef.current = el;
+                        }
+                      }}
+                      name={field.name}
+                      className="focus:border-primary focus:ring-1 focus:ring-primary"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
             
             <FormField
@@ -504,89 +507,79 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
             <FormField
               control={form.control}
               name="evidenceFor"
-              render={({ field }) => {
-                // Add a ref to directly access the textarea
-                const textareaRef = useRef<HTMLTextAreaElement>(null);
-                
-                return (
-                  <FormItem>
-                    <FormLabel>What evidence supports this thought?</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="List facts that support this thought..."
-                        rows={3}
-                        value={field.value || ''}
-                        onChange={(e) => {
-                          // Handle the change directly
-                          field.onChange(e);
-                          // Set the value in the form directly as well
-                          form.setValue("evidenceFor", e.target.value, { 
-                            shouldValidate: true,
-                            shouldDirty: true,
-                            shouldTouch: true 
-                          });
-                        }}
-                        onBlur={field.onBlur}
-                        ref={(el) => {
-                          // Connect to both refs
-                          field.ref(el);
-                          if (textareaRef) {
-                            // @ts-ignore - the ref is a callback, but we want to store the element
-                            textareaRef.current = el;
-                          }
-                        }}
-                        name={field.name}
-                        className="focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>What evidence supports this thought?</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="List facts that support this thought..."
+                      rows={3}
+                      value={field.value || ''}
+                      onChange={(e) => {
+                        // Handle the change directly
+                        field.onChange(e);
+                        // Set the value in the form directly as well
+                        form.setValue("evidenceFor", e.target.value, { 
+                          shouldValidate: true,
+                          shouldDirty: true,
+                          shouldTouch: true 
+                        });
+                      }}
+                      onBlur={field.onBlur}
+                      ref={(el) => {
+                        // Connect to both refs
+                        field.ref(el);
+                        if (evidenceForRef) {
+                          // @ts-ignore - the ref is a callback, but we want to store the element
+                          evidenceForRef.current = el;
+                        }
+                      }}
+                      name={field.name}
+                      className="focus:border-primary focus:ring-1 focus:ring-primary"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
             
             <FormField
               control={form.control}
               name="evidenceAgainst"
-              render={({ field }) => {
-                // Add a ref to directly access the textarea
-                const textareaRef = useRef<HTMLTextAreaElement>(null);
-                
-                return (
-                  <FormItem>
-                    <FormLabel>What evidence contradicts this thought?</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="List facts that don't support this thought..."
-                        rows={3}
-                        value={field.value || ''}
-                        onChange={(e) => {
-                          // Handle the change directly
-                          field.onChange(e);
-                          // Set the value in the form directly as well
-                          form.setValue("evidenceAgainst", e.target.value, { 
-                            shouldValidate: true,
-                            shouldDirty: true,
-                            shouldTouch: true 
-                          });
-                        }}
-                        onBlur={field.onBlur}
-                        ref={(el) => {
-                          // Connect to both refs
-                          field.ref(el);
-                          if (textareaRef) {
-                            // @ts-ignore - the ref is a callback, but we want to store the element
-                            textareaRef.current = el;
-                          }
-                        }}
-                        name={field.name}
-                        className="focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>What evidence contradicts this thought?</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="List facts that don't support this thought..."
+                      rows={3}
+                      value={field.value || ''}
+                      onChange={(e) => {
+                        // Handle the change directly
+                        field.onChange(e);
+                        // Set the value in the form directly as well
+                        form.setValue("evidenceAgainst", e.target.value, { 
+                          shouldValidate: true,
+                          shouldDirty: true,
+                          shouldTouch: true 
+                        });
+                      }}
+                      onBlur={field.onBlur}
+                      ref={(el) => {
+                        // Connect to both refs
+                        field.ref(el);
+                        if (evidenceAgainstRef) {
+                          // @ts-ignore - the ref is a callback, but we want to store the element
+                          evidenceAgainstRef.current = el;
+                        }
+                      }}
+                      name={field.name}
+                      className="focus:border-primary focus:ring-1 focus:ring-primary"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
             
             <div className="space-y-3">
@@ -651,44 +644,40 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
             <FormField
               control={form.control}
               name="alternativePerspective"
-              render={({ field }) => {
-                const textareaRef = useRef<HTMLTextAreaElement>(null);
-                
-                return (
-                  <FormItem>
-                    <FormLabel>What's a more balanced perspective?</FormLabel>
-                    <FormDescription>
-                      Consider the evidence for and against your thoughts to create a more balanced view.
-                    </FormDescription>
-                    <FormControl>
-                      <Textarea
-                        placeholder="A more realistic way to see this situation might be..."
-                        rows={4}
-                        value={field.value || ''}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          form.setValue("alternativePerspective", e.target.value, { 
-                            shouldValidate: true,
-                            shouldDirty: true,
-                            shouldTouch: true 
-                          });
-                        }}
-                        onBlur={field.onBlur}
-                        ref={(el) => {
-                          field.ref(el);
-                          if (textareaRef) {
-                            // @ts-ignore
-                            textareaRef.current = el;
-                          }
-                        }}
-                        name={field.name}
-                        className="focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>What's a more balanced perspective?</FormLabel>
+                  <FormDescription>
+                    Consider the evidence for and against your thoughts to create a more balanced view.
+                  </FormDescription>
+                  <FormControl>
+                    <Textarea
+                      placeholder="A more realistic way to see this situation might be..."
+                      rows={4}
+                      value={field.value || ''}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        form.setValue("alternativePerspective", e.target.value, { 
+                          shouldValidate: true,
+                          shouldDirty: true,
+                          shouldTouch: true 
+                        });
+                      }}
+                      onBlur={field.onBlur}
+                      ref={(el) => {
+                        field.ref(el);
+                        if (alternativePerspectiveRef) {
+                          // @ts-ignore
+                          alternativePerspectiveRef.current = el;
+                        }
+                      }}
+                      name={field.name}
+                      className="focus:border-primary focus:ring-1 focus:ring-primary"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
             
             <div className="space-y-3">
@@ -812,41 +801,37 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
             <FormField
               control={form.control}
               name="insightsGained"
-              render={({ field }) => {
-                const textareaRef = useRef<HTMLTextAreaElement>(null);
-                
-                return (
-                  <FormItem>
-                    <FormLabel>What insights did you gain from this reflection?</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="What did you learn that you can apply in the future..."
-                        rows={3}
-                        value={field.value || ''}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          form.setValue("insightsGained", e.target.value, { 
-                            shouldValidate: true,
-                            shouldDirty: true,
-                            shouldTouch: true 
-                          });
-                        }}
-                        onBlur={field.onBlur}
-                        ref={(el) => {
-                          field.ref(el);
-                          if (textareaRef) {
-                            // @ts-ignore
-                            textareaRef.current = el;
-                          }
-                        }}
-                        name={field.name}
-                        className="focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>What insights did you gain from this reflection?</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="What did you learn that you can apply in the future..."
+                      rows={3}
+                      value={field.value || ''}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        form.setValue("insightsGained", e.target.value, { 
+                          shouldValidate: true,
+                          shouldDirty: true,
+                          shouldTouch: true 
+                        });
+                      }}
+                      onBlur={field.onBlur}
+                      ref={(el) => {
+                        field.ref(el);
+                        if (insightsGainedRef) {
+                          // @ts-ignore
+                          insightsGainedRef.current = el;
+                        }
+                      }}
+                      name={field.name}
+                      className="focus:border-primary focus:ring-1 focus:ring-primary"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
             
             <FormField
