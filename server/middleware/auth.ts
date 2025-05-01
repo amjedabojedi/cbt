@@ -64,6 +64,15 @@ export function isAdmin(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+// Middleware to ensure only clients can create records (not therapists)
+export function isClientOrAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.user?.role === 'therapist') {
+    return res.status(403).json({ message: 'Therapists cannot create records. Only clients can record emotions and thoughts.' });
+  }
+  
+  next();
+}
+
 export function checkUserAccess(req: Request, res: Response, next: NextFunction) {
   const requestedUserId = parseInt(req.params.userId);
   
