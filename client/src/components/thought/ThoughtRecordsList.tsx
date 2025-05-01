@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { EmotionRecord } from "@shared/schema";
+import { ThoughtRecord } from "@shared/schema";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -20,8 +20,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
 import {
@@ -42,49 +40,48 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Edit, Eye, Trash2 } from "lucide-react";
-import ReflectionWizard from "../reflection/ReflectionWizard";
 
-interface EmotionHistoryProps {
+interface ThoughtRecordsListProps {
   limit?: number;
+  onEditRecord?: (record: ThoughtRecord) => void;
 }
 
-export default function EmotionHistory({ limit }: EmotionHistoryProps) {
+export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecordsListProps) {
   const { user } = useAuth();
-  const [selectedEmotion, setSelectedEmotion] = useState<EmotionRecord | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<ThoughtRecord | null>(null);
   const [showFullHistory, setShowFullHistory] = useState(false);
-  const [showReflectionWizard, setShowReflectionWizard] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [emotionToDelete, setEmotionToDelete] = useState<EmotionRecord | null>(null);
+  const [recordToDelete, setRecordToDelete] = useState<ThoughtRecord | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Fetch emotion records
-  const { data: emotions, isLoading, error } = useQuery({
-    queryKey: user ? [`/api/users/${user.id}/emotions`] : [],
+  // Fetch thought records
+  const { data: thoughtRecords, isLoading, error } = useQuery({
+    queryKey: user ? [`/api/users/${user.id}/thoughts`] : [],
     enabled: !!user,
   });
   
-  // Delete emotion mutation
-  const deleteEmotionMutation = useMutation({
-    mutationFn: async (emotionId: number) => {
+  // Delete thought record mutation
+  const deleteThoughtMutation = useMutation({
+    mutationFn: async (recordId: number) => {
       if (!user) throw new Error('User not authenticated');
-      return apiRequest('DELETE', `/api/users/${user.id}/emotions/${emotionId}`);
+      return apiRequest('DELETE', `/api/users/${user.id}/thoughts/${recordId}`);
     },
     onSuccess: () => {
-      // Invalidate and refetch emotions
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/emotions`] });
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/thoughts`] });
       
       toast({
         title: "Record deleted",
-        description: "The emotion record has been deleted successfully.",
+        description: "The thought record has been deleted successfully.",
         variant: "default",
       });
       
-      setEmotionToDelete(null);
+      setRecordToDelete(null);
       setDeleteConfirmOpen(false);
     },
     onError: (error) => {
-      console.error('Error deleting emotion record:', error);
+      console.error('Error deleting thought record:', error);
       toast({
         title: "Error",
         description: "Failed to delete the record. Please try again.",
@@ -94,56 +91,42 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   });
   
   // Handle view details
-  const handleViewDetails = (emotion: EmotionRecord) => {
-    setSelectedEmotion(emotion);
+  const handleViewDetails = (record: ThoughtRecord) => {
+    setSelectedRecord(record);
   };
   
-  // Handle edit/reflection
-  const handleEditEmotion = (emotion: EmotionRecord) => {
-    setSelectedEmotion(emotion);
-    setShowReflectionWizard(true);
+  // Handle edit
+  const handleEditRecord = (record: ThoughtRecord) => {
+    if (onEditRecord) {
+      onEditRecord(record);
+    }
   };
   
   // Handle delete
-  const handleDeleteClick = (emotion: EmotionRecord) => {
-    setEmotionToDelete(emotion);
+  const handleDeleteClick = (record: ThoughtRecord) => {
+    setRecordToDelete(record);
     setDeleteConfirmOpen(true);
   };
   
   const confirmDelete = () => {
-    if (emotionToDelete) {
-      deleteEmotionMutation.mutate(emotionToDelete.id);
+    if (recordToDelete) {
+      deleteThoughtMutation.mutate(recordToDelete.id);
     }
   };
   
   // Format date for display
   const formatDate = (date: string | Date) => {
-    const emotionDate = new Date(date);
+    const recordDate = new Date(date);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
     
-    if (emotionDate.toDateString() === today.toDateString()) {
-      return `Today, ${format(emotionDate, "h:mm a")}`;
-    } else if (emotionDate.toDateString() === yesterday.toDateString()) {
-      return `Yesterday, ${format(emotionDate, "h:mm a")}`;
+    if (recordDate.toDateString() === today.toDateString()) {
+      return `Today, ${format(recordDate, "h:mm a")}`;
+    } else if (recordDate.toDateString() === yesterday.toDateString()) {
+      return `Yesterday, ${format(recordDate, "h:mm a")}`;
     } else {
-      return format(emotionDate, "MMM d, h:mm a");
-    }
-  };
-  
-  // Get emotion badge color
-  const getEmotionBadgeColor = (emotion: string) => {
-    if (emotion.includes("Joy") || emotion.includes("Happy") || emotion.includes("Optimistic")) {
-      return "bg-yellow-100 text-yellow-800";
-    } else if (emotion.includes("Anger") || emotion.includes("Frustrat") || emotion.includes("Annoyed")) {
-      return "bg-red-100 text-red-800";
-    } else if (emotion.includes("Sad") || emotion.includes("Depress") || emotion.includes("Lonely")) {
-      return "bg-blue-100 text-blue-800";
-    } else if (emotion.includes("Fear") || emotion.includes("Anx") || emotion.includes("Worried")) {
-      return "bg-green-100 text-green-800";
-    } else {
-      return "bg-gray-100 text-gray-800";
+      return format(recordDate, "MMM d, h:mm a");
     }
   };
   
@@ -151,7 +134,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent Entries</CardTitle>
+          <CardTitle>Thought Records</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-12 flex items-center justify-center">
@@ -166,30 +149,32 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent Entries</CardTitle>
+          <CardTitle>Thought Records</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-center text-sm text-red-500">
-            Error loading emotion history. Please try again later.
+            Error loading thought records. Please try again later.
           </p>
         </CardContent>
       </Card>
     );
   }
   
-  const displayEmotions = limit && !showFullHistory ? emotions?.slice(0, limit) : emotions;
-
+  const displayRecords = limit && !showFullHistory && thoughtRecords 
+    ? thoughtRecords.slice(0, limit) 
+    : thoughtRecords;
+  
   return (
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
-            <CardTitle>Recent Entries</CardTitle>
+            <CardTitle>Thought Records</CardTitle>
             <CardDescription>
-              Your recently recorded emotions and thoughts
+              Your thought records and reflections
             </CardDescription>
           </div>
-          {limit && emotions?.length > limit && (
+          {limit && thoughtRecords && thoughtRecords.length > limit && (
             <Button 
               variant="ghost" 
               onClick={() => setShowFullHistory(true)}
@@ -200,11 +185,11 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
           )}
         </CardHeader>
         <CardContent>
-          {emotions?.length === 0 ? (
+          {!thoughtRecords || thoughtRecords.length === 0 ? (
             <div className="text-center py-6">
-              <p className="text-neutral-500">No emotion records yet.</p>
+              <p className="text-neutral-500">No thought records yet.</p>
               <p className="text-sm text-neutral-400 mt-1">
-                Use the emotion wheel to start tracking how you feel.
+                Add reflections to your emotions to start building thought records.
               </p>
             </div>
           ) : (
@@ -213,35 +198,34 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date & Time</TableHead>
-                    <TableHead>Emotion</TableHead>
-                    <TableHead>Intensity</TableHead>
-                    <TableHead>Situation</TableHead>
+                    <TableHead>Automatic Thoughts</TableHead>
+                    <TableHead>Cognitive Distortions</TableHead>
+                    <TableHead>Alternative Thoughts</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {displayEmotions?.map((emotion) => (
-                    <TableRow key={emotion.id}>
+                  {displayRecords?.map((record) => (
+                    <TableRow key={record.id}>
                       <TableCell className="whitespace-nowrap text-sm">
-                        {formatDate(emotion.timestamp)}
-                      </TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(emotion.tertiaryEmotion)}`}>
-                          {emotion.tertiaryEmotion}
-                        </span>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-sm">
-                        {emotion.intensity}/10
+                        {formatDate(record.createdAt)}
                       </TableCell>
                       <TableCell className="max-w-xs truncate text-sm">
-                        {emotion.situation}
+                        {record.automaticThoughts}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {record.cognitiveDistortions.slice(0, 2).join(", ")}
+                        {record.cognitiveDistortions.length > 2 && "..."}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate text-sm">
+                        {record.alternativeThoughts}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <div className="flex items-center space-x-2">
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            onClick={() => handleEditEmotion(emotion)}
+                            onClick={() => handleEditRecord(record)}
                             className="text-primary hover:text-primary-dark"
                           >
                             <Edit className="h-4 w-4" />
@@ -249,7 +233,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                           <Button 
                             variant="ghost" 
                             size="icon"
-                            onClick={() => handleViewDetails(emotion)}
+                            onClick={() => handleViewDetails(record)}
                             className="text-primary hover:text-primary-dark"
                           >
                             <Eye className="h-4 w-4" />
@@ -257,7 +241,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                           <Button 
                             variant="ghost" 
                             size="icon"
-                            onClick={() => handleDeleteClick(emotion)}
+                            onClick={() => handleDeleteClick(record)}
                             className="text-destructive hover:text-destructive/80"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -273,110 +257,83 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
         </CardContent>
       </Card>
       
-      {/* Emotion Details Dialog */}
-      {selectedEmotion && (
-        <Dialog open={!!selectedEmotion && !showReflectionWizard} onOpenChange={() => setSelectedEmotion(null)}>
+      {/* Record Details Dialog */}
+      {selectedRecord && (
+        <Dialog open={!!selectedRecord} onOpenChange={() => setSelectedRecord(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Emotion Details</DialogTitle>
+              <DialogTitle>Thought Record Details</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-neutral-500">Date & Time</h4>
-                  <p>{formatDate(selectedEmotion.timestamp)}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-neutral-500">Emotion</h4>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(selectedEmotion.tertiaryEmotion)}`}>
-                      {selectedEmotion.tertiaryEmotion}
-                    </span>
-                    <span className="text-sm text-neutral-500">
-                      ({selectedEmotion.intensity}/10)
-                    </span>
-                  </div>
-                </div>
-                <div className="col-span-2">
-                  <h4 className="text-sm font-medium text-neutral-500">Situation</h4>
-                  <p className="text-sm">{selectedEmotion.situation}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-neutral-500">Location</h4>
-                  <p className="text-sm capitalize">{selectedEmotion.location || "Not specified"}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-neutral-500">Company</h4>
-                  <p className="text-sm capitalize">{selectedEmotion.company || "Not specified"}</p>
-                </div>
+              <div>
+                <h4 className="text-sm font-medium text-neutral-500">Date & Time</h4>
+                <p>{formatDate(selectedRecord.createdAt)}</p>
               </div>
-              
-              <div className="flex justify-end pt-4">
-                <Button onClick={() => {
-                  setShowReflectionWizard(true);
-                  // Keep selectedEmotion set
-                }}>
-                  Add Reflection
-                </Button>
+              <div>
+                <h4 className="text-sm font-medium text-neutral-500">Automatic Thoughts</h4>
+                <p className="text-sm whitespace-pre-wrap">{selectedRecord.automaticThoughts}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-neutral-500">Cognitive Distortions</h4>
+                <ul className="list-disc list-inside text-sm">
+                  {selectedRecord.cognitiveDistortions.map((distortion, index) => (
+                    <li key={index}>{distortion}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-neutral-500">Evidence For</h4>
+                <p className="text-sm whitespace-pre-wrap">{selectedRecord.evidenceFor}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-neutral-500">Evidence Against</h4>
+                <p className="text-sm whitespace-pre-wrap">{selectedRecord.evidenceAgainst}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-neutral-500">Alternative Thoughts</h4>
+                <p className="text-sm whitespace-pre-wrap">{selectedRecord.alternativeThoughts}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-neutral-500">Reflection</h4>
+                <p className="text-sm whitespace-pre-wrap">{selectedRecord.reflection || "No reflection added"}</p>
               </div>
             </div>
           </DialogContent>
         </Dialog>
       )}
       
-      {/* Reflection Wizard */}
-      {selectedEmotion && showReflectionWizard && (
-        <ReflectionWizard
-          emotion={selectedEmotion}
-          open={showReflectionWizard}
-          onClose={() => {
-            setShowReflectionWizard(false);
-            setSelectedEmotion(null);
-          }}
-        />
-      )}
-      
       {/* Full History Dialog */}
       <Dialog open={showFullHistory} onOpenChange={setShowFullHistory}>
         <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Emotion History</DialogTitle>
+            <DialogTitle>Thought Record History</DialogTitle>
           </DialogHeader>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Date & Time</TableHead>
-                  <TableHead>Emotion</TableHead>
-                  <TableHead>Intensity</TableHead>
-                  <TableHead>Situation</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Company</TableHead>
+                  <TableHead>Automatic Thoughts</TableHead>
+                  <TableHead>Cognitive Distortions</TableHead>
+                  <TableHead>Alternative Thoughts</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {emotions?.map((emotion) => (
-                  <TableRow key={emotion.id}>
+                {thoughtRecords?.map((record) => (
+                  <TableRow key={record.id}>
                     <TableCell className="whitespace-nowrap text-sm">
-                      {formatDate(emotion.timestamp)}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(emotion.tertiaryEmotion)}`}>
-                        {emotion.tertiaryEmotion}
-                      </span>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-sm">
-                      {emotion.intensity}/10
+                      {formatDate(record.createdAt)}
                     </TableCell>
                     <TableCell className="max-w-xs truncate text-sm">
-                      {emotion.situation}
+                      {record.automaticThoughts}
                     </TableCell>
-                    <TableCell className="text-sm capitalize">
-                      {emotion.location || "—"}
+                    <TableCell className="text-sm">
+                      {record.cognitiveDistortions.slice(0, 2).join(", ")}
+                      {record.cognitiveDistortions.length > 2 && "..."}
                     </TableCell>
-                    <TableCell className="text-sm capitalize">
-                      {emotion.company || "—"}
+                    <TableCell className="max-w-xs truncate text-sm">
+                      {record.alternativeThoughts}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <div className="flex items-center space-x-2">
@@ -384,8 +341,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                           variant="ghost" 
                           size="icon" 
                           onClick={() => {
-                            setSelectedEmotion(emotion);
-                            setShowReflectionWizard(true);
+                            handleEditRecord(record);
                             setShowFullHistory(false);
                           }}
                           className="text-primary hover:text-primary-dark"
@@ -396,7 +352,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                           variant="ghost" 
                           size="icon"
                           onClick={() => {
-                            setSelectedEmotion(emotion);
+                            setSelectedRecord(record);
                             setShowFullHistory(false);
                           }}
                           className="text-primary hover:text-primary-dark"
@@ -407,7 +363,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                           variant="ghost" 
                           size="icon"
                           onClick={() => {
-                            handleDeleteClick(emotion);
+                            handleDeleteClick(record);
                             setShowFullHistory(false);
                           }}
                           className="text-destructive hover:text-destructive/80"
@@ -428,19 +384,18 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Emotion Record</AlertDialogTitle>
+            <AlertDialogTitle>Delete Thought Record</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this emotion record? This will also remove any linked thought records and reflections.
-              This action cannot be undone.
+              Are you sure you want to delete this thought record? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setEmotionToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setRecordToDelete(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteEmotionMutation.isPending ? 
+              {deleteThoughtMutation.isPending ? 
                 <div className="flex items-center gap-2">
                   <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                   Deleting...

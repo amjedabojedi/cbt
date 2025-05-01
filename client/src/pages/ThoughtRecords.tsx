@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
+import ThoughtRecordsList from "@/components/thought/ThoughtRecordsList";
 import { format } from "date-fns";
+import { ThoughtRecord } from "@shared/schema";
 
 import {
   Card,
@@ -12,14 +14,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -27,28 +21,17 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 
 export default function ThoughtRecords() {
   const { user } = useAuth();
-  const [selectedThought, setSelectedThought] = useState<any>(null);
-  
-  // Fetch thought records
-  const { data: thoughts, isLoading, error } = useQuery({
-    queryKey: user ? [`/api/users/${user.id}/thoughts`] : [],
-    enabled: !!user,
-  });
+  const [selectedThought, setSelectedThought] = useState<ThoughtRecord | null>(null);
   
   // Fetch related emotion records
   const { data: emotions } = useQuery({
     queryKey: user ? [`/api/users/${user.id}/emotions`] : [],
     enabled: !!user,
   });
-  
-  // Handle view details
-  const handleViewDetails = (thought: any) => {
-    setSelectedThought(thought);
-  };
   
   // Format date for display
   const formatDate = (date: string | Date) => {
@@ -60,143 +43,40 @@ export default function ThoughtRecords() {
     return emotions?.find(emotion => emotion.id === emotionRecordId);
   };
   
-  if (isLoading) {
-    return (
-      <AppLayout title="Thought Records">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-          </div>
-        </div>
-      </AppLayout>
-    );
-  }
-  
-  if (error) {
-    return (
-      <AppLayout title="Thought Records">
-        <div className="container mx-auto px-4 py-6">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-center text-red-500">
-                Error loading thought records. Please try again later.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </AppLayout>
-    );
-  }
+  // Handle edit a thought record
+  const handleEditThought = (thought: ThoughtRecord) => {
+    setSelectedThought(thought);
+  };
 
   return (
     <AppLayout title="Thought Records">
       <div className="container mx-auto px-4 py-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle>Thought Records</CardTitle>
-              <CardDescription>
-                Review and analyze your thought patterns
-              </CardDescription>
-            </div>
-            <Button asChild>
-              <a href="/emotions">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                New Record
-              </a>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {thoughts?.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary mb-4">
-                  <Brain className="h-6 w-6" />
-                </div>
-                <h3 className="text-lg font-medium mb-2">No thought records yet</h3>
-                <p className="text-neutral-500 max-w-md mx-auto mb-6">
-                  Start by recording an emotion, then complete the reflection process to create your first thought record.
-                </p>
-                <Button asChild>
-                  <a href="/emotions">Record an Emotion</a>
-                </Button>
+        <div className="flex flex-col space-y-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle>Thought Records</CardTitle>
+                <CardDescription>
+                  Review and analyze your thought patterns
+                </CardDescription>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Related Emotion</TableHead>
-                      <TableHead>Thoughts</TableHead>
-                      <TableHead>Cognitive Distortions</TableHead>
-                      <TableHead>Reflection Rating</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {thoughts?.map((thought) => {
-                      const relatedEmotion = findRelatedEmotion(thought.emotionRecordId);
-                      
-                      return (
-                        <TableRow key={thought.id}>
-                          <TableCell className="whitespace-nowrap text-sm">
-                            {formatDate(thought.createdAt)}
-                          </TableCell>
-                          <TableCell>
-                            {relatedEmotion ? (
-                              <Badge variant="outline" className="capitalize">
-                                {relatedEmotion.tertiaryEmotion}
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline">No emotion</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate text-sm">
-                            {thought.automaticThoughts}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {thought.cognitiveDistortions.length > 0 ? (
-                                thought.cognitiveDistortions.slice(0, 2).map((distortion: string, idx: number) => (
-                                  <Badge key={idx} variant="secondary" className="text-xs">
-                                    {formatDistortionName(distortion)}
-                                  </Badge>
-                                ))
-                              ) : (
-                                <span className="text-sm text-neutral-400">None</span>
-                              )}
-                              {thought.cognitiveDistortions.length > 2 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  +{thought.cognitiveDistortions.length - 2}
-                                </Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {thought.reflectionRating ? (
-                              <span className="text-sm font-medium">{thought.reflectionRating}/10</span>
-                            ) : (
-                              <span className="text-sm text-neutral-400">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleViewDetails(thought)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+              <Button asChild>
+                <a href="/emotions">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  New Record
+                </a>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-4 text-sm text-neutral-500">
+                Start with an emotion entry, then add reflections to create thought records.
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+          
+          {/* Thought Records List Component */}
+          <ThoughtRecordsList onEditRecord={handleEditThought} />
+        </div>
         
         {/* Thought Record Details Dialog */}
         {selectedThought && (
@@ -236,7 +116,7 @@ export default function ThoughtRecords() {
                   <div>
                     <h4 className="text-sm font-medium text-neutral-500 mb-1">Cognitive Distortions</h4>
                     <div className="flex flex-wrap gap-1">
-                      {selectedThought.cognitiveDistortions.map((distortion: string, idx: number) => (
+                      {selectedThought.cognitiveDistortions.map((distortion, idx) => (
                         <Badge key={idx} className="text-xs">
                           {formatDistortionName(distortion)}
                         </Badge>
@@ -265,25 +145,25 @@ export default function ThoughtRecords() {
                   )}
                 </div>
                 
-                {selectedThought.alternativePerspective && (
+                {selectedThought.alternativeThoughts && (
                   <div>
-                    <h4 className="text-sm font-medium text-neutral-500 mb-1">Alternative Perspective</h4>
+                    <h4 className="text-sm font-medium text-neutral-500 mb-1">Alternative Thoughts</h4>
                     <p className="text-sm p-3 bg-neutral-50 rounded border border-neutral-200">
-                      {selectedThought.alternativePerspective}
+                      {selectedThought.alternativeThoughts}
                     </p>
                   </div>
                 )}
                 
-                {selectedThought.insightsGained && (
+                {selectedThought.reflection && (
                   <div>
-                    <h4 className="text-sm font-medium text-neutral-500 mb-1">Insights Gained</h4>
+                    <h4 className="text-sm font-medium text-neutral-500 mb-1">Reflection</h4>
                     <p className="text-sm p-3 bg-neutral-50 rounded border border-neutral-200">
-                      {selectedThought.insightsGained}
+                      {selectedThought.reflection}
                     </p>
                   </div>
                 )}
                 
-                {selectedThought.reflectionRating && (
+                {selectedThought.reflectionRating !== null && (
                   <div>
                     <h4 className="text-sm font-medium text-neutral-500 mb-1">Reflection Rating</h4>
                     <div className="flex items-center">
