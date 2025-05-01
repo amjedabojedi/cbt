@@ -48,10 +48,10 @@ export default function EmotionTracking() {
         {/* Debug Information (Development Only) */}
         <ClientDebug />
         
-        <Tabs defaultValue={isViewingClientData ? "history" : "record"} className="space-y-4">
+        <Tabs defaultValue={(isViewingClientData || user?.role === 'therapist') ? "history" : "record"} className="space-y-4">
           <TabsList>
-            {/* Only show recording tab for clients viewing their own data */}
-            {!isViewingClientData && (
+            {/* Only show recording tab for clients viewing their own data, and not for therapists */}
+            {!isViewingClientData && user?.role !== 'therapist' && (
               <TabsTrigger value="record">Record Emotion</TabsTrigger>
             )}
             <TabsTrigger value="history">
@@ -59,8 +59,9 @@ export default function EmotionTracking() {
             </TabsTrigger>
           </TabsList>
           
-          {/* Only show recording functionality for clients viewing their own data */}
-          {!isViewingClientData && (
+          {/* Only show recording functionality for clients viewing their own data
+              AND not for therapists (even when viewing their own profile) */}
+          {!isViewingClientData && user?.role !== 'therapist' && (
             <TabsContent value="record">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">

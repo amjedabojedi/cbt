@@ -82,8 +82,8 @@ export default function ThoughtRecords() {
                 )}
               </div>
               
-              {/* Only show New Record button if user is viewing their own data */}
-              {!isViewingClientData && (
+              {/* Only show New Record button if user is viewing their own data AND is not a therapist */}
+              {!isViewingClientData && user?.role !== 'therapist' && (
                 <Button asChild>
                   <a href="/emotions">
                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -93,9 +93,14 @@ export default function ThoughtRecords() {
               )}
             </CardHeader>
             <CardContent>
-              {!isViewingClientData && (
+              {!isViewingClientData && user?.role !== 'therapist' && (
                 <div className="text-center py-4 text-sm text-neutral-500">
                   Start with an emotion entry, then add reflections to create thought records.
+                </div>
+              )}
+              {!isViewingClientData && user?.role === 'therapist' && (
+                <div className="text-center py-4 text-sm text-neutral-500">
+                  As a therapist, you can view client records but cannot create your own records.
                 </div>
               )}
             </CardContent>
