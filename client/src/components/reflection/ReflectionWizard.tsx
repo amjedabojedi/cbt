@@ -1058,6 +1058,21 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
     }
   };
 
+  // If therapist is viewing client data, don't show the dialog at all
+  if (isViewingClientData) {
+    // Close the dialog immediately and show notification
+    setTimeout(() => {
+      onClose();
+      toast({
+        title: "Permission Denied",
+        description: "Therapists cannot add reflections to client emotion records",
+        variant: "destructive",
+      });
+    }, 0);
+    
+    return null;
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleCloseAttempt}>
       <DialogContent 
