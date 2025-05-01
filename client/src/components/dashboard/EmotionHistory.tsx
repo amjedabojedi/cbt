@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { EmotionRecord } from "@shared/schema";
 import { format } from "date-fns";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 import {
   Table,
@@ -19,7 +21,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Card,
   CardContent,
@@ -27,7 +41,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Edit, Eye } from "lucide-react";
+import { Edit, Eye, Trash2 } from "lucide-react";
 import ReflectionWizard from "../reflection/ReflectionWizard";
 
 interface EmotionHistoryProps {
@@ -39,11 +53,44 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionRecord | null>(null);
   const [showFullHistory, setShowFullHistory] = useState(false);
   const [showReflectionWizard, setShowReflectionWizard] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [emotionToDelete, setEmotionToDelete] = useState<EmotionRecord | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Fetch emotion records
   const { data: emotions, isLoading, error } = useQuery({
     queryKey: user ? [`/api/users/${user.id}/emotions`] : [],
     enabled: !!user,
+  });
+  
+  // Delete emotion mutation
+  const deleteEmotionMutation = useMutation({
+    mutationFn: async (emotionId: number) => {
+      if (!user) throw new Error('User not authenticated');
+      return apiRequest(`/api/users/${user.id}/emotions/${emotionId}`, 'DELETE');
+    },
+    onSuccess: () => {
+      // Invalidate and refetch emotions
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/emotions`] });
+      
+      toast({
+        title: "Record deleted",
+        description: "The emotion record has been deleted successfully.",
+        variant: "default",
+      });
+      
+      setEmotionToDelete(null);
+      setDeleteConfirmOpen(false);
+    },
+    onError: (error) => {
+      console.error('Error deleting emotion record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the record. Please try again.",
+        variant: "destructive",
+      });
+    }
   });
   
   // Handle view details
@@ -55,6 +102,18 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   const handleEditEmotion = (emotion: EmotionRecord) => {
     setSelectedEmotion(emotion);
     setShowReflectionWizard(true);
+  };
+  
+  // Handle delete
+  const handleDeleteClick = (emotion: EmotionRecord) => {
+    setEmotionToDelete(emotion);
+    setDeleteConfirmOpen(true);
+  };
+  
+  const confirmDelete = () => {
+    if (emotionToDelete) {
+      deleteEmotionMutation.mutate(emotionToDelete.id);
+    }
   };
   
   // Format date for display
@@ -194,6 +253,14 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                             className="text-primary hover:text-primary-dark"
                           >
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => handleDeleteClick(emotion)}
+                            className="text-destructive hover:text-destructive/80"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -336,6 +403,17 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => {
+                            handleDeleteClick(emotion);
+                            setShowFullHistory(false);
+                          }}
+                          className="text-destructive hover:text-destructive/80"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -345,6 +423,34 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Emotion Record</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this emotion record? This will also remove any linked thought records and reflections.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setEmotionToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteEmotionMutation.isPending ? 
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                  Deleting...
+                </div> : 
+                "Delete"
+              }
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

@@ -180,6 +180,12 @@ export class DatabaseStorage implements IStorage {
     
     return record;
   }
+  
+  async deleteEmotionRecord(id: number): Promise<void> {
+    await db
+      .delete(emotionRecords)
+      .where(eq(emotionRecords.id, id));
+  }
 
   // Thought records
   async createThoughtRecord(record: InsertThoughtRecord): Promise<ThoughtRecord> {
@@ -206,6 +212,20 @@ export class DatabaseStorage implements IStorage {
       .where(eq(thoughtRecords.id, id));
     
     return record;
+  }
+  
+  async getThoughtRecordsByEmotionId(emotionRecordId: number): Promise<ThoughtRecord[]> {
+    return db
+      .select()
+      .from(thoughtRecords)
+      .where(eq(thoughtRecords.emotionRecordId, emotionRecordId))
+      .orderBy(desc(thoughtRecords.createdAt));
+  }
+  
+  async deleteThoughtRecord(id: number): Promise<void> {
+    await db
+      .delete(thoughtRecords)
+      .where(eq(thoughtRecords.id, id));
   }
 
   // Protective factors
