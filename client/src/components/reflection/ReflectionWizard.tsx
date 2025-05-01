@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { EmotionRecord, ThoughtRecord } from "@shared/schema";
+import useActiveUser from "@/hooks/use-active-user";
 
 import {
   Dialog,
@@ -69,6 +70,7 @@ interface ReflectionWizardProps {
 
 export default function ReflectionWizard({ emotion, open, onClose }: ReflectionWizardProps) {
   const { user } = useAuth();
+  const { isViewingClientData } = useActiveUser();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
@@ -308,6 +310,17 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
         description: "You must be logged in to record thoughts",
         variant: "destructive",
       });
+      return;
+    }
+    
+    // Prevent therapists from adding reflections to client emotion records
+    if (isViewingClientData) {
+      toast({
+        title: "Permission Denied",
+        description: "Therapists cannot add reflections to client emotion records",
+        variant: "destructive",
+      });
+      onClose();
       return;
     }
     
