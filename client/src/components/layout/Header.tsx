@@ -9,6 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import RoleIndicator from "./RoleIndicator";
+import { useClientContext } from "@/context/ClientContext";
 
 interface HeaderProps {
   title: string;
@@ -17,6 +19,20 @@ interface HeaderProps {
 export default function Header({ title }: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
+  const { setViewingClient, viewingClientName } = useClientContext();
+
+  const handleClientChange = (clientId: number | null) => {
+    // If clientId is null, we're returning to own view
+    if (clientId === null) {
+      setViewingClient(null, null);
+    }
+    // Otherwise we need to find the client name, which is passed from RoleIndicator component
+  };
+
+  // Show appropriate title based on context
+  const displayTitle = viewingClientName 
+    ? `${viewingClientName}'s Dashboard` 
+    : title;
 
   return (
     <header className="bg-white shadow-sm">
@@ -29,9 +45,12 @@ export default function Header({ title }: HeaderProps) {
           >
             <Menu size={24} />
           </button>
-          <h2 className="text-lg font-medium">{title}</h2>
+          <h2 className="text-lg font-medium">{displayTitle}</h2>
         </div>
         <div className="flex items-center space-x-4">
+          {/* Role Indicator & Client Selector */}
+          <RoleIndicator onClientChange={handleClientChange} />
+
           {/* Notifications */}
           <div className="relative">
             <Button
@@ -102,6 +121,13 @@ export default function Header({ title }: HeaderProps) {
               Français (French)
             </button>
           </div>
+        </div>
+      )}
+      
+      {/* Context Banner - shown when viewing client data */}
+      {viewingClientName && (
+        <div className="bg-yellow-100 text-yellow-800 px-4 py-1 text-sm text-center">
+          You are viewing {viewingClientName}'s data in read-only mode
         </div>
       )}
     </header>
