@@ -47,7 +47,7 @@ const EMOTION_COLORS: Record<string, string> = {
 const DEFAULT_TABS = ['overview', 'emotions', 'strategies', 'distortions'];
 
 export default function ReflectionInsights() {
-  const { activeUserId, isViewingClientData } = useActiveUser();
+  const { activeUserId, isViewingClientData, currentUser } = useActiveUser();
   const [activeTab, setActiveTab] = useState('overview');
   const [emotionGroups, setEmotionGroups] = useState<EmotionGroup[]>([]);
   const [emotionRecords, setEmotionRecords] = useState<EmotionRecord[]>([]);
@@ -312,6 +312,11 @@ export default function ReflectionInsights() {
   const renderOverviewTab = () => {
     const emotionData = prepareEmotionData();
     
+    // Customize message based on whether we're viewing client data or personal data
+    const insightMessage = isViewingClientData
+      ? "Showing frequency of each core emotion in this client's records."
+      : "Showing frequency of each core emotion in your records.";
+    
     return (
       <div className="space-y-6">
         <div>
@@ -326,7 +331,7 @@ export default function ReflectionInsights() {
             </BarChart>
           </ResponsiveContainer>
           <div className="mt-2 text-sm text-muted-foreground">
-            Showing frequency of each core emotion in your records.
+            {insightMessage}
           </div>
         </div>
 
@@ -469,7 +474,9 @@ export default function ReflectionInsights() {
       <div className="space-y-6">
         <h3 className="text-lg font-medium">Coping Strategies & Protective Factors</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          This shows the strategies you use most frequently and for which emotions.
+          {isViewingClientData 
+            ? "This shows the strategies the client uses most frequently and for which emotions."
+            : "This shows the strategies you use most frequently and for which emotions."}
         </p>
         
         {strategiesData.length > 0 ? (
@@ -615,10 +622,11 @@ export default function ReflectionInsights() {
           )}
           
           <div className="mt-4">
-            <h3 className="text-lg font-medium mb-2">Understanding Your Patterns</h3>
+            <h3 className="text-lg font-medium mb-2">Understanding {isViewingClientData ? "Their" : "Your"} Patterns</h3>
             <p className="text-sm text-muted-foreground">
-              Recognizing your most common thinking patterns can help you become more aware 
-              of them in the moment. Focus on challenging your top cognitive distortions in future reflections.
+              {isViewingClientData 
+                ? "Recognizing the client's most common thinking patterns can help guide your therapy approach. Focus on addressing these top cognitive distortions in future sessions."
+                : "Recognizing your most common thinking patterns can help you become more aware of them in the moment. Focus on challenging your top cognitive distortions in future reflections."}
             </p>
           </div>
         </div>
@@ -631,7 +639,9 @@ export default function ReflectionInsights() {
       <CardHeader>
         <CardTitle>Reflection Insights</CardTitle>
         <CardDescription>
-          Patterns and trends from your thought reflections
+          {isViewingClientData 
+            ? "Patterns and trends from client's thought reflections"
+            : "Patterns and trends from your thought reflections"}
         </CardDescription>
       </CardHeader>
       <CardContent>
