@@ -55,6 +55,10 @@ export default function ReflectionInsights() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  // Create state for storing protective factors and coping strategies usage
+  const [protectiveFactorUsage, setProtectiveFactorUsage] = useState<{[thoughtId: number]: {id: number, name: string}[]}>({});
+  const [copingStrategyUsage, setCopingStrategyUsage] = useState<{[thoughtId: number]: {id: number, name: string}[]}>({});
+  
   useEffect(() => {
     if (!user) return;
 
@@ -70,9 +74,42 @@ export default function ReflectionInsights() {
         const thoughtsResponse = await apiRequest('GET', `/api/users/${user.id}/thoughts`);
         const thoughts: ThoughtRecord[] = await thoughtsResponse.json();
         setReflectionRecords(thoughts);
+        
+        // Fetch protective factors and coping strategies for each thought record
+        const protectiveFactorsMap: {[thoughtId: number]: {id: number, name: string}[]} = {};
+        const copingStrategiesMap: {[thoughtId: number]: {id: number, name: string}[]} = {};
+        
+        // Parallel fetch for all thought records' protective factors
+        await Promise.all(thoughts.map(async (thought) => {
+          try {
+            const pfResponse = await apiRequest('GET', 
+              `/api/users/${user.id}/thoughts/${thought.id}/protective-factors`);
+            const pfData = await pfResponse.json();
+            protectiveFactorsMap[thought.id] = pfData;
+          } catch (err) {
+            console.error('Error fetching protective factors for thought:', thought.id, err);
+            protectiveFactorsMap[thought.id] = [];
+          }
+        }));
+        
+        // Parallel fetch for all thought records' coping strategies
+        await Promise.all(thoughts.map(async (thought) => {
+          try {
+            const csResponse = await apiRequest('GET', 
+              `/api/users/${user.id}/thoughts/${thought.id}/coping-strategies`);
+            const csData = await csResponse.json();
+            copingStrategiesMap[thought.id] = csData;
+          } catch (err) {
+            console.error('Error fetching coping strategies for thought:', thought.id, err);
+            copingStrategiesMap[thought.id] = [];
+          }
+        }));
+        
+        setProtectiveFactorUsage(protectiveFactorsMap);
+        setCopingStrategyUsage(copingStrategiesMap);
 
         // Process the data
-        processData(emotions, thoughts);
+        processData(emotions, thoughts, protectiveFactorsMap, copingStrategiesMap);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error occurred'));
       } finally {
@@ -83,7 +120,12 @@ export default function ReflectionInsights() {
     fetchData();
   }, [user]);
 
-  const processData = (emotions: EmotionRecord[], thoughts: ThoughtRecord[]) => {
+  const processData = (
+    emotions: EmotionRecord[], 
+    thoughts: ThoughtRecord[],
+    protectiveFactorsMap: {[thoughtId: number]: {id: number, name: string}[]},
+    copingStrategiesMap: {[thoughtId: number]: {id: number, name: string}[]}
+  ) => {
     // Group emotions by core emotion
     const groupedEmotions: Record<string, EmotionGroup> = {};
 
@@ -136,6 +178,30 @@ export default function ReflectionInsights() {
         }
       });
       group.commonDistortions = Object.entries(distortionCounts)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
+        
+      // Calculate most used strategies (both protective factors and coping strategies)
+      const strategyCounts: Record<string, number> = {};
+      
+      // Count protective factors
+      group.reflections.forEach(reflection => {
+        const pfUsage = protectiveFactorsMap[reflection.id] || [];
+        pfUsage.forEach(pf => {
+          strategyCounts[pf.name] = (strategyCounts[pf.name] || 0) + 1;
+        });
+      });
+      
+      // Count coping strategies
+      group.reflections.forEach(reflection => {
+        const csUsage = copingStrategiesMap[reflection.id] || [];
+        csUsage.forEach(cs => {
+          strategyCounts[cs.name] = (strategyCounts[cs.name] || 0) + 1;
+        });
+      });
+      
+      // Sort strategies by usage count
+      group.mostUsedStrategies = Object.entries(strategyCounts)
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count);
 
@@ -379,21 +445,115 @@ export default function ReflectionInsights() {
     );
   };
   
+  // Helper function to prepare data for strategies chart
+  const prepareStrategiesData = () => {
+    const strategyCounts: Record<string, number> = {};
+    
+    // Combine all strategies from all emotion groups
+    emotionGroups.forEach(group => {
+      group.mostUsedStrategies.forEach(strategy => {
+        strategyCounts[strategy.name] = (strategyCounts[strategy.name] || 0) + strategy.count;
+      });
+    });
+    
+    // Convert to array format for chart
+    return Object.entries(strategyCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  };
+  
   const renderStrategiesTab = () => {
+    const strategiesData = prepareStrategiesData();
+    
     return (
       <div className="space-y-6">
-        <h3 className="text-lg font-medium">Coping Strategies Effectiveness</h3>
-        <p className="text-sm text-muted-foreground">
-          This section will show which coping strategies you use most frequently 
-          and how effective they are for different emotions.
+        <h3 className="text-lg font-medium">Coping Strategies & Protective Factors</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          This shows the strategies you use most frequently and for which emotions.
         </p>
         
-        <div className="p-6 border rounded-lg text-center">
-          <p>This feature will be available once you've recorded more reflections.</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Continue using coping strategies in your reflections to see their effectiveness here.
-          </p>
-        </div>
+        {strategiesData.length > 0 ? (
+          <>
+            <div className="grid md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={strategiesData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      label={(entry) => entry.name}
+                    >
+                      {strategiesData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              
+              <div className="self-center">
+                <h4 className="text-md font-medium mb-2">Top Strategies</h4>
+                <ul className="space-y-2">
+                  {strategiesData.slice(0, 5).map((strategy, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                      />
+                      <span>{strategy.name}</span>
+                      <span className="text-sm text-muted-foreground ml-auto">
+                        Used {strategy.value} times
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            
+            <h4 className="text-md font-medium mt-6 mb-3">Strategies by Emotion</h4>
+            <div className="space-y-4">
+              {emotionGroups.map((group) => (
+                <Card key={group.coreEmotion} className="overflow-hidden">
+                  <div 
+                    className="h-2" 
+                    style={{ backgroundColor: EMOTION_COLORS[group.coreEmotion] || '#8884d8' }}
+                  />
+                  <CardHeader className="pb-2">
+                    <CardTitle>{group.coreEmotion}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div>
+                      <h5 className="text-sm font-medium mb-2">Most used strategies:</h5>
+                      <div className="flex flex-wrap gap-2">
+                        {group.mostUsedStrategies.length > 0 ? (
+                          group.mostUsedStrategies.map((strategy, i) => (
+                            <Badge key={i} variant="secondary">
+                              {strategy.name} ({strategy.count})
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-sm text-muted-foreground">No strategies recorded</span>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="p-6 border rounded-lg text-center">
+            <p>No strategies have been recorded yet.</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Start using protective factors and coping strategies in your reflections to see them here.
+            </p>
+          </div>
+        )}
       </div>
     );
   };
