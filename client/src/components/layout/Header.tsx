@@ -22,11 +22,10 @@ export default function Header({ title }: HeaderProps) {
   const { setViewingClient, viewingClientName } = useClientContext();
 
   const handleClientChange = (clientId: number | null) => {
-    // If clientId is null, we're returning to own view
-    if (clientId === null) {
-      setViewingClient(null, null);
-    }
-    // Otherwise we need to find the client name, which is passed from RoleIndicator component
+    // This function is passed to RoleIndicator, but the component
+    // now handles setting the view using the context directly.
+    // It remains here for potential future functionality.
+    console.log("Client change handled in Header:", clientId);
   };
 
   // Show appropriate title based on context

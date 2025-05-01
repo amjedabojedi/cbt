@@ -6,9 +6,27 @@ import EmotionHistory from "@/components/dashboard/EmotionHistory";
 import MoodTrends from "@/components/dashboard/MoodTrends";
 import ReflectionTrends from "@/components/dashboard/ReflectionTrends";
 import ReflectionInsights from "@/components/dashboard/ReflectionInsights";
+import useActiveUser from "@/hooks/use-active-user";
+import { useClientContext } from "@/context/ClientContext";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { activeUserId, isViewingClientData } = useActiveUser();
+  const { viewingClientName } = useClientContext();
+  
+  // Determine whose name to display
+  const displayName = isViewingClientData 
+    ? viewingClientName 
+    : user?.name?.split(' ')[0] || 'there';
+    
+  // Different message based on whether viewing own or client's dashboard
+  const welcomeMessage = isViewingClientData
+    ? `${displayName}'s Dashboard`
+    : `Welcome back, ${displayName}`;
+    
+  const subMessage = isViewingClientData
+    ? "You are viewing this client's emotion tracking and reflection data."
+    : "Track your emotions, thoughts, and progress on your journey to clarity.";
   
   return (
     <AppLayout title="Dashboard">
@@ -16,20 +34,22 @@ export default function Dashboard() {
         {/* Welcome Message */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-neutral-800">
-            Welcome back, {user?.name?.split(' ')[0] || 'there'}
+            {welcomeMessage}
           </h1>
           <p className="text-neutral-500">
-            Track your emotions, thoughts, and progress on your journey to clarity.
+            {subMessage}
           </p>
         </div>
         
-        {/* Getting Started Checklist */}
-        <GettingStarted />
+        {/* Getting Started Checklist - only show for user's own dashboard */}
+        {!isViewingClientData && <GettingStarted />}
         
-        {/* Quick Actions */}
-        <div className="mb-6">
-          <QuickActions />
-        </div>
+        {/* Quick Actions - only show for user's own dashboard */}
+        {!isViewingClientData && (
+          <div className="mb-6">
+            <QuickActions />
+          </div>
+        )}
         
         {/* Recent Emotion History */}
         <div className="mb-6">
@@ -42,7 +62,7 @@ export default function Dashboard() {
             <MoodTrends />
           </div>
           <div>
-            {user && <ReflectionTrends userId={user.id} days={30} />}
+            {activeUserId && <ReflectionTrends userId={activeUserId} days={30} />}
           </div>
         </div>
         

@@ -11,8 +11,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useClientContext } from "@/context/ClientContext";
 
-// Create a client context provider
+// Client interface from schema
+interface Client {
+  id: number;
+  name: string;
+  username: string;
+  email: string;
+  role: string;
+  therapistId: number | null;
+}
+
 interface ClientSelectorProps {
   onClientChange?: (clientId: number | null) => void;
 }
@@ -20,9 +30,8 @@ interface ClientSelectorProps {
 export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [clients, setClients] = useState<any[]>([]);
-  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
-  const [selectedClientName, setSelectedClientName] = useState<string>("");
+  const { viewingClientId, viewingClientName, setViewingClient } = useClientContext();
+  const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Fetch clients if user is a therapist
@@ -52,8 +61,7 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
 
   // Handle client selection
   const handleClientSelect = (clientId: number, clientName: string) => {
-    setSelectedClientId(clientId);
-    setSelectedClientName(clientName);
+    setViewingClient(clientId, clientName);
     
     if (onClientChange) {
       onClientChange(clientId);
@@ -68,8 +76,7 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
 
   // Handle returning to own view
   const handleReturnToSelf = () => {
-    setSelectedClientId(null);
-    setSelectedClientName("");
+    setViewingClient(null, null);
     
     if (onClientChange) {
       onClientChange(null);
@@ -99,7 +106,7 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
   if (user.role === "therapist") {
     return (
       <div className="flex items-center">
-        {selectedClientId ? (
+        {viewingClientId ? (
           <div className="flex items-center">
             <Badge variant="outline" className="mr-2 bg-yellow-50 text-yellow-700 border-yellow-200">
               Viewing Client
@@ -107,7 +114,7 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 border-dashed">
-                  <span className="truncate max-w-[150px]">{selectedClientName}</span>
+                  <span className="truncate max-w-[150px]">{viewingClientName}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[200px]">
