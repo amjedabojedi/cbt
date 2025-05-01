@@ -702,6 +702,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.put("/api/users/:userId/coping-strategies/:strategyId", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const strategyId = parseInt(req.params.strategyId);
+      
+      // Check if the strategy exists
+      const strategy = await storage.getCopingStrategyById(strategyId);
+      
+      if (!strategy) {
+        return res.status(404).json({ message: "Coping strategy not found" });
+      }
+      
+      // Check if the user has access to the strategy
+      if (strategy.userId !== userId && strategy.userId !== null) {
+        // Allow therapists to update strategies for their clients
+        if (req.user.role === 'therapist') {
+          const client = await storage.getUser(strategy.userId);
+          if (!client || client.therapistId !== req.user.id) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        } else if (req.user.role !== 'admin') {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      // Validate the update data
+      const validatedData = insertCopingStrategySchema.partial().parse(req.body);
+      
+      // Prevent changes to userId field
+      delete validatedData.userId;
+      
+      // Update the strategy
+      const updatedStrategy = await storage.updateCopingStrategy(strategyId, validatedData);
+      res.status(200).json(updatedStrategy);
+    } catch (error) {
+      console.error("Update coping strategy error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   app.delete("/api/users/:userId/coping-strategies/:strategyId", authenticate, checkUserAccess, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);

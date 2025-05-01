@@ -80,6 +80,8 @@ export default function ResourceLibrary() {
   const [selectedStrategy, setSelectedStrategy] = useState<any>(null);
   const [isDeleteFactorDialogOpen, setIsDeleteFactorDialogOpen] = useState(false);
   const [isDeleteStrategyDialogOpen, setIsDeleteStrategyDialogOpen] = useState(false);
+  const [isEditingFactor, setIsEditingFactor] = useState(false);
+  const [isEditingStrategy, setIsEditingStrategy] = useState(false);
   
   // Forms for adding new items
   const factorForm = useForm<ProtectiveFactorFormValues>({
@@ -92,6 +94,25 @@ export default function ResourceLibrary() {
   });
   
   const strategyForm = useForm<CopingStrategyFormValues>({
+    resolver: zodResolver(copingStrategySchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      isGlobal: false,
+    },
+  });
+  
+  // Forms for editing existing items
+  const editFactorForm = useForm<ProtectiveFactorFormValues>({
+    resolver: zodResolver(protectiveFactorSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      isGlobal: false,
+    },
+  });
+  
+  const editStrategyForm = useForm<CopingStrategyFormValues>({
     resolver: zodResolver(copingStrategySchema),
     defaultValues: {
       name: "",
@@ -254,6 +275,80 @@ export default function ResourceLibrary() {
     },
   });
   
+  // Update protective factor mutation
+  const updateFactorMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: ProtectiveFactorFormValues }) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const response = await apiRequest(
+        "PUT",
+        `/api/users/${user.id}/protective-factors/${id}`,
+        data
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update protective factor");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/protective-factors`] });
+      setIsEditingFactor(false);
+      setSelectedFactor(null);
+      toast({
+        title: "Protective Factor Updated",
+        description: "Your protective factor has been updated.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error updating protective factor:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update protective factor. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Update coping strategy mutation
+  const updateStrategyMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: CopingStrategyFormValues }) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const response = await apiRequest(
+        "PUT",
+        `/api/users/${user.id}/coping-strategies/${id}`,
+        data
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update coping strategy");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/coping-strategies`] });
+      setIsEditingStrategy(false);
+      setSelectedStrategy(null);
+      toast({
+        title: "Coping Strategy Updated",
+        description: "Your coping strategy has been updated.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error updating coping strategy:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update coping strategy. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Handle form submissions
   const onSubmitFactor = (data: ProtectiveFactorFormValues) => {
     createFactorMutation.mutate(data);
@@ -261,6 +356,39 @@ export default function ResourceLibrary() {
   
   const onSubmitStrategy = (data: CopingStrategyFormValues) => {
     createStrategyMutation.mutate(data);
+  };
+  
+  const onUpdateFactor = (data: ProtectiveFactorFormValues) => {
+    if (selectedFactor) {
+      updateFactorMutation.mutate({ id: selectedFactor.id, data });
+    }
+  };
+  
+  const onUpdateStrategy = (data: CopingStrategyFormValues) => {
+    if (selectedStrategy) {
+      updateStrategyMutation.mutate({ id: selectedStrategy.id, data });
+    }
+  };
+  
+  // Handle edit resource actions
+  const handleEditFactor = (factor: any) => {
+    setSelectedFactor(factor);
+    editFactorForm.reset({
+      name: factor.name,
+      description: factor.description || "",
+      isGlobal: factor.isGlobal,
+    });
+    setIsEditingFactor(true);
+  };
+  
+  const handleEditStrategy = (strategy: any) => {
+    setSelectedStrategy(strategy);
+    editStrategyForm.reset({
+      name: strategy.name,
+      description: strategy.description || "",
+      isGlobal: strategy.isGlobal,
+    });
+    setIsEditingStrategy(true);
   };
   
   // Filter functions for personal and global items
@@ -412,6 +540,93 @@ export default function ResourceLibrary() {
                           disabled={createFactorMutation.isPending}
                         >
                           {createFactorMutation.isPending ? "Adding..." : "Add Factor"}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+              
+              {/* Edit Protective Factor Dialog */}
+              <Dialog open={isEditingFactor} onOpenChange={setIsEditingFactor}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Edit Protective Factor</DialogTitle>
+                    <DialogDescription>
+                      Update your protective factor details
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <Form {...editFactorForm}>
+                    <form onSubmit={editFactorForm.handleSubmit(onUpdateFactor)} className="space-y-4">
+                      <FormField
+                        control={editFactorForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="E.g., Supportive relationships" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={editFactorForm.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description (Optional)</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Add more details about this protective factor..."
+                                rows={3}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      {user?.role === "therapist" && (
+                        <FormField
+                          control={editFactorForm.control}
+                          name="isGlobal"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>Share with all clients</FormLabel>
+                                <FormDescription>
+                                  This will make the protective factor available to all your clients
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                      
+                      <DialogFooter>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setIsEditingFactor(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          type="submit"
+                          disabled={updateFactorMutation.isPending}
+                        >
+                          {updateFactorMutation.isPending ? "Updating..." : "Update Factor"}
                         </Button>
                       </DialogFooter>
                     </form>
@@ -603,6 +818,93 @@ export default function ResourceLibrary() {
                           disabled={createStrategyMutation.isPending}
                         >
                           {createStrategyMutation.isPending ? "Adding..." : "Add Strategy"}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+              
+              {/* Edit Coping Strategy Dialog */}
+              <Dialog open={isEditingStrategy} onOpenChange={setIsEditingStrategy}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Edit Coping Strategy</DialogTitle>
+                    <DialogDescription>
+                      Update your coping strategy details
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <Form {...editStrategyForm}>
+                    <form onSubmit={editStrategyForm.handleSubmit(onUpdateStrategy)} className="space-y-4">
+                      <FormField
+                        control={editStrategyForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="E.g., Deep breathing" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={editStrategyForm.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description (Optional)</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Add more details about this coping strategy..."
+                                rows={3}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      {user?.role === "therapist" && (
+                        <FormField
+                          control={editStrategyForm.control}
+                          name="isGlobal"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>Share with all clients</FormLabel>
+                                <FormDescription>
+                                  This will make the coping strategy available to all your clients
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                      
+                      <DialogFooter>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setIsEditingStrategy(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          type="submit"
+                          disabled={updateStrategyMutation.isPending}
+                        >
+                          {updateStrategyMutation.isPending ? "Updating..." : "Update Strategy"}
                         </Button>
                       </DialogFooter>
                     </form>
