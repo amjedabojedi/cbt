@@ -122,7 +122,10 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   // Handle edit/reflection
   const handleEditEmotion = (emotion: EmotionRecord) => {
     setSelectedEmotion(emotion);
-    setShowReflectionWizard(true);
+    // Only open reflection wizard if not viewing client data (therapist shouldn't add reflections to client records)
+    if (!isViewingClientData) {
+      setShowReflectionWizard(true);
+    }
   };
   
   // Handle delete
