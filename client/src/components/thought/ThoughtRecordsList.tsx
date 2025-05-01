@@ -194,10 +194,21 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
-            <CardTitle>Thought Records</CardTitle>
-            <CardDescription>
-              Your thought records and reflections
-            </CardDescription>
+            {isViewingClientData ? (
+              <>
+                <CardTitle>Client's Thought Records</CardTitle>
+                <CardDescription>
+                  Viewing thought records and reflections for this client
+                </CardDescription>
+              </>
+            ) : (
+              <>
+                <CardTitle>Thought Records</CardTitle>
+                <CardDescription>
+                  Your thought records and reflections
+                </CardDescription>
+              </>
+            )}
           </div>
           {limit && thoughtRecords && thoughtRecords.length > limit && (
             <Button 
@@ -213,9 +224,15 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
           {!thoughtRecords || thoughtRecords.length === 0 ? (
             <div className="text-center py-6">
               <p className="text-neutral-500">No thought records yet.</p>
-              <p className="text-sm text-neutral-400 mt-1">
-                Add reflections to your emotions to start building thought records.
-              </p>
+              {isViewingClientData ? (
+                <p className="text-sm text-neutral-400 mt-1">
+                  This client has not created any thought records.
+                </p>
+              ) : (
+                <p className="text-sm text-neutral-400 mt-1">
+                  Add reflections to your emotions to start building thought records.
+                </p>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -368,17 +385,34 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <div className="flex items-center space-x-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => {
-                            handleEditRecord(record);
-                            setShowFullHistory(false);
-                          }}
-                          className="text-primary hover:text-primary-dark"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        {/* Only show edit and delete options if viewing own data */}
+                        {!isViewingClientData && (
+                          <>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => {
+                                handleEditRecord(record);
+                                setShowFullHistory(false);
+                              }}
+                              className="text-primary hover:text-primary-dark"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => {
+                                handleDeleteClick(record);
+                                setShowFullHistory(false);
+                              }}
+                              className="text-destructive hover:text-destructive/80"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                        {/* Always show view details */}
                         <Button 
                           variant="ghost" 
                           size="icon"
@@ -389,17 +423,6 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                           className="text-primary hover:text-primary-dark"
                         >
                           <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => {
-                            handleDeleteClick(record);
-                            setShowFullHistory(false);
-                          }}
-                          className="text-destructive hover:text-destructive/80"
-                        >
-                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
