@@ -78,6 +78,8 @@ export default function ResourceLibrary() {
   const [isAddingStrategy, setIsAddingStrategy] = useState(false);
   const [selectedFactor, setSelectedFactor] = useState<any>(null);
   const [selectedStrategy, setSelectedStrategy] = useState<any>(null);
+  const [isDeleteFactorDialogOpen, setIsDeleteFactorDialogOpen] = useState(false);
+  const [isDeleteStrategyDialogOpen, setIsDeleteStrategyDialogOpen] = useState(false);
   
   // Forms for adding new items
   const factorForm = useForm<ProtectiveFactorFormValues>({
@@ -178,11 +180,75 @@ export default function ResourceLibrary() {
         description: "Your coping strategy has been added to your library.",
       });
     },
+  });
+  
+  // Delete protective factor mutation
+  const deleteFactorMutation = useMutation({
+    mutationFn: async (factorId: number) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const response = await apiRequest(
+        "DELETE",
+        `/api/users/${user.id}/protective-factors/${factorId}`,
+        null
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete protective factor");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/protective-factors`] });
+      setSelectedFactor(null);
+      toast({
+        title: "Protective Factor Deleted",
+        description: "The protective factor has been removed from your library.",
+      });
+    },
     onError: (error) => {
-      console.error("Error creating coping strategy:", error);
+      console.error("Error deleting protective factor:", error);
       toast({
         title: "Error",
-        description: "Failed to add coping strategy. Please try again.",
+        description: "Failed to delete protective factor. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Delete coping strategy mutation
+  const deleteStrategyMutation = useMutation({
+    mutationFn: async (strategyId: number) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const response = await apiRequest(
+        "DELETE",
+        `/api/users/${user.id}/coping-strategies/${strategyId}`,
+        null
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete coping strategy");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/coping-strategies`] });
+      setSelectedStrategy(null);
+      toast({
+        title: "Coping Strategy Deleted",
+        description: "The coping strategy has been removed from your library.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error deleting coping strategy:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete coping strategy. Please try again.",
         variant: "destructive",
       });
     },

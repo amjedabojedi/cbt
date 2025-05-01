@@ -280,6 +280,27 @@ export class DatabaseStorage implements IStorage {
         .orderBy(protectiveFactors.name);
     }
   }
+  
+  async getProtectiveFactorById(id: number): Promise<ProtectiveFactor | undefined> {
+    const [factor] = await db
+      .select()
+      .from(protectiveFactors)
+      .where(eq(protectiveFactors.id, id));
+    
+    return factor;
+  }
+  
+  async deleteProtectiveFactor(id: number): Promise<void> {
+    // First delete any usage records
+    await db
+      .delete(protectiveFactorUsage)
+      .where(eq(protectiveFactorUsage.protectiveFactorId, id));
+      
+    // Then delete the factor itself
+    await db
+      .delete(protectiveFactors)
+      .where(eq(protectiveFactors.id, id));
+  }
 
   // Protective factor usage
   async addProtectiveFactorUsage(usage: InsertProtectiveFactorUsage): Promise<ProtectiveFactorUsage> {
@@ -318,6 +339,27 @@ export class DatabaseStorage implements IStorage {
         .where(eq(copingStrategies.userId, userId))
         .orderBy(copingStrategies.name);
     }
+  }
+  
+  async getCopingStrategyById(id: number): Promise<CopingStrategy | undefined> {
+    const [strategy] = await db
+      .select()
+      .from(copingStrategies)
+      .where(eq(copingStrategies.id, id));
+    
+    return strategy;
+  }
+  
+  async deleteCopingStrategy(id: number): Promise<void> {
+    // First delete any usage records
+    await db
+      .delete(copingStrategyUsage)
+      .where(eq(copingStrategyUsage.copingStrategyId, id));
+      
+    // Then delete the strategy itself
+    await db
+      .delete(copingStrategies)
+      .where(eq(copingStrategies.id, id));
   }
 
   // Coping strategy usage
