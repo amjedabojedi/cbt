@@ -12,21 +12,28 @@ declare global {
 }
 
 export async function authenticate(req: Request, res: Response, next: NextFunction) {
+  console.log("Authenticating request with cookies:", req.cookies);
   const sessionId = req.cookies?.sessionId;
   
   if (!sessionId) {
+    console.log("No sessionId cookie found");
     return res.status(401).json({ message: 'Authentication required' });
   }
   
   try {
+    console.log("Looking up session ID:", sessionId);
     const session = await storage.getSessionById(sessionId);
     
     if (!session) {
+      console.log("Session not found in database");
       return res.status(401).json({ message: 'Invalid session' });
     }
     
+    console.log("Found session:", session.id, "for user:", session.userId);
+    
     // Check if session is expired
     if (new Date(session.expiresAt) < new Date()) {
+      console.log("Session expired at:", session.expiresAt);
       await storage.deleteSession(sessionId);
       return res.status(401).json({ message: 'Session expired' });
     }
@@ -34,8 +41,11 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     const user = await storage.getUser(session.userId);
     
     if (!user) {
+      console.log("User not found for session:", session.userId);
       return res.status(401).json({ message: 'User not found' });
     }
+    
+    console.log("Authentication successful for user:", user.id, user.username);
     
     // Attach user and session to the request
     req.user = user;
