@@ -714,8 +714,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Goals routes
-  app.post("/api/users/:userId/goals", authenticate, checkUserAccess, checkResourceCreationPermission, async (req, res) => {
+  // Goals routes - only clients can create goals
+  app.post("/api/users/:userId/goals", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const validatedData = insertGoalSchema.parse({
@@ -811,7 +811,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       // If therapist is creating milestone for their client's goal - allow
       else if (req.user.role === 'therapist') {
-        // Verify the goal belongs to their client
+        // First check: therapist cannot create milestones for their own goals
+        if (goal.userId === req.user.id) {
+          return res.status(403).json({ message: 'As a therapist, you can only provide feedback on goals, not create milestones for your own goals.' });
+        }
+        
+        // Second check: Verify the goal belongs to their client
         const client = await storage.getUser(goal.userId);
         if (!client || client.therapistId !== req.user.id) {
           return res.status(403).json({ message: 'Access denied. You can only create milestones for your clients\' goals.' });
@@ -921,7 +926,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       // If therapist is updating their client's goal milestone - allow
       else if (req.user.role === 'therapist') {
-        // Verify the goal belongs to their client
+        // First check: therapist cannot update milestones for their own goals
+        if (goal.userId === req.user.id) {
+          return res.status(403).json({ message: 'As a therapist, you can only provide feedback on goals, not update milestones for your own goals.' });
+        }
+        
+        // Second check: Verify the goal belongs to their client
         const client = await storage.getUser(goal.userId);
         if (!client || client.therapistId !== req.user.id) {
           return res.status(403).json({ message: 'Access denied. You can only update milestones for your clients\' goals.' });
@@ -944,8 +954,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Actions routes
-  app.post("/api/users/:userId/actions", authenticate, checkUserAccess, checkResourceCreationPermission, async (req, res) => {
+  // Actions routes - only clients can create actions
+  app.post("/api/users/:userId/actions", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const validatedData = insertActionSchema.parse({
@@ -1001,7 +1011,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       // If therapist is updating their client's action - allow
       else if (req.user.role === 'therapist') {
-        // Verify the action belongs to their client
+        // First check: therapist cannot update their own actions
+        if (action.userId === req.user.id) {
+          return res.status(403).json({ message: 'As a therapist, you can only provide feedback on actions, not update your own actions.' });
+        }
+        
+        // Second check: Verify the action belongs to their client
         const client = await storage.getUser(action.userId);
         if (!client || client.therapistId !== req.user.id) {
           return res.status(403).json({ message: 'Access denied. You can only update actions for your clients.' });
