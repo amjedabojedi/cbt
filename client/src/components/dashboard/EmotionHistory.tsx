@@ -51,6 +51,7 @@ interface EmotionHistoryProps {
 
 export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   const { activeUserId, isViewingClientData } = useActiveUser();
+  const { user } = useAuth();
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionRecord | null>(null);
   const [showFullHistory, setShowFullHistory] = useState(false);
   const [showReflectionWizard, setShowReflectionWizard] = useState(false);
@@ -258,14 +259,18 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <div className="flex items-center space-x-2">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleEditEmotion(emotion)}
-                            className="text-primary hover:text-primary-dark"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          {/* Only show edit option if viewing own data */}
+                          {!isViewingClientData && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => handleEditEmotion(emotion)}
+                              className="text-primary hover:text-primary-dark"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {/* Always show view details */}
                           <Button 
                             variant="ghost" 
                             size="icon"
@@ -274,14 +279,17 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => handleDeleteClick(emotion)}
-                            className="text-destructive hover:text-destructive/80"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {/* Only show delete option if viewing own data */}
+                          {!isViewingClientData && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleDeleteClick(emotion)}
+                              className="text-destructive hover:text-destructive/80"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -331,14 +339,17 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                 </div>
               </div>
               
-              <div className="flex justify-end pt-4">
-                <Button onClick={() => {
-                  setShowReflectionWizard(true);
-                  // Keep selectedEmotion set
-                }}>
-                  Add Reflection
-                </Button>
-              </div>
+              {/* Only show Add Reflection button if this is the user's own data (not a therapist viewing client data) */}
+              {!isViewingClientData && (
+                <div className="flex justify-end pt-4">
+                  <Button onClick={() => {
+                    setShowReflectionWizard(true);
+                    // Keep selectedEmotion set
+                  }}>
+                    Add Reflection
+                  </Button>
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>
@@ -400,18 +411,22 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <div className="flex items-center space-x-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => {
-                            setSelectedEmotion(emotion);
-                            setShowReflectionWizard(true);
-                            setShowFullHistory(false);
-                          }}
-                          className="text-primary hover:text-primary-dark"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        {/* Only show edit option if viewing own data */}
+                        {!isViewingClientData && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => {
+                              setSelectedEmotion(emotion);
+                              setShowReflectionWizard(true);
+                              setShowFullHistory(false);
+                            }}
+                            className="text-primary hover:text-primary-dark"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {/* Always show view details */}
                         <Button 
                           variant="ghost" 
                           size="icon"
@@ -423,17 +438,20 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => {
-                            handleDeleteClick(emotion);
-                            setShowFullHistory(false);
-                          }}
-                          className="text-destructive hover:text-destructive/80"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {/* Only show delete option if viewing own data */}
+                        {!isViewingClientData && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => {
+                              handleDeleteClick(emotion);
+                              setShowFullHistory(false);
+                            }}
+                            className="text-destructive hover:text-destructive/80"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
