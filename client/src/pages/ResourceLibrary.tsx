@@ -453,6 +453,17 @@ export default function ResourceLibrary() {
                               <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <Edit className="h-4 w-4 text-neutral-500" />
                               </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive/90"
+                                onClick={() => {
+                                  setSelectedFactor(factor);
+                                  setIsDeleteFactorDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
                         </CardHeader>
@@ -633,6 +644,17 @@ export default function ResourceLibrary() {
                               <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <Edit className="h-4 w-4 text-neutral-500" />
                               </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive/90"
+                                onClick={() => {
+                                  setSelectedStrategy(strategy);
+                                  setIsDeleteStrategyDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
                         </CardHeader>
@@ -677,6 +699,81 @@ export default function ResourceLibrary() {
             )}
           </TabsContent>
         </Tabs>
+        {/* Delete Protective Factor Confirmation Dialog */}
+        <Dialog open={isDeleteFactorDialogOpen} onOpenChange={setIsDeleteFactorDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Protective Factor</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this protective factor? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-2 p-4 border rounded bg-neutral-50">
+              <h4 className="font-medium">{selectedFactor?.name}</h4>
+              <p className="text-sm text-neutral-600 mt-1">
+                {selectedFactor?.description || "No description provided."}
+              </p>
+            </div>
+            <DialogFooter className="mt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsDeleteFactorDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={() => {
+                  if (selectedFactor) {
+                    deleteFactorMutation.mutate(selectedFactor.id);
+                    setIsDeleteFactorDialogOpen(false);
+                  }
+                }}
+                disabled={deleteFactorMutation.isPending}
+              >
+                {deleteFactorMutation.isPending ? "Deleting..." : "Delete Factor"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Coping Strategy Confirmation Dialog */}
+        <Dialog open={isDeleteStrategyDialogOpen} onOpenChange={setIsDeleteStrategyDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Coping Strategy</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this coping strategy? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-2 p-4 border rounded bg-neutral-50">
+              <h4 className="font-medium">{selectedStrategy?.name}</h4>
+              <p className="text-sm text-neutral-600 mt-1">
+                {selectedStrategy?.description || "No description provided."}
+              </p>
+            </div>
+            <DialogFooter className="mt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsDeleteStrategyDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={() => {
+                  if (selectedStrategy) {
+                    deleteStrategyMutation.mutate(selectedStrategy.id);
+                    setIsDeleteStrategyDialogOpen(false);
+                  }
+                }}
+                disabled={deleteStrategyMutation.isPending}
+              >
+                {deleteStrategyMutation.isPending ? "Deleting..." : "Delete Strategy"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
