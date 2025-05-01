@@ -218,7 +218,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                         {record.cognitiveDistortions.length > 2 && "..."}
                       </TableCell>
                       <TableCell className="max-w-xs truncate text-sm">
-                        {record.alternativeThoughts}
+                        {record.alternativePerspective}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <div className="flex items-center space-x-2">
@@ -290,12 +290,12 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                 <p className="text-sm whitespace-pre-wrap">{selectedRecord.evidenceAgainst}</p>
               </div>
               <div>
-                <h4 className="text-sm font-medium text-neutral-500">Alternative Thoughts</h4>
-                <p className="text-sm whitespace-pre-wrap">{selectedRecord.alternativeThoughts}</p>
+                <h4 className="text-sm font-medium text-neutral-500">Alternative Perspective</h4>
+                <p className="text-sm whitespace-pre-wrap">{selectedRecord.alternativePerspective}</p>
               </div>
               <div>
-                <h4 className="text-sm font-medium text-neutral-500">Reflection</h4>
-                <p className="text-sm whitespace-pre-wrap">{selectedRecord.reflection || "No reflection added"}</p>
+                <h4 className="text-sm font-medium text-neutral-500">Insights Gained</h4>
+                <p className="text-sm whitespace-pre-wrap">{selectedRecord.insightsGained || "No insights added"}</p>
               </div>
             </div>
           </DialogContent>
@@ -315,7 +315,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                   <TableHead>Date & Time</TableHead>
                   <TableHead>Automatic Thoughts</TableHead>
                   <TableHead>Cognitive Distortions</TableHead>
-                  <TableHead>Alternative Thoughts</TableHead>
+                  <TableHead>Alternative Perspective</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -333,7 +333,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                       {record.cognitiveDistortions.length > 2 && "..."}
                     </TableCell>
                     <TableCell className="max-w-xs truncate text-sm">
-                      {record.alternativeThoughts}
+                      {record.alternativePerspective}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <div className="flex items-center space-x-2">

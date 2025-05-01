@@ -145,20 +145,20 @@ export default function ThoughtRecords() {
                   )}
                 </div>
                 
-                {selectedThought.alternativeThoughts && (
+                {selectedThought.alternativePerspective && (
                   <div>
-                    <h4 className="text-sm font-medium text-neutral-500 mb-1">Alternative Thoughts</h4>
+                    <h4 className="text-sm font-medium text-neutral-500 mb-1">Alternative Perspective</h4>
                     <p className="text-sm p-3 bg-neutral-50 rounded border border-neutral-200">
-                      {selectedThought.alternativeThoughts}
+                      {selectedThought.alternativePerspective}
                     </p>
                   </div>
                 )}
                 
-                {selectedThought.reflection && (
+                {selectedThought.insightsGained && (
                   <div>
-                    <h4 className="text-sm font-medium text-neutral-500 mb-1">Reflection</h4>
+                    <h4 className="text-sm font-medium text-neutral-500 mb-1">Insights Gained</h4>
                     <p className="text-sm p-3 bg-neutral-50 rounded border border-neutral-200">
-                      {selectedThought.reflection}
+                      {selectedThought.insightsGained}
                     </p>
                   </div>
                 )}

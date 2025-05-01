@@ -182,6 +182,15 @@ export class DatabaseStorage implements IStorage {
   }
   
   async deleteEmotionRecord(id: number): Promise<void> {
+    // Get all associated thought records first
+    const relatedThoughts = await this.getThoughtRecordsByEmotionId(id);
+    
+    // Delete each related thought record (which will handle their dependencies)
+    for (const thought of relatedThoughts) {
+      await this.deleteThoughtRecord(thought.id);
+    }
+    
+    // Finally delete the emotion record itself
     await db
       .delete(emotionRecords)
       .where(eq(emotionRecords.id, id));
@@ -223,6 +232,17 @@ export class DatabaseStorage implements IStorage {
   }
   
   async deleteThoughtRecord(id: number): Promise<void> {
+    // First delete related coping strategy usage records
+    await db
+      .delete(copingStrategyUsage)
+      .where(eq(copingStrategyUsage.thoughtRecordId, id));
+    
+    // Then delete related protective factor usage records
+    await db
+      .delete(protectiveFactorUsage)
+      .where(eq(protectiveFactorUsage.thoughtRecordId, id));
+    
+    // Finally delete the thought record
     await db
       .delete(thoughtRecords)
       .where(eq(thoughtRecords.id, id));
