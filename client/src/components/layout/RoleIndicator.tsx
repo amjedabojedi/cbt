@@ -61,6 +61,7 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
 
   // Handle client selection
   const handleClientSelect = (clientId: number, clientName: string) => {
+    console.log("Selecting client:", clientId, clientName);
     setViewingClient(clientId, clientName);
     
     if (onClientChange) {
@@ -72,10 +73,14 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
       title: "Client Selected",
       description: `You are now viewing ${clientName}'s data`,
     });
+    
+    // Force a reload to refresh all queries with the new client
+    window.location.reload();
   };
 
   // Handle returning to own view
   const handleReturnToSelf = () => {
+    console.log("Returning to self view");
     setViewingClient(null, null);
     
     if (onClientChange) {
@@ -83,9 +88,12 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
     }
     
     toast({
-      title: "Returned to Self",
+      title: "Returned to Self", 
       description: "You are now viewing your own dashboard",
     });
+    
+    // Force a reload to refresh all queries
+    window.location.reload();
   };
 
   // Don't render anything if user is not logged in

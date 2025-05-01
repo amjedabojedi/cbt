@@ -5,6 +5,8 @@ import AppLayout from "@/components/layout/AppLayout";
 import ThoughtRecordsList from "@/components/thought/ThoughtRecordsList";
 import { format } from "date-fns";
 import { ThoughtRecord } from "@shared/schema";
+import useActiveUser from "@/hooks/use-active-user";
+import { ClientDebug } from "@/components/debug/ClientDebug";
 
 import {
   Card,
@@ -21,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, ClipboardList } from "lucide-react";
 
 export default function ThoughtRecords() {
   const { user } = useAuth();
