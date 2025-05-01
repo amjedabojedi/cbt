@@ -64,6 +64,8 @@ function getEmotionColor(emotion: string): string {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Use the pool from the imported db
+  const { pool } = await import('./db');
   // Parse cookies
   app.use(cookieParser());
   
@@ -197,7 +199,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Generate a unique invite token (this would typically be stored in the database)
-      const inviteToken = require('crypto').randomBytes(32).toString('hex');
+      const crypto = await import('crypto');
+      const inviteToken = crypto.randomBytes(32).toString('hex');
       
       // Generate invite link with token
       const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
@@ -918,6 +921,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Send weekly digests error:", error);
       res.status(500).json({ message: "Failed to send weekly progress digests" });
+    }
+  });
+  
+  // Get protective factors used for a specific thought record
+  app.get("/api/users/:userId/thoughts/:id/protective-factors", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const thoughtId = parseInt(req.params.id);
+      const userId = parseInt(req.params.userId);
+      
+      // First verify thought record exists and belongs to user
+      const thoughtRecord = await storage.getThoughtRecordById(thoughtId);
+      if (!thoughtRecord || thoughtRecord.userId !== userId) {
+        return res.status(404).json({ message: 'Thought record not found' });
+      }
+      
+      // Query the database to get protective factors used in this thought record
+      const query = `
+        SELECT pf.id, pf.name
+        FROM protective_factors pf
+        JOIN protective_factor_usage pfu ON pf.id = pfu.protective_factor_id
+        WHERE pfu.thought_record_id = $1
+      `;
+      
+      const result = await pool.query(query, [thoughtId]);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching protective factors for thought record:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  // Get coping strategies used for a specific thought record
+  app.get("/api/users/:userId/thoughts/:id/coping-strategies", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const thoughtId = parseInt(req.params.id);
+      const userId = parseInt(req.params.userId);
+      
+      // First verify thought record exists and belongs to user
+      const thoughtRecord = await storage.getThoughtRecordById(thoughtId);
+      if (!thoughtRecord || thoughtRecord.userId !== userId) {
+        return res.status(404).json({ message: 'Thought record not found' });
+      }
+      
+      // Query the database to get coping strategies used in this thought record
+      const query = `
+        SELECT cs.id, cs.name
+        FROM coping_strategies cs
+        JOIN coping_strategy_usage csu ON cs.id = csu.coping_strategy_id
+        WHERE csu.thought_record_id = $1
+      `;
+      
+      const result = await pool.query(query, [thoughtId]);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching coping strategies for thought record:', error);
+      res.status(500).json({ message: 'Server error' });
     }
   });
 
