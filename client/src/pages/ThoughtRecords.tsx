@@ -27,12 +27,13 @@ import { PlusCircle, ClipboardList } from "lucide-react";
 
 export default function ThoughtRecords() {
   const { user } = useAuth();
+  const { isViewingClientData, activeUserId } = useActiveUser();
   const [selectedThought, setSelectedThought] = useState<ThoughtRecord | null>(null);
   
-  // Fetch related emotion records
+  // Fetch related emotion records for the active user (could be a client viewed by a therapist)
   const { data: emotions } = useQuery({
-    queryKey: user ? [`/api/users/${user.id}/emotions`] : [],
-    enabled: !!user,
+    queryKey: activeUserId ? [`/api/users/${activeUserId}/emotions`] : [],
+    enabled: !!activeUserId,
   });
   
   // Format date for display
@@ -42,7 +43,8 @@ export default function ThoughtRecords() {
   
   // Find related emotion for a thought record
   const findRelatedEmotion = (emotionRecordId: number) => {
-    return emotions?.find(emotion => emotion.id === emotionRecordId);
+    if (!emotions || !Array.isArray(emotions)) return undefined;
+    return emotions.find((emotion: any) => emotion.id === emotionRecordId);
   };
   
   // Handle edit a thought record
@@ -53,26 +55,49 @@ export default function ThoughtRecords() {
   return (
     <AppLayout title="Thought Records">
       <div className="container mx-auto px-4 py-6">
+        {/* Debug Information (Development Only) */}
+        <ClientDebug />
+        
         <div className="flex flex-col space-y-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
-                <CardTitle>Thought Records</CardTitle>
-                <CardDescription>
-                  Review and analyze your thought patterns
-                </CardDescription>
+                {isViewingClientData ? (
+                  <>
+                    <CardTitle>Client's Thought Records</CardTitle>
+                    <CardDescription>
+                      <div className="flex items-center gap-2">
+                        <ClipboardList size={16} />
+                        View thought records and reflections for this client
+                      </div>
+                    </CardDescription>
+                  </>
+                ) : (
+                  <>
+                    <CardTitle>Thought Records</CardTitle>
+                    <CardDescription>
+                      Review and analyze your thought patterns
+                    </CardDescription>
+                  </>
+                )}
               </div>
-              <Button asChild>
-                <a href="/emotions">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  New Record
-                </a>
-              </Button>
+              
+              {/* Only show New Record button if user is viewing their own data */}
+              {!isViewingClientData && (
+                <Button asChild>
+                  <a href="/emotions">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    New Record
+                  </a>
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
-              <div className="text-center py-4 text-sm text-neutral-500">
-                Start with an emotion entry, then add reflections to create thought records.
-              </div>
+              {!isViewingClientData && (
+                <div className="text-center py-4 text-sm text-neutral-500">
+                  Start with an emotion entry, then add reflections to create thought records.
+                </div>
+              )}
             </CardContent>
           </Card>
           

@@ -5,6 +5,7 @@ import { ThoughtRecord } from "@shared/schema";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import useActiveUser from "@/hooks/use-active-user";
 
 import {
   Table,
@@ -48,6 +49,7 @@ interface ThoughtRecordsListProps {
 
 export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecordsListProps) {
   const { user } = useAuth();
+  const { activeUserId, isViewingClientData } = useActiveUser();
   const [selectedRecord, setSelectedRecord] = useState<ThoughtRecord | null>(null);
   const [showFullHistory, setShowFullHistory] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -55,21 +57,25 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Fetch thought records
+  // Fetch thought records for the active user (could be a client viewed by a therapist)
   const { data: thoughtRecords, isLoading, error } = useQuery({
-    queryKey: user ? [`/api/users/${user.id}/thoughts`] : [],
-    enabled: !!user,
+    queryKey: activeUserId ? [`/api/users/${activeUserId}/thoughts`] : [],
+    enabled: !!activeUserId,
   });
   
-  // Delete thought record mutation
+  // Delete thought record mutation - only allowed for own records
   const deleteThoughtMutation = useMutation({
     mutationFn: async (recordId: number) => {
-      if (!user) throw new Error('User not authenticated');
-      return apiRequest('DELETE', `/api/users/${user.id}/thoughts/${recordId}`);
+      if (!activeUserId) throw new Error('User not authenticated');
+      // Therapists should not be able to delete client records, only view them
+      if (isViewingClientData) {
+        throw new Error('Cannot delete records for clients');
+      }
+      return apiRequest('DELETE', `/api/users/${activeUserId}/thoughts/${recordId}`);
     },
     onSuccess: () => {
       // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/thoughts`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/thoughts`] });
       
       toast({
         title: "Record deleted",
@@ -94,7 +100,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
         });
         
         // Still refetch to update the UI
-        queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/thoughts`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/thoughts`] });
         setRecordToDelete(null);
         setDeleteConfirmOpen(false);
         return;
@@ -241,14 +247,28 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <div className="flex items-center space-x-2">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleEditRecord(record)}
-                            className="text-primary hover:text-primary-dark"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          {/* Only show edit and delete options if viewing own data */}
+                          {!isViewingClientData && (
+                            <>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => handleEditRecord(record)}
+                                className="text-primary hover:text-primary-dark"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleDeleteClick(record)}
+                                className="text-destructive hover:text-destructive/80"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
+                          {/* Always show view details */}
                           <Button 
                             variant="ghost" 
                             size="icon"
@@ -256,14 +276,6 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                             className="text-primary hover:text-primary-dark"
                           >
                             <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => handleDeleteClick(record)}
-                            className="text-destructive hover:text-destructive/80"
-                          >
-                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
