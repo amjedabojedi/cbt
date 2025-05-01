@@ -5,6 +5,7 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import EmotionHistory from "@/components/dashboard/EmotionHistory";
 import MoodTrends from "@/components/dashboard/MoodTrends";
 import ReflectionTrends from "@/components/dashboard/ReflectionTrends";
+import ReflectionInsights from "@/components/dashboard/ReflectionInsights";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -43,6 +44,11 @@ export default function Dashboard() {
           <div>
             {user && <ReflectionTrends userId={user.id} days={30} />}
           </div>
+        </div>
+        
+        {/* Reflection Insights */}
+        <div className="mb-6">
+          <ReflectionInsights />
         </div>
       </div>
     </AppLayout>
