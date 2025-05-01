@@ -46,7 +46,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Calendar, CheckCircle, Clock } from "lucide-react";
+import { PlusCircle, Calendar, CheckCircle, Clock, Flag } from "lucide-react";
 
 // Schema for goal creation
 const goalSchema = z.object({
@@ -78,14 +78,14 @@ export default function GoalSetting() {
   const [isAddingMilestone, setIsAddingMilestone] = useState(false);
   
   // Fetch goals
-  const { data: goals, isLoading, error } = useQuery({
+  const { data: goals = [], isLoading, error } = useQuery({
     queryKey: user ? [`/api/users/${user.id}/goals`] : [],
     enabled: !!user,
   });
   
   // Fetch milestones for selected goal
-  const { data: milestones, isLoading: milestonesLoading } = useQuery({
-    queryKey: selectedGoal ? [`/api/goals/${selectedGoal.id}/milestones`] : null,
+  const { data: milestones = [], isLoading: milestonesLoading } = useQuery({
+    queryKey: selectedGoal ? [`/api/goals/${selectedGoal.id}/milestones`] : [],
     enabled: !!selectedGoal,
   });
   
@@ -131,7 +131,9 @@ export default function GoalSetting() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/goals`] });
+      if (user) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/goals`] });
+      }
       setIsCreatingGoal(false);
       toast({
         title: "Goal Created",
@@ -167,7 +169,9 @@ export default function GoalSetting() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/goals/${selectedGoal.id}/milestones`] });
+      if (selectedGoal) {
+        queryClient.invalidateQueries({ queryKey: [`/api/goals/${selectedGoal.id}/milestones`] });
+      }
       setIsAddingMilestone(false);
       toast({
         title: "Milestone Added",
@@ -197,7 +201,9 @@ export default function GoalSetting() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/goals/${selectedGoal.id}/milestones`] });
+      if (selectedGoal) {
+        queryClient.invalidateQueries({ queryKey: [`/api/goals/${selectedGoal.id}/milestones`] });
+      }
       toast({
         title: "Milestone Updated",
         description: "The milestone status has been updated.",
@@ -486,7 +492,7 @@ export default function GoalSetting() {
           </div>
           
           <TabsContent value="goals" className="space-y-4">
-            {goals?.length === 0 ? (
+            {goals.length === 0 ? (
               <Card>
                 <CardContent className="pt-6 flex flex-col items-center justify-center py-12">
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
@@ -512,7 +518,7 @@ export default function GoalSetting() {
               <>
                 {/* Goals List */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {goals?.map((goal) => (
+                  {goals.map((goal: any) => (
                     <Card 
                       key={goal.id} 
                       className="cursor-pointer hover:shadow-md transition-shadow"
@@ -622,81 +628,85 @@ export default function GoalSetting() {
                                   </Button>
                                 </DialogTrigger>
                                 <DialogContent>
-                                
-                                <DialogHeader>
-                                  <DialogTitle>Add a Milestone</DialogTitle>
-                                  <DialogDescription>
-                                    Break down your goal into manageable steps
-                                  </DialogDescription>
-                                </DialogHeader>
-                                
-                                <Form {...milestoneForm}>
-                                  <form onSubmit={milestoneForm.handleSubmit(onSubmitMilestone)} className="space-y-4">
-                                    <FormField
-                                      control={milestoneForm.control}
-                                      name="title"
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel>Milestone Title</FormLabel>
-                                          <FormControl>
-                                            <Input placeholder="Enter a title for this milestone" {...field} />
-                                          </FormControl>
-                                          <FormMessage />
-                                        </FormItem>
-                                      )}
-                                    />
-                                    
-                                    <FormField
-                                      control={milestoneForm.control}
-                                      name="description"
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel>Description (Optional)</FormLabel>
-                                          <FormControl>
-                                            <Textarea
-                                              placeholder="Add more details about this milestone..."
-                                              rows={3}
-                                              {...field}
-                                            />
-                                          </FormControl>
-                                          <FormMessage />
-                                        </FormItem>
-                                      )}
-                                    />
-                                    
-                                    <FormField
-                                      control={milestoneForm.control}
-                                      name="dueDate"
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel>Due Date (Optional)</FormLabel>
-                                          <FormControl>
-                                            <Input type="date" {...field} />
-                                          </FormControl>
-                                          <FormMessage />
-                                        </FormItem>
-                                      )}
-                                    />
-                                    
-                                    <DialogFooter>
-                                      <Button 
-                                        type="button" 
-                                        variant="outline" 
-                                        onClick={() => setIsAddingMilestone(false)}
-                                      >
-                                        Cancel
-                                      </Button>
-                                      <Button 
-                                        type="submit"
-                                        disabled={createMilestoneMutation.isPending}
-                                      >
-                                        {createMilestoneMutation.isPending ? "Adding..." : "Add Milestone"}
-                                      </Button>
-                                    </DialogFooter>
-                                  </form>
-                                </Form>
-                              </DialogContent>
-                            </Dialog>
+                                  <DialogHeader>
+                                    <DialogTitle>Add a Milestone</DialogTitle>
+                                    <DialogDescription>
+                                      Break down your goal into manageable steps
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  
+                                  <Form {...milestoneForm}>
+                                    <form onSubmit={milestoneForm.handleSubmit(onSubmitMilestone)} className="space-y-4">
+                                      <FormField
+                                        control={milestoneForm.control}
+                                        name="title"
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Milestone Title</FormLabel>
+                                            <FormControl>
+                                              <Input placeholder="Enter a title for this milestone" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+                                      
+                                      <FormField
+                                        control={milestoneForm.control}
+                                        name="description"
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Description (Optional)</FormLabel>
+                                            <FormControl>
+                                              <Textarea
+                                                placeholder="Add more details about this milestone..."
+                                                rows={3}
+                                                {...field}
+                                              />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+                                      
+                                      <FormField
+                                        control={milestoneForm.control}
+                                        name="dueDate"
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Due Date (Optional)</FormLabel>
+                                            <FormControl>
+                                              <Input type="date" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+                                      
+                                      <DialogFooter>
+                                        <Button 
+                                          type="button" 
+                                          variant="outline" 
+                                          onClick={() => setIsAddingMilestone(false)}
+                                        >
+                                          Cancel
+                                        </Button>
+                                        <Button 
+                                          type="submit"
+                                          disabled={createMilestoneMutation.isPending}
+                                        >
+                                          {createMilestoneMutation.isPending ? "Adding..." : "Add Milestone"}
+                                        </Button>
+                                      </DialogFooter>
+                                    </form>
+                                  </Form>
+                                </DialogContent>
+                              </Dialog>
+                            ) : (
+                              <p className="text-xs text-amber-600">
+                                Therapists cannot add milestones
+                              </p>
+                            )}
                           </div>
                           
                           {milestonesLoading ? (
@@ -705,12 +715,12 @@ export default function GoalSetting() {
                             </div>
                           ) : (
                             <div className="space-y-2">
-                              {milestones?.length === 0 ? (
+                              {milestones.length === 0 ? (
                                 <p className="text-sm text-neutral-500 italic">
                                   No milestones yet. Add some to track your progress.
                                 </p>
                               ) : (
-                                milestones?.map((milestone) => (
+                                milestones.map((milestone: any) => (
                                   <div 
                                     key={milestone.id} 
                                     className="flex items-start p-3 bg-neutral-50 rounded border border-neutral-200"
@@ -862,81 +872,55 @@ export default function GoalSetting() {
                       />
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FormField
-                        control={goalForm.control}
-                        name="timebound"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Time-bound</FormLabel>
-                            <FormDescription>
-                              What's your time frame for accomplishing this goal?
-                            </FormDescription>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Describe your timeline and deadlines..."
-                                rows={3}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={goalForm.control}
-                        name="deadline"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Target Completion Date</FormLabel>
-                            <FormDescription>
-                              When do you aim to complete this goal?
-                            </FormDescription>
-                            <FormControl>
-                              <Input type="date" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                    <FormField
+                      control={goalForm.control}
+                      name="timebound"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Time-bound</FormLabel>
+                          <FormDescription>
+                            What's your time frame for accomplishing this goal?
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Describe your timeline and deadlines..."
+                              rows={3}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={goalForm.control}
+                      name="deadline"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Target Completion Date</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <Button 
+                      type="submit"
+                      disabled={createGoalMutation.isPending}
+                      className="w-full md:w-auto"
+                    >
+                      {createGoalMutation.isPending ? "Creating..." : "Create Goal"}
+                    </Button>
                   </form>
                 </Form>
               </CardContent>
-              <CardFooter className="flex justify-end">
-                <Button 
-                  onClick={goalForm.handleSubmit(onSubmitGoal)}
-                  disabled={createGoalMutation.isPending}
-                >
-                  {createGoalMutation.isPending ? "Creating..." : "Create Goal"}
-                </Button>
-              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
     </AppLayout>
-  );
-}
-
-// Flag icon component
-function Flag(props: any) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-      <line x1="4" x2="4" y1="22" y2="15" />
-    </svg>
   );
 }
