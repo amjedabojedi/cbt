@@ -47,6 +47,8 @@ export interface IStorage {
   // Protective factors
   createProtectiveFactor(factor: InsertProtectiveFactor): Promise<ProtectiveFactor>;
   getProtectiveFactorsByUser(userId: number, includeGlobal?: boolean): Promise<ProtectiveFactor[]>;
+  getProtectiveFactorById(id: number): Promise<ProtectiveFactor | undefined>;
+  deleteProtectiveFactor(id: number): Promise<void>;
   
   // Protective factor usage
   addProtectiveFactorUsage(usage: InsertProtectiveFactorUsage): Promise<ProtectiveFactorUsage>;
@@ -54,6 +56,8 @@ export interface IStorage {
   // Coping strategies
   createCopingStrategy(strategy: InsertCopingStrategy): Promise<CopingStrategy>;
   getCopingStrategiesByUser(userId: number, includeGlobal?: boolean): Promise<CopingStrategy[]>;
+  getCopingStrategyById(id: number): Promise<CopingStrategy | undefined>;
+  deleteCopingStrategy(id: number): Promise<void>;
   
   // Coping strategy usage
   addCopingStrategyUsage(usage: InsertCopingStrategyUsage): Promise<CopingStrategyUsage>;

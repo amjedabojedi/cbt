@@ -48,9 +48,9 @@ import {
   PlusCircle,
   Shield,
   Sparkles,
+  Trash2,
   StarIcon,
   Edit,
-  Trash2,
 } from "lucide-react";
 
 // Define schema for protective factors

@@ -569,6 +569,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.delete("/api/users/:userId/protective-factors/:factorId", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const factorId = parseInt(req.params.factorId);
+      
+      // Check if the factor exists
+      const factor = await storage.getProtectiveFactorById(factorId);
+      
+      if (!factor) {
+        return res.status(404).json({ message: "Protective factor not found" });
+      }
+      
+      // Check if the user has access to the factor
+      if (factor.userId !== userId && factor.userId !== null) {
+        // Allow therapists to delete factors for their clients
+        if (req.user.role === 'therapist') {
+          const client = await storage.getUser(factor.userId);
+          if (!client || client.therapistId !== req.user.id) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        } else if (req.user.role !== 'admin') {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      await storage.deleteProtectiveFactor(factorId);
+      res.status(200).json({ message: "Protective factor deleted successfully" });
+    } catch (error) {
+      console.error("Delete protective factor error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   app.post("/api/users/:userId/protective-factor-usage", authenticate, checkUserAccess, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
@@ -616,6 +649,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json(strategies);
     } catch (error) {
       console.error("Get coping strategies error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.delete("/api/users/:userId/coping-strategies/:strategyId", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const strategyId = parseInt(req.params.strategyId);
+      
+      // Check if the strategy exists
+      const strategy = await storage.getCopingStrategyById(strategyId);
+      
+      if (!strategy) {
+        return res.status(404).json({ message: "Coping strategy not found" });
+      }
+      
+      // Check if the user has access to the strategy
+      if (strategy.userId !== userId && strategy.userId !== null) {
+        // Allow therapists to delete strategies for their clients
+        if (req.user.role === 'therapist') {
+          const client = await storage.getUser(strategy.userId);
+          if (!client || client.therapistId !== req.user.id) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        } else if (req.user.role !== 'admin') {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      await storage.deleteCopingStrategy(strategyId);
+      res.status(200).json({ message: "Coping strategy deleted successfully" });
+    } catch (error) {
+      console.error("Delete coping strategy error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
