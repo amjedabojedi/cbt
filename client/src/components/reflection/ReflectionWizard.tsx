@@ -684,15 +684,23 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                     />
                     <Button 
                       size="sm" 
-                      onClick={handleAddProtectiveFactor}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAddProtectiveFactor();
+                      }}
                       disabled={!newProtectiveFactor.trim()}
                     >
                       Add
                     </Button>
                     <Button 
                       size="sm" 
+                      type="button"
                       variant="outline" 
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         setShowAddProtectiveFactorForm(false);
                         setNewProtectiveFactor("");
                       }}
@@ -786,15 +794,23 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                     />
                     <Button 
                       size="sm" 
-                      onClick={handleAddCopingStrategy}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAddCopingStrategy();
+                      }}
                       disabled={!newCopingStrategy.trim()}
                     >
                       Add
                     </Button>
                     <Button 
                       size="sm" 
+                      type="button"
                       variant="outline" 
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         setShowAddCopingStrategyForm(false);
                         setNewCopingStrategy("");
                       }}
