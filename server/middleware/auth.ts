@@ -64,13 +64,51 @@ export function isAdmin(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-// Middleware to ensure only clients can create records (not therapists)
+// Middleware to ensure only clients can create personal records (emotions, thoughts)
 export function isClientOrAdmin(req: Request, res: Response, next: NextFunction) {
   if (req.user?.role === 'therapist') {
-    return res.status(403).json({ message: 'Therapists cannot create records. Only clients can record emotions and thoughts.' });
+    return res.status(403).json({ message: 'Therapists cannot create emotion or thought records. Only clients can record emotions and thoughts.' });
   }
   
   next();
+}
+
+// Middleware for resource creation with proper permissions
+export function checkResourceCreationPermission(req: Request, res: Response, next: NextFunction) {
+  const requestedUserId = parseInt(req.params.userId);
+  
+  // If user is creating a resource for themselves - always allow
+  if (req.user?.id === requestedUserId) {
+    return next();
+  }
+  
+  // If therapist is creating a resource for their client - allow
+  if (req.user?.role === 'therapist') {
+    // Import storage at top of file
+    const { storage } = require('../storage');
+    
+    // Verify the requested user is their client
+    storage.getUser(requestedUserId)
+      .then(client => {
+        if (client && client.therapistId === req.user.id) {
+          return next();
+        }
+        res.status(403).json({ message: 'Access denied. You can only create resources for your own clients.' });
+      })
+      .catch(error => {
+        console.error('Resource creation permission check error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      });
+    return;
+  }
+  
+  // Admin can create resources for anyone
+  if (req.user?.role === 'admin') {
+    return next();
+  }
+  
+  // Otherwise deny
+  res.status(403).json({ message: 'Access denied. You can only create resources for yourself.' });
 }
 
 export function checkUserAccess(req: Request, res: Response, next: NextFunction) {

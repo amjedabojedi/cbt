@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin } from "./middleware/auth";
+import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission } from "./middleware/auth";
 import { z } from "zod";
 import * as bcrypt from "bcrypt";
 import { 
@@ -541,7 +541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Protective factors routes
-  app.post("/api/users/:userId/protective-factors", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
+  app.post("/api/users/:userId/protective-factors", authenticate, checkUserAccess, checkResourceCreationPermission, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const validatedData = insertProtectiveFactorSchema.parse({
@@ -625,7 +625,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Coping strategies routes
-  app.post("/api/users/:userId/coping-strategies", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
+  app.post("/api/users/:userId/coping-strategies", authenticate, checkUserAccess, checkResourceCreationPermission, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const validatedData = insertCopingStrategySchema.parse({
