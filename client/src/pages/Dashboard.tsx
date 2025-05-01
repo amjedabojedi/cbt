@@ -4,6 +4,7 @@ import GettingStarted from "@/components/dashboard/GettingStarted";
 import QuickActions from "@/components/dashboard/QuickActions";
 import EmotionHistory from "@/components/dashboard/EmotionHistory";
 import MoodTrends from "@/components/dashboard/MoodTrends";
+import ReflectionTrends from "@/components/dashboard/ReflectionTrends";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -34,9 +35,14 @@ export default function Dashboard() {
           <EmotionHistory limit={3} />
         </div>
         
-        {/* Mood Trends Chart */}
-        <div className="mb-6">
-          <MoodTrends />
+        {/* Mood Trends and Reflection Trends Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div>
+            <MoodTrends />
+          </div>
+          <div>
+            {user && <ReflectionTrends userId={user.id} days={30} />}
+          </div>
         </div>
       </div>
     </AppLayout>
