@@ -110,21 +110,54 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   const [formKey, setFormKey] = useState(Date.now());
   
   // State for protective factors and coping strategies
-  const [protectiveFactors, setProtectiveFactors] = useState([
-    { id: 1, name: "Supportive relationships" },
-    { id: 2, name: "Problem-solving skills" },
-    { id: 3, name: "Self-care routine" },
-    { id: 4, name: "Positive self-talk" },
-    { id: 5, name: "Meaningful activities" },
-  ]);
+  const [protectiveFactors, setProtectiveFactors] = useState<Array<{id: number, name: string}>>([]);
+  const [copingStrategies, setCopingStrategies] = useState<Array<{id: number, name: string}>>([]);
   
-  const [copingStrategies, setCopingStrategies] = useState([
-    { id: 1, name: "Deep breathing" },
-    { id: 2, name: "Progressive muscle relaxation" },
-    { id: 3, name: "Mindfulness meditation" },
-    { id: 4, name: "Physical exercise" },
-    { id: 5, name: "Journaling" },
-  ]);
+  // Fetch protective factors and coping strategies
+  useEffect(() => {
+    if (user) {
+      // Fetch protective factors
+      const fetchProtectiveFactors = async () => {
+        try {
+          const response = await apiRequest(
+            "GET",
+            `/api/users/${user.id}/protective-factors`
+          );
+          const data = await response.json();
+          setProtectiveFactors(data);
+        } catch (error) {
+          console.error("Error fetching protective factors:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load protective factors",
+            variant: "destructive",
+          });
+        }
+      };
+      
+      // Fetch coping strategies
+      const fetchCopingStrategies = async () => {
+        try {
+          const response = await apiRequest(
+            "GET",
+            `/api/users/${user.id}/coping-strategies`
+          );
+          const data = await response.json();
+          setCopingStrategies(data);
+        } catch (error) {
+          console.error("Error fetching coping strategies:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load coping strategies",
+            variant: "destructive",
+          });
+        }
+      };
+      
+      fetchProtectiveFactors();
+      fetchCopingStrategies();
+    }
+  }, [user, toast]);
   
   // State for previous reflections
   const [previousReflections, setPreviousReflections] = useState<ThoughtRecord[]>([]);
