@@ -689,7 +689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/users/:userId/coping-strategy-usage", authenticate, checkUserAccess, async (req, res) => {
+  app.post("/api/users/:userId/coping-strategy-usage", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const validatedData = insertCopingStrategyUsageSchema.parse({
@@ -709,7 +709,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Goals routes
-  app.post("/api/users/:userId/goals", authenticate, checkUserAccess, async (req, res) => {
+  app.post("/api/users/:userId/goals", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const validatedData = insertGoalSchema.parse({
@@ -785,7 +785,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Goal milestones routes
-  app.post("/api/goals/:goalId/milestones", authenticate, async (req, res) => {
+  app.post("/api/goals/:goalId/milestones", authenticate, isClientOrAdmin, async (req, res) => {
     try {
       const goalId = parseInt(req.params.goalId);
       
@@ -851,7 +851,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Actions routes
-  app.post("/api/users/:userId/actions", authenticate, checkUserAccess, async (req, res) => {
+  app.post("/api/users/:userId/actions", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const validatedData = insertActionSchema.parse({
