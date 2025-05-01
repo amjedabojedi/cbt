@@ -605,7 +605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/users/:userId/protective-factor-usage", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
+  app.post("/api/users/:userId/protective-factor-usage", authenticate, checkUserAccess, checkResourceCreationPermission, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const validatedData = insertProtectiveFactorUsageSchema.parse({
@@ -689,7 +689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/users/:userId/coping-strategy-usage", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
+  app.post("/api/users/:userId/coping-strategy-usage", authenticate, checkUserAccess, checkResourceCreationPermission, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const validatedData = insertCopingStrategyUsageSchema.parse({
@@ -709,7 +709,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Goals routes
-  app.post("/api/users/:userId/goals", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
+  app.post("/api/users/:userId/goals", authenticate, checkUserAccess, checkResourceCreationPermission, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const validatedData = insertGoalSchema.parse({
@@ -785,16 +785,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Goal milestones routes
-  app.post("/api/goals/:goalId/milestones", authenticate, isClientOrAdmin, async (req, res) => {
+  app.post("/api/goals/:goalId/milestones", authenticate, async (req, res) => {
     try {
       const goalId = parseInt(req.params.goalId);
       
-      // Check if the goal exists and the user has access
-      const goals = await storage.getGoalsByUser(req.user.id);
-      const goal = goals.find(g => g.id === goalId);
+      // First, retrieve the goal to check ownership and permissions
+      const [goal] = await db
+        .select()
+        .from(goals)
+        .where(eq(goals.id, goalId));
       
-      if (!goal && req.user.role !== 'therapist' && req.user.role !== 'admin') {
+      if (!goal) {
         return res.status(404).json({ message: "Goal not found" });
+      }
+      
+      // If it's the user's own goal - always allow
+      if (req.user.id === goal.userId) {
+        // Continue with creation
+      }
+      // If therapist is creating milestone for their client's goal - allow
+      else if (req.user.role === 'therapist') {
+        // Verify the goal belongs to their client
+        const client = await storage.getUser(goal.userId);
+        if (!client || client.therapistId !== req.user.id) {
+          return res.status(403).json({ message: 'Access denied. You can only create milestones for your clients\' goals.' });
+        }
+        // Continue with creation
+      }
+      // Admin can create milestones for any goal
+      else if (req.user.role === 'admin') {
+        // Continue with creation
+      }
+      else {
+        return res.status(403).json({ message: 'Access denied. You can only create milestones for your own goals.' });
       }
       
       const validatedData = insertGoalMilestoneSchema.parse({
@@ -851,7 +874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Actions routes
-  app.post("/api/users/:userId/actions", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
+  app.post("/api/users/:userId/actions", authenticate, checkUserAccess, checkResourceCreationPermission, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const validatedData = insertActionSchema.parse({
