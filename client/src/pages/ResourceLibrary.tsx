@@ -91,6 +91,7 @@ export default function ResourceLibrary() {
   
   // Educational resource viewing and editing states
   const [isViewingResource, setIsViewingResource] = useState(false);
+  const [isAddingResource, setIsAddingResource] = useState(false);
   const [currentResource, setCurrentResource] = useState<{
     id: string;
     title: string;
@@ -100,6 +101,8 @@ export default function ResourceLibrary() {
     category: string;
     thumbnail: string;
     isEditing: boolean;
+    pdfUrl?: string;
+    relatedTopics?: string[];
   } | null>(null);
   
   // Forms for adding new items
@@ -1034,8 +1037,8 @@ export default function ResourceLibrary() {
                 </p>
               </div>
               
-              {user?.role === "admin" && (
-                <Button>
+              {(user?.role === "admin" || user?.role === "therapist") && (
+                <Button onClick={() => setIsAddingResource(true)}>
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Resource
                 </Button>
@@ -1536,21 +1539,145 @@ Regular practice in identifying and challenging these distortions can lead to mo
             </DialogHeader>
             
             {currentResource?.isEditing ? (
-              <div className="mt-6">
-                <Textarea 
-                  className="min-h-[60vh] font-mono text-sm"
-                  value={currentResource.content}
-                  onChange={(e) => setCurrentResource({
-                    ...currentResource,
-                    content: e.target.value
-                  })}
-                />
+              <div className="mt-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Title</label>
+                    <Input 
+                      value={currentResource.title}
+                      onChange={(e) => setCurrentResource({
+                        ...currentResource,
+                        title: e.target.value
+                      })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Category</label>
+                    <Input 
+                      value={currentResource.category}
+                      onChange={(e) => setCurrentResource({
+                        ...currentResource,
+                        category: e.target.value
+                      })}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description</label>
+                  <Input 
+                    value={currentResource.description}
+                    onChange={(e) => setCurrentResource({
+                      ...currentResource,
+                      description: e.target.value
+                    })}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Related Topics (helps connect to client content)</label>
+                  <Input 
+                    placeholder="depression, anxiety, stress, etc. (comma separated)"
+                    value={currentResource.relatedTopics?.join(", ") || ""}
+                    onChange={(e) => setCurrentResource({
+                      ...currentResource,
+                      relatedTopics: e.target.value.split(",").map(topic => topic.trim())
+                    })}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Content</label>
+                  <Textarea 
+                    className="min-h-[40vh] font-mono text-sm"
+                    value={currentResource.content}
+                    onChange={(e) => setCurrentResource({
+                      ...currentResource,
+                      content: e.target.value
+                    })}
+                  />
+                </div>
+                
+                <div className="border rounded-md p-4">
+                  <label className="block text-sm font-medium mb-2">PDF Upload</label>
+                  <div className="flex items-center gap-3">
+                    <Input 
+                      type="file" 
+                      accept=".pdf"
+                      onChange={(e) => {
+                        // In a real implementation this would upload to server
+                        if (e.target.files && e.target.files[0]) {
+                          const file = e.target.files[0];
+                          toast({
+                            title: "File selected",
+                            description: `Selected ${file.name} (${Math.round(file.size/1024)}KB)`,
+                          });
+                        }
+                      }}
+                    />
+                    <Button variant="outline" size="sm">
+                      Upload
+                    </Button>
+                  </div>
+                  {currentResource.pdfUrl && (
+                    <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
+                      <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                      </svg>
+                      Current PDF: {currentResource.pdfUrl.split('/').pop()}
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
-              <div className="mt-4 prose prose-stone dark:prose-invert max-w-none">
-                {currentResource?.content && (
-                  <div className="whitespace-pre-wrap">
-                    {currentResource.content}
+              <div className="mt-4">
+                {currentResource?.pdfUrl ? (
+                  <div className="mb-4 border rounded-md overflow-hidden">
+                    <div className="bg-gray-100 p-3 flex justify-between items-center">
+                      <div className="flex items-center text-sm text-gray-600">
+                        <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                        </svg>
+                        {currentResource.pdfUrl.split('/').pop()}
+                      </div>
+                      <a 
+                        href={currentResource.pdfUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        Download PDF
+                      </a>
+                    </div>
+                    <div className="h-[400px] bg-gray-50 flex items-center justify-center">
+                      <div className="text-center px-4">
+                        <svg className="mx-auto h-10 w-10 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                        </svg>
+                        <p className="mt-2 text-sm text-gray-600">PDF preview not available. Click "Download PDF" to view.</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+                
+                <div className="prose prose-stone dark:prose-invert max-w-none">
+                  {currentResource?.content && (
+                    <div className="whitespace-pre-wrap">
+                      {currentResource.content}
+                    </div>
+                  )}
+                </div>
+                
+                {currentResource?.relatedTopics && currentResource.relatedTopics.length > 0 && (
+                  <div className="mt-6 border-t pt-4">
+                    <h4 className="text-sm font-semibold mb-2">Related Topics:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {currentResource.relatedTopics.map((topic, idx) => (
+                        <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1570,7 +1697,7 @@ Regular practice in identifying and challenging these distortions can lead to mo
                       }
                     }}
                   >
-                    {currentResource?.isEditing ? "Preview" : "Edit"}
+                    {currentResource?.isEditing ? "Preview" : "Edit Resource"}
                   </Button>
                 )}
               </div>
@@ -1602,6 +1729,74 @@ Regular practice in identifying and challenging these distortions can lead to mo
                   Close
                 </Button>
               </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Add New Resource Dialog */}
+        <Dialog open={isAddingResource} onOpenChange={setIsAddingResource}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Add New Educational Resource</DialogTitle>
+              <DialogDescription>Create a new resource that will be available in the library.</DialogDescription>
+            </DialogHeader>
+            
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Title</label>
+                  <Input placeholder="Resource title" />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Category</label>
+                  <select className="w-full p-2 border rounded-md">
+                    <option value="">Select a category</option>
+                    <option value="cognitive">Cognitive Techniques</option>
+                    <option value="emotional">Emotional Awareness</option>
+                    <option value="behavioral">Behavioral Strategies</option>
+                    <option value="mindfulness">Mindfulness</option>
+                    <option value="goals">Goal Setting</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <Input placeholder="Brief description of the resource" />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Related Topics</label>
+                <Input placeholder="depression, anxiety, stress, etc. (comma separated)" />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Content</label>
+                <Textarea placeholder="Write content in Markdown format" className="min-h-[200px]" />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">PDF Upload (optional)</label>
+                <Input type="file" accept=".pdf" />
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddingResource(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  toast({
+                    title: "Resource Created",
+                    description: "New educational resource has been added to the library.",
+                  });
+                  setIsAddingResource(false);
+                }}
+              >
+                Create Resource
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
