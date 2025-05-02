@@ -220,6 +220,35 @@ export default function GoalSetting() {
     },
   });
   
+  // Update goal status mutation
+  const updateGoalStatusMutation = useMutation({
+    mutationFn: async ({ id, status, therapistComments }: { id: number; status: string; therapistComments?: string }) => {
+      const response = await apiRequest(
+        "PATCH",
+        `/api/goals/${id}/status`,
+        { status, therapistComments }
+      );
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`${getPathPrefix()}/goals`] });
+      setSelectedGoal(null);
+      toast({
+        title: "Goal Updated",
+        description: "The goal status has been updated.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error updating goal status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update goal status. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+  
   // Handle goal creation
   const onSubmitGoal = (data: GoalFormValues) => {
     createGoalMutation.mutate(data);
@@ -607,7 +636,91 @@ export default function GoalSetting() {
                           </span>
                         </div>
                         
-                        {selectedGoal.therapistComments && (
+                        {/* Therapist goal status update */}
+                        {user?.role === 'therapist' && (
+                          <div className="border rounded-md p-4 bg-gray-50 mt-4">
+                            <h4 className="font-medium mb-3">Therapist Feedback</h4>
+                            
+                            <div className="space-y-4">
+                              <div>
+                                <label className="text-sm font-medium">Update Goal Status</label>
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                  <Button 
+                                    variant={selectedGoal.status === "in_progress" ? "default" : "outline"} 
+                                    size="sm"
+                                    onClick={() => updateGoalStatusMutation.mutate({
+                                      id: selectedGoal.id,
+                                      status: "in_progress",
+                                      therapistComments: selectedGoal.therapistComments
+                                    })}
+                                  >
+                                    Mark In Progress
+                                  </Button>
+                                  
+                                  <Button 
+                                    variant={selectedGoal.status === "approved" ? "default" : "outline"} 
+                                    size="sm"
+                                    onClick={() => updateGoalStatusMutation.mutate({
+                                      id: selectedGoal.id,
+                                      status: "approved",
+                                      therapistComments: selectedGoal.therapistComments
+                                    })}
+                                  >
+                                    Approve Goal
+                                  </Button>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                  <Button 
+                                    variant={selectedGoal.status === "completed" ? "default" : "outline"} 
+                                    size="sm"
+                                    onClick={() => updateGoalStatusMutation.mutate({
+                                      id: selectedGoal.id,
+                                      status: "completed",
+                                      therapistComments: selectedGoal.therapistComments
+                                    })}
+                                  >
+                                    Mark as Completed
+                                  </Button>
+                                  
+                                  <Button 
+                                    variant={selectedGoal.status === "pending" ? "default" : "outline"} 
+                                    size="sm"
+                                    onClick={() => updateGoalStatusMutation.mutate({
+                                      id: selectedGoal.id,
+                                      status: "pending",
+                                      therapistComments: selectedGoal.therapistComments
+                                    })}
+                                  >
+                                    Reset to Pending
+                                  </Button>
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <label className="text-sm font-medium">Therapist Comments</label>
+                                <Textarea 
+                                  placeholder="Add your feedback about this goal"
+                                  className="mt-1"
+                                  defaultValue={selectedGoal.therapistComments || ""}
+                                  onBlur={(e) => {
+                                    const comments = e.target.value;
+                                    if (comments !== selectedGoal.therapistComments) {
+                                      updateGoalStatusMutation.mutate({
+                                        id: selectedGoal.id,
+                                        status: selectedGoal.status,
+                                        therapistComments: comments
+                                      });
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Display therapist comments for clients */}
+                        {user?.role !== 'therapist' && selectedGoal.therapistComments && (
                           <div>
                             <h4 className="text-sm font-medium text-neutral-500 mb-1">Therapist Comments</h4>
                             <p className="text-sm p-3 bg-neutral-50 rounded border border-neutral-200">
