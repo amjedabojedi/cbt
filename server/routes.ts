@@ -900,6 +900,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/goals/:goalId/milestones", authenticate, async (req, res) => {
     try {
       const goalId = parseInt(req.params.goalId);
+      console.log("Creating milestone with data:", JSON.stringify(req.body));
       
       // First, retrieve the goal to check ownership and permissions
       const [goal] = await db
@@ -937,15 +938,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Access denied. You can only create milestones for your own goals.' });
       }
       
-      const validatedData = insertGoalMilestoneSchema.parse({
-        ...req.body,
-        goalId
-      });
+      // Create updated body with converted date
+      let updatedBody = { ...req.body, goalId };
+      
+      // Convert dueDate string to a Date object if it exists
+      if (updatedBody.dueDate && typeof updatedBody.dueDate === 'string') {
+        try {
+          updatedBody.dueDate = new Date(updatedBody.dueDate);
+        } catch (dateError) {
+          console.error("Date conversion error:", dateError);
+          // If date parsing fails, set to null
+          updatedBody.dueDate = null;
+        }
+      }
+      
+      const validatedData = insertGoalMilestoneSchema.parse(updatedBody);
+      console.log("Validated milestone data:", JSON.stringify(validatedData));
       
       const milestone = await storage.createGoalMilestone(validatedData);
       res.status(201).json(milestone);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Milestone validation error:", JSON.stringify(error.errors));
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
       console.error("Create goal milestone error:", error);
