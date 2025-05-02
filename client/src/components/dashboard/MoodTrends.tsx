@@ -140,6 +140,9 @@ export default function MoodTrends() {
       end: new Date()
     });
     
+    // For month/year views, limit number of data points to avoid overcrowding
+    const maxBars = timeRange === "year" ? 12 : (timeRange === "month" ? 30 : 7);
+    
     // Initialize data with all dates in range and core emotions
     const dataByDate: DailyEmotionData[] = dateRange.map(date => {
       const dataPoint: DailyEmotionData = {
@@ -351,10 +354,17 @@ export default function MoodTrends() {
                 data={chartData}
                 margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
                 barGap={2}
-                barSize={20}
+                barSize={timeRange === "week" ? 20 : (timeRange === "month" ? 12 : 8)}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <XAxis 
+                  dataKey="date" 
+                  tick={{ fontSize: 12 }} 
+                  interval={timeRange === "week" ? 0 : (timeRange === "month" ? 2 : 1)}
+                  angle={timeRange === "month" ? -45 : 0}
+                  textAnchor={timeRange === "month" ? "end" : "middle"}
+                  height={timeRange === "month" ? 60 : 30}
+                />
                 <YAxis domain={[0, 10]} tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend 
