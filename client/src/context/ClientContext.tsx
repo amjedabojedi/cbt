@@ -10,10 +10,21 @@ interface ClientContextType {
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
 
 export function ClientProvider({ children }: { children: ReactNode }) {
-  const [viewingClientId, setViewingClientId] = useState<number | null>(null);
-  const [viewingClientName, setViewingClientName] = useState<string | null>(null);
+  // Initialize state from localStorage if available
+  const storedClientId = localStorage.getItem('viewingClientId');
+  const storedClientName = localStorage.getItem('viewingClientName');
+  
+  const [viewingClientId, setViewingClientId] = useState<number | null>(
+    storedClientId ? parseInt(storedClientId) : null
+  );
+  const [viewingClientName, setViewingClientName] = useState<string | null>(
+    storedClientName || null
+  );
+
+  console.log("ClientContext initialized with:", { viewingClientId, viewingClientName });
 
   const setViewingClient = (id: number | null, name: string | null) => {
+    console.log("Setting viewing client:", { id, name });
     setViewingClientId(id);
     setViewingClientName(name);
   };

@@ -62,6 +62,12 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
   // Handle client selection
   const handleClientSelect = (clientId: number, clientName: string) => {
     console.log("Selecting client:", clientId, clientName);
+    
+    // Store the selected client ID and name in localStorage for persistence
+    localStorage.setItem('viewingClientId', clientId.toString());
+    localStorage.setItem('viewingClientName', clientName);
+    
+    // Update the client context
     setViewingClient(clientId, clientName);
     
     if (onClientChange) {
@@ -81,6 +87,12 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
   // Handle returning to own view
   const handleReturnToSelf = () => {
     console.log("Returning to self view");
+    
+    // Clear localStorage
+    localStorage.removeItem('viewingClientId');
+    localStorage.removeItem('viewingClientName');
+    
+    // Update context
     setViewingClient(null, null);
     
     if (onClientChange) {

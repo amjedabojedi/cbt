@@ -11,6 +11,10 @@ export default function useActiveUser() {
   const { user } = useAuth();
   const { viewingClientId } = useClientContext();
   
+  // Add some debug logging
+  console.log("useActiveUser - Current auth user:", user?.id, user?.username, user?.role);
+  console.log("useActiveUser - viewingClientId from context:", viewingClientId);
+  
   // Active ID is either the client being viewed (for therapists) or the current user
   const activeUserId = viewingClientId || user?.id;
   
@@ -23,7 +27,9 @@ export default function useActiveUser() {
   // Get the appropriate pathPrefix for API calls
   const getPathPrefix = () => {
     if (!activeUserId) return null;
-    return `/api/users/${activeUserId}`;
+    const prefix = `/api/users/${activeUserId}`;
+    console.log("useActiveUser - API path prefix:", prefix);
+    return prefix;
   };
   
   return {
