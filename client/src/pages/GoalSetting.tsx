@@ -469,7 +469,7 @@ export default function GoalSetting() {
                   </Accordion>
                 </div>
                 
-                <Form {...goalForm}
+                <Form {...goalForm}>
                   <form onSubmit={goalForm.handleSubmit(onSubmitGoal)} className="space-y-4">
                     <FormField
                       control={goalForm.control}
