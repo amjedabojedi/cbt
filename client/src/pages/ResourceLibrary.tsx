@@ -443,6 +443,10 @@ export default function ResourceLibrary() {
           <TabsList className="mb-6">
             <TabsTrigger value="protective-factors">Protective Factors</TabsTrigger>
             <TabsTrigger value="coping-strategies">Coping Strategies</TabsTrigger>
+            <TabsTrigger value="educational-resources">Educational Resources</TabsTrigger>
+            {user?.role === "therapist" && (
+              <TabsTrigger value="client-assignments">Client Assignments</TabsTrigger>
+            )}
           </TabsList>
           
           {/* Protective Factors Tab */}
@@ -1000,6 +1004,315 @@ export default function ResourceLibrary() {
               </Card>
             )}
           </TabsContent>
+          
+          {/* Educational Resources Tab */}
+          <TabsContent value="educational-resources">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h1 className="text-2xl font-bold text-neutral-800">Educational Resources</h1>
+                <p className="text-neutral-500">
+                  Articles, guides and worksheets to help with CBT techniques
+                </p>
+              </div>
+              
+              {user?.role === "admin" && (
+                <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Resource
+                </Button>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Cognitive Distortions Guide */}
+              <Card className="overflow-hidden hover:shadow-md transition-shadow">
+                <CardHeader className="p-0">
+                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 py-6 px-4">
+                    <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mb-2">
+                      <Brain className="h-6 w-6 text-amber-600" />
+                    </div>
+                    <CardTitle className="text-lg mb-1">Cognitive Distortions Guide</CardTitle>
+                    <CardDescription className="text-amber-700">
+                      Learn to identify common thinking traps
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <p className="text-sm text-neutral-600 mb-4">
+                    This comprehensive guide explains the most common cognitive distortions
+                    and provides examples of how to challenge and reframe them.
+                  </p>
+                  <div className="flex items-center text-sm text-neutral-500 mb-2">
+                    <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                    7-page PDF
+                  </div>
+                  <div className="flex items-center text-sm text-neutral-500 mb-4">
+                    <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                    </svg>
+                    Most popular resource
+                  </div>
+                </CardContent>
+                <CardFooter className="pt-0 flex justify-between">
+                  <Button variant="outline">View Resource</Button>
+                  {user?.role === "therapist" && (
+                    <Button variant="ghost" size="sm">
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                      </svg>
+                      Assign to Client
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
+              
+              {/* Emotion Wheel Guide */}
+              <Card className="overflow-hidden hover:shadow-md transition-shadow">
+                <CardHeader className="p-0">
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 py-6 px-4">
+                    <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-2">
+                      <Heart className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <CardTitle className="text-lg mb-1">Emotion Wheel Guide</CardTitle>
+                    <CardDescription className="text-purple-700">
+                      Expand your emotional vocabulary
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <p className="text-sm text-neutral-600 mb-4">
+                    Learn to identify and name your emotions more precisely with this
+                    detailed emotion wheel guide and emotional awareness exercises.
+                  </p>
+                  <div className="flex items-center text-sm text-neutral-500 mb-2">
+                    <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                    4-page Guide + Wheel Diagram
+                  </div>
+                </CardContent>
+                <CardFooter className="pt-0 flex justify-between">
+                  <Button variant="outline">View Resource</Button>
+                  {user?.role === "therapist" && (
+                    <Button variant="ghost" size="sm">
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                      </svg>
+                      Assign to Client
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
+              
+              {/* SMART Goals Worksheet */}
+              <Card className="overflow-hidden hover:shadow-md transition-shadow">
+                <CardHeader className="p-0">
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 py-6 px-4">
+                    <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-2">
+                      <Flag className="h-6 w-6 text-green-600" />
+                    </div>
+                    <CardTitle className="text-lg mb-1">SMART Goals Worksheet</CardTitle>
+                    <CardDescription className="text-green-700">
+                      Create effective, achievable goals
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <p className="text-sm text-neutral-600 mb-4">
+                    Learn how to set Specific, Measurable, Achievable, Relevant, and Time-bound goals
+                    to increase your chances of success and maintain motivation.
+                  </p>
+                  <div className="flex items-center text-sm text-neutral-500 mb-2">
+                    <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                    3-page Worksheet
+                  </div>
+                </CardContent>
+                <CardFooter className="pt-0 flex justify-between">
+                  <Button variant="outline">View Resource</Button>
+                  {user?.role === "therapist" && (
+                    <Button variant="ghost" size="sm">
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952a4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                      </svg>
+                      Assign to Client
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          {/* Client Assignments Tab (Only for therapists) */}
+          {user?.role === "therapist" && (
+            <TabsContent value="client-assignments">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-neutral-800">Client Resource Assignments</h1>
+                  <p className="text-neutral-500">
+                    Manage resources assigned to your clients
+                  </p>
+                </div>
+                
+                <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  New Assignment
+                </Button>
+              </div>
+              
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="text-lg">Assignment Dashboard</CardTitle>
+                  <CardDescription>
+                    Track assignment status and client engagement
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="border rounded-md overflow-hidden">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-neutral-50 border-b">
+                          <th className="px-4 py-3 text-left text-sm font-medium text-neutral-500">Client</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-neutral-500">Resource</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-neutral-500">Assigned Date</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-neutral-500">Status</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-neutral-500">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="px-4 py-3 text-sm">Alex Johnson</td>
+                          <td className="px-4 py-3 text-sm">Cognitive Distortions Guide</td>
+                          <td className="px-4 py-3 text-sm">May 1, 2025</td>
+                          <td className="px-4 py-3 text-sm">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                              Completed
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <Button variant="ghost" size="sm">View Details</Button>
+                          </td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="px-4 py-3 text-sm">Jamie Smith</td>
+                          <td className="px-4 py-3 text-sm">Thought Record Template</td>
+                          <td className="px-4 py-3 text-sm">April 28, 2025</td>
+                          <td className="px-4 py-3 text-sm">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700">
+                              In Progress
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <Button variant="ghost" size="sm">View Details</Button>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-3 text-sm">Taylor Garcia</td>
+                          <td className="px-4 py-3 text-sm">Emotion Wheel Guide</td>
+                          <td className="px-4 py-3 text-sm">April 30, 2025</td>
+                          <td className="px-4 py-3 text-sm">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                              Assigned
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <Button variant="ghost" size="sm">View Details</Button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Resource Usage Stats</CardTitle>
+                    <CardDescription>
+                      Most assigned and completed resources
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-sm font-medium text-neutral-500 mb-2">Most Assigned Resources</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm">Cognitive Distortions Guide</span>
+                            <span className="text-sm font-medium">7 clients</span>
+                          </div>
+                          <div className="w-full bg-neutral-100 rounded-full h-2.5">
+                            <div className="bg-primary h-2.5 rounded-full" style={{ width: "70%" }}></div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between mt-3">
+                            <span className="text-sm">Thought Record Template</span>
+                            <span className="text-sm font-medium">5 clients</span>
+                          </div>
+                          <div className="w-full bg-neutral-100 rounded-full h-2.5">
+                            <div className="bg-primary h-2.5 rounded-full" style={{ width: "50%" }}></div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between mt-3">
+                            <span className="text-sm">Emotion Wheel Guide</span>
+                            <span className="text-sm font-medium">4 clients</span>
+                          </div>
+                          <div className="w-full bg-neutral-100 rounded-full h-2.5">
+                            <div className="bg-primary h-2.5 rounded-full" style={{ width: "40%" }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Client Engagement</CardTitle>
+                    <CardDescription>
+                      Client activity with assigned resources
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-sm font-medium text-neutral-500 mb-2">Most Engaged Clients</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm">Alex Johnson</span>
+                            <span className="text-sm font-medium">95% completion</span>
+                          </div>
+                          <div className="w-full bg-neutral-100 rounded-full h-2.5">
+                            <div className="bg-green-500 h-2.5 rounded-full" style={{ width: "95%" }}></div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between mt-3">
+                            <span className="text-sm">Jamie Smith</span>
+                            <span className="text-sm font-medium">65% completion</span>
+                          </div>
+                          <div className="w-full bg-neutral-100 rounded-full h-2.5">
+                            <div className="bg-amber-500 h-2.5 rounded-full" style={{ width: "65%" }}></div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between mt-3">
+                            <span className="text-sm">Taylor Garcia</span>
+                            <span className="text-sm font-medium">30% completion</span>
+                          </div>
+                          <div className="w-full bg-neutral-100 rounded-full h-2.5">
+                            <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: "30%" }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
         {/* Delete Protective Factor Confirmation Dialog */}
         <Dialog open={isDeleteFactorDialogOpen} onOpenChange={setIsDeleteFactorDialogOpen}>
