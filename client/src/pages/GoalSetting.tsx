@@ -42,12 +42,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Calendar, CheckCircle, Clock, Flag } from "lucide-react";
+import { PlusCircle, Calendar, CheckCircle, Clock, Flag, HelpCircle } from "lucide-react";
 
 // Schema for goal creation
 const goalSchema = z.object({
@@ -364,6 +370,104 @@ export default function GoalSetting() {
                     SMART goals are Specific, Measurable, Achievable, Relevant, and Time-bound.
                   </DialogDescription>
                 </DialogHeader>
+                
+                {/* Educational Content */}
+                <div className="mb-6">
+                  <Accordion type="single" collapsible className="bg-muted/50 rounded-lg p-2">
+                    <AccordionItem value="smart-goals">
+                      <AccordionTrigger className="text-base font-medium">
+                        <div className="flex items-center">
+                          <HelpCircle className="h-5 w-5 mr-2 text-primary" />
+                          Understanding SMART Goals
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm">
+                        <p className="mb-2">
+                          SMART is an acronym used to guide goal setting. It stands for Specific, Measurable, Achievable, Relevant, and Time-bound.
+                        </p>
+                        
+                        <div className="space-y-3 mt-3">
+                          <div>
+                            <h4 className="font-medium">Specific</h4>
+                            <p>Your goal should clearly define what you want to accomplish. The more specific, the better.</p>
+                            <p className="text-xs mt-1 italic">Example: "I will walk 10,000 steps daily" instead of "I will exercise more."</p>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-medium">Measurable</h4>
+                            <p>You need concrete criteria to track your progress and measure success.</p>
+                            <p className="text-xs mt-1 italic">Example: "I will save $300 per month" instead of "I will save money."</p>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-medium">Achievable</h4>
+                            <p>Your goal should be realistic and attainable with the resources available to you.</p>
+                            <p className="text-xs mt-1 italic">Example: "I will read one book per month" instead of "I will read 100 books this year."</p>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-medium">Relevant</h4>
+                            <p>Your goal should align with your broader life objectives and personal values.</p>
+                            <p className="text-xs mt-1 italic">Example: "I will take a coding course to advance my career" instead of pursuing a goal unrelated to your interests or needs.</p>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-medium">Time-bound</h4>
+                            <p>Your goal needs a target date or deadline to create urgency and maintain focus.</p>
+                            <p className="text-xs mt-1 italic">Example: "I will complete this project by June 30th" instead of "I will do this project someday."</p>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4">
+                          <h4 className="font-medium">Benefits of SMART Goals:</h4>
+                          <ul className="list-disc pl-5 space-y-1 mt-1">
+                            <li>Provides clear direction and focus</li>
+                            <li>Makes it easier to track progress</li>
+                            <li>Increases motivation and commitment</li>
+                            <li>Helps prioritize your efforts and resources</li>
+                            <li>Creates accountability</li>
+                          </ul>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                    
+                    <AccordionItem value="milestones">
+                      <AccordionTrigger className="text-base font-medium">
+                        <div className="flex items-center">
+                          <HelpCircle className="h-5 w-5 mr-2 text-primary" />
+                          The Power of Milestones
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm">
+                        <p className="mb-2">
+                          Milestones are smaller, manageable targets that mark your progress toward a larger goal.
+                        </p>
+                        
+                        <div className="space-y-3 mt-3">
+                          <div>
+                            <h4 className="font-medium">Why Use Milestones?</h4>
+                            <ul className="list-disc pl-5 space-y-1 mt-1">
+                              <li><strong>Break down complexity</strong> - Large goals become less overwhelming</li>
+                              <li><strong>Track progress</strong> - Regular feedback on how you're doing</li>
+                              <li><strong>Celebrate small wins</strong> - Boost motivation along the journey</li>
+                              <li><strong>Adjust as needed</strong> - Early warning if something needs to change</li>
+                            </ul>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-medium">Creating Effective Milestones:</h4>
+                            <ul className="list-disc pl-5 space-y-1 mt-1">
+                              <li>Make them specific and concrete</li>
+                              <li>Set realistic timeframes</li>
+                              <li>Ensure they build logically toward your main goal</li>
+                              <li>Keep them achievable but challenging</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </div>
                 
                 <Form {...goalForm}>
                   <form onSubmit={goalForm.handleSubmit(onSubmitGoal)} className="space-y-4">
