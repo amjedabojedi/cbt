@@ -163,16 +163,25 @@ export default function ReflectionTrends({ userId, days = 30 }: ReflectionTrends
           <div className="bg-neutral-50 p-4 rounded-md border border-neutral-200">
             <h3 className="text-sm font-medium mb-2">Pattern Analysis</h3>
             <p className="text-sm text-neutral-600">
-              {reflectionRatings.length > 0 
+              {reflectionRatings.length >= 5
                 ? "Your reflections show increasing effectiveness over time, indicating growth in your emotional processing skills."
-                : "Start recording reflections to see pattern analysis."}
+                : reflectionRatings.length > 0
+                  ? "Continue recording reflections to reveal reliable patterns over time."
+                  : "Start recording reflections to see pattern analysis."}
             </p>
             {emotionCounts.length > 0 && (
               <div className="mt-2 text-sm text-neutral-600">
-                <p>
-                  <span className="font-medium">Most frequent emotion:</span>{" "}
-                  {emotionCounts.sort((a, b) => b.count - a.count)[0]?.emotion}
-                </p>
+                {emotionCounts.sort((a, b) => b.count - a.count)[0]?.count >= 3 ? (
+                  <p>
+                    <span className="font-medium">Most frequent emotion:</span>{" "}
+                    {emotionCounts.sort((a, b) => b.count - a.count)[0]?.emotion}
+                  </p>
+                ) : (
+                  <p>
+                    <span className="font-medium">Most frequent emotion:</span>{" "}
+                    <span className="italic">Not enough data yet for reliable patterns</span>
+                  </p>
+                )}
               </div>
             )}
           </div>
