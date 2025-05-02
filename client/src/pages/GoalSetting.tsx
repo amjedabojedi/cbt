@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
+import useActiveUser from "@/hooks/use-active-user";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -72,6 +73,7 @@ type MilestoneFormValues = z.infer<typeof milestoneSchema>;
 export default function GoalSetting() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { activeUserId, getPathPrefix } = useActiveUser();
   const queryClient = useQueryClient();
   const [isCreatingGoal, setIsCreatingGoal] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<any>(null);
@@ -79,8 +81,8 @@ export default function GoalSetting() {
   
   // Fetch goals
   const { data: goals = [], isLoading, error } = useQuery({
-    queryKey: user ? [`/api/users/${user.id}/goals`] : [],
-    enabled: !!user,
+    queryKey: [`${getPathPrefix()}/goals`],
+    enabled: !!activeUserId,
   });
   
   // Fetch milestones for selected goal
