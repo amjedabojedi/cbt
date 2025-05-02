@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { marked } from "marked";
 import { apiRequest } from "@/lib/queryClient";
 import AppLayout from "@/components/layout/AppLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -1550,9 +1549,9 @@ Regular practice in identifying and challenging these distortions can lead to mo
             ) : (
               <div className="mt-4 prose prose-stone dark:prose-invert max-w-none">
                 {currentResource?.content && (
-                  <div dangerouslySetInnerHTML={{ 
-                    __html: marked.parse(currentResource.content) 
-                  }} />
+                  <div className="whitespace-pre-wrap">
+                    {currentResource.content}
+                  </div>
                 )}
               </div>
             )}
