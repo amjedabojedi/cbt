@@ -32,7 +32,11 @@ interface CoreEmotion {
   valence: 'positive' | 'negative' | 'neutral';
 }
 
+// Define core emotions directly from the emotion wheel 
+// AND include all emotions that might be in our data
+// Define the main core emotions to show on the chart (keep it simple)
 const CORE_EMOTIONS: Record<string, CoreEmotion> = {
+  // Primary emotions from the wheel - keep these at the top
   joy: {
     color: "#F9D71C", // Yellow
     name: "Joy",
@@ -58,19 +62,11 @@ const CORE_EMOTIONS: Record<string, CoreEmotion> = {
     name: "Disgust",
     valence: 'negative'
   },
-  surprise: {
-    color: "#FF9500", // Orange
-    name: "Surprise",
-    valence: 'neutral'
-  },
-  trust: {
-    color: "#4285F4", // Blue
-    name: "Trust",
-    valence: 'positive'
-  },
-  anticipation: {
-    color: "#34A853", // Green
-    name: "Anticipation",
+  
+  // Add the actual emotions that appear in our data
+  love: {
+    color: "#E83E8C", // Pink
+    name: "Love",
     valence: 'positive'
   }
 };
@@ -104,19 +100,29 @@ export default function MoodTrends() {
   const getChartData = () => {
     if (!emotions || emotions.length === 0) return [];
     
+    // Log all emotions to see what data we have
+    console.log("Emotions data:", emotions);
+    
+    // Add a log to check what core emotions are defined
+    const coreEmotionNames = Object.keys(CORE_EMOTIONS).map(key => CORE_EMOTIONS[key].name);
+    console.log("Available core emotions:", coreEmotionNames);
+    
     let startDate: Date;
     let dateFormat: string;
     
     switch (timeRange) {
       case "week":
+        // Start 7 days ago, but ensure we include today
         startDate = subDays(new Date(), 7);
         dateFormat = "EEE";
         break;
       case "month":
+        // Start 30 days ago, but ensure we include today
         startDate = subDays(new Date(), 30);
         dateFormat = "MMM d";
         break;
       case "year":
+        // Start 12 months ago, but ensure we include today
         startDate = subMonths(new Date(), 12);
         dateFormat = "MMM";
         break;
@@ -148,22 +154,30 @@ export default function MoodTrends() {
       return dataPoint;
     });
     
+    // Log the generated date range
+    console.log("Date range:", dateRange.map(d => format(d, 'yyyy-MM-dd')));
+    
     // Aggregate emotions by date and core emotion
     emotions.forEach((emotion: EmotionRecord) => {
       const emotionDate = startOfDay(new Date(emotion.timestamp));
+      console.log("Processing emotion:", emotion.coreEmotion, "recorded at", emotion.timestamp, "date:", format(emotionDate, 'yyyy-MM-dd'));
       
       // Find matching day in our date range
       const dayIndex = dataByDate.findIndex(day => 
         startOfDay(day.date).getTime() === emotionDate.getTime()
       );
       
+      console.log("Found matching day?", dayIndex !== -1 ? "Yes" : "No");
+      
       if (dayIndex !== -1) {
         // Increment the count for the core emotion and track intensity
         const coreEmotion = emotion.coreEmotion;
         
+        console.log("Core emotion:", coreEmotion, "Does property exist?", dataByDate[dayIndex][coreEmotion] !== undefined);
+        
         // If this emotion matches one of our core emotions
         if (coreEmotion) {
-          // Increment count
+          // Check if this emotion name already exists as a property
           if (dataByDate[dayIndex][coreEmotion] !== undefined) {
             dataByDate[dayIndex][coreEmotion] += 1;
             dataByDate[dayIndex].count += 1;
@@ -174,6 +188,30 @@ export default function MoodTrends() {
             }
             
             dataByDate[dayIndex].emotionIntensities[coreEmotion].push(emotion.intensity);
+            console.log("Updated emotion data for", coreEmotion, "intensity:", emotion.intensity);
+          } else {
+            // The emotion name doesn't match exactly with our core emotions list
+            console.log("Core emotion", coreEmotion, "doesn't match any of our defined core emotions");
+            
+            // Try to map to one of our core emotions
+            const matchedEmotion = Object.keys(CORE_EMOTIONS).find(key => 
+              CORE_EMOTIONS[key].name.toLowerCase() === coreEmotion.toLowerCase()
+            );
+            
+            if (matchedEmotion) {
+              const emotionName = CORE_EMOTIONS[matchedEmotion].name;
+              console.log("Matched to standard core emotion:", emotionName);
+              
+              // Use the matched emotion name
+              dataByDate[dayIndex][emotionName] += 1;
+              dataByDate[dayIndex].count += 1;
+              
+              if (!dataByDate[dayIndex].emotionIntensities[emotionName]) {
+                dataByDate[dayIndex].emotionIntensities[emotionName] = [];
+              }
+              
+              dataByDate[dayIndex].emotionIntensities[emotionName].push(emotion.intensity);
+            }
           }
         }
       }
@@ -269,7 +307,17 @@ export default function MoodTrends() {
   }
   
   const chartData = getChartData();
-  const hasData = emotions && emotions.length > 0;
+  console.log("Final chart data:", chartData);
+  
+  // We have valid data if there are emotions records 
+  // AND they contain at least one data point with a value > 0
+  const hasNonZeroData = chartData.some(day => {
+    // Check if any emotion has a value > 0
+    return Object.keys(day).some(key => key !== 'date' && day[key] > 0);
+  });
+  
+  console.log("Has non-zero data:", hasNonZeroData);
+  const hasData = emotions && emotions.length > 0 && hasNonZeroData;
 
   return (
     <Card>
