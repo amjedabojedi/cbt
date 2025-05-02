@@ -114,21 +114,21 @@ export default function MoodTrends() {
       case "week":
         // Start 7 days ago, but ensure we include today
         startDate = subDays(new Date(), 7);
-        dateFormat = "EEE";
+        dateFormat = "EEE MMM d"; // Show day of week + month + date
         break;
       case "month":
         // Start 30 days ago, but ensure we include today
         startDate = subDays(new Date(), 30);
-        dateFormat = "MMM d";
+        dateFormat = "MMM d"; // Show month + date
         break;
       case "year":
         // Start 12 months ago, but ensure we include today
         startDate = subMonths(new Date(), 12);
-        dateFormat = "MMM";
+        dateFormat = "MMM yyyy"; // Show month + year
         break;
       default:
         startDate = subDays(new Date(), 7);
-        dateFormat = "EEE";
+        dateFormat = "EEE MMM d";
     }
     
     // Generate date range
@@ -313,7 +313,11 @@ export default function MoodTrends() {
   // AND they contain at least one data point with a value > 0
   const hasNonZeroData = chartData.some(day => {
     // Check if any emotion has a value > 0
-    return Object.keys(day).some(key => key !== 'date' && day[key] > 0);
+    return Object.keys(day).some(key => {
+      if (key === 'date') return false;
+      const value = day[key];
+      return typeof value === 'number' && value > 0;
+    });
   });
   
   console.log("Has non-zero data:", hasNonZeroData);
@@ -337,12 +341,12 @@ export default function MoodTrends() {
         </Tabs>
       </CardHeader>
       <CardContent>
-        <div className="h-64 relative">
+        <div className="h-80 relative">
           {hasData ? (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={chartData}
-                margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+                margin={{ top: 10, right: 30, left: 10, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} />
