@@ -56,20 +56,26 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
     }
   }, [user, setViewingClient]);
   
-  // Fetch clients if user is a therapist
+  // Fetch clients if user is a therapist, or all users if admin
   useEffect(() => {
-    if (user?.role === "therapist") {
-      const fetchClients = async () => {
+    if (user?.role === "therapist" || user?.role === "admin") {
+      const fetchUsers = async () => {
         try {
           setLoading(true);
-          const response = await apiRequest("GET", "/api/users/clients");
+          
+          // Different endpoints for therapists and admins
+          const endpoint = user.role === "admin" 
+            ? "/api/users" // Admin sees all users
+            : "/api/users/clients"; // Therapist sees only their clients
+          
+          const response = await apiRequest("GET", endpoint);
           const data = await response.json();
           setClients(data);
         } catch (error) {
-          console.error("Error fetching clients:", error);
+          console.error(`Error fetching ${user.role === "admin" ? "users" : "clients"}:`, error);
           toast({
             title: "Error",
-            description: "Failed to load clients list",
+            description: `Failed to load ${user.role === "admin" ? "users" : "clients"} list`,
             variant: "destructive",
           });
         } finally {
@@ -77,7 +83,7 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
         }
       };
 
-      fetchClients();
+      fetchUsers();
     }
   }, [user, toast]);
 
@@ -245,11 +251,96 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
     );
   }
 
-  // For admins, show admin badge
+  // For admins, show admin badge and all users selector
+  if (user.role === "admin") {
+    return (
+      <div className="flex items-center">
+        {viewingClientId ? (
+          <div className="flex items-center">
+            <Badge variant="outline" className="mr-2 bg-purple-50 text-purple-700 border-purple-200">
+              Admin Viewing User
+            </Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 border-dashed">
+                  <span className="truncate max-w-[150px]">{viewingClientName}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <DropdownMenuItem onClick={handleReturnToSelf}>
+                  Return to Admin Dashboard
+                </DropdownMenuItem>
+                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                  View User Data
+                </div>
+                {loading ? (
+                  <div className="flex justify-center p-2">
+                    <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+                  </div>
+                ) : clients.length > 0 ? (
+                  clients.map((client) => (
+                    <DropdownMenuItem 
+                      key={client.id}
+                      onClick={() => handleClientSelect(client.id, client.name)}
+                    >
+                      {client.name} ({client.role})
+                    </DropdownMenuItem>
+                  ))
+                ) : (
+                  <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                    No users found
+                  </div>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ) : (
+          <div className="flex items-center">
+            <Badge variant="outline" className="mr-2 bg-purple-50 text-purple-700 border-purple-200">
+              Administrator
+            </Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8">
+                  <Users className="mr-1 h-4 w-4" />
+                  <span>All Users</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                  View User Data
+                </div>
+                {loading ? (
+                  <div className="flex justify-center p-2">
+                    <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+                  </div>
+                ) : clients.length > 0 ? (
+                  clients.map((client) => (
+                    <DropdownMenuItem 
+                      key={client.id}
+                      onClick={() => handleClientSelect(client.id, client.name)}
+                    >
+                      {client.name} ({client.role})
+                    </DropdownMenuItem>
+                  ))
+                ) : (
+                  <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                    No users found
+                  </div>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Fallback for unknown roles
   return (
     <div className="flex items-center">
-      <Badge variant="outline" className="mr-2 bg-purple-50 text-purple-700 border-purple-200">
-        Administrator
+      <Badge variant="outline" className="mr-2 bg-gray-50 text-gray-700 border-gray-200">
+        {user.role || "User"}
       </Badge>
     </div>
   );

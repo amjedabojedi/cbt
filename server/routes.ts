@@ -184,7 +184,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(200).json(userWithoutPassword);
   });
   
-  // User management routes (for therapists)
+  // User management routes
+  // Get all users (admin only)
+  app.get("/api/users", authenticate, isAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      // Remove passwords
+      const usersWithoutPasswords = users.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      res.status(200).json(usersWithoutPasswords);
+    } catch (error) {
+      console.error("Get all users error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get clients for a therapist
   app.get("/api/users/clients", authenticate, isTherapist, async (req, res) => {
     try {
       const clients = await storage.getClients(req.user.id);
@@ -200,11 +217,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Set the current viewing client for a therapist
-  app.post("/api/users/current-viewing-client", authenticate, isTherapist, async (req, res) => {
+  // Set the current viewing client for a therapist or admin
+  app.post("/api/users/current-viewing-client", authenticate, async (req, res) => {
     try {
       const { clientId } = req.body;
-      console.log(`Setting current viewing client for therapist ${req.user.id} to client ${clientId}`);
+      console.log(`Setting current viewing client for user ${req.user.id} (${req.user.role}) to client ${clientId}`);
       
       if (clientId === null) {
         // Clear the currently viewing client
@@ -213,14 +230,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ success: true, user: userWithoutPassword });
       }
       
-      // Verify that the client belongs to this therapist
-      const clients = await storage.getClients(req.user.id);
-      const clientExists = clients.some(client => client.id === clientId);
-      
-      if (!clientExists) {
-        return res.status(403).json({ 
-          error: "Not authorized to view this client" 
-        });
+      // For admin users, they can view any user's data
+      if (req.user.role === "admin") {
+        // Just verify the user exists
+        const targetUser = await storage.getUser(clientId);
+        if (!targetUser) {
+          return res.status(404).json({ error: "User not found" });
+        }
+      } 
+      // For therapists, verify the client belongs to them
+      else if (req.user.role === "therapist") {
+        const clients = await storage.getClients(req.user.id);
+        const clientExists = clients.some(client => client.id === clientId);
+        
+        if (!clientExists) {
+          return res.status(403).json({ 
+            error: "Not authorized to view this client" 
+          });
+        }
+      }
+      // Other roles can't switch users
+      else {
+        return res.status(403).json({ error: "Permission denied" });
       }
       
       // Update the viewing client in the database
@@ -237,10 +268,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get the currently viewing client for a therapist
-  app.get("/api/users/current-viewing-client", authenticate, isTherapist, async (req, res) => {
+  // Get the currently viewing client for a therapist or admin
+  app.get("/api/users/current-viewing-client", authenticate, async (req, res) => {
     try {
-      console.log(`Getting current viewing client for therapist ${req.user.id}`);
+      console.log(`Getting current viewing client for user ${req.user.id} (${req.user.role})`);
+      
+      // Only therapists and admins can view other users' data
+      if (req.user.role !== "therapist" && req.user.role !== "admin") {
+        return res.status(403).json({ error: "Permission denied" });
+      }
       
       const clientId = await storage.getCurrentViewingClient(req.user.id);
       
@@ -259,7 +295,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         viewingClient: {
           id: client.id,
           name: client.name,
-          username: client.username
+          username: client.username,
+          role: client.role
         } 
       });
     } catch (error) {
