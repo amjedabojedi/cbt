@@ -80,13 +80,13 @@ export default function GoalSetting() {
   const [isAddingMilestone, setIsAddingMilestone] = useState(false);
   
   // Fetch goals
-  const { data: goals = [], isLoading, error } = useQuery({
+  const { data: goals = [], isLoading, error } = useQuery<any[]>({
     queryKey: [`${getPathPrefix()}/goals`],
     enabled: !!activeUserId,
   });
   
   // Fetch milestones for selected goal
-  const { data: milestones = [], isLoading: milestonesLoading } = useQuery({
+  const { data: milestones = [], isLoading: milestonesLoading } = useQuery<any[]>({
     queryKey: selectedGoal ? [`/api/goals/${selectedGoal.id}/milestones`] : [],
     enabled: !!selectedGoal,
   });
@@ -119,13 +119,14 @@ export default function GoalSetting() {
   const createGoalMutation = useMutation({
     mutationFn: async (data: GoalFormValues) => {
       if (!user) throw new Error("User not authenticated");
+      if (!activeUserId) throw new Error("No active user");
       
       const response = await apiRequest(
         "POST",
-        `/api/users/${user.id}/goals`,
+        `${getPathPrefix()}/goals`,
         {
           ...data,
-          userId: user.id,
+          userId: activeUserId,
           status: "pending",
         }
       );
@@ -133,9 +134,7 @@ export default function GoalSetting() {
       return response.json();
     },
     onSuccess: () => {
-      if (user) {
-        queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/goals`] });
-      }
+      queryClient.invalidateQueries({ queryKey: [`${getPathPrefix()}/goals`] });
       setIsCreatingGoal(false);
       toast({
         title: "Goal Created",
