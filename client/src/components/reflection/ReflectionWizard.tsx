@@ -8,6 +8,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { EmotionRecord, ThoughtRecord } from "@shared/schema";
 import useActiveUser from "@/hooks/use-active-user";
+import { HelpCircle, PlusCircle } from "lucide-react";
 
 import {
   Dialog,
@@ -32,6 +33,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 // Cognitive distortions list
 const cognitiveDistortions = [
@@ -870,7 +877,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
 
   // Step 4: Insights & Reflection Rating
   const renderStepFour = () => (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <FormField
         control={form.control}
         name="insightsGained"
@@ -947,6 +954,84 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
           </FormItem>
         )}
       />
+
+      {/* SMART Goals Section */}
+      <div className="mt-8 rounded-lg border p-4 bg-muted/30">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-medium">Turn Your Insights Into Action</h3>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1"
+            onClick={() => {
+              // Close the reflection dialog first
+              onClose();
+              // Redirect to goal setting page with insights pre-filled
+              // This could be enhanced with actual navigation and data passing
+              window.location.href = '/goal-setting';
+            }}
+          >
+            <PlusCircle className="h-4 w-4" />
+            <span>Create Goal</span>
+          </Button>
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Consider creating a SMART goal based on your reflections to help you move forward.
+          </p>
+
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="smart">
+              <AccordionTrigger className="text-base font-medium">
+                <div className="flex items-center">
+                  <HelpCircle className="h-5 w-5 mr-2 text-primary" />
+                  SMART Goal Framework
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="text-sm">
+                <div className="space-y-4">
+                  <p>
+                    SMART is an acronym to help you create effective goals:
+                  </p>
+                  
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="p-3 rounded-md bg-background">
+                      <h4 className="font-medium">Specific</h4>
+                      <p>Your goal should be clear and specific, answering the five "W" questions: What, Why, Who, Where, and Which.</p>
+                      <p className="text-xs mt-1 italic">Example: "I will practice deep breathing for 5 minutes each morning" instead of "I will manage stress better."</p>
+                    </div>
+                    
+                    <div className="p-3 rounded-md bg-background">
+                      <h4 className="font-medium">Measurable</h4>
+                      <p>Include specific metrics to track your progress and know when you've reached your goal.</p>
+                      <p className="text-xs mt-1 italic">Example: "I will walk 30 minutes daily for 5 days a week" instead of "I will exercise more."</p>
+                    </div>
+                    
+                    <div className="p-3 rounded-md bg-background">
+                      <h4 className="font-medium">Achievable</h4>
+                      <p>Your goal should stretch your abilities but still be attainable.</p>
+                      <p className="text-xs mt-1 italic">Example: "I will meditate for 10 minutes daily" instead of "I will meditate for 2 hours daily."</p>
+                    </div>
+                    
+                    <div className="p-3 rounded-md bg-background">
+                      <h4 className="font-medium">Relevant</h4>
+                      <p>Your goal should align with your broader life objectives and personal values.</p>
+                      <p className="text-xs mt-1 italic">Example: "I will practice assertive communication at work" if career advancement is important to you.</p>
+                    </div>
+                    
+                    <div className="p-3 rounded-md bg-background">
+                      <h4 className="font-medium">Time-bound</h4>
+                      <p>Your goal needs a target date to create urgency and maintain focus.</p>
+                      <p className="text-xs mt-1 italic">Example: "I will reduce my anxiety levels by 30% within 6 weeks" instead of "I will feel less anxious someday."</p>
+                    </div>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      </div>
     </div>
   );
   
