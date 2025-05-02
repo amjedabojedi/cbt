@@ -51,6 +51,12 @@ import {
   Trash2,
   StarIcon,
   Edit,
+  Brain,
+  Heart,
+  Flag,
+  BookmarkCheck,
+  Share2,
+  UserCheck,
 } from "lucide-react";
 
 // Define schema for protective factors
