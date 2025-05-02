@@ -16,6 +16,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   LineChart,
   Line,
+  BarChart,
+  Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -344,9 +347,11 @@ export default function MoodTrends() {
         <div className="h-80 relative">
           {hasData ? (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
+              <BarChart
                 data={chartData}
-                margin={{ top: 10, right: 30, left: 10, bottom: 20 }}
+                margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
+                barGap={2}
+                barSize={20}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} />
@@ -361,27 +366,32 @@ export default function MoodTrends() {
                     fontWeight: 'bold'
                   }}
                   iconSize={10}
-                  iconType="circle"
+                  iconType="square"
                 />
                 
-                {/* Render line for each core emotion */}
-                {Object.keys(CORE_EMOTIONS).map(emotionKey => {
+                {/* Render bar for each core emotion */}
+                {Object.keys(CORE_EMOTIONS).map((emotionKey) => {
                   const emotion = CORE_EMOTIONS[emotionKey];
                   return (
-                    <Line
+                    <Bar
                       key={emotionKey}
-                      type="monotone"
                       dataKey={emotion.name}
                       name={emotion.name}
-                      stroke={emotion.color}
-                      strokeWidth={3}
-                      dot={{ r: 5, strokeWidth: 2, fill: emotion.color }}
-                      activeDot={{ r: 7, fill: emotion.color }}
-                      connectNulls={true}
+                      fill={emotion.color}
+                      radius={[2, 2, 0, 0]}
+                      // Add custom cursor for better interaction
+                      activeBar={{ stroke: '#fff', strokeWidth: 2 }}
+                      // Animate the chart
+                      isAnimationActive={true}
+                      animationBegin={200}
+                      animationDuration={1000}
+                      // Set a border to make bars more visible
+                      stroke="#fff"
+                      strokeWidth={1}
                     />
                   );
                 })}
-              </LineChart>
+              </BarChart>
             </ResponsiveContainer>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
