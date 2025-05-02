@@ -12,47 +12,61 @@ import { useAuth } from "@/lib/auth";
  */
 export default function useActiveUser() {
   const { user } = useAuth();
-  const { viewingClientId, loading } = useClientContext();
+  const { viewingClientId } = useClientContext();
   
-  // Read from localStorage as fallback for backward compatibility
-  const storedClientId = localStorage.getItem('viewingClientId');
-  const storedClientName = localStorage.getItem('viewingClientName');
-  
-  // Add some debug logging
   console.log("useActiveUser - Current auth user:", user?.id, user?.username, user?.role);
-  console.log("useActiveUser - viewingClientId from context:", viewingClientId);
-  console.log("useActiveUser - viewingClientId from localStorage:", storedClientId);
   
-  // Use client ID from context or localStorage, falling back to current user ID
-  // This ensures we don't lose the client selection after page refreshes
-  const storedClientIdNumber = storedClientId ? parseInt(storedClientId) : null;
-  const activeUserId = viewingClientId || storedClientIdNumber || user?.id;
-  
-  // Is the therapist viewing a client's data
-  const isViewingClientData = Boolean(viewingClientId || storedClientIdNumber);
-  
-  // Is the current user a therapist and can switch views
-  const canSwitchUser = user?.role === "therapist" || user?.role === "admin";
-  
-  // Get the appropriate pathPrefix for API calls
-  const getPathPrefix = () => {
-    if (!activeUserId) return null;
+  // Determine the active user ID to use for API calls
+  function determineActiveUserId(): number | undefined {
+    // If no user logged in yet, return undefined
+    if (!user?.id) return undefined;
     
-    // If viewing a client, use the client ID; otherwise use the authenticated user ID
-    let targetUserId = activeUserId;
-    
-    // Debug the actual ID being used
-    if (viewingClientId) {
-      console.log("useActiveUser - Using client ID for API calls:", viewingClientId);
-    } else {
-      console.log("useActiveUser - Using own ID for API calls:", user?.id);
+    // For clients, always use their own ID
+    if (user.role === "client") {
+      // Clear any localStorage values if present to prevent confusion
+      if (localStorage.getItem('viewingClientId')) {
+        localStorage.removeItem('viewingClientId');
+        localStorage.removeItem('viewingClientName');
+        console.log("useActiveUser - Cleared localStorage viewingClientId for client role");
+      }
+      return user.id;
     }
     
-    const prefix = `/api/users/${targetUserId}`;
-    console.log("useActiveUser - Final API path prefix:", prefix);
+    // For therapists/admins viewing a client
+    if ((user.role === "therapist" || user.role === "admin") && viewingClientId) {
+      console.log("useActiveUser - Using client ID for API calls:", viewingClientId);
+      return viewingClientId;
+    }
     
+    // As a last resort, check localStorage (for backward compatibility)
+    const storedClientId = localStorage.getItem('viewingClientId');
+    if ((user.role === "therapist" || user.role === "admin") && storedClientId) {
+      const storedClientIdNumber = parseInt(storedClientId);
+      console.log("useActiveUser - Using stored client ID:", storedClientIdNumber);
+      return storedClientIdNumber;
+    }
+    
+    // Otherwise, use the user's own ID
+    console.log("useActiveUser - Using own ID for API calls:", user.id);
+    return user.id;
+  }
+  
+  const activeUserId = determineActiveUserId();
+  
+  // Is the user a therapist viewing a client's data
+  const isViewingClientData = (user?.role === "therapist" || user?.role === "admin") && 
+    (viewingClientId !== null || localStorage.getItem('viewingClientId') !== null);
+  
+  // Can the user switch to view other users
+  const canSwitchUser = user?.role === "therapist" || user?.role === "admin";
+  
+  // Get the appropriate path prefix for API calls
+  function getPathPrefix(): string | null {
+    if (!activeUserId) return null;
+    const prefix = `/api/users/${activeUserId}`;
+    console.log("useActiveUser - Final API path prefix:", prefix);
     return prefix;
-  };
+  }
   
   return {
     activeUserId,

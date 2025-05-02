@@ -15,15 +15,20 @@ const ClientContext = createContext<ClientContextType | undefined>(undefined);
 export function ClientProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   
-  // Still initialize from localStorage for backward compatibility and faster initial load
+  // Initialize from localStorage for backward compatibility and faster initial load
+  // But only do this for therapists or admins to prevent confusion
   const storedClientId = localStorage.getItem('viewingClientId');
   const storedClientName = localStorage.getItem('viewingClientName');
   
+  // Only initialize from localStorage if user is a therapist or admin
+  // This prevents clients from seeing another client's data
+  const shouldUseStoredValues = user?.role === 'therapist' || user?.role === 'admin';
+  
   const [viewingClientId, setViewingClientId] = useState<number | null>(
-    storedClientId ? parseInt(storedClientId) : null
+    shouldUseStoredValues && storedClientId ? parseInt(storedClientId) : null
   );
   const [viewingClientName, setViewingClientName] = useState<string | null>(
-    storedClientName || null
+    shouldUseStoredValues && storedClientName ? storedClientName : null
   );
   const [loading, setLoading] = useState<boolean>(true);
 
