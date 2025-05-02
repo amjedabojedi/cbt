@@ -38,12 +38,12 @@ interface CoreEmotion {
 const CORE_EMOTIONS: Record<string, CoreEmotion> = {
   // Primary emotions from the wheel - keep these at the top
   joy: {
-    color: "#F9D71C", // Yellow
+    color: "#FFC107", // Bright yellow
     name: "Joy",
     valence: 'positive'
   },
   sadness: {
-    color: "#6D87C4", // Blue
+    color: "#3F51B5", // Indigo
     name: "Sadness",
     valence: 'negative'
   },
@@ -53,19 +53,19 @@ const CORE_EMOTIONS: Record<string, CoreEmotion> = {
     valence: 'negative'
   },
   anger: {
-    color: "#E43D40", // Red
+    color: "#F44336", // Bright red
     name: "Anger",
     valence: 'negative'
   },
   disgust: {
-    color: "#7DB954", // Green
+    color: "#4CAF50", // Bright green
     name: "Disgust",
     valence: 'negative'
   },
   
   // Add the actual emotions that appear in our data
   love: {
-    color: "#E83E8C", // Pink
+    color: "#E91E63", // Bright pink
     name: "Love",
     valence: 'positive'
   }
@@ -352,7 +352,17 @@ export default function MoodTrends() {
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                 <YAxis domain={[0, 10]} tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend align="right" verticalAlign="top" wrapperStyle={{ paddingBottom: 10 }} />
+                <Legend 
+                  align="center" 
+                  verticalAlign="top" 
+                  wrapperStyle={{ 
+                    paddingBottom: 15,
+                    paddingTop: 5,
+                    fontWeight: 'bold'
+                  }}
+                  iconSize={10}
+                  iconType="circle"
+                />
                 
                 {/* Render line for each core emotion */}
                 {Object.keys(CORE_EMOTIONS).map(emotionKey => {
@@ -364,9 +374,10 @@ export default function MoodTrends() {
                       dataKey={emotion.name}
                       name={emotion.name}
                       stroke={emotion.color}
-                      strokeWidth={2}
-                      dot={{ r: 4 }}
-                      activeDot={{ r: 6 }}
+                      strokeWidth={3}
+                      dot={{ r: 5, strokeWidth: 2, fill: emotion.color }}
+                      activeDot={{ r: 7, fill: emotion.color }}
+                      connectNulls={true}
                     />
                   );
                 })}
