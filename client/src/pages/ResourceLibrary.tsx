@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { marked } from "marked";
 import { apiRequest } from "@/lib/queryClient";
 import AppLayout from "@/components/layout/AppLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -88,6 +89,19 @@ export default function ResourceLibrary() {
   const [isDeleteStrategyDialogOpen, setIsDeleteStrategyDialogOpen] = useState(false);
   const [isEditingFactor, setIsEditingFactor] = useState(false);
   const [isEditingStrategy, setIsEditingStrategy] = useState(false);
+  
+  // Educational resource viewing and editing states
+  const [isViewingResource, setIsViewingResource] = useState(false);
+  const [currentResource, setCurrentResource] = useState<{
+    id: string;
+    title: string;
+    description: string;
+    content: string;
+    type: string;
+    category: string;
+    thumbnail: string;
+    isEditing: boolean;
+  } | null>(null);
   
   // Forms for adding new items
   const factorForm = useForm<ProtectiveFactorFormValues>({
@@ -1138,7 +1152,69 @@ export default function ResourceLibrary() {
                   </div>
                 </CardContent>
                 <CardFooter className="pt-0 flex justify-between">
-                  <Button variant="outline">View Resource</Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setCurrentResource({
+                        id: "cognitive-distortions",
+                        title: "Cognitive Distortions Guide",
+                        description: "Learn to identify common thinking traps",
+                        content: `
+# Cognitive Distortions Guide
+
+Cognitive distortions are patterns of thinking that are false or inaccurate, and have the potential to cause psychological damage. These patterns of thought tend to reinforce negative thinking or emotions, making us feel bad about ourselves or the world around us.
+
+## Common Cognitive Distortions
+
+### 1. All-or-Nothing Thinking
+Seeing things in black-and-white categories. If a situation falls short of perfect, you see it as a total failure.
+
+**Example:** "If I don't get an A on this test, I'm a complete failure."
+**Reframe:** "Getting a B doesn't make me a failure. I did well on many parts of the test."
+
+### 2. Overgeneralization
+Taking one negative situation and seeing it as a never-ending pattern of defeat.
+
+**Example:** "I didn't get called back after that job interview. I'll never find a job."
+**Reframe:** "Not getting this job doesn't mean I won't get the next one. Each interview is different."
+
+### 3. Mental Filter
+Focusing exclusively on the negative aspects of a situation while filtering out all the positive ones.
+
+**Example:** "I received feedback on my presentation with 5 compliments and 1 suggestion for improvement, but all I can think about is that one suggestion."
+**Reframe:** "I received mostly positive feedback and one helpful suggestion that can make my next presentation even better."
+
+### 4. Jumping to Conclusions
+Making negative interpretations even though there are no definite facts to support the conclusion.
+
+**Example:** "My friend hasn't texted me back in two hours. She must be mad at me."
+**Reframe:** "There are many reasons why she might not have responded yet. She could be busy or her phone might be off."
+
+### 5. Catastrophizing
+Expecting disaster. You exaggerate the importance of a negative event.
+
+**Example:** "If I make a mistake during my presentation, it will be catastrophic and my career will be ruined."
+**Reframe:** "If I make a mistake, I'll correct it and move on. Most people are understanding of minor errors."
+
+## How to Challenge Cognitive Distortions
+
+1. **Identify the thought** - What exactly am I thinking right now?
+2. **Identify the distortion** - Which cognitive distortion does this thought exemplify?
+3. **Challenge the thought** - What evidence supports or contradicts this thought?
+4. **Reframe the thought** - What's a more balanced and realistic way to view the situation?
+
+Regular practice in identifying and challenging these distortions can lead to more balanced thinking and improved emotional well-being.
+                        `,
+                        type: "guide",
+                        category: "cognitive",
+                        thumbnail: "brain",
+                        isEditing: false
+                      });
+                      setIsViewingResource(true);
+                    }}
+                  >
+                    View Resource
+                  </Button>
                   {user?.role === "therapist" && (
                     <Button variant="ghost" size="sm">
                       <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -1448,6 +1524,85 @@ export default function ResourceLibrary() {
               >
                 {deleteStrategyMutation.isPending ? "Deleting..." : "Delete Strategy"}
               </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Educational Resource Viewing Dialog */}
+        <Dialog open={isViewingResource} onOpenChange={setIsViewingResource}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{currentResource?.title}</DialogTitle>
+              <DialogDescription>{currentResource?.description}</DialogDescription>
+            </DialogHeader>
+            
+            {currentResource?.isEditing ? (
+              <div className="mt-6">
+                <Textarea 
+                  className="min-h-[60vh] font-mono text-sm"
+                  value={currentResource.content}
+                  onChange={(e) => setCurrentResource({
+                    ...currentResource,
+                    content: e.target.value
+                  })}
+                />
+              </div>
+            ) : (
+              <div className="mt-4 prose prose-stone dark:prose-invert max-w-none">
+                {currentResource?.content && (
+                  <div dangerouslySetInnerHTML={{ 
+                    __html: marked.parse(currentResource.content) 
+                  }} />
+                )}
+              </div>
+            )}
+            
+            <DialogFooter className="flex justify-between mt-6">
+              <div>
+                {(user?.role === "admin" || user?.role === "therapist") && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (currentResource) {
+                        setCurrentResource({
+                          ...currentResource,
+                          isEditing: !currentResource.isEditing
+                        });
+                      }
+                    }}
+                  >
+                    {currentResource?.isEditing ? "Preview" : "Edit"}
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {currentResource?.isEditing && (
+                  <Button 
+                    variant="default"
+                    onClick={() => {
+                      if (currentResource) {
+                        // Here would go API call to save changes
+                        toast({
+                          title: "Resource Updated",
+                          description: "Your changes have been saved successfully.",
+                        });
+                        setCurrentResource({
+                          ...currentResource,
+                          isEditing: false
+                        });
+                      }
+                    }}
+                  >
+                    Save Changes
+                  </Button>
+                )}
+                <Button 
+                  variant="secondary"
+                  onClick={() => setIsViewingResource(false)}
+                >
+                  Close
+                </Button>
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>
