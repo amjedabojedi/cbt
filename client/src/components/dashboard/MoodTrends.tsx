@@ -189,20 +189,19 @@ export default function MoodTrends() {
         date: day.formattedDate,
       };
       
-      // Calculate average intensity for each emotion group
+      // Always include all emotion groups, even if they have no data
+      // This ensures all core emotions are present in the chart legend
       Object.keys(EMOTION_GROUPS).forEach((groupKey: string) => {
         const group = EMOTION_GROUPS[groupKey];
         const intensities = day.emotionIntensities[group.label] || [];
         
-        // Only include groups with data
         if (day[group.label] > 0) {
-          // Calculate average intensity
+          // Calculate average intensity for days that have data
           const sum = intensities.reduce((acc: number, val: number) => acc + val, 0);
           const avg = intensities.length > 0 ? sum / intensities.length : 0;
-          
-          // Store as group label with average intensity
           result[group.label] = parseFloat(avg.toFixed(1));
         } else {
+          // Include all emotion types with 0 value when no data exists
           result[group.label] = 0;
         }
       });
