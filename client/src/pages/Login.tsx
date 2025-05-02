@@ -27,12 +27,10 @@ export default function Login() {
     setLoading(true);
     
     try {
-      // Direct fetch instead of using Auth context
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-        credentials: "include",
+      // Use apiRequest from queryClient which handles headers and credentials
+      const response = await apiRequest("POST", "/api/auth/login", { 
+        username, 
+        password 
       });
       
       if (!response.ok) {
@@ -40,7 +38,11 @@ export default function Login() {
         throw new Error(errorData.message || "Login failed");
       }
       
-      // Successful login - redirect to dashboard
+      // Get the user data
+      const userData = await response.json();
+      console.log("Login successful, user data:", userData);
+      
+      // Reload the page to refresh authentication state
       window.location.href = "/dashboard";
     } catch (error) {
       console.error("Login error:", error);

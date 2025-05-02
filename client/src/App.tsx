@@ -29,23 +29,37 @@ function LoadingFallback() {
   );
 }
 
+// Import the ProtectedRoute component
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+
 function Router() {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Switch>
+        {/* Public routes */}
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/emotion-tracking" component={EmotionTracking} />
-        <Route path="/emotions" component={EmotionTracking} />
-        <Route path="/thoughts" component={ThoughtRecords} />
-        <Route path="/goals" component={GoalSetting} />
-        <Route path="/library" component={ResourceLibrary} />
-        <Route path="/reports" component={Reports} />
-        <Route path="/clients" component={Clients} />
-        <Route path="/settings" component={Settings} />
+        
+        {/* Protected routes - require authentication */}
+        <ProtectedRoute path="/dashboard" component={Dashboard} />
+        <ProtectedRoute path="/emotion-tracking" component={EmotionTracking} />
+        <ProtectedRoute path="/emotions" component={EmotionTracking} />
+        <ProtectedRoute path="/thoughts" component={ThoughtRecords} />
+        <ProtectedRoute path="/goals" component={GoalSetting} />
+        <ProtectedRoute path="/library" component={ResourceLibrary} />
+        <ProtectedRoute path="/reports" component={Reports} />
+        
+        {/* Role-restricted routes */}
+        <ProtectedRoute 
+          path="/clients" 
+          component={Clients} 
+          allowedRoles={["therapist", "admin"]} 
+        />
+        
+        {/* General routes */}
+        <ProtectedRoute path="/settings" component={Settings} />
         <Route path="/:rest*" component={NotFound} />
-        <Route path="/" component={Dashboard} />
+        <ProtectedRoute path="/" component={Dashboard} />
       </Switch>
     </Suspense>
   );

@@ -29,28 +29,50 @@ export function ClientProvider({ children }: { children: ReactNode }) {
 
   // Fetch the current viewing client from the database when the component mounts
   useEffect(() => {
+    let isMounted = true;
+    
     // Only attempt to fetch if user is a therapist
     if (user?.role === "therapist") {
       const fetchCurrentViewingClient = async () => {
         try {
+          if (!isMounted) return;
+          
           setLoading(true);
-          const response = await apiRequest("GET", "/api/users/current-viewing-client");
+          const response = await fetch("/api/users/current-viewing-client", {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error ${response.status}`);
+          }
+          
           const data = await response.json();
           
-          if (data.viewingClient) {
-            setViewingClientId(data.viewingClient.id);
-            setViewingClientName(data.viewingClient.name);
-            console.log("Loaded viewing client from database:", data.viewingClient);
-            
-            // Also update localStorage for backwards compatibility
-            localStorage.setItem('viewingClientId', data.viewingClient.id.toString());
-            localStorage.setItem('viewingClientName', data.viewingClient.name);
+          if (isMounted) {
+            if (data.viewingClient) {
+              setViewingClientId(data.viewingClient.id);
+              setViewingClientName(data.viewingClient.name);
+              console.log("Loaded viewing client from database:", data.viewingClient);
+              
+              // Also update localStorage for backwards compatibility
+              localStorage.setItem('viewingClientId', data.viewingClient.id.toString());
+              localStorage.setItem('viewingClientName', data.viewingClient.name);
+            } else {
+              // No viewing client, use localStorage if available
+              console.log("No viewing client from server, using localStorage values");
+            }
           }
         } catch (error) {
           console.error("Error fetching current viewing client:", error);
           // If DB fetch fails, fallback to localStorage values (already set in state)
         } finally {
-          setLoading(false);
+          if (isMounted) {
+            setLoading(false);
+          }
         }
       };
       
@@ -59,6 +81,10 @@ export function ClientProvider({ children }: { children: ReactNode }) {
       // If not a therapist, we're not loading anything
       setLoading(false);
     }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   console.log("ClientContext initialized with:", { viewingClientId, viewingClientName });

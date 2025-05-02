@@ -31,36 +31,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<Error | null>(null);
   const [, navigate] = useLocation();
   
-  // Check if the user is already logged in on mount with retries
+  // Check if the user is already logged in on mount
   React.useEffect(() => {
-    async function checkAuth(retryCount = 0) {
+    let isMounted = true; // Flag to prevent setting state after unmount
+    
+    async function checkAuth() {
+      if (!isMounted) return;
+      
+      setLoading(true);
       try {
-        setLoading(true);
-        const response = await apiRequest("GET", "/api/auth/me");
-        const userData = await response.json();
-        setUser(userData);
-        setError(null);
-      } catch (err) {
-        // Retry up to 3 times with exponential backoff
-        if (retryCount < 3) {
-          console.log(`Auth check failed, retrying (${retryCount + 1}/3)...`);
-          setTimeout(() => checkAuth(retryCount + 1), Math.min(1000 * 2 ** retryCount, 5000));
-          return;
+        const response = await fetch("/api/auth/me", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          }
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            // Not logged in - expected behavior, not an error
+            setUser(null);
+            setError(null);
+            setLoading(false);
+            return;
+          }
+          throw new Error(`HTTP error ${response.status}`);
         }
         
-        // After all retries, check if we have user data in localStorage as fallback
-        console.log("Auth check failed after retries");
-        
-        // Don't set error for auth checks - it's normal for unauthenticated users
-        setError(null);
+        const userData = await response.json();
+        if (isMounted) {
+          setUser(userData);
+          setError(null);
+        }
+      } catch (err) {
+        console.error("Auth check error:", err);
+        if (isMounted) {
+          setError(err as Error);
+          setUser(null);
+        }
       } finally {
-        // Only set loading to false after all retries are complete
-        if (retryCount >= 3) {
+        if (isMounted) {
           setLoading(false);
         }
       }
     }
+    
     checkAuth();
+    
+    // Cleanup function to prevent memory leaks
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = async (username: string, password: string) => { 
