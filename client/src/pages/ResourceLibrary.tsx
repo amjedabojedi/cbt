@@ -1078,83 +1078,7 @@ export default function ResourceLibrary() {
                   </div>
                 </CardContent>
                 <CardFooter className="pt-0 flex justify-between">
-                  <Button variant="outline">View Resource</Button>
-                  {user?.role === "therapist" && (
-                    <Button variant="ghost" size="sm">
-                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                      </svg>
-                      Assign to Client
-                    </Button>
-                  )}
-                </CardFooter>
-              </Card>
-              
-              {/* Emotion Wheel Guide */}
-              <Card className="overflow-hidden hover:shadow-md transition-shadow">
-                <CardHeader className="p-0">
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 py-6 px-4">
-                    <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-2">
-                      <Heart className="h-6 w-6 text-purple-600" />
-                    </div>
-                    <CardTitle className="text-lg mb-1">Emotion Wheel Guide</CardTitle>
-                    <CardDescription className="text-purple-700">
-                      Expand your emotional vocabulary
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <p className="text-sm text-neutral-600 mb-4">
-                    Learn to identify and name your emotions more precisely with this
-                    detailed emotion wheel guide and emotional awareness exercises.
-                  </p>
-                  <div className="flex items-center text-sm text-neutral-500 mb-2">
-                    <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                    </svg>
-                    4-page Guide + Wheel Diagram
-                  </div>
-                </CardContent>
-                <CardFooter className="pt-0 flex justify-between">
-                  <Button variant="outline">View Resource</Button>
-                  {user?.role === "therapist" && (
-                    <Button variant="ghost" size="sm">
-                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                      </svg>
-                      Assign to Client
-                    </Button>
-                  )}
-                </CardFooter>
-              </Card>
-              
-              {/* SMART Goals Worksheet */}
-              <Card className="overflow-hidden hover:shadow-md transition-shadow">
-                <CardHeader className="p-0">
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 py-6 px-4">
-                    <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-2">
-                      <Flag className="h-6 w-6 text-green-600" />
-                    </div>
-                    <CardTitle className="text-lg mb-1">SMART Goals Worksheet</CardTitle>
-                    <CardDescription className="text-green-700">
-                      Create effective, achievable goals
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <p className="text-sm text-neutral-600 mb-4">
-                    Learn how to set Specific, Measurable, Achievable, Relevant, and Time-bound goals
-                    to increase your chances of success and maintain motivation.
-                  </p>
-                  <div className="flex items-center text-sm text-neutral-500 mb-2">
-                    <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                    </svg>
-                    3-page Worksheet
-                  </div>
-                </CardContent>
-                <CardFooter className="pt-0 flex justify-between">
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => {
                       setCurrentResource({
@@ -1210,7 +1134,235 @@ Regular practice in identifying and challenging these distortions can lead to mo
                         type: "guide",
                         category: "cognitive",
                         thumbnail: "brain",
-                        isEditing: false
+                        isEditing: false,
+                        pdfUrl: "/resources/cognitive-distortions-guide.pdf",
+                        relatedTopics: ["anxiety", "depression", "cognitive therapy", "thinking patterns", "mental health"]
+                      });
+                      setIsViewingResource(true);
+                    }}
+                  >
+                    View Resource
+                  </Button>
+                  {user?.role === "therapist" && (
+                    <Button variant="ghost" size="sm">
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                      </svg>
+                      Assign to Client
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
+              
+              {/* Emotion Wheel Guide */}
+              <Card className="overflow-hidden hover:shadow-md transition-shadow">
+                <CardHeader className="p-0">
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 py-6 px-4">
+                    <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-2">
+                      <Heart className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <CardTitle className="text-lg mb-1">Emotion Wheel Guide</CardTitle>
+                    <CardDescription className="text-purple-700">
+                      Expand your emotional vocabulary
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <p className="text-sm text-neutral-600 mb-4">
+                    Learn to identify and name your emotions more precisely with this
+                    detailed emotion wheel guide and emotional awareness exercises.
+                  </p>
+                  <div className="flex items-center text-sm text-neutral-500 mb-2">
+                    <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                    4-page Guide + Wheel Diagram
+                  </div>
+                </CardContent>
+                <CardFooter className="pt-0 flex justify-between">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setCurrentResource({
+                        id: "emotion-wheel",
+                        title: "Emotion Wheel Guide",
+                        description: "Expand your emotional vocabulary",
+                        content: `
+# Emotion Wheel Guide
+
+The Emotion Wheel is a powerful tool that helps you identify and articulate your emotions with greater precision. By expanding your emotional vocabulary, you can better understand and communicate your feelings.
+
+## Understanding the Emotion Wheel
+
+The Emotion Wheel consists of three concentric circles:
+
+1. **Core Emotions (Inner Circle)**: The six basic emotions that are universally recognized across cultures: Joy, Sadness, Fear, Anger, Surprise, and Disgust.
+
+2. **Primary Emotions (Middle Circle)**: More specific emotions that branch out from the core emotions. For example, Anger branches into Annoyance, Frustration, and Rage.
+
+3. **Tertiary Emotions (Outer Circle)**: The most specific emotions that provide nuanced descriptions of our emotional states. For example, Frustration branches into Disappointment, Exasperation, and Agitation.
+
+## How to Use the Emotion Wheel
+
+1. **Start at the center**: Identify which of the core emotions best describes how you're feeling.
+2. **Move outward**: Once you've identified the core emotion, look at the related primary emotions to see if you can be more specific.
+3. **Reach the outer ring**: Finally, check the tertiary emotions to pinpoint exactly what you're feeling.
+
+## Benefits of Using the Emotion Wheel
+
+- **Increased Emotional Awareness**: Recognizing and naming emotions helps you better understand yourself.
+- **Improved Communication**: Being precise about your emotions helps others understand you better.
+- **Enhanced Emotional Regulation**: Accurately identifying emotions is the first step to managing them effectively.
+- **Better Therapeutic Outcomes**: When working with a therapist, precise emotional language leads to more targeted interventions.
+
+## Emotion Awareness Exercises
+
+1. **Daily Emotion Check-in**: Three times a day, pause and identify what you're feeling using the emotion wheel.
+2. **Emotion Journaling**: When logging emotions, try to use the most specific terms from the wheel.
+3. **Emotion Exploration**: When you identify an emotion, ask yourself: "What's beneath this feeling?" Sometimes our surface emotions mask deeper ones.
+
+Remember, emotional awareness is a skill that improves with practice. Use this guide and the emotion wheel regularly to develop your emotional intelligence.
+                        `,
+                        type: "guide",
+                        category: "emotional",
+                        thumbnail: "heart",
+                        isEditing: false,
+                        pdfUrl: "/resources/emotion-wheel-guide.pdf",
+                        relatedTopics: ["emotions", "emotional intelligence", "awareness", "self-understanding"]
+                      });
+                      setIsViewingResource(true);
+                    }}
+                  >
+                    View Resource
+                  </Button>
+                  {user?.role === "therapist" && (
+                    <Button variant="ghost" size="sm">
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                      </svg>
+                      Assign to Client
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
+              
+              {/* SMART Goals Worksheet */}
+              <Card className="overflow-hidden hover:shadow-md transition-shadow">
+                <CardHeader className="p-0">
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 py-6 px-4">
+                    <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-2">
+                      <Flag className="h-6 w-6 text-green-600" />
+                    </div>
+                    <CardTitle className="text-lg mb-1">SMART Goals Worksheet</CardTitle>
+                    <CardDescription className="text-green-700">
+                      Create effective, achievable goals
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <p className="text-sm text-neutral-600 mb-4">
+                    Learn how to set Specific, Measurable, Achievable, Relevant, and Time-bound goals
+                    to increase your chances of success and maintain motivation.
+                  </p>
+                  <div className="flex items-center text-sm text-neutral-500 mb-2">
+                    <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                    3-page Worksheet
+                  </div>
+                </CardContent>
+                <CardFooter className="pt-0 flex justify-between">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setCurrentResource({
+                        id: "smart-goals",
+                        title: "SMART Goals Worksheet",
+                        description: "Create effective, achievable goals",
+                        content: `
+# SMART Goals Worksheet
+
+Setting effective goals is key to making progress in therapy and in life. SMART goals provide a framework to ensure your goals are well-defined and achievable.
+
+## What are SMART Goals?
+
+SMART is an acronym that stands for:
+
+- **S**pecific: Clearly defined and precise
+- **M**easurable: Includes concrete criteria for measuring progress
+- **A**chievable: Realistic and attainable
+- **R**elevant: Aligns with your values and broader objectives
+- **T**ime-bound: Has a defined timeline with a start and end date
+
+## How to Create SMART Goals
+
+### Step 1: Make Your Goal Specific
+A specific goal answers the questions: What exactly will you accomplish? Why is this goal important? Who is involved? Where will it take place?
+
+* Too vague: "I want to feel better."
+* Specific: "I want to reduce my anxiety symptoms when giving presentations at work."
+
+### Step 2: Make Your Goal Measurable
+A measurable goal allows you to track your progress and know when you've reached your target.
+
+* Not measurable: "I want to exercise more."
+* Measurable: "I will walk for 30 minutes, five days a week."
+
+### Step 3: Make Your Goal Achievable
+An achievable goal stretches your abilities but remains possible. Consider your resources and constraints.
+
+* Unrealistic: "I will never feel anxious again."
+* Achievable: "I will reduce my anxiety by practicing mindfulness for 10 minutes daily."
+
+### Step 4: Make Your Goal Relevant
+A relevant goal aligns with your broader life objectives and values.
+
+* Irrelevant: "I should lose weight because everyone else is doing it."
+* Relevant: "I want to improve my physical health because it will help my mental well-being and energy levels."
+
+### Step 5: Make Your Goal Time-bound
+A time-bound goal has a clear timeline, including a start date, end date, and milestones along the way.
+
+* Not time-bound: "I'll start meditating someday."
+* Time-bound: "I will practice meditation daily for the next 30 days, starting tomorrow."
+
+## SMART Goal Worksheet
+
+1. What is your goal? (Be specific)
+   _______________________________
+
+2. How will you measure progress and success?
+   _______________________________
+
+3. Is this goal achievable? What resources do you need?
+   _______________________________
+
+4. Why is this goal relevant to your life right now?
+   _______________________________
+
+5. What is your timeframe for accomplishing this goal?
+   _______________________________
+
+6. What potential obstacles might you face?
+   _______________________________
+
+7. How will you overcome these obstacles?
+   _______________________________
+
+8. Who can support you in achieving this goal?
+   _______________________________
+
+9. How will you celebrate when you achieve this goal?
+   _______________________________
+
+Remember, the purpose of SMART goals is to set you up for success. Regularly review and adjust your goals as needed.
+                        `,
+                        type: "worksheet",
+                        category: "goals",
+                        thumbnail: "flag",
+                        isEditing: false,
+                        pdfUrl: "/resources/smart-goals-worksheet.pdf",
+                        relatedTopics: ["goals", "planning", "motivation", "achievement", "therapy"]
                       });
                       setIsViewingResource(true);
                     }}
