@@ -88,10 +88,18 @@ export function isAdmin(req: Request, res: Response, next: NextFunction) {
  * Check if the user is a client or admin
  */
 export function isClientOrAdmin(req: Request, res: Response, next: NextFunction) {
-  if (req.user?.role === 'therapist' && req.user?.role !== 'admin') {
+  // If user is admin, always allow
+  if (req.user?.role === 'admin') {
+    console.log('Admin access for client resource - ALLOWED');
+    return next();
+  }
+  
+  // If user is therapist (but not admin), deny access
+  if (req.user?.role === 'therapist') {
     return res.status(403).json({ message: 'Therapists cannot create emotion or thought records. Only clients can record emotions and thoughts.' });
   }
   
+  // Otherwise, assume client role and allow
   next();
 }
 
@@ -150,8 +158,12 @@ export function checkUserAccess(req: Request, res: Response, next: NextFunction)
   console.log(`User Access Check - User ${req.user?.id} (${req.user?.username}, role: ${req.user?.role}) is accessing user ${requestedUserId} data`);
   
   // FIRST check: If user is an admin, always allow
+  console.log('**CHECKING IF USER IS ADMIN**', 
+              'User role:', req.user?.role, 
+              'Is admin?', req.user?.role === 'admin');
+              
   if (req.user?.role === 'admin') {
-    console.log('User is an admin, access ALWAYS ALLOWED for all users');
+    console.log('*** ADMIN ACCESS GRANTED *** User is an admin, access ALWAYS ALLOWED for all users');
     return next();
   }
   
