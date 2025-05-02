@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { User } from "@shared/schema";
+import { useClientContext } from "@/context/ClientContext";
 
 import {
   Card,
@@ -66,9 +67,30 @@ export default function Clients() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { setViewingClient } = useClientContext();
   const [isInviting, setIsInviting] = useState(false);
   const [selectedClient, setSelectedClient] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  
+  // Helper function to view a client's records
+  const handleViewRecords = (client: User) => {
+    console.log("View Records clicked for client:", client);
+    setViewingClient(client.id, client.name || client.username);
+    // Save to localStorage as fallback
+    localStorage.setItem('viewingClientId', client.id.toString());
+    localStorage.setItem('viewingClientName', client.name || client.username);
+    window.location.href = `/emotions`;
+  };
+  
+  // Helper function to view a client's goals
+  const handleViewGoals = (client: User) => {
+    console.log("View Goals clicked for client:", client);
+    setViewingClient(client.id, client.name || client.username);
+    // Save to localStorage as fallback
+    localStorage.setItem('viewingClientId', client.id.toString());
+    localStorage.setItem('viewingClientName', client.name || client.username);
+    window.location.href = `/goals`;
+  };
   
   // Check if user is a therapist
   const isTherapist = user?.role === "therapist";
@@ -118,7 +140,7 @@ export default function Clients() {
   });
   
   // Fetch clients
-  const { data: clients, isLoading, error } = useQuery({
+  const { data: clients, isLoading, error } = useQuery<User[]>({
     queryKey: [`/api/users/clients`],
     enabled: !!user && user.role === "therapist",
   });
@@ -172,8 +194,9 @@ export default function Clients() {
   // Filter clients based on active tab
   const filteredClients = clients ? clients.filter((client: User) => {
     if (activeTab === "all") return true;
-    if (activeTab === "active") return client.status === "active"; // Would need a status field
-    if (activeTab === "pending") return client.status === "pending"; // Would need a status field
+    // Temporarily consider all clients as active for demo purposes
+    if (activeTab === "active") return true; 
+    if (activeTab === "pending") return false;
     return true;
   }) : [];
   
@@ -345,7 +368,7 @@ export default function Clients() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredClients?.map((client) => (
+                      {filteredClients?.map((client: User) => (
                         <TableRow key={client.id}>
                           <TableCell>
                             <div className="font-medium">{client.name}</div>
@@ -392,22 +415,14 @@ export default function Clients() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem 
                                   className="cursor-pointer"
-                                  onClick={() => {
-                                    console.log("View Records clicked for client:", client);
-                                    // Redirect to records page for this client
-                                    window.location.href = `/emotions?clientId=${client.id}`;
-                                  }}
+                                  onClick={() => handleViewRecords(client)}
                                 >
                                   <FileText className="h-4 w-4 mr-2" />
                                   View Records
                                 </DropdownMenuItem>
                                 <DropdownMenuItem 
                                   className="cursor-pointer"
-                                  onClick={() => {
-                                    console.log("View Goals clicked for client:", client);
-                                    // Redirect to goals page for this client
-                                    window.location.href = `/goals?clientId=${client.id}`;
-                                  }}
+                                  onClick={() => handleViewGoals(client)}
                                 >
                                   <Flag className="h-4 w-4 mr-2" />
                                   View Goals
