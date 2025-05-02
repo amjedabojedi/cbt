@@ -25,44 +25,53 @@ import {
   TooltipProps,
 } from "recharts";
 
-// Define emotion groups and their properties
-interface EmotionGroup {
+// Define core emotions directly from the emotion wheel
+interface CoreEmotion {
   color: string;
-  emotions: string[];
-  label: string; // Display name for the group
+  name: string;
   valence: 'positive' | 'negative' | 'neutral';
 }
 
-const EMOTION_GROUPS: Record<string, EmotionGroup> = {
+const CORE_EMOTIONS: Record<string, CoreEmotion> = {
   joy: {
     color: "#F9D71C", // Yellow
-    emotions: ["Joy", "Happy", "Excited", "Proud", "Content", "Love", "Trust", "Hopeful"],
-    label: "Positive Emotions",
+    name: "Joy",
     valence: 'positive'
   },
   sadness: {
     color: "#6D87C4", // Blue
-    emotions: ["Sadness", "Depressed", "Lonely", "Guilty", "Disappointed", "Hurt"],
-    label: "Sadness",
+    name: "Sadness",
     valence: 'negative'
   },
   fear: {
     color: "#8A65AA", // Purple
-    emotions: ["Fear", "Worried", "Anxious", "Scared", "Nervous", "Insecure"],
-    label: "Fear & Anxiety",
+    name: "Fear",
     valence: 'negative'
   },
   anger: {
     color: "#E43D40", // Red
-    emotions: ["Anger", "Frustrated", "Annoyed", "Irritated", "Jealous", "Resentful"],
-    label: "Anger",
+    name: "Anger",
     valence: 'negative'
   },
   disgust: {
     color: "#7DB954", // Green
-    emotions: ["Disgust", "Embarrassed", "Ashamed", "Contempt"],
-    label: "Disgust",
+    name: "Disgust",
     valence: 'negative'
+  },
+  surprise: {
+    color: "#FF9500", // Orange
+    name: "Surprise",
+    valence: 'neutral'
+  },
+  trust: {
+    color: "#4285F4", // Blue
+    name: "Trust",
+    valence: 'positive'
+  },
+  anticipation: {
+    color: "#34A853", // Green
+    name: "Anticipation",
+    valence: 'positive'
   }
 };
 
@@ -122,7 +131,7 @@ export default function MoodTrends() {
       end: new Date()
     });
     
-    // Initialize data with all dates in range and emotion groups
+    // Initialize data with all dates in range and core emotions
     const dataByDate: DailyEmotionData[] = dateRange.map(date => {
       const dataPoint: DailyEmotionData = {
         date,
@@ -131,15 +140,15 @@ export default function MoodTrends() {
         emotionIntensities: {},
       };
       
-      // Add a property for each emotion group with initial value 0
-      Object.keys(EMOTION_GROUPS).forEach((groupKey: string) => {
-        dataPoint[EMOTION_GROUPS[groupKey].label] = 0;
+      // Add a property for each core emotion with initial value 0
+      Object.keys(CORE_EMOTIONS).forEach((emotionKey: string) => {
+        dataPoint[CORE_EMOTIONS[emotionKey].name] = 0;
       });
       
       return dataPoint;
     });
     
-    // Aggregate emotions by date and group
+    // Aggregate emotions by date and core emotion
     emotions.forEach((emotion: EmotionRecord) => {
       const emotionDate = startOfDay(new Date(emotion.timestamp));
       
@@ -149,60 +158,47 @@ export default function MoodTrends() {
       );
       
       if (dayIndex !== -1) {
-        // Find which emotion group this belongs to
-        let foundGroup = false;
+        // Increment the count for the core emotion and track intensity
+        const coreEmotion = emotion.coreEmotion;
         
-        Object.keys(EMOTION_GROUPS).forEach((groupKey: string) => {
-          const group = EMOTION_GROUPS[groupKey];
-          
-          // Check if the emotion is in this group (core, primary, or tertiary)
-          if (group.emotions.includes(emotion.coreEmotion) || 
-              (emotion.primaryEmotion && group.emotions.includes(emotion.primaryEmotion)) || 
-              (emotion.tertiaryEmotion && group.emotions.includes(emotion.tertiaryEmotion))) {
-            
-            // If found, increment the count for this group and track intensity
-            dataByDate[dayIndex][group.label] += 1;
+        // If this emotion matches one of our core emotions
+        if (coreEmotion) {
+          // Increment count
+          if (dataByDate[dayIndex][coreEmotion] !== undefined) {
+            dataByDate[dayIndex][coreEmotion] += 1;
             dataByDate[dayIndex].count += 1;
             
             // Track emotion intensity
-            if (!dataByDate[dayIndex].emotionIntensities[group.label]) {
-              dataByDate[dayIndex].emotionIntensities[group.label] = [];
+            if (!dataByDate[dayIndex].emotionIntensities[coreEmotion]) {
+              dataByDate[dayIndex].emotionIntensities[coreEmotion] = [];
             }
             
-            dataByDate[dayIndex].emotionIntensities[group.label].push(emotion.intensity);
-            
-            foundGroup = true;
+            dataByDate[dayIndex].emotionIntensities[coreEmotion].push(emotion.intensity);
           }
-        });
-        
-        // If no group was found, default to using the core emotion
-        if (!foundGroup && emotion.coreEmotion) {
-          // Default fallback - add to count but not to any specific group
-          dataByDate[dayIndex].count += 1;
         }
       }
     });
     
-    // Format data for chart, calculating average intensity by group
+    // Format data for chart, calculating average intensity by core emotion
     return dataByDate.map(day => {
       const result: ChartDataPoint = {
         date: day.formattedDate,
       };
       
-      // Always include all emotion groups, even if they have no data
-      // This ensures all core emotions are present in the chart legend
-      Object.keys(EMOTION_GROUPS).forEach((groupKey: string) => {
-        const group = EMOTION_GROUPS[groupKey];
-        const intensities = day.emotionIntensities[group.label] || [];
+      // Always include all core emotions, even if they have no data
+      Object.keys(CORE_EMOTIONS).forEach((emotionKey: string) => {
+        const emotion = CORE_EMOTIONS[emotionKey];
+        const emotionName = emotion.name;
+        const intensities = day.emotionIntensities[emotionName] || [];
         
-        if (day[group.label] > 0) {
+        if (day[emotionName] > 0) {
           // Calculate average intensity for days that have data
           const sum = intensities.reduce((acc: number, val: number) => acc + val, 0);
           const avg = intensities.length > 0 ? sum / intensities.length : 0;
-          result[group.label] = parseFloat(avg.toFixed(1));
+          result[emotionName] = parseFloat(avg.toFixed(1));
         } else {
           // Include all emotion types with 0 value when no data exists
-          result[group.label] = 0;
+          result[emotionName] = 0;
         }
       });
       
@@ -306,16 +302,16 @@ export default function MoodTrends() {
                 <Tooltip content={<CustomTooltip />} />
                 <Legend align="right" verticalAlign="top" wrapperStyle={{ paddingBottom: 10 }} />
                 
-                {/* Render line for each emotion group */}
-                {Object.keys(EMOTION_GROUPS).map(groupKey => {
-                  const group = EMOTION_GROUPS[groupKey];
+                {/* Render line for each core emotion */}
+                {Object.keys(CORE_EMOTIONS).map(emotionKey => {
+                  const emotion = CORE_EMOTIONS[emotionKey];
                   return (
                     <Line
-                      key={groupKey}
+                      key={emotionKey}
                       type="monotone"
-                      dataKey={group.label}
-                      name={group.label}
-                      stroke={group.color}
+                      dataKey={emotion.name}
+                      name={emotion.name}
+                      stroke={emotion.color}
                       strokeWidth={2}
                       dot={{ r: 4 }}
                       activeDot={{ r: 6 }}
