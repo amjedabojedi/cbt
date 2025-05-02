@@ -36,16 +36,76 @@ import { Slider } from "@/components/ui/slider";
 
 // Cognitive distortions list
 const cognitiveDistortions = [
-  { value: "all-or-nothing", label: "All-or-Nothing Thinking" },
-  { value: "catastrophizing", label: "Catastrophizing" },
-  { value: "emotional-reasoning", label: "Emotional Reasoning" },
-  { value: "mind-reading", label: "Mind Reading" },
-  { value: "overgeneralization", label: "Overgeneralization" },
-  { value: "personalization", label: "Personalization" },
-  { value: "should-statements", label: "Should Statements" },
-  { value: "mental-filter", label: "Mental Filter" },
-  { value: "disqualifying-positive", label: "Disqualifying the Positive" },
-  { value: "jumping-to-conclusions", label: "Jumping to Conclusions" },
+  { 
+    value: "all-or-nothing", 
+    label: "All-or-Nothing Thinking",
+    description: "Seeing situations in black and white terms, with no middle ground.",
+    example: "If I don't get a perfect score, I'm a complete failure.",
+    reframe: "Most situations fall somewhere in between extremes. Look for partial successes."
+  },
+  { 
+    value: "catastrophizing", 
+    label: "Catastrophizing",
+    description: "Expecting the worst possible outcome in a situation.",
+    example: "If I make a mistake in my presentation, my career will be ruined.",
+    reframe: "Consider the most realistic outcome, not just the worst case scenario."
+  },
+  { 
+    value: "emotional-reasoning", 
+    label: "Emotional Reasoning",
+    description: "Assuming your emotions reflect reality: 'I feel it, therefore it must be true.'",
+    example: "I feel anxious about the flight, so it must be dangerous.",
+    reframe: "Emotions are not facts. They're responses that may or may not be proportionate."
+  },
+  { 
+    value: "mind-reading", 
+    label: "Mind Reading",
+    description: "Assuming you know what others are thinking, usually negatively.",
+    example: "She didn't smile at me, so she must dislike me.",
+    reframe: "Without confirmation, we can't know what others think. Consider alternative explanations."
+  },
+  { 
+    value: "overgeneralization", 
+    label: "Overgeneralization",
+    description: "Taking one negative event as evidence of endless pattern of defeat.",
+    example: "I didn't get this job. I'll never find employment.",
+    reframe: "One event is just one data point, not a universal pattern."
+  },
+  { 
+    value: "personalization", 
+    label: "Personalization",
+    description: "Believing others' actions are specifically related to you.",
+    example: "The team's project failed because of my contribution.",
+    reframe: "Most outcomes result from many factors, not just your actions."
+  },
+  { 
+    value: "should-statements", 
+    label: "Should Statements",
+    description: "Having rigid rules about how you and others 'should' behave.",
+    example: "I should never make mistakes. They should always consider my feelings.",
+    reframe: "Replace 'should' with more flexible preferences and realistic expectations."
+  },
+  { 
+    value: "mental-filter", 
+    label: "Mental Filter",
+    description: "Focusing exclusively on negative details while ignoring positives.",
+    example: "I got feedback on my report with 9 compliments and 1 criticism, but I can only think about the criticism.",
+    reframe: "Consciously acknowledge the full picture, including positive aspects."
+  },
+  { 
+    value: "disqualifying-positive", 
+    label: "Disqualifying the Positive",
+    description: "Rejecting positive experiences by insisting they don't count.",
+    example: "I did well on the project, but that doesn't count because anyone could have done it.",
+    reframe: "Accept compliments and achievements as legitimate parts of your experience."
+  },
+  { 
+    value: "jumping-to-conclusions", 
+    label: "Jumping to Conclusions",
+    description: "Making negative interpretations without supporting facts.",
+    example: "My friend hasn't replied to my message. Our friendship must be over.",
+    reframe: "Wait for evidence before coming to conclusions. Consider alternative explanations."
+  },
 ];
 
 // Define schema for the thought record form
@@ -575,40 +635,81 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
             <FormField
               control={form.control}
               name="cognitiveDistortions"
-              render={() => (
-                <FormItem>
-                  <div className="mb-2">
-                    <FormLabel>Identify any cognitive distortions in your thinking:</FormLabel>
-                    <FormDescription>
-                      These are patterns of thinking that can reinforce negative thoughts and emotions.
-                    </FormDescription>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {cognitiveDistortions.map((distortion) => (
-                      <FormItem
-                        key={distortion.value}
-                        className="flex flex-row items-start space-x-3 space-y-0"
-                      >
-                        <FormControl>
-                          <Checkbox
-                            checked={form.getValues("cognitiveDistortions")?.includes(distortion.value)}
-                            onCheckedChange={(checked) => {
-                              const current = form.getValues("cognitiveDistortions") || [];
-                              const updated = checked
-                                ? [...current, distortion.value]
-                                : current.filter((value) => value !== distortion.value);
-                              form.setValue("cognitiveDistortions", updated);
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          {distortion.label}
-                        </FormLabel>
-                      </FormItem>
-                    ))}
-                  </div>
-                </FormItem>
-              )}
+              render={() => {
+                const [selectedDistortion, setSelectedDistortion] = useState<string | null>(null);
+                
+                return (
+                  <FormItem className="space-y-4">
+                    <div className="mb-2">
+                      <FormLabel className="text-lg">Identify any cognitive distortions in your thinking:</FormLabel>
+                      <FormDescription>
+                        These are patterns of thinking that can reinforce negative thoughts and emotions.
+                        Select any that apply to your situation.
+                      </FormDescription>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {cognitiveDistortions.map((distortion) => {
+                        const isChecked = form.getValues("cognitiveDistortions")?.includes(distortion.value);
+                        return (
+                          <FormItem
+                            key={distortion.value}
+                            className="flex flex-row items-start space-x-3 space-y-0"
+                          >
+                            <FormControl>
+                              <Checkbox
+                                checked={isChecked}
+                                onCheckedChange={(checked) => {
+                                  const current = form.getValues("cognitiveDistortions") || [];
+                                  const updated = checked
+                                    ? [...current, distortion.value]
+                                    : current.filter((value) => value !== distortion.value);
+                                  form.setValue("cognitiveDistortions", updated);
+                                  
+                                  // Set the selected distortion for the info panel
+                                  if (checked) {
+                                    setSelectedDistortion(distortion.value);
+                                  } else if (selectedDistortion === distortion.value) {
+                                    setSelectedDistortion(null);
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                            <div className="space-y-1">
+                              <FormLabel 
+                                className={`font-medium cursor-pointer ${isChecked ? "text-primary" : ""}`}
+                                onClick={() => setSelectedDistortion(selectedDistortion === distortion.value ? null : distortion.value)}
+                              >
+                                {distortion.label}
+                              </FormLabel>
+                            </div>
+                          </FormItem>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Distortion Information Panel */}
+                    {selectedDistortion && (
+                      <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-muted-foreground/20">
+                        {cognitiveDistortions.filter(d => d.value === selectedDistortion).map((distortion) => (
+                          <div key={distortion.value} className="space-y-2">
+                            <h4 className="font-semibold text-primary">{distortion.label}</h4>
+                            <p className="text-sm">{distortion.description}</p>
+                            <div className="bg-muted/70 p-3 rounded-md mt-2">
+                              <p className="text-sm font-medium">Example:</p>
+                              <p className="text-sm italic">"{distortion.example}"</p>
+                            </div>
+                            <div className="bg-primary/10 p-3 rounded-md mt-2">
+                              <p className="text-sm font-medium text-primary">How to reframe:</p>
+                              <p className="text-sm">{distortion.reframe}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </FormItem>
+                );
+              }}
             />
           </div>
         );
