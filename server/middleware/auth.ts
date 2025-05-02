@@ -92,6 +92,12 @@ export function checkResourceCreationPermission(req: Request, res: Response, nex
     return next();
   }
   
+  // Admin can create resources for anyone - check this FIRST
+  if (req.user?.role === 'admin') {
+    console.log('Admin creating resource for user', requestedUserId, '- ALLOWED');
+    return next();
+  }
+  
   // If therapist is creating a resource for their client - allow
   if (req.user?.role === 'therapist') {
     // Import storage at top of file
@@ -99,22 +105,17 @@ export function checkResourceCreationPermission(req: Request, res: Response, nex
     
     // Verify the requested user is their client
     storage.getUser(requestedUserId)
-      .then(client => {
+      .then((client: any) => {
         if (client && client.therapistId === req.user.id) {
           return next();
         }
         res.status(403).json({ message: 'Access denied. You can only create resources for your own clients.' });
       })
-      .catch(error => {
+      .catch((error: Error) => {
         console.error('Resource creation permission check error:', error);
         res.status(500).json({ message: 'Internal server error' });
       });
     return;
-  }
-  
-  // Admin can create resources for anyone
-  if (req.user?.role === 'admin') {
-    return next();
   }
   
   // Otherwise deny
@@ -132,12 +133,18 @@ export function checkUserAccess(req: Request, res: Response, next: NextFunction)
     return next();
   }
   
-  // If it's a therapist accessing their client's data
+  // Admin can access all data - check this FIRST to ensure admins always have access
+  if (req.user?.role === 'admin') {
+    console.log('User is an admin, access ALLOWED for all users');
+    return next();
+  }
+  
+  // If it's a therapist accessing a client's data
   if (req.user?.role === 'therapist') {
     console.log('User is a therapist, checking if they are accessing their client');
     // Fetch the client to check if they belong to this therapist
     storage.getUser(requestedUserId)
-      .then(client => {
+      .then((client: any) => {
         console.log(`Client ${requestedUserId} lookup result:`, client ? `Found: therapistId = ${client.therapistId}` : 'Not found');
         if (client && client.therapistId === req.user.id) {
           console.log('This client belongs to the therapist - ALLOWED');
@@ -146,17 +153,11 @@ export function checkUserAccess(req: Request, res: Response, next: NextFunction)
         console.log('This client does not belong to the therapist - DENIED');
         res.status(403).json({ message: 'Access denied. Not your client.' });
       })
-      .catch(error => {
+      .catch((error: Error) => {
         console.error('Check user access error:', error);
         res.status(500).json({ message: 'Internal server error' });
       });
     return;
-  }
-  
-  // Admin can access all data
-  if (req.user?.role === 'admin') {
-    console.log('User is an admin, access ALLOWED');
-    return next();
   }
   
   console.log('Access DENIED - User has no permission');
