@@ -1150,6 +1150,62 @@ export default function ResourceLibrary() {
                 </CardFooter>
               </Card>
             </div>
+            
+            {/* Connect with Therapist / Support Section */}
+            <div className="mt-10 border-t pt-8">
+              <div className="bg-blue-50 rounded-xl p-6 shadow-sm">
+                <div className="flex flex-col md:flex-row md:items-center gap-6">
+                  <div className="md:flex-1">
+                    <h3 className="text-xl font-semibold text-blue-800 mb-2">Need additional support?</h3>
+                    <p className="text-blue-700 mb-4">
+                      We're here to help you understand and apply these resources. Connect with a therapist for personalized guidance or join a community discussion.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {user?.role === "client" && (
+                        <Button className="bg-blue-600 hover:bg-blue-700">
+                          <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                          </svg>
+                          Message Therapist
+                        </Button>
+                      )}
+                      
+                      <Button variant={user?.role === "client" ? "outline" : "default"} className={user?.role !== "client" ? "bg-blue-600 hover:bg-blue-700" : ""}>
+                        <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                        </svg>
+                        Join Community Discussion
+                      </Button>
+                      
+                      <Button variant="outline">
+                        <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                        </svg>
+                        Browse Resource Guides
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="hidden md:block border-l border-blue-200 h-24"></div>
+                  
+                  <div className="bg-white p-4 rounded-lg shadow-sm md:w-72">
+                    <h4 className="font-medium text-blue-800 mb-2">Weekly Support Group</h4>
+                    <p className="text-sm text-blue-600 mb-3">
+                      Join our therapist-led group sessions to discuss these resources with others.
+                    </p>
+                    <div className="flex items-center text-sm text-blue-800">
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                      </svg>
+                      Thursdays, 7:00 PM
+                    </div>
+                    <Button size="sm" className="w-full mt-3 bg-blue-600 hover:bg-blue-700">
+                      Register
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </TabsContent>
           
           {/* Client Assignments Tab (Only for therapists) */}
