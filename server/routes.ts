@@ -200,6 +200,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Set the current viewing client for a therapist
+  app.post("/api/users/current-viewing-client", authenticate, isTherapist, async (req, res) => {
+    try {
+      const { clientId } = req.body;
+      console.log(`Setting current viewing client for therapist ${req.user.id} to client ${clientId}`);
+      
+      if (clientId === null) {
+        // Clear the currently viewing client
+        const updatedUser = await storage.updateCurrentViewingClient(req.user.id, null);
+        const { password, ...userWithoutPassword } = updatedUser;
+        return res.json({ success: true, user: userWithoutPassword });
+      }
+      
+      // Verify that the client belongs to this therapist
+      const clients = await storage.getClients(req.user.id);
+      const clientExists = clients.some(client => client.id === clientId);
+      
+      if (!clientExists) {
+        return res.status(403).json({ 
+          error: "Not authorized to view this client" 
+        });
+      }
+      
+      // Update the viewing client in the database
+      const updatedUser = await storage.updateCurrentViewingClient(req.user.id, clientId);
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.json({ 
+        success: true, 
+        user: userWithoutPassword 
+      });
+    } catch (error) {
+      console.error("Error setting viewing client:", error);
+      res.status(500).json({ error: "Failed to update viewing client" });
+    }
+  });
+  
+  // Get the currently viewing client for a therapist
+  app.get("/api/users/current-viewing-client", authenticate, isTherapist, async (req, res) => {
+    try {
+      console.log(`Getting current viewing client for therapist ${req.user.id}`);
+      
+      const clientId = await storage.getCurrentViewingClient(req.user.id);
+      
+      if (!clientId) {
+        return res.json({ viewingClient: null });
+      }
+      
+      // Get the client details
+      const client = await storage.getUser(clientId);
+      
+      if (!client) {
+        return res.json({ viewingClient: null });
+      }
+      
+      res.json({ 
+        viewingClient: {
+          id: client.id,
+          name: client.name,
+          username: client.username
+        } 
+      });
+    } catch (error) {
+      console.error("Error getting viewing client:", error);
+      res.status(500).json({ error: "Failed to get viewing client" });
+    }
+  });
+  
   // Client invitation endpoint
   app.post("/api/users/invite-client", authenticate, isTherapist, async (req, res) => {
     try {

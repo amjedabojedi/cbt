@@ -34,6 +34,28 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Fetch the current viewing client from the database
+  useEffect(() => {
+    if (user?.role === "therapist") {
+      const fetchCurrentViewingClient = async () => {
+        try {
+          const response = await apiRequest("GET", "/api/users/current-viewing-client");
+          const data = await response.json();
+          
+          if (data.viewingClient) {
+            // Set the viewing client in context
+            setViewingClient(data.viewingClient.id, data.viewingClient.name);
+            console.log("Loaded viewing client from database:", data.viewingClient);
+          }
+        } catch (error) {
+          console.error("Error fetching current viewing client:", error);
+        }
+      };
+      
+      fetchCurrentViewingClient();
+    }
+  }, [user, setViewingClient]);
+  
   // Fetch clients if user is a therapist
   useEffect(() => {
     if (user?.role === "therapist") {
@@ -60,52 +82,78 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
   }, [user, toast]);
 
   // Handle client selection
-  const handleClientSelect = (clientId: number, clientName: string) => {
+  const handleClientSelect = async (clientId: number, clientName: string) => {
     console.log("Selecting client:", clientId, clientName);
     
-    // Store the selected client ID and name in localStorage for persistence
-    localStorage.setItem('viewingClientId', clientId.toString());
-    localStorage.setItem('viewingClientName', clientName);
-    
-    // Update the client context
-    setViewingClient(clientId, clientName);
-    
-    if (onClientChange) {
-      onClientChange(clientId);
+    try {
+      // First update the viewing client in the database
+      const response = await apiRequest("POST", "/api/users/current-viewing-client", { clientId });
+      const result = await response.json();
+      
+      console.log("Database updated with current viewing client:", result);
+      
+      // Update the client context (client-side)
+      setViewingClient(clientId, clientName);
+      
+      if (onClientChange) {
+        onClientChange(clientId);
+      }
+      
+      // Show toast to confirm client selection
+      toast({
+        title: "Client Selected",
+        description: `You are now viewing ${clientName}'s data`,
+      });
+      
+      // Force a reload to refresh all queries with the new client
+      window.location.reload();
+    } catch (error) {
+      console.error("Error setting current viewing client:", error);
+      toast({
+        title: "Error",
+        description: "Failed to select client",
+        variant: "destructive",
+      });
     }
-    
-    // Show toast to confirm client selection
-    toast({
-      title: "Client Selected",
-      description: `You are now viewing ${clientName}'s data`,
-    });
-    
-    // Force a reload to refresh all queries with the new client
-    window.location.reload();
   };
 
   // Handle returning to own view
-  const handleReturnToSelf = () => {
+  const handleReturnToSelf = async () => {
     console.log("Returning to self view");
     
-    // Clear localStorage
-    localStorage.removeItem('viewingClientId');
-    localStorage.removeItem('viewingClientName');
-    
-    // Update context
-    setViewingClient(null, null);
-    
-    if (onClientChange) {
-      onClientChange(null);
+    try {
+      // Update viewing client to null in the database
+      const response = await apiRequest("POST", "/api/users/current-viewing-client", { clientId: null });
+      const result = await response.json();
+      
+      console.log("Database updated, cleared current viewing client:", result);
+      
+      // Clear localStorage (legacy support)
+      localStorage.removeItem('viewingClientId');
+      localStorage.removeItem('viewingClientName');
+      
+      // Update context
+      setViewingClient(null, null);
+      
+      if (onClientChange) {
+        onClientChange(null);
+      }
+      
+      toast({
+        title: "Returned to Self", 
+        description: "You are now viewing your own dashboard",
+      });
+      
+      // Force a reload to refresh all queries
+      window.location.reload();
+    } catch (error) {
+      console.error("Error clearing current viewing client:", error);
+      toast({
+        title: "Error",
+        description: "Failed to return to your dashboard",
+        variant: "destructive",
+      });
     }
-    
-    toast({
-      title: "Returned to Self", 
-      description: "You are now viewing your own dashboard",
-    });
-    
-    // Force a reload to refresh all queries
-    window.location.reload();
   };
 
   // Don't render anything if user is not logged in
