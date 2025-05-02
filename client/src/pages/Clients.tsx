@@ -67,7 +67,7 @@ export default function Clients() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { setViewingClient } = useClientContext();
+  const { viewingClientId, setViewingClient } = useClientContext();
   const [isInviting, setIsInviting] = useState(false);
   const [selectedClient, setSelectedClient] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState("all");
@@ -234,9 +234,43 @@ export default function Clients() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-neutral-800">My Clients</h1>
-            <p className="text-neutral-500">
-              Manage your client relationships and progress
-            </p>
+            <div className="flex items-center">
+              <p className="text-neutral-500 mr-2">
+                Manage your client relationships and progress
+              </p>
+              {viewingClientId && (
+                <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700 flex items-center gap-1">
+                  Viewing client data
+                  <button 
+                    onClick={() => {
+                      setViewingClient(null, null);
+                      localStorage.removeItem('viewingClientId');
+                      localStorage.removeItem('viewingClientName');
+                      toast({
+                        title: "Client view cleared",
+                        description: "You're no longer viewing any client's data."
+                      });
+                    }} 
+                    className="ml-1 rounded-full hover:bg-blue-100 p-0.5"
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                </Badge>
+              )}
+            </div>
           </div>
           
           <Dialog open={isInviting} onOpenChange={setIsInviting}>
@@ -369,9 +403,14 @@ export default function Clients() {
                     </TableHeader>
                     <TableBody>
                       {filteredClients?.map((client: User) => (
-                        <TableRow key={client.id}>
+                        <TableRow key={client.id} className={viewingClientId === client.id ? "bg-blue-50" : ""}>
                           <TableCell>
-                            <div className="font-medium">{client.name}</div>
+                            <div className="flex items-center">
+                              {viewingClientId === client.id && (
+                                <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2" title="Currently viewing this client"></span>
+                              )}
+                              <div className="font-medium">{client.name}</div>
+                            </div>
                           </TableCell>
                           <TableCell>
                             {client.email}
@@ -480,6 +519,9 @@ export default function Clients() {
             <DialogContent className="max-w-3xl">
               <DialogHeader>
                 <DialogTitle>Client Profile</DialogTitle>
+                <DialogDescription>
+                  Viewing details for {selectedClient.name} <span className="text-blue-500">({selectedClient.email})</span>
+                </DialogDescription>
               </DialogHeader>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -491,7 +533,31 @@ export default function Clients() {
                     <h2 className="text-xl font-bold">{selectedClient.name}</h2>
                     <p className="text-neutral-500">{selectedClient.email}</p>
                     
-                    <div className="mt-6 space-y-2 w-full">
+                    {viewingClientId === selectedClient.id ? (
+                      <Badge className="mt-2 bg-blue-100 text-blue-800 border-0">
+                        Currently Viewing
+                      </Badge>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2"
+                        onClick={() => {
+                          setViewingClient(selectedClient.id, selectedClient.name || selectedClient.username);
+                          localStorage.setItem('viewingClientId', selectedClient.id.toString());
+                          localStorage.setItem('viewingClientName', selectedClient.name || selectedClient.username);
+                          toast({
+                            title: "Client Selected",
+                            description: `Now viewing ${selectedClient.name}'s data.`
+                          });
+                        }}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Set as Active Client
+                      </Button>
+                    )}
+                    
+                    <div className="mt-4 space-y-2 w-full">
                       <Button className="w-full">
                         <Send className="h-4 w-4 mr-2" />
                         Send Message
@@ -581,20 +647,90 @@ export default function Clients() {
                     
                     <TabsContent value="records" className="mt-4">
                       <Card>
-                        <CardContent className="pt-6">
-                          <p className="text-center text-neutral-500">
-                            Client records would appear here
-                          </p>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-base">Emotion Records</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <Button 
+                              onClick={() => handleViewRecords(selectedClient)}
+                              className="w-full"
+                            >
+                              <FileText className="mr-2 h-4 w-4" />
+                              View Full Records
+                            </Button>
+                            <div className="space-y-3">
+                              <div className="flex items-start bg-blue-50 p-3 rounded-md">
+                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 mt-0.5">
+                                  <Heart className="h-4 w-4" />
+                                </div>
+                                <div>
+                                  <p className="font-medium">Anxious <span className="text-blue-600">(7/10)</span></p>
+                                  <p className="text-sm text-neutral-500">2 hours ago</p>
+                                  <p className="text-sm mt-1">Feeling worried about upcoming presentation</p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-start bg-green-50 p-3 rounded-md">
+                                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3 mt-0.5">
+                                  <Heart className="h-4 w-4" />
+                                </div>
+                                <div>
+                                  <p className="font-medium">Content <span className="text-green-600">(6/10)</span></p>
+                                  <p className="text-sm text-neutral-500">Yesterday, 10:23 AM</p>
+                                  <p className="text-sm mt-1">Morning meditation helped with stress</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </CardContent>
                       </Card>
                     </TabsContent>
                     
                     <TabsContent value="goals" className="mt-4">
                       <Card>
-                        <CardContent className="pt-6">
-                          <p className="text-center text-neutral-500">
-                            Client goals would appear here
-                          </p>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-base">Current Goals</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <Button 
+                              onClick={() => handleViewGoals(selectedClient)}
+                              className="w-full"
+                            >
+                              <Flag className="mr-2 h-4 w-4" />
+                              View All Goals
+                            </Button>
+                            <div className="space-y-3">
+                              <div className="border rounded-md p-3">
+                                <div className="flex justify-between items-center mb-2">
+                                  <h4 className="font-medium">Morning Meditation</h4>
+                                  <Badge className="bg-green-100 text-green-800 border-0">In Progress</Badge>
+                                </div>
+                                <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden mb-2">
+                                  <div 
+                                    className="h-full bg-primary rounded-full" 
+                                    style={{ width: '60%' }} 
+                                  ></div>
+                                </div>
+                                <p className="text-sm text-neutral-500">3 of 5 milestones completed</p>
+                              </div>
+                              
+                              <div className="border rounded-md p-3">
+                                <div className="flex justify-between items-center mb-2">
+                                  <h4 className="font-medium">Weekly Exercise Routine</h4>
+                                  <Badge className="bg-blue-100 text-blue-800 border-0">New</Badge>
+                                </div>
+                                <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden mb-2">
+                                  <div 
+                                    className="h-full bg-primary rounded-full" 
+                                    style={{ width: '20%' }} 
+                                  ></div>
+                                </div>
+                                <p className="text-sm text-neutral-500">1 of 5 milestones completed</p>
+                              </div>
+                            </div>
+                          </div>
                         </CardContent>
                       </Card>
                     </TabsContent>
