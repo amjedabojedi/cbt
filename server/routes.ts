@@ -809,15 +809,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users/:userId/goals", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
+      console.log("Creating goal with data:", JSON.stringify(req.body));
+      
+      // Convert deadline to ISO string if it's a valid date string
+      let updatedBody = { ...req.body };
+      if (updatedBody.deadline && typeof updatedBody.deadline === 'string') {
+        try {
+          // Ensure deadline includes time component for PostgreSQL
+          if (updatedBody.deadline.length === 10) { // YYYY-MM-DD format
+            updatedBody.deadline = new Date(updatedBody.deadline + 'T00:00:00Z').toISOString();
+          } else {
+            // Try to parse as is
+            updatedBody.deadline = new Date(updatedBody.deadline).toISOString();
+          }
+        } catch (dateError) {
+          console.error("Date conversion error:", dateError);
+          // If date parsing fails, set to null
+          updatedBody.deadline = null;
+        }
+      }
+      
       const validatedData = insertGoalSchema.parse({
-        ...req.body,
+        ...updatedBody,
         userId
       });
       
+      console.log("Validated goal data:", JSON.stringify(validatedData));
       const goal = await storage.createGoal(validatedData);
       res.status(201).json(goal);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Goal validation error:", JSON.stringify(error.errors));
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
       console.error("Create goal error:", error);
