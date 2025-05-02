@@ -21,6 +21,14 @@ const Reports = lazy(() => import("@/pages/Reports"));
 const Clients = lazy(() => import("@/pages/Clients"));
 const Settings = lazy(() => import("@/pages/Settings"));
 
+// Admin pages
+const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
+const UserManagement = lazy(() => import("@/pages/UserManagement"));
+
+// Import the ProtectedRoute component
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useAuth } from "@/lib/auth";
+
 function LoadingFallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -29,8 +37,16 @@ function LoadingFallback() {
   );
 }
 
-// Import the ProtectedRoute component
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+// Role-based dashboard component selector
+const RoleDashboard = () => {
+  const { user } = useAuth();
+  
+  if (user?.role === "admin") {
+    return <AdminDashboard />;
+  }
+  
+  return <Dashboard />;
+};
 
 function Router() {
   return (
@@ -41,7 +57,7 @@ function Router() {
         <Route path="/register" component={Register} />
         
         {/* Protected routes - require authentication */}
-        <ProtectedRoute path="/dashboard" component={Dashboard} />
+        <ProtectedRoute path="/dashboard" component={RoleDashboard} />
         <ProtectedRoute path="/emotion-tracking" component={EmotionTracking} />
         <ProtectedRoute path="/emotions" component={EmotionTracking} />
         <ProtectedRoute path="/thoughts" component={ThoughtRecords} />
@@ -56,10 +72,17 @@ function Router() {
           allowedRoles={["therapist", "admin"]} 
         />
         
+        {/* Admin-only routes */}
+        <ProtectedRoute 
+          path="/users" 
+          component={UserManagement} 
+          allowedRoles={["admin"]} 
+        />
+        
         {/* General routes */}
         <ProtectedRoute path="/settings" component={Settings} />
         <Route path="/:rest*" component={NotFound} />
-        <ProtectedRoute path="/" component={Dashboard} />
+        <ProtectedRoute path="/" component={RoleDashboard} />
       </Switch>
     </Suspense>
   );

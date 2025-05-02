@@ -22,15 +22,37 @@ export default function Sidebar() {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   
   // Define navigation items based on user role
-  const navItems = [
-    { href: "/", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-    user?.role === "therapist" ? { href: "/clients", label: "Clients", icon: <Users size={20} /> } : null,
-    { href: "/emotions", label: "Emotion Tracking", icon: <Heart size={20} /> },
-    { href: "/thoughts", label: "Thought Records", icon: <Brain size={20} /> },
-    { href: "/goals", label: "SMART Goals", icon: <Flag size={20} /> },
-    { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
-    { href: "/reports", label: "Reports", icon: <BarChart size={20} /> },
-  ].filter(Boolean); // Filter out null items
+  let navItems = [];
+  
+  // Admin navigation
+  if (user?.role === "admin") {
+    navItems = [
+      { href: "/", label: "Admin Dashboard", icon: <LayoutDashboard size={20} /> },
+      { href: "/users", label: "User Management", icon: <Users size={20} /> },
+      { href: "/reports", label: "System Reports", icon: <BarChart size={20} /> },
+      { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
+    ];
+  } 
+  // Therapist navigation
+  else if (user?.role === "therapist") {
+    navItems = [
+      { href: "/", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { href: "/clients", label: "My Clients", icon: <Users size={20} /> },
+      { href: "/reports", label: "Client Reports", icon: <BarChart size={20} /> },
+      { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
+    ];
+  }
+  // Client navigation
+  else {
+    navItems = [
+      { href: "/", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { href: "/emotions", label: "Emotion Tracking", icon: <Heart size={20} /> },
+      { href: "/thoughts", label: "Thought Records", icon: <Brain size={20} /> },
+      { href: "/goals", label: "SMART Goals", icon: <Flag size={20} /> },
+      { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
+      { href: "/reports", label: "My Progress", icon: <BarChart size={20} /> },
+    ];
+  }
 
   return (
     <>
