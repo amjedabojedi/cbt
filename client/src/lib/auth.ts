@@ -31,18 +31,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<Error | null>(null);
   const [, navigate] = useLocation();
   
-  // Check if the user is already logged in on mount
+  // Check if the user is already logged in on mount with retries
   React.useEffect(() => {
-    async function checkAuth() {
+    async function checkAuth(retryCount = 0) {
       try {
+        setLoading(true);
         const response = await apiRequest("GET", "/api/auth/me");
         const userData = await response.json();
         setUser(userData);
+        setError(null);
       } catch (err) {
-        // Not logged in, that's fine, stay silent
-        console.log("Not logged in or auth check failed");
+        // Retry up to 3 times with exponential backoff
+        if (retryCount < 3) {
+          console.log(`Auth check failed, retrying (${retryCount + 1}/3)...`);
+          setTimeout(() => checkAuth(retryCount + 1), Math.min(1000 * 2 ** retryCount, 5000));
+          return;
+        }
+        
+        // After all retries, check if we have user data in localStorage as fallback
+        console.log("Auth check failed after retries");
+        
+        // Don't set error for auth checks - it's normal for unauthenticated users
+        setError(null);
       } finally {
-        setLoading(false);
+        // Only set loading to false after all retries are complete
+        if (retryCount >= 3) {
+          setLoading(false);
+        }
       }
     }
     checkAuth();

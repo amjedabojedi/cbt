@@ -139,10 +139,13 @@ export default function Clients() {
     );
   }
   
-  // Fetch clients
+  // Fetch clients with retry on failure
   const { data: clients, isLoading, error } = useQuery<User[]>({
     queryKey: [`/api/users/clients`],
     enabled: !!user && user.role === "therapist",
+    retry: 3, // Retry failed requests 3 times
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    staleTime: 60000, // Data stays fresh for 1 minute
   });
   
   // Debug logging to check client data
