@@ -24,6 +24,7 @@ const Settings = lazy(() => import("@/pages/Settings"));
 // Admin pages
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const UserManagement = lazy(() => import("@/pages/UserManagement"));
+const SubscriptionManagement = lazy(() => import("@/pages/SubscriptionManagement"));
 
 // Import the ProtectedRoute component
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -76,6 +77,11 @@ function Router() {
         <ProtectedRoute 
           path="/users" 
           component={UserManagement} 
+          allowedRoles={["admin"]} 
+        />
+        <ProtectedRoute 
+          path="/subscriptions" 
+          component={SubscriptionManagement} 
           allowedRoles={["admin"]} 
         />
         
