@@ -25,6 +25,8 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getClients(therapistId: number): Promise<User[]>;
   getAllUsers(): Promise<User[]>;
+  updateCurrentViewingClient(userId: number, clientId: number | null): Promise<User>;
+  getCurrentViewingClient(userId: number): Promise<number | null>;
   
   // Session management
   createSession(userId: number): Promise<Session>;
@@ -125,6 +127,26 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(users)
       .orderBy(users.name);
+  }
+  
+  async updateCurrentViewingClient(userId: number, clientId: number | null): Promise<User> {
+    console.log(`Storing current viewing client: User ${userId} is viewing client ${clientId}`);
+    
+    const [updatedUser] = await db
+      .update(users)
+      .set({ currentViewingClientId: clientId })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser;
+  }
+  
+  async getCurrentViewingClient(userId: number): Promise<number | null> {
+    const user = await this.getUser(userId);
+    
+    console.log(`Retrieved current viewing client for user ${userId}:`, user?.currentViewingClientId);
+    
+    return user?.currentViewingClientId || null;
   }
 
   // Session management

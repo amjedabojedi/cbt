@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   role: text("role", { enum: ["client", "therapist", "admin"] }).notNull().default("client"),
   therapistId: integer("therapist_id").references(() => users.id),
+  currentViewingClientId: integer("current_viewing_client_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
