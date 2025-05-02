@@ -6,12 +6,15 @@ import { useAuth } from "@/lib/auth";
  * 
  * When a therapist is viewing a client's data, returns the client's ID.
  * Otherwise returns the current user's ID.
+ * 
+ * Prioritizes the ClientContext (which is loaded from the database)
+ * but falls back to localStorage for backward compatibility.
  */
 export default function useActiveUser() {
   const { user } = useAuth();
-  const { viewingClientId } = useClientContext();
+  const { viewingClientId, loading } = useClientContext();
   
-  // Read directly from localStorage for more reliable client tracking
+  // Read from localStorage as fallback for backward compatibility
   const storedClientId = localStorage.getItem('viewingClientId');
   const storedClientName = localStorage.getItem('viewingClientName');
   
