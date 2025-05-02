@@ -11,15 +11,22 @@ export default function useActiveUser() {
   const { user } = useAuth();
   const { viewingClientId } = useClientContext();
   
+  // Read directly from localStorage for more reliable client tracking
+  const storedClientId = localStorage.getItem('viewingClientId');
+  const storedClientName = localStorage.getItem('viewingClientName');
+  
   // Add some debug logging
   console.log("useActiveUser - Current auth user:", user?.id, user?.username, user?.role);
   console.log("useActiveUser - viewingClientId from context:", viewingClientId);
+  console.log("useActiveUser - viewingClientId from localStorage:", storedClientId);
   
-  // Active ID is either the client being viewed (for therapists) or the current user
-  const activeUserId = viewingClientId || user?.id;
+  // Use client ID from context or localStorage, falling back to current user ID
+  // This ensures we don't lose the client selection after page refreshes
+  const storedClientIdNumber = storedClientId ? parseInt(storedClientId) : null;
+  const activeUserId = viewingClientId || storedClientIdNumber || user?.id;
   
   // Is the therapist viewing a client's data
-  const isViewingClientData = Boolean(viewingClientId);
+  const isViewingClientData = Boolean(viewingClientId || storedClientIdNumber);
   
   // Is the current user a therapist and can switch views
   const canSwitchUser = user?.role === "therapist" || user?.role === "admin";
@@ -27,8 +34,20 @@ export default function useActiveUser() {
   // Get the appropriate pathPrefix for API calls
   const getPathPrefix = () => {
     if (!activeUserId) return null;
-    const prefix = `/api/users/${activeUserId}`;
-    console.log("useActiveUser - API path prefix:", prefix);
+    
+    // If viewing a client, use the client ID; otherwise use the authenticated user ID
+    let targetUserId = activeUserId;
+    
+    // Debug the actual ID being used
+    if (viewingClientId) {
+      console.log("useActiveUser - Using client ID for API calls:", viewingClientId);
+    } else {
+      console.log("useActiveUser - Using own ID for API calls:", user?.id);
+    }
+    
+    const prefix = `/api/users/${targetUserId}`;
+    console.log("useActiveUser - Final API path prefix:", prefix);
+    
     return prefix;
   };
   
