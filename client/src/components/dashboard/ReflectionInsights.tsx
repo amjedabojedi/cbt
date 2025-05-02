@@ -352,8 +352,16 @@ export default function ReflectionInsights() {
             <CardContent>
               {emotionGroups.length > 0 && (
                 <div>
-                  <p className="text-xl font-bold">{emotionGroups[0].coreEmotion}</p>
-                  <p className="text-sm text-muted-foreground">Recorded {emotionGroups[0].count} times</p>
+                  {emotionGroups[0].count >= 3 ? (
+                    <>
+                      <p className="text-xl font-bold">{emotionGroups[0].coreEmotion}</p>
+                      <p className="text-sm text-muted-foreground">Recorded {emotionGroups[0].count} times</p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Not enough data yet. Record more emotions for meaningful patterns.
+                    </p>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -366,10 +374,24 @@ export default function ReflectionInsights() {
             </CardHeader>
             <CardContent>
               {emotionGroups.length > 0 && (
-                <p className="text-2xl font-bold">
-                  {(emotionGroups.reduce((sum, group) => sum + group.improvementRate, 0) / emotionGroups.length).toFixed(1)} 
-                  <span className="text-sm font-normal text-muted-foreground ml-1">points</span>
-                </p>
+                <div>
+                  {reflectionRecords.length >= 5 ? (
+                    <p className="text-2xl font-bold">
+                      {(emotionGroups.reduce((sum, group) => sum + group.improvementRate, 0) / emotionGroups.length).toFixed(1)} 
+                      <span className="text-sm font-normal text-muted-foreground ml-1">points</span>
+                    </p>
+                  ) : (
+                    <div>
+                      <p className="text-xl font-bold text-neutral-500">
+                        {(emotionGroups.reduce((sum, group) => sum + group.improvementRate, 0) / emotionGroups.length).toFixed(1)} 
+                        <span className="text-sm font-normal ml-1">points</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Need {5 - reflectionRecords.length} more reflections for reliable data
+                      </p>
+                    </div>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -392,10 +414,16 @@ export default function ReflectionInsights() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>{group.coreEmotion}</CardTitle>
-                <Badge variant="outline">{group.count} records</Badge>
+                <Badge 
+                  variant={group.count >= 3 ? "outline" : "secondary"}
+                  className={group.count < 3 ? "bg-neutral-100" : ""}
+                >
+                  {group.count} records {group.count < 3 && "(limited data)"}
+                </Badge>
               </div>
               <CardDescription>
                 Average intensity: {group.averageIntensity.toFixed(1)}/10
+                {group.count < 3 && " (preliminary)"}
               </CardDescription>
             </CardHeader>
             <CardContent>
