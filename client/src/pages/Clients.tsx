@@ -123,6 +123,9 @@ export default function Clients() {
     enabled: !!user && user.role === "therapist",
   });
   
+  // Debug logging to check client data
+  console.log("Client data from API:", clients);
+  
   // Invite client mutation (mock - would send email invitation in real app)
   const inviteClientMutation = useMutation({
     mutationFn: async (data: InviteClientFormValues) => {
@@ -167,12 +170,12 @@ export default function Clients() {
   };
   
   // Filter clients based on active tab
-  const filteredClients = clients?.filter(client => {
+  const filteredClients = clients ? clients.filter((client: User) => {
     if (activeTab === "all") return true;
     if (activeTab === "active") return client.status === "active"; // Would need a status field
     if (activeTab === "pending") return client.status === "pending"; // Would need a status field
     return true;
-  });
+  }) : [];
   
   if (isLoading) {
     return (
@@ -377,19 +380,49 @@ export default function Clients() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem className="cursor-pointer" onClick={() => setSelectedClient(client)}>
+                                <DropdownMenuItem 
+                                  className="cursor-pointer" 
+                                  onClick={() => {
+                                    console.log("View Profile clicked for client:", client);
+                                    setSelectedClient(client);
+                                  }}
+                                >
                                   <Eye className="h-4 w-4 mr-2" />
                                   View Profile
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="cursor-pointer">
+                                <DropdownMenuItem 
+                                  className="cursor-pointer"
+                                  onClick={() => {
+                                    console.log("View Records clicked for client:", client);
+                                    // Redirect to records page for this client
+                                    window.location.href = `/emotions?clientId=${client.id}`;
+                                  }}
+                                >
                                   <FileText className="h-4 w-4 mr-2" />
                                   View Records
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="cursor-pointer">
+                                <DropdownMenuItem 
+                                  className="cursor-pointer"
+                                  onClick={() => {
+                                    console.log("View Goals clicked for client:", client);
+                                    // Redirect to goals page for this client
+                                    window.location.href = `/goals?clientId=${client.id}`;
+                                  }}
+                                >
                                   <Flag className="h-4 w-4 mr-2" />
                                   View Goals
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="cursor-pointer">
+                                <DropdownMenuItem 
+                                  className="cursor-pointer"
+                                  onClick={() => {
+                                    console.log("Send Message clicked for client:", client);
+                                    // In a real app, this would open a message composer
+                                    toast({
+                                      title: "Feature Coming Soon",
+                                      description: "Messaging functionality will be available in a future update.",
+                                    });
+                                  }}
+                                >
                                   <Send className="h-4 w-4 mr-2" />
                                   Send Message
                                 </DropdownMenuItem>
