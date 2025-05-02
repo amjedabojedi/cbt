@@ -811,17 +811,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.userId);
       console.log("Creating goal with data:", JSON.stringify(req.body));
       
-      // Convert deadline to ISO string if it's a valid date string
-      let updatedBody = { ...req.body };
+      // Create a new object with all the goal data
+      let updatedBody = { ...req.body, userId };
+      
+      // Convert deadline string to a Date object if it exists
       if (updatedBody.deadline && typeof updatedBody.deadline === 'string') {
         try {
-          // Ensure deadline includes time component for PostgreSQL
-          if (updatedBody.deadline.length === 10) { // YYYY-MM-DD format
-            updatedBody.deadline = new Date(updatedBody.deadline + 'T00:00:00Z').toISOString();
-          } else {
-            // Try to parse as is
-            updatedBody.deadline = new Date(updatedBody.deadline).toISOString();
-          }
+          updatedBody.deadline = new Date(updatedBody.deadline);
         } catch (dateError) {
           console.error("Date conversion error:", dateError);
           // If date parsing fails, set to null
@@ -829,12 +825,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      const validatedData = insertGoalSchema.parse({
-        ...updatedBody,
-        userId
-      });
-      
+      const validatedData = insertGoalSchema.parse(updatedBody);
       console.log("Validated goal data:", JSON.stringify(validatedData));
+      
       const goal = await storage.createGoal(validatedData);
       res.status(201).json(goal);
     } catch (error) {
