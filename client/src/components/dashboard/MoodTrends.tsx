@@ -25,14 +25,68 @@ import {
   TooltipProps,
 } from "recharts";
 
+// Define emotion groups and their properties
+interface EmotionGroup {
+  color: string;
+  emotions: string[];
+  label: string; // Display name for the group
+  valence: 'positive' | 'negative' | 'neutral';
+}
+
+const EMOTION_GROUPS: Record<string, EmotionGroup> = {
+  joy: {
+    color: "#F9D71C", // Yellow
+    emotions: ["Joy", "Happy", "Excited", "Proud", "Content", "Love", "Trust", "Hopeful"],
+    label: "Positive Emotions",
+    valence: 'positive'
+  },
+  sadness: {
+    color: "#6D87C4", // Blue
+    emotions: ["Sadness", "Depressed", "Lonely", "Guilty", "Disappointed", "Hurt"],
+    label: "Sadness",
+    valence: 'negative'
+  },
+  fear: {
+    color: "#8A65AA", // Purple
+    emotions: ["Fear", "Worried", "Anxious", "Scared", "Nervous", "Insecure"],
+    label: "Fear & Anxiety",
+    valence: 'negative'
+  },
+  anger: {
+    color: "#E43D40", // Red
+    emotions: ["Anger", "Frustrated", "Annoyed", "Irritated", "Jealous", "Resentful"],
+    label: "Anger",
+    valence: 'negative'
+  },
+  disgust: {
+    color: "#7DB954", // Green
+    emotions: ["Disgust", "Embarrassed", "Ashamed", "Contempt"],
+    label: "Disgust",
+    valence: 'negative'
+  }
+};
+
 type TimeRange = "week" | "month" | "year";
+
+interface DailyEmotionData {
+  date: Date;
+  formattedDate: string;
+  count: number;
+  emotionIntensities: Record<string, number[]>;
+  [key: string]: any; // For emotion group counts
+}
+
+interface ChartDataPoint {
+  date: string;
+  [key: string]: number | string;
+}
 
 export default function MoodTrends() {
   const { activeUserId, isViewingClientData } = useActiveUser();
   const [timeRange, setTimeRange] = useState<TimeRange>("week");
   
   // Fetch emotion records for the active user (could be client viewed by therapist)
-  const { data: emotions, isLoading, error } = useQuery({
+  const { data: emotions, isLoading, error } = useQuery<EmotionRecord[]>({
     queryKey: activeUserId ? [`/api/users/${activeUserId}/emotions`] : [],
     enabled: !!activeUserId,
   });
@@ -68,16 +122,24 @@ export default function MoodTrends() {
       end: new Date()
     });
     
-    // Initialize data with all dates in range
-    const dataByDate = dateRange.map(date => ({
-      date,
-      formattedDate: format(date, dateFormat),
-      emotionIntensity: 0,
-      count: 0,
-      emotions: {} as Record<string, number>
-    }));
+    // Initialize data with all dates in range and emotion groups
+    const dataByDate: DailyEmotionData[] = dateRange.map(date => {
+      const dataPoint: DailyEmotionData = {
+        date,
+        formattedDate: format(date, dateFormat),
+        count: 0,
+        emotionIntensities: {},
+      };
+      
+      // Add a property for each emotion group with initial value 0
+      Object.keys(EMOTION_GROUPS).forEach((groupKey: string) => {
+        dataPoint[EMOTION_GROUPS[groupKey].label] = 0;
+      });
+      
+      return dataPoint;
+    });
     
-    // Aggregate emotions by date
+    // Aggregate emotions by date and group
     emotions.forEach(emotion => {
       const emotionDate = startOfDay(new Date(emotion.timestamp));
       
@@ -87,39 +149,65 @@ export default function MoodTrends() {
       );
       
       if (dayIndex !== -1) {
-        // Add emotion intensity to the day
-        dataByDate[dayIndex].emotionIntensity += emotion.intensity;
-        dataByDate[dayIndex].count += 1;
+        // Find which emotion group this belongs to
+        let foundGroup = false;
         
-        // Track count by emotion type
-        const emotionType = emotion.coreEmotion;
-        if (!dataByDate[dayIndex].emotions[emotionType]) {
-          dataByDate[dayIndex].emotions[emotionType] = 1;
-        } else {
-          dataByDate[dayIndex].emotions[emotionType] += 1;
+        Object.keys(EMOTION_GROUPS).forEach(groupKey => {
+          const group = EMOTION_GROUPS[groupKey];
+          
+          // Check if the emotion is in this group (core, primary, or tertiary)
+          if (group.emotions.includes(emotion.coreEmotion) || 
+              group.emotions.includes(emotion.primaryEmotion) || 
+              group.emotions.includes(emotion.tertiaryEmotion)) {
+            
+            // If found, increment the count for this group and track intensity
+            dataByDate[dayIndex][group.label] += 1;
+            dataByDate[dayIndex].count += 1;
+            
+            // Track emotion intensity
+            if (!dataByDate[dayIndex].emotionIntensities[group.label]) {
+              dataByDate[dayIndex].emotionIntensities[group.label] = [];
+            }
+            
+            dataByDate[dayIndex].emotionIntensities[group.label].push(emotion.intensity);
+            
+            foundGroup = true;
+          }
+        });
+        
+        // If no group was found, default to using the core emotion
+        if (!foundGroup && emotion.coreEmotion) {
+          // Default fallback - add to count but not to any specific group
+          dataByDate[dayIndex].count += 1;
         }
       }
     });
     
-    // Calculate average intensity and format data for chart
+    // Format data for chart, calculating average intensity by group
     return dataByDate.map(day => {
-      const avgIntensity = day.count > 0 ? day.emotionIntensity / day.count : 0;
-      
-      // Count emotions by core type
-      const joyCount = day.emotions.Joy || 0;
-      const angerCount = day.emotions.Anger || 0;
-      const sadnessCount = day.emotions.Sadness || 0;
-      const fearCount = day.emotions.Fear || 0;
-      
-      return {
+      const result: ChartDataPoint = {
         date: day.formattedDate,
-        "Average Intensity": parseFloat(avgIntensity.toFixed(1)),
-        Joy: joyCount,
-        Anger: angerCount,
-        Sadness: sadnessCount,
-        Fear: fearCount,
-        count: day.count
       };
+      
+      // Calculate average intensity for each emotion group
+      Object.keys(EMOTION_GROUPS).forEach((groupKey: string) => {
+        const group = EMOTION_GROUPS[groupKey];
+        const intensities = day.emotionIntensities[group.label] || [];
+        
+        // Only include groups with data
+        if (day[group.label] > 0) {
+          // Calculate average intensity
+          const sum = intensities.reduce((acc: number, val: number) => acc + val, 0);
+          const avg = intensities.length > 0 ? sum / intensities.length : 0;
+          
+          // Store as group label with average intensity
+          result[group.label] = parseFloat(avg.toFixed(1));
+        } else {
+          result[group.label] = 0;
+        }
+      });
+      
+      return result;
     });
   };
   
@@ -191,7 +279,7 @@ export default function MoodTrends() {
         <div>
           <CardTitle>Mood Trends</CardTitle>
           <CardDescription>
-            Track your emotional patterns over time
+            Track different emotion types separately over time
           </CardDescription>
         </div>
         <Tabs defaultValue="week" value={timeRange} onValueChange={handleTimeRangeChange}>
@@ -215,17 +303,23 @@ export default function MoodTrends() {
                 <YAxis domain={[0, 10]} tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend align="right" verticalAlign="top" wrapperStyle={{ paddingBottom: 10 }} />
-                <Line
-                  type="monotone"
-                  dataKey="Average Intensity"
-                  stroke="#4285F4"
-                  activeDot={{ r: 8 }}
-                  strokeWidth={2}
-                />
-                <Line type="monotone" dataKey="Joy" stroke="#FBBC05" strokeDasharray="3 3" />
-                <Line type="monotone" dataKey="Anger" stroke="#EA4335" strokeDasharray="3 3" />
-                <Line type="monotone" dataKey="Sadness" stroke="#4285F4" strokeDasharray="3 3" />
-                <Line type="monotone" dataKey="Fear" stroke="#34A853" strokeDasharray="3 3" />
+                
+                {/* Render line for each emotion group */}
+                {Object.keys(EMOTION_GROUPS).map(groupKey => {
+                  const group = EMOTION_GROUPS[groupKey];
+                  return (
+                    <Line
+                      key={groupKey}
+                      type="monotone"
+                      dataKey={group.label}
+                      name={group.label}
+                      stroke={group.color}
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  );
+                })}
               </LineChart>
             </ResponsiveContainer>
           ) : (
