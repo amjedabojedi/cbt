@@ -21,7 +21,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Plus, UserPlus, Edit, Trash2 } from "lucide-react";
+import { Loader2, Plus, UserPlus, Edit, Trash2, Users as UsersIcon, UserCheck } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -44,7 +52,8 @@ export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("therapist");
+  const [selectedTherapist, setSelectedTherapist] = useState<User | null>(null);
 
   // Fetch all users when the component mounts
   useEffect(() => {
@@ -110,9 +119,9 @@ export default function UserManagement() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold">User Management</h1>
+            <h1 className="text-2xl font-bold">Therapist Management</h1>
             <p className="text-muted-foreground">
-              Manage all users in the system
+              Manage therapists and their client assignments
             </p>
           </div>
           <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-2">
@@ -137,7 +146,7 @@ export default function UserManagement() {
                 className="w-full md:w-64"
               />
               <Tabs
-                defaultValue="all"
+                defaultValue="therapist"
                 value={activeTab}
                 onValueChange={setActiveTab}
                 className="w-full md:w-auto"
@@ -203,6 +212,16 @@ export default function UserManagement() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
+                            {user.role === "therapist" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="mr-2"
+                                onClick={() => setSelectedTherapist(user)}
+                              >
+                                Manage Clients
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="icon"
@@ -232,6 +251,130 @@ export default function UserManagement() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Therapist Client Management Dialog */}
+      <Dialog 
+        open={!!selectedTherapist}
+        onOpenChange={(open) => !open && setSelectedTherapist(null)}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              Manage Clients for {selectedTherapist?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Assign or remove clients from this therapist
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
+            {/* Available Clients Column */}
+            <div>
+              <h3 className="text-sm font-medium mb-3 flex items-center">
+                <UsersIcon className="h-4 w-4 mr-1" /> 
+                Available Clients
+              </h3>
+              <div className="border rounded-md overflow-hidden">
+                <div className="p-3 bg-secondary/30">
+                  <Input 
+                    placeholder="Search clients..." 
+                    className="text-sm"
+                    // Add search functionality here
+                  />
+                </div>
+                <div className="max-h-72 overflow-y-auto">
+                  {users
+                    .filter(u => u.role === "client" && (!u.therapistId || u.therapistId !== selectedTherapist?.id))
+                    .map(client => (
+                      <div 
+                        key={client.id} 
+                        className="p-3 border-b last:border-0 flex justify-between items-center hover:bg-secondary/20"
+                      >
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary mr-2">
+                            {client.name.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="font-medium">{client.name}</div>
+                            <div className="text-xs text-muted-foreground">{client.email}</div>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            // Assign client to therapist
+                            toast({
+                              title: "Client Assigned",
+                              description: `${client.name} has been assigned to ${selectedTherapist?.name}`,
+                            });
+                          }}
+                        >
+                          Assign
+                        </Button>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Assigned Clients Column */}
+            <div>
+              <h3 className="text-sm font-medium mb-3 flex items-center">
+                <UserCheck className="h-4 w-4 mr-1" /> 
+                Assigned Clients
+              </h3>
+              <div className="border rounded-md overflow-hidden">
+                <div className="max-h-[19.5rem] overflow-y-auto">
+                  {users
+                    .filter(u => u.role === "client" && u.therapistId === selectedTherapist?.id)
+                    .map(client => (
+                      <div 
+                        key={client.id} 
+                        className="p-3 border-b last:border-0 flex justify-between items-center hover:bg-secondary/20"
+                      >
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary mr-2">
+                            {client.name.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="font-medium">{client.name}</div>
+                            <div className="text-xs text-muted-foreground">{client.email}</div>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => {
+                            // Remove client from therapist
+                            toast({
+                              title: "Client Removed",
+                              description: `${client.name} has been removed from ${selectedTherapist?.name}`,
+                            });
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                    {users.filter(u => u.role === "client" && u.therapistId === selectedTherapist?.id).length === 0 && (
+                      <div className="p-8 text-center text-muted-foreground text-sm">
+                        No clients assigned to this therapist
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedTherapist(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

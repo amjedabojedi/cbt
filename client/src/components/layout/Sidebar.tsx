@@ -29,9 +29,8 @@ export default function Sidebar() {
   if (user?.role === "admin") {
     navItems = [
       { href: "/", label: "Admin Dashboard", icon: <LayoutDashboard size={20} /> },
-      { href: "/users", label: "User Management", icon: <Users size={20} /> },
+      { href: "/users", label: "Therapist Management", icon: <Users size={20} /> },
       { href: "/subscriptions", label: "Subscription Plans", icon: <Award size={20} /> },
-      { href: "/reports", label: "System Reports", icon: <BarChart size={20} /> },
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
     ];
   } 
