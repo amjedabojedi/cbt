@@ -72,6 +72,15 @@ export default function Clients() {
   const [selectedClient, setSelectedClient] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   
+  // Invite client form - always initialize regardless of role to avoid hook issues
+  const inviteForm = useForm<InviteClientFormValues>({
+    resolver: zodResolver(inviteClientSchema),
+    defaultValues: {
+      email: "",
+      name: "",
+    },
+  });
+  
   // Helper function to view a client's records
   const handleViewRecords = (client: User) => {
     console.log("View Records clicked for client:", client);
@@ -129,15 +138,6 @@ export default function Clients() {
       </AppLayout>
     );
   }
-  
-  // Invite client form
-  const inviteForm = useForm<InviteClientFormValues>({
-    resolver: zodResolver(inviteClientSchema),
-    defaultValues: {
-      email: "",
-      name: "",
-    },
-  });
   
   // Fetch clients
   const { data: clients, isLoading, error } = useQuery<User[]>({
