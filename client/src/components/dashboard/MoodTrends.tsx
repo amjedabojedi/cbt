@@ -117,21 +117,21 @@ export default function MoodTrends() {
       case "week":
         // Start 7 days ago, but ensure we include today
         startDate = subDays(new Date(), 7);
-        dateFormat = "EEE MMM d"; // Show day of week + month + date
+        dateFormat = "EEE"; // Just weekday (Mon, Tue, etc)
         break;
       case "month":
         // Start 30 days ago, but ensure we include today
         startDate = subDays(new Date(), 30);
-        dateFormat = "MMM d"; // Show month + date
+        dateFormat = "MMM d"; // Month + date (Apr 1, etc)
         break;
       case "year":
         // Start 12 months ago, but ensure we include today
         startDate = subMonths(new Date(), 12);
-        dateFormat = "MMM yyyy"; // Show month + year
+        dateFormat = "MMM"; // Just month name (Jan, Feb, etc)
         break;
       default:
         startDate = subDays(new Date(), 7);
-        dateFormat = "EEE MMM d";
+        dateFormat = "EEE";
     }
     
     // Generate date range
@@ -223,31 +223,83 @@ export default function MoodTrends() {
       }
     });
     
-    // Format data for chart, calculating average intensity by core emotion
-    return dataByDate.map(day => {
-      const result: ChartDataPoint = {
-        date: day.formattedDate,
-      };
+    // For month/year views, group data by month or year
+    if (timeRange === "month" || timeRange === "year") {
+      // Create monthly or yearly buckets for aggregation
+      const groupKey = timeRange === "month" 
+        ? (date: Date) => format(date, 'MMM') // Just month name (Apr, May, etc)
+        : (date: Date) => format(date, 'yyyy'); // Just year (2025, 2026, etc)
       
-      // Always include all core emotions, even if they have no data
-      Object.keys(CORE_EMOTIONS).forEach((emotionKey: string) => {
-        const emotion = CORE_EMOTIONS[emotionKey];
-        const emotionName = emotion.name;
-        const intensities = day.emotionIntensities[emotionName] || [];
-        
-        if (day[emotionName] > 0) {
-          // Calculate average intensity for days that have data
-          const sum = intensities.reduce((acc: number, val: number) => acc + val, 0);
-          const avg = intensities.length > 0 ? sum / intensities.length : 0;
-          result[emotionName] = parseFloat(avg.toFixed(1));
-        } else {
-          // Include all emotion types with 0 value when no data exists
-          result[emotionName] = 0;
+      // Group data points by month or year
+      const groupedData: Record<string, DailyEmotionData[]> = {};
+      
+      dataByDate.forEach(day => {
+        const key = groupKey(day.date);
+        if (!groupedData[key]) {
+          groupedData[key] = [];
         }
+        groupedData[key].push(day);
       });
       
-      return result;
-    });
+      // Aggregate data for each group
+      return Object.keys(groupedData).map(periodKey => {
+        const daysInPeriod = groupedData[periodKey];
+        const result: ChartDataPoint = {
+          date: periodKey,
+        };
+        
+        // Aggregate emotions for this period
+        Object.keys(CORE_EMOTIONS).forEach((emotionKey: string) => {
+          const emotion = CORE_EMOTIONS[emotionKey];
+          const emotionName = emotion.name;
+          
+          // Collect all intensities for this emotion in this period
+          const allIntensities: number[] = [];
+          daysInPeriod.forEach(day => {
+            const dayIntensities = day.emotionIntensities[emotionName] || [];
+            allIntensities.push(...dayIntensities);
+          });
+          
+          if (allIntensities.length > 0) {
+            // Calculate average intensity for the period
+            const sum = allIntensities.reduce((acc, val) => acc + val, 0);
+            const avg = sum / allIntensities.length;
+            result[emotionName] = parseFloat(avg.toFixed(1));
+          } else {
+            // No data for this emotion in this period
+            result[emotionName] = 0;
+          }
+        });
+        
+        return result;
+      });
+    } else {
+      // For weekly view, keep daily data points
+      return dataByDate.map(day => {
+        const result: ChartDataPoint = {
+          date: day.formattedDate,
+        };
+        
+        // Process all core emotions
+        Object.keys(CORE_EMOTIONS).forEach((emotionKey: string) => {
+          const emotion = CORE_EMOTIONS[emotionKey];
+          const emotionName = emotion.name;
+          const intensities = day.emotionIntensities[emotionName] || [];
+          
+          if (day[emotionName] > 0) {
+            // Calculate average intensity for days that have data
+            const sum = intensities.reduce((acc: number, val: number) => acc + val, 0);
+            const avg = intensities.length > 0 ? sum / intensities.length : 0;
+            result[emotionName] = parseFloat(avg.toFixed(1));
+          } else {
+            // Include all emotion types with 0 value when no data exists
+            result[emotionName] = 0;
+          }
+        });
+        
+        return result;
+      });
+    }
   };
   
   // Custom tooltip for the chart
