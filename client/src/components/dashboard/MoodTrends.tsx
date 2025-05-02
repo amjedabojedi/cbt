@@ -140,7 +140,7 @@ export default function MoodTrends() {
     });
     
     // Aggregate emotions by date and group
-    emotions.forEach(emotion => {
+    emotions.forEach((emotion: EmotionRecord) => {
       const emotionDate = startOfDay(new Date(emotion.timestamp));
       
       // Find matching day in our date range
@@ -152,13 +152,13 @@ export default function MoodTrends() {
         // Find which emotion group this belongs to
         let foundGroup = false;
         
-        Object.keys(EMOTION_GROUPS).forEach(groupKey => {
+        Object.keys(EMOTION_GROUPS).forEach((groupKey: string) => {
           const group = EMOTION_GROUPS[groupKey];
           
           // Check if the emotion is in this group (core, primary, or tertiary)
           if (group.emotions.includes(emotion.coreEmotion) || 
-              group.emotions.includes(emotion.primaryEmotion) || 
-              group.emotions.includes(emotion.tertiaryEmotion)) {
+              (emotion.primaryEmotion && group.emotions.includes(emotion.primaryEmotion)) || 
+              (emotion.tertiaryEmotion && group.emotions.includes(emotion.tertiaryEmotion))) {
             
             // If found, increment the count for this group and track intensity
             dataByDate[dayIndex][group.label] += 1;
@@ -241,9 +241,9 @@ export default function MoodTrends() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Weekly Mood Trends</CardTitle>
+          <CardTitle>Mood Trends</CardTitle>
           <CardDescription>
-            Track your emotional patterns over time
+            Track different emotion types separately over time
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -259,7 +259,10 @@ export default function MoodTrends() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Weekly Mood Trends</CardTitle>
+          <CardTitle>Mood Trends</CardTitle>
+          <CardDescription>
+            Track different emotion types separately over time
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-64 flex items-center justify-center">
