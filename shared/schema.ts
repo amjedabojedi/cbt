@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, jsonb, timestamp, boolean, foreignKey, date, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb, timestamp, boolean, foreignKey, date, varchar, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -204,7 +204,13 @@ export const journalEntries = pgTable("journal_entries", {
   mood: integer("mood"), // 1-10 scale
   aiSuggestedTags: jsonb("ai_suggested_tags").$type<string[]>(), // Tags suggested by AI
   selectedTags: jsonb("selected_tags").$type<string[]>(), // Tags selected by the user
+  userSelectedTags: jsonb("user_selected_tags").$type<string[]>(), // Tags explicitly selected by the user
   aiAnalysis: text("ai_analysis"), // AI-generated summary/analysis
+  emotions: jsonb("emotions").$type<string[]>(), // Emotions identified by AI
+  topics: jsonb("topics").$type<string[]>(), // Topics identified by AI
+  sentimentPositive: real("sentiment_positive"), // Positive sentiment score
+  sentimentNegative: real("sentiment_negative"), // Negative sentiment score
+  sentimentNeutral: real("sentiment_neutral"), // Neutral sentiment score
   isPrivate: boolean("is_private").default(false).notNull(), // If true, only visible to the user
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

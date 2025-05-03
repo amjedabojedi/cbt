@@ -2726,7 +2726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the data
       const validatedData = insertJournalCommentSchema.parse({
         ...req.body,
-        userId: user.id,
+        therapistId: user.id,
         journalEntryId: entryId
       });
       
