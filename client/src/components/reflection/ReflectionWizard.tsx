@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { EmotionRecord, ThoughtRecord } from "@shared/schema";
 import useActiveUser from "@/hooks/use-active-user";
 import { HelpCircle, PlusCircle } from "lucide-react";
+import { useLocation } from "wouter";
 
 import {
   Dialog,
@@ -177,6 +178,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   const { user } = useAuth();
   const { isViewingClientData } = useActiveUser();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   
   // Step state
   const [step, setStep] = useState(1);
@@ -1048,11 +1050,17 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
             size="sm"
             className="flex items-center gap-1"
             onClick={() => {
-              // Close the reflection dialog first
+              // Store any reflection insights in sessionStorage to use in goal setting
+              const insights = form.getValues().insightsGained;
+              if (insights) {
+                sessionStorage.setItem('reflection_insights', insights);
+              }
+              
+              // Navigate to goal setting using wouter (doesn't close dialog prematurely)
+              setLocation('/goal-setting');
+              
+              // Close the dialog after navigation
               onClose();
-              // Redirect to goal setting page with insights pre-filled
-              // This could be enhanced with actual navigation and data passing
-              window.location.href = '/goal-setting';
             }}
           >
             <PlusCircle className="h-4 w-4" />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import useActiveUser from "@/hooks/use-active-user";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -85,6 +85,9 @@ export default function GoalSetting() {
   const [selectedGoal, setSelectedGoal] = useState<any>(null);
   const [isAddingMilestone, setIsAddingMilestone] = useState(false);
   
+  // Check if we have insights from a reflection
+  const [reflectionInsights, setReflectionInsights] = useState<string | null>(null);
+  
   // Fetch goals
   const { data: goals = [], isLoading, error } = useQuery<any[]>({
     queryKey: [`${getPathPrefix()}/goals`],
@@ -97,13 +100,33 @@ export default function GoalSetting() {
     enabled: !!selectedGoal,
   });
   
+  // Check for reflection insights in sessionStorage
+  useEffect(() => {
+    // Check if there are reflection insights stored from the reflection wizard
+    const storedInsights = sessionStorage.getItem('reflection_insights');
+    if (storedInsights) {
+      setReflectionInsights(storedInsights);
+      // Automatically open the goal creation dialog if we have insights
+      setIsCreatingGoal(true);
+      // Clear from session storage after using it
+      sessionStorage.removeItem('reflection_insights');
+    }
+  }, []);
+  
+  // Update form field when reflectionInsights changes
+  useEffect(() => {
+    if (reflectionInsights) {
+      goalForm.setValue('measurable', `Based on my reflection: ${reflectionInsights}`);
+    }
+  }, [reflectionInsights, goalForm]);
+  
   // Goal form
   const goalForm = useForm<GoalFormValues>({
     resolver: zodResolver(goalSchema),
     defaultValues: {
       title: "",
       specific: "",
-      measurable: "",
+      measurable: reflectionInsights ? "Based on my reflection: " + reflectionInsights : "",
       achievable: "",
       relevant: "",
       timebound: "",
