@@ -9,6 +9,9 @@ import {
   goals, type Goal, type InsertGoal,
   goalMilestones, type GoalMilestone, type InsertGoalMilestone,
   actions, type Action, type InsertAction,
+  resources, type Resource, type InsertResource,
+  resourceAssignments, type ResourceAssignment, type InsertResourceAssignment,
+  resourceFeedback, type ResourceFeedback, type InsertResourceFeedback,
   sessions, type Session, type InsertSession,
   subscriptionPlans, type SubscriptionPlan, type InsertSubscriptionPlan
 } from "@shared/schema";
@@ -96,6 +99,29 @@ export interface IStorage {
   createAction(action: InsertAction): Promise<Action>;
   getActionsByUser(userId: number): Promise<Action[]>;
   updateActionCompletion(id: number, isCompleted: boolean, moodAfter?: number, reflection?: string): Promise<Action>;
+  
+  // Resources
+  createResource(resource: InsertResource): Promise<Resource>;
+  getResourceById(id: number): Promise<Resource | undefined>;
+  getResourcesByCreator(userId: number): Promise<Resource[]>;
+  getResourcesByCategory(category: string): Promise<Resource[]>;
+  getAllResources(includeUnpublished?: boolean): Promise<Resource[]>;
+  updateResource(id: number, data: Partial<InsertResource>): Promise<Resource>;
+  deleteResource(id: number): Promise<void>;
+  cloneResource(resourceId: number, userId: number): Promise<Resource>;
+  
+  // Resource assignments
+  assignResourceToClient(assignment: InsertResourceAssignment): Promise<ResourceAssignment>;
+  getResourceAssignmentById(id: number): Promise<ResourceAssignment | undefined>;
+  getAssignmentsByClient(clientId: number): Promise<ResourceAssignment[]>;
+  getAssignmentsByTherapist(therapistId: number): Promise<ResourceAssignment[]>;
+  updateAssignmentStatus(id: number, status: string): Promise<ResourceAssignment>;
+  deleteResourceAssignment(id: number): Promise<void>;
+  
+  // Resource feedback
+  createResourceFeedback(feedback: InsertResourceFeedback): Promise<ResourceFeedback>;
+  getResourceFeedbackByResource(resourceId: number): Promise<ResourceFeedback[]>;
+  getResourceFeedbackByUser(userId: number): Promise<ResourceFeedback[]>;
 }
 
 export class DatabaseStorage implements IStorage {

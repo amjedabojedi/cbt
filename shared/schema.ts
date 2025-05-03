@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, jsonb, timestamp, boolean, foreignKey, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb, timestamp, boolean, foreignKey, date, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -154,6 +154,47 @@ export const actions = pgTable("actions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Educational resources library
+export const resources = pgTable("resources", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  content: text("content").notNull(), // Rich text content
+  category: text("category"),
+  tags: jsonb("tags").$type<string[]>(),
+  type: text("type", { enum: ["article", "pdf", "video", "exercise"] }).notNull(),
+  fileUrl: text("file_url"), // For uploaded files
+  thumbnailUrl: text("thumbnail_url"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  parentResourceId: integer("parent_resource_id").references(() => resources.id), // For modified resources
+  isPublished: boolean("is_published").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Resource assignments to clients
+export const resourceAssignments = pgTable("resource_assignments", {
+  id: serial("id").primaryKey(),
+  resourceId: integer("resource_id").notNull().references(() => resources.id),
+  assignedBy: integer("assigned_by").notNull().references(() => users.id), // Therapist
+  assignedTo: integer("assigned_to").notNull().references(() => users.id), // Client
+  isPriority: boolean("is_priority").default(false), // Flag for important resources
+  notes: text("notes"), // Therapist notes for the client
+  status: text("status", { enum: ["assigned", "viewed", "completed"] }).default("assigned").notNull(),
+  assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
+// Resource feedback from clients
+export const resourceFeedback = pgTable("resource_feedback", {
+  id: serial("id").primaryKey(),
+  resourceId: integer("resource_id").notNull().references(() => resources.id),
+  userId: integer("user_id").notNull().references(() => users.id), // Client who provided feedback
+  rating: integer("rating"), // 1-5 star rating
+  feedback: text("feedback"), // Text feedback
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Sessions for users
 export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),
@@ -185,6 +226,9 @@ export const insertCopingStrategyUsageSchema = createInsertSchema(copingStrategy
 export const insertGoalSchema = createInsertSchema(goals).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertGoalMilestoneSchema = createInsertSchema(goalMilestones).omit({ id: true, createdAt: true });
 export const insertActionSchema = createInsertSchema(actions).omit({ id: true, createdAt: true, completedAt: true });
+export const insertResourceSchema = createInsertSchema(resources).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertResourceAssignmentSchema = createInsertSchema(resourceAssignments).omit({ id: true, assignedAt: true, completedAt: true });
+export const insertResourceFeedbackSchema = createInsertSchema(resourceFeedback).omit({ id: true, createdAt: true });
 export const insertSessionSchema = createInsertSchema(sessions);
 
 // Define all the types
@@ -220,6 +264,15 @@ export type InsertGoalMilestone = z.infer<typeof insertGoalMilestoneSchema>;
 
 export type Action = typeof actions.$inferSelect;
 export type InsertAction = z.infer<typeof insertActionSchema>;
+
+export type Resource = typeof resources.$inferSelect;
+export type InsertResource = z.infer<typeof insertResourceSchema>;
+
+export type ResourceAssignment = typeof resourceAssignments.$inferSelect;
+export type InsertResourceAssignment = z.infer<typeof insertResourceAssignmentSchema>;
+
+export type ResourceFeedback = typeof resourceFeedback.$inferSelect;
+export type InsertResourceFeedback = z.infer<typeof insertResourceFeedbackSchema>;
 
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = z.infer<typeof insertSessionSchema>;
