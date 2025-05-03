@@ -128,6 +128,8 @@ export default function Journal() {
   const [activeTab, setActiveTab] = useState<string>("entries");
   const [showThoughtRecordDialog, setShowThoughtRecordDialog] = useState(false);
   const [availableThoughtRecords, setAvailableThoughtRecords] = useState<ThoughtRecord[]>([]);
+  const [relatedThoughtRecords, setRelatedThoughtRecords] = useState<ThoughtRecord[]>([]);
+  const [editingEntryId, setEditingEntryId] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -1015,8 +1017,75 @@ export default function Journal() {
                 </div>
               </div>
               
-              {/* Right side: Tags and emotions */}
-              <div className="space-y-4 p-4 border-l border-border hidden lg:block">
+              {/* Right side: Tags, emotions, and related thought records */}
+              <div className="space-y-6 p-4 border-l border-border hidden lg:block">
+                {/* Related Thought Records Section */}
+                <div>
+                  <h4 className="text-sm font-semibold mb-2 flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <CheckSquare size={16} className="text-emerald-500" />
+                      Related Thought Records
+                    </span>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <InfoIcon size={14} className="text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-[250px] p-4">
+                          <p className="text-xs">
+                            These thought records are connected to this journal entry. Link records to track thoughts and emotions across multiple entries.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </h4>
+                  
+                  <div className="mt-2 space-y-2">
+                    {relatedThoughtRecords.length > 0 ? (
+                      <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2">
+                        {relatedThoughtRecords.map(record => (
+                          <div key={record.id} className="flex items-center justify-between rounded-md border p-2 text-sm">
+                            <div className="flex-1 truncate">
+                              <div className="font-medium text-xs truncate">
+                                {record.automaticThoughts.length > 30 
+                                  ? record.automaticThoughts.substring(0, 30) + "..." 
+                                  : record.automaticThoughts}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {format(new Date(record.createdAt), "MMM d, yyyy")}
+                              </div>
+                            </div>
+                            <div className="flex space-x-2 ml-2">
+                              <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                className="h-6 w-6 rounded-full"
+                                onClick={() => handleUnlinkThoughtRecord(record.id)}
+                              >
+                                <X size={14} />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground italic">
+                        No thought records linked
+                      </p>
+                    )}
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-2 text-xs"
+                      onClick={openThoughtRecordDialog}
+                    >
+                      <Plus size={14} className="mr-1" /> Link Thought Record
+                    </Button>
+                  </div>
+                </div>
+                
                 <div>
                   <h4 className="text-sm font-semibold mb-2 flex items-center justify-between">
                     <span className="flex items-center gap-2">
