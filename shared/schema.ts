@@ -195,6 +195,31 @@ export const resourceFeedback = pgTable("resource_feedback", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Journal entries table
+export const journalEntries = pgTable("journal_entries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  mood: integer("mood"), // 1-10 scale
+  aiSuggestedTags: jsonb("ai_suggested_tags").$type<string[]>(), // Tags suggested by AI
+  selectedTags: jsonb("selected_tags").$type<string[]>(), // Tags selected by the user
+  aiAnalysis: text("ai_analysis"), // AI-generated summary/analysis
+  isPrivate: boolean("is_private").default(false).notNull(), // If true, only visible to the user
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Therapist comments on journal entries
+export const journalComments = pgTable("journal_comments", {
+  id: serial("id").primaryKey(),
+  journalEntryId: integer("journal_entry_id").notNull().references(() => journalEntries.id),
+  therapistId: integer("therapist_id").notNull().references(() => users.id),
+  comment: text("comment").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Sessions for users
 export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),
@@ -229,6 +254,8 @@ export const insertActionSchema = createInsertSchema(actions).omit({ id: true, c
 export const insertResourceSchema = createInsertSchema(resources).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertResourceAssignmentSchema = createInsertSchema(resourceAssignments).omit({ id: true, assignedAt: true, completedAt: true });
 export const insertResourceFeedbackSchema = createInsertSchema(resourceFeedback).omit({ id: true, createdAt: true });
+export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertJournalCommentSchema = createInsertSchema(journalComments).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertSessionSchema = createInsertSchema(sessions);
 
 // Define all the types
