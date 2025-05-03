@@ -1,6 +1,21 @@
-import { pgTable, text, serial, integer, jsonb, timestamp, boolean, foreignKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb, timestamp, boolean, foreignKey, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Subscription plans table
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  price: integer("price").notNull(), // Price in cents
+  interval: text("interval", { enum: ["month", "year"] }).notNull(),
+  features: jsonb("features").notNull().$type<string[]>(),
+  maxClients: integer("max_clients").notNull(), // Maximum number of clients allowed
+  isActive: boolean("is_active").notNull().default(true),
+  isDefault: boolean("is_default").notNull().default(false), // For free/trial plans
+  stripePriceId: text("stripe_price_id"), // Stripe price ID for paid plans
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
 // User table with role (therapist or client)
 export const users = pgTable("users", {
@@ -12,6 +27,14 @@ export const users = pgTable("users", {
   role: text("role", { enum: ["client", "therapist", "admin"] }).notNull().default("client"),
   therapistId: integer("therapist_id").references(() => users.id),
   currentViewingClientId: integer("current_viewing_client_id").references(() => users.id),
+  // Subscription related fields
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  subscriptionPlanId: integer("subscription_plan_id").references(() => subscriptionPlans.id),
+  subscriptionStatus: text("subscription_status", {
+    enum: ["trial", "active", "past_due", "canceled", "unpaid"]
+  }),
+  subscriptionEndDate: date("subscription_end_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -139,6 +162,7 @@ export const sessions = pgTable("sessions", {
 });
 
 // Define all the insert schemas
+export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({ id: true, createdAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 // For emotion records, we need a custom schema to handle the timestamp correctly
 export const insertEmotionRecordSchema = z.object({
@@ -164,6 +188,9 @@ export const insertActionSchema = createInsertSchema(actions).omit({ id: true, c
 export const insertSessionSchema = createInsertSchema(sessions);
 
 // Define all the types
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
