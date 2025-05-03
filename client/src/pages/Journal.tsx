@@ -128,7 +128,6 @@ export default function Journal() {
   const [activeTab, setActiveTab] = useState<string>("entries");
   const [showThoughtRecordDialog, setShowThoughtRecordDialog] = useState(false);
   const [availableThoughtRecords, setAvailableThoughtRecords] = useState<ThoughtRecord[]>([]);
-  const [relatedThoughtRecords, setRelatedThoughtRecords] = useState<ThoughtRecord[]>([]);
   const [editingEntryId, setEditingEntryId] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -502,7 +501,6 @@ export default function Journal() {
   };
 
   // Store the ID of the entry being edited
-  const [editingEntryId, setEditingEntryId] = useState<number | null>(null);
 
   const handleCreateJournal = () => {
     if (!journalTitle.trim() || !journalContent.trim()) {
@@ -549,6 +547,8 @@ export default function Journal() {
       deleteJournalMutation.mutate(currentEntry.id);
     }
   };
+  
+
 
   const toggleTagSelection = (tag: string) => {
     if (selectedTags.includes(tag)) {
@@ -567,41 +567,15 @@ export default function Journal() {
   
   // Open dialog for linking thought records 
   const openThoughtRecordDialog = () => {
+    if (!currentEntry) return;
+    
     setShowThoughtRecordDialog(true);
     
     // Filter available thought records (those not already linked)
-    if (currentEntry && currentEntry.relatedThoughtRecordIds) {
-      setAvailableThoughtRecords(
-        userThoughtRecords.filter(record => 
-          !currentEntry.relatedThoughtRecordIds?.includes(record.id)
-        )
-      );
-    } else {
-      setAvailableThoughtRecords([...userThoughtRecords]);
-    }
-  };
-  
-  // Handle linking a thought record to the current journal entry
-  const handleLinkThoughtRecord = (thoughtRecordId: number) => {
-    if (!currentEntry) return;
-    
-    linkThoughtRecordMutation.mutate({
-      journalId: currentEntry.id,
-      thoughtRecordId
-    });
-    
-    // Close the dialog after linking
-    setShowThoughtRecordDialog(false);
-  };
-  
-  // Handle unlinking a thought record from the current journal entry
-  const handleUnlinkThoughtRecord = (thoughtRecordId: number) => {
-    if (!currentEntry) return;
-    
-    unlinkThoughtRecordMutation.mutate({
-      journalId: currentEntry.id,
-      thoughtRecordId
-    });
+    const linkedIds = relatedThoughtRecords.map(record => record.id);
+    setAvailableThoughtRecords(
+      userThoughtRecords.filter(record => !linkedIds.includes(record.id))
+    );
   };
 
   // TagCloud component - inline implementation instead of imported component
@@ -1061,7 +1035,12 @@ export default function Journal() {
                                 size="icon" 
                                 variant="ghost" 
                                 className="h-6 w-6 rounded-full"
-                                onClick={() => handleUnlinkThoughtRecord(record.id)}
+                                onClick={() => 
+                                  unlinkThoughtRecordMutation.mutate({
+                                    journalId: currentEntry!.id,
+                                    thoughtRecordId: record.id
+                                  })
+                                }
                               >
                                 <X size={14} />
                               </Button>
@@ -1351,6 +1330,85 @@ export default function Journal() {
             </div>
           </DialogContent>
         )}
+      </Dialog>
+
+      {/* Thought Record Linking Dialog */}
+      <Dialog open={showThoughtRecordDialog} onOpenChange={setShowThoughtRecordDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Link Thought Record</DialogTitle>
+            <DialogDescription>
+              Select a thought record to link to this journal entry
+            </DialogDescription>
+          </DialogHeader>
+          
+          {availableThoughtRecords.length === 0 ? (
+            <div className="py-6 text-center">
+              <p className="text-muted-foreground">No thought records available to link. 
+              {userThoughtRecords.length === 0 ? 
+                " Please create some thought records first." : 
+                " All your thought records are already linked to this entry."}</p>
+            </div>
+          ) : (
+            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+              {availableThoughtRecords.map(record => (
+                <Card key={record.id} className="overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">
+                      {format(new Date(record.createdAt), "PPP")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-2">
+                    <div className="text-sm line-clamp-2">
+                      <span className="font-medium">Thoughts: </span>
+                      {record.automaticThoughts}
+                    </div>
+                    {record.cognitiveDistortions?.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {record.cognitiveDistortions.slice(0, 2).map(distortion => (
+                          <Badge key={distortion} variant="outline" className="text-xs">
+                            {distortion}
+                          </Badge>
+                        ))}
+                        {record.cognitiveDistortions.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{record.cognitiveDistortions.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                  <CardFooter className="pt-0">
+                    <Button 
+                      className="w-full" 
+                      size="sm"
+                      onClick={() => {
+                        if (currentEntry) {
+                          linkThoughtRecordMutation.mutate({
+                            journalId: currentEntry.id,
+                            thoughtRecordId: record.id
+                          });
+                          setShowThoughtRecordDialog(false);
+                        }
+                      }}
+                    >
+                      Link This Record
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowThoughtRecordDialog(false)}
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </AppLayout>
   );
