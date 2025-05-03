@@ -136,13 +136,21 @@ export default function Journal() {
     },
   });
 
-  // Create journal entry
+  // Create or update journal entry
   const createJournalMutation = useMutation({
-    mutationFn: async (data: { title: string; content: string }) => {
-      const response = await apiRequest("POST", "/api/journal", data);
+    mutationFn: async (data: { title: string; content: string; id?: number }) => {
+      // If id is provided, update existing entry, otherwise create new one
+      const endpoint = data.id ? `/api/journal/${data.id}` : "/api/journal";
+      const method = data.id ? "PUT" : "POST";
+      
+      const response = await apiRequest(method, endpoint, {
+        title: data.title,
+        content: data.content
+      });
+      
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create journal entry");
+        throw new Error(errorData.message || `Failed to ${data.id ? 'update' : 'create'} journal entry`);
       }
       return response.json();
     },
@@ -171,14 +179,16 @@ export default function Journal() {
           }
           
           toast({
-            title: "Journal Entry Created",
-            description: "Your entry was analyzed and tags were automatically applied",
+            title: data.updatedAt !== data.createdAt ? "Journal Entry Updated" : "Journal Entry Created",
+            description: data.updatedAt !== data.createdAt 
+              ? "Your entry was updated successfully" 
+              : "Your entry was analyzed and tags were automatically applied",
           });
         }, 1000); // Extended timeout to ensure AI processing completes
       } else {
         toast({
           title: "Success",
-          description: "Journal entry created successfully",
+          description: "Journal entry saved successfully",
         });
       }
     },
@@ -365,6 +375,9 @@ export default function Journal() {
     }
   };
 
+  // Store the ID of the entry being edited
+  const [editingEntryId, setEditingEntryId] = useState<number | null>(null);
+
   const handleCreateJournal = () => {
     if (!journalTitle.trim() || !journalContent.trim()) {
       toast({
@@ -376,9 +389,13 @@ export default function Journal() {
     }
 
     createJournalMutation.mutate({
+      id: editingEntryId || undefined,
       title: journalTitle,
       content: journalContent,
     });
+    
+    // Reset editing state
+    setEditingEntryId(null);
   };
 
   const handleAddComment = () => {
@@ -654,13 +671,16 @@ export default function Journal() {
         </div>
       </div>
       
-      {/* Dialog for creating a new journal entry */}
+      {/* Dialog for creating or updating a journal entry */}
       <Dialog open={openNewEntry} onOpenChange={setOpenNewEntry}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Create Journal Entry</DialogTitle>
+            <DialogTitle>{currentEntry?.id ? "Edit Journal Entry" : "Create Journal Entry"}</DialogTitle>
             <DialogDescription>
-              Write your thoughts and feelings. AI will analyze your entry to suggest tags.
+              {currentEntry?.id 
+                ? "Edit your journal entry below." 
+                : "Write your thoughts and feelings. AI will analyze your entry to suggest tags."
+              }
             </DialogDescription>
           </DialogHeader>
           
@@ -694,10 +714,10 @@ export default function Journal() {
               {createJournalMutation.isPending ? (
                 <>
                   <div className="animate-spin mr-2 h-4 w-4 border-2 border-background border-t-transparent rounded-full" />
-                  Creating...
+                  {editingEntryId ? "Updating..." : "Creating..."}
                 </>
               ) : (
-                "Create & Analyze"
+                editingEntryId ? "Save Changes" : "Create & Analyze"
               )}
             </Button>
           </DialogFooter>
@@ -715,6 +735,22 @@ export default function Journal() {
               <div className="flex justify-between items-start">
                 <DialogTitle className="text-2xl">{currentEntry.title}</DialogTitle>
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      // Set edit state and initialize with current entry values
+                      setJournalTitle(currentEntry.title);
+                      setJournalContent(currentEntry.content);
+                      setEditingEntryId(currentEntry.id);
+                      setOpenNewEntry(true);
+                      // This will close the current dialog
+                      setCurrentEntry(null);
+                    }}
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    <Edit size={16} />
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
