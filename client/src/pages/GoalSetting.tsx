@@ -79,7 +79,7 @@ type MilestoneFormValues = z.infer<typeof milestoneSchema>;
 export default function GoalSetting() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { activeUserId, getPathPrefix } = useActiveUser();
+  const { activeUserId, apiPath } = useActiveUser();
   const queryClient = useQueryClient();
   const [isCreatingGoal, setIsCreatingGoal] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<any>(null);
@@ -90,7 +90,7 @@ export default function GoalSetting() {
   
   // Fetch goals
   const { data: goals = [], isLoading, error } = useQuery<any[]>({
-    queryKey: [`${getPathPrefix()}/goals`],
+    queryKey: [`${apiPath}/goals`],
     enabled: !!activeUserId,
   });
   
@@ -153,7 +153,7 @@ export default function GoalSetting() {
       
       const response = await apiRequest(
         "POST",
-        `${getPathPrefix()}/goals`,
+        `${apiPath}/goals`,
         {
           ...data,
           userId: activeUserId,
@@ -163,7 +163,7 @@ export default function GoalSetting() {
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`${getPathPrefix()}/goals`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiPath}/goals`] });
       goalForm.reset();
       setIsCreatingGoal(false);
       toast({
@@ -226,7 +226,7 @@ export default function GoalSetting() {
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`${getPathPrefix()}/goals`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiPath}/goals`] });
       toast({
         title: "Goal Updated",
         description: "Goal status has been updated successfully.",
