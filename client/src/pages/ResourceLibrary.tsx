@@ -117,15 +117,15 @@ export default function ResourceLibrary() {
   // Resource categories (default list)
   const defaultCategories = [
     "all",
-    "cbt-basics",
-    "anxiety", 
-    "depression",
-    "stress-management",
-    "mindfulness",
-    "emotional-regulation",
-    "relationships",
-    "trauma",
-    "self-care"
+    "CBT Basics",
+    "Anxiety", 
+    "Depression",
+    "Stress Management",
+    "Mindfulness",
+    "Emotional Regulation",
+    "Relationships",
+    "Trauma",
+    "Self Care"
   ];
   
   // Forms for adding new items
@@ -1346,9 +1346,8 @@ export default function ResourceLibrary() {
                       key={category}
                       value={category}
                       onClick={() => setResourceCategory(category)}
-                      className="capitalize"
                     >
-                      {category.split('-').join(' ')}
+                      {category}
                     </TabsTrigger>
                   ))
                 }
@@ -1364,9 +1363,8 @@ export default function ResourceLibrary() {
                       key={category}
                       value={category}
                       onClick={() => setResourceCategory(category)}
-                      className="capitalize"
                     >
-                      {category.split('-').join(' ')}
+                      {category}
                     </TabsTrigger>
                   ))
                 }
@@ -1403,7 +1401,7 @@ export default function ResourceLibrary() {
                           {resource.type.charAt(0).toUpperCase() + resource.type.slice(1)}
                         </span>
                         <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
-                          {resource.category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                          {resource.category}
                         </span>
                       </CardDescription>
                     </CardHeader>
@@ -1450,7 +1448,7 @@ export default function ResourceLibrary() {
                           {currentResource.type.charAt(0).toUpperCase() + currentResource.type.slice(1)}
                         </span>
                         <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
-                          {currentResource.category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                          {currentResource.category}
                         </span>
                       </div>
                     </DialogDescription>
@@ -1582,14 +1580,14 @@ export default function ResourceLibrary() {
                               onChange={(e) => {
                                 const value = e.target.value.trim();
                                 if (value) {
-                                  setCurrentResource({...currentResource, category: value.toLowerCase().replace(/\s+/g, '-')});
+                                  setCurrentResource({...currentResource, category: value});
                                 }
                               }}
                               placeholder="Enter your custom category name"
                             />
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Type the name of your custom category (it will be automatically formatted)
+                            Type the name of your custom category
                           </p>
                         </div>
                       </div>
@@ -1725,7 +1723,7 @@ export default function ResourceLibrary() {
                     if (dropdownCategory && dropdownCategory.trim()) {
                       categoryToUse = dropdownCategory.trim();
                     } else if (customCategory && customCategory.trim()) {
-                      categoryToUse = customCategory.trim().toLowerCase().replace(/\s+/g, '-');
+                      categoryToUse = customCategory.trim();
                     }
                     
                     const data = {
@@ -1786,7 +1784,7 @@ export default function ResourceLibrary() {
                             />
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Select an existing category or create a new one (will be automatically formatted)
+                            Select an existing category or create a new one
                           </p>
                         </div>
                       </div>
