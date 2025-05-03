@@ -14,7 +14,8 @@ import {
   BarChart,
   Settings,
   LogOut,
-  Award
+  Award,
+  BookMarked
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -39,6 +40,7 @@ export default function Sidebar() {
     navItems = [
       { href: "/", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
       { href: "/clients", label: "My Clients", icon: <Users size={20} /> },
+      { href: "/journal", label: "Client Journals", icon: <BookMarked size={20} /> },
       { href: "/reports", label: "Client Reports", icon: <BarChart size={20} /> },
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
     ];
@@ -49,6 +51,7 @@ export default function Sidebar() {
       { href: "/", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
       { href: "/emotions", label: "Emotion Tracking", icon: <Heart size={20} /> },
       { href: "/thoughts", label: "Thought Records", icon: <Brain size={20} /> },
+      { href: "/journal", label: "Journal", icon: <BookMarked size={20} /> },
       { href: "/goals", label: "SMART Goals", icon: <Flag size={20} /> },
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
       { href: "/reports", label: "My Progress", icon: <BarChart size={20} /> },
