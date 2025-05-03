@@ -1575,7 +1575,8 @@ export default function ResourceLibrary() {
                             
                             <Input 
                               id="edit-custom-category"
-                              placeholder="Enter category name (kebab-case)"
+                              placeholder="Enter your custom category name"
+                              value=""
                               style={{ display: 'none' }}
                               onChange={(e) => {
                                 const value = e.target.value.trim().toLowerCase().replace(/\s+/g, '-');
@@ -1796,7 +1797,8 @@ export default function ResourceLibrary() {
                           <Input 
                             id="custom-category"
                             name="custom-category"
-                            placeholder="Enter category name (kebab-case)"
+                            placeholder="Enter your custom category name"
+                            value=""
                             style={{ display: 'none' }}
                             onBlur={(e) => {
                               const value = e.target.value.trim();
