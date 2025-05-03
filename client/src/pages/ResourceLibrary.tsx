@@ -2051,7 +2051,7 @@ export default function ResourceLibrary() {
                           <div>
                             <CardTitle className="text-lg">{assignment.resource.title}</CardTitle>
                             <CardDescription>
-                              Assigned to: {assignment.client.name || assignment.client.username}
+                              Assigned to: {assignment.client && (assignment.client.name || assignment.client.username) || 'Client information unavailable'}
                             </CardDescription>
                           </div>
                           <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
@@ -2138,7 +2138,7 @@ export default function ResourceLibrary() {
                   <div>
                     <p className="text-xs font-medium text-neutral-500 mb-1">Assigned To</p>
                     <p className="text-sm font-medium">
-                      {viewingAssignment.client.name || viewingAssignment.client.username}
+                      {viewingAssignment.client && (viewingAssignment.client.name || viewingAssignment.client.username) || 'Client information unavailable'}
                     </p>
                   </div>
                   <div>

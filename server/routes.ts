@@ -2258,14 +2258,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         assignments.map(async (assignment) => {
           const resource = await storage.getResourceById(assignment.resourceId);
           const client = await storage.getUser(assignment.assignedTo);
+          
+          console.log(`Assignment ${assignment.id} client data:`, client ? { 
+            id: client.id, 
+            name: client.name, 
+            username: client.username 
+          } : 'No client found');
+          
           return {
             ...assignment,
             resource,
             client: client ? {
               id: client.id,
-              name: client.name,
+              name: client.name || null,
               username: client.username
-            } : null
+            } : {
+              id: assignment.assignedTo,
+              name: null,
+              username: 'Unknown Client'
+            }
           };
         })
       );
