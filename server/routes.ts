@@ -22,6 +22,7 @@ import {
   insertResourceFeedbackSchema,
   insertJournalEntrySchema,
   insertJournalCommentSchema,
+  insertCognitiveDistortionSchema,
   goals,
   goalMilestones,
   actions,
@@ -31,7 +32,9 @@ import {
   copingStrategyUsage,
   subscriptionPlans,
   journalEntries,
-  journalComments
+  journalComments,
+  cognitiveDistortions,
+  thoughtRecords
 } from "@shared/schema";
 import cookieParser from "cookie-parser";
 import { sendClientInvitation } from "./services/email";
