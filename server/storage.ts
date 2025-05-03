@@ -1048,11 +1048,28 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getJournalCommentsByEntry(journalEntryId: number): Promise<JournalComment[]> {
-    return db
-      .select()
+    // Join with users table to get user names for comments
+    const results = await db
+      .select({
+        id: journalComments.id,
+        journalEntryId: journalComments.journalEntryId,
+        userId: journalComments.userId,
+        therapistId: journalComments.therapistId,
+        comment: journalComments.comment,
+        createdAt: journalComments.createdAt,
+        updatedAt: journalComments.updatedAt,
+        user: {
+          id: users.id,
+          name: users.name,
+          username: users.username,
+        }
+      })
       .from(journalComments)
+      .leftJoin(users, eq(journalComments.userId, users.id))
       .where(eq(journalComments.journalEntryId, journalEntryId))
       .orderBy(journalComments.createdAt);
+    
+    return results;
   }
   
   async updateJournalComment(id: number, data: Partial<InsertJournalComment>): Promise<JournalComment> {

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Plus, Trash2, MessageCircle, Tag, ChevronDown, Edit } from "lucide-react";
+import { CalendarIcon, Plus, Trash2, MessageCircle, Tag, ChevronDown, Edit, User } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { format } from "date-fns";
@@ -43,7 +43,7 @@ interface JournalComment {
   id: number;
   journalEntryId: number;
   userId: number;
-  content: string;
+  comment: string; // Changed from content to match backend
   createdAt: string;
   updatedAt: string;
   user?: {
@@ -662,8 +662,9 @@ export default function Journal() {
                       <Card key={comment.id} className="bg-muted/30">
                         <CardHeader className="py-3">
                           <div className="flex justify-between">
-                            <CardTitle className="text-sm font-medium">
-                              {comment.user?.name || "User"}
+                            <CardTitle className="text-sm font-medium flex items-center">
+                              <User size={14} className="mr-1" />
+                              {comment.user?.name || comment.user?.username || "User"}
                             </CardTitle>
                             <CardDescription className="text-xs">
                               {format(new Date(comment.createdAt), "PPP 'at' p")}
@@ -671,7 +672,7 @@ export default function Journal() {
                           </div>
                         </CardHeader>
                         <CardContent className="py-0 pb-3">
-                          <p className="text-sm">{comment.content}</p>
+                          <p className="text-sm">{comment.comment}</p>
                         </CardContent>
                       </Card>
                     ))
