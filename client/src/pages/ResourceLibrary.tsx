@@ -1828,7 +1828,7 @@ export default function ResourceLibrary() {
             </Dialog>
             
             {/* Add Resource Dialog */}
-            <Dialog open={isAddingResource} onOpenChange={setIsAddingResource}
+            <Dialog open={isAddingResource} onOpenChange={setIsAddingResource}>
               <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Add Educational Resource</DialogTitle>
@@ -2021,6 +2021,80 @@ export default function ResourceLibrary() {
               </DialogContent>
             </Dialog>
           </TabsContent>
+          
+          {/* Client Assignments Tab (for therapists) */}
+          {user?.role === "therapist" && (
+            <TabsContent value="client-assignments">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-neutral-800">Client Assignments</h1>
+                  <p className="text-neutral-500">
+                    View and manage resources assigned to your clients
+                  </p>
+                </div>
+              </div>
+              
+              {assignmentsLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                </div>
+              ) : clientAssignments && clientAssignments.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {clientAssignments.map((assignment: any) => (
+                    <Card key={assignment.id} className="overflow-hidden">
+                      <CardHeader className="bg-neutral-50 p-4 pb-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-lg">{assignment.resource.title}</CardTitle>
+                            <CardDescription>
+                              Assigned to: {assignment.client.name || assignment.client.username}
+                            </CardDescription>
+                          </div>
+                          <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                            {assignment.status}
+                          </span>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-3">
+                        <p className="text-sm text-neutral-600 line-clamp-2">
+                          {assignment.resource.description}
+                        </p>
+                        {assignment.notes && (
+                          <div className="mt-3 p-2 bg-neutral-50 rounded-md border text-sm">
+                            <p className="font-medium text-xs text-neutral-500 mb-1">Your notes:</p>
+                            <p className="text-neutral-700">{assignment.notes}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                      <CardFooter className="p-4 pt-2 flex justify-between">
+                        <Button variant="outline" size="sm">
+                          View Details
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center p-8 border rounded-md bg-neutral-50">
+                  <BookOpen className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No assignments yet</h3>
+                  <p className="text-neutral-500 mb-4">
+                    You haven't assigned any resources to your clients yet.
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      const tabsList = document.querySelector('button[value="educational-resources"]');
+                      if (tabsList) {
+                        (tabsList as HTMLButtonElement).click();
+                      }
+                    }}
+                  >
+                    Browse Resources
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </AppLayout>
