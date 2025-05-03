@@ -92,6 +92,11 @@ interface JournalStats {
     neutral: number;
   }>;
   tagsFrequency: Record<string, number>;
+  sentimentPatterns?: {
+    positive: number;
+    neutral: number;
+    negative: number;
+  };
 }
 
 export default function Journal() {
@@ -127,7 +132,12 @@ export default function Journal() {
     emotions: {}, 
     topics: {}, 
     sentimentOverTime: [],
-    tagsFrequency: {}
+    tagsFrequency: {},
+    sentimentPatterns: {
+      positive: 30,
+      neutral: 40,
+      negative: 30
+    }
   }} = useQuery<JournalStats>({
     queryKey: [`${apiPath}/journal/stats`],
     queryFn: async () => {
