@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useActiveUser } from "@/hooks/use-active-user";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,7 +67,8 @@ interface JournalStats {
 }
 
 export default function Journal() {
-  const { apiPath } = useActiveUser();
+  const { user } = useAuth();
+  const apiPath = `/api/users/${user?.id}`;
   const [openNewEntry, setOpenNewEntry] = useState(false);
   const [journalTitle, setJournalTitle] = useState("");
   const [journalContent, setJournalContent] = useState("");
