@@ -100,6 +100,20 @@ export default function GoalSetting() {
     enabled: !!selectedGoal,
   });
   
+  // Goal form - moved up to avoid reference errors
+  const goalForm = useForm<GoalFormValues>({
+    resolver: zodResolver(goalSchema),
+    defaultValues: {
+      title: "",
+      specific: "",
+      measurable: reflectionInsights ? "Based on my reflection: " + reflectionInsights : "",
+      achievable: "",
+      relevant: "",
+      timebound: "",
+      deadline: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), "yyyy-MM-dd"), // 30 days from now
+    },
+  });
+
   // Check for reflection insights in sessionStorage
   useEffect(() => {
     // Check if there are reflection insights stored from the reflection wizard
@@ -120,19 +134,6 @@ export default function GoalSetting() {
     }
   }, [reflectionInsights, goalForm]);
   
-  // Goal form
-  const goalForm = useForm<GoalFormValues>({
-    resolver: zodResolver(goalSchema),
-    defaultValues: {
-      title: "",
-      specific: "",
-      measurable: reflectionInsights ? "Based on my reflection: " + reflectionInsights : "",
-      achievable: "",
-      relevant: "",
-      timebound: "",
-      deadline: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), "yyyy-MM-dd"), // 30 days from now
-    },
-  });
   
   // Milestone form
   const milestoneForm = useForm<MilestoneFormValues>({
