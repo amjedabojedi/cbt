@@ -112,16 +112,30 @@ export default function Journal() {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [`${apiPath}/journal`] });
       queryClient.invalidateQueries({ queryKey: [`${apiPath}/journal/stats`] });
       setOpenNewEntry(false);
       setJournalTitle("");
       setJournalContent("");
-      toast({
-        title: "Success",
-        description: "Journal entry created successfully",
-      });
+      
+      // Load the entry with AI analysis and suggested tags
+      if (data && data.id) {
+        // Wait a moment to ensure AI processing completes
+        setTimeout(() => {
+          loadEntryWithComments(data);
+          
+          toast({
+            title: "Journal Entry Created",
+            description: "Your entry was analyzed for emotions and suggested tags",
+          });
+        }, 500);
+      } else {
+        toast({
+          title: "Success",
+          description: "Journal entry created successfully",
+        });
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -186,9 +200,15 @@ export default function Journal() {
       }
       return response.json();
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/journal/${data.journalEntryId}`] });
+    onSuccess: async (data) => {
+      // Clear the comment input
       setCommentContent("");
+      
+      // Reload the entire entry with updated comments
+      if (currentEntry) {
+        await loadEntryWithComments(currentEntry);
+      }
+      
       toast({
         title: "Comment Added",
         description: "Your comment has been added to the journal entry",
