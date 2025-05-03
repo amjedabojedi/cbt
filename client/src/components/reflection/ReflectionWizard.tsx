@@ -421,6 +421,17 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
       return;
     }
     
+    // Validate required fields
+    if (!data.automaticThoughts || data.automaticThoughts.trim().length < 3) {
+      toast({
+        title: "Error",
+        description: "Please enter your automatic thoughts",
+        variant: "destructive",
+      });
+      setStep(1); // Return to the first step where automatic thoughts are entered
+      return;
+    }
+    
     // Prevent therapists from adding reflections to client emotion records
     if (!isViewingSelf) {
       toast({
@@ -1207,8 +1218,21 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
               </Button>
             ) : (
               <Button
-                type="button"
-                onClick={form.handleSubmit(onSubmit)}
+                type="submit"
+                onClick={() => {
+                  const formValues = form.getValues();
+                  // Validate required fields before submitting
+                  if (!formValues.automaticThoughts || formValues.automaticThoughts.trim().length < 3) {
+                    toast({
+                      title: "Error",
+                      description: "Please enter your automatic thoughts",
+                      variant: "destructive",
+                    });
+                    setStep(1); // Return to the first step
+                    return;
+                  }
+                  form.handleSubmit(onSubmit)();
+                }}
                 disabled={isSubmitting}
                 className="bg-primary hover:bg-primary/90"
               >
