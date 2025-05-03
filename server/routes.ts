@@ -2724,8 +2724,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate the data
+      // Map content field from frontend to comment field expected by schema
+      const { content, ...restBody } = req.body;
       const validatedData = insertJournalCommentSchema.parse({
-        ...req.body,
+        ...restBody,
+        comment: content, // Map content to comment
         userId: user.id,
         therapistId: user.role === 'therapist' ? user.id : null,
         journalEntryId: entryId
@@ -2768,7 +2771,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate the data
-      const validatedData = insertJournalCommentSchema.partial().parse(req.body);
+      // Map content field from frontend to comment field expected by schema
+      const { content, ...restBody } = req.body;
+      const validatedData = insertJournalCommentSchema.partial().parse({
+        ...restBody,
+        comment: content, // Map content to comment if it exists
+      });
       
       // Update the comment
       const updatedComment = await storage.updateJournalComment(commentId, validatedData);
