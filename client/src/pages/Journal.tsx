@@ -65,6 +65,7 @@ interface JournalEntry {
   sentimentNeutral?: number;
   isPrivate?: boolean;
   comments?: JournalComment[];
+  relatedThoughtRecordIds?: number[];
 }
 
 interface JournalComment {
@@ -99,6 +100,20 @@ interface JournalStats {
   };
 }
 
+interface ThoughtRecord {
+  id: number;
+  userId: number;
+  emotionRecordId: number | null;
+  automaticThoughts: string;
+  cognitiveDistortions: string[];
+  rationalThoughts: string;
+  createdAt: string;
+  updatedAt?: string;
+  emotionIntensityBefore?: number;
+  emotionIntensityAfter?: number;
+  relatedJournalEntryIds?: number[];
+}
+
 export default function Journal() {
   const { user } = useAuth();
   const apiPath = `/api/users/${user?.id}`;
@@ -111,6 +126,8 @@ export default function Journal() {
   const [customTag, setCustomTag] = useState("");
   const [activeSection, setActiveSection] = useState<string>("recent");
   const [activeTab, setActiveTab] = useState<string>("entries");
+  const [showThoughtRecordDialog, setShowThoughtRecordDialog] = useState(false);
+  const [availableThoughtRecords, setAvailableThoughtRecords] = useState<ThoughtRecord[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -339,7 +356,98 @@ export default function Journal() {
       });
     },
   });
+  
+  // Link thought record to journal entry
+  const linkThoughtRecordMutation = useMutation({
+    mutationFn: async ({ journalId, thoughtRecordId }: { journalId: number; thoughtRecordId: number }) => {
+      const response = await apiRequest("POST", `/api/journal/${journalId}/link-thought/${thoughtRecordId}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to link thought record");
+      }
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/journal/${variables.journalId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/journal/${variables.journalId}/related-thoughts`] });
+      toast({
+        title: "Thought Record Linked",
+        description: "Thought record has been linked to this journal entry",
+      });
+      
+      // Reload the current entry to show the updated linked records
+      if (currentEntry) {
+        loadEntryWithComments(currentEntry);
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Unlink thought record from journal entry
+  const unlinkThoughtRecordMutation = useMutation({
+    mutationFn: async ({ journalId, thoughtRecordId }: { journalId: number; thoughtRecordId: number }) => {
+      const response = await apiRequest("DELETE", `/api/journal/${journalId}/link-thought/${thoughtRecordId}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to unlink thought record");
+      }
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/journal/${variables.journalId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/journal/${variables.journalId}/related-thoughts`] });
+      toast({
+        title: "Thought Record Unlinked",
+        description: "Thought record has been unlinked from this journal entry",
+      });
+      
+      // Reload the current entry to show the updated linked records
+      if (currentEntry) {
+        loadEntryWithComments(currentEntry);
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
+  // Fetch related thought records for the current journal entry
+  const { data: relatedThoughtRecords = [] } = useQuery<ThoughtRecord[]>({
+    queryKey: currentEntry ? [`/api/journal/${currentEntry.id}/related-thoughts`] : [],
+    queryFn: async () => {
+      if (!currentEntry) return [];
+      const response = await fetch(`/api/journal/${currentEntry.id}/related-thoughts`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch related thought records");
+      }
+      return response.json();
+    },
+    enabled: !!currentEntry
+  });
+  
+  // Fetch all user's thought records to allow linking
+  const { data: userThoughtRecords = [] } = useQuery<ThoughtRecord[]>({
+    queryKey: [`/api/users/${user?.id}/thoughts`],
+    queryFn: async () => {
+      const response = await fetch(`/api/users/${user?.id}/thoughts`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch thought records");
+      }
+      return response.json();
+    },
+    enabled: !!user && showThoughtRecordDialog
+  });
+  
   // Load full entry with comments
   const loadEntryWithComments = async (entry: JournalEntry) => {
     try {
@@ -379,6 +487,9 @@ export default function Journal() {
           description: `${newTagCount} new tag suggestion${newTagCount > 1 ? 's' : ''} available based on recent comments.`,
         });
       }
+      
+      // Refresh related thought records
+      queryClient.invalidateQueries({ queryKey: [`/api/journal/${entry.id}/related-thoughts`] });
     } catch (error) {
       toast({
         title: "Error",
@@ -450,6 +561,45 @@ export default function Journal() {
     if (!currentEntry || !currentEntry.initialAiTags) return false;
     return currentEntry.aiSuggestedTags?.includes(tag) && 
            !currentEntry.initialAiTags.includes(tag);
+  };
+  
+  // Open dialog for linking thought records 
+  const openThoughtRecordDialog = () => {
+    setShowThoughtRecordDialog(true);
+    
+    // Filter available thought records (those not already linked)
+    if (currentEntry && currentEntry.relatedThoughtRecordIds) {
+      setAvailableThoughtRecords(
+        userThoughtRecords.filter(record => 
+          !currentEntry.relatedThoughtRecordIds?.includes(record.id)
+        )
+      );
+    } else {
+      setAvailableThoughtRecords([...userThoughtRecords]);
+    }
+  };
+  
+  // Handle linking a thought record to the current journal entry
+  const handleLinkThoughtRecord = (thoughtRecordId: number) => {
+    if (!currentEntry) return;
+    
+    linkThoughtRecordMutation.mutate({
+      journalId: currentEntry.id,
+      thoughtRecordId
+    });
+    
+    // Close the dialog after linking
+    setShowThoughtRecordDialog(false);
+  };
+  
+  // Handle unlinking a thought record from the current journal entry
+  const handleUnlinkThoughtRecord = (thoughtRecordId: number) => {
+    if (!currentEntry) return;
+    
+    unlinkThoughtRecordMutation.mutate({
+      journalId: currentEntry.id,
+      thoughtRecordId
+    });
   };
 
   // TagCloud component - inline implementation instead of imported component
