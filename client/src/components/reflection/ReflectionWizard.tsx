@@ -634,13 +634,16 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
         render={({ field }) => (
           <FormItem>
             <FormLabel>What evidence supports this thought?</FormLabel>
+            <FormDescription>
+              List facts that actually support your thought. Focus on objective information, not feelings.
+            </FormDescription>
             <FormControl>
               <Textarea
                 placeholder="List facts that support this thought..."
                 rows={3}
                 value={field.value || ''}
                 onChange={(e) => {
-                  field.onChange(e);
+                  field.onChange(e.target.value);
                   form.setValue("evidenceFor", e.target.value, { 
                     shouldValidate: true,
                     shouldDirty: true,
@@ -669,13 +672,16 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
         render={({ field }) => (
           <FormItem>
             <FormLabel>What evidence contradicts this thought?</FormLabel>
+            <FormDescription>
+              List facts that challenge your thought. Look for alternative explanations and realities.
+            </FormDescription>
             <FormControl>
               <Textarea
                 placeholder="List facts that don't support this thought..."
                 rows={3}
                 value={field.value || ''}
                 onChange={(e) => {
-                  field.onChange(e);
+                  field.onChange(e.target.value);
                   form.setValue("evidenceAgainst", e.target.value, { 
                     shouldValidate: true,
                     shouldDirty: true,
@@ -699,7 +705,28 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
       />
       
       <div className="space-y-3">
-        <Label>What protective factors can help you with this situation?</Label>
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <Label>What protective factors can help you with this situation?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Protective factors are resources, strengths, or skills that help you manage difficult emotions</p>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="text-primary hover:text-primary/80"
+            onClick={() => {
+              // This could be expanded to show a dialog with more information
+              toast({
+                title: "About Protective Factors",
+                description: "Protective factors are personal resources, skills, or relationships that help you cope with stress and build resilience.",
+              });
+            }}
+          >
+            <HelpCircle className="h-4 w-4 mr-1" />
+            Learn More
+          </Button>
+        </div>
+
         <div className="flex flex-wrap gap-2">
           {protectiveFactors.map((factor) => (
             <div 
@@ -762,6 +789,24 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
             </div>
           )}
         </div>
+
+        {selectedProtectiveFactors.length > 0 && (
+          <div className="mt-2 p-3 bg-muted/40 rounded-lg text-sm">
+            <h5 className="font-medium mb-1">Why protective factors matter:</h5>
+            <p>Identifying and using your protective factors can build resilience and help you handle difficult situations more effectively.</p>
+            <div className="mt-2 grid grid-cols-1 gap-2">
+              <div className="bg-background p-2 rounded-md">
+                <span className="font-medium">Examples of protective factors:</span>
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                  <li>Social support - Friends, family, community connections</li>
+                  <li>Personal skills - Problem-solving abilities, emotional awareness</li>
+                  <li>Resources - Access to healthcare, stable housing, education</li>
+                  <li>Activities - Exercise, creative outlets, spiritual practices</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -808,7 +853,28 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
       />
       
       <div className="space-y-3">
-        <Label>What coping strategies might help you deal with this?</Label>
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <Label>What coping strategies might help you deal with this?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Coping strategies are specific actions or techniques you can use to manage stress and difficult emotions</p>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="text-primary hover:text-primary/80"
+            onClick={() => {
+              // This could be expanded to show a dialog with more information
+              toast({
+                title: "About Coping Strategies",
+                description: "Coping strategies are specific techniques that help you manage stress, regulate emotions, and maintain well-being during difficult situations.",
+              });
+            }}
+          >
+            <HelpCircle className="h-4 w-4 mr-1" />
+            Learn More
+          </Button>
+        </div>
+
         <div className="flex flex-wrap gap-2">
           {copingStrategies.map((strategy) => (
             <div 
@@ -871,6 +937,24 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
             </div>
           )}
         </div>
+
+        {selectedCopingStrategies.length > 0 && (
+          <div className="mt-2 p-3 bg-muted/40 rounded-lg text-sm">
+            <h5 className="font-medium mb-1">How to use coping strategies:</h5>
+            <p>Effective coping strategies can help you manage stress, regulate emotions, and solve problems more effectively.</p>
+            <div className="mt-2 grid grid-cols-1 gap-2">
+              <div className="bg-background p-2 rounded-md">
+                <span className="font-medium">Types of coping strategies:</span>
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                  <li><strong>Emotional coping</strong> - Managing feelings (deep breathing, mindfulness, journaling)</li>
+                  <li><strong>Problem-focused coping</strong> - Taking action (making plans, seeking information, solving problems)</li>
+                  <li><strong>Social coping</strong> - Connecting with others (talking to friends, joining support groups)</li>
+                  <li><strong>Physical coping</strong> - Taking care of your body (exercise, proper sleep, healthy eating)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
