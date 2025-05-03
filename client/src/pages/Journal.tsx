@@ -223,15 +223,36 @@ export default function Journal() {
       // Clear the comment input
       setCommentContent("");
       
-      // Reload the entire entry with updated comments
-      if (currentEntry) {
-        await loadEntryWithComments(currentEntry);
-      }
-      
+      // Notify user that comment has been added and AI analysis is running
       toast({
         title: "Comment Added",
-        description: "Your comment has been added to the journal entry",
+        description: "Your comment has been added and AI is analyzing the content",
       });
+      
+      // Give the server a moment to process the AI analysis for the new comment
+      // This is important because the server combines entry content + all comments
+      // to generate new tags and analysis
+      setTimeout(async () => {
+        // Reload the entire entry with updated comments and new AI tags
+        if (currentEntry) {
+          await loadEntryWithComments(currentEntry);
+          
+          // If the entry now has new AI suggested tags that aren't in the user's selected tags,
+          // show a notification about the new suggestions
+          if (currentEntry.aiSuggestedTags) {
+            const newTags = currentEntry.aiSuggestedTags.filter(
+              tag => !selectedTags.includes(tag)
+            );
+            
+            if (newTags.length > 0) {
+              toast({
+                title: "New Tags Suggested",
+                description: `AI analysis found ${newTags.length} new tags based on your comment.`,
+              });
+            }
+          }
+        }
+      }, 1500); // Wait for the AI processing to complete
     },
     onError: (error: Error) => {
       toast({
@@ -278,9 +299,29 @@ export default function Journal() {
         throw new Error("Failed to load journal entry");
       }
       const data = await response.json();
+      
+      // Track if there are new AI-suggested tags that haven't been selected yet
+      const oldAiTags = currentEntry?.aiSuggestedTags || [];
+      const newAiTags = data.aiSuggestedTags || [];
+      
+      // Check if we have new tags that weren't in the previous entry
+      const hasNewAiTags = newAiTags.some(tag => !oldAiTags.includes(tag));
+      
+      // Update current entry data
       setCurrentEntry(data);
-      if (data.aiSuggestedTags && data.userSelectedTags) {
+      
+      // Update selected tags (preserving user's selections)
+      if (data.userSelectedTags) {
         setSelectedTags(data.userSelectedTags);
+      }
+      
+      // Notify about new AI-suggested tags if this is an update (not first load)
+      if (currentEntry && hasNewAiTags && newAiTags.length > oldAiTags.length) {
+        const newTagCount = newAiTags.length - oldAiTags.length;
+        toast({
+          title: "AI Analysis Updated",
+          description: `${newTagCount} new tag suggestion${newTagCount > 1 ? 's' : ''} available based on recent comments.`,
+        });
       }
     } catch (error) {
       toast({
@@ -692,26 +733,50 @@ export default function Journal() {
                   )}
                   
                   <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Tag size={16} />
-                      <h4 className="text-sm font-medium">Tags</h4>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <Tag size={16} />
+                        <h4 className="text-sm font-medium">Tags</h4>
+                      </div>
+                      
+                      {/* Show tooltip explaining tag sourcing */}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                              <HelpCircle size={14} />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">Dark tags are selected. Tags are AI-suggested based on your entry and comments.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                     
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {currentEntry.aiSuggestedTags && currentEntry.aiSuggestedTags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant={selectedTags.includes(tag) ? "default" : "outline"}
-                          className="cursor-pointer"
-                          onClick={() => toggleTagSelection(tag)}
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
+                      {currentEntry.aiSuggestedTags && currentEntry.aiSuggestedTags.map((tag) => {
+                        // Determine if this is a new tag added from comments
+                        // Compare with initial tags (if they exist)
+                        const isNewSuggestion = currentEntry.initialAiTags && 
+                          !currentEntry.initialAiTags.includes(tag);
+                        
+                        return (
+                          <Badge
+                            key={tag}
+                            variant={selectedTags.includes(tag) ? "default" : "outline"}
+                            className={`cursor-pointer ${isNewSuggestion ? "border-green-500 animate-pulse" : ""}`}
+                            onClick={() => toggleTagSelection(tag)}
+                          >
+                            {tag}
+                            {isNewSuggestion && <Sparkles size={12} className="ml-1 text-green-500" />}
+                          </Badge>
+                        );
+                      })}
                     </div>
                     
                     <Button size="sm" onClick={handleUpdateTags}>
-                      Save Tags
+                      Save Selected Tags
                     </Button>
                   </div>
                   
