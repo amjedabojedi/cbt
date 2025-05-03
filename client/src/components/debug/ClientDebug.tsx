@@ -1,5 +1,5 @@
 import { useClientContext } from "@/context/ClientContext";
-import { useActiveUser } from "@/hooks/use-active-user";
+import useActiveUser from "@/hooks/use-active-user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function ClientDebug() {

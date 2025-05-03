@@ -24,11 +24,15 @@ export function useActiveUser() {
   console.log("useActiveUser - Current auth user:", user?.id, user?.username, user?.role);
   console.log("useActiveUser - Final API path prefix:", apiPath);
   
+  // For backward compatibility
+  const isViewingClientData = !isViewingSelf;
+  
   return {
     user,
     activeUserId,
     apiPath,
     isViewingSelf,
+    isViewingClientData,
     hasElevatedPermissions,
     isTherapist: user?.role === "therapist",
     isAdmin: user?.role === "admin",
