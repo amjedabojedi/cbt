@@ -631,7 +631,27 @@ export default function Journal() {
                             </AccordionItem>
                             
                             <AccordionItem value="tags">
-                              <AccordionTrigger>Tags Word Cloud</AccordionTrigger>
+                              <AccordionTrigger>
+                                <div className="flex items-center gap-2">
+                                  Tags Word Cloud
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <InfoIcon size={14} className="text-muted-foreground cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-[250px] p-4">
+                                        <p className="text-xs">
+                                          <span className="font-bold">Larger tags</span> appear more frequently in your journal entries.
+                                          <br /><br />
+                                          <span className="font-bold">Tags with ✨ sparkles</span> appear less often and may have been suggested from recent comments.
+                                          <br /><br />
+                                          Colors indicate frequency from blue (less common) to red (most common).
+                                        </p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
+                              </AccordionTrigger>
                               <AccordionContent>
                                 {Object.keys(stats.tagsFrequency).length > 0 ? (
                                   <div className="flex flex-wrap gap-2 justify-center py-4">
@@ -655,15 +675,28 @@ export default function Journal() {
                                         ];
                                         const colorClass = colors[Math.min(colorIndex, colors.length - 1)];
                                         
+                                        // Check if this tag is likely a new suggestion from comments
+                                        // We can't know for sure in the stats view, but we can make an educated guess
+                                        // based on frequency - less frequent tags are more likely to be newer suggestions
+                                        const isLikelyNewSuggestion = count === 1 || count < maxCount * 0.3;
+                                        
                                         return (
                                           <div
                                             key={tag}
-                                            className={`inline-block m-1 px-3 py-1 rounded-full ${colorClass} transition-all`}
+                                            className={`inline-block m-1 px-3 py-1 rounded-full ${colorClass} transition-all relative
+                                              ${isLikelyNewSuggestion ? 'pl-6' : ''}
+                                            `}
                                             style={{ 
                                               fontSize: `${size}px`,
                                               fontWeight: count > maxCount / 2 ? "bold" : "normal",
                                             }}
                                           >
+                                            {isLikelyNewSuggestion && (
+                                              <Sparkles 
+                                                size={Math.max(10, size * 0.6)} 
+                                                className="absolute left-1 text-amber-500" 
+                                              />
+                                            )}
                                             {tag}
                                           </div>
                                         );
