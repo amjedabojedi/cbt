@@ -509,6 +509,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Check if Stripe is configured
+  app.get("/api/stripe/status", authenticate, isAdmin, async (req, res) => {
+    try {
+      const configured = !!process.env.STRIPE_SECRET_KEY && !!process.env.VITE_STRIPE_PUBLIC_KEY;
+      res.status(200).json({ configured });
+    } catch (error) {
+      console.error("Stripe status check error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
