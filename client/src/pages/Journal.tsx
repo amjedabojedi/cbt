@@ -1022,24 +1022,68 @@ export default function Journal() {
                     <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
                       <User size={16} />
                       Sentiment Analysis
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon size={14} className="text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[250px] p-4">
+                            <p className="text-xs">
+                              AI-powered analysis of emotional tone in your entry. The percentages show the distribution of positive, negative and neutral sentiments detected.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </h4>
                     <div className="space-y-2">
                       {currentEntry.sentimentPositive !== undefined && (
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-green-600">Positive</span>
-                          <span className="font-medium">{Math.round(currentEntry.sentimentPositive * 100)}%</span>
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-green-600">Positive</span>
+                            <span className="font-medium">
+                              {Math.min(100, Math.round((currentEntry.sentimentPositive || 0) * 100))}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-100 rounded-full h-1.5">
+                            <div 
+                              className="bg-green-500 h-1.5 rounded-full" 
+                              style={{ width: `${Math.min(100, Math.round((currentEntry.sentimentPositive || 0) * 100))}%` }}
+                            ></div>
+                          </div>
                         </div>
                       )}
+                      
                       {currentEntry.sentimentNegative !== undefined && (
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-red-600">Negative</span>
-                          <span className="font-medium">{Math.round(currentEntry.sentimentNegative * 100)}%</span>
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-red-600">Negative</span>
+                            <span className="font-medium">
+                              {Math.min(100, Math.round((currentEntry.sentimentNegative || 0) * 100))}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-100 rounded-full h-1.5">
+                            <div 
+                              className="bg-red-500 h-1.5 rounded-full" 
+                              style={{ width: `${Math.min(100, Math.round((currentEntry.sentimentNegative || 0) * 100))}%` }}
+                            ></div>
+                          </div>
                         </div>
                       )}
+                      
                       {currentEntry.sentimentNeutral !== undefined && (
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-gray-600">Neutral</span>
-                          <span className="font-medium">{Math.round(currentEntry.sentimentNeutral * 100)}%</span>
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-gray-600">Neutral</span>
+                            <span className="font-medium">
+                              {Math.min(100, Math.round((currentEntry.sentimentNeutral || 0) * 100))}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-100 rounded-full h-1.5">
+                            <div 
+                              className="bg-gray-500 h-1.5 rounded-full" 
+                              style={{ width: `${Math.min(100, Math.round((currentEntry.sentimentNeutral || 0) * 100))}%` }}
+                            ></div>
+                          </div>
                         </div>
                       )}
                     </div>
