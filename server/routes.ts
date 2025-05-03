@@ -2741,16 +2741,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // This allows tags to evolve as the conversation develops
       if (process.env.OPENAI_API_KEY && entry.content) {
         try {
-          // Get all existing comments
+          console.log("Starting AI analysis for comment on entry:", entryId);
+          
+          // Get all existing comments including the one we just added
           const comments = await storage.getJournalCommentsByEntry(entryId);
+          console.log(`Found ${comments.length} comments for analysis`);
+          
+          // Make sure we have valid comment objects with the comment field
+          if (!comments || !Array.isArray(comments)) {
+            console.error("Invalid comments array returned from storage:", comments);
+            throw new Error("Invalid comments data structure");
+          }
+          
+          // Construct the combined text
           const combinedText = `
             ${entry.title || ""}
             
             ${entry.content}
             
             Additional comments:
-            ${comments.map(c => c.comment).join("\n\n")}
+            ${comments.map(c => c.comment || "").join("\n\n")}
           `;
+          
+          console.log("Sending combined text for AI analysis");
           
           // Get new AI analysis based on the combined content
           const analysis = await analyzeJournalEntry(
@@ -2758,9 +2771,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             combinedText
           );
           
+          console.log("Received AI analysis:", {
+            suggestedTagsCount: analysis.suggestedTags.length,
+            emotions: analysis.emotions,
+            topics: analysis.topics
+          });
+          
           // Merge new tags with existing ones to avoid duplicates
           const existingTags = entry.aiSuggestedTags || [];
           const allTags = [...new Set([...existingTags, ...analysis.suggestedTags])];
+          
+          console.log("Updating journal entry with combined tags:", {
+            existingTagsCount: existingTags.length,
+            newTagsCount: allTags.length
+          });
           
           // Update the entry with the additional suggested tags
           await storage.updateJournalEntry(entryId, {
@@ -2772,10 +2796,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sentimentNegative: analysis.sentiment.negative,
             sentimentNeutral: analysis.sentiment.neutral
           });
+          
+          console.log("Successfully updated journal entry with new AI analysis");
         } catch (aiError) {
           console.error("AI analysis after comment error:", aiError);
+          console.error("Error details:", aiError instanceof Error ? aiError.message : String(aiError));
+          console.error("Stack trace:", aiError instanceof Error ? aiError.stack : "No stack trace available");
           // Continue without updating AI analysis if it fails
         }
+      } else {
+        console.log(
+          "Skipping AI analysis:",
+          !process.env.OPENAI_API_KEY ? "No OpenAI API key" : "No entry content"
+        );
       }
       
       res.status(201).json(newComment);
