@@ -3049,6 +3049,262 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // ------------------------------------
+  // Cognitive Distortions Routes
+  // ------------------------------------
+  
+  // Get all cognitive distortions
+  app.get("/api/cognitive-distortions", async (req, res) => {
+    try {
+      const distortions = await storage.getCognitiveDistortions();
+      res.status(200).json(distortions);
+    } catch (error) {
+      console.error("Get cognitive distortions error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get a specific cognitive distortion
+  app.get("/api/cognitive-distortions/:id", async (req, res) => {
+    try {
+      const distortionId = Number(req.params.id);
+      if (isNaN(distortionId)) {
+        return res.status(400).json({ message: "Invalid cognitive distortion ID" });
+      }
+      
+      const distortion = await storage.getCognitiveDistortionById(distortionId);
+      if (!distortion) {
+        return res.status(404).json({ message: "Cognitive distortion not found" });
+      }
+      
+      res.status(200).json(distortion);
+    } catch (error) {
+      console.error("Get cognitive distortion error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Create a new cognitive distortion (admin only)
+  app.post("/api/cognitive-distortions", authenticate, isAdmin, async (req, res) => {
+    try {
+      const validatedData = insertCognitiveDistortionSchema.parse(req.body);
+      const distortion = await storage.createCognitiveDistortion(validatedData);
+      res.status(201).json(distortion);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Create cognitive distortion error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Update a cognitive distortion (admin only)
+  app.patch("/api/cognitive-distortions/:id", authenticate, isAdmin, async (req, res) => {
+    try {
+      const distortionId = Number(req.params.id);
+      if (isNaN(distortionId)) {
+        return res.status(400).json({ message: "Invalid cognitive distortion ID" });
+      }
+      
+      const distortion = await storage.getCognitiveDistortionById(distortionId);
+      if (!distortion) {
+        return res.status(404).json({ message: "Cognitive distortion not found" });
+      }
+      
+      const validatedData = insertCognitiveDistortionSchema.partial().parse(req.body);
+      const updatedDistortion = await storage.updateCognitiveDistortion(distortionId, validatedData);
+      res.status(200).json(updatedDistortion);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Update cognitive distortion error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Delete a cognitive distortion (admin only)
+  app.delete("/api/cognitive-distortions/:id", authenticate, isAdmin, async (req, res) => {
+    try {
+      const distortionId = Number(req.params.id);
+      if (isNaN(distortionId)) {
+        return res.status(400).json({ message: "Invalid cognitive distortion ID" });
+      }
+      
+      const distortion = await storage.getCognitiveDistortionById(distortionId);
+      if (!distortion) {
+        return res.status(404).json({ message: "Cognitive distortion not found" });
+      }
+      
+      await storage.deleteCognitiveDistortion(distortionId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Delete cognitive distortion error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // ------------------------------------
+  // Journal <-> Thought Record Integration Routes
+  // ------------------------------------
+  
+  // Helper function to check if a user is a client of a therapist
+  async function isClientOfTherapist(clientId: number, therapistId: number): Promise<boolean> {
+    const client = await storage.getUserById(clientId);
+    return !!client && client.therapistId === therapistId;
+  }
+  
+  // Link a journal entry to a thought record
+  app.post("/api/journal/:journalId/link-thought/:thoughtRecordId", authenticate, async (req, res) => {
+    try {
+      const journalId = Number(req.params.journalId);
+      const thoughtRecordId = Number(req.params.thoughtRecordId);
+      
+      if (isNaN(journalId) || isNaN(thoughtRecordId)) {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
+      
+      // Get the journal entry
+      const journal = await storage.getJournalEntryById(journalId);
+      if (!journal) {
+        return res.status(404).json({ message: "Journal entry not found" });
+      }
+      
+      // Ensure the user has access to this journal entry
+      if (journal.userId !== req.user.id && req.user.role !== 'admin' && 
+          (req.user.role !== 'therapist' || !await isClientOfTherapist(journal.userId, req.user.id))) {
+        return res.status(403).json({ message: "You don't have access to this journal entry" });
+      }
+      
+      // Get the thought record
+      const thoughtRecord = await storage.getThoughtRecordById(thoughtRecordId);
+      if (!thoughtRecord) {
+        return res.status(404).json({ message: "Thought record not found" });
+      }
+      
+      // Ensure the user has access to this thought record
+      if (thoughtRecord.userId !== req.user.id && req.user.role !== 'admin' && 
+          (req.user.role !== 'therapist' || !await isClientOfTherapist(thoughtRecord.userId, req.user.id))) {
+        return res.status(403).json({ message: "You don't have access to this thought record" });
+      }
+      
+      // Link the journal entry to the thought record
+      await storage.linkJournalToThoughtRecord(journalId, thoughtRecordId);
+      
+      res.status(200).json({ message: "Journal entry linked to thought record successfully" });
+    } catch (error) {
+      console.error("Link journal to thought record error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Unlink a journal entry from a thought record
+  app.delete("/api/journal/:journalId/link-thought/:thoughtRecordId", authenticate, async (req, res) => {
+    try {
+      const journalId = Number(req.params.journalId);
+      const thoughtRecordId = Number(req.params.thoughtRecordId);
+      
+      if (isNaN(journalId) || isNaN(thoughtRecordId)) {
+        return res.status(400).json({ message: "Invalid ID format" });
+      }
+      
+      // Get the journal entry
+      const journal = await storage.getJournalEntryById(journalId);
+      if (!journal) {
+        return res.status(404).json({ message: "Journal entry not found" });
+      }
+      
+      // Ensure the user has access to this journal entry
+      if (journal.userId !== req.user.id && req.user.role !== 'admin' && 
+          (req.user.role !== 'therapist' || !await isClientOfTherapist(journal.userId, req.user.id))) {
+        return res.status(403).json({ message: "You don't have access to this journal entry" });
+      }
+      
+      // Get the thought record
+      const thoughtRecord = await storage.getThoughtRecordById(thoughtRecordId);
+      if (!thoughtRecord) {
+        return res.status(404).json({ message: "Thought record not found" });
+      }
+      
+      // Ensure the user has access to this thought record
+      if (thoughtRecord.userId !== req.user.id && req.user.role !== 'admin' && 
+          (req.user.role !== 'therapist' || !await isClientOfTherapist(thoughtRecord.userId, req.user.id))) {
+        return res.status(403).json({ message: "You don't have access to this thought record" });
+      }
+      
+      // Unlink the journal entry from the thought record
+      await storage.unlinkJournalFromThoughtRecord(journalId, thoughtRecordId);
+      
+      res.status(200).json({ message: "Journal entry unlinked from thought record successfully" });
+    } catch (error) {
+      console.error("Unlink journal from thought record error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get all thought records related to a journal entry
+  app.get("/api/journal/:journalId/related-thoughts", authenticate, async (req, res) => {
+    try {
+      const journalId = Number(req.params.journalId);
+      
+      if (isNaN(journalId)) {
+        return res.status(400).json({ message: "Invalid journal ID" });
+      }
+      
+      // Get the journal entry
+      const journal = await storage.getJournalEntryById(journalId);
+      if (!journal) {
+        return res.status(404).json({ message: "Journal entry not found" });
+      }
+      
+      // Ensure the user has access to this journal entry
+      if (journal.userId !== req.user.id && req.user.role !== 'admin' && 
+          (req.user.role !== 'therapist' || !await isClientOfTherapist(journal.userId, req.user.id))) {
+        return res.status(403).json({ message: "You don't have access to this journal entry" });
+      }
+      
+      // Get related thought records
+      const relatedThoughts = await storage.getRelatedThoughtRecords(journalId);
+      
+      res.status(200).json(relatedThoughts);
+    } catch (error) {
+      console.error("Get related thought records error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get all journal entries related to a thought record
+  app.get("/api/thoughts/:thoughtRecordId/related-journals", authenticate, async (req, res) => {
+    try {
+      const thoughtRecordId = Number(req.params.thoughtRecordId);
+      
+      if (isNaN(thoughtRecordId)) {
+        return res.status(400).json({ message: "Invalid thought record ID" });
+      }
+      
+      // Get the thought record
+      const thoughtRecord = await storage.getThoughtRecordById(thoughtRecordId);
+      if (!thoughtRecord) {
+        return res.status(404).json({ message: "Thought record not found" });
+      }
+      
+      // Ensure the user has access to this thought record
+      if (thoughtRecord.userId !== req.user.id && req.user.role !== 'admin' && 
+          (req.user.role !== 'therapist' || !await isClientOfTherapist(thoughtRecord.userId, req.user.id))) {
+        return res.status(403).json({ message: "You don't have access to this thought record" });
+      }
+      
+      // Get related journal entries
+      const relatedJournals = await storage.getRelatedJournalEntries(thoughtRecordId);
+      
+      res.status(200).json(relatedJournals);
+    } catch (error) {
+      console.error("Get related journal entries error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   const httpServer = createServer(app);
   return httpServer;
 }
