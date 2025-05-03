@@ -203,6 +203,7 @@ export const journalEntries = pgTable("journal_entries", {
   content: text("content").notNull(),
   mood: integer("mood"), // 1-10 scale
   aiSuggestedTags: jsonb("ai_suggested_tags").$type<string[]>(), // Tags suggested by AI
+  initialAiTags: jsonb("initial_ai_tags").$type<string[]>(), // Original tags from initial AI analysis
   selectedTags: jsonb("selected_tags").$type<string[]>(), // Tags selected by the user
   userSelectedTags: jsonb("user_selected_tags").$type<string[]>(), // Tags explicitly selected by the user
   aiAnalysis: text("ai_analysis"), // AI-generated summary/analysis

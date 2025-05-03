@@ -5,9 +5,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Plus, Trash2, MessageCircle, Tag, ChevronDown, Edit, User } from "lucide-react";
+import { 
+  CalendarIcon, 
+  Plus, 
+  Trash2, 
+  MessageCircle, 
+  Tag, 
+  ChevronDown, 
+  Edit, 
+  User, 
+  HelpCircle,
+  Sparkles
+} from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,6 +45,9 @@ interface JournalEntry {
   updatedAt: string;
   mood?: number | null;
   aiSuggestedTags?: string[];
+  // Store the initial AI-suggested tags from when the entry was first created
+  // This will help us track which tags were added from comments later
+  initialAiTags?: string[];
   aiAnalysis?: string;
   userSelectedTags?: string[];
   emotions?: string[];
@@ -304,8 +324,15 @@ export default function Journal() {
       const oldAiTags = currentEntry?.aiSuggestedTags || [];
       const newAiTags = data.aiSuggestedTags || [];
       
+      // If this is the first time loading this entry, store the initial tags
+      // This helps us track which tags were added from the original AI analysis
+      // versus those added later from comments
+      if (!data.initialAiTags && newAiTags.length > 0) {
+        data.initialAiTags = [...newAiTags];
+      }
+      
       // Check if we have new tags that weren't in the previous entry
-      const hasNewAiTags = newAiTags.some(tag => !oldAiTags.includes(tag));
+      const hasNewAiTags = newAiTags.some((tag: string) => !oldAiTags.includes(tag));
       
       // Update current entry data
       setCurrentEntry(data);
