@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission } from "./middleware/auth";
 import { z } from "zod";
 import * as bcrypt from "bcrypt";
+import Stripe from "stripe";
 import { 
   insertUserSchema, 
   insertEmotionRecordSchema,
@@ -15,19 +16,30 @@ import {
   insertGoalSchema,
   insertGoalMilestoneSchema,
   insertActionSchema,
+  insertSubscriptionPlanSchema,
   goals,
   goalMilestones,
   actions,
   protectiveFactors,
   protectiveFactorUsage,
   copingStrategies,
-  copingStrategyUsage
+  copingStrategyUsage,
+  subscriptionPlans
 } from "@shared/schema";
 import cookieParser from "cookie-parser";
 import { sendClientInvitation } from "./services/email";
 import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
 import { db, pool } from "./db";
 import { eq, or, isNull, desc, and } from "drizzle-orm";
+
+// Initialize Stripe
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.warn("STRIPE_SECRET_KEY is not set. Subscription functionality may be limited.");
+}
+
+const stripe = process.env.STRIPE_SECRET_KEY ? 
+  new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' }) : 
+  null;
 
 // Helper function to get emotion color by name
 function getEmotionColor(emotion: string): string {
@@ -74,6 +86,428 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { pool } = await import('./db');
   // Parse cookies
   app.use(cookieParser());
+  
+  // Subscription Plan Routes
+  
+  // Get all subscription plans
+  app.get("/api/subscription-plans", async (req, res) => {
+    try {
+      // Non-authenticated users can see active plans only
+      const activeOnly = !req.headers.authorization;
+      const plans = await storage.getSubscriptionPlans(activeOnly);
+      res.status(200).json(plans);
+    } catch (error) {
+      console.error("Get subscription plans error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get subscription plan by ID
+  app.get("/api/subscription-plans/:id", async (req, res) => {
+    try {
+      const planId = Number(req.params.id);
+      if (isNaN(planId)) {
+        return res.status(400).json({ message: "Invalid plan ID" });
+      }
+      
+      const plan = await storage.getSubscriptionPlanById(planId);
+      if (!plan) {
+        return res.status(404).json({ message: "Subscription plan not found" });
+      }
+      
+      res.status(200).json(plan);
+    } catch (error) {
+      console.error("Get subscription plan error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Create a new subscription plan (admin only)
+  app.post("/api/subscription-plans", authenticate, isAdmin, async (req, res) => {
+    try {
+      const validatedData = insertSubscriptionPlanSchema.parse(req.body);
+      const newPlan = await storage.createSubscriptionPlan(validatedData);
+      res.status(201).json(newPlan);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Create subscription plan error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Update a subscription plan (admin only)
+  app.patch("/api/subscription-plans/:id", authenticate, isAdmin, async (req, res) => {
+    try {
+      const planId = Number(req.params.id);
+      if (isNaN(planId)) {
+        return res.status(400).json({ message: "Invalid plan ID" });
+      }
+      
+      const plan = await storage.getSubscriptionPlanById(planId);
+      if (!plan) {
+        return res.status(404).json({ message: "Subscription plan not found" });
+      }
+      
+      const validatedData = insertSubscriptionPlanSchema.partial().parse(req.body);
+      const updatedPlan = await storage.updateSubscriptionPlan(planId, validatedData);
+      res.status(200).json(updatedPlan);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Update subscription plan error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Set default subscription plan (admin only)
+  app.post("/api/subscription-plans/:id/set-default", authenticate, isAdmin, async (req, res) => {
+    try {
+      const planId = Number(req.params.id);
+      if (isNaN(planId)) {
+        return res.status(400).json({ message: "Invalid plan ID" });
+      }
+      
+      const plan = await storage.getSubscriptionPlanById(planId);
+      if (!plan) {
+        return res.status(404).json({ message: "Subscription plan not found" });
+      }
+      
+      if (!plan.isActive) {
+        return res.status(400).json({ message: "Cannot set an inactive plan as default" });
+      }
+      
+      const defaultPlan = await storage.setDefaultSubscriptionPlan(planId);
+      res.status(200).json(defaultPlan);
+    } catch (error) {
+      console.error("Set default subscription plan error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Deactivate a subscription plan (admin only)
+  app.post("/api/subscription-plans/:id/deactivate", authenticate, isAdmin, async (req, res) => {
+    try {
+      const planId = Number(req.params.id);
+      if (isNaN(planId)) {
+        return res.status(400).json({ message: "Invalid plan ID" });
+      }
+      
+      const plan = await storage.getSubscriptionPlanById(planId);
+      if (!plan) {
+        return res.status(404).json({ message: "Subscription plan not found" });
+      }
+      
+      if (plan.isDefault) {
+        return res.status(400).json({ message: "Cannot deactivate the default plan" });
+      }
+      
+      const deactivatedPlan = await storage.deactivateSubscriptionPlan(planId);
+      res.status(200).json(deactivatedPlan);
+    } catch (error) {
+      console.error("Deactivate subscription plan error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Stripe Subscription Routes
+  
+  // Get current subscription info of authenticated user
+  app.get("/api/subscription", authenticate, async (req, res) => {
+    try {
+      const user = req.user;
+      
+      // Get subscription plan if user has one
+      let plan = null;
+      if (user.subscriptionPlanId) {
+        plan = await storage.getSubscriptionPlanById(user.subscriptionPlanId);
+      }
+      
+      // Get Stripe subscription details if available
+      let stripeSubscription = null;
+      if (stripe && user.stripeSubscriptionId) {
+        try {
+          stripeSubscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+        } catch (stripeError) {
+          console.error("Stripe subscription retrieval error:", stripeError);
+          // Continue without Stripe data
+        }
+      }
+      
+      res.status(200).json({
+        plan,
+        status: user.subscriptionStatus,
+        endDate: user.subscriptionEndDate,
+        stripeSubscription: stripeSubscription ? {
+          id: stripeSubscription.id,
+          status: stripeSubscription.status,
+          currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+          cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end
+        } : null
+      });
+    } catch (error) {
+      console.error("Get subscription info error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Create or update a subscription
+  app.post("/api/subscription", authenticate, async (req, res) => {
+    try {
+      const { planId } = req.body;
+      
+      if (!planId) {
+        return res.status(400).json({ message: "Plan ID is required" });
+      }
+      
+      const plan = await storage.getSubscriptionPlanById(Number(planId));
+      if (!plan) {
+        return res.status(404).json({ message: "Subscription plan not found" });
+      }
+      
+      if (!plan.isActive) {
+        return res.status(400).json({ message: "Plan is not active" });
+      }
+      
+      // For free plans, just assign the plan to the user
+      if (plan.price === 0) {
+        const user = await storage.assignSubscriptionPlan(req.user.id, plan.id);
+        await storage.updateSubscriptionStatus(req.user.id, "active");
+        
+        return res.status(200).json({
+          success: true,
+          message: "Free plan activated",
+          plan
+        });
+      }
+      
+      // For paid plans, create a Stripe checkout session
+      if (!stripe) {
+        return res.status(503).json({ message: "Payment processing is not available" });
+      }
+      
+      // Check if user already has a Stripe customer ID
+      let customerId = req.user.stripeCustomerId;
+      
+      // If not, create a new customer
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: req.user.email,
+          name: req.user.name,
+          metadata: {
+            userId: req.user.id.toString()
+          }
+        });
+        
+        customerId = customer.id;
+        await storage.updateUserStripeInfo(req.user.id, {
+          stripeCustomerId: customerId,
+          stripeSubscriptionId: "" // Will be updated after checkout
+        });
+      }
+      
+      // Create a checkout session
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: plan.name,
+                description: plan.description
+              },
+              unit_amount: Math.round(plan.price * 100), // Convert to cents
+              recurring: {
+                interval: plan.interval
+              }
+            },
+            quantity: 1
+          }
+        ],
+        mode: "subscription",
+        success_url: `${req.protocol}://${req.get("host")}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.protocol}://${req.get("host")}/subscription/cancel`,
+        metadata: {
+          userId: req.user.id.toString(),
+          planId: plan.id.toString()
+        }
+      });
+      
+      res.status(200).json({
+        sessionId: session.id,
+        url: session.url
+      });
+    } catch (error) {
+      console.error("Create subscription error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Handle subscription webhook from Stripe
+  app.post("/api/webhook/stripe", async (req, res) => {
+    if (!stripe) {
+      return res.status(503).json({ message: "Payment processing is not available" });
+    }
+    
+    let event;
+    const signature = req.headers["stripe-signature"];
+    
+    // Verify webhook signature
+    try {
+      // Note: In production, we would use a webhook secret
+      // event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret);
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        signature || "",
+        process.env.STRIPE_WEBHOOK_SECRET || "whsec_test"
+      );
+    } catch (error) {
+      console.error("Webhook signature verification failed:", error);
+      return res.status(400).json({ message: "Webhook signature verification failed" });
+    }
+    
+    try {
+      switch (event.type) {
+        case "checkout.session.completed": {
+          const session = event.data.object;
+          
+          // Get the user and plan from metadata
+          const userId = Number(session.metadata.userId);
+          const planId = Number(session.metadata.planId);
+          
+          // Get subscription ID
+          const subscriptionId = session.subscription;
+          
+          // Update user with subscription info
+          await storage.updateUserStripeInfo(userId, {
+            stripeCustomerId: session.customer as string,
+            stripeSubscriptionId: subscriptionId as string
+          });
+          
+          await storage.assignSubscriptionPlan(userId, planId);
+          await storage.updateSubscriptionStatus(userId, "active");
+          
+          break;
+        }
+        
+        case "invoice.payment_succeeded": {
+          // Update subscription status to active
+          const invoice = event.data.object;
+          const subscriptionId = invoice.subscription;
+          
+          // Find user with this subscription
+          const users = await db
+            .select()
+            .from(users)
+            .where(eq(users.stripeSubscriptionId, subscriptionId as string));
+          
+          if (users.length > 0) {
+            await storage.updateSubscriptionStatus(users[0].id, "active");
+          }
+          
+          break;
+        }
+        
+        case "invoice.payment_failed": {
+          // Update subscription status to past_due
+          const invoice = event.data.object;
+          const subscriptionId = invoice.subscription;
+          
+          // Find user with this subscription
+          const users = await db
+            .select()
+            .from(users)
+            .where(eq(users.stripeSubscriptionId, subscriptionId as string));
+          
+          if (users.length > 0) {
+            await storage.updateSubscriptionStatus(users[0].id, "past_due");
+          }
+          
+          break;
+        }
+        
+        case "customer.subscription.updated": {
+          const subscription = event.data.object;
+          
+          // Find user with this subscription
+          const users = await db
+            .select()
+            .from(users)
+            .where(eq(users.stripeSubscriptionId, subscription.id));
+          
+          if (users.length > 0) {
+            // Update status based on subscription status
+            await storage.updateSubscriptionStatus(
+              users[0].id,
+              subscription.status,
+              subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : undefined
+            );
+          }
+          
+          break;
+        }
+        
+        case "customer.subscription.deleted": {
+          const subscription = event.data.object;
+          
+          // Find user with this subscription
+          const users = await db
+            .select()
+            .from(users)
+            .where(eq(users.stripeSubscriptionId, subscription.id));
+          
+          if (users.length > 0) {
+            await storage.updateSubscriptionStatus(users[0].id, "canceled");
+            
+            // Check if there's a default plan to assign
+            const defaultPlan = await storage.getDefaultSubscriptionPlan();
+            if (defaultPlan && defaultPlan.price === 0) {
+              await storage.assignSubscriptionPlan(users[0].id, defaultPlan.id);
+            }
+          }
+          
+          break;
+        }
+      }
+      
+      res.status(200).json({ received: true });
+    } catch (error) {
+      console.error("Webhook processing error:", error);
+      res.status(500).json({ message: "Webhook processing error" });
+    }
+  });
+  
+  // Cancel a subscription
+  app.post("/api/subscription/cancel", authenticate, async (req, res) => {
+    try {
+      const user = req.user;
+      
+      if (!user.stripeSubscriptionId) {
+        return res.status(400).json({ message: "No active subscription found" });
+      }
+      
+      if (!stripe) {
+        return res.status(503).json({ message: "Payment processing is not available" });
+      }
+      
+      // Cancel at period end rather than immediately
+      await stripe.subscriptions.update(user.stripeSubscriptionId, {
+        cancel_at_period_end: true
+      });
+      
+      res.status(200).json({
+        success: true,
+        message: "Subscription will be canceled at the end of the billing period"
+      });
+    } catch (error) {
+      console.error("Cancel subscription error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
   
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {

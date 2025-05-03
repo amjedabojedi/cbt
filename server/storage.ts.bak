@@ -209,87 +209,6 @@ export class DatabaseStorage implements IStorage {
     
     return parseInt(result[0].count as string);
   }
-  
-  // Subscription plans management
-  async createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan> {
-    const [newPlan] = await db
-      .insert(subscriptionPlans)
-      .values(plan)
-      .returning();
-    
-    return newPlan;
-  }
-  
-  async getSubscriptionPlans(activeOnly: boolean = true): Promise<SubscriptionPlan[]> {
-    if (activeOnly) {
-      return db
-        .select()
-        .from(subscriptionPlans)
-        .where(eq(subscriptionPlans.isActive, true))
-        .orderBy(subscriptionPlans.price);
-    } else {
-      return db
-        .select()
-        .from(subscriptionPlans)
-        .orderBy(subscriptionPlans.price);
-    }
-  }
-  
-  async getSubscriptionPlanById(id: number): Promise<SubscriptionPlan | undefined> {
-    const [plan] = await db
-      .select()
-      .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.id, id));
-    
-    return plan;
-  }
-  
-  async updateSubscriptionPlan(id: number, data: Partial<InsertSubscriptionPlan>): Promise<SubscriptionPlan> {
-    const [updatedPlan] = await db
-      .update(subscriptionPlans)
-      .set(data)
-      .where(eq(subscriptionPlans.id, id))
-      .returning();
-    
-    return updatedPlan;
-  }
-  
-  async getDefaultSubscriptionPlan(): Promise<SubscriptionPlan | undefined> {
-    const [plan] = await db
-      .select()
-      .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.isDefault, true))
-      .where(eq(subscriptionPlans.isActive, true));
-    
-    return plan;
-  }
-  
-  async setDefaultSubscriptionPlan(id: number): Promise<SubscriptionPlan> {
-    // First clear default from any existing default plans
-    await db
-      .update(subscriptionPlans)
-      .set({ isDefault: false })
-      .where(eq(subscriptionPlans.isDefault, true));
-    
-    // Then set the new default plan
-    const [defaultPlan] = await db
-      .update(subscriptionPlans)
-      .set({ isDefault: true })
-      .where(eq(subscriptionPlans.id, id))
-      .returning();
-    
-    return defaultPlan;
-  }
-  
-  async deactivateSubscriptionPlan(id: number): Promise<SubscriptionPlan> {
-    const [deactivatedPlan] = await db
-      .update(subscriptionPlans)
-      .set({ isActive: false })
-      .where(eq(subscriptionPlans.id, id))
-      .returning();
-    
-    return deactivatedPlan;
-  }
 
   // Session management
   async createSession(userId: number): Promise<Session> {
@@ -597,7 +516,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateGoalStatus(id: number, status: string, therapistComments?: string): Promise<Goal> {
-    const updateData: Partial<Goal> = { status: status as any };
+    const updateData: Partial<Goal> = { status };
     if (therapistComments) {
       updateData.therapistComments = therapistComments;
     }
@@ -658,7 +577,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateActionCompletion(id: number, isCompleted: boolean, moodAfter?: number, reflection?: string): Promise<Action> {
-    const updateData: Partial<Action> = {
+    const updateData: Partial<Action> = { 
       isCompleted,
       completedAt: isCompleted ? new Date() : null
     };
@@ -678,6 +597,88 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return updatedAction;
+  }
+}
+
+  // Subscription plans management
+  async createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan> {
+    const [newPlan] = await db
+      .insert(subscriptionPlans)
+      .values(plan)
+      .returning();
+    
+    return newPlan;
+  }
+  
+  async getSubscriptionPlans(activeOnly: boolean = true): Promise<SubscriptionPlan[]> {
+    if (activeOnly) {
+      return db
+        .select()
+        .from(subscriptionPlans)
+        .where(eq(subscriptionPlans.isActive, true))
+        .orderBy(subscriptionPlans.price);
+    } else {
+      return db
+        .select()
+        .from(subscriptionPlans)
+        .orderBy(subscriptionPlans.price);
+    }
+  }
+  
+  async getSubscriptionPlanById(id: number): Promise<SubscriptionPlan | undefined> {
+    const [plan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.id, id));
+    
+    return plan;
+  }
+  
+  async updateSubscriptionPlan(id: number, data: Partial<InsertSubscriptionPlan>): Promise<SubscriptionPlan> {
+    const [updatedPlan] = await db
+      .update(subscriptionPlans)
+      .set(data)
+      .where(eq(subscriptionPlans.id, id))
+      .returning();
+    
+    return updatedPlan;
+  }
+  
+  async getDefaultSubscriptionPlan(): Promise<SubscriptionPlan | undefined> {
+    const [plan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.isDefault, true))
+      .where(eq(subscriptionPlans.isActive, true));
+    
+    return plan;
+  }
+  
+  async setDefaultSubscriptionPlan(id: number): Promise<SubscriptionPlan> {
+    // First clear default from any existing default plans
+    await db
+      .update(subscriptionPlans)
+      .set({ isDefault: false })
+      .where(eq(subscriptionPlans.isDefault, true));
+    
+    // Then set the new default plan
+    const [defaultPlan] = await db
+      .update(subscriptionPlans)
+      .set({ isDefault: true })
+      .where(eq(subscriptionPlans.id, id))
+      .returning();
+    
+    return defaultPlan;
+  }
+  
+  async deactivateSubscriptionPlan(id: number): Promise<SubscriptionPlan> {
+    const [deactivatedPlan] = await db
+      .update(subscriptionPlans)
+      .set({ isActive: false })
+      .where(eq(subscriptionPlans.id, id))
+      .returning();
+    
+    return deactivatedPlan;
   }
 }
 
