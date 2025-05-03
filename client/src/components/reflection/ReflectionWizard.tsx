@@ -715,9 +715,14 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
           <Button 
             variant="ghost" 
             size="sm"
+            type="button"
             className="text-primary hover:text-primary/80"
-            onClick={() => {
-              // This could be expanded to show a dialog with more information
+            onClick={(e) => {
+              // Prevent default button behavior that might submit forms
+              e.preventDefault();
+              e.stopPropagation();
+              
+              // Show information toast instead of closing dialog
               toast({
                 title: "About Protective Factors",
                 description: "Protective factors are personal resources, skills, or relationships that help you cope with stress and build resilience.",
@@ -863,9 +868,14 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
           <Button 
             variant="ghost" 
             size="sm"
+            type="button"
             className="text-primary hover:text-primary/80"
-            onClick={() => {
-              // This could be expanded to show a dialog with more information
+            onClick={(e) => {
+              // Prevent default button behavior that might submit forms
+              e.preventDefault();
+              e.stopPropagation();
+              
+              // Show information toast instead of closing dialog
               toast({
                 title: "About Coping Strategies",
                 description: "Coping strategies are specific techniques that help you manage stress, regulate emotions, and maintain well-being during difficult situations.",
