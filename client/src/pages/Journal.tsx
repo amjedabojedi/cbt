@@ -480,68 +480,9 @@ export default function Journal() {
         </div>
         
         {/* Journal Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Journal Navigation Card */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle>Journal Sections</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <ul className="space-y-1">
-                  <li>
-                    <Button 
-                      variant={activeSection === "recent" ? "secondary" : "ghost"} 
-                      className="w-full justify-start text-left"
-                      onClick={() => setActiveSection("recent")}
-                    >
-                      Recent Entries
-                    </Button>
-                  </li>
-                  <li>
-                    <Button 
-                      variant={activeSection === "favorites" ? "secondary" : "ghost"} 
-                      className="w-full justify-start text-left"
-                      onClick={() => setActiveSection("favorites")}
-                    >
-                      Favorites
-                    </Button>
-                  </li>
-                  <li>
-                    <Button 
-                      variant={activeSection === "insights" ? "secondary" : "ghost"} 
-                      className="w-full justify-start text-left"
-                      onClick={() => {
-                        setActiveSection("insights");
-                        setActiveTab("insights");
-                      }}
-                    >
-                      Insights & Analysis
-                    </Button>
-                  </li>
-                </ul>
-              
-                {entries.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2">Common Tags</h3>
-                    <div className="flex flex-wrap gap-1">
-                      {Object.entries(stats.tagsFrequency || {})
-                        .sort((a, b) => b[1] - a[1])
-                        .slice(0, 10)
-                        .map(([tag, count]) => (
-                          <Badge key={tag} variant="outline" className="text-xs cursor-pointer">
-                            {tag} ({count})
-                          </Badge>
-                        ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-          
+        <div className="container mx-auto">
           {/* Main Content */}
-          <div className="lg:col-span-3">
+          <div className="w-full">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="mb-4">
                 <TabsTrigger value="entries">Journal Entries</TabsTrigger>
