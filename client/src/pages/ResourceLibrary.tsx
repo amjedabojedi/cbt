@@ -114,11 +114,11 @@ export default function ResourceLibrary() {
     pdfUrl?: string;
   } | null>(null);
   
-  // Resource categories
-  const resourceCategories = [
+  // Resource categories (default list)
+  const defaultCategories = [
     "all",
     "cbt-basics",
-    "anxiety",
+    "anxiety", 
     "depression",
     "stress-management",
     "mindfulness",
@@ -1684,11 +1684,18 @@ export default function ResourceLibrary() {
                     e.preventDefault();
                     const formData = new FormData(e.currentTarget);
                     
-                    // Get custom category and format it
+                    // Check if dropdown category is being used or custom category
+                    const dropdownCategory = formData.get('category') as string;
                     const customCategory = formData.get('custom-category') as string;
-                    const categoryToUse = customCategory && customCategory.trim() ? 
-                      customCategory.trim().toLowerCase().replace(/\s+/g, '-') : 
-                      'other';
+                    
+                    // Use dropdown if selected, otherwise use custom category if provided, or default to 'other'
+                    let categoryToUse = 'other';
+                    
+                    if (dropdownCategory && dropdownCategory.trim()) {
+                      categoryToUse = dropdownCategory.trim();
+                    } else if (customCategory && customCategory.trim()) {
+                      categoryToUse = customCategory.trim().toLowerCase().replace(/\s+/g, '-');
+                    }
                     
                     const data = {
                       title: formData.get('title') as string,
@@ -1721,20 +1728,36 @@ export default function ResourceLibrary() {
                       </div>
                       
                       <div className="space-y-2">
-                        <label htmlFor="custom-category" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        <label htmlFor="category" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                           Category
                         </label>
-                        <div className="relative">
-                          <Input 
-                            id="custom-category"
-                            name="custom-category"
-                            placeholder="Enter your custom category name"
-                            defaultValue=""
-                          />
+                        <div className="grid grid-cols-1 gap-2">
+                          <select 
+                            id="category"
+                            name="category"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="">-- Select a Category --</option>
+                            {educationalResources && [...new Set(educationalResources.map((r: any) => r.category))]
+                              .filter((cat: string) => cat && cat !== 'all')
+                              .map((category: string) => (
+                                <option key={category} value={category}>{category}</option>
+                              ))
+                            }
+                          </select>
+                          
+                          <div className="relative">
+                            <Input 
+                              id="custom-category"
+                              name="custom-category"
+                              placeholder="Or enter a new category name"
+                              defaultValue=""
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Select an existing category or create a new one (will be automatically formatted)
+                          </p>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Type the name of your custom category (it will be automatically formatted)
-                        </p>
                       </div>
                     </div>
                     
