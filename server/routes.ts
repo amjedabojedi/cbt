@@ -2478,6 +2478,414 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Journal Routes
+  
+  // Get all journal entries for a user
+  app.get("/api/users/:userId/journal", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = Number(req.params.userId);
+      
+      const entries = await storage.getJournalEntriesByUser(userId);
+      res.status(200).json(entries);
+    } catch (error) {
+      console.error("Get journal entries error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get a specific journal entry by ID
+  app.get("/api/journal/:id", authenticate, async (req, res) => {
+    try {
+      const entryId = Number(req.params.id);
+      if (isNaN(entryId)) {
+        return res.status(400).json({ message: "Invalid journal entry ID" });
+      }
+      
+      const entry = await storage.getJournalEntryById(entryId);
+      if (!entry) {
+        return res.status(404).json({ message: "Journal entry not found" });
+      }
+      
+      // Check if user has access to this entry
+      const user = req.user;
+      if (entry.userId !== user.id && 
+          (user.role !== 'therapist' || 
+           (await storage.getUser(entry.userId))?.therapistId !== user.id) && 
+          user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Get comments for this entry if user is therapist or admin or the entry owner
+      const comments = await storage.getJournalCommentsByEntry(entryId);
+      
+      res.status(200).json({
+        ...entry,
+        comments
+      });
+    } catch (error) {
+      console.error("Get journal entry error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Create a new journal entry
+  app.post("/api/journal", authenticate, async (req, res) => {
+    try {
+      // Validate the data
+      const validatedData = insertJournalEntrySchema.parse({
+        ...req.body,
+        userId: req.user.id, // Ensure the entry is created for the authenticated user
+      });
+      
+      // Create the journal entry
+      const newEntry = await storage.createJournalEntry(validatedData);
+      
+      // If there's content, analyze it with OpenAI to suggest tags
+      if (validatedData.content && process.env.OPENAI_API_KEY) {
+        try {
+          const analysis = await analyzeJournalEntry(
+            validatedData.title || "",
+            validatedData.content
+          );
+          
+          // Update the entry with AI analysis
+          const updatedEntry = await storage.updateJournalEntry(newEntry.id, {
+            aiSuggestedTags: analysis.suggestedTags,
+            aiAnalysis: analysis.analysis,
+            emotions: analysis.emotions,
+            topics: analysis.topics,
+            sentimentPositive: analysis.sentiment.positive,
+            sentimentNegative: analysis.sentiment.negative,
+            sentimentNeutral: analysis.sentiment.neutral
+          });
+          
+          return res.status(201).json(updatedEntry);
+        } catch (aiError) {
+          console.error("AI analysis error:", aiError);
+          // Continue without AI analysis if it fails
+          return res.status(201).json(newEntry);
+        }
+      }
+      
+      res.status(201).json(newEntry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Create journal entry error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Update a journal entry (user can only update their own entries)
+  app.patch("/api/journal/:id", authenticate, async (req, res) => {
+    try {
+      const entryId = Number(req.params.id);
+      if (isNaN(entryId)) {
+        return res.status(400).json({ message: "Invalid journal entry ID" });
+      }
+      
+      const entry = await storage.getJournalEntryById(entryId);
+      if (!entry) {
+        return res.status(404).json({ message: "Journal entry not found" });
+      }
+      
+      // Check if user owns this entry
+      if (entry.userId !== req.user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Validate the data
+      const validatedData = insertJournalEntrySchema.partial().parse(req.body);
+      
+      // If content was updated and there's an OpenAI key, re-analyze the content
+      let updatedData = validatedData;
+      if (validatedData.content && process.env.OPENAI_API_KEY) {
+        try {
+          const analysis = await analyzeJournalEntry(
+            validatedData.title || entry.title || "",
+            validatedData.content
+          );
+          
+          // Add AI analysis to update data
+          updatedData = {
+            ...validatedData,
+            aiSuggestedTags: analysis.suggestedTags,
+            aiAnalysis: analysis.analysis,
+            emotions: analysis.emotions,
+            topics: analysis.topics,
+            sentimentPositive: analysis.sentiment.positive,
+            sentimentNegative: analysis.sentiment.negative,
+            sentimentNeutral: analysis.sentiment.neutral
+          };
+        } catch (aiError) {
+          console.error("AI analysis error on update:", aiError);
+          // Continue without updating AI analysis if it fails
+        }
+      }
+      
+      // Update the entry
+      const updatedEntry = await storage.updateJournalEntry(entryId, updatedData);
+      res.status(200).json(updatedEntry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Update journal entry error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Delete a journal entry (user can only delete their own entries)
+  app.delete("/api/journal/:id", authenticate, async (req, res) => {
+    try {
+      const entryId = Number(req.params.id);
+      if (isNaN(entryId)) {
+        return res.status(400).json({ message: "Invalid journal entry ID" });
+      }
+      
+      const entry = await storage.getJournalEntryById(entryId);
+      if (!entry) {
+        return res.status(404).json({ message: "Journal entry not found" });
+      }
+      
+      // Check if user owns this entry or is admin
+      if (entry.userId !== req.user.id && req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Delete the entry
+      await storage.deleteJournalEntry(entryId);
+      res.status(200).json({ message: "Journal entry deleted successfully" });
+    } catch (error) {
+      console.error("Delete journal entry error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Update selected tags for a journal entry
+  app.post("/api/journal/:id/tags", authenticate, async (req, res) => {
+    try {
+      const entryId = Number(req.params.id);
+      if (isNaN(entryId)) {
+        return res.status(400).json({ message: "Invalid journal entry ID" });
+      }
+      
+      const entry = await storage.getJournalEntryById(entryId);
+      if (!entry) {
+        return res.status(404).json({ message: "Journal entry not found" });
+      }
+      
+      // Check if user owns this entry
+      if (entry.userId !== req.user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Validate the data
+      const { selectedTags } = req.body;
+      if (!Array.isArray(selectedTags)) {
+        return res.status(400).json({ message: "Selected tags must be an array" });
+      }
+      
+      // Update the entry with selected tags
+      const updatedEntry = await storage.updateJournalEntry(entryId, {
+        userSelectedTags: selectedTags
+      });
+      
+      res.status(200).json(updatedEntry);
+    } catch (error) {
+      console.error("Update journal tags error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Add a comment to a journal entry (therapist can only comment on their clients' entries)
+  app.post("/api/journal/:id/comments", authenticate, async (req, res) => {
+    try {
+      const entryId = Number(req.params.id);
+      if (isNaN(entryId)) {
+        return res.status(400).json({ message: "Invalid journal entry ID" });
+      }
+      
+      const entry = await storage.getJournalEntryById(entryId);
+      if (!entry) {
+        return res.status(404).json({ message: "Journal entry not found" });
+      }
+      
+      // Check if user is therapist for this client or admin
+      const user = req.user;
+      if (user.role === 'client' && entry.userId !== user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      } else if (user.role === 'therapist') {
+        const client = await storage.getUser(entry.userId);
+        if (!client || client.therapistId !== user.id) {
+          return res.status(403).json({ message: "Access denied - not your client" });
+        }
+      }
+      
+      // Validate the data
+      const validatedData = insertJournalCommentSchema.parse({
+        ...req.body,
+        userId: user.id,
+        journalEntryId: entryId
+      });
+      
+      // Create the comment
+      const newComment = await storage.createJournalComment(validatedData);
+      res.status(201).json(newComment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Create journal comment error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Update a comment (user can only update their own comments)
+  app.patch("/api/journal/comments/:id", authenticate, async (req, res) => {
+    try {
+      const commentId = Number(req.params.id);
+      if (isNaN(commentId)) {
+        return res.status(400).json({ message: "Invalid comment ID" });
+      }
+      
+      // Get the comment
+      const [comment] = await db
+        .select()
+        .from(journalComments)
+        .where(eq(journalComments.id, commentId));
+      
+      if (!comment) {
+        return res.status(404).json({ message: "Comment not found" });
+      }
+      
+      // Check if user owns this comment
+      if (comment.userId !== req.user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Validate the data
+      const validatedData = insertJournalCommentSchema.partial().parse(req.body);
+      
+      // Update the comment
+      const updatedComment = await storage.updateJournalComment(commentId, validatedData);
+      res.status(200).json(updatedComment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Update journal comment error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Delete a comment (user can only delete their own comments or admin)
+  app.delete("/api/journal/comments/:id", authenticate, async (req, res) => {
+    try {
+      const commentId = Number(req.params.id);
+      if (isNaN(commentId)) {
+        return res.status(400).json({ message: "Invalid comment ID" });
+      }
+      
+      // Get the comment
+      const [comment] = await db
+        .select()
+        .from(journalComments)
+        .where(eq(journalComments.id, commentId));
+      
+      if (!comment) {
+        return res.status(404).json({ message: "Comment not found" });
+      }
+      
+      // Check if user owns this comment or is admin
+      if (comment.userId !== req.user.id && req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Delete the comment
+      await storage.deleteJournalComment(commentId);
+      res.status(200).json({ message: "Comment deleted successfully" });
+    } catch (error) {
+      console.error("Delete journal comment error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get journal statistics for a user
+  app.get("/api/users/:userId/journal/stats", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = Number(req.params.userId);
+      
+      // Get all journal entries for this user
+      const entries = await storage.getJournalEntriesByUser(userId);
+      
+      // Extract stats from entries
+      const stats = {
+        totalEntries: entries.length,
+        emotions: {} as Record<string, number>,
+        topics: {} as Record<string, number>,
+        sentimentOverTime: entries.map(entry => ({
+          date: entry.createdAt,
+          positive: entry.sentimentPositive || 0,
+          negative: entry.sentimentNegative || 0,
+          neutral: entry.sentimentNeutral || 0
+        })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+        tagsFrequency: {} as Record<string, number>
+      };
+      
+      // Count emotions and topics
+      entries.forEach(entry => {
+        // Count emotions
+        if (entry.emotions && Array.isArray(entry.emotions)) {
+          entry.emotions.forEach(emotion => {
+            stats.emotions[emotion] = (stats.emotions[emotion] || 0) + 1;
+          });
+        }
+        
+        // Count topics
+        if (entry.topics && Array.isArray(entry.topics)) {
+          entry.topics.forEach(topic => {
+            stats.topics[topic] = (stats.topics[topic] || 0) + 1;
+          });
+        }
+        
+        // Count user selected tags
+        if (entry.userSelectedTags && Array.isArray(entry.userSelectedTags)) {
+          entry.userSelectedTags.forEach(tag => {
+            stats.tagsFrequency[tag] = (stats.tagsFrequency[tag] || 0) + 1;
+          });
+        }
+      });
+      
+      res.status(200).json(stats);
+    } catch (error) {
+      console.error("Get journal stats error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Analyze journal text with OpenAI without saving
+  app.post("/api/journal/analyze", authenticate, async (req, res) => {
+    try {
+      const { title, content } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ message: "Content is required for analysis" });
+      }
+      
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(503).json({ message: "AI analysis is not available" });
+      }
+      
+      const analysis = await analyzeJournalEntry(title || "", content);
+      res.status(200).json(analysis);
+    } catch (error) {
+      console.error("Journal analysis error:", error);
+      res.status(500).json({ message: "Failed to analyze journal content" });
+    }
+  });
+  
   const httpServer = createServer(app);
   return httpServer;
 }

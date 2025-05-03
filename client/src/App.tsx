@@ -17,6 +17,7 @@ const EmotionTracking = lazy(() => import("@/pages/EmotionTracking"));
 const ThoughtRecords = lazy(() => import("@/pages/ThoughtRecords"));
 const GoalSetting = lazy(() => import("@/pages/GoalSetting"));
 const ResourceLibrary = lazy(() => import("@/pages/ResourceLibrary"));
+const Journal = lazy(() => import("@/pages/Journal"));
 const Reports = lazy(() => import("@/pages/Reports"));
 const Clients = lazy(() => import("@/pages/Clients"));
 const Settings = lazy(() => import("@/pages/Settings"));
@@ -64,6 +65,7 @@ function Router() {
         <ProtectedRoute path="/thoughts" component={ThoughtRecords} />
         <ProtectedRoute path="/goals" component={GoalSetting} />
         <ProtectedRoute path="/library" component={ResourceLibrary} />
+        <ProtectedRoute path="/journal" component={Journal} />
         <ProtectedRoute path="/reports" component={Reports} />
         
         {/* Role-restricted routes */}
