@@ -401,7 +401,7 @@ export function SubscriptionPlansManager() {
       
       {/* Create Plan Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create Subscription Plan</DialogTitle>
             <DialogDescription>
@@ -528,7 +528,7 @@ export function SubscriptionPlansManager() {
                         <Button type="button" onClick={handleAddFeature}>Add</Button>
                       </div>
                       
-                      <div className="mt-2 space-y-2">
+                      <div className="mt-2 space-y-2 max-h-40 overflow-y-auto pr-1">
                         {form.watch("features")?.map((feature, index) => (
                           <div key={index} className="flex items-center bg-muted p-2 rounded-md">
                             <span className="flex-1 text-sm">{feature}</span>
@@ -636,7 +636,7 @@ export function SubscriptionPlansManager() {
       
       {/* Edit Plan Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Subscription Plan</DialogTitle>
             <DialogDescription>
@@ -763,7 +763,7 @@ export function SubscriptionPlansManager() {
                         <Button type="button" onClick={handleAddFeature}>Add</Button>
                       </div>
                       
-                      <div className="mt-2 space-y-2">
+                      <div className="mt-2 space-y-2 max-h-40 overflow-y-auto pr-1">
                         {form.watch("features")?.map((feature, index) => (
                           <div key={index} className="flex items-center bg-muted p-2 rounded-md">
                             <span className="flex-1 text-sm">{feature}</span>
