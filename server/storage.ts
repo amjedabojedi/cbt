@@ -32,6 +32,7 @@ export interface IStorage {
   updateSubscriptionStatus(userId: number, status: string, endDate?: Date): Promise<User>;
   assignSubscriptionPlan(userId: number, planId: number): Promise<User>;
   countTherapistClients(therapistId: number): Promise<number>;
+  deleteUser(userId: number): Promise<void>;
   
   // Subscription plans management
   createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan>;
@@ -208,6 +209,66 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.therapistId, therapistId));
     
     return parseInt(result[0].count as string);
+  }
+  
+  async deleteUser(userId: number): Promise<void> {
+    console.log(`Deleting user with ID: ${userId}`);
+    
+    // First, delete all sessions for this user
+    await db
+      .delete(sessions)
+      .where(eq(sessions.userId, userId));
+    
+    // Delete emotion records and their related records (cascade)
+    const userEmotionRecords = await this.getEmotionRecordsByUser(userId);
+    for (const record of userEmotionRecords) {
+      await this.deleteEmotionRecord(record.id);
+    }
+    
+    // Delete protective factors for this user
+    const userProtectiveFactors = await this.getProtectiveFactorsByUser(userId, false);
+    for (const factor of userProtectiveFactors) {
+      await this.deleteProtectiveFactor(factor.id);
+    }
+    
+    // Delete coping strategies for this user
+    const userCopingStrategies = await this.getCopingStrategiesByUser(userId, false);
+    for (const strategy of userCopingStrategies) {
+      await this.deleteCopingStrategy(strategy.id);
+    }
+    
+    // Delete goals for this user
+    const userGoals = await this.getGoalsByUser(userId);
+    for (const goal of userGoals) {
+      // Delete goal milestones for this goal
+      const milestones = await this.getGoalMilestonesByGoal(goal.id);
+      for (const milestone of milestones) {
+        await db.delete(goalMilestones).where(eq(goalMilestones.id, milestone.id));
+      }
+      
+      // Delete goal
+      await db.delete(goals).where(eq(goals.id, goal.id));
+    }
+    
+    // Delete actions for this user
+    await db.delete(actions).where(eq(actions.userId, userId));
+    
+    // Update therapist references for clients of this user (if the user is a therapist)
+    await db
+      .update(users)
+      .set({ therapistId: null })
+      .where(eq(users.therapistId, userId));
+    
+    // Update current viewing client references
+    await db
+      .update(users)
+      .set({ currentViewingClientId: null })
+      .where(eq(users.currentViewingClientId, userId));
+    
+    // Finally, delete the user
+    await db.delete(users).where(eq(users.id, userId));
+    
+    console.log(`User ${userId} and all related records deleted successfully`);
   }
   
   // Subscription plans management

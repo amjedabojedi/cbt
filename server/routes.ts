@@ -646,6 +646,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Delete a user (admin only)
+  app.delete("/api/users/:userId", authenticate, isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Don't allow deleting your own account this way
+      if (userId === req.user?.id) {
+        return res.status(400).json({ message: "Cannot delete your own account through this endpoint" });
+      }
+      
+      // Check if the user exists
+      const userToDelete = await storage.getUser(userId);
+      if (!userToDelete) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Delete the user and all related data
+      await storage.deleteUser(userId);
+      
+      console.log(`User ${userId} deleted successfully by admin ${req.user?.id}`);
+      res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Delete user error:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+  
   // Assign subscription plan to a therapist (admin only)
   app.post("/api/users/:userId/subscription-plan", authenticate, isAdmin, async (req, res) => {
     try {
