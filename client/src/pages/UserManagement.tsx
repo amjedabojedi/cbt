@@ -97,6 +97,7 @@ export default function UserManagement() {
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [resetPassword, setResetPassword] = useState(false);
   
   // Fetch subscription plans
   const { 
@@ -137,10 +138,37 @@ export default function UserManagement() {
       ));
       
       setUserToEdit(null);
+      setResetPassword(false);
     },
     onError: (error: Error) => {
       toast({
         title: "Update Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Mutation to reset a user's password
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const res = await apiRequest("POST", `/api/users/${userId}/reset-password`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to reset password");
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Password Reset",
+        description: `Password has been reset to "${data.defaultPassword}". Please share this with the user.`,
+      });
+      setResetPassword(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Password Reset Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -617,12 +645,31 @@ export default function UserManagement() {
                           size="sm"
                           variant="ghost"
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => {
-                            // Remove client from therapist
-                            toast({
-                              title: "Client Removed",
-                              description: `${client.name} has been removed from ${selectedTherapist?.name}`,
-                            });
+                          onClick={async () => {
+                            try {
+                              // Remove client from therapist - API call to update client
+                              const res = await apiRequest("PATCH", `/api/users/${client.id}/unassign-therapist`);
+                              
+                              if (!res.ok) {
+                                const errorData = await res.json();
+                                throw new Error(errorData.message || "Failed to remove client");
+                              }
+                              
+                              toast({
+                                title: "Client Removed",
+                                description: `${client.name} has been removed from ${selectedTherapist?.name}`,
+                              });
+                              
+                              // Refresh the data
+                              fetchUsers();
+                            } catch (error) {
+                              console.error("Error removing client:", error);
+                              toast({
+                                title: "Error",
+                                description: error instanceof Error ? error.message : "Failed to remove client",
+                                variant: "destructive",
+                              });
+                            }
                           }}
                         >
                           Remove
