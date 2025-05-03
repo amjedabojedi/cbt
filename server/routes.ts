@@ -646,6 +646,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Assign subscription plan to a therapist (admin only)
+  app.post("/api/users/:userId/subscription-plan", authenticate, isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { planId } = req.body;
+      
+      if (!planId || isNaN(planId)) {
+        return res.status(400).json({ message: "Invalid plan ID" });
+      }
+      
+      // Get the user to verify they are a therapist
+      const userToUpdate = await storage.getUser(userId);
+      if (!userToUpdate) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      if (userToUpdate.role !== "therapist") {
+        return res.status(400).json({ message: "Subscription plans can only be assigned to therapists" });
+      }
+      
+      // Get the plan to verify it exists
+      const plan = await storage.getSubscriptionPlanById(planId);
+      if (!plan) {
+        return res.status(404).json({ message: "Subscription plan not found" });
+      }
+      
+      // Assign the plan to the therapist
+      const updatedUser = await storage.assignSubscriptionPlan(userId, planId);
+      
+      // Update subscription status to active or trial based on the plan
+      const status = plan.price === 0 ? "trial" : "active";
+      await storage.updateSubscriptionStatus(userId, status);
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.status(200).json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error assigning subscription plan:", error);
+      res.status(500).json({ message: "Failed to assign subscription plan" });
+    }
+  });
+  
   // Get clients for a therapist
   app.get("/api/users/clients", authenticate, isTherapist, async (req, res) => {
     try {
