@@ -1026,23 +1026,7 @@ export default function ResourceLibrary() {
             )}
           </TabsContent>
           
-          {/* Educational Resources Tab */}
-          <TabsContent value="educational-resources">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h1 className="text-2xl font-bold text-neutral-800">Educational Resources</h1>
-                <p className="text-neutral-500">
-                  Articles, guides and worksheets to help with CBT techniques
-                </p>
-              </div>
-              
-              {(user?.role === "admin" || user?.role === "therapist") && (
-                <Button onClick={() => setIsAddingResource(true)}>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add Resource
-                </Button>
-              )}
-            </div>
+
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Cognitive Distortions Guide */}
