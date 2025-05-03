@@ -698,7 +698,7 @@ export default function Journal() {
               <Textarea
                 id="content"
                 placeholder="Write your thoughts here..."
-                className="col-span-4 min-h-[200px]"
+                className="col-span-4 min-h-[200px] max-h-[400px] overflow-auto"
                 value={journalContent}
                 onChange={(e) => setJournalContent(e.target.value)}
               />
@@ -730,7 +730,7 @@ export default function Journal() {
         onOpenChange={(open) => !open && setCurrentEntry(null)}
       >
         {currentEntry && (
-          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-auto">
             <DialogHeader>
               <div className="flex justify-between items-start">
                 <DialogTitle className="text-2xl">{currentEntry.title}</DialogTitle>
@@ -768,61 +768,59 @@ export default function Journal() {
               </DialogDescription>
             </DialogHeader>
             
-            <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Left side: Journal content and comments */}
-              <div className="lg:col-span-2 flex flex-col overflow-hidden">
-                <ScrollArea className="flex-1 pr-4">
-                  <div className="space-y-4">
-                    {/* Journal Content */}
-                    <div className="whitespace-pre-wrap">{currentEntry.content}</div>
-                    
-                    {/* AI Analysis */}
-                    {currentEntry.aiAnalysis && (
-                      <div className="mt-6 p-4 bg-primary/5 rounded-md">
-                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                          <Sparkles size={16} className="text-yellow-500" />
-                          AI Analysis
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {currentEntry.aiAnalysis}
-                        </p>
-                      </div>
-                    )}
-                    
-                    {/* Comments section */}
-                    {currentEntry.comments && currentEntry.comments.length > 0 && (
-                      <div className="mt-6">
-                        <h4 className="font-medium text-sm mb-4 flex items-center gap-2">
-                          <MessageCircle size={16} />
-                          Comments {currentEntry.comments.length > 0 && `(${currentEntry.comments.length})`}
-                        </h4>
-                        
-                        <div className="space-y-4">
-                          {currentEntry.comments.map((comment) => (
-                            <div key={comment.id} className="flex gap-3">
-                              <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-primary/10 text-primary">
-                                  {comment.user?.name?.charAt(0) || "U"}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1">
-                                <div className="flex items-baseline justify-between">
-                                  <h5 className="font-medium text-sm">
-                                    {comment.user?.name || "User"}
-                                  </h5>
-                                  <span className="text-xs text-muted-foreground">
-                                    {format(new Date(comment.createdAt), "MMM d, p")}
-                                  </span>
-                                </div>
-                                <p className="text-sm mt-1">{comment.comment}</p>
+              <div className="lg:col-span-2">
+                <div className="space-y-4">
+                  {/* Journal Content */}
+                  <div className="whitespace-pre-wrap">{currentEntry.content}</div>
+                  
+                  {/* AI Analysis */}
+                  {currentEntry.aiAnalysis && (
+                    <div className="mt-6 p-4 bg-primary/5 rounded-md">
+                      <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                        <Sparkles size={16} className="text-yellow-500" />
+                        AI Analysis
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {currentEntry.aiAnalysis}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Comments section */}
+                  {currentEntry.comments && currentEntry.comments.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="font-medium text-sm mb-4 flex items-center gap-2">
+                        <MessageCircle size={16} />
+                        Comments {currentEntry.comments.length > 0 && `(${currentEntry.comments.length})`}
+                      </h4>
+                      
+                      <div className="space-y-4">
+                        {currentEntry.comments.map((comment) => (
+                          <div key={comment.id} className="flex gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="bg-primary/10 text-primary">
+                                {comment.user?.name?.charAt(0) || "U"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="flex items-baseline justify-between">
+                                <h5 className="font-medium text-sm">
+                                  {comment.user?.name || "User"}
+                                </h5>
+                                <span className="text-xs text-muted-foreground">
+                                  {format(new Date(comment.createdAt), "MMM d, p")}
+                                </span>
                               </div>
+                              <p className="text-sm mt-1">{comment.comment}</p>
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        ))}
                       </div>
-                    )}
-                  </div>
-                </ScrollArea>
+                    </div>
+                  )}
+                </div>
                 
                 {/* Add comment form */}
                 <div className="mt-4 pt-2 border-t">
