@@ -100,6 +100,9 @@ export default function ResourceLibrary() {
   const [isAddingResource, setIsAddingResource] = useState(false);
   const [isViewingResource, setIsViewingResource] = useState(false);
   const [resourceCategory, setResourceCategory] = useState<string>("all");
+  const [isAssigningResource, setIsAssigningResource] = useState(false);
+  const [selectedClients, setSelectedClients] = useState<number[]>([]);
+  const [assignmentNotes, setAssignmentNotes] = useState('');
   const [currentResource, setCurrentResource] = useState<{
     id: number;
     title: string;
@@ -194,6 +197,16 @@ export default function ResourceLibrary() {
   } = useQuery({
     queryKey: ['/api/resources'],
     enabled: !!user,
+  });
+  
+  // Fetch therapist's clients (only if user is a therapist)
+  const {
+    data: clients,
+    isLoading: clientsLoading,
+    error: clientsError
+  } = useQuery({
+    queryKey: ['/api/users/clients'],
+    enabled: !!user && user.role === "therapist",
   });
   
   // Create protective factor mutation
@@ -519,6 +532,60 @@ export default function ResourceLibrary() {
     }
   });
   
+  // Assign resource to client mutation
+  const assignResourceMutation = useMutation({
+    mutationFn: async ({ resourceId, clientIds, notes }: { resourceId: number; clientIds: number[]; notes: string }) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      if (clientIds.length === 0) {
+        throw new Error("Please select at least one client");
+      }
+      
+      const promises = clientIds.map(clientId => 
+        apiRequest(
+          "POST",
+          "/api/resources/assign",
+          {
+            resourceId,
+            clientId,
+            notes
+          }
+        )
+      );
+      
+      const results = await Promise.all(promises);
+      
+      // Check if any requests failed
+      for (const response of results) {
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to assign resource to one or more clients");
+        }
+      }
+      
+      return results.map(r => r.json());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/therapist/assignments'] });
+      setIsAssigningResource(false);
+      setSelectedClients([]);
+      setAssignmentNotes('');
+      setCurrentResource(null);
+      toast({
+        title: "Resource Assigned",
+        description: "The resource has been assigned to the selected client(s).",
+      });
+    },
+    onError: (error) => {
+      console.error("Error assigning resource:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to assign resource. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+  
   // Clone resource mutation (for therapists)
   const cloneResourceMutation = useMutation({
     mutationFn: async (resourceId: number) => {
@@ -554,39 +621,7 @@ export default function ResourceLibrary() {
     }
   });
   
-  // Assign resource to client mutation
-  const assignResourceMutation = useMutation({
-    mutationFn: async (data: { resourceId: number, assignedTo: number, notes?: string, isPriority?: boolean }) => {
-      if (!user) throw new Error("User not authenticated");
-      
-      const response = await apiRequest(
-        "POST",
-        "/api/resource-assignments",
-        data
-      );
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to assign resource");
-      }
-      
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Resource Assigned",
-        description: "The resource has been assigned to the client.",
-      });
-    },
-    onError: (error) => {
-      console.error("Error assigning resource:", error);
-      toast({
-        title: "Error",
-        description: "Failed to assign resource. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
+
   
   // Fetch client assignments (for therapists)
   const {
@@ -1421,9 +1456,8 @@ export default function ResourceLibrary() {
                           variant="default" 
                           size="sm"
                           onClick={() => {
-                            // Show dialog to assign to client
                             setCurrentResource(resource);
-                            // Logic for client assignment will be added
+                            setIsAssigningResource(true);
                           }}
                         >
                           <UserCheck className="mr-1 h-4 w-4" />
@@ -1698,8 +1732,103 @@ export default function ResourceLibrary() {
               </Dialog>
             )}
             
+            {/* Client Assignment Dialog */}
+            <Dialog open={isAssigningResource} onOpenChange={(open) => {
+              if (!open) {
+                setIsAssigningResource(false);
+                setSelectedClients([]);
+                setAssignmentNotes('');
+              }
+            }}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Assign Resource to Clients</DialogTitle>
+                  <DialogDescription>
+                    Select the clients you want to assign this resource to
+                  </DialogDescription>
+                </DialogHeader>
+                
+                {clientsLoading ? (
+                  <div className="py-6 flex justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+                  </div>
+                ) : clients && clients.length > 0 ? (
+                  <div className="py-2 space-y-4">
+                    <div className="border rounded-md p-3 space-y-3">
+                      {clients.map((client: any) => (
+                        <div key={client.id} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`client-${client.id}`}
+                            checked={selectedClients.includes(client.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedClients([...selectedClients, client.id]);
+                              } else {
+                                setSelectedClients(selectedClients.filter(id => id !== client.id));
+                              }
+                            }}
+                          />
+                          <label
+                            htmlFor={`client-${client.id}`}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {client.name || client.username}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium leading-none">
+                        Notes for Client (Optional)
+                      </label>
+                      <Textarea
+                        placeholder="Add instructions or context for this resource..."
+                        value={assignmentNotes}
+                        onChange={(e) => setAssignmentNotes(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-6 text-center text-muted-foreground">
+                    <p>You don't have any clients to assign resources to.</p>
+                  </div>
+                )}
+                
+                <DialogFooter>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsAssigningResource(false);
+                      setSelectedClients([]);
+                      setAssignmentNotes('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    disabled={selectedClients.length === 0 || !currentResource}
+                    onClick={() => {
+                      if (currentResource) {
+                        assignResourceMutation.mutate({
+                          resourceId: currentResource.id,
+                          clientIds: selectedClients,
+                          notes: assignmentNotes
+                        });
+                      }
+                    }}
+                  >
+                    {assignResourceMutation.isPending ? "Assigning..." : "Assign Resource"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            
             {/* Add Resource Dialog */}
-            <Dialog open={isAddingResource} onOpenChange={setIsAddingResource}>
+            <Dialog open={isAddingResource} onOpenChange={setIsAddingResource}
               <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Add Educational Resource</DialogTitle>
