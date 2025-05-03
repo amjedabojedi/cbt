@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { EmotionRecord, ThoughtRecord } from "@shared/schema";
-import useActiveUser from "@/hooks/use-active-user";
+import { useActiveUser } from "@/hooks/use-active-user";
 import { HelpCircle, PlusCircle } from "lucide-react";
 import { useLocation } from "wouter";
 

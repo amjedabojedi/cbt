@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import useActiveUser from "@/hooks/use-active-user";
+import { useActiveUser } from "@/hooks/use-active-user";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

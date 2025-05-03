@@ -1,6 +1,7 @@
 import { useAuth } from "@/lib/auth";
 import { useClientContext } from "@/context/ClientContext";
 
+// Named export
 export function useActiveUser() {
   const { user } = useAuth();
   const { viewingClientId } = useClientContext();
@@ -34,3 +35,6 @@ export function useActiveUser() {
     isClient: user?.role === "client",
   };
 }
+
+// Also export as default for backward compatibility
+export default useActiveUser;
