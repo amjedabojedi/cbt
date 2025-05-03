@@ -1021,7 +1021,7 @@ export default function Journal() {
                   <div>
                     <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
                       <User size={16} />
-                      Sentiment Analysis
+                      Emotional Tone
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -1029,64 +1029,71 @@ export default function Journal() {
                           </TooltipTrigger>
                           <TooltipContent className="max-w-[250px] p-4">
                             <p className="text-xs">
-                              AI-powered analysis of emotional tone in your entry. The percentages show the distribution of positive, negative and neutral sentiments detected.
+                              This visualization shows the dominant emotional tone of your journal entry. It's not a scientific measurement but a general impression of how positive, negative, or neutral your writing appears.
                             </p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </h4>
-                    <div className="space-y-2">
-                      {currentEntry.sentimentPositive !== undefined && (
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-xs">
+                    
+                    {/* Calculate total to normalize percentages */}
+                    {(() => {
+                      const positive = currentEntry.sentimentPositive || 0;
+                      const negative = currentEntry.sentimentNegative || 0; 
+                      const neutral = currentEntry.sentimentNeutral || 0;
+                      
+                      // Find the dominant sentiment
+                      const max = Math.max(positive, negative, neutral);
+                      let dominantSentiment = "neutral";
+                      if (max === positive) dominantSentiment = "positive";
+                      if (max === negative) dominantSentiment = "negative";
+                      
+                      // Create a color and text based on dominant sentiment
+                      let color = "bg-gray-500";
+                      let textColor = "text-gray-600";
+                      let description = "Your entry has a balanced emotional tone.";
+                      
+                      if (dominantSentiment === "positive") {
+                        color = "bg-green-500";
+                        textColor = "text-green-600";
+                        description = "Your entry has a generally positive emotional tone.";
+                      } else if (dominantSentiment === "negative") {
+                        color = "bg-red-500";
+                        textColor = "text-red-600";
+                        description = "Your entry has a generally negative emotional tone.";
+                      }
+                      
+                      return (
+                        <div className="space-y-3">
+                          <div className="p-3 bg-gray-50 rounded-md">
+                            <span className={`text-sm ${textColor} font-medium`}>
+                              {description}
+                            </span>
+                          </div>
+                          
+                          <div className="flex h-4 overflow-hidden rounded-full">
+                            <div 
+                              className="bg-green-500 transition-all" 
+                              style={{ width: `${positive > 0.1 ? Math.round(positive * 100) : 0}%` }}
+                            ></div>
+                            <div 
+                              className="bg-gray-400 transition-all" 
+                              style={{ width: `${neutral > 0.1 ? Math.round(neutral * 100) : 0}%` }}
+                            ></div>
+                            <div 
+                              className="bg-red-500 transition-all" 
+                              style={{ width: `${negative > 0.1 ? Math.round(negative * 100) : 0}%` }}
+                            ></div>
+                          </div>
+                          
+                          <div className="flex text-xs justify-between">
                             <span className="text-green-600">Positive</span>
-                            <span className="font-medium">
-                              {Math.min(100, Math.round((currentEntry.sentimentPositive || 0) * 100))}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-100 rounded-full h-1.5">
-                            <div 
-                              className="bg-green-500 h-1.5 rounded-full" 
-                              style={{ width: `${Math.min(100, Math.round((currentEntry.sentimentPositive || 0) * 100))}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {currentEntry.sentimentNegative !== undefined && (
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-red-600">Negative</span>
-                            <span className="font-medium">
-                              {Math.min(100, Math.round((currentEntry.sentimentNegative || 0) * 100))}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-100 rounded-full h-1.5">
-                            <div 
-                              className="bg-red-500 h-1.5 rounded-full" 
-                              style={{ width: `${Math.min(100, Math.round((currentEntry.sentimentNegative || 0) * 100))}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {currentEntry.sentimentNeutral !== undefined && (
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-xs">
                             <span className="text-gray-600">Neutral</span>
-                            <span className="font-medium">
-                              {Math.min(100, Math.round((currentEntry.sentimentNeutral || 0) * 100))}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-100 rounded-full h-1.5">
-                            <div 
-                              className="bg-gray-500 h-1.5 rounded-full" 
-                              style={{ width: `${Math.min(100, Math.round((currentEntry.sentimentNeutral || 0) * 100))}%` }}
-                            ></div>
+                            <span className="text-red-600">Negative</span>
                           </div>
                         </div>
-                      )}
-                    </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
