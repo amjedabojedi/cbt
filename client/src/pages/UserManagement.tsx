@@ -41,6 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
 // Interfaces from schema
 interface SubscriptionPlan {
@@ -366,7 +367,7 @@ export default function UserManagement() {
                 
                 <p className="text-sm text-muted-foreground mb-4">
                   Status:
-                  <span className={`
+                  <span className={cn(
                     "ml-1 px-2 py-0.5 rounded-full text-xs font-medium",
                     selectedTherapist?.subscriptionStatus === "active" ? "bg-green-100 text-green-700" :
                     selectedTherapist?.subscriptionStatus === "trial" ? "bg-blue-100 text-blue-700" :
@@ -517,11 +518,11 @@ export default function UserManagement() {
                         </Button>
                       </div>
                     ))}
-                    {users.filter(u => u.role === "client" && u.therapistId === selectedTherapist?.id).length === 0 && (
-                      <div className="p-8 text-center text-muted-foreground text-sm">
-                        No clients assigned to this therapist
-                      </div>
-                    )}
+                  {users.filter(u => u.role === "client" && u.therapistId === selectedTherapist?.id).length === 0 && (
+                    <div className="p-8 text-center text-muted-foreground text-sm">
+                      No clients assigned to this therapist
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
