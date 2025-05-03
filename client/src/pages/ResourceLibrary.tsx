@@ -1545,17 +1545,62 @@ export default function ResourceLibrary() {
                           <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                             Category
                           </label>
-                          <select 
-                            value={currentResource.category}
-                            onChange={(e) => setCurrentResource({...currentResource, category: e.target.value})}
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            {resourceCategories.filter(c => c !== 'all').map(category => (
-                              <option key={category} value={category}>
-                                {category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                              </option>
-                            ))}
-                          </select>
+                          <div className="relative">
+                            <select 
+                              id="edit-category"
+                              value={currentResource.category}
+                              onChange={(e) => {
+                                if (e.target.value === "custom") {
+                                  e.target.style.display = "none";
+                                  const customInput = document.getElementById("edit-custom-category");
+                                  if (customInput) {
+                                    customInput.style.display = "block";
+                                    customInput.focus();
+                                    // Set a temporary value for current resource
+                                    setCurrentResource({...currentResource, category: "custom-category"});
+                                  }
+                                } else {
+                                  setCurrentResource({...currentResource, category: e.target.value});
+                                }
+                              }}
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {resourceCategories.filter(c => c !== 'all').map(category => (
+                                <option key={category} value={category}>
+                                  {category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                                </option>
+                              ))}
+                              <option value="custom">Add Custom Category...</option>
+                            </select>
+                            
+                            <Input 
+                              id="edit-custom-category"
+                              placeholder="Enter category name (kebab-case)"
+                              style={{ display: 'none' }}
+                              onChange={(e) => {
+                                const value = e.target.value.trim().toLowerCase().replace(/\s+/g, '-');
+                                if (value) {
+                                  setCurrentResource({...currentResource, category: value});
+                                }
+                              }}
+                              onBlur={(e) => {
+                                const value = e.target.value.trim();
+                                if (!value) {
+                                  e.target.style.display = "none";
+                                  const select = document.getElementById("edit-category");
+                                  if (select) {
+                                    select.style.display = "block";
+                                    const defaultCategory = resourceCategories.filter(c => c !== 'all')[0];
+                                    (select as HTMLSelectElement).value = defaultCategory;
+                                    setCurrentResource({...currentResource, category: defaultCategory});
+                                  }
+                                }
+                              }}
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Select from existing categories or add a custom one
+                          </p>
                         </div>
                       </div>
                       
@@ -1679,12 +1724,22 @@ export default function ResourceLibrary() {
                   onSubmit={(e) => {
                     e.preventDefault();
                     const formData = new FormData(e.currentTarget);
+                    
+                    // Check if custom category is being used
+                    const customCategory = formData.get('custom-category') as string;
+                    const selectedCategory = formData.get('category') as string;
+                    
+                    // Use custom category if it exists and isn't empty
+                    const categoryToUse = customCategory && customCategory.trim() ? 
+                      customCategory.trim().toLowerCase().replace(/\s+/g, '-') : 
+                      selectedCategory;
+                    
                     const data = {
                       title: formData.get('title') as string,
                       description: formData.get('description') as string,
                       content: formData.get('content') as string,
                       type: formData.get('type') as string,
-                      category: formData.get('category') as string,
+                      category: categoryToUse,
                       tags: formData.get('tags') ? (formData.get('tags') as string).split(',').map(t => t.trim()) : [],
                       isPublished: formData.get('published') === 'on',
                       pdfUrl: formData.get('pdfUrl') as string || undefined,
@@ -1713,18 +1768,52 @@ export default function ResourceLibrary() {
                         <label htmlFor="category" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                           Category
                         </label>
-                        <select 
-                          id="category"
-                          name="category"
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          required
-                        >
-                          {resourceCategories.filter(c => c !== 'all').map(category => (
-                            <option key={category} value={category}>
-                              {category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="relative">
+                          <select 
+                            id="category"
+                            name="category"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            onChange={(e) => {
+                              if (e.target.value === "custom") {
+                                e.target.style.display = "none";
+                                const customInput = document.getElementById("custom-category");
+                                if (customInput) {
+                                  customInput.style.display = "block";
+                                  customInput.focus();
+                                }
+                              }
+                            }}
+                            required
+                          >
+                            {resourceCategories.filter(c => c !== 'all').map(category => (
+                              <option key={category} value={category}>
+                                {category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                              </option>
+                            ))}
+                            <option value="custom">Add Custom Category...</option>
+                          </select>
+                          
+                          <Input 
+                            id="custom-category"
+                            name="custom-category"
+                            placeholder="Enter category name (kebab-case)"
+                            style={{ display: 'none' }}
+                            onBlur={(e) => {
+                              const value = e.target.value.trim();
+                              if (!value) {
+                                e.target.style.display = "none";
+                                const select = document.getElementById("category");
+                                if (select) {
+                                  select.style.display = "block";
+                                  (select as HTMLSelectElement).value = resourceCategories.filter(c => c !== 'all')[0];
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Select from existing categories or add a custom one
+                        </p>
                       </div>
                     </div>
                     
