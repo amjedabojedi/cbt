@@ -89,20 +89,21 @@ export default function ResourceLibrary() {
   const [isEditingFactor, setIsEditingFactor] = useState(false);
   const [isEditingStrategy, setIsEditingStrategy] = useState(false);
   
-  // Educational resource viewing and editing states
-  const [isViewingResource, setIsViewingResource] = useState(false);
+  // Educational resource states
   const [isAddingResource, setIsAddingResource] = useState(false);
+  const [isViewingResource, setIsViewingResource] = useState(false);
   const [currentResource, setCurrentResource] = useState<{
-    id: string;
+    id: number;
     title: string;
     description: string;
     content: string;
     type: string;
     category: string;
-    thumbnail: string;
-    isEditing: boolean;
+    createdBy?: number;
+    isPublished?: boolean;
+    tags?: string[];
+    isEditing?: boolean;
     pdfUrl?: string;
-    relatedTopics?: string[];
   } | null>(null);
   
   // Forms for adding new items
@@ -1236,6 +1237,467 @@ export default function ResourceLibrary() {
               </Card>
             )}
           </TabsContent>
+
+          {/* Educational Resources Tab */}
+          <TabsContent value="educational-resources">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h1 className="text-2xl font-bold text-neutral-800">Educational Resources</h1>
+                <p className="text-neutral-500">
+                  Learning materials and exercises to support your therapeutic journey
+                </p>
+              </div>
+              
+              {(user?.role === "therapist" || user?.role === "admin") && (
+                <Dialog open={isAddingResource} onOpenChange={setIsAddingResource}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Add New Resource
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Add Educational Resource</DialogTitle>
+                      <DialogDescription>
+                        Create a new educational resource to share with clients
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <label htmlFor="title" className="text-right">
+                          Title
+                        </label>
+                        <Input
+                          id="title"
+                          className="col-span-3"
+                          placeholder="Resource title"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <label htmlFor="type" className="text-right">
+                          Type
+                        </label>
+                        <select
+                          id="type"
+                          className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                        >
+                          <option value="article">Article</option>
+                          <option value="pdf">PDF</option>
+                          <option value="exercise">Exercise</option>
+                          <option value="video">Video</option>
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <label htmlFor="category" className="text-right">
+                          Category
+                        </label>
+                        <select
+                          id="category"
+                          className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                        >
+                          {resourceCategories.filter(cat => cat !== 'all').map(category => (
+                            <option key={category} value={category}>
+                              {category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <label htmlFor="description" className="text-right">
+                          Description
+                        </label>
+                        <Textarea
+                          id="description"
+                          className="col-span-3"
+                          placeholder="Brief description of the resource"
+                          rows={3}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-start gap-4">
+                        <label htmlFor="content" className="text-right pt-2">
+                          Content
+                        </label>
+                        <Textarea
+                          id="content"
+                          className="col-span-3"
+                          placeholder="Resource content (supports markdown)"
+                          rows={8}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <label htmlFor="publish" className="text-right">
+                          
+                        </label>
+                        <div className="col-span-3 flex items-center space-x-2">
+                          <Checkbox id="publish" defaultChecked />
+                          <label htmlFor="publish">Publish immediately</label>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsAddingResource(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          // Get form values
+                          const title = (document.getElementById("title") as HTMLInputElement).value;
+                          const type = (document.getElementById("type") as HTMLSelectElement).value;
+                          const category = (document.getElementById("category") as HTMLSelectElement).value;
+                          const description = (document.getElementById("description") as HTMLTextAreaElement).value;
+                          const content = (document.getElementById("content") as HTMLTextAreaElement).value;
+                          const isPublished = (document.getElementById("publish") as HTMLInputElement).checked;
+                          
+                          // Create resource
+                          createResourceMutation.mutate({
+                            title,
+                            type,
+                            category,
+                            description,
+                            content,
+                            isPublished,
+                            tags: [category],
+                          });
+                        }}
+                      >
+                        Create Resource
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
+            
+            {/* Resource category filter */}
+            <div className="mb-6">
+              <div className="text-sm font-medium mb-2">Filter by category:</div>
+              <div className="flex flex-wrap gap-2">
+                {resourceCategories.map(category => (
+                  <Button
+                    key={category}
+                    variant={resourceCategory === category ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setResourceCategory(category)}
+                  >
+                    {category === 'all' 
+                      ? 'All Categories' 
+                      : category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+                    }
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            {resourcesLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : resourcesError ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-center text-red-500">
+                    Error loading resources. Please try again later.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : educationalResources?.length === 0 ? (
+              <Card>
+                <CardContent className="py-8">
+                  <div className="text-center">
+                    <h3 className="text-lg font-medium text-neutral-800 mb-2">No resources found</h3>
+                    <p className="text-neutral-500 mb-4">
+                      {resourceCategory === 'all' 
+                        ? 'No educational resources have been added yet.' 
+                        : `No resources found in the ${resourceCategory.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} category.`
+                      }
+                    </p>
+                    {(user?.role === "therapist" || user?.role === "admin") && (
+                      <Button onClick={() => setIsAddingResource(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add First Resource
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {educationalResources
+                  ?.filter(resource => resourceCategory === 'all' || resource.category === resourceCategory)
+                  .map((resource) => (
+                    <Card key={resource.id} className="overflow-hidden flex flex-col h-full">
+                      <div 
+                        className="h-32 bg-gradient-to-r from-primary/10 to-secondary/10 flex items-center justify-center"
+                      >
+                        {resource.type === "article" && <BookmarkCheck className="h-12 w-12 text-primary/60" />}
+                        {resource.type === "exercise" && <Brain className="h-12 w-12 text-primary/60" />}
+                        {resource.type === "pdf" && <Flag className="h-12 w-12 text-primary/60" />}
+                        {resource.type === "video" && <Heart className="h-12 w-12 text-primary/60" />}
+                      </div>
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between">
+                          <CardTitle className="text-lg">{resource.title}</CardTitle>
+                          <div>
+                            {(user?.role === "therapist" || user?.role === "admin") && (
+                              <div className="flex space-x-1">
+                                {user?.role === "therapist" && resource.createdBy !== user.id && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => cloneResourceMutation.mutate(resource.id)}
+                                    title="Customize and use with clients"
+                                  >
+                                    <Share2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {resource.createdBy === user?.id && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      setCurrentResource({
+                                        ...resource,
+                                        isEditing: true
+                                      });
+                                    }}
+                                    title="Edit"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {(resource.createdBy === user?.id || user?.role === "admin") && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      if (confirm('Are you sure you want to delete this resource?')) {
+                                        deleteResourceMutation.mutate(resource.id);
+                                      }
+                                    }}
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <CardDescription>
+                          <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 mr-2">
+                            {resource.type.charAt(0).toUpperCase() + resource.type.slice(1)}
+                          </span>
+                          <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
+                            {resource.category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                          </span>
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pb-2 flex-grow">
+                        <p className="text-sm text-neutral-600">{resource.description}</p>
+                      </CardContent>
+                      <CardFooter className="flex justify-between">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setCurrentResource({...resource, isEditing: false})}
+                        >
+                          View Resource
+                        </Button>
+                        {user?.role === "therapist" && (
+                          <Button 
+                            variant="default" 
+                            size="sm"
+                            onClick={() => {
+                              // Show dialog to assign to client
+                              setCurrentResource(resource);
+                              // Logic for client assignment will be added
+                            }}
+                          >
+                            <UserCheck className="mr-1 h-4 w-4" />
+                            Assign to Client
+                          </Button>
+                        )}
+                      </CardFooter>
+                    </Card>
+                  ))}
+              </div>
+            )}
+            
+            {/* Resource Viewing Dialog */}
+            {currentResource && !currentResource.isEditing && (
+              <Dialog open={!!currentResource} onOpenChange={(open) => !open && setCurrentResource(null)}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>{currentResource.title}</DialogTitle>
+                    <DialogDescription>
+                      <div className="flex space-x-2 mt-1">
+                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                          {currentResource.type.charAt(0).toUpperCase() + currentResource.type.slice(1)}
+                        </span>
+                        <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
+                          {currentResource.category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                        </span>
+                      </div>
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="prose prose-sm max-w-none dark:prose-invert">
+                    <div dangerouslySetInnerHTML={{ __html: currentResource.content }} />
+                  </div>
+                  
+                  <DialogFooter>
+                    {user?.role === "therapist" && (
+                      <Button
+                        onClick={() => {
+                          // Logic for client assignment
+                        }}
+                      >
+                        <UserCheck className="mr-2 h-4 w-4" />
+                        Assign to Client
+                      </Button>
+                    )}
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+            
+            {/* Resource Editing Dialog */}
+            {currentResource && currentResource.isEditing && (
+              <Dialog open={!!(currentResource && currentResource.isEditing)} onOpenChange={(open) => !open && setCurrentResource(null)}>
+                <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Edit Resource</DialogTitle>
+                    <DialogDescription>
+                      Make changes to the educational resource
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <label htmlFor="edit-title" className="text-right">
+                        Title
+                      </label>
+                      <Input
+                        id="edit-title"
+                        className="col-span-3"
+                        defaultValue={currentResource.title}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <label htmlFor="edit-type" className="text-right">
+                        Type
+                      </label>
+                      <select
+                        id="edit-type"
+                        className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                        defaultValue={currentResource.type}
+                      >
+                        <option value="article">Article</option>
+                        <option value="pdf">PDF</option>
+                        <option value="exercise">Exercise</option>
+                        <option value="video">Video</option>
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <label htmlFor="edit-category" className="text-right">
+                        Category
+                      </label>
+                      <select
+                        id="edit-category"
+                        className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                        defaultValue={currentResource.category}
+                      >
+                        {resourceCategories.filter(cat => cat !== 'all').map(category => (
+                          <option key={category} value={category}>
+                            {category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <label htmlFor="edit-description" className="text-right">
+                        Description
+                      </label>
+                      <Textarea
+                        id="edit-description"
+                        className="col-span-3"
+                        defaultValue={currentResource.description}
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-start gap-4">
+                      <label htmlFor="edit-content" className="text-right pt-2">
+                        Content
+                      </label>
+                      <Textarea
+                        id="edit-content"
+                        className="col-span-3"
+                        defaultValue={currentResource.content}
+                        rows={8}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <label htmlFor="edit-publish" className="text-right">
+                        
+                      </label>
+                      <div className="col-span-3 flex items-center space-x-2">
+                        <Checkbox 
+                          id="edit-publish" 
+                          defaultChecked={currentResource.isPublished}
+                        />
+                        <label htmlFor="edit-publish">Published</label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentResource({...currentResource, isEditing: false})}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        // Get form values
+                        const title = (document.getElementById("edit-title") as HTMLInputElement).value;
+                        const type = (document.getElementById("edit-type") as HTMLSelectElement).value;
+                        const category = (document.getElementById("edit-category") as HTMLSelectElement).value;
+                        const description = (document.getElementById("edit-description") as HTMLTextAreaElement).value;
+                        const content = (document.getElementById("edit-content") as HTMLTextAreaElement).value;
+                        const isPublished = (document.getElementById("edit-publish") as HTMLInputElement).checked;
+                        
+                        // Update resource
+                        updateResourceMutation.mutate({
+                          id: currentResource.id,
+                          data: {
+                            title,
+                            type,
+                            category,
+                            description,
+                            content,
+                            isPublished,
+                            tags: [category],
+                          }
+                        });
+                      }}
+                    >
+                      Update Resource
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+          </TabsContent>
+          
           {user?.role === "therapist" && (
             <TabsContent value="client-assignments">
               <div className="flex justify-between items-center mb-4">
