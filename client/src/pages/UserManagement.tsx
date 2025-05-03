@@ -21,7 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Plus, UserPlus, Edit, Trash2, Users as UsersIcon, UserCheck, Award } from "lucide-react";
+import { Loader2, Plus, UserPlus, Edit, Trash2, Users as UsersIcon, UserCheck, Award, Key } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -749,6 +749,51 @@ export default function UserManagement() {
                       });
                     }}
                   />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label>Password Management</Label>
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    className="w-full flex items-center justify-center"
+                    onClick={() => setResetPassword(true)}
+                  >
+                    <Key className="mr-2 h-4 w-4" />
+                    Reset Password to Default
+                  </Button>
+                  {resetPassword && (
+                    <Card className="p-4 border border-amber-200 bg-amber-50">
+                      <CardContent className="p-0">
+                        <p className="text-sm text-amber-700 mb-2">
+                          This will reset the user's password to a default value (123456). The user will need to change it on their next login.
+                        </p>
+                        <div className="flex justify-end gap-2 mt-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setResetPassword(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => {
+                              if (!userToEdit) return;
+                              resetPasswordMutation.mutate(userToEdit.id);
+                            }}
+                            disabled={resetPasswordMutation.isPending}
+                          >
+                            {resetPasswordMutation.isPending && (
+                              <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                            )}
+                            Confirm Reset
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               </div>
             </div>
