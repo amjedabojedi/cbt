@@ -42,6 +42,17 @@ import {
 } from "@/components/ui/select";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
 
 // Interfaces from schema
 interface SubscriptionPlan {
@@ -84,6 +95,8 @@ export default function UserManagement() {
   const [activeTab, setActiveTab] = useState("therapist");
   const [selectedTherapist, setSelectedTherapist] = useState<User | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   
   // Fetch subscription plans
   const { 
@@ -101,6 +114,69 @@ export default function UserManagement() {
   });
   
   // Mutation to assign a subscription plan to a therapist
+  // Mutation to update a user
+  const updateUserMutation = useMutation({
+    mutationFn: async (updatedUser: Partial<User> & { id: number }) => {
+      const { id, ...userData } = updatedUser;
+      const res = await apiRequest("PATCH", `/api/users/${id}`, userData);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to update user");
+      }
+      return res.json();
+    },
+    onSuccess: (updatedUser) => {
+      toast({
+        title: "User Updated",
+        description: "User information has been updated successfully.",
+      });
+      
+      // Update the users list with the updated user
+      setUsers(prevUsers => prevUsers.map(u => 
+        u.id === updatedUser.id ? updatedUser : u
+      ));
+      
+      setUserToEdit(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Mutation to delete a user
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const res = await apiRequest("DELETE", `/api/users/${userId}`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to delete user");
+      }
+      return userId;
+    },
+    onSuccess: (userId) => {
+      toast({
+        title: "User Deleted",
+        description: "User has been deleted successfully.",
+      });
+      
+      // Remove the deleted user from the list
+      setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+      setUserToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Deletion Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Mutation to assign a subscription plan to a therapist
   const assignPlanMutation = useMutation({
     mutationFn: async ({ userId, planId }: { userId: number, planId: number }) => {
       const res = await apiRequest("POST", `/api/users/${userId}/subscription-plan`, { planId });
@@ -110,18 +186,23 @@ export default function UserManagement() {
       }
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedUser) => {
       toast({
         title: "Plan Assigned",
         description: "Subscription plan has been assigned to the therapist successfully.",
       });
       
-      // Refetch the users to get updated data
-      apiRequest("GET", "/api/users")
-        .then(res => res.json())
-        .then(data => setUsers(data))
-        .catch(err => console.error("Error refetching users:", err));
+      // Update the users list with the updated user
+      setUsers(prevUsers => prevUsers.map(u => 
+        u.id === updatedUser.id ? updatedUser : u
+      ));
+      
+      // Also update the selected therapist if it's the one being edited
+      if (selectedTherapist && selectedTherapist.id === updatedUser.id) {
+        setSelectedTherapist(updatedUser);
+      }
         
+      // Invalidate queries to ensure data consistency
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
     },
     onError: (error: Error) => {
@@ -303,18 +384,14 @@ export default function UserManagement() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => {
-                                // View/edit user
-                              }}
+                              onClick={() => setUserToEdit(user)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => {
-                                // Delete user
-                              }}
+                              onClick={() => setUserToDelete(user)}
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -535,6 +612,127 @@ export default function UserManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog
+        open={!!userToEdit}
+        onOpenChange={(open) => !open && setUserToEdit(null)}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update user information
+            </DialogDescription>
+          </DialogHeader>
+
+          {userToEdit && (
+            <div className="space-y-4 py-4">
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    defaultValue={userToEdit.name}
+                    onChange={(e) => {
+                      setUserToEdit({
+                        ...userToEdit,
+                        name: e.target.value,
+                      });
+                    }}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    defaultValue={userToEdit.email}
+                    onChange={(e) => {
+                      setUserToEdit({
+                        ...userToEdit,
+                        email: e.target.value,
+                      });
+                    }}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    defaultValue={userToEdit.username}
+                    onChange={(e) => {
+                      setUserToEdit({
+                        ...userToEdit,
+                        username: e.target.value,
+                      });
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setUserToEdit(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!userToEdit) return;
+                updateUserMutation.mutate({
+                  id: userToEdit.id,
+                  name: userToEdit.name,
+                  username: userToEdit.username,
+                  email: userToEdit.email,
+                });
+              }}
+              disabled={updateUserMutation.isPending}
+            >
+              {updateUserMutation.isPending && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <AlertDialog
+        open={!!userToDelete}
+        onOpenChange={(open) => !open && setUserToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete {userToDelete?.name}'s account and all associated data.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setUserToDelete(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!userToDelete) return;
+                deleteUserMutation.mutate(userToDelete.id);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteUserMutation.isPending && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }
