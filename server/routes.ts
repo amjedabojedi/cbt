@@ -989,6 +989,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/emotions", authenticate, checkUserAccess, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
+      
+      // If the user is a therapist with a current viewing client, show that client's emotions
+      if (req.user?.role === 'therapist' && req.user.currentViewingClientId) {
+        console.log(`Therapist ${req.user.id} is viewing client ${req.user.currentViewingClientId}'s emotions`);
+        const clientEmotions = await storage.getEmotionRecordsByUser(req.user.currentViewingClientId);
+        return res.status(200).json(clientEmotions);
+      }
+      
       const emotions = await storage.getEmotionRecordsByUser(userId);
       res.status(200).json(emotions);
     } catch (error) {
@@ -1125,6 +1133,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emotionRecordId = req.query.emotionRecordId 
         ? parseInt(req.query.emotionRecordId as string) 
         : undefined;
+      
+      // If the user is a therapist with a current viewing client, show that client's thoughts
+      if (req.user?.role === 'therapist' && req.user.currentViewingClientId) {
+        console.log(`Therapist ${req.user.id} is viewing client ${req.user.currentViewingClientId}'s thoughts`);
+        const clientThoughts = await storage.getThoughtRecordsByUser(req.user.currentViewingClientId);
+        
+        // Filter by emotion record ID if provided
+        const filteredClientThoughts = emotionRecordId
+          ? clientThoughts.filter(t => t.emotionRecordId === emotionRecordId)
+          : clientThoughts;
+          
+        return res.status(200).json(filteredClientThoughts);
+      }
       
       // Get all thoughts for this user
       const thoughts = await storage.getThoughtRecordsByUser(userId);
@@ -1529,6 +1550,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/goals", authenticate, checkUserAccess, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
+      
+      // If the user is a therapist with a current viewing client, show that client's goals
+      if (req.user.role === 'therapist' && req.user.currentViewingClientId) {
+        console.log(`Therapist ${req.user.id} is viewing client ${req.user.currentViewingClientId}'s goals`);
+        const clientGoals = await storage.getGoalsByUser(req.user.currentViewingClientId);
+        return res.status(200).json(clientGoals);
+      }
+      
       const goals = await storage.getGoalsByUser(userId);
       res.status(200).json(goals);
     } catch (error) {
