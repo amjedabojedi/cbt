@@ -673,6 +673,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Unassign a client from a therapist (admin only)
+  app.patch("/api/users/:userId/unassign-therapist", authenticate, isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      if (user.role !== "client") {
+        return res.status(400).json({ message: "Only clients can be unassigned from therapists" });
+      }
+      
+      if (!user.therapistId) {
+        return res.status(400).json({ message: "This client is not assigned to any therapist" });
+      }
+      
+      // Update the user to remove therapist assignment
+      const updatedUser = await storage.updateUser(userId, { therapistId: null });
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.status(200).json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error unassigning therapist:", error);
+      res.status(500).json({ message: "Failed to unassign therapist" });
+    }
+  });
+  
+  // Reset a user's password to default (admin only)
+  app.post("/api/users/:userId/reset-password", authenticate, isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Default password
+      const defaultPassword = "123456";
+      
+      // Hash the default password
+      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+      
+      // Update the user with the new password
+      await storage.updateUser(userId, { password: hashedPassword });
+      
+      res.status(200).json({ message: "Password reset successfully", defaultPassword });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+  
   // Assign subscription plan to a therapist (admin only)
   app.post("/api/users/:userId/subscription-plan", authenticate, isAdmin, async (req, res) => {
     try {
