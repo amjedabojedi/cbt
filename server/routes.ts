@@ -17,6 +17,9 @@ import {
   insertGoalMilestoneSchema,
   insertActionSchema,
   insertSubscriptionPlanSchema,
+  insertResourceSchema,
+  insertResourceAssignmentSchema,
+  insertResourceFeedbackSchema,
   goals,
   goalMilestones,
   actions,
@@ -1924,6 +1927,467 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Resource Library API Routes
+  
+  // Get all resources
+  app.get("/api/resources", authenticate, async (req, res) => {
+    try {
+      const includeUnpublished = req.user.role === "admin";
+      const resources = await storage.getAllResources(includeUnpublished);
+      res.status(200).json(resources);
+    } catch (error) {
+      console.error("Get resources error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get resource by ID
+  app.get("/api/resources/:id", authenticate, async (req, res) => {
+    try {
+      const resourceId = Number(req.params.id);
+      if (isNaN(resourceId)) {
+        return res.status(400).json({ message: "Invalid resource ID" });
+      }
+      
+      const resource = await storage.getResourceById(resourceId);
+      if (!resource) {
+        return res.status(404).json({ message: "Resource not found" });
+      }
+      
+      // Only allow access to published resources unless user is admin or the creator
+      if (!resource.isPublished && req.user.role !== "admin" && resource.createdBy !== req.user.id) {
+        return res.status(403).json({ message: "Access denied to unpublished resource" });
+      }
+      
+      res.status(200).json(resource);
+    } catch (error) {
+      console.error("Get resource error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Create a new resource (therapists and admins only)
+  app.post("/api/resources", authenticate, async (req, res) => {
+    try {
+      // Only therapists and admins can create resources
+      if (req.user.role !== "therapist" && req.user.role !== "admin") {
+        return res.status(403).json({ message: "Only therapists and admins can create resources" });
+      }
+      
+      const validatedData = insertResourceSchema.parse({
+        ...req.body,
+        createdBy: req.user.id
+      });
+      
+      const newResource = await storage.createResource(validatedData);
+      res.status(201).json(newResource);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Create resource error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Clone a resource (therapists only)
+  app.post("/api/resources/:id/clone", authenticate, isTherapist, async (req, res) => {
+    try {
+      const resourceId = Number(req.params.id);
+      if (isNaN(resourceId)) {
+        return res.status(400).json({ message: "Invalid resource ID" });
+      }
+      
+      const resource = await storage.getResourceById(resourceId);
+      if (!resource) {
+        return res.status(404).json({ message: "Resource not found" });
+      }
+      
+      // Only allow cloning of published resources
+      if (!resource.isPublished) {
+        return res.status(403).json({ message: "Cannot clone unpublished resources" });
+      }
+      
+      const clonedResource = await storage.cloneResource(resourceId, req.user.id);
+      res.status(201).json(clonedResource);
+    } catch (error) {
+      console.error("Clone resource error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Update a resource
+  app.patch("/api/resources/:id", authenticate, async (req, res) => {
+    try {
+      const resourceId = Number(req.params.id);
+      if (isNaN(resourceId)) {
+        return res.status(400).json({ message: "Invalid resource ID" });
+      }
+      
+      const resource = await storage.getResourceById(resourceId);
+      if (!resource) {
+        return res.status(404).json({ message: "Resource not found" });
+      }
+      
+      // Only allow updates by the creator or admin
+      if (resource.createdBy !== req.user.id && req.user.role !== "admin") {
+        return res.status(403).json({ message: "You can only update resources you created" });
+      }
+      
+      const validatedData = insertResourceSchema.partial().parse(req.body);
+      
+      // Don't allow changing the creator
+      delete validatedData.createdBy;
+      
+      const updatedResource = await storage.updateResource(resourceId, validatedData);
+      res.status(200).json(updatedResource);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Update resource error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Delete a resource
+  app.delete("/api/resources/:id", authenticate, async (req, res) => {
+    try {
+      const resourceId = Number(req.params.id);
+      if (isNaN(resourceId)) {
+        return res.status(400).json({ message: "Invalid resource ID" });
+      }
+      
+      const resource = await storage.getResourceById(resourceId);
+      if (!resource) {
+        return res.status(404).json({ message: "Resource not found" });
+      }
+      
+      // Only allow deletion by the creator or admin
+      if (resource.createdBy !== req.user.id && req.user.role !== "admin") {
+        return res.status(403).json({ message: "You can only delete resources you created" });
+      }
+      
+      await storage.deleteResource(resourceId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Delete resource error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get resources by category
+  app.get("/api/resources/category/:category", authenticate, async (req, res) => {
+    try {
+      const category = req.params.category;
+      const resources = await storage.getResourcesByCategory(category);
+      res.status(200).json(resources);
+    } catch (error) {
+      console.error("Get resources by category error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get resources created by a user
+  app.get("/api/users/:userId/resources", authenticate, async (req, res) => {
+    try {
+      const userId = Number(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Check if the user exists
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Only allow viewing others' resources if they're published or if the viewer is an admin
+      const resources = await storage.getResourcesByCreator(userId);
+      
+      if (userId !== req.user.id && req.user.role !== "admin") {
+        // Filter out unpublished resources
+        const publishedResources = resources.filter(resource => resource.isPublished);
+        return res.status(200).json(publishedResources);
+      }
+      
+      res.status(200).json(resources);
+    } catch (error) {
+      console.error("Get user resources error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Resource Assignment API Routes
+  
+  // Assign a resource to a client (therapists only)
+  app.post("/api/resource-assignments", authenticate, isTherapist, async (req, res) => {
+    try {
+      const { resourceId, assignedTo, notes, isPriority } = req.body;
+      
+      if (!resourceId || !assignedTo) {
+        return res.status(400).json({ message: "Resource ID and client ID are required" });
+      }
+      
+      // Verify the resource exists
+      const resource = await storage.getResourceById(Number(resourceId));
+      if (!resource) {
+        return res.status(404).json({ message: "Resource not found" });
+      }
+      
+      // Verify the client exists and is assigned to the therapist
+      const clients = await storage.getClients(req.user.id);
+      const clientExists = clients.some(client => client.id === Number(assignedTo));
+      
+      if (!clientExists) {
+        return res.status(403).json({ message: "Client not found or not assigned to you" });
+      }
+      
+      const assignmentData = {
+        resourceId: Number(resourceId),
+        assignedBy: req.user.id,
+        assignedTo: Number(assignedTo),
+        notes: notes || null,
+        isPriority: isPriority || false,
+        status: "assigned"
+      };
+      
+      const validatedData = insertResourceAssignmentSchema.parse(assignmentData);
+      const assignment = await storage.assignResourceToClient(validatedData);
+      
+      res.status(201).json(assignment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Assign resource error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get assignments for a client
+  app.get("/api/clients/:clientId/assignments", authenticate, async (req, res) => {
+    try {
+      const clientId = Number(req.params.clientId);
+      if (isNaN(clientId)) {
+        return res.status(400).json({ message: "Invalid client ID" });
+      }
+      
+      // The client can view their own assignments, and their therapist can view them too
+      const client = await storage.getUser(clientId);
+      if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      
+      if (clientId !== req.user.id && client.therapistId !== req.user.id && req.user.role !== "admin") {
+        return res.status(403).json({ message: "You can only view assignments for your own clients" });
+      }
+      
+      const assignments = await storage.getAssignmentsByClient(clientId);
+      
+      // Fetch resources for each assignment
+      const assignmentsWithResources = await Promise.all(
+        assignments.map(async (assignment) => {
+          const resource = await storage.getResourceById(assignment.resourceId);
+          return {
+            ...assignment,
+            resource
+          };
+        })
+      );
+      
+      res.status(200).json(assignmentsWithResources);
+    } catch (error) {
+      console.error("Get client assignments error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get assignments created by a therapist
+  app.get("/api/therapist/assignments", authenticate, isTherapist, async (req, res) => {
+    try {
+      const assignments = await storage.getAssignmentsByTherapist(req.user.id);
+      
+      // Fetch resources and clients for each assignment
+      const assignmentsWithDetails = await Promise.all(
+        assignments.map(async (assignment) => {
+          const resource = await storage.getResourceById(assignment.resourceId);
+          const client = await storage.getUser(assignment.assignedTo);
+          return {
+            ...assignment,
+            resource,
+            client: client ? {
+              id: client.id,
+              name: client.name,
+              username: client.username
+            } : null
+          };
+        })
+      );
+      
+      res.status(200).json(assignmentsWithDetails);
+    } catch (error) {
+      console.error("Get therapist assignments error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Update assignment status (mark as viewed or completed)
+  app.patch("/api/resource-assignments/:id/status", authenticate, async (req, res) => {
+    try {
+      const assignmentId = Number(req.params.id);
+      if (isNaN(assignmentId)) {
+        return res.status(400).json({ message: "Invalid assignment ID" });
+      }
+      
+      const { status } = req.body;
+      if (!status || !["viewed", "completed"].includes(status)) {
+        return res.status(400).json({ message: "Valid status (viewed or completed) is required" });
+      }
+      
+      const assignment = await storage.getResourceAssignmentById(assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ message: "Assignment not found" });
+      }
+      
+      // Only the assigned client can update the status
+      if (assignment.assignedTo !== req.user.id) {
+        return res.status(403).json({ message: "You can only update your own assignments" });
+      }
+      
+      const updatedAssignment = await storage.updateAssignmentStatus(assignmentId, status);
+      res.status(200).json(updatedAssignment);
+    } catch (error) {
+      console.error("Update assignment status error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Delete a resource assignment (therapists only)
+  app.delete("/api/resource-assignments/:id", authenticate, isTherapist, async (req, res) => {
+    try {
+      const assignmentId = Number(req.params.id);
+      if (isNaN(assignmentId)) {
+        return res.status(400).json({ message: "Invalid assignment ID" });
+      }
+      
+      const assignment = await storage.getResourceAssignmentById(assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ message: "Assignment not found" });
+      }
+      
+      // Only the therapist who created the assignment can delete it
+      if (assignment.assignedBy !== req.user.id && req.user.role !== "admin") {
+        return res.status(403).json({ message: "You can only delete assignments you created" });
+      }
+      
+      await storage.deleteResourceAssignment(assignmentId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Delete assignment error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Resource Feedback API Routes
+  
+  // Submit feedback for a resource
+  app.post("/api/resources/:id/feedback", authenticate, async (req, res) => {
+    try {
+      const resourceId = Number(req.params.id);
+      if (isNaN(resourceId)) {
+        return res.status(400).json({ message: "Invalid resource ID" });
+      }
+      
+      const { rating, feedback } = req.body;
+      
+      if (rating === undefined) {
+        return res.status(400).json({ message: "Rating is required" });
+      }
+      
+      if (rating < 1 || rating > 5) {
+        return res.status(400).json({ message: "Rating must be between 1 and 5" });
+      }
+      
+      // Verify the resource exists
+      const resource = await storage.getResourceById(resourceId);
+      if (!resource) {
+        return res.status(404).json({ message: "Resource not found" });
+      }
+      
+      // Check if the resource was assigned to this client
+      if (req.user.role === "client") {
+        const assignments = await storage.getAssignmentsByClient(req.user.id);
+        const wasAssigned = assignments.some(a => a.resourceId === resourceId);
+        
+        if (!wasAssigned) {
+          return res.status(403).json({ message: "You can only provide feedback for resources assigned to you" });
+        }
+      }
+      
+      const feedbackData = {
+        resourceId,
+        userId: req.user.id,
+        rating,
+        feedback: feedback || null
+      };
+      
+      const validatedData = insertResourceFeedbackSchema.parse(feedbackData);
+      const newFeedback = await storage.createResourceFeedback(validatedData);
+      
+      res.status(201).json(newFeedback);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Submit feedback error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get feedback for a specific resource
+  app.get("/api/resources/:id/feedback", authenticate, async (req, res) => {
+    try {
+      const resourceId = Number(req.params.id);
+      if (isNaN(resourceId)) {
+        return res.status(400).json({ message: "Invalid resource ID" });
+      }
+      
+      // Verify the resource exists
+      const resource = await storage.getResourceById(resourceId);
+      if (!resource) {
+        return res.status(404).json({ message: "Resource not found" });
+      }
+      
+      // Only the resource creator or admin can see all feedback
+      if (resource.createdBy !== req.user.id && req.user.role !== "admin" && req.user.role !== "therapist") {
+        return res.status(403).json({ message: "Access denied to resource feedback" });
+      }
+      
+      const feedback = await storage.getResourceFeedbackByResource(resourceId);
+      
+      // Fetch user details for each feedback
+      const feedbackWithUserDetails = await Promise.all(
+        feedback.map(async (fb) => {
+          const user = await storage.getUser(fb.userId);
+          return {
+            ...fb,
+            user: user ? {
+              id: user.id,
+              name: user.name,
+              username: user.username
+            } : null
+          };
+        })
+      );
+      
+      res.status(200).json(feedbackWithUserDetails);
+    } catch (error) {
+      console.error("Get resource feedback error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   const httpServer = createServer(app);
   return httpServer;
 }
