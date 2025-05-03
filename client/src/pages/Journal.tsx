@@ -17,7 +17,9 @@ import {
   HelpCircle,
   Sparkles,
   Heart,
-  Info as InfoIcon
+  Info as InfoIcon,
+  X,
+  CheckSquare
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -859,7 +861,7 @@ export default function Journal() {
                   <h4 className="text-sm font-semibold mb-2 flex items-center justify-between">
                     <span className="flex items-center gap-2">
                       <Tag size={16} />
-                      Suggested Tags
+                      Selected Tags
                     </span>
                     
                     <TooltipProvider>
@@ -869,49 +871,38 @@ export default function Journal() {
                         </TooltipTrigger>
                         <TooltipContent className="max-w-[250px] p-4">
                           <p className="text-xs">
-                            Click tags to select them. Tags with <span className="font-bold">✨ sparkles</span> are suggested by AI based on your comments. You have full control over which tags to save.
+                            These are the tags that will be saved with your journal entry. Click on suggested emotions or topics below to add them, or create your own custom tags.
                           </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </h4>
                   
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {currentEntry.aiSuggestedTags && currentEntry.aiSuggestedTags.map((tag) => {
-                      const isSelected = selectedTags.includes(tag);
-                      const isLikelyNewSuggestion = isNewSuggestion(tag);
-                      
-                      // Determine style based on selection and whether it's a new suggestion
-                      const colorClass = isSelected 
-                        ? "bg-primary/90 text-primary-foreground hover:bg-primary/100" 
-                        : "bg-primary/10 text-primary hover:bg-primary/20";
-                        
-                      return (
-                        <div
-                          key={tag}
-                          className={`inline-block m-1 px-3 py-1 rounded-full ${colorClass} transition-all relative
-                            ${isLikelyNewSuggestion ? 'pl-6' : ''}
-                          `}
+                  <div className="flex flex-wrap gap-2 mt-2 min-h-[40px]">
+                    {selectedTags.length > 0 ? (
+                      selectedTags.map((tag) => (
+                        <Badge 
+                          key={tag} 
+                          variant="secondary"
+                          className="bg-secondary/50 text-secondary-foreground hover:bg-secondary/60 cursor-pointer flex items-center gap-1"
                           onClick={() => toggleTagSelection(tag)}
                         >
-                          {/* Show sparkle icon for tags that are likely new suggestions */}
-                          {isLikelyNewSuggestion && (
-                            <Sparkles 
-                              size={14} 
-                              className={`absolute left-1.5 top-1/2 transform -translate-y-1/2 text-amber-500 animate-pulse`} 
-                            />
-                          )}
                           {tag}
-                        </div>
-                      );
-                    })}
+                          <X size={12} className="opacity-70" />
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground italic px-2">
+                        No tags selected yet
+                      </span>
+                    )}
                   </div>
                   
                   {/* Add custom tag input */}
                   <div className="mt-4 mb-2">
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Add your own tag..."
+                        placeholder="Create your own custom tag..."
                         className="flex-1"
                         value={customTag}
                         onChange={(e) => setCustomTag(e.target.value)}
@@ -1029,7 +1020,7 @@ export default function Journal() {
                           </TooltipTrigger>
                           <TooltipContent className="max-w-[250px] p-4">
                             <p className="text-xs">
-                              This visualization shows the dominant emotional tone of your journal entry. It's not a scientific measurement but a general impression of how positive, negative, or neutral your writing appears.
+                              This visualization shows the emotional tone of your journal entry and how it compares to your overall pattern. Click to select or deselect the corresponding emotional tags.
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -1052,37 +1043,56 @@ export default function Journal() {
                       let color = "bg-gray-500";
                       let textColor = "text-gray-600";
                       let description = "Your entry has a balanced emotional tone.";
+                      let emotionTag = "Balanced";
                       
                       if (dominantSentiment === "positive") {
                         color = "bg-green-500";
                         textColor = "text-green-600";
                         description = "Your entry has a generally positive emotional tone.";
+                        emotionTag = "Positive";
                       } else if (dominantSentiment === "negative") {
                         color = "bg-red-500";
                         textColor = "text-red-600";
                         description = "Your entry has a generally negative emotional tone.";
+                        emotionTag = "Negative";
                       }
+                      
+                      // Check if emotion tag is already selected
+                      const isSelected = selectedTags.includes(emotionTag);
                       
                       return (
                         <div className="space-y-3">
-                          <div className="p-3 bg-gray-50 rounded-md">
+                          <div className={`p-3 bg-gray-50 rounded-md flex justify-between items-center ${isSelected ? 'ring-1 ring-primary' : ''}`}>
                             <span className={`text-sm ${textColor} font-medium`}>
                               {description}
                             </span>
+                            <Badge 
+                              variant={isSelected ? "default" : "outline"}
+                              className={`cursor-pointer ${isSelected ? '' : `hover:bg-${textColor.split('-')[1]}-50`}`}
+                              onClick={() => toggleTagSelection(emotionTag)}
+                            >
+                              {emotionTag}
+                            </Badge>
                           </div>
                           
                           <div className="flex h-4 overflow-hidden rounded-full">
                             <div 
                               className="bg-green-500 transition-all" 
                               style={{ width: `${positive > 0.1 ? Math.round(positive * 100) : 0}%` }}
+                              onClick={() => toggleTagSelection("Positive")}
+                              title="Positive sentiment"
                             ></div>
                             <div 
                               className="bg-gray-400 transition-all" 
                               style={{ width: `${neutral > 0.1 ? Math.round(neutral * 100) : 0}%` }}
+                              onClick={() => toggleTagSelection("Neutral")}
+                              title="Neutral sentiment"
                             ></div>
                             <div 
                               className="bg-red-500 transition-all" 
                               style={{ width: `${negative > 0.1 ? Math.round(negative * 100) : 0}%` }}
+                              onClick={() => toggleTagSelection("Negative")}
+                              title="Negative sentiment"
                             ></div>
                           </div>
                           
@@ -1090,6 +1100,18 @@ export default function Journal() {
                             <span className="text-green-600">Positive</span>
                             <span className="text-gray-600">Neutral</span>
                             <span className="text-red-600">Negative</span>
+                          </div>
+                          
+                          <div className="mt-2 pt-2 border-t border-border">
+                            <h5 className="text-xs font-medium mb-1">Emotional Pattern Over Time</h5>
+                            <div className="flex h-2 overflow-hidden rounded-full mb-1">
+                              <div className="bg-green-500 transition-all" style={{ width: `${stats?.sentimentPatterns?.positive || 30}%` }}></div>
+                              <div className="bg-gray-400 transition-all" style={{ width: `${stats?.sentimentPatterns?.neutral || 40}%` }}></div>
+                              <div className="bg-red-500 transition-all" style={{ width: `${stats?.sentimentPatterns?.negative || 30}%` }}></div>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Your overall emotional pattern based on journal history
+                            </p>
                           </div>
                         </div>
                       );
