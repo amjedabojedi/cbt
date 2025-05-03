@@ -12,6 +12,8 @@ import {
   resources, type Resource, type InsertResource,
   resourceAssignments, type ResourceAssignment, type InsertResourceAssignment,
   resourceFeedback, type ResourceFeedback, type InsertResourceFeedback,
+  journalEntries, type JournalEntry, type InsertJournalEntry,
+  journalComments, type JournalComment, type InsertJournalComment,
   sessions, type Session, type InsertSession,
   subscriptionPlans, type SubscriptionPlan, type InsertSubscriptionPlan
 } from "@shared/schema";
@@ -122,6 +124,19 @@ export interface IStorage {
   createResourceFeedback(feedback: InsertResourceFeedback): Promise<ResourceFeedback>;
   getResourceFeedbackByResource(resourceId: number): Promise<ResourceFeedback[]>;
   getResourceFeedbackByUser(userId: number): Promise<ResourceFeedback[]>;
+  
+  // Journal entries
+  createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry>;
+  getJournalEntryById(id: number): Promise<JournalEntry | undefined>;
+  getJournalEntriesByUser(userId: number): Promise<JournalEntry[]>;
+  updateJournalEntry(id: number, data: Partial<InsertJournalEntry>): Promise<JournalEntry>;
+  deleteJournalEntry(id: number): Promise<void>;
+  
+  // Journal comments (therapist feedback)
+  createJournalComment(comment: InsertJournalComment): Promise<JournalComment>;
+  getJournalCommentsByEntry(journalEntryId: number): Promise<JournalComment[]>;
+  updateJournalComment(id: number, data: Partial<InsertJournalComment>): Promise<JournalComment>;
+  deleteJournalComment(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -968,6 +983,95 @@ export class DatabaseStorage implements IStorage {
       .from(resourceFeedback)
       .where(eq(resourceFeedback.userId, userId))
       .orderBy(desc(resourceFeedback.createdAt));
+  }
+  
+  // Journal entries implementation
+  async createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry> {
+    const [newEntry] = await db
+      .insert(journalEntries)
+      .values(entry)
+      .returning();
+    
+    return newEntry;
+  }
+  
+  async getJournalEntryById(id: number): Promise<JournalEntry | undefined> {
+    const [entry] = await db
+      .select()
+      .from(journalEntries)
+      .where(eq(journalEntries.id, id));
+    
+    return entry;
+  }
+  
+  async getJournalEntriesByUser(userId: number): Promise<JournalEntry[]> {
+    return db
+      .select()
+      .from(journalEntries)
+      .where(eq(journalEntries.userId, userId))
+      .orderBy(desc(journalEntries.createdAt));
+  }
+  
+  async updateJournalEntry(id: number, data: Partial<InsertJournalEntry>): Promise<JournalEntry> {
+    const [updatedEntry] = await db
+      .update(journalEntries)
+      .set({
+        ...data,
+        updatedAt: new Date()
+      })
+      .where(eq(journalEntries.id, id))
+      .returning();
+    
+    return updatedEntry;
+  }
+  
+  async deleteJournalEntry(id: number): Promise<void> {
+    // First delete any comments associated with this journal entry
+    await db
+      .delete(journalComments)
+      .where(eq(journalComments.journalEntryId, id));
+    
+    // Then delete the journal entry itself
+    await db
+      .delete(journalEntries)
+      .where(eq(journalEntries.id, id));
+  }
+  
+  // Journal comments implementation
+  async createJournalComment(comment: InsertJournalComment): Promise<JournalComment> {
+    const [newComment] = await db
+      .insert(journalComments)
+      .values(comment)
+      .returning();
+    
+    return newComment;
+  }
+  
+  async getJournalCommentsByEntry(journalEntryId: number): Promise<JournalComment[]> {
+    return db
+      .select()
+      .from(journalComments)
+      .where(eq(journalComments.journalEntryId, journalEntryId))
+      .orderBy(journalComments.createdAt);
+  }
+  
+  async updateJournalComment(id: number, data: Partial<InsertJournalComment>): Promise<JournalComment> {
+    const [updatedComment] = await db
+      .update(journalComments)
+      .set({
+        ...data,
+        updatedAt: new Date()
+      })
+      .where(eq(journalComments.id, id))
+      .returning();
+    
+    return updatedComment;
+  }
+  
+  async deleteJournalComment(id: number): Promise<void> {
+    await db
+      .delete(journalComments)
+      .where(eq(journalComments.id, id));
   }
 }
 

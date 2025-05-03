@@ -20,6 +20,8 @@ import {
   insertResourceSchema,
   insertResourceAssignmentSchema,
   insertResourceFeedbackSchema,
+  insertJournalEntrySchema,
+  insertJournalCommentSchema,
   goals,
   goalMilestones,
   actions,
@@ -27,11 +29,14 @@ import {
   protectiveFactorUsage,
   copingStrategies,
   copingStrategyUsage,
-  subscriptionPlans
+  subscriptionPlans,
+  journalEntries,
+  journalComments
 } from "@shared/schema";
 import cookieParser from "cookie-parser";
 import { sendClientInvitation } from "./services/email";
 import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
+import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
 import { db, pool } from "./db";
 import { eq, or, isNull, desc, and } from "drizzle-orm";
 

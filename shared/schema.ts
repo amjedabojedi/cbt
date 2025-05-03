@@ -301,5 +301,11 @@ export type InsertResourceAssignment = z.infer<typeof insertResourceAssignmentSc
 export type ResourceFeedback = typeof resourceFeedback.$inferSelect;
 export type InsertResourceFeedback = z.infer<typeof insertResourceFeedbackSchema>;
 
+export type JournalEntry = typeof journalEntries.$inferSelect;
+export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
+
+export type JournalComment = typeof journalComments.$inferSelect;
+export type InsertJournalComment = z.infer<typeof insertJournalCommentSchema>;
+
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = z.infer<typeof insertSessionSchema>;
