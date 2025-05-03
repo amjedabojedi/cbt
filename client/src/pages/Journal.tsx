@@ -15,7 +15,8 @@ import {
   Edit, 
   User, 
   HelpCircle,
-  Sparkles
+  Sparkles,
+  Info as InfoIcon
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -637,7 +638,7 @@ export default function Journal() {
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <InfoIcon size={14} className="text-muted-foreground cursor-help" />
+                                        <HelpCircle size={14} className="text-muted-foreground cursor-help" />
                                       </TooltipTrigger>
                                       <TooltipContent className="max-w-[250px] p-4">
                                         <p className="text-xs">
