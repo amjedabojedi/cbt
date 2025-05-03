@@ -117,6 +117,10 @@ export default function ResourceLibrary() {
     pdfUrl?: string;
   } | null>(null);
   
+  // Assignment viewing state
+  const [viewingAssignment, setViewingAssignment] = useState<any>(null);
+  const [isViewingAssignment, setIsViewingAssignment] = useState(false);
+  
   // Resource categories (default list)
   const defaultCategories = [
     "all",
@@ -2067,7 +2071,14 @@ export default function ResourceLibrary() {
                         )}
                       </CardContent>
                       <CardFooter className="p-4 pt-2 flex justify-between">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setViewingAssignment(assignment);
+                            setIsViewingAssignment(true);
+                          }}
+                        >
                           View Details
                         </Button>
                       </CardFooter>
@@ -2097,6 +2108,133 @@ export default function ResourceLibrary() {
           )}
         </Tabs>
       </div>
+      
+      {/* Assignment Viewing Dialog */}
+      <Dialog open={isViewingAssignment} onOpenChange={setIsViewingAssignment}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          {viewingAssignment && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold">
+                  Assignment Details
+                </DialogTitle>
+                <DialogDescription>
+                  View details about this resource assignment
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="my-4 p-4 bg-neutral-50 rounded-md border">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-lg font-semibold">{viewingAssignment.resource.title}</h3>
+                  <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                    {viewingAssignment.status}
+                  </span>
+                </div>
+                <p className="text-sm text-neutral-600 mb-4">
+                  {viewingAssignment.resource.description}
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <p className="text-xs font-medium text-neutral-500 mb-1">Assigned To</p>
+                    <p className="text-sm font-medium">
+                      {viewingAssignment.client.name || viewingAssignment.client.username}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-neutral-500 mb-1">Assigned On</p>
+                    <p className="text-sm">
+                      {new Date(viewingAssignment.assignedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                
+                {viewingAssignment.notes && (
+                  <div className="mb-4">
+                    <p className="text-xs font-medium text-neutral-500 mb-1">Your Notes</p>
+                    <div className="p-3 bg-white rounded border">
+                      <p className="text-sm">{viewingAssignment.notes}</p>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="mb-4">
+                  <p className="text-xs font-medium text-neutral-500 mb-1">Resource Category</p>
+                  <div className="flex">
+                    <span className="inline-flex items-center rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
+                      {viewingAssignment.resource.category}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="pt-4 border-t">
+                  <p className="text-xs font-medium text-neutral-500 mb-2">Resource Content</p>
+                  <div className="bg-white border rounded-md p-4 max-h-[40vh] overflow-y-auto">
+                    {viewingAssignment.resource.type === 'article' ? (
+                      <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: viewingAssignment.resource.content }} />
+                    ) : viewingAssignment.resource.type === 'pdf' && viewingAssignment.resource.fileUrl ? (
+                      <div className="text-center">
+                        <a 
+                          href={viewingAssignment.resource.fileUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center text-blue-600 hover:text-blue-800"
+                        >
+                          <FileText className="h-5 w-5 mr-2" />
+                          Open PDF in new tab
+                        </a>
+                      </div>
+                    ) : (
+                      <p className="text-neutral-500 italic">No preview available</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <DialogFooter className="flex justify-between">
+                <div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsViewingAssignment(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="destructive"
+                    onClick={async () => {
+                      try {
+                        await apiRequest(
+                          "DELETE",
+                          `/api/resource-assignments/${viewingAssignment.id}`,
+                          null
+                        );
+                        
+                        queryClient.invalidateQueries({ queryKey: ['/api/therapist/assignments'] });
+                        setIsViewingAssignment(false);
+                        toast({
+                          title: "Assignment Deleted",
+                          description: "The resource assignment has been removed.",
+                        });
+                      } catch (error) {
+                        console.error("Error deleting assignment:", error);
+                        toast({
+                          title: "Error",
+                          description: "Failed to delete assignment. Please try again.",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                  >
+                    Delete Assignment
+                  </Button>
+                </div>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
