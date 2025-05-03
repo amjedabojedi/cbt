@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
+import AppLayout from "@/components/layout/AppLayout";
 
 export default function SubscriptionManagement() {
   const { user, isLoading } = useAuth();
