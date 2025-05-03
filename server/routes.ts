@@ -2726,7 +2726,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the data
       const validatedData = insertJournalCommentSchema.parse({
         ...req.body,
-        therapistId: user.id,
+        userId: user.id,
+        therapistId: user.role === 'therapist' ? user.id : null,
         journalEntryId: entryId
       });
       
@@ -2761,7 +2762,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user owns this comment
-      if (comment.therapistId !== req.user.id) {
+      if (comment.userId !== req.user.id) {
         return res.status(403).json({ message: "Access denied" });
       }
       

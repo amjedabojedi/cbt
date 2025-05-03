@@ -216,11 +216,12 @@ export const journalEntries = pgTable("journal_entries", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Therapist comments on journal entries
+// Comments on journal entries (from therapists or clients)
 export const journalComments = pgTable("journal_comments", {
   id: serial("id").primaryKey(),
   journalEntryId: integer("journal_entry_id").notNull().references(() => journalEntries.id),
-  therapistId: integer("therapist_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id), // User who made the comment (can be therapist or client)
+  therapistId: integer("therapist_id").references(() => users.id), // Only populated if commenter is a therapist
   comment: text("comment").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
