@@ -15,7 +15,8 @@ import {
   journalEntries, type JournalEntry, type InsertJournalEntry,
   journalComments, type JournalComment, type InsertJournalComment,
   sessions, type Session, type InsertSession,
-  subscriptionPlans, type SubscriptionPlan, type InsertSubscriptionPlan
+  subscriptionPlans, type SubscriptionPlan, type InsertSubscriptionPlan,
+  cognitiveDistortions, type CognitiveDistortion, type InsertCognitiveDistortion
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, or, isNull, gte } from "drizzle-orm";
@@ -137,6 +138,19 @@ export interface IStorage {
   getJournalCommentsByEntry(journalEntryId: number): Promise<JournalComment[]>;
   updateJournalComment(id: number, data: Partial<InsertJournalComment>): Promise<JournalComment>;
   deleteJournalComment(id: number): Promise<void>;
+  
+  // Cognitive distortions
+  createCognitiveDistortion(distortion: InsertCognitiveDistortion): Promise<CognitiveDistortion>;
+  getCognitiveDistortions(): Promise<CognitiveDistortion[]>;
+  getCognitiveDistortionById(id: number): Promise<CognitiveDistortion | undefined>;
+  updateCognitiveDistortion(id: number, data: Partial<InsertCognitiveDistortion>): Promise<CognitiveDistortion>;
+  deleteCognitiveDistortion(id: number): Promise<void>;
+  
+  // Integration: Journal entries <-> Thought records
+  linkJournalToThoughtRecord(journalId: number, thoughtRecordId: number): Promise<void>;
+  unlinkJournalFromThoughtRecord(journalId: number, thoughtRecordId: number): Promise<void>;
+  getRelatedThoughtRecords(journalId: number): Promise<ThoughtRecord[]>;
+  getRelatedJournalEntries(thoughtRecordId: number): Promise<JournalEntry[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1089,6 +1103,170 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(journalComments)
       .where(eq(journalComments.id, id));
+  }
+  
+  // Cognitive distortions
+  async createCognitiveDistortion(distortion: InsertCognitiveDistortion): Promise<CognitiveDistortion> {
+    const [newDistortion] = await db
+      .insert(cognitiveDistortions)
+      .values(distortion)
+      .returning();
+    
+    return newDistortion;
+  }
+  
+  async getCognitiveDistortions(): Promise<CognitiveDistortion[]> {
+    return db
+      .select()
+      .from(cognitiveDistortions)
+      .orderBy(cognitiveDistortions.name);
+  }
+  
+  async getCognitiveDistortionById(id: number): Promise<CognitiveDistortion | undefined> {
+    const [distortion] = await db
+      .select()
+      .from(cognitiveDistortions)
+      .where(eq(cognitiveDistortions.id, id));
+    
+    return distortion;
+  }
+  
+  async updateCognitiveDistortion(id: number, data: Partial<InsertCognitiveDistortion>): Promise<CognitiveDistortion> {
+    const [updatedDistortion] = await db
+      .update(cognitiveDistortions)
+      .set({
+        ...data,
+        updatedAt: new Date()
+      })
+      .where(eq(cognitiveDistortions.id, id))
+      .returning();
+    
+    return updatedDistortion;
+  }
+  
+  async deleteCognitiveDistortion(id: number): Promise<void> {
+    await db
+      .delete(cognitiveDistortions)
+      .where(eq(cognitiveDistortions.id, id));
+  }
+  
+  // Integration: Journal entries <-> Thought records
+  async linkJournalToThoughtRecord(journalId: number, thoughtRecordId: number): Promise<void> {
+    // Get current journal entry
+    const journal = await this.getJournalEntryById(journalId);
+    if (!journal) {
+      throw new Error(`Journal entry with ID ${journalId} not found`);
+    }
+    
+    // Get current thought record
+    const thoughtRecord = await this.getThoughtRecordById(thoughtRecordId);
+    if (!thoughtRecord) {
+      throw new Error(`Thought record with ID ${thoughtRecordId} not found`);
+    }
+    
+    // Current related thought record IDs (handling null case)
+    const currentThoughtRecordIds = journal.relatedThoughtRecordIds || [];
+    
+    // Only add if not already linked
+    if (!currentThoughtRecordIds.includes(thoughtRecordId)) {
+      // Update journal with link to thought record
+      await db.update(journalEntries)
+        .set({
+          relatedThoughtRecordIds: [...currentThoughtRecordIds, thoughtRecordId],
+          updatedAt: new Date()
+        })
+        .where(eq(journalEntries.id, journalId));
+    }
+    
+    // Current related journal entry IDs (handling null case)
+    const currentJournalEntryIds = thoughtRecord.relatedJournalEntryIds || [];
+    
+    // Only add if not already linked
+    if (!currentJournalEntryIds.includes(journalId)) {
+      // Update thought record with link to journal
+      await db.update(thoughtRecords)
+        .set({
+          relatedJournalEntryIds: [...currentJournalEntryIds, journalId]
+        })
+        .where(eq(thoughtRecords.id, thoughtRecordId));
+    }
+  }
+  
+  async unlinkJournalFromThoughtRecord(journalId: number, thoughtRecordId: number): Promise<void> {
+    // Get current journal entry
+    const journal = await this.getJournalEntryById(journalId);
+    if (!journal) {
+      throw new Error(`Journal entry with ID ${journalId} not found`);
+    }
+    
+    // Get current thought record
+    const thoughtRecord = await this.getThoughtRecordById(thoughtRecordId);
+    if (!thoughtRecord) {
+      throw new Error(`Thought record with ID ${thoughtRecordId} not found`);
+    }
+    
+    // Current related thought record IDs (handling null case)
+    const currentThoughtRecordIds = journal.relatedThoughtRecordIds || [];
+    
+    // Remove the thought record ID
+    if (currentThoughtRecordIds.includes(thoughtRecordId)) {
+      await db.update(journalEntries)
+        .set({
+          relatedThoughtRecordIds: currentThoughtRecordIds.filter(id => id !== thoughtRecordId),
+          updatedAt: new Date()
+        })
+        .where(eq(journalEntries.id, journalId));
+    }
+    
+    // Current related journal entry IDs (handling null case)
+    const currentJournalEntryIds = thoughtRecord.relatedJournalEntryIds || [];
+    
+    // Remove the journal entry ID
+    if (currentJournalEntryIds.includes(journalId)) {
+      await db.update(thoughtRecords)
+        .set({
+          relatedJournalEntryIds: currentJournalEntryIds.filter(id => id !== journalId)
+        })
+        .where(eq(thoughtRecords.id, thoughtRecordId));
+    }
+  }
+  
+  async getRelatedThoughtRecords(journalId: number): Promise<ThoughtRecord[]> {
+    const journal = await this.getJournalEntryById(journalId);
+    if (!journal || !journal.relatedThoughtRecordIds || journal.relatedThoughtRecordIds.length === 0) {
+      return [];
+    }
+    
+    // Get all thought records that are linked to this journal
+    const relatedRecords: ThoughtRecord[] = [];
+    
+    for (const recordId of journal.relatedThoughtRecordIds) {
+      const record = await this.getThoughtRecordById(recordId);
+      if (record) {
+        relatedRecords.push(record);
+      }
+    }
+    
+    return relatedRecords;
+  }
+  
+  async getRelatedJournalEntries(thoughtRecordId: number): Promise<JournalEntry[]> {
+    const thoughtRecord = await this.getThoughtRecordById(thoughtRecordId);
+    if (!thoughtRecord || !thoughtRecord.relatedJournalEntryIds || thoughtRecord.relatedJournalEntryIds.length === 0) {
+      return [];
+    }
+    
+    // Get all journal entries that are linked to this thought record
+    const relatedEntries: JournalEntry[] = [];
+    
+    for (const entryId of thoughtRecord.relatedJournalEntryIds) {
+      const entry = await this.getJournalEntryById(entryId);
+      if (entry) {
+        relatedEntries.push(entry);
+      }
+    }
+    
+    return relatedEntries;
   }
 }
 

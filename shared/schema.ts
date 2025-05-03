@@ -53,6 +53,18 @@ export const emotionRecords = pgTable("emotion_records", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Cognitive distortions table - for better categorization and reusable definitions
+export const cognitiveDistortions = pgTable("cognitive_distortions", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  examples: text("examples").notNull(),
+  reframingQuestions: jsonb("reframing_questions").$type<string[]>(),
+  category: text("category"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Thought records and cognitive distortions
 export const thoughtRecords = pgTable("thought_records", {
   id: serial("id").primaryKey(),
@@ -65,6 +77,7 @@ export const thoughtRecords = pgTable("thought_records", {
   alternativePerspective: text("alternative_perspective"),
   insightsGained: text("insights_gained"),
   reflectionRating: integer("reflection_rating"),
+  relatedJournalEntryIds: jsonb("related_journal_entry_ids").$type<number[]>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -213,6 +226,8 @@ export const journalEntries = pgTable("journal_entries", {
   sentimentNegative: real("sentiment_negative"), // Negative sentiment score
   sentimentNeutral: real("sentiment_neutral"), // Neutral sentiment score
   isPrivate: boolean("is_private").default(false).notNull(), // If true, only visible to the user
+  relatedThoughtRecordIds: jsonb("related_thought_record_ids").$type<number[]>(), // Bidirectional references
+  detectedDistortions: jsonb("detected_distortions").$type<number[]>(), // References to cognitive_distortions table
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -238,6 +253,7 @@ export const sessions = pgTable("sessions", {
 // Define all the insert schemas
 export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({ id: true, createdAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
+export const insertCognitiveDistortionSchema = createInsertSchema(cognitiveDistortions).omit({ id: true, createdAt: true, updatedAt: true });
 // For emotion records, we need a custom schema to handle the timestamp correctly
 export const insertEmotionRecordSchema = z.object({
   userId: z.number(),
@@ -275,6 +291,9 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 
 export type EmotionRecord = typeof emotionRecords.$inferSelect;
 export type InsertEmotionRecord = z.infer<typeof insertEmotionRecordSchema>;
+
+export type CognitiveDistortion = typeof cognitiveDistortions.$inferSelect;
+export type InsertCognitiveDistortion = z.infer<typeof insertCognitiveDistortionSchema>;
 
 export type ThoughtRecord = typeof thoughtRecords.$inferSelect;
 export type InsertThoughtRecord = z.infer<typeof insertThoughtRecordSchema>;
