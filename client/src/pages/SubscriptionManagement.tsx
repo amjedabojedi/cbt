@@ -59,12 +59,12 @@ export default function SubscriptionManagement() {
   }
   
   return (
-    <div className="container max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Subscription Management</h1>
+    <div className="container max-w-5xl mx-auto px-4 py-8 min-h-screen overflow-hidden">
+      <h1 className="text-3xl font-bold mb-8 sticky top-0 bg-background z-20 py-2">Subscription Management</h1>
       
       {/* Display warning if Stripe is not configured */}
       {user.role === "admin" && !stripeConfigured && (
-        <div className="mb-6 p-4 bg-amber-50 rounded-md border border-amber-200">
+        <div className="mb-6 p-4 bg-amber-50 rounded-md border border-amber-200 sticky top-16 z-10">
           <h3 className="text-lg font-medium flex items-center text-amber-800">
             <AlertTriangle className="h-5 w-5 mr-2" />
             Stripe Not Configured
@@ -85,22 +85,24 @@ export default function SubscriptionManagement() {
       )}
       
       {/* Show different components based on user role */}
-      {user.role === "admin" ? (
-        // Admin view - subscription plan management
-        <SubscriptionPlansManager />
-      ) : user.role === "therapist" ? (
-        // Therapist view - subscription management
-        <SubscriptionManager />
-      ) : (
-        // Client view - informational message
-        <div className="p-6 bg-muted rounded-lg">
-          <h2 className="text-xl font-semibold mb-3">Client Account</h2>
-          <p className="text-muted-foreground">
-            Subscription management is only available for therapist and administrator accounts.
-            As a client, you don't need to manage any subscription.
-          </p>
-        </div>
-      )}
+      <div className="overflow-auto max-h-[calc(100vh-150px)]">
+        {user.role === "admin" ? (
+          // Admin view - subscription plan management
+          <SubscriptionPlansManager />
+        ) : user.role === "therapist" ? (
+          // Therapist view - subscription management
+          <SubscriptionManager />
+        ) : (
+          // Client view - informational message
+          <div className="p-6 bg-muted rounded-lg">
+            <h2 className="text-xl font-semibold mb-3">Client Account</h2>
+            <p className="text-muted-foreground">
+              Subscription management is only available for therapist and administrator accounts.
+              As a client, you don't need to manage any subscription.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

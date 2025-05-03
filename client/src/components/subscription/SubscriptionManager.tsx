@@ -259,7 +259,7 @@ export function SubscriptionManager() {
   const selectedPlan = getSelectedPlan();
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-y-auto pr-2 h-[calc(100vh-120px)]">
       {/* Current Subscription */}
       <Card>
         <CardHeader>
@@ -318,7 +318,7 @@ export function SubscriptionManager() {
               
               <div className="space-y-1 mt-4">
                 <p className="text-sm font-medium">Features</p>
-                <ul className="space-y-1">
+                <ul className="space-y-1 max-h-40 overflow-y-auto pr-2">
                   {subscription.plan.features.map((feature, i) => (
                     <li key={i} className="text-sm flex">
                       <CheckCircle className="h-4 w-4 mr-2 text-green-500 flex-shrink-0" />
@@ -356,8 +356,8 @@ export function SubscriptionManager() {
       
       {/* Available Plans */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Available Plans</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <h2 className="text-xl font-semibold mb-4 sticky top-0 bg-background z-10 py-2">Available Plans</h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 max-h-[calc(100vh-380px)] overflow-y-auto pb-4 pr-2">
           {plans?.filter(plan => plan.isActive).map((plan) => (
             <Card key={plan.id} className={subscription?.plan?.id === plan.id ? "border-primary" : ""}>
               <CardHeader>
@@ -382,7 +382,7 @@ export function SubscriptionManager() {
                 </div>
                 <div>
                   <span className="text-sm font-medium">Features:</span>
-                  <ul className="mt-1 space-y-1">
+                  <ul className="mt-1 space-y-1 max-h-32 overflow-y-auto pr-2">
                     {plan.features.map((feature, i) => (
                       <li key={i} className="text-sm flex">
                         <CheckCircle className="h-4 w-4 mr-2 text-green-500 flex-shrink-0" />

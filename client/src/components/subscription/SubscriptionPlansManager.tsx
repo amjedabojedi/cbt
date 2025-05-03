@@ -312,7 +312,7 @@ export function SubscriptionPlansManager() {
   
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center sticky top-0 bg-background z-10 py-4">
         <h2 className="text-2xl font-semibold">Subscription Plans</h2>
         <Button onClick={handleOpenCreateDialog}>
           <Plus className="h-4 w-4 mr-2" />
@@ -320,7 +320,7 @@ export function SubscriptionPlansManager() {
         </Button>
       </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 max-h-[calc(100vh-180px)] overflow-y-auto pb-4 pr-2">
         {plans?.map((plan) => (
           <Card key={plan.id} className={plan.isActive ? "" : "opacity-70"}>
             <CardHeader>
@@ -361,7 +361,7 @@ export function SubscriptionPlansManager() {
               <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
               <div className="mb-2">
                 <span className="text-sm font-medium">Features:</span>
-                <ul className="mt-1 space-y-1">
+                <ul className="mt-1 space-y-1 max-h-40 overflow-y-auto pr-2">
                   {plan.features.map((feature, i) => (
                     <li key={i} className="text-sm flex">
                       <CheckCircle className="h-4 w-4 mr-2 text-green-500 flex-shrink-0" />
