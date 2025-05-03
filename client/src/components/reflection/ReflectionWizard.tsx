@@ -201,12 +201,12 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   const [copingStrategies, setCopingStrategies] = useState<Array<{id: number, name: string}>>([]);
   const [previousReflections, setPreviousReflections] = useState<ThoughtRecord[]>([]);
   
-  // Create refs for textareas
-  const automaticThoughtsRef = useRef<HTMLTextAreaElement>(null);
-  const evidenceForRef = useRef<HTMLTextAreaElement>(null);
-  const evidenceAgainstRef = useRef<HTMLTextAreaElement>(null);
-  const alternativePerspectiveRef = useRef<HTMLTextAreaElement>(null);
-  const insightsGainedRef = useRef<HTMLTextAreaElement>(null);
+  // Create mutable refs for textareas
+  const automaticThoughtsRef = useRef<HTMLTextAreaElement | null>(null);
+  const evidenceForRef = useRef<HTMLTextAreaElement | null>(null);
+  const evidenceAgainstRef = useRef<HTMLTextAreaElement | null>(null);
+  const alternativePerspectiveRef = useRef<HTMLTextAreaElement | null>(null);
+  const insightsGainedRef = useRef<HTMLTextAreaElement | null>(null);
   
   // Progress calculation
   const totalSteps = 4;
@@ -538,12 +538,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                 placeholder="I think that..."
                 className="min-h-[120px] focus:border-primary focus:ring-1 focus:ring-primary"
                 {...field}
-                ref={(el) => {
-                  field.ref(el);
-                  if (automaticThoughtsRef && el) {
-                    automaticThoughtsRef.current = el;
-                  }
-                }}
+                ref={field.ref}
               />
             </FormControl>
             <FormMessage />
@@ -664,12 +659,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                   });
                 }}
                 onBlur={field.onBlur}
-                ref={(el) => {
-                  field.ref(el);
-                  if (evidenceForRef && el) {
-                    evidenceForRef.current = el;
-                  }
-                }}
+                ref={field.ref}
                 name={field.name}
                 className="focus:border-primary focus:ring-1 focus:ring-primary"
               />
@@ -702,12 +692,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                   });
                 }}
                 onBlur={field.onBlur}
-                ref={(el) => {
-                  field.ref(el);
-                  if (evidenceAgainstRef && el) {
-                    evidenceAgainstRef.current = el;
-                  }
-                }}
+                ref={field.ref}
                 name={field.name}
                 className="focus:border-primary focus:ring-1 focus:ring-primary"
               />
@@ -855,12 +840,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                   });
                 }}
                 onBlur={field.onBlur}
-                ref={(el) => {
-                  field.ref(el);
-                  if (alternativePerspectiveRef && el) {
-                    alternativePerspectiveRef.current = el;
-                  }
-                }}
+                ref={field.ref}
                 name={field.name}
                 className="focus:border-primary focus:ring-1 focus:ring-primary"
               />
@@ -1008,12 +988,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                   });
                 }}
                 onBlur={field.onBlur}
-                ref={(el) => {
-                  field.ref(el);
-                  if (insightsGainedRef && el) {
-                    insightsGainedRef.current = el;
-                  }
-                }}
+                ref={field.ref}
                 name={field.name}
                 className="focus:border-primary focus:ring-1 focus:ring-primary"
               />
