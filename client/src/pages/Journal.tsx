@@ -1017,24 +1017,17 @@ export default function Journal() {
                   
                   <div className="mt-2 space-y-2">
                     {relatedThoughtRecords.length > 0 ? (
-                      <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2">
+                      <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2">
                         {relatedThoughtRecords.map(record => (
-                          <div key={record.id} className="flex items-center justify-between rounded-md border p-2 text-sm">
-                            <div className="flex-1 truncate">
-                              <div className="font-medium text-xs truncate">
-                                {record.automaticThoughts.length > 30 
-                                  ? record.automaticThoughts.substring(0, 30) + "..." 
-                                  : record.automaticThoughts}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
+                          <div key={record.id} className="flex flex-col rounded-md border p-3 text-sm">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-medium text-muted-foreground">
                                 {format(new Date(record.createdAt), "MMM d, yyyy")}
-                              </div>
-                            </div>
-                            <div className="flex space-x-2 ml-2">
+                              </span>
                               <Button 
                                 size="icon" 
                                 variant="ghost" 
-                                className="h-6 w-6 rounded-full"
+                                className="h-6 w-6 rounded-full ml-2"
                                 onClick={() => 
                                   unlinkThoughtRecordMutation.mutate({
                                     journalId: currentEntry!.id,
@@ -1045,6 +1038,21 @@ export default function Journal() {
                                 <X size={14} />
                               </Button>
                             </div>
+                            
+                            <div className="mt-1 font-medium text-xs">
+                              <span className="text-muted-foreground">Thoughts: </span>
+                              {record.automaticThoughts}
+                            </div>
+                            
+                            {record.cognitiveDistortions?.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {record.cognitiveDistortions.map(distortion => (
+                                  <Badge key={distortion} variant="outline" className="text-xs">
+                                    {distortion}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
