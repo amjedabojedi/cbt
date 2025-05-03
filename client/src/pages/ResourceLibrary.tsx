@@ -458,6 +458,216 @@ export default function ResourceLibrary() {
     );
   }
 
+  // Fetch educational resources
+  const {
+    data: educationalResources,
+    isLoading: resourcesLoading,
+    error: resourcesError
+  } = useQuery({
+    queryKey: ['/api/resources'],
+    enabled: !!user,
+  });
+  
+  // Create resource mutation
+  const createResourceMutation = useMutation({
+    mutationFn: async (resourceData: any) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const response = await apiRequest(
+        "POST",
+        "/api/resources",
+        resourceData
+      );
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
+      setIsAddingResource(false);
+      toast({
+        title: "Resource Added",
+        description: "Your educational resource has been added to the library.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error creating resource:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add educational resource. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Delete resource mutation
+  const deleteResourceMutation = useMutation({
+    mutationFn: async (resourceId: number) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const response = await apiRequest(
+        "DELETE",
+        `/api/resources/${resourceId}`,
+        null
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete resource");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
+      setCurrentResource(null);
+      toast({
+        title: "Resource Deleted",
+        description: "The educational resource has been removed from the library.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error deleting resource:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete resource. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Update resource mutation
+  const updateResourceMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const response = await apiRequest(
+        "PATCH",
+        `/api/resources/${id}`,
+        data
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update resource");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
+      if (currentResource) {
+        setCurrentResource({...currentResource, isEditing: false});
+      }
+      toast({
+        title: "Resource Updated",
+        description: "The educational resource has been updated.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error updating resource:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update resource. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Clone resource mutation (for therapists)
+  const cloneResourceMutation = useMutation({
+    mutationFn: async (resourceId: number) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const response = await apiRequest(
+        "POST",
+        `/api/resources/${resourceId}/clone`,
+        null
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to clone resource");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
+      toast({
+        title: "Resource Cloned",
+        description: "You can now customize this resource before assigning it to clients.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error cloning resource:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clone resource. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Assign resource to client mutation
+  const assignResourceMutation = useMutation({
+    mutationFn: async (data: { resourceId: number, assignedTo: number, notes?: string, isPriority?: boolean }) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const response = await apiRequest(
+        "POST",
+        "/api/resource-assignments",
+        data
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to assign resource");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Resource Assigned",
+        description: "The resource has been assigned to the client.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error assigning resource:", error);
+      toast({
+        title: "Error",
+        description: "Failed to assign resource. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Fetch client assignments (for therapists)
+  const {
+    data: clientAssignments,
+    isLoading: assignmentsLoading,
+  } = useQuery({
+    queryKey: ['/api/therapist/assignments'],
+    enabled: !!user && user.role === 'therapist',
+  });
+  
+  // Resource category filter state
+  const [resourceCategory, setResourceCategory] = useState<string>("all");
+  
+  // Resource categories
+  const resourceCategories = [
+    "all",
+    "cbt-basics",
+    "anxiety",
+    "depression",
+    "stress-management",
+    "mindfulness",
+    "emotional-regulation",
+    "relationships",
+    "trauma",
+    "self-care"
+  ];
+  
   return (
     <AppLayout title="Resource Library">
       <div className="container mx-auto px-4 py-6">
@@ -465,6 +675,7 @@ export default function ResourceLibrary() {
           <TabsList className="mb-6">
             <TabsTrigger value="protective-factors">Protective Factors</TabsTrigger>
             <TabsTrigger value="coping-strategies">Coping Strategies</TabsTrigger>
+            <TabsTrigger value="educational-resources">Educational Resources</TabsTrigger>
             {user?.role === "therapist" && (
               <TabsTrigger value="client-assignments">Client Assignments</TabsTrigger>
             )}
