@@ -1328,17 +1328,51 @@ export default function ResourceLibrary() {
             {/* Resource Category Filter */}
             <div className="mb-6">
               <div className="flex flex-wrap gap-2">
-                {resourceCategories.map((category) => (
-                  <Button
-                    key={category}
-                    variant={resourceCategory === category ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setResourceCategory(category)}
-                    className="capitalize"
-                  >
-                    {category === "all" ? "All Categories" : category.split('-').join(' ')}
-                  </Button>
-                ))}
+                {/* Default 'all' category */}
+                <Button
+                  key="all"
+                  variant={resourceCategory === 'all' ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setResourceCategory('all')}
+                  className="capitalize"
+                >
+                  All Categories
+                </Button>
+                
+                {/* Other categories from resources */}
+                {educationalResources && [...new Set(educationalResources.map((r: any) => r.category))]
+                  .filter((cat: string) => cat && cat !== 'all')
+                  .map((category: string) => (
+                    <Button
+                      key={category}
+                      variant={resourceCategory === category ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setResourceCategory(category)}
+                      className="capitalize"
+                    >
+                      {category.split('-').join(' ')}
+                    </Button>
+                  ))
+                }
+                
+                {/* Hard-coded default categories */}
+                {defaultCategories
+                  .filter((cat: string) => 
+                    cat !== 'all' && 
+                    (!educationalResources || !educationalResources.some((r: any) => r.category === cat))
+                  )
+                  .map((category: string) => (
+                    <Button
+                      key={category}
+                      variant={resourceCategory === category ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setResourceCategory(category)}
+                      className="capitalize"
+                    >
+                      {category.split('-').join(' ')}
+                    </Button>
+                  ))
+                }
               </div>
             </div>
             
