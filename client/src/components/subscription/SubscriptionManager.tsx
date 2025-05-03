@@ -413,7 +413,7 @@ export function SubscriptionManager() {
       
       {/* Upgrade/Subscribe Dialog */}
       <Dialog open={isUpgradeDialogOpen} onOpenChange={setIsUpgradeDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Confirm Subscription</DialogTitle>
             <DialogDescription>
@@ -482,7 +482,7 @@ export function SubscriptionManager() {
       
       {/* Cancel Subscription Dialog */}
       <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-h-[90vh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to cancel?</AlertDialogTitle>
             <AlertDialogDescription>
