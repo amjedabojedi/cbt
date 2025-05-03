@@ -334,22 +334,103 @@ export default function Journal() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Journal</h1>
-        <Button 
-          onClick={() => setOpenNewEntry(true)}
-          className="flex items-center gap-2"
-        >
-          <Plus size={16} /> New Entry
-        </Button>
+    <div className="flex h-screen overflow-hidden">
+      {/* Journal sidebar navigation */}
+      <div className="w-64 border-r bg-card p-4 hidden md:block">
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-4">Journal</h2>
+          <Button 
+            onClick={() => setOpenNewEntry(true)}
+            className="w-full flex items-center justify-center gap-2"
+          >
+            <Plus size={16} /> New Entry
+          </Button>
+        </div>
+        
+        <div className="space-y-1">
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">Sections</h3>
+          <ul className="space-y-1">
+            <li>
+              <Button 
+                variant={activeSection === "recent" ? "secondary" : "ghost"} 
+                className="w-full justify-start text-left"
+                onClick={() => setActiveSection("recent")}
+              >
+                Recent Entries
+              </Button>
+            </li>
+            <li>
+              <Button 
+                variant={activeSection === "favorites" ? "secondary" : "ghost"} 
+                className="w-full justify-start text-left"
+                onClick={() => setActiveSection("favorites")}
+              >
+                Favorites
+              </Button>
+            </li>
+            <li>
+              <Button 
+                variant={activeSection === "insights" ? "secondary" : "ghost"} 
+                className="w-full justify-start text-left"
+                onClick={() => {
+                  setActiveSection("insights");
+                  setActiveTab("insights");
+                }}
+              >
+                Insights & Analysis
+              </Button>
+            </li>
+          </ul>
+        </div>
+        
+        {entries.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Tags</h3>
+            <div className="flex flex-wrap gap-1">
+              {Object.entries(stats.tagsFrequency || {})
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10)
+                .map(([tag, count]) => (
+                  <Badge key={tag} variant="outline" className="text-xs cursor-pointer">
+                    {tag} ({count})
+                  </Badge>
+                ))}
+            </div>
+          </div>
+        )}
       </div>
-
-      <Tabs defaultValue="entries">
-        <TabsList>
-          <TabsTrigger value="entries">Journal Entries</TabsTrigger>
-          <TabsTrigger value="insights">Insights & Stats</TabsTrigger>
-        </TabsList>
+      
+      {/* Mobile header with actions */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-10 bg-background border-b p-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-xl font-bold">Journal</h1>
+          <Button 
+            onClick={() => setOpenNewEntry(true)}
+            size="sm"
+            className="flex items-center gap-1"
+          >
+            <Plus size={14} /> New
+          </Button>
+        </div>
+      </div>
+      
+      {/* Main content */}
+      <div className="flex-1 overflow-auto pt-4 md:pt-0">
+        <div className="container mx-auto py-6 md:py-8">
+          <div className="flex justify-between items-center mb-6 md:mb-8">
+            <h1 className="text-3xl font-bold hidden md:block">
+              {activeSection === "insights" ? "Journal Insights" : "Journal Entries"}
+            </h1>
+            <div className="md:hidden h-8">
+              {/* Spacer for mobile */}
+            </div>
+          </div>
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="entries">Journal Entries</TabsTrigger>
+              <TabsTrigger value="insights">Insights & Stats</TabsTrigger>
+            </TabsList>
         
         <TabsContent value="entries" className="space-y-4 mt-4">
           {isLoading ? (
