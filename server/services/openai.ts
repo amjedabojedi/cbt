@@ -53,10 +53,10 @@ export async function analyzeJournalEntry(
     });
 
     // Parse the response
-    const content = response.choices[0]?.message?.content || "";
+    const responseContent = response.choices[0]?.message?.content || "";
     
     try {
-      const parsedResponse = JSON.parse(content) as JournalAnalysisResult;
+      const parsedResponse = JSON.parse(responseContent) as JournalAnalysisResult;
       return parsedResponse;
     } catch (parseError) {
       console.error("Failed to parse OpenAI response:", parseError);

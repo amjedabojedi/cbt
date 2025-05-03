@@ -2761,7 +2761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user owns this comment
-      if (comment.userId !== req.user.id) {
+      if (comment.therapistId !== req.user.id) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -2799,7 +2799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user owns this comment or is admin
-      if (comment.userId !== req.user.id && req.user.role !== 'admin') {
+      if (comment.therapistId !== req.user.id && req.user.role !== 'admin') {
         return res.status(403).json({ message: "Access denied" });
       }
       
