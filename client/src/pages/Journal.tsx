@@ -774,8 +774,14 @@ export default function Journal() {
                               <HelpCircle size={14} />
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-xs">Dark tags are selected. Tags are AI-suggested based on your entry and comments.</p>
+                          <TooltipContent className="max-w-[250px] p-4">
+                            <p className="text-xs">
+                              <span className="font-bold">Dark tags</span> are selected and saved.
+                              <br /><br />
+                              <span className="font-bold">Tags with ✨ sparkles</span> were suggested from recent comments and conversations.
+                              <br /><br />
+                              All tags are AI-generated based on the content in your journal and comments.
+                            </p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -792,11 +798,24 @@ export default function Journal() {
                           <Badge
                             key={tag}
                             variant={selectedTags.includes(tag) ? "default" : "outline"}
-                            className={`cursor-pointer ${isNewSuggestion ? "border-green-500 animate-pulse" : ""}`}
+                            className={`cursor-pointer transition-all duration-200 ${
+                              selectedTags.includes(tag) 
+                                ? 'font-medium' 
+                                : 'opacity-80'
+                            } ${
+                              isNewSuggestion 
+                                ? "border-amber-500 pl-6 relative" 
+                                : ""
+                            }`}
                             onClick={() => toggleTagSelection(tag)}
                           >
+                            {isNewSuggestion && (
+                              <Sparkles 
+                                size={14} 
+                                className="absolute left-1.5 text-amber-500 animate-pulse" 
+                              />
+                            )}
                             {tag}
-                            {isNewSuggestion && <Sparkles size={12} className="ml-1 text-green-500" />}
                           </Badge>
                         );
                       })}

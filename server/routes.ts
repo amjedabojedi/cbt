@@ -2549,8 +2549,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
           
           // Update the entry with AI analysis
+          // Also store initialAiTags to track which tags are from the original analysis
           const updatedEntry = await storage.updateJournalEntry(newEntry.id, {
             aiSuggestedTags: analysis.suggestedTags,
+            initialAiTags: analysis.suggestedTags, // Store initial tags separately to track origin
             aiAnalysis: analysis.analysis,
             emotions: analysis.emotions,
             topics: analysis.topics,
@@ -2559,6 +2561,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sentimentNeutral: analysis.sentiment.neutral
           });
           
+          console.log(`Journal entry ${newEntry.id} created with initial AI tags:`, analysis.suggestedTags);
           return res.status(201).json(updatedEntry);
         } catch (aiError) {
           console.error("AI analysis error:", aiError);
@@ -2787,8 +2790,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           // Update the entry with the additional suggested tags
+          // But make sure we keep the initialAiTags unchanged - they should always
+          // reflect the original tags from when the entry was first created
           await storage.updateJournalEntry(entryId, {
             aiSuggestedTags: allTags,
+            // Do not modify initialAiTags, which tracks the original AI tags
             aiAnalysis: analysis.analysis,
             emotions: [...new Set([...(entry.emotions || []), ...analysis.emotions])],
             topics: [...new Set([...(entry.topics || []), ...analysis.topics])],
