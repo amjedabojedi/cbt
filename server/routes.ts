@@ -2736,6 +2736,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create the comment
       const newComment = await storage.createJournalComment(validatedData);
+      
+      // Generate new AI suggestions based on the combined content (entry + comments)
+      // This allows tags to evolve as the conversation develops
+      if (process.env.OPENAI_API_KEY && entry.content) {
+        try {
+          // Get all existing comments
+          const comments = await storage.getJournalCommentsByEntry(entryId);
+          const combinedText = `
+            ${entry.title || ""}
+            
+            ${entry.content}
+            
+            Additional comments:
+            ${comments.map(c => c.comment).join("\n\n")}
+          `;
+          
+          // Get new AI analysis based on the combined content
+          const analysis = await analyzeJournalEntry(
+            entry.title || "",
+            combinedText
+          );
+          
+          // Merge new tags with existing ones to avoid duplicates
+          const existingTags = entry.aiSuggestedTags || [];
+          const allTags = [...new Set([...existingTags, ...analysis.suggestedTags])];
+          
+          // Update the entry with the additional suggested tags
+          await storage.updateJournalEntry(entryId, {
+            aiSuggestedTags: allTags,
+            aiAnalysis: analysis.analysis,
+            emotions: [...new Set([...(entry.emotions || []), ...analysis.emotions])],
+            topics: [...new Set([...(entry.topics || []), ...analysis.topics])],
+            sentimentPositive: analysis.sentiment.positive,
+            sentimentNegative: analysis.sentiment.negative,
+            sentimentNeutral: analysis.sentiment.neutral
+          });
+        } catch (aiError) {
+          console.error("AI analysis after comment error:", aiError);
+          // Continue without updating AI analysis if it fails
+        }
+      }
+      
       res.status(201).json(newComment);
     } catch (error) {
       if (error instanceof z.ZodError) {

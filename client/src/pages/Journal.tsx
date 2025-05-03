@@ -122,14 +122,25 @@ export default function Journal() {
       // Load the entry with AI analysis and suggested tags
       if (data && data.id) {
         // Wait a moment to ensure AI processing completes
-        setTimeout(() => {
-          loadEntryWithComments(data);
+        setTimeout(async () => {
+          await loadEntryWithComments(data);
+          
+          // Auto-select all suggested tags and save them
+          if (currentEntry && currentEntry.aiSuggestedTags && currentEntry.aiSuggestedTags.length > 0) {
+            setSelectedTags(currentEntry.aiSuggestedTags);
+            
+            // Auto-save all suggested tags
+            await updateTagsMutation.mutateAsync({
+              entryId: currentEntry.id,
+              tags: currentEntry.aiSuggestedTags
+            });
+          }
           
           toast({
             title: "Journal Entry Created",
-            description: "Your entry was analyzed for emotions and suggested tags",
+            description: "Your entry was analyzed and tags were automatically applied",
           });
-        }, 500);
+        }, 1000); // Extended timeout to ensure AI processing completes
       } else {
         toast({
           title: "Success",
@@ -463,18 +474,43 @@ export default function Journal() {
                         </AccordionItem>
                         
                         <AccordionItem value="tags">
-                          <AccordionTrigger>Most Used Tags</AccordionTrigger>
+                          <AccordionTrigger>Tags Word Cloud</AccordionTrigger>
                           <AccordionContent>
                             {Object.keys(stats.tagsFrequency).length > 0 ? (
-                              <div className="flex flex-wrap gap-2">
+                              <div className="flex flex-wrap gap-2 justify-center py-4">
                                 {Object.entries(stats.tagsFrequency)
                                   .sort((a, b) => b[1] - a[1])
-                                  .slice(0, 15)
-                                  .map(([tag, count]) => (
-                                    <Badge key={tag} className="bg-green-100 text-green-800 hover:bg-green-200">
-                                      {tag} ({count})
-                                    </Badge>
-                                  ))}
+                                  .map(([tag, count]) => {
+                                    // Calculate font size based on frequency (min 12px, max 32px)
+                                    const maxCount = Math.max(...Object.values(stats.tagsFrequency));
+                                    const minSize = 12;
+                                    const maxSize = 32;
+                                    const size = minSize + ((count / maxCount) * (maxSize - minSize));
+                                    
+                                    // Assign color based on frequency
+                                    const colorIndex = Math.floor((count / maxCount) * 5);
+                                    const colors = [
+                                      "bg-blue-50 text-blue-800", 
+                                      "bg-green-50 text-green-800",
+                                      "bg-purple-50 text-purple-800",
+                                      "bg-amber-50 text-amber-800",
+                                      "bg-red-50 text-red-800"
+                                    ];
+                                    const colorClass = colors[Math.min(colorIndex, colors.length - 1)];
+                                    
+                                    return (
+                                      <div
+                                        key={tag}
+                                        className={`inline-block m-1 px-3 py-1 rounded-full ${colorClass} transition-all`}
+                                        style={{ 
+                                          fontSize: `${size}px`,
+                                          fontWeight: count > maxCount / 2 ? "bold" : "normal",
+                                        }}
+                                      >
+                                        {tag}
+                                      </div>
+                                    );
+                                  })}
                               </div>
                             ) : (
                               <p className="text-muted-foreground">No tag data available</p>
