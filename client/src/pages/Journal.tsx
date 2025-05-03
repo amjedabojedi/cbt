@@ -101,6 +101,7 @@ export default function Journal() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
   const [commentContent, setCommentContent] = useState("");
+  const [customTag, setCustomTag] = useState("");
   const [activeSection, setActiveSection] = useState<string>("recent");
   const [activeTab, setActiveTab] = useState<string>("entries");
   const { toast } = useToast();
@@ -858,7 +859,7 @@ export default function Journal() {
                   <h4 className="text-sm font-semibold mb-2 flex items-center justify-between">
                     <span className="flex items-center gap-2">
                       <Tag size={16} />
-                      Tags
+                      Suggested Tags
                     </span>
                     
                     <TooltipProvider>
@@ -866,9 +867,9 @@ export default function Journal() {
                         <TooltipTrigger asChild>
                           <InfoIcon size={14} className="text-muted-foreground cursor-help" />
                         </TooltipTrigger>
-                        <TooltipContent className="max-w-[200px] p-4">
+                        <TooltipContent className="max-w-[250px] p-4">
                           <p className="text-xs">
-                            Tags with <span className="font-bold">✨ sparkles</span> are suggested by AI based on your comments. Click tags to select them.
+                            Click tags to select them. Tags with <span className="font-bold">✨ sparkles</span> are suggested by AI based on your comments. You have full control over which tags to save.
                           </p>
                         </TooltipContent>
                       </Tooltip>
@@ -906,13 +907,43 @@ export default function Journal() {
                     })}
                   </div>
                   
+                  {/* Add custom tag input */}
+                  <div className="mt-4 mb-2">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Add your own tag..."
+                        className="flex-1"
+                        value={customTag}
+                        onChange={(e) => setCustomTag(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && customTag.trim()) {
+                            e.preventDefault();
+                            toggleTagSelection(customTag.trim());
+                            setCustomTag('');
+                          }
+                        }}
+                      />
+                      <Button 
+                        size="sm"
+                        onClick={() => {
+                          if (customTag.trim()) {
+                            toggleTagSelection(customTag.trim());
+                            setCustomTag('');
+                          }
+                        }}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  </div>
+                  
                   <Button
                     onClick={handleUpdateTags}
                     disabled={updateTagsMutation.isPending}
                     className="w-full mt-3"
                     size="sm"
                   >
-                    {updateTagsMutation.isPending ? "Saving..." : "Save Tags"}
+                    {updateTagsMutation.isPending ? "Saving..." : "Save Selected Tags"}
                   </Button>
                 </div>
                 
@@ -922,14 +953,27 @@ export default function Journal() {
                   <div>
                     <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
                       <Heart size={16} />
-                      Identified Emotions
+                      Suggested Emotions
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon size={14} className="text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[250px] p-4">
+                            <p className="text-xs">
+                              These emotions are detected by AI based on your entry content. They are suggestions only.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {currentEntry.emotions.map((emotion) => (
                         <Badge 
                           key={emotion} 
                           variant="outline"
-                          className="bg-blue-50 text-blue-600 hover:bg-blue-100"
+                          className="bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer"
+                          onClick={() => toggleTagSelection(emotion)}
                         >
                           {emotion}
                         </Badge>
@@ -942,14 +986,27 @@ export default function Journal() {
                   <div>
                     <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
                       <Tag size={16} />
-                      Key Topics
+                      Suggested Topics
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon size={14} className="text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[250px] p-4">
+                            <p className="text-xs">
+                              These topics are detected by AI based on your entry content. Click any topic to add it to your selected tags.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {currentEntry.topics.map((topic) => (
                         <Badge 
                           key={topic} 
                           variant="outline"
-                          className="bg-purple-50 text-purple-600 hover:bg-purple-100"
+                          className="bg-purple-50 text-purple-600 hover:bg-purple-100 cursor-pointer"
+                          onClick={() => toggleTagSelection(topic)}
                         >
                           {topic}
                         </Badge>
