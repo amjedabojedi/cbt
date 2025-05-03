@@ -37,7 +37,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import AppLayout from "@/components/layout/AppLayout";
-import JournalWordCloud from "@/components/journal/JournalWordCloud";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -422,6 +421,46 @@ export default function Journal() {
            !currentEntry.initialAiTags.includes(tag);
   };
 
+  // TagCloud component - inline implementation instead of imported component
+  const TagCloud = ({ tags }: { tags: Record<string, number> }) => {
+    // Find min/max values
+    const values = Object.values(tags);
+    const min = values.length ? Math.min(...values) : 0;
+    const max = values.length ? Math.max(...values) : 0;
+    
+    return (
+      <div className="flex flex-wrap justify-center gap-2 py-4">
+        {Object.entries(tags).map(([tag, count]) => {
+          // Calculate size between 12px and 28px
+          const size = min === max
+            ? 16
+            : 12 + Math.floor(((count - min) / (max - min || 1)) * 16);
+            
+          // Calculate color: blue→purple→red based on frequency
+          const normalizedValue = min === max ? 0.5 : (count - min) / (max - min);
+          let colorClass = "text-blue-500";
+          
+          if (normalizedValue > 0.66) {
+            colorClass = "text-red-500";
+          } else if (normalizedValue > 0.33) {
+            colorClass = "text-purple-500";
+          }
+          
+          return (
+            <span
+              key={tag}
+              className={`${colorClass} font-medium px-2 py-1`}
+              style={{ fontSize: `${size}px` }}
+              title={`${tag}: ${count} mentions`}
+            >
+              {tag}
+            </span>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <AppLayout title="Journal">
       <div className="container mx-auto px-4 py-6">
@@ -654,12 +693,7 @@ export default function Journal() {
                                 </AccordionTrigger>
                                 <AccordionContent>
                                   {Object.keys(stats.tagsFrequency).length > 0 ? (
-                                    <div className="flex flex-wrap gap-2 justify-center py-4">
-                                      <JournalWordCloud 
-                                        tags={stats.tagsFrequency} 
-                                        className="h-64 w-full" 
-                                      />
-                                    </div>
+                                    <TagCloud tags={stats.tagsFrequency} />
                                   ) : (
                                     <p className="text-muted-foreground">No tag data available</p>
                                   )}
