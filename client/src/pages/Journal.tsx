@@ -75,6 +75,8 @@ export default function Journal() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
   const [commentContent, setCommentContent] = useState("");
+  const [activeSection, setActiveSection] = useState<string>("recent");
+  const [activeTab, setActiveTab] = useState<string>("entries");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -91,7 +93,13 @@ export default function Journal() {
   });
 
   // Fetch journal stats
-  const { data: stats } = useQuery<JournalStats>({
+  const { data: stats = { 
+    totalEntries: 0, 
+    emotions: {}, 
+    topics: {}, 
+    sentimentOverTime: [],
+    tagsFrequency: {}
+  } } = useQuery<JournalStats>({
     queryKey: [`${apiPath}/journal/stats`],
     queryFn: async () => {
       const response = await fetch(`${apiPath}/journal/stats`);
@@ -432,317 +440,266 @@ export default function Journal() {
               <TabsTrigger value="insights">Insights & Stats</TabsTrigger>
             </TabsList>
         
-        <TabsContent value="entries" className="space-y-4 mt-4">
-          {isLoading ? (
-            <div className="flex justify-center p-4">
-              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-            </div>
-          ) : entries.length === 0 ? (
-            <div className="text-center py-10">
-              <p className="text-muted-foreground">No journal entries yet. Create your first entry to get started.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {entries.map((entry: JournalEntry) => (
-                <Card key={entry.id} className="overflow-hidden">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-xl line-clamp-1">{entry.title}</CardTitle>
-                    </div>
-                    <CardDescription className="flex items-center gap-1 text-xs">
-                      <CalendarIcon size={12} />
-                      {format(new Date(entry.createdAt), "PPP")}
-                    </CardDescription>
-                  </CardHeader>
-                  
-                  <CardContent className="pb-2">
-                    <p className="line-clamp-3 text-sm text-muted-foreground">{entry.content}</p>
-                    
-                    {entry.aiAnalysis && (
-                      <div className="mt-2 text-xs italic text-muted-foreground">
-                        {entry.aiAnalysis}
-                      </div>
-                    )}
-                    
-                    {entry.userSelectedTags && entry.userSelectedTags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {entry.userSelectedTags.slice(0, 3).map((tag) => (
-                          <Badge key={tag} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {entry.userSelectedTags.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{entry.userSelectedTags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                  
-                  <CardFooter className="pt-0">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full text-xs"
-                      onClick={() => loadEntryWithComments(entry)}
-                    >
-                      View Full Entry
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="insights" className="mt-4">
-          {!stats ? (
-            <div className="flex justify-center p-4">
-              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Journal Summary</CardTitle>
-                  <CardDescription>Overview of your journaling activity</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg font-medium">{stats.totalEntries} Total Entries</p>
-                  
-                  {stats.totalEntries > 0 && (
-                    <div className="mt-4 space-y-4">
-                      <Accordion type="single" collapsible>
-                        <AccordionItem value="emotions">
-                          <AccordionTrigger>Common Emotions</AccordionTrigger>
-                          <AccordionContent>
-                            {Object.keys(stats.emotions).length > 0 ? (
-                              <div className="flex flex-wrap gap-2">
-                                {Object.entries(stats.emotions)
-                                  .sort((a, b) => b[1] - a[1])
-                                  .slice(0, 10)
-                                  .map(([emotion, count]) => (
-                                    <Badge key={emotion} className="bg-blue-100 text-blue-800 hover:bg-blue-200">
-                                      {emotion} ({count})
-                                    </Badge>
-                                  ))}
-                              </div>
-                            ) : (
-                              <p className="text-muted-foreground">No emotion data available</p>
-                            )}
-                          </AccordionContent>
-                        </AccordionItem>
-                        
-                        <AccordionItem value="topics">
-                          <AccordionTrigger>Common Topics</AccordionTrigger>
-                          <AccordionContent>
-                            {Object.keys(stats.topics).length > 0 ? (
-                              <div className="flex flex-wrap gap-2">
-                                {Object.entries(stats.topics)
-                                  .sort((a, b) => b[1] - a[1])
-                                  .slice(0, 10)
-                                  .map(([topic, count]) => (
-                                    <Badge key={topic} className="bg-purple-100 text-purple-800 hover:bg-purple-200">
-                                      {topic} ({count})
-                                    </Badge>
-                                  ))}
-                              </div>
-                            ) : (
-                              <p className="text-muted-foreground">No topic data available</p>
-                            )}
-                          </AccordionContent>
-                        </AccordionItem>
-                        
-                        <AccordionItem value="tags">
-                          <AccordionTrigger>Tags Word Cloud</AccordionTrigger>
-                          <AccordionContent>
-                            {Object.keys(stats.tagsFrequency).length > 0 ? (
-                              <div className="flex flex-wrap gap-2 justify-center py-4">
-                                {Object.entries(stats.tagsFrequency)
-                                  .sort((a, b) => b[1] - a[1])
-                                  .map(([tag, count]) => {
-                                    // Calculate font size based on frequency (min 12px, max 32px)
-                                    const maxCount = Math.max(...Object.values(stats.tagsFrequency));
-                                    const minSize = 12;
-                                    const maxSize = 32;
-                                    const size = minSize + ((count / maxCount) * (maxSize - minSize));
-                                    
-                                    // Assign color based on frequency
-                                    const colorIndex = Math.floor((count / maxCount) * 5);
-                                    const colors = [
-                                      "bg-blue-50 text-blue-800", 
-                                      "bg-green-50 text-green-800",
-                                      "bg-purple-50 text-purple-800",
-                                      "bg-amber-50 text-amber-800",
-                                      "bg-red-50 text-red-800"
-                                    ];
-                                    const colorClass = colors[Math.min(colorIndex, colors.length - 1)];
-                                    
-                                    return (
-                                      <div
-                                        key={tag}
-                                        className={`inline-block m-1 px-3 py-1 rounded-full ${colorClass} transition-all`}
-                                        style={{ 
-                                          fontSize: `${size}px`,
-                                          fontWeight: count > maxCount / 2 ? "bold" : "normal",
-                                        }}
-                                      >
-                                        {tag}
-                                      </div>
-                                    );
-                                  })}
-                              </div>
-                            ) : (
-                              <p className="text-muted-foreground">No tag data available</p>
-                            )}
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-
-      {/* New Entry Dialog */}
-      <Dialog open={openNewEntry} onOpenChange={setOpenNewEntry}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Create New Journal Entry</DialogTitle>
-            <DialogDescription>
-              Write your thoughts, feelings, and experiences. Our AI will analyze your entry to suggest relevant tags.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="title" className="text-sm font-medium">Title</label>
-              <Input
-                id="title"
-                value={journalTitle}
-                onChange={(e) => setJournalTitle(e.target.value)}
-                placeholder="Give your entry a title"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="content" className="text-sm font-medium">Content</label>
-              <Textarea
-                id="content"
-                value={journalContent}
-                onChange={(e) => setJournalContent(e.target.value)}
-                placeholder="Write your journal entry here..."
-                className="min-h-[200px]"
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenNewEntry(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleCreateJournal}
-              disabled={createJournalMutation.isPending}
-            >
-              {createJournalMutation.isPending ? (
-                <>
-                  <span className="animate-spin mr-2">⟳</span>
-                  Saving...
-                </>
+            <TabsContent value="entries" className="space-y-4 mt-4">
+              {isLoading ? (
+                <div className="flex justify-center p-4">
+                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+                </div>
+              ) : entries.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-muted-foreground">No journal entries yet. Create your first entry to get started.</p>
+                </div>
               ) : (
-                "Save Entry"
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {entries.map((entry: JournalEntry) => (
+                    <Card key={entry.id} className="overflow-hidden">
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-xl line-clamp-1">{entry.title}</CardTitle>
+                        </div>
+                        <CardDescription className="flex items-center gap-1 text-xs">
+                          <CalendarIcon size={12} />
+                          {format(new Date(entry.createdAt), "PPP")}
+                        </CardDescription>
+                      </CardHeader>
+                      
+                      <CardContent className="pb-2">
+                        <p className="line-clamp-3 text-sm text-muted-foreground">{entry.content}</p>
+                        
+                        {entry.aiAnalysis && (
+                          <div className="mt-2 text-xs italic text-muted-foreground">
+                            {entry.aiAnalysis}
+                          </div>
+                        )}
+                        
+                        {entry.userSelectedTags && entry.userSelectedTags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {entry.userSelectedTags.slice(0, 3).map((tag) => (
+                              <Badge key={tag} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {entry.userSelectedTags.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{entry.userSelectedTags.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                      
+                      <CardFooter className="pt-0">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="w-full text-xs"
+                          onClick={() => loadEntryWithComments(entry)}
+                        >
+                          View Full Entry
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
               )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </TabsContent>
+            
+            <TabsContent value="insights" className="mt-4">
+              {!stats ? (
+                <div className="flex justify-center p-4">
+                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Journal Summary</CardTitle>
+                      <CardDescription>Overview of your journaling activity</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-lg font-medium">{stats.totalEntries} Total Entries</p>
+                      
+                      {stats.totalEntries > 0 && (
+                        <div className="mt-4 space-y-4">
+                          <Accordion type="single" collapsible>
+                            <AccordionItem value="emotions">
+                              <AccordionTrigger>Common Emotions</AccordionTrigger>
+                              <AccordionContent>
+                                {Object.keys(stats.emotions).length > 0 ? (
+                                  <div className="flex flex-wrap gap-2">
+                                    {Object.entries(stats.emotions)
+                                      .sort((a, b) => b[1] - a[1])
+                                      .slice(0, 10)
+                                      .map(([emotion, count]) => (
+                                        <Badge key={emotion} className="bg-blue-100 text-blue-800 hover:bg-blue-200">
+                                          {emotion} ({count})
+                                        </Badge>
+                                      ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-muted-foreground">No emotion data available</p>
+                                )}
+                              </AccordionContent>
+                            </AccordionItem>
+                            
+                            <AccordionItem value="topics">
+                              <AccordionTrigger>Common Topics</AccordionTrigger>
+                              <AccordionContent>
+                                {Object.keys(stats.topics).length > 0 ? (
+                                  <div className="flex flex-wrap gap-2">
+                                    {Object.entries(stats.topics)
+                                      .sort((a, b) => b[1] - a[1])
+                                      .slice(0, 10)
+                                      .map(([topic, count]) => (
+                                        <Badge key={topic} className="bg-purple-100 text-purple-800 hover:bg-purple-200">
+                                          {topic} ({count})
+                                        </Badge>
+                                      ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-muted-foreground">No topic data available</p>
+                                )}
+                              </AccordionContent>
+                            </AccordionItem>
+                            
+                            <AccordionItem value="tags">
+                              <AccordionTrigger>Tags Word Cloud</AccordionTrigger>
+                              <AccordionContent>
+                                {Object.keys(stats.tagsFrequency).length > 0 ? (
+                                  <div className="flex flex-wrap gap-2 justify-center py-4">
+                                    {Object.entries(stats.tagsFrequency)
+                                      .sort((a, b) => b[1] - a[1])
+                                      .map(([tag, count]) => {
+                                        // Calculate font size based on frequency (min 12px, max 32px)
+                                        const maxCount = Math.max(...Object.values(stats.tagsFrequency));
+                                        const minSize = 12;
+                                        const maxSize = 32;
+                                        const size = minSize + ((count / maxCount) * (maxSize - minSize));
+                                        
+                                        // Assign color based on frequency
+                                        const colorIndex = Math.floor((count / maxCount) * 5);
+                                        const colors = [
+                                          "bg-blue-50 text-blue-800", 
+                                          "bg-green-50 text-green-800",
+                                          "bg-purple-50 text-purple-800",
+                                          "bg-amber-50 text-amber-800",
+                                          "bg-red-50 text-red-800"
+                                        ];
+                                        const colorClass = colors[Math.min(colorIndex, colors.length - 1)];
+                                        
+                                        return (
+                                          <div
+                                            key={tag}
+                                            className={`inline-block m-1 px-3 py-1 rounded-full ${colorClass} transition-all`}
+                                            style={{ 
+                                              fontSize: `${size}px`,
+                                              fontWeight: count > maxCount / 2 ? "bold" : "normal",
+                                            }}
+                                          >
+                                            {tag}
+                                          </div>
+                                        );
+                                      })}
+                                  </div>
+                                ) : (
+                                  <p className="text-muted-foreground">No tags data available</p>
+                                )}
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
 
-      {/* View Entry Dialog */}
-      {currentEntry && (
-        <Dialog open={!!currentEntry} onOpenChange={(open) => !open && setCurrentEntry(null)}>
-          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <div className="flex justify-between items-start">
-                <DialogTitle>{currentEntry.title}</DialogTitle>
-                <div className="flex space-x-2">
-                  <Button 
-                    variant="destructive" 
-                    size="icon"
-                    onClick={handleDeleteEntry}
-                  >
-                    <Trash2 size={16} />
-                  </Button>
+          {/* New Entry Dialog */}
+          <Dialog open={openNewEntry} onOpenChange={setOpenNewEntry}>
+            <DialogContent className="sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>New Journal Entry</DialogTitle>
+                <DialogDescription>
+                  Write down your thoughts, feelings, and experiences. Your entry will be analyzed to identify emotions and themes.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div>
+                  <Input
+                    placeholder="Entry Title"
+                    value={journalTitle}
+                    onChange={(e) => setJournalTitle(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                
+                <div>
+                  <Textarea
+                    placeholder="Write your journal entry here..."
+                    value={journalContent}
+                    onChange={(e) => setJournalContent(e.target.value)}
+                    className="min-h-[200px] w-full"
+                  />
                 </div>
               </div>
-              <DialogDescription className="flex items-center gap-1">
-                <CalendarIcon size={14} className="mr-1" />
-                {format(new Date(currentEntry.createdAt), "PPP 'at' p")}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              {/* Journal content */}
-              <div className="space-y-2">
-                <p className="whitespace-pre-wrap">{currentEntry.content}</p>
-              </div>
               
-              {/* AI analysis */}
-              {currentEntry.aiAnalysis && (
-                <Card>
-                  <CardHeader className="py-3">
-                    <CardTitle className="text-sm font-medium">AI Analysis</CardTitle>
-                  </CardHeader>
-                  <CardContent className="py-0 pb-3">
-                    <p className="text-sm">{currentEntry.aiAnalysis}</p>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpenNewEntry(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateJournal}>
+                  Save & Analyze
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Entry Detail Dialog */}
+          <Dialog open={!!currentEntry} onOpenChange={(open) => !open && setCurrentEntry(null)}>
+            {currentEntry && (
+              <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle className="flex justify-between items-center">
+                    {currentEntry.title}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground"
+                      onClick={handleDeleteEntry}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </DialogTitle>
+                  <DialogDescription className="flex items-center gap-1">
+                    <CalendarIcon size={12} />
+                    {format(new Date(currentEntry.createdAt), "PPP")}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div className="prose prose-sm max-w-none dark:prose-invert">
+                    <p>{currentEntry.content}</p>
+                  </div>
+                  
+                  {currentEntry.aiAnalysis && (
+                    <div className="bg-muted p-4 rounded-md">
+                      <h4 className="text-sm font-medium mb-2">AI Analysis</h4>
+                      <p className="text-sm text-muted-foreground">{currentEntry.aiAnalysis}</p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Tag size={16} />
+                      <h4 className="text-sm font-medium">Tags</h4>
+                    </div>
                     
-                    {currentEntry.emotions && currentEntry.emotions.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-xs font-medium mb-1">Detected Emotions:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {currentEntry.emotions.map((emotion) => (
-                            <Badge key={emotion} variant="secondary" className="text-xs">
-                              {emotion}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {currentEntry.topics && currentEntry.topics.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-xs font-medium mb-1">Topics:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {currentEntry.topics.map((topic) => (
-                            <Badge key={topic} variant="outline" className="text-xs">
-                              {topic}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-              
-              {/* Tag selection */}
-              {currentEntry.aiSuggestedTags && currentEntry.aiSuggestedTags.length > 0 && (
-                <Card>
-                  <CardHeader className="py-3">
-                    <CardTitle className="text-sm font-medium flex items-center">
-                      <Tag size={16} className="mr-2" />
-                      Select Tags
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="py-0 pb-3">
-                    <p className="text-xs mb-2">Select tags that best describe this entry:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {currentEntry.aiSuggestedTags.map((tag) => (
-                        <Badge 
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {currentEntry.aiSuggestedTags && currentEntry.aiSuggestedTags.map((tag) => (
+                        <Badge
                           key={tag}
                           variant={selectedTags.includes(tag) ? "default" : "outline"}
                           className="cursor-pointer"
@@ -753,72 +710,56 @@ export default function Journal() {
                       ))}
                     </div>
                     
-                    <div className="mt-3 flex justify-end">
-                      <Button 
-                        size="sm"
-                        onClick={handleUpdateTags}
-                        disabled={updateTagsMutation.isPending}
-                      >
-                        {updateTagsMutation.isPending ? "Saving..." : "Save Tags"}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-              
-              {/* Comments section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium flex items-center">
-                  <MessageCircle size={18} className="mr-2" />
-                  Comments
-                </h3>
-                
-                <div className="space-y-4">
-                  {currentEntry.comments && currentEntry.comments.length > 0 ? (
-                    currentEntry.comments.map((comment) => (
-                      <Card key={comment.id} className="bg-muted/30">
-                        <CardHeader className="py-3">
-                          <div className="flex justify-between">
-                            <CardTitle className="text-sm font-medium flex items-center">
-                              <User size={14} className="mr-1" />
-                              {comment.user?.name || comment.user?.username || "User"}
-                            </CardTitle>
-                            <CardDescription className="text-xs">
-                              {format(new Date(comment.createdAt), "PPP 'at' p")}
-                            </CardDescription>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="py-0 pb-3">
-                          <p className="text-sm">{comment.comment}</p>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No comments yet.</p>
-                  )}
+                    <Button size="sm" onClick={handleUpdateTags}>
+                      Save Tags
+                    </Button>
+                  </div>
                   
-                  <div className="space-y-2">
-                    <Textarea
-                      placeholder="Add a comment..."
-                      value={commentContent}
-                      onChange={(e) => setCommentContent(e.target.value)}
-                    />
-                    <div className="flex justify-end">
-                      <Button 
-                        size="sm"
-                        onClick={handleAddComment}
-                        disabled={!commentContent.trim() || addCommentMutation.isPending}
-                      >
-                        {addCommentMutation.isPending ? "Posting..." : "Post Comment"}
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <MessageCircle size={16} />
+                      <h4 className="text-sm font-medium">Comments & Feedback</h4>
+                    </div>
+                    
+                    <div className="space-y-4 max-h-64 overflow-y-auto mb-4">
+                      {currentEntry.comments && currentEntry.comments.length > 0 ? (
+                        currentEntry.comments.map((comment) => (
+                          <div key={comment.id} className="bg-muted p-3 rounded-md">
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs">
+                                {comment.user?.name ? comment.user.name.substring(0, 1).toUpperCase() : <User size={12} />}
+                              </div>
+                              <div className="text-sm font-medium">{comment.user?.name || "User"}</div>
+                              <div className="text-xs text-muted-foreground ml-auto">
+                                {format(new Date(comment.createdAt), "MMM d, h:mm a")}
+                              </div>
+                            </div>
+                            <p className="text-sm">{comment.comment}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">No comments yet</p>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2 items-start">
+                      <Textarea
+                        placeholder="Add a comment..."
+                        value={commentContent}
+                        onChange={(e) => setCommentContent(e.target.value)}
+                        className="min-h-[80px] resize-none"
+                      />
+                      <Button onClick={handleAddComment} className="flex-shrink-0">
+                        Add
                       </Button>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+              </DialogContent>
+            )}
+          </Dialog>
+        </div>
+      </div>
     </div>
   );
 }
