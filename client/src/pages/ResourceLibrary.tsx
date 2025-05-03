@@ -465,7 +465,6 @@ export default function ResourceLibrary() {
           <TabsList className="mb-6">
             <TabsTrigger value="protective-factors">Protective Factors</TabsTrigger>
             <TabsTrigger value="coping-strategies">Coping Strategies</TabsTrigger>
-            <TabsTrigger value="educational-resources">Educational Resources</TabsTrigger>
             {user?.role === "therapist" && (
               <TabsTrigger value="client-assignments">Client Assignments</TabsTrigger>
             )}
