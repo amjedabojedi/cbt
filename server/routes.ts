@@ -2922,29 +2922,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
           negative: entry.sentimentNegative || 0,
           neutral: entry.sentimentNeutral || 0
         })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
-        tagsFrequency: {} as Record<string, number>
+        tagsFrequency: {} as Record<string, number>,
+        sentimentPatterns: {
+          positive: 0,
+          neutral: 0,
+          negative: 0
+        }
       };
       
-      // Count emotions and topics
+      // Calculate overall sentiment patterns
+      if (entries.length > 0) {
+        let totalPositive = 0;
+        let totalNegative = 0;
+        let totalNeutral = 0;
+        
+        entries.forEach(entry => {
+          totalPositive += entry.sentimentPositive || 0;
+          totalNegative += entry.sentimentNegative || 0;
+          totalNeutral += entry.sentimentNeutral || 0;
+        });
+        
+        const total = totalPositive + totalNegative + totalNeutral;
+        
+        if (total > 0) {
+          stats.sentimentPatterns = {
+            positive: Math.round((totalPositive / total) * 100),
+            negative: Math.round((totalNegative / total) * 100),
+            neutral: Math.round((totalNeutral / total) * 100),
+          };
+          
+          // Ensure they sum to 100%
+          const sum = stats.sentimentPatterns.positive + 
+                      stats.sentimentPatterns.negative + 
+                      stats.sentimentPatterns.neutral;
+                      
+          if (sum !== 100) {
+            const diff = 100 - sum;
+            // Add the difference to the largest value
+            if (stats.sentimentPatterns.positive >= stats.sentimentPatterns.negative && 
+                stats.sentimentPatterns.positive >= stats.sentimentPatterns.neutral) {
+              stats.sentimentPatterns.positive += diff;
+            } else if (stats.sentimentPatterns.negative >= stats.sentimentPatterns.positive && 
+                      stats.sentimentPatterns.negative >= stats.sentimentPatterns.neutral) {
+              stats.sentimentPatterns.negative += diff;
+            } else {
+              stats.sentimentPatterns.neutral += diff;
+            }
+          }
+        }
+      }
+      
+      // Count emotions, topics, and tags - all based on user selected tags only
       entries.forEach(entry => {
-        // Count emotions
-        if (entry.emotions && Array.isArray(entry.emotions)) {
-          entry.emotions.forEach(emotion => {
-            stats.emotions[emotion] = (stats.emotions[emotion] || 0) + 1;
-          });
-        }
-        
-        // Count topics
-        if (entry.topics && Array.isArray(entry.topics)) {
-          entry.topics.forEach(topic => {
-            stats.topics[topic] = (stats.topics[topic] || 0) + 1;
-          });
-        }
-        
-        // Count user selected tags
+        // Only process tags that the user has actually selected
         if (entry.userSelectedTags && Array.isArray(entry.userSelectedTags)) {
           entry.userSelectedTags.forEach(tag => {
+            // Count all user-selected tags
             stats.tagsFrequency[tag] = (stats.tagsFrequency[tag] || 0) + 1;
+            
+            // If this tag is also in the emotions array, count it as an emotion
+            if (entry.emotions && Array.isArray(entry.emotions) && entry.emotions.includes(tag)) {
+              stats.emotions[tag] = (stats.emotions[tag] || 0) + 1;
+            }
+            
+            // If this tag is also in the topics array, count it as a topic
+            if (entry.topics && Array.isArray(entry.topics) && entry.topics.includes(tag)) {
+              stats.topics[tag] = (stats.topics[tag] || 0) + 1;
+            }
+            
+            // For any tag that's not already classified as an emotion or topic,
+            // we'll determine if it should be an emotion or topic based on content
+            if ((!entry.emotions || !entry.emotions.includes(tag)) && 
+                (!entry.topics || !entry.topics.includes(tag))) {
+              
+              // Common emotion words - if the tag contains any of these, categorize as emotion
+              const emotionWords = [
+                'happy', 'sad', 'angry', 'anxious', 'worried', 'excited', 'calm', 'stressed',
+                'peaceful', 'nervous', 'joyful', 'depressed', 'content', 'upset', 'frustrated',
+                'positive', 'negative', 'neutral', 'balanced', 'overwhelmed', 'hopeful',
+                'relieved', 'grateful', 'afraid', 'confused', 'proud', 'ashamed', 'confident',
+                'fearful', 'relaxed', 'annoyed', 'disappointed', 'satisfied', 'lonely', 'loved'
+              ];
+              
+              const tagLower = tag.toLowerCase();
+              const isLikelyEmotion = emotionWords.some(word => tagLower.includes(word));
+              
+              if (isLikelyEmotion) {
+                stats.emotions[tag] = (stats.emotions[tag] || 0) + 1;
+              } else {
+                // Default to topic if not an emotion
+                stats.topics[tag] = (stats.topics[tag] || 0) + 1;
+              }
+            }
           });
         }
       });
