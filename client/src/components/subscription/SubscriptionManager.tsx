@@ -192,7 +192,7 @@ export function SubscriptionManager() {
   };
   
   // Get subscription status badge
-  const getStatusBadge = (status: string | null) => {
+  const getStatusBadge = (status: string | null | undefined) => {
     if (!status) return null;
     
     switch (status) {
@@ -474,7 +474,9 @@ export function SubscriptionManager() {
               {(subscribeMutation.isPending || isCheckoutRedirecting) && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
-              {selectedPlan?.price > 0 ? "Proceed to Checkout" : "Confirm"}
+              {(selectedPlan && typeof selectedPlan.price === 'number' && selectedPlan.price > 0) 
+                ? "Proceed to Checkout" 
+                : "Confirm"}
             </Button>
           </DialogFooter>
         </DialogContent>
