@@ -1,10 +1,10 @@
 import { useClientContext } from "@/context/ClientContext";
-import useActiveUser from "@/hooks/use-active-user";
+import { useActiveUser } from "@/hooks/use-active-user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function ClientDebug() {
   const { viewingClientId, viewingClientName } = useClientContext();
-  const { activeUserId, isViewingClientData, getPathPrefix } = useActiveUser();
+  const { activeUserId, isViewingSelf, apiPath } = useActiveUser();
   
   if (process.env.NODE_ENV === 'production') {
     return null;
@@ -19,8 +19,8 @@ export function ClientDebug() {
         <div className="space-y-1">
           <div><strong>Client Context:</strong> {viewingClientId ? `Viewing client: ${viewingClientName} (ID: ${viewingClientId})` : 'Not viewing client'}</div>
           <div><strong>Active User ID:</strong> {activeUserId}</div>
-          <div><strong>Is Viewing Client Data:</strong> {isViewingClientData ? 'Yes' : 'No'}</div>
-          <div><strong>API Path Prefix:</strong> {getPathPrefix()}</div>
+          <div><strong>Is Viewing Self:</strong> {isViewingSelf ? 'Yes' : 'No'}</div>
+          <div><strong>API Path Prefix:</strong> {apiPath}</div>
         </div>
       </CardContent>
     </Card>

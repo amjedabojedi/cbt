@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { EmotionRecord, ThoughtRecord } from "@shared/schema";
-import { useActiveUser } from "@/hooks/use-active-user";
+import useActiveUser from "@/hooks/use-active-user";
 import { HelpCircle, PlusCircle } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -176,7 +176,7 @@ const getEmotionColor = (emotion: string): string => {
 
 export default function ReflectionWizard({ emotion, open, onClose }: ReflectionWizardProps) {
   const { user } = useAuth();
-  const { isViewingClientData } = useActiveUser();
+  const { isViewingSelf } = useActiveUser();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   
@@ -422,7 +422,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
     }
     
     // Prevent therapists from adding reflections to client emotion records
-    if (isViewingClientData) {
+    if (!isViewingSelf) {
       toast({
         title: "Permission Denied",
         description: "Therapists cannot add reflections to client emotion records",
