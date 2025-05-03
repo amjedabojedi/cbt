@@ -163,9 +163,11 @@ export default function UserManagement() {
         description: "User has been deleted successfully.",
       });
       
-      // Remove the deleted user from the list
-      setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+      // Close the delete confirmation dialog
       setUserToDelete(null);
+      
+      // Refresh the user list to ensure we have the most up-to-date data
+      fetchUsers();
     },
     onError: (error: Error) => {
       toast({
@@ -192,18 +194,13 @@ export default function UserManagement() {
         description: "Subscription plan has been assigned to the therapist successfully.",
       });
       
-      // Update the users list with the updated user
-      setUsers(prevUsers => prevUsers.map(u => 
-        u.id === updatedUser.id ? updatedUser : u
-      ));
-      
-      // Also update the selected therapist if it's the one being edited
+      // Update the selected therapist if it's the one being edited
       if (selectedTherapist && selectedTherapist.id === updatedUser.id) {
         setSelectedTherapist(updatedUser);
       }
         
-      // Invalidate queries to ensure data consistency
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      // Refresh the user list to ensure we have the most up-to-date data
+      fetchUsers();
     },
     onError: (error: Error) => {
       toast({
@@ -214,7 +211,29 @@ export default function UserManagement() {
     }
   });
 
-  // Fetch all users when the component mounts
+  // Function to fetch users data - can be called anytime to refresh
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      // Add cache-busting query parameter to prevent caching
+      const timestamp = new Date().getTime();
+      const response = await apiRequest("GET", `/api/users?_t=${timestamp}`);
+      const data = await response.json();
+      setUsers(data);
+      console.log("Fetched users:", data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load user data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Check access permissions and fetch users when the component mounts
   useEffect(() => {
     // Only admins should be able to access this page
     if (user && user.role !== "admin") {
@@ -227,25 +246,16 @@ export default function UserManagement() {
       return;
     }
 
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const response = await apiRequest("GET", "/api/users");
-        const data = await response.json();
-        setUsers(data);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load user data",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
+    // Initial data fetch
     fetchUsers();
+
+    // Set up interval to refresh data every 60 seconds
+    const intervalId = setInterval(() => {
+      fetchUsers();
+    }, 60000);
+
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
   }, [user, navigate, toast]);
 
   // Filter users based on search term and active tab
@@ -298,12 +308,36 @@ export default function UserManagement() {
         <Card className="mb-6">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-              <Input
-                placeholder="Search users..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full md:w-64"
-              />
+              <div className="flex gap-2 w-full md:w-auto">
+                <Input
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full md:w-64"
+                />
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={fetchUsers}
+                  disabled={loading}
+                  title="Refresh user data"
+                >
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                    />
+                  </svg>
+                </Button>
+              </div>
               <Tabs
                 defaultValue="therapist"
                 value={activeTab}
