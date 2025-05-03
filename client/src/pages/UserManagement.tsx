@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useLocation } from "wouter";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Plus, UserPlus, Edit, Trash2, Users as UsersIcon, UserCheck } from "lucide-react";
+import { Loader2, Plus, UserPlus, Edit, Trash2, Users as UsersIcon, UserCheck, Award } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -33,8 +33,30 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
-// User interface from schema
+// Interfaces from schema
+interface SubscriptionPlan {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  interval: string;
+  features: string[];
+  maxClients: number;
+  isActive: boolean;
+  isDefault: boolean;
+  stripePriceId?: string;
+  createdAt: string;
+}
+
 interface User {
   id: number;
   name: string;
@@ -43,6 +65,12 @@ interface User {
   role: string;
   therapistId: number | null;
   createdAt: string;
+  // Subscription related fields
+  subscriptionPlanId?: number;
+  subscriptionStatus?: string;
+  subscriptionEndDate?: string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
 }
 
 export default function UserManagement() {
@@ -54,6 +82,55 @@ export default function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("therapist");
   const [selectedTherapist, setSelectedTherapist] = useState<User | null>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  
+  // Fetch subscription plans
+  const { 
+    data: subscriptionPlans = [], 
+    isLoading: isPlansLoading 
+  } = useQuery<SubscriptionPlan[]>({
+    queryKey: ["/api/subscription-plans"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/subscription-plans");
+      if (!res.ok) {
+        throw new Error("Failed to fetch subscription plans");
+      }
+      return res.json();
+    }
+  });
+  
+  // Mutation to assign a subscription plan to a therapist
+  const assignPlanMutation = useMutation({
+    mutationFn: async ({ userId, planId }: { userId: number, planId: number }) => {
+      const res = await apiRequest("POST", `/api/users/${userId}/subscription-plan`, { planId });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to assign subscription plan");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Plan Assigned",
+        description: "Subscription plan has been assigned to the therapist successfully.",
+      });
+      
+      // Refetch the users to get updated data
+      apiRequest("GET", "/api/users")
+        .then(res => res.json())
+        .then(data => setUsers(data))
+        .catch(err => console.error("Error refetching users:", err));
+        
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Assignment Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
 
   // Fetch all users when the component mounts
   useEffect(() => {
@@ -267,6 +344,88 @@ export default function UserManagement() {
             </DialogDescription>
           </DialogHeader>
 
+          {/* Subscription Plan Selection */}
+          <div className="mb-6 border rounded-md p-4">
+            <h3 className="text-sm font-medium mb-3 flex items-center">
+              <Award className="h-4 w-4 mr-1" /> 
+              Subscription Plan
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Current Plan:
+                  {selectedTherapist?.subscriptionPlanId ? (
+                    <span className="font-medium text-foreground ml-1">
+                      {subscriptionPlans.find(p => p.id === selectedTherapist.subscriptionPlanId)?.name || 'Unknown plan'}
+                    </span>
+                  ) : (
+                    <span className="italic text-muted-foreground ml-1">No plan assigned</span>
+                  )}
+                </p>
+                
+                <p className="text-sm text-muted-foreground mb-4">
+                  Status:
+                  <span className={`
+                    "ml-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                    selectedTherapist?.subscriptionStatus === "active" ? "bg-green-100 text-green-700" :
+                    selectedTherapist?.subscriptionStatus === "trial" ? "bg-blue-100 text-blue-700" :
+                    selectedTherapist?.subscriptionStatus === "canceled" ? "bg-amber-100 text-amber-700" :
+                    selectedTherapist?.subscriptionStatus === "past_due" ? "bg-red-100 text-red-700" :
+                    "bg-gray-100 text-gray-700"
+                  )}>
+                    {selectedTherapist?.subscriptionStatus || 'None'}
+                  </span>
+                </p>
+              </div>
+              
+              <div>
+                <Select
+                  onValueChange={(value) => setSelectedPlanId(Number(value))}
+                  defaultValue={selectedTherapist?.subscriptionPlanId?.toString() || ""}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a plan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isPlansLoading ? (
+                      <div className="flex items-center justify-center p-2">
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        <span>Loading plans...</span>
+                      </div>
+                    ) : (
+                      subscriptionPlans.filter(p => p.isActive).map((plan) => (
+                        <SelectItem key={plan.id} value={plan.id.toString()}>
+                          {plan.name} (${plan.price}/{plan.interval}, {plan.maxClients} clients)
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                
+                <div className="mt-3">
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      if (!selectedPlanId || !selectedTherapist) return;
+                      assignPlanMutation.mutate({ 
+                        userId: selectedTherapist.id, 
+                        planId: selectedPlanId 
+                      });
+                    }}
+                    disabled={!selectedPlanId || assignPlanMutation.isPending}
+                    className="w-full"
+                  >
+                    {assignPlanMutation.isPending && (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    )}
+                    Assign Plan
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
             {/* Available Clients Column */}
             <div>
