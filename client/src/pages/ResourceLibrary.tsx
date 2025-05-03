@@ -625,7 +625,7 @@ export default function ResourceLibrary() {
   
   // Fetch client assignments (for therapists)
   const {
-    data: clientAssignments,
+    data: clientAssignments = [],
     isLoading: assignmentsLoading,
   } = useQuery({
     queryKey: ['/api/therapist/assignments'],
@@ -2038,7 +2038,7 @@ export default function ResourceLibrary() {
                 <div className="flex justify-center items-center h-64">
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
                 </div>
-              ) : clientAssignments && clientAssignments.length > 0 ? (
+              ) : clientAssignments.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {clientAssignments.map((assignment: any) => (
                     <Card key={assignment.id} className="overflow-hidden">
