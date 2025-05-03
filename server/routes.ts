@@ -2165,6 +2165,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Alternative endpoint for resource assignment (used by client-side code)
+  app.post("/api/resources/assign", authenticate, isTherapist, async (req, res) => {
+    try {
+      const { resourceId, clientId, notes } = req.body;
+      
+      if (!resourceId || !clientId) {
+        return res.status(400).json({ message: "Resource ID and client ID are required" });
+      }
+      
+      // Verify the resource exists
+      const resource = await storage.getResourceById(Number(resourceId));
+      if (!resource) {
+        return res.status(404).json({ message: "Resource not found" });
+      }
+      
+      // Verify the client exists and is assigned to the therapist
+      const clients = await storage.getClients(req.user.id);
+      const clientExists = clients.some(client => client.id === Number(clientId));
+      
+      if (!clientExists) {
+        return res.status(403).json({ message: "Client not found or not assigned to you" });
+      }
+      
+      const assignmentData = {
+        resourceId: Number(resourceId),
+        assignedBy: req.user.id,
+        assignedTo: Number(clientId),
+        notes: notes || null,
+        isPriority: false,
+        status: "assigned"
+      };
+      
+      const validatedData = insertResourceAssignmentSchema.parse(assignmentData);
+      const assignment = await storage.assignResourceToClient(validatedData);
+      
+      res.status(200).json(assignment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Assign resource error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Get assignments for a client
   app.get("/api/clients/:clientId/assignments", authenticate, async (req, res) => {
     try {
