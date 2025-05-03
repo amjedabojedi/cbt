@@ -1325,33 +1325,31 @@ export default function ResourceLibrary() {
               )}
             </div>
             
-            {/* Resource Category Filter */}
-            <div className="mb-6">
-              <div className="flex flex-wrap gap-2">
-                {/* Default 'all' category */}
-                <Button
-                  key="all"
-                  variant={resourceCategory === 'all' ? "default" : "outline"}
-                  size="sm"
+            {/* Resource Category Tabs */}
+            <Tabs defaultValue="all" className="mb-6">
+              <TabsList className="mb-6 flex flex-wrap h-auto p-1">
+                {/* Default 'all' category tab */}
+                <TabsTrigger 
+                  key="all" 
+                  value="all"
                   onClick={() => setResourceCategory('all')}
                   className="capitalize"
                 >
                   All Categories
-                </Button>
+                </TabsTrigger>
                 
-                {/* Other categories from resources */}
+                {/* Dynamic tabs from resources */}
                 {educationalResources && [...new Set(educationalResources.map((r: any) => r.category))]
                   .filter((cat: string) => cat && cat !== 'all')
                   .map((category: string) => (
-                    <Button
+                    <TabsTrigger
                       key={category}
-                      variant={resourceCategory === category ? "default" : "outline"}
-                      size="sm"
+                      value={category}
                       onClick={() => setResourceCategory(category)}
                       className="capitalize"
                     >
                       {category.split('-').join(' ')}
-                    </Button>
+                    </TabsTrigger>
                   ))
                 }
                 
@@ -1362,19 +1360,18 @@ export default function ResourceLibrary() {
                     (!educationalResources || !educationalResources.some((r: any) => r.category === cat))
                   )
                   .map((category: string) => (
-                    <Button
+                    <TabsTrigger
                       key={category}
-                      variant={resourceCategory === category ? "default" : "outline"}
-                      size="sm"
+                      value={category}
                       onClick={() => setResourceCategory(category)}
                       className="capitalize"
                     >
                       {category.split('-').join(' ')}
-                    </Button>
+                    </TabsTrigger>
                   ))
                 }
-              </div>
-            </div>
+              </TabsList>
+            </Tabs>
             
             {/* Resource Cards Grid */}
             {resourcesLoading ? (
