@@ -185,7 +185,6 @@ export default function Journal() {
   const [customTag, setCustomTag] = useState("");
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showThoughtRecordDialog, setShowThoughtRecordDialog] = useState(false);
-  const [showTagSelectionDialog, setShowTagSelectionDialog] = useState(false);
   const [relatedThoughtRecords, setRelatedThoughtRecords] = useState<ThoughtRecord[]>([]);
   
   // Get journal entries
@@ -245,17 +244,13 @@ export default function Journal() {
       return response.json();
     },
     onSuccess: (data) => {
-      // Update the entry list and set the current entry to the newly created one
       queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
       setShowEntryDialog(false);
       setTitle("");
       setContent("");
       
-      // Set the current entry to the newly created one to view it immediately
-      setCurrentEntry(data);
-      
-      // Open the tag selection dialog after successful creation
-      setShowTagSelectionDialog(true);
+      // Immediately load the created entry to view it
+      loadEntryWithRelatedRecords(data);
       
       toast({
         title: "Journal Entry Created",
@@ -1673,106 +1668,6 @@ export default function Journal() {
               onClick={() => setShowThoughtRecordDialog(false)}
             >
               Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Tag Selection Dialog */}
-      <Dialog open={showTagSelectionDialog} onOpenChange={setShowTagSelectionDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Tag Your Journal Entry</DialogTitle>
-            <DialogDescription>
-              Select tags that reflect your emotions and thoughts in this entry. This helps track patterns over time.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4 space-y-4">
-            {/* AI Suggested Tags */}
-            {currentEntry?.aiSuggestedTags && currentEntry.aiSuggestedTags.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium mb-2">AI Suggested Tags:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {currentEntry.aiSuggestedTags.map((tag, index) => (
-                    <Badge 
-                      key={index} 
-                      variant={selectedTags.includes(tag) ? "default" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => toggleTagSelection(tag)}
-                    >
-                      {selectedTags.includes(tag) && <Check className="mr-1 h-3 w-3" />}
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {/* Custom Tag Input */}
-            <div>
-              <h4 className="text-sm font-medium mb-2">Add Custom Tag:</h4>
-              <div className="flex space-x-2">
-                <Input 
-                  value={customTag} 
-                  onChange={(e) => setCustomTag(e.target.value)}
-                  placeholder="Enter custom tag" 
-                  className="flex-1"
-                />
-                <Button 
-                  variant="secondary" 
-                  onClick={() => {
-                    if (customTag.trim()) {
-                      toggleTagSelection(customTag.trim());
-                      setCustomTag("");
-                    }
-                  }}
-                  disabled={!customTag.trim()}
-                >
-                  Add
-                </Button>
-              </div>
-            </div>
-            
-            {/* Selected Tags */}
-            <div>
-              <h4 className="text-sm font-medium mb-2">Your Selected Tags:</h4>
-              <div className="flex flex-wrap gap-2">
-                {selectedTags.map((tag, index) => (
-                  <Badge 
-                    key={index} 
-                    variant="default"
-                    className="cursor-pointer"
-                    onClick={() => toggleTagSelection(tag)}
-                  >
-                    {tag}
-                    <X className="ml-1 h-3 w-3" />
-                  </Badge>
-                ))}
-                {selectedTags.length === 0 && (
-                  <div className="text-sm text-muted-foreground italic">No tags selected yet</div>
-                )}
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowTagSelectionDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => {
-                handleUpdateTags();
-                setShowTagSelectionDialog(false);
-              }}
-              disabled={updateTagsMutation.isPending}
-            >
-              {updateTagsMutation.isPending ? (
-                <div className="animate-spin h-4 w-4 border-2 border-background border-t-transparent rounded-full" />
-              ) : "Save Tags"}
             </Button>
           </DialogFooter>
         </DialogContent>
