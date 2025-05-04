@@ -243,11 +243,19 @@ export default function Journal() {
       const response = await apiRequest('POST', `/api/journal`, newEntry);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Update the entry list and set the current entry to the newly created one
       queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
       setShowEntryDialog(false);
       setTitle("");
       setContent("");
+      
+      // Set the current entry to the newly created one to view it immediately
+      setCurrentEntry(data);
+      
+      // Open the tag selection dialog after successful creation
+      setShowTagSelectionDialog(true);
+      
       toast({
         title: "Journal Entry Created",
         description: "Your journal entry has been saved."
