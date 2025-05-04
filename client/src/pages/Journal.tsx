@@ -133,9 +133,9 @@ export default function Journal() {
   
   // Get journal entries
   const { data: entries = [], isLoading } = useQuery({ 
-    queryKey: ['/api/journal'],
+    queryKey: ['/api/users/:userId/journal'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/journal');
+      const response = await apiRequest('GET', '/api/users/me/journal');
       const data = await response.json();
       return data;
     },
@@ -143,9 +143,9 @@ export default function Journal() {
   
   // Get available thought records for linking
   const { data: userThoughtRecords = [] } = useQuery({ 
-    queryKey: ['/api/thoughts'],
+    queryKey: ['/api/users/:userId/thoughts'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/thoughts');
+      const response = await apiRequest('GET', '/api/users/me/thoughts');
       const data = await response.json();
       return data;
     },
@@ -153,11 +153,11 @@ export default function Journal() {
   
   const createEntryMutation = useMutation({
     mutationFn: async (newEntry: { title: string; content: string }) => {
-      const response = await apiRequest('POST', '/api/journal', newEntry);
+      const response = await apiRequest('POST', '/api/users/me/journal', newEntry);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/journal'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
       setShowEntryDialog(false);
       setTitle("");
       setContent("");
@@ -177,11 +177,11 @@ export default function Journal() {
   
   const updateEntryMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number, updates: Partial<JournalEntry> }) => {
-      const response = await apiRequest('PATCH', `/api/journal/${id}`, updates);
+      const response = await apiRequest('PATCH', `/api/users/me/journal/${id}`, updates);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/journal'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
       setShowEntryDialog(false);
       setTitle("");
       setContent("");
@@ -201,10 +201,10 @@ export default function Journal() {
   
   const deleteEntryMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest('DELETE', `/api/journal/${id}`);
+      await apiRequest('DELETE', `/api/users/me/journal/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/journal'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
       setShowEntryDialog(false);
       setShowConfirmDelete(false);
       setCurrentEntry(null);
@@ -224,7 +224,7 @@ export default function Journal() {
   
   const addCommentMutation = useMutation({
     mutationFn: async ({ entryId, comment }: { entryId: number, comment: string }) => {
-      const response = await apiRequest('POST', `/api/journal/${entryId}/comments`, { comment });
+      const response = await apiRequest('POST', `/api/users/me/journal/${entryId}/comments`, { comment });
       return response.json();
     },
     onSuccess: (data) => {
@@ -237,7 +237,7 @@ export default function Journal() {
         });
         
         // Also invalidate the main query to ensure the list is updated
-        queryClient.invalidateQueries({ queryKey: ['/api/journal'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
         setCommentContent("");
         
         toast({
@@ -259,7 +259,7 @@ export default function Journal() {
     mutationFn: async () => {
       if (!currentEntry) return null;
       
-      const response = await apiRequest('PATCH', `/api/journal/${currentEntry.id}`, {
+      const response = await apiRequest('PATCH', `/api/users/me/journal/${currentEntry.id}`, {
         userSelectedTags: selectedTags
       });
       return response.json();
@@ -267,7 +267,7 @@ export default function Journal() {
     onSuccess: (data) => {
       if (data) {
         setCurrentEntry(data);
-        queryClient.invalidateQueries({ queryKey: ['/api/journal'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
         
         toast({
           title: "Tags Updated",
@@ -286,13 +286,13 @@ export default function Journal() {
   
   const linkThoughtRecordMutation = useMutation({
     mutationFn: async ({ journalId, thoughtRecordId }: { journalId: number, thoughtRecordId: number }) => {
-      const response = await apiRequest('POST', `/api/journal/${journalId}/link-thought`, { thoughtRecordId });
+      const response = await apiRequest('POST', `/api/users/me/journal/${journalId}/link-thought`, { thoughtRecordId });
       return response.json();
     },
     onSuccess: (data) => {
       loadEntryWithRelatedRecords(data);
-      queryClient.invalidateQueries({ queryKey: ['/api/journal'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/thoughts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/thoughts'] });
       
       toast({
         title: "Thought Record Linked",
@@ -310,13 +310,13 @@ export default function Journal() {
   
   const unlinkThoughtRecordMutation = useMutation({
     mutationFn: async ({ journalId, thoughtRecordId }: { journalId: number, thoughtRecordId: number }) => {
-      const response = await apiRequest('DELETE', `/api/journal/${journalId}/link-thought/${thoughtRecordId}`);
+      const response = await apiRequest('DELETE', `/api/users/me/journal/${journalId}/link-thought/${thoughtRecordId}`);
       return response.json();
     },
     onSuccess: (data) => {
       loadEntryWithRelatedRecords(data);
-      queryClient.invalidateQueries({ queryKey: ['/api/journal'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/thoughts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/thoughts'] });
       
       toast({
         title: "Thought Record Unlinked",
