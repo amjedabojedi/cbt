@@ -169,7 +169,13 @@ export async function analyzeJournalEntry(
     Provide the following in JSON format:
     1. suggestedTags: Extract 3-8 most relevant tags that would help categorize this journal entry
     2. analysis: A brief (2-3 sentences) summary of the main themes and emotional content
-    3. emotions: Up to 5 emotions expressed in the entry
+    3. emotions: Up to 5 emotions ACTUALLY EXPRESSED by the writer in the entry. Important guidelines:
+       - Identify only emotions the writer is CURRENTLY feeling, not emotions they reference or mention
+       - DO NOT include emotions that are merely mentioned as words but not actually felt (e.g., "only perfection will calm me" does NOT mean the person feels "calm")
+       - DO NOT include emotions that are desired but not present (e.g., "I wish I felt happy" does NOT mean the person feels "happy")
+       - DO NOT include emotions that are negated (e.g., "I'm not excited" does NOT mean the person feels "excited")
+       - Pay careful attention to context and the full meaning of sentences to accurately identify true emotional states
+       - Look for indicators of genuine emotional experience rather than just emotional words
     4. topics: Up to 5 main topics or themes discussed
     5. cognitiveDistortions: Identify any cognitive distortions present, such as:
        - All-or-nothing thinking (black-and-white thinking)
@@ -387,12 +393,25 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     }
   }
   
-  // Check for exact emotion word matches
+  // Check for exact emotion word matches, but with improved context awareness
   for (const keyword of emotionKeywords) {
     const regex = new RegExp(`\\b${keyword}\\b`, 'i');
     if (regex.test(combinedText) && !foundEmotions.includes(keyword)) {
-      foundEmotions.push(keyword);
-      fallbackTags.push(keyword);
+      // Check for negative contexts that would invalidate the emotion
+      const negationRegex = new RegExp(`\\b(not|don'?t|won'?t|can'?t|isn'?t|aren'?t|wasn'?t|weren'?t)\\s+(?:\\w+\\s+){0,3}\\b${keyword}\\b|\\b${keyword}\\b\\s+(?:\\w+\\s+){0,3}(not|don'?t|won'?t|can'?t|isn'?t|aren'?t|wasn'?t|weren'?t)\\b`, 'i');
+      
+      // Check for future/conditional contexts that would invalidate the emotion
+      const futureRegex = new RegExp(`\\b(will|would|could|should|might|may|if)\\s+(?:\\w+\\s+){0,3}\\b${keyword}\\b|\\bwish\\s+(?:\\w+\\s+){0,5}\\b${keyword}\\b|\\bhope\\s+(?:\\w+\\s+){0,5}\\b${keyword}\\b`, 'i');
+      
+      // Check for calm specifically since it's often in the phrase "will calm me" which doesn't indicate being calm
+      const calmSpecificRegex = keyword === 'calm' ? /\b(?:will|would|could|should|might|to)\s+(?:\w+\s+){0,3}\bcalm\b|\bcalm\s+(?:\w+\s+){0,3}(?:will|would|could|should|might|if)\b/i : null;
+      
+      // Only add the emotion if it's not in a negation or future/conditional context
+      if (!negationRegex.test(combinedText) && !futureRegex.test(combinedText) && 
+          !(calmSpecificRegex && calmSpecificRegex.test(combinedText))) {
+        foundEmotions.push(keyword);
+        fallbackTags.push(keyword);
+      }
     }
   }
   
@@ -427,8 +446,17 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
 
     for (const { pattern, emotion } of emotionalPhrases) {
       if (pattern.test(combinedText) && !foundEmotions.includes(emotion)) {
-        foundEmotions.push(emotion);
-        fallbackTags.push(emotion);
+        // For 'calm' specifically, check if it's in a future/conditional context
+        if (emotion === 'calm') {
+          const calmInFutureContext = /\b(?:will|would|could|should|might|to)\s+(?:\w+\s+){0,3}\bcalm\b|\bcalm\s+(?:\w+\s+){0,3}(?:will|would|could|should|might|if)\b/i.test(combinedText);
+          if (!calmInFutureContext) {
+            foundEmotions.push(emotion);
+            fallbackTags.push(emotion);
+          }
+        } else {
+          foundEmotions.push(emotion);
+          fallbackTags.push(emotion);
+        }
       }
     }
   }
