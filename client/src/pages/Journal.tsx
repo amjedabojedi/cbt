@@ -611,9 +611,21 @@ export default function Journal() {
     const min = values.length ? Math.min(...values) : 0;
     const max = values.length ? Math.max(...values) : 0;
     
+    // Create a deduplicated object by combining counts for identical tags
+    const deduplicatedTags: Record<string, number> = {};
+    Object.entries(tags).forEach(([tag, count]) => {
+      // Convert to lowercase for case-insensitive comparison
+      const normalizedTag = tag.toLowerCase();
+      if (deduplicatedTags[normalizedTag]) {
+        deduplicatedTags[normalizedTag] += count;
+      } else {
+        deduplicatedTags[normalizedTag] = count;
+      }
+    });
+    
     return (
       <div className="flex flex-wrap justify-center gap-2 py-4">
-        {Object.entries(tags).map(([tag, count]) => {
+        {Object.entries(deduplicatedTags).map(([tag, count], index) => {
           // Calculate size between 12px and 28px
           const size = min === max
             ? 16
@@ -631,7 +643,7 @@ export default function Journal() {
           
           return (
             <span
-              key={tag}
+              key={`${tag}-${index}`} // Use index in key to ensure uniqueness
               className={`${colorClass} font-medium px-2 py-1`}
               style={{ fontSize: `${size}px` }}
               title={`${tag}: ${count} mentions`}
