@@ -1043,7 +1043,12 @@ export default function Journal() {
                       <div className="mt-6">
                         <h4 className="text-sm font-semibold mb-3">Emotion Cloud</h4>
                         <div className="h-[150px] w-full">
-                          <JournalWordCloud emotions={Array.from(new Set(currentEntry.emotions))} />
+                          <JournalWordCloud 
+                            tags={Array.from(new Set(currentEntry.emotions)).reduce((acc, emotion) => {
+                              acc[emotion] = (acc[emotion] || 0) + 1;
+                              return acc;
+                            }, {} as Record<string, number>)} 
+                          />
                         </div>
                       </div>
                     )}
