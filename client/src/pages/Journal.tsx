@@ -10,6 +10,7 @@ import {
   Plus, 
   Trash2, 
   MessageCircle, 
+  MessageSquarePlus,
   Tag, 
   ChevronDown, 
   Edit, 
@@ -25,7 +26,9 @@ import {
   Link2,
   ExternalLink,
   BrainCircuit,
-  Brain
+  Brain,
+  Send,
+  Unlink
 } from "lucide-react";
 import InsightPanel from "@/components/journal/InsightPanel";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -566,13 +569,40 @@ export default function Journal() {
                   <div className="lg:col-span-2">
                     <div className="space-y-4">
                       {/* Journal Content */}
-                      <div className="whitespace-pre-wrap">{currentEntry.content}</div>
+                      <div className="whitespace-pre-wrap p-4 border rounded-md bg-white shadow-sm">
+                        {currentEntry.content}
+                      </div>
+                      
+                      {/* Add new comment section */}
+                      <div className="mt-8 pt-4 border-t">
+                        <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
+                          <MessageSquarePlus size={16} className="text-green-500" />
+                          Add Comment
+                        </h4>
+                        <div className="flex gap-3">
+                          <Textarea
+                            placeholder="Write a comment..."
+                            value={commentContent}
+                            onChange={(e) => setCommentContent(e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button 
+                            size="sm" 
+                            onClick={handleAddComment}
+                            disabled={!commentContent.trim()}
+                            className="self-end"
+                          >
+                            <Send className="h-4 w-4 mr-2" />
+                            Post
+                          </Button>
+                        </div>
+                      </div>
                       
                       {/* Comments section - Moved above AI Analysis */}
                       {currentEntry.comments && currentEntry.comments.length > 0 && (
-                        <div className="mt-6">
+                        <div className="mt-8 pt-4 border-t">
                           <h4 className="font-medium text-sm mb-4 flex items-center gap-2">
-                            <MessageCircle size={16} />
+                            <MessageCircle size={16} className="text-blue-500" />
                             Comments {currentEntry.comments.length > 0 && `(${currentEntry.comments.length})`}
                           </h4>
                           
@@ -603,14 +633,16 @@ export default function Journal() {
                       
                       {/* AI Analysis - Moved below Comments */}
                       {currentEntry.aiAnalysis && (
-                        <div className="mt-6 p-4 bg-primary/5 rounded-md">
-                          <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                        <div className="mt-8 pt-4 border-t">
+                          <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                             <Sparkles size={16} className="text-yellow-500" />
                             AI Analysis
                           </h4>
-                          <p className="text-sm text-muted-foreground">
-                            {currentEntry.aiAnalysis}
-                          </p>
+                          <div className="p-4 bg-primary/5 rounded-md">
+                            <p className="text-sm text-muted-foreground">
+                              {currentEntry.aiAnalysis}
+                            </p>
+                          </div>
                         </div>
                       )}
                       
