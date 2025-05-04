@@ -372,6 +372,31 @@ export default function Journal() {
     }
   });
   
+  // Re-analyze entry to detect cognitive distortions
+  const reAnalyzeEntryMutation = useMutation({
+    mutationFn: async (entryId: number) => {
+      if (!userId) throw new Error("User not authenticated");
+      const response = await apiRequest('POST', `/api/journal/${entryId}/reanalyze`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setCurrentEntry(data);
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+      
+      toast({
+        title: "Analysis Updated",
+        description: "Your journal entry has been re-analyzed for cognitive patterns."
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error Re-analyzing Entry",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+  
   const linkThoughtRecordMutation = useMutation({
     mutationFn: async ({ journalId, thoughtRecordId }: { journalId: number, thoughtRecordId: number }) => {
       if (!userId) throw new Error("User not authenticated");
@@ -908,10 +933,35 @@ export default function Journal() {
                       {/* AI Analysis - Moved below Comments */}
                       {currentEntry.aiAnalysis && (
                         <div className="mt-8 pt-4 border-t">
-                          <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                            <Sparkles size={16} className="text-yellow-500" />
-                            AI Analysis
-                          </h4>
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-sm font-semibold flex items-center gap-2">
+                              <Sparkles size={16} className="text-yellow-500" />
+                              AI Analysis
+                            </h4>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="text-xs flex items-center gap-1 h-7 px-2"
+                              onClick={() => {
+                                if (currentEntry) {
+                                  reAnalyzeEntryMutation.mutate(currentEntry.id);
+                                }
+                              }}
+                              disabled={reAnalyzeEntryMutation.isPending}
+                            >
+                              {reAnalyzeEntryMutation.isPending ? (
+                                <>
+                                  <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin mr-1" />
+                                  Analyzing...
+                                </>
+                              ) : (
+                                <>
+                                  <BrainCircuit size={12} className="mr-1" />
+                                  Detect Cognitive Patterns
+                                </>
+                              )}
+                            </Button>
+                          </div>
                           <div className="p-4 bg-primary/5 rounded-md">
                             <p className="text-sm text-muted-foreground">
                               {currentEntry.aiAnalysis}
