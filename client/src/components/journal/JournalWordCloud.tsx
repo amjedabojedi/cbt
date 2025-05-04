@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 
 interface JournalWordCloudProps {
-  tags: Record<string, number>;
+  words: Record<string, number>;
+  height?: number;
   className?: string;
 }
 
@@ -9,16 +10,16 @@ interface JournalWordCloudProps {
  * A simple word cloud component for journal tags.
  * Displays tags with varying sizes based on their frequency.
  */
-const JournalWordCloud: React.FC<JournalWordCloudProps> = ({ tags, className = '' }) => {
+const JournalWordCloud: React.FC<JournalWordCloudProps> = ({ words = {}, height = 300, className = '' }) => {
   // Calculate the min and max frequencies
   const frequencies = useMemo(() => {
-    const values = Object.values(tags);
+    const values = Object.values(words);
     if (values.length === 0) return { min: 0, max: 0 };
     return {
       min: Math.min(...values),
       max: Math.max(...values)
     };
-  }, [tags]);
+  }, [words]);
 
   // Generate color based on frequency
   const getTagColor = (count: number) => {
@@ -52,14 +53,14 @@ const JournalWordCloud: React.FC<JournalWordCloudProps> = ({ tags, className = '
   };
 
   return (
-    <div className={`flex flex-wrap justify-center items-center gap-3 p-4 ${className}`}>
-      {Object.entries(tags)
+    <div className={`flex flex-wrap justify-center items-center gap-3 p-4 ${className}`} style={{ height }}>
+      {Object.entries(words)
         .sort(() => Math.random() - 0.5) // Randomize order for visual interest
         .map(([tag, count]) => (
           <span
             key={tag}
-            className={`${getTagColor(count)} font-medium px-2 py-1 inline-block`}
-            style={{ fontSize: 12 + Math.floor(((count - frequencies.min) / (frequencies.max - frequencies.min || 1)) * 20) }}
+            className={`${getTagColor(count as number)} font-medium px-2 py-1 inline-block`}
+            style={{ fontSize: 12 + Math.floor(((count as number - frequencies.min) / (frequencies.max - frequencies.min || 1)) * 20) }}
             title={`${tag}: mentioned ${count} times`}
           >
             {tag}

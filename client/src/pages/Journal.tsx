@@ -1262,7 +1262,7 @@ export default function Journal() {
                               }
                             });
                             
-                            return <JournalWordCloud tags={tagsObject} />;
+                            return <JournalWordCloud words={tagsObject} />;
                           })()}
                         </div>
                       </div>
