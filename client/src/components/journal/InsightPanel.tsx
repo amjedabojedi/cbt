@@ -123,7 +123,7 @@ const InsightPanel: React.FC<InsightPanelProps> = ({
       </CardHeader>
       
       <CardContent className="pt-0">
-        <ScrollArea className="h-[250px] pr-4">
+        <ScrollArea className="max-h-[180px] pr-4">
           <div className="space-y-4">
             {/* Patterns Section */}
             <div>
@@ -245,12 +245,11 @@ const InsightPanel: React.FC<InsightPanelProps> = ({
               </ul>
             </div>
             
-            {/* Info Note */}
-            <div className="bg-amber-50 border border-amber-100 rounded-md p-3 flex items-start gap-2 mt-4">
+            {/* Info Note - Shortened to save space */}
+            <div className="bg-amber-50 border border-amber-100 rounded-md p-2 flex items-start gap-2 mt-3">
               <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
               <p className="text-xs text-amber-800">
-                These insights are generated based on patterns detected across your journal entries and thought records. 
-                The more records you link, the more valuable these insights become.
+                Insights improve as you link more entries and thought records.
               </p>
             </div>
           </div>
