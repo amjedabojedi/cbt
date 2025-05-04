@@ -1377,16 +1377,19 @@ export default function Journal() {
                   </h4>
                   {currentEntry.emotions && currentEntry.emotions.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
-                      {currentEntry.emotions.map((emotion) => (
-                        <Badge 
-                          key={emotion} 
-                          variant="outline"
-                          className="bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer"
-                          onClick={() => toggleTagSelection(emotion)}
-                        >
-                          {emotion}
-                        </Badge>
-                      ))}
+                      {/* Deduplicate emotions before displaying them */}
+                      {Array.from(new Set(currentEntry.emotions.map(e => e.toLowerCase())))
+                        .map((emotion, index) => (
+                          <Badge 
+                            key={`${emotion}-${index}`}
+                            variant="outline"
+                            className="bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer"
+                            onClick={() => toggleTagSelection(emotion)}
+                          >
+                            {emotion}
+                          </Badge>
+                        ))
+                      }
                     </div>
                   ) : (
                     <div className="text-sm text-muted-foreground italic px-2 mb-3">
@@ -1415,16 +1418,19 @@ export default function Journal() {
                   </h4>
                   {currentEntry.topics && currentEntry.topics.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
-                      {currentEntry.topics.map((topic) => (
-                        <Badge 
-                          key={topic} 
-                          variant="outline"
-                          className="bg-purple-50 text-purple-600 hover:bg-purple-100 cursor-pointer"
-                          onClick={() => toggleTagSelection(topic)}
-                        >
-                          {topic}
-                        </Badge>
-                      ))}
+                      {/* Deduplicate topics before displaying them */}
+                      {Array.from(new Set(currentEntry.topics.map(t => t.toLowerCase())))
+                        .map((topic, index) => (
+                          <Badge 
+                            key={`${topic}-${index}`}
+                            variant="outline"
+                            className="bg-purple-50 text-purple-600 hover:bg-purple-100 cursor-pointer"
+                            onClick={() => toggleTagSelection(topic)}
+                          >
+                            {topic}
+                          </Badge>
+                        ))
+                      }
                     </div>
                   ) : (
                     <div className="text-sm text-muted-foreground italic px-2 mb-3">
