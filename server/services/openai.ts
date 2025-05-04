@@ -95,7 +95,7 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
   const combinedText = `${title} ${content}`.toLowerCase();
   const fallbackTags: string[] = [];
   
-  // Check for common emotions in the text - expanded list
+  // Check for common emotions in the text - expanded and categorized list
   const emotionKeywords = [
     'happy', 'sad', 'angry', 'anxious', 'stressed', 
     'worried', 'excited', 'calm', 'frustrated', 'confident',
@@ -108,7 +108,10 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     'discouraged', 'vulnerable', 'resentful', 'compassionate',
     'depressed', 'numb', 'empty', 'exhausted', 'tired', 'drained',
     'helpless', 'struggling', 'grief', 'grieving', 'hope', 'despair', 
-    'meaningless', 'lost', 'distressed', 'miserable', 'relief', 'relieved'
+    'meaningless', 'lost', 'distressed', 'miserable', 'relief', 'relieved',
+    'alone', 'isolated', 'distant', 'disconnected', 'detached',
+    'heavy', 'hollow', 'void', 'abandoned', 'suffocating',
+    'tense', 'uneasy', 'restless', 'unsettled', 'apprehensive'
   ];
   
   // Check for common topics
@@ -147,26 +150,67 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
   }
   
   // If we don't have enough emotions, try a more contextual approach
-  if (foundEmotions.length < 2) {
+  if (foundEmotions.length < 3) {
     // Look for emotional phrases that don't directly mention emotion words
     const emotionalPhrases = [
+      // Sadness indicators
       { pattern: /hollow\s+ache|heavy\s+heart|heart\s+aches|chest\s+tight/i, emotion: 'sad' },
-      { pattern: /dark\s+corners|dark\s+thoughts|restless|uninvited\s+thoughts/i, emotion: 'anxious' },
-      { pattern: /trembling|shaking|tremors/i, emotion: 'fearful' },
-      { pattern: /hide\s+struggle|hiding\s+pain|conceal\s+feelings/i, emotion: 'struggling' },
-      { pattern: /weight\s+on|burden|shoulders|carrying/i, emotion: 'overwhelmed' },
       { pattern: /tears|cry|sobbing|weeping/i, emotion: 'sad' },
+      { pattern: /sinking feeling|pit of my stomach/i, emotion: 'sad' },
+      { pattern: /can'?t stop thinking about|keep remembering/i, emotion: 'sad' },
+      
+      // Anxiety indicators
+      { pattern: /dark\s+corners|dark\s+thoughts|restless|uninvited\s+thoughts/i, emotion: 'anxious' },
       { pattern: /racing\s+heart|racing\s+mind|racing\s+thoughts|heart\s+pounds/i, emotion: 'anxious' },
-      { pattern: /alone|lonely|isolated|no\s+one/i, emotion: 'lonely' },
-      { pattern: /exhausted|drained|no\s+energy|tired/i, emotion: 'exhausted' },
+      { pattern: /can'?t\s+sleep|insomnia|awake\s+at\s+night|tossing\s+turning/i, emotion: 'anxious' },
+      { pattern: /pacing|fidgeting|nail biting|restless/i, emotion: 'anxious' },
+      { pattern: /worried|overthinking|ruminating|what if/i, emotion: 'anxious' },
+      
+      // Fear indicators
+      { pattern: /trembling|shaking|tremors|freeze/i, emotion: 'fearful' },
+      { pattern: /terror|scared|frightened|panic/i, emotion: 'fearful' },
+      
+      // Hiding/Concealing emotions
+      { pattern: /hide\s+struggle|hiding\s+pain|conceal\s+feelings|mask|facade/i, emotion: 'struggling' },
+      { pattern: /pretend|fake smile|act like|putting on a face/i, emotion: 'struggling' },
+      
+      // Overwhelm indicators
+      { pattern: /weight\s+on|burden|shoulders|carrying/i, emotion: 'overwhelmed' },
+      { pattern: /too much|can'?t handle|drowning|sinking/i, emotion: 'overwhelmed' },
+      
+      // Isolation indicators
+      { pattern: /alone|lonely|isolated|no\s+one|by myself/i, emotion: 'lonely' },
+      { pattern: /disconnected|cut off|abandoned|no one understands/i, emotion: 'lonely' },
+      
+      // Fatigue indicators
+      { pattern: /exhausted|drained|no\s+energy|tired|fatigue/i, emotion: 'exhausted' },
+      { pattern: /can'?t focus|brain fog|difficult to concentrate/i, emotion: 'exhausted' },
+      
+      // Frustration indicators
       { pattern: /irritated|annoyed|bothered|agitated/i, emotion: 'frustrated' },
+      { pattern: /unfair|stuck|trapped|no way out/i, emotion: 'frustrated' },
+      
+      // Emptiness indicators
       { pattern: /numb|nothing|emptiness|void|hollow/i, emotion: 'numb' },
+      { pattern: /can'?t feel|emotionless|blank|empty inside/i, emotion: 'numb' },
+      
+      // Empty/meaninglessness
+      { pattern: /empty|meaningless|pointless|purposeless/i, emotion: 'empty' },
+      { pattern: /why bother|what'?s the point|going through motions/i, emotion: 'empty' },
+      { pattern: /floating in a void|distant|far from|absent|not present/i, emotion: 'empty' },
+      
+      // Happiness indicators
       { pattern: /smile|grin|laugh|chuckle|joy/i, emotion: 'happy' },
+      { pattern: /feeling good|great day|positive|cheerful/i, emotion: 'happy' },
+      
+      // Other positive emotions
       { pattern: /grateful|thankful|appreciate|blessed/i, emotion: 'grateful' },
       { pattern: /hopeful|looking\s+forward|optimistic|better\s+days/i, emotion: 'hopeful' },
-      { pattern: /empty|meaningless|pointless|purposeless/i, emotion: 'empty' },
-      { pattern: /can't\s+sleep|insomnia|awake\s+at\s+night|tossing\s+turning/i, emotion: 'anxious' },
-      { pattern: /quiet|silence|peaceful|tranquil/i, emotion: 'calm' }
+      { pattern: /quiet|silence|peaceful|tranquil/i, emotion: 'calm' },
+      
+      // Body-related signals
+      { pattern: /knot in (my|the) throat|lump in (my|the) throat/i, emotion: 'sad' },
+      { pattern: /stomach (in|into) knots|butterflies|churning/i, emotion: 'anxious' }
     ];
 
     // Check for contextual emotional phrases
@@ -260,10 +304,30 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     analysisText = `This entry contains general reflections. Consider exploring specific emotions and scenarios in future entries for deeper insights.`;
   }
   
-  // Define positive, negative, and neutral emotions
-  const positiveEmotions = ['happy', 'excited', 'confident', 'joy', 'love', 'trust', 'pride', 'hopeful', 'peaceful', 'grateful', 'motivated', 'content', 'satisfied', 'optimistic', 'enthusiastic', 'determined', 'compassionate'];
-  const negativeEmotions = ['sad', 'angry', 'anxious', 'stressed', 'worried', 'frustrated', 'fear', 'nervous', 'confused', 'overwhelmed', 'lonely', 'guilty', 'ashamed', 'embarrassed', 'jealous', 'hopeless', 'hurt', 'insecure', 'regretful', 'pessimistic', 'discouraged', 'vulnerable', 'resentful', 'unhappy', 'distrust', 'dislike', 'uncomfortable', 'dissatisfied', 'displeased'];
-  const neutralEmotions = ['calm', 'reflective', 'surprised', 'apathetic', 'bored'];
+  // Define positive, negative, and neutral emotions with expanded categories
+  const positiveEmotions = [
+    'happy', 'excited', 'confident', 'joy', 'love', 'trust', 'pride', 'hopeful', 
+    'peaceful', 'grateful', 'motivated', 'content', 'satisfied', 'optimistic', 
+    'enthusiastic', 'determined', 'compassionate', 'relieved', 'cheerful', 'pleased',
+    'delighted', 'joyful', 'elated', 'glad', 'serene', 'confident'
+  ];
+  
+  const negativeEmotions = [
+    'sad', 'angry', 'anxious', 'stressed', 'worried', 'frustrated', 'fear', 'nervous', 
+    'confused', 'overwhelmed', 'lonely', 'guilty', 'ashamed', 'embarrassed', 'jealous', 
+    'hopeless', 'hurt', 'insecure', 'regretful', 'pessimistic', 'discouraged', 'vulnerable', 
+    'resentful', 'unhappy', 'distrust', 'dislike', 'uncomfortable', 'dissatisfied', 'displeased',
+    'empty', 'numb', 'depressed', 'desperate', 'miserable', 'upset', 'grief', 'grieving',
+    'lost', 'helpless', 'drained', 'exhausted', 'tired', 'worried', 'distressed',
+    'alone', 'isolated', 'distant', 'disconnected', 'detached', 'abandoned', 
+    'suffocating', 'tense', 'uneasy', 'restless', 'unsettled', 'apprehensive'
+  ];
+  
+  const neutralEmotions = [
+    'calm', 'reflective', 'surprised', 'apathetic', 'bored', 'curious',
+    'interested', 'thoughtful', 'contemplative', 'nostalgic', 'indifferent',
+    'pensive', 'wondering'
+  ];
   
   // Check for negation patterns in the text (like "not happy", "don't like", etc.)
   const negationPatterns = [
@@ -362,10 +426,45 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     }
   }
   
-  // Calculate a rough sentiment based on the emotions found
-  let positiveScore = 33;
-  let negativeScore = 33;
-  let neutralScore = 34;
+  // Calculate a more accurate sentiment based on the emotions and content
+  let positiveScore = 0;
+  let negativeScore = 0;
+  let neutralScore = 0;
+  
+  // Check first for explicit negative content indicators
+  const explicitNegativeContent = 
+    /floating in a void|distant|far from|absent|not present|nod, rehearsed|far from fine|though i'm far from fine|knot tightens|go through motions|hollow|void|empty|numb|emotionless|blank|empty inside|can'?t feel/i.test(combinedText);
+  
+  // Override with negative sentiment for clearly negative content
+  if (explicitNegativeContent && foundEmotions.some(e => ['numb', 'empty', 'hollow', 'void', 'absent'].includes(e))) {
+    // Ensure happy is not incorrectly included for clearly empty/numb entries
+    const happyIndex = foundEmotions.indexOf('happy');
+    if (happyIndex > -1) {
+      foundEmotions.splice(happyIndex, 1);
+      
+      // Also remove happy from tags
+      const tagIndex = fallbackTags.indexOf('happy');
+      if (tagIndex > -1) {
+        fallbackTags.splice(tagIndex, 1);
+      }
+    }
+    
+    // Add more appropriate emotions if needed
+    if (!foundEmotions.includes('empty')) {
+      foundEmotions.push('empty');
+      fallbackTags.push('empty');
+    }
+    
+    if (!foundEmotions.includes('numb')) {
+      foundEmotions.push('numb');
+      fallbackTags.push('numb');
+    }
+    
+    // Force sentiment to negative for these specific emotion types
+    positiveScore = 0;
+    negativeScore = 85;
+    neutralScore = 15;
+  } else {
   
   // Count the emotions in each category
   const positiveCount = foundEmotions.filter(e => positiveEmotions.includes(e)).length;
@@ -396,6 +495,8 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     positiveScore = 20;
     negativeScore = 60;
     neutralScore = 20;
+  }
+  
   }
   
   return {
