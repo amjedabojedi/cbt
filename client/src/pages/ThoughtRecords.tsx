@@ -199,6 +199,9 @@ export default function ThoughtRecords() {
             <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Thought Record Details</DialogTitle>
+                <DialogDescription>
+                  View the details of this thought record and its connections to journal entries.
+                </DialogDescription>
               </DialogHeader>
               
               <div className="space-y-6">
