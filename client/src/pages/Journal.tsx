@@ -69,6 +69,30 @@ import {
 import JournalWordCloud from "@/components/journal/JournalWordCloud";
 import { Separator } from "@/components/ui/separator";
 
+// Helper function to provide descriptions for cognitive distortions
+function getDistortionDescription(distortion: string): string {
+  const distortions: Record<string, string> = {
+    "all-or-nothing thinking": "Viewing situations in absolute, black-and-white categories without considering middle ground.",
+    "catastrophizing": "Expecting the worst possible outcome and exaggerating the importance of negative events.",
+    "emotional reasoning": "Believing that feelings reflect reality—'I feel it, therefore it must be true.'",
+    "fortune telling": "Predicting negative outcomes without adequate evidence.",
+    "labeling": "Attaching a negative label to yourself or others instead of describing specific behaviors.",
+    "magnification": "Exaggerating the importance of problems or shortcomings while minimizing successes.",
+    "mental filtering": "Focusing exclusively on negative aspects while filtering out all positive information.",
+    "mind reading": "Assuming you know what others are thinking without sufficient evidence.",
+    "overgeneralization": "Drawing broad negative conclusions based on a single incident.",
+    "personalization": "Believing you're responsible for external events outside your control.",
+    "should statements": "Imposing rigid demands on yourself or others with 'should', 'must', or 'ought to' statements.",
+    "disqualifying the positive": "Rejecting positive experiences by insisting they 'don't count'.",
+    "jumping to conclusions": "Making negative interpretations without supporting facts.",
+    "minimization": "Downplaying or dismissing your positive qualities or achievements."
+  };
+  
+  // Return the description if found, otherwise return a default message
+  return distortions[distortion.toLowerCase()] || 
+    "A pattern of thought that may distort your perception of reality or situations.";
+}
+
 interface JournalEntry {
   id: number;
   userId: number;
@@ -83,6 +107,7 @@ interface JournalEntry {
   userSelectedTags?: string[];
   emotions?: string[];
   topics?: string[];
+  detectedDistortions?: string[];
   sentimentPositive?: number;
   sentimentNegative?: number;
   sentimentNeutral?: number;
@@ -891,6 +916,38 @@ export default function Journal() {
                             <p className="text-sm text-muted-foreground">
                               {currentEntry.aiAnalysis}
                             </p>
+                            
+                            {/* Cognitive Distortions Section */}
+                            {currentEntry.detectedDistortions && currentEntry.detectedDistortions.length > 0 && (
+                              <div className="mt-4 pt-3 border-t border-primary/10">
+                                <p className="text-sm font-medium mb-2 flex items-center gap-1.5">
+                                  <Brain size={14} className="text-orange-500" />
+                                  Cognitive Patterns Detected:
+                                </p>
+                                <div className="flex flex-wrap gap-1.5 mt-1">
+                                  {currentEntry.detectedDistortions.map((distortion, index) => (
+                                    <TooltipProvider key={index}>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Badge 
+                                            variant="outline" 
+                                            className="bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100"
+                                          >
+                                            {distortion}
+                                          </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="max-w-xs">
+                                          <p>{getDistortionDescription(distortion)}</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  ))}
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  These are thinking patterns identified in your entry that might benefit from reframing.
+                                </p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
