@@ -2621,6 +2621,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             aiAnalysis: analysis.analysis,
             emotions: analysis.emotions,
             topics: analysis.topics,
+            detectedDistortions: analysis.cognitiveDistortions || [], // Include cognitive distortions
             sentimentPositive: analysis.sentiment.positive,
             sentimentNegative: analysis.sentiment.negative,
             sentimentNeutral: analysis.sentiment.neutral
@@ -2806,6 +2807,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             aiAnalysis: analysis.analysis,
             emotions: emotionTags.length > 0 ? emotionTags : entry.emotions || [],
             topics: topicTags.length > 0 ? topicTags : entry.topics || [],
+            detectedDistortions: analysis.cognitiveDistortions || [], // Include detected cognitive distortions
             sentimentPositive: analysis.sentiment.positive,
             sentimentNegative: analysis.sentiment.negative,
             sentimentNeutral: analysis.sentiment.neutral

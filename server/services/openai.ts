@@ -636,7 +636,7 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     analysis: analysisText,
     emotions: foundEmotions,
     topics: foundTopics,
-    cognitiveDistortions: cognitiveDistortions.length > 0 ? cognitiveDistortions : undefined,
+    cognitiveDistortions: cognitiveDistortions.length > 0 ? cognitiveDistortions : [],
     sentiment: { 
       positive: positiveScore, 
       negative: negativeScore, 
