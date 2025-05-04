@@ -665,17 +665,51 @@ export default function Journal() {
                       </div>
                       
                       <div className="p-4 bg-primary/5 rounded-lg flex flex-col">
-                        <span className="text-sm text-muted-foreground">Emotional Tone</span>
-                        <div className="flex items-center gap-2 mt-2">
-                          {stats.sentimentPatterns && (
-                            <>
-                              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${stats.sentimentPatterns.positive}%` }}></div>
+                        <span className="text-sm font-medium mb-2">Emotional Tone Balance</span>
+                        
+                        {stats.sentimentPatterns ? (
+                          <>
+                            <div className="w-full h-8 flex rounded-md overflow-hidden">
+                              <div 
+                                className="bg-green-500 h-full flex justify-center items-center text-xs font-medium text-white" 
+                                style={{ width: `${stats.sentimentPatterns.positive}%` }}
+                              >
+                                {stats.sentimentPatterns.positive > 15 ? `${stats.sentimentPatterns.positive}%` : ''}
                               </div>
-                              <span className="text-xs">{stats.sentimentPatterns.positive}%</span>
-                            </>
-                          )}
-                        </div>
+                              <div 
+                                className="bg-blue-400 h-full flex justify-center items-center text-xs font-medium text-white" 
+                                style={{ width: `${stats.sentimentPatterns.neutral}%` }}
+                              >
+                                {stats.sentimentPatterns.neutral > 15 ? `${stats.sentimentPatterns.neutral}%` : ''}
+                              </div>
+                              <div 
+                                className="bg-red-400 h-full flex justify-center items-center text-xs font-medium text-white" 
+                                style={{ width: `${stats.sentimentPatterns.negative}%` }}
+                              >
+                                {stats.sentimentPatterns.negative > 15 ? `${stats.sentimentPatterns.negative}%` : ''}
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between mt-2 text-xs">
+                              <div className="flex items-center gap-1">
+                                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                <span className="font-medium">Positive ({stats.sentimentPatterns.positive}%)</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <div className="w-3 h-3 rounded-full bg-blue-400"></div>
+                                <span className="font-medium">Neutral ({stats.sentimentPatterns.neutral}%)</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                                <span className="font-medium">Negative ({stats.sentimentPatterns.negative}%)</span>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex items-center justify-center h-16 bg-muted/20 rounded-md">
+                            <span className="text-sm text-muted-foreground">No sentiment data available</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     
