@@ -59,6 +59,20 @@ export default function ReflectionInsights() {
   const [protectiveFactorUsage, setProtectiveFactorUsage] = useState<{[thoughtId: number]: {id: number, name: string}[]}>({});
   const [copingStrategyUsage, setCopingStrategyUsage] = useState<{[thoughtId: number]: {id: number, name: string}[]}>({});
   
+  // State for journal stats data
+  const [journalStats, setJournalStats] = useState<{
+    totalEntries: number;
+    emotions: Record<string, number>;
+    topics: Record<string, number>;
+    cognitiveDistortions: Record<string, number>;
+    tagsFrequency: Record<string, number>;
+    sentimentPatterns: {
+      positive: number;
+      neutral: number;
+      negative: number;
+    };
+  } | null>(null);
+
   useEffect(() => {
     if (!activeUserId) return;
 
@@ -74,6 +88,11 @@ export default function ReflectionInsights() {
         const thoughtsResponse = await apiRequest('GET', `/api/users/${activeUserId}/thoughts`);
         const thoughts: ThoughtRecord[] = await thoughtsResponse.json();
         setReflectionRecords(thoughts);
+        
+        // Fetch journal stats for the active user to get cognitive distortion data
+        const journalStatsResponse = await apiRequest('GET', `/api/users/${activeUserId}/journal/stats`);
+        const stats = await journalStatsResponse.json();
+        setJournalStats(stats);
         
         // Fetch protective factors and coping strategies for each thought record
         const protectiveFactorsMap: {[thoughtId: number]: {id: number, name: string}[]} = {};
@@ -257,11 +276,11 @@ export default function ReflectionInsights() {
     }));
   };
 
-  // Prepare data for cognitive distortions chart
+  // Prepare data for cognitive distortions chart (combines thought records and journal entries)
   const prepareDistortionsData = () => {
     const distortionCounts: Record<string, number> = {};
     
-    // Collect all distortions across all reflections
+    // Collect all distortions across all thought records
     reflectionRecords.forEach(reflection => {
       if (reflection.cognitiveDistortions) {
         reflection.cognitiveDistortions.forEach(distortion => {
@@ -269,6 +288,13 @@ export default function ReflectionInsights() {
         });
       }
     });
+    
+    // Add distortions from journal entries if available
+    if (journalStats && journalStats.cognitiveDistortions) {
+      Object.entries(journalStats.cognitiveDistortions).forEach(([distortion, count]) => {
+        distortionCounts[distortion] = (distortionCounts[distortion] || 0) + count;
+      });
+    }
     
     // Convert to array format for chart
     return Object.entries(distortionCounts)
@@ -596,10 +622,38 @@ export default function ReflectionInsights() {
   const renderDistortionsTab = () => {
     const distortionData = prepareDistortionsData();
     
+    // Calculate sources of distortion data
+    const journalDistortionsCount = journalStats && journalStats.cognitiveDistortions 
+      ? Object.values(journalStats.cognitiveDistortions).reduce((sum, count) => sum + count, 0) 
+      : 0;
+      
+    const thoughtDistortionsCount = reflectionRecords
+      .filter(record => record.cognitiveDistortions && record.cognitiveDistortions.length > 0)
+      .length;
+    
+    // Educational information about cognitive distortions
+    const distortionDescriptions: Record<string, string> = {
+      "All-or-nothing thinking": "Seeing things in black-and-white categories with no middle ground.",
+      "Overgeneralization": "Seeing a single negative event as a never-ending pattern.",
+      "Mental filter": "Focusing exclusively on negatives while filtering out positives.",
+      "Disqualifying the positive": "Rejecting positive experiences by insisting they 'don't count'.",
+      "Jumping to conclusions": "Making negative interpretations without supporting facts.",
+      "Magnification": "Exaggerating problems or minimizing positive attributes.",
+      "Emotional reasoning": "Assuming feelings reflect reality. 'I feel it, so it must be true.'",
+      "Should statements": "Using 'shoulds' and 'musts' that lead to guilt and frustration.",
+      "Labeling": "Attaching global negative labels instead of describing specific behaviors.",
+      "Personalization": "Seeing yourself as responsible for external events you didn't control."
+    };
+    
     return (
       <div className="space-y-6">
         <div>
           <h3 className="text-lg font-medium mb-2">Cognitive Distortion Patterns</h3>
+          <p className="text-sm text-muted-foreground mb-3">
+            {isViewingClientData 
+              ? "Analysis of cognitive patterns from both journal entries and thought records."
+              : "Analysis of your cognitive patterns from both journal entries and thought records."}
+          </p>
           
           {distortionData.length > 0 ? (
             <div className="grid md:grid-cols-2 gap-4">
@@ -626,6 +680,18 @@ export default function ReflectionInsights() {
               
               <div className="self-center">
                 <h4 className="text-md font-medium mb-2">Top Distortions</h4>
+                {journalDistortionsCount > 0 && (
+                  <div className="flex gap-2 items-center mb-3">
+                    <Badge variant="outline" className="font-normal">
+                      Journal entries: {journalDistortionsCount} distortion{journalDistortionsCount !== 1 ? 's' : ''}
+                    </Badge>
+                    {thoughtDistortionsCount > 0 && (
+                      <Badge variant="outline" className="font-normal">
+                        Thought records: {thoughtDistortionsCount} distortion{thoughtDistortionsCount !== 1 ? 's' : ''}
+                      </Badge>
+                    )}
+                  </div>
+                )}
                 <ul className="space-y-2">
                   {distortionData.slice(0, 5).map((distortion, i) => (
                     <li key={i} className="flex items-center gap-2">
@@ -634,7 +700,7 @@ export default function ReflectionInsights() {
                         style={{ backgroundColor: COLORS[i % COLORS.length] }}
                       />
                       <span className="font-medium">{distortion.name}:</span>
-                      <span>{distortion.value} occurrences</span>
+                      <span>{distortion.value} occurrence{distortion.value !== 1 ? 's' : ''}</span>
                     </li>
                   ))}
                 </ul>
@@ -644,18 +710,36 @@ export default function ReflectionInsights() {
             <div className="p-6 border rounded-lg text-center">
               <p>No cognitive distortions recorded yet.</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Identify distortions in your reflections to see patterns here.
+                Use the "Detect Cognitive Patterns" button in journal entries to identify thinking patterns.
               </p>
             </div>
           )}
           
-          <div className="mt-4">
+          <div className="mt-6">
             <h3 className="text-lg font-medium mb-2">Understanding {isViewingClientData ? "Their" : "Your"} Patterns</h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground mb-4">
               {isViewingClientData 
                 ? "Recognizing the client's most common thinking patterns can help guide your therapy approach. Focus on addressing these top cognitive distortions in future sessions."
                 : "Recognizing your most common thinking patterns can help you become more aware of them in the moment. Focus on challenging your top cognitive distortions in future reflections."}
             </p>
+            
+            {distortionData.length > 0 && (
+              <div className="grid md:grid-cols-2 gap-4 mt-4">
+                {distortionData.slice(0, 2).map((distortion, i) => (
+                  <Card key={i}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-md">{distortion.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm">
+                        {distortionDescriptions[distortion.name] || 
+                         "A pattern of thinking that can distort your view of reality and reinforce negative emotions."}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
