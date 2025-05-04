@@ -71,6 +71,62 @@ export async function analyzeJournalEntry(
     }
   } catch (error) {
     console.error("OpenAI API error:", error);
+    
+    // Provide fallback tags and analysis when there's an API error (like quota exceeded)
+    if (error.error?.type === 'insufficient_quota' || error.error?.code === 'insufficient_quota') {
+      console.log("Using fallback analysis due to quota error");
+      
+      // Generate basic fallback tags from the title and content
+      const combinedText = `${title} ${content}`.toLowerCase();
+      const fallbackTags = [];
+      
+      // Check for common emotions in the text
+      const emotionKeywords = [
+        'happy', 'sad', 'angry', 'anxious', 'stressed', 
+        'worried', 'excited', 'calm', 'frustrated', 'confident',
+        'fear', 'joy', 'love', 'trust', 'pride'
+      ];
+      
+      // Check for common topics
+      const topicKeywords = [
+        'work', 'family', 'relationship', 'health', 'sleep',
+        'exercise', 'friends', 'challenge', 'success', 'failure',
+        'conflict', 'achievement', 'goal', 'worry', 'progress'
+      ];
+      
+      // Build basic fallback tags from the content
+      for (const keyword of [...emotionKeywords, ...topicKeywords]) {
+        if (combinedText.includes(keyword)) {
+          fallbackTags.push(keyword);
+        }
+      }
+      
+      // Ensure we have at least a few tags
+      if (fallbackTags.length < 3) {
+        // Add some general tags
+        fallbackTags.push('journal', 'reflection');
+        
+        // Add a tag based on content length
+        if (content.length > 500) {
+          fallbackTags.push('detailed');
+        } else {
+          fallbackTags.push('brief');
+        }
+      }
+      
+      // Limit to 8 tags maximum
+      const limitedTags = fallbackTags.slice(0, 8);
+      
+      return {
+        suggestedTags: limitedTags,
+        analysis: "This entry has been analyzed with basic fallback processing. For advanced analysis, please check your OpenAI API quota.",
+        emotions: limitedTags.filter(tag => emotionKeywords.includes(tag)),
+        topics: limitedTags.filter(tag => topicKeywords.includes(tag)),
+        sentiment: { positive: 33, negative: 33, neutral: 34 }
+      };
+    }
+    
+    // If it's not a quota error, throw the error
     throw new Error(`Failed to analyze journal entry: ${error.message}`);
   }
 }

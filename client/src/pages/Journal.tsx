@@ -1056,7 +1056,7 @@ export default function Journal() {
                   {/* Insights Section - Moved here from the right sidebar */}
                   {relatedThoughtRecords.length > 0 && (
                     <div className="mt-6 pt-4 border-t">
-                      <Accordion type="single" collapsible className="w-full">
+                      <Accordion type="single" collapsible defaultValue="insights" className="w-full">
                         <AccordionItem value="insights">
                           <AccordionTrigger className="py-2">
                             <span className="flex items-center gap-2 text-sm font-medium">
