@@ -1075,12 +1075,20 @@ export default function Journal() {
                       <div className="mt-6">
                         <h4 className="text-sm font-semibold mb-3">Emotion Cloud</h4>
                         <div className="h-[150px] w-full">
-                          <JournalWordCloud 
-                            tags={Array.from(new Set(currentEntry.emotions)).reduce((acc, emotion) => {
-                              acc[emotion] = (acc[emotion] || 0) + 1;
-                              return acc;
-                            }, {} as Record<string, number>)} 
-                          />
+                          {/* Prepare the data for the word cloud */}
+                          {(() => {
+                            // Create word frequency object
+                            const uniqueEmotions = Array.from(new Set(currentEntry.emotions || []));
+                            const tagsObject: Record<string, number> = {};
+                            
+                            uniqueEmotions.forEach(emotion => {
+                              if (typeof emotion === 'string') {
+                                tagsObject[emotion] = (tagsObject[emotion] || 0) + 1;
+                              }
+                            });
+                            
+                            return <JournalWordCloud tags={tagsObject} />;
+                          })()}
                         </div>
                       </div>
                     )}
