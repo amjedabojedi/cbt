@@ -263,7 +263,7 @@ export default function Journal() {
   const deleteEntryMutation = useMutation({
     mutationFn: async (id: number) => {
       if (!userId) throw new Error("User not authenticated");
-      await apiRequest('DELETE', `/api/users/${userId}/journal/${id}`);
+      await apiRequest('DELETE', `/api/journal/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
