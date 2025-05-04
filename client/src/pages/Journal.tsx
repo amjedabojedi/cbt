@@ -115,9 +115,10 @@ interface ThoughtRecord {
 }
 
 export default function Journal() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userId = user?.id;
   
   const [activeTab, setActiveTab] = useState("list");
   const [showEntryDialog, setShowEntryDialog] = useState(false);
@@ -133,31 +134,36 @@ export default function Journal() {
   
   // Get journal entries
   const { data: entries = [], isLoading } = useQuery({ 
-    queryKey: ['/api/users/:userId/journal'],
+    queryKey: ['/api/users/:userId/journal', userId],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/users/me/journal');
+      if (!userId) return [];
+      const response = await apiRequest('GET', `/api/users/${userId}/journal`);
       const data = await response.json();
       return data;
     },
+    enabled: !!userId,
   });
   
   // Get available thought records for linking
   const { data: userThoughtRecords = [] } = useQuery({ 
-    queryKey: ['/api/users/:userId/thoughts'],
+    queryKey: ['/api/users/:userId/thoughts', userId],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/users/me/thoughts');
+      if (!userId) return [];
+      const response = await apiRequest('GET', `/api/users/${userId}/thoughts`);
       const data = await response.json();
       return data;
     },
+    enabled: !!userId,
   });
   
   const createEntryMutation = useMutation({
     mutationFn: async (newEntry: { title: string; content: string }) => {
-      const response = await apiRequest('POST', '/api/users/me/journal', newEntry);
+      if (!userId) throw new Error("User not authenticated");
+      const response = await apiRequest('POST', `/api/users/${userId}/journal`, newEntry);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
       setShowEntryDialog(false);
       setTitle("");
       setContent("");
@@ -177,11 +183,12 @@ export default function Journal() {
   
   const updateEntryMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number, updates: Partial<JournalEntry> }) => {
-      const response = await apiRequest('PATCH', `/api/users/me/journal/${id}`, updates);
+      if (!userId) throw new Error("User not authenticated");
+      const response = await apiRequest('PATCH', `/api/users/${userId}/journal/${id}`, updates);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
       setShowEntryDialog(false);
       setTitle("");
       setContent("");
@@ -201,10 +208,11 @@ export default function Journal() {
   
   const deleteEntryMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest('DELETE', `/api/users/me/journal/${id}`);
+      if (!userId) throw new Error("User not authenticated");
+      await apiRequest('DELETE', `/api/users/${userId}/journal/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
       setShowEntryDialog(false);
       setShowConfirmDelete(false);
       setCurrentEntry(null);
@@ -224,7 +232,8 @@ export default function Journal() {
   
   const addCommentMutation = useMutation({
     mutationFn: async ({ entryId, comment }: { entryId: number, comment: string }) => {
-      const response = await apiRequest('POST', `/api/users/me/journal/${entryId}/comments`, { comment });
+      if (!userId) throw new Error("User not authenticated");
+      const response = await apiRequest('POST', `/api/users/${userId}/journal/${entryId}/comments`, { comment });
       return response.json();
     },
     onSuccess: (data) => {
@@ -237,7 +246,7 @@ export default function Journal() {
         });
         
         // Also invalidate the main query to ensure the list is updated
-        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
         setCommentContent("");
         
         toast({
@@ -257,9 +266,9 @@ export default function Journal() {
   
   const updateTagsMutation = useMutation({
     mutationFn: async () => {
-      if (!currentEntry) return null;
+      if (!currentEntry || !userId) return null;
       
-      const response = await apiRequest('PATCH', `/api/users/me/journal/${currentEntry.id}`, {
+      const response = await apiRequest('PATCH', `/api/users/${userId}/journal/${currentEntry.id}`, {
         userSelectedTags: selectedTags
       });
       return response.json();
@@ -267,7 +276,7 @@ export default function Journal() {
     onSuccess: (data) => {
       if (data) {
         setCurrentEntry(data);
-        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
         
         toast({
           title: "Tags Updated",
@@ -286,13 +295,14 @@ export default function Journal() {
   
   const linkThoughtRecordMutation = useMutation({
     mutationFn: async ({ journalId, thoughtRecordId }: { journalId: number, thoughtRecordId: number }) => {
-      const response = await apiRequest('POST', `/api/users/me/journal/${journalId}/link-thought`, { thoughtRecordId });
+      if (!userId) throw new Error("User not authenticated");
+      const response = await apiRequest('POST', `/api/users/${userId}/journal/${journalId}/link-thought`, { thoughtRecordId });
       return response.json();
     },
     onSuccess: (data) => {
       loadEntryWithRelatedRecords(data);
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/thoughts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/thoughts', userId] });
       
       toast({
         title: "Thought Record Linked",
@@ -310,13 +320,14 @@ export default function Journal() {
   
   const unlinkThoughtRecordMutation = useMutation({
     mutationFn: async ({ journalId, thoughtRecordId }: { journalId: number, thoughtRecordId: number }) => {
-      const response = await apiRequest('DELETE', `/api/users/me/journal/${journalId}/link-thought/${thoughtRecordId}`);
+      if (!userId) throw new Error("User not authenticated");
+      const response = await apiRequest('DELETE', `/api/users/${userId}/journal/${journalId}/link-thought/${thoughtRecordId}`);
       return response.json();
     },
     onSuccess: (data) => {
       loadEntryWithRelatedRecords(data);
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/thoughts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/thoughts', userId] });
       
       toast({
         title: "Thought Record Unlinked",
@@ -327,10 +338,10 @@ export default function Journal() {
 
   // Load already linked thought records when viewing an entry
   useEffect(() => {
-    if (currentEntry && currentEntry.relatedThoughtRecordIds?.length) {
+    if (currentEntry && currentEntry.relatedThoughtRecordIds?.length && userId) {
       const fetchRelatedRecords = async () => {
         const recordPromises = currentEntry.relatedThoughtRecordIds!.map(id => 
-          apiRequest('GET', `/api/thoughts/${id}`)
+          apiRequest('GET', `/api/users/${userId}/thoughts/${id}`)
             .then(res => res.json())
             .catch(() => null)
         );
@@ -344,7 +355,7 @@ export default function Journal() {
     } else {
       setRelatedThoughtRecords([]);
     }
-  }, [currentEntry]);
+  }, [currentEntry, userId]);
   
   const handleCreateEntry = () => {
     createEntryMutation.mutate({ title, content });
@@ -392,9 +403,9 @@ export default function Journal() {
     setContent(entry.content);
     setSelectedTags(entry.userSelectedTags || []);
     
-    if (entry.relatedThoughtRecordIds?.length) {
+    if (entry.relatedThoughtRecordIds?.length && userId) {
       const recordPromises = entry.relatedThoughtRecordIds.map(id => 
-        apiRequest('GET', `/api/thoughts/${id}`)
+        apiRequest('GET', `/api/users/${userId}/thoughts/${id}`)
           .then(res => res.json())
           .catch(() => null)
       );
