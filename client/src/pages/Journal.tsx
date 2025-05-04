@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,13 @@ import {
   BrainCircuit,
   Brain,
   Send,
-  Unlink
+  Unlink,
+  BarChart,
+  PieChart,
+  BarChart3,
+  LineChart,
+  ArrowUpDown,
+  Activity
 } from "lucide-react";
 import InsightPanel from "@/components/journal/InsightPanel";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -98,6 +104,24 @@ interface JournalComment {
   }
 }
 
+interface JournalStats {
+  totalEntries: number;
+  emotions: Record<string, number>;
+  topics: Record<string, number>;
+  sentimentOverTime: Array<{
+    date: string;
+    positive: number;
+    negative: number;
+    neutral: number;
+  }>;
+  tagsFrequency: Record<string, number>;
+  sentimentPatterns?: {
+    positive: number;
+    neutral: number;
+    negative: number;
+  };
+}
+
 interface ThoughtRecord {
   id: number;
   userId: number;
@@ -141,6 +165,36 @@ export default function Journal() {
     queryFn: async () => {
       if (!userId) return [];
       const response = await apiRequest('GET', `/api/users/${userId}/journal`);
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!userId,
+  });
+  
+  // Get journal stats
+  const { data: stats = { 
+    totalEntries: 0, 
+    emotions: {}, 
+    topics: {}, 
+    sentimentOverTime: [],
+    tagsFrequency: {},
+    sentimentPatterns: {
+      positive: 30,
+      neutral: 40,
+      negative: 30
+    }
+  }} = useQuery<JournalStats>({
+    queryKey: ['/api/users/:userId/journal/stats', userId],
+    queryFn: async () => {
+      if (!userId) return {
+        totalEntries: 0,
+        emotions: {},
+        topics: {},
+        sentimentOverTime: [],
+        tagsFrequency: {},
+        sentimentPatterns: { positive: 30, neutral: 40, negative: 30 }
+      };
+      const response = await apiRequest('GET', `/api/users/${userId}/journal/stats`);
       const data = await response.json();
       return data;
     },
@@ -507,9 +561,13 @@ export default function Journal() {
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full md:w-[400px] grid-cols-2">
+          <TabsList className="grid w-full md:w-[600px] grid-cols-3">
             <TabsTrigger value="list" onClick={() => setActiveTab("list")}>Entries</TabsTrigger>
             <TabsTrigger value="view" disabled={!currentEntry}>View Entry</TabsTrigger>
+            <TabsTrigger value="stats" onClick={() => setActiveTab("stats")}>
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Insights & Stats
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="list" className="mt-6">
@@ -582,6 +640,85 @@ export default function Journal() {
                 </Button>
               </div>
             )}
+          </TabsContent>
+          
+          <TabsContent value="stats" className="mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Left column: Journal Summary */}
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-primary" />
+                      Journal Summary
+                    </CardTitle>
+                    <CardDescription>
+                      Overview of your journaling activity
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-4 bg-primary/5 rounded-lg flex flex-col">
+                        <span className="text-sm text-muted-foreground">Total Entries</span>
+                        <span className="text-3xl font-bold text-primary">{stats.totalEntries}</span>
+                      </div>
+                      
+                      <div className="p-4 bg-primary/5 rounded-lg flex flex-col">
+                        <span className="text-sm text-muted-foreground">Emotional Tone</span>
+                        <div className="flex items-center gap-2 mt-2">
+                          {stats.sentimentPatterns && (
+                            <>
+                              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${stats.sentimentPatterns.positive}%` }}></div>
+                              </div>
+                              <span className="text-xs">{stats.sentimentPatterns.positive}%</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium mb-3">Common Emotions</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(stats.emotions || {})
+                          .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
+                          .slice(0, 8)
+                          .map(([emotion, count]) => (
+                            <Badge key={emotion} variant="outline" className="bg-primary/5">
+                              {emotion} <span className="ml-1 text-xs">({count})</span>
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Right column: Tag Cloud */}
+              <div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Tag className="h-5 w-5 text-primary" />
+                      Tag Frequency
+                    </CardTitle>
+                    <CardDescription>
+                      Most common tags in your journal entries
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-[300px] relative">
+                    {Object.keys(stats.tagsFrequency || {}).length === 0 ? (
+                      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                        No tags have been added to your entries yet
+                      </div>
+                    ) : (
+                      <JournalWordCloud words={stats.tagsFrequency} height={300} />
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </TabsContent>
           
           <TabsContent value="view" className="mt-6">
