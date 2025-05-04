@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { ThoughtRecord as BaseThoughtRecord } from "@shared/schema";
 import useActiveUser from "@/hooks/use-active-user";
 import { ClientDebug } from "@/components/debug/ClientDebug";
+import { useLocation } from "wouter";
 
 // Use the schema definition directly
 type ThoughtRecord = BaseThoughtRecord;
@@ -44,6 +45,7 @@ export default function ThoughtRecords() {
   const { user } = useAuth();
   const { isViewingClientData, activeUserId } = useActiveUser();
   const [selectedThought, setSelectedThought] = useState<ThoughtRecord | null>(null);
+  const [location] = useLocation();
   
   // Fetch related emotion records for the active user (could be a client viewed by a therapist)
   const { data: emotions } = useQuery({
@@ -51,14 +53,36 @@ export default function ThoughtRecords() {
     enabled: !!activeUserId,
   });
   
+  // Fetch thought records for the active user
+  const { data: thoughtRecords } = useQuery({
+    queryKey: activeUserId ? [`/api/users/${activeUserId}/thoughts`] : [],
+    enabled: !!activeUserId,
+  });
+  
+  // Handle opening a specific thought record from query parameter
+  useEffect(() => {
+    // Check if we have a record query parameter
+    const params = new URLSearchParams(window.location.search);
+    const recordId = params.get('record');
+    
+    if (recordId && thoughtRecords && Array.isArray(thoughtRecords)) {
+      // Find the thought record by ID
+      const record = thoughtRecords.find((r: ThoughtRecord) => r.id === parseInt(recordId, 10));
+      if (record) {
+        // Open the record details dialog
+        setSelectedThought(record);
+      }
+    }
+  }, [thoughtRecords, location]);
+  
   // Format date for display
   const formatDate = (date: string | Date) => {
     return format(new Date(date), "MMM d, yyyy h:mm a");
   };
   
   // Find related emotion for a thought record
-  const findRelatedEmotion = (emotionRecordId: number) => {
-    if (!emotions || !Array.isArray(emotions)) return undefined;
+  const findRelatedEmotion = (emotionRecordId: number | null) => {
+    if (!emotions || !Array.isArray(emotions) || emotionRecordId === null) return undefined;
     return emotions.find((emotion: any) => emotion.id === emotionRecordId);
   };
   

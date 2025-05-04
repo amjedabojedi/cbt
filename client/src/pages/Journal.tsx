@@ -1245,7 +1245,7 @@ export default function Journal() {
                                     className="h-6 w-6 rounded-full"
                                     asChild
                                   >
-                                    <a href={`/thought-records?record=${record.id}`} title="View thought record details">
+                                    <a href={`/thoughts?record=${record.id}`} title="View thought record details">
                                       <ExternalLink size={14} />
                                     </a>
                                   </Button>
