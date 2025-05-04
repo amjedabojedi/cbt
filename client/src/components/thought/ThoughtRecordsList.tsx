@@ -407,36 +407,10 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                     ))}
                   </div>
                   
-                  {/* Insights panel for cross-component connections */}
+                  {/* Simple counter for connected journal entries */}
                   {selectedRecord.relatedJournalEntryIds.length >= 2 && (
-                    <div className="mt-4 p-3 bg-primary/5 rounded-md border border-primary/10">
-                      <h5 className="text-xs font-medium flex items-center gap-1 text-primary mb-2">
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="14" 
-                          height="14" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round"
-                          className="text-primary"
-                        >
-                          <path d="M7 4a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h0a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2"></path>
-                          <path d="M17 4a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h0a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2"></path>
-                          <path d="M12 2v20"></path>
-                          <path d="m9 10 3-2 3 2"></path>
-                          <path d="m9 14 3 2 3-2"></path>
-                        </svg>
-                        Thought Pattern Analysis
-                      </h5>
-                      <p className="text-xs text-muted-foreground">
-                        This thought record appears in multiple journal contexts ({selectedRecord.relatedJournalEntryIds.length} entries), suggesting it may represent a recurring thought pattern.
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Reviewing these connections can help identify how this cognitive pattern influences different situations in your life.
-                      </p>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      <span className="font-medium">Note:</span> This thought record is referenced in {selectedRecord.relatedJournalEntryIds.length} different journal entries. View these entries for deeper cognitive pattern insights.
                     </div>
                   )}
                 </div>
