@@ -1041,6 +1041,29 @@ export default function Journal() {
                       </div>
                     </div>
                   )}
+                  
+                  {/* Insights Section - Moved here from the right sidebar */}
+                  {relatedThoughtRecords.length > 0 && (
+                    <div className="mt-6 pt-4 border-t">
+                      <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="insights">
+                          <AccordionTrigger className="py-2">
+                            <span className="flex items-center gap-2 text-sm font-medium">
+                              <Lightbulb className="h-4 w-4 text-yellow-500" />
+                              Cross-Reference Insights
+                            </span>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <InsightPanel 
+                              journalContent={currentEntry.content}
+                              journalTags={currentEntry.userSelectedTags || []}
+                              thoughtRecords={relatedThoughtRecords}
+                            />
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Add comment form */}
@@ -1138,20 +1161,6 @@ export default function Journal() {
                               )}
                             </div>
                           ))}
-                        </div>
-                        
-                        {/* New Insights Panel */}
-                        <div className="mt-4 pt-2 border-t border-border">
-                          <h4 className="text-sm font-semibold mb-2 flex items-center">
-                            <Lightbulb size={16} className="text-yellow-500 mr-2" />
-                            Insight Analysis
-                          </h4>
-                          
-                          <InsightPanel 
-                            journalContent={currentEntry?.content || ""}
-                            journalTags={currentEntry?.userSelectedTags || []}
-                            thoughtRecords={relatedThoughtRecords}
-                          />
                         </div>
                       </>
                     ) : (
