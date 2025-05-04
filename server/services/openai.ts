@@ -260,6 +260,9 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
   const foundEmotions: string[] = [];
   const foundTopics: string[] = [];
   
+  // Track intensity of emotions for deeper analysis
+  const emotionIntensity: {[key: string]: number} = {};
+  
   // Define emotion and topic keywords
   const emotionKeywords = [
     'happy', 'sad', 'angry', 'anxious', 'stressed', 
@@ -581,19 +584,75 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     }
   }
   
-  // Create the final analysis text
-  if (foundEmotions.length > 0 && foundTopics.length > 0) {
-    analysisText = `This entry reflects ${foundEmotions.join(', ')} emotions in relation to ${foundTopics.join(', ')}. `;
-    analysisText += insightText || "Consider how these feelings influence your approach to these areas of your life.";
-  } else if (foundEmotions.length > 0) {
-    analysisText = `This entry primarily expresses ${foundEmotions.join(', ')} emotions. `;
-    analysisText += insightText || "Reflecting on the sources of these feelings may provide additional insights.";
-  } else if (foundTopics.length > 0) {
-    analysisText = `This entry focuses on ${foundTopics.join(', ')}. `;
-    analysisText += insightText || "Consider exploring your emotional responses to these topics in future reflections.";
-  } else {
-    analysisText = `This entry contains general reflections. `;
-    analysisText += insightText || "Consider exploring specific emotions and scenarios in future entries for deeper insights.";
+  // Create the final analysis text with more detailed insights
+  if (cognitiveDistortions.length > 0) {
+    // Focus on specific cognitive distortion patterns
+    if (cognitiveDistortions.includes("All-or-nothing thinking") && combinedText.match(/perfection|flawless|excel|failure|worthless|disaster/i)) {
+      analysisText = `I notice strong all-or-nothing thinking patterns where you're seeing yourself in extreme terms of total success or complete failure. This perspective is creating significant emotional strain because you're not allowing yourself any middle ground for being human and learning through mistakes.`;
+    } 
+    else if (cognitiveDistortions.includes("Overgeneralization") && combinedText.match(/never|always|every|all|again|eternal|history/i)) {
+      analysisText = `Your journal reveals a clear pattern of overgeneralization, where you're taking isolated negative experiences and applying them as permanent rules for all future situations. This is creating a sense of defeat before you even try, as past setbacks are being treated as definitive proof of future outcomes.`;
+    }
+    else if (cognitiveDistortions.includes("Catastrophizing")) {
+      analysisText = `The language in your entry shows catastrophic thinking where relatively minor issues are being amplified into overwhelming disasters. This tendency to imagine worst-case scenarios is intensifying your emotional response far beyond what the situation actually warrants.`;
+    }
+    else if (cognitiveDistortions.includes("Emotional reasoning")) {
+      analysisText = `I see that you're treating your feelings as evidence of objective truth rather than as emotional responses. This emotional reasoning creates a distorted view where negative feelings become 'proof' that the situation is objectively negative, creating a self-reinforcing cycle.`;
+    }
+    else {
+      // General cognitive distortion analysis
+      const primaryDistortions = cognitiveDistortions.slice(0, 2);
+      analysisText = `Your writing reveals ${primaryDistortions.join(" and ")} patterns that are likely intensifying your emotional distress. These thought patterns create a distorted perspective that affects how you see yourself and your abilities.`;
+    }
+    
+    // Add topic-specific insights if available
+    if (foundTopics.length > 0) {
+      analysisText += ` This is particularly evident in how you approach ${foundTopics.join(" and ")}.`;
+    }
+    
+    // Add actionable reflection prompt based on the distortion
+    if (cognitiveDistortions.includes("All-or-nothing thinking") || cognitiveDistortions.includes("Overgeneralization")) {
+      analysisText += ` Try identifying evidence that challenges these absolute perspectives - what middle-ground possibilities exist between the extremes you're seeing?`;
+    } else if (cognitiveDistortions.includes("Catastrophizing")) {
+      analysisText += ` Consider asking what's most likely to happen rather than focusing on the worst possible scenario.`;
+    }
+  } 
+  // If no cognitive distortions but we have emotions
+  else if (foundEmotions.length > 0) {
+    if (foundEmotions.includes("anxious") || foundEmotions.includes("worried")) {
+      analysisText = `Your writing reveals deep anxiety that seems to be consuming your thoughts and creating significant tension. This worry appears to be making it difficult to find any sense of peace or confidence in your abilities.`;
+    }
+    else if (foundEmotions.includes("sad") || foundEmotions.includes("depressed")) {
+      analysisText = `There's a profound sadness permeating your journal entry. These feelings appear to be weighing heavily on you, potentially making it difficult to connect with positive possibilities or find motivation.`;
+    }
+    else if (foundEmotions.includes("empty") || foundEmotions.includes("numb")) {
+      analysisText = `Your writing expresses a deep sense of emptiness and emotional numbness. This disconnection from your feelings might be a protective response to overwhelming emotions that feels safer but ultimately leaves you isolated from yourself and others.`;
+    }
+    else if (foundEmotions.includes("frustrated") || foundEmotions.includes("angry")) {
+      analysisText = `I notice significant frustration and irritation in your writing. These feelings seem to be creating internal tension and possibly affecting how you perceive situations and others around you.`;
+    }
+    else {
+      analysisText = `This entry reflects ${foundEmotions.join(", ")} emotions`;
+      if (foundTopics.length > 0) {
+        analysisText += ` in relation to ${foundTopics.join(", ")}`;
+      }
+      analysisText += `. These feelings appear to be significantly influencing your perspective and internal experience.`;
+    }
+    
+    // Add insightText if available
+    if (insightText) {
+      analysisText += ` ${insightText}`;
+    }
+  } 
+  // If we only have topics
+  else if (foundTopics.length > 0) {
+    analysisText = `Your entry focuses on ${foundTopics.join(', ')}. `;
+    analysisText += insightText || "While you don't explicitly name your emotions, there seem to be significant feelings beneath the surface that might be worth exploring.";
+  } 
+  // Fallback
+  else {
+    analysisText = `This entry contains reflections that suggest underlying emotional processes. `;
+    analysisText += insightText || "Consider naming specific emotions and exploring their sources in future entries to gain deeper insights into your experiences.";
   }
   
   // Calculate sentiment scores
