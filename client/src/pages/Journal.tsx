@@ -988,7 +988,12 @@ export default function Journal() {
           <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-auto">
             <DialogHeader>
               <div className="flex justify-between items-start">
-                <DialogTitle className="text-2xl">{currentEntry.title}</DialogTitle>
+                <div>
+                  <DialogTitle className="text-2xl">{currentEntry.title}</DialogTitle>
+                  <DialogDescription>
+                    {format(new Date(currentEntry.createdAt), "MMMM d, yyyy 'at' h:mm a")}
+                  </DialogDescription>
+                </div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"

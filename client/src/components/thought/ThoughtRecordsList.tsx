@@ -311,6 +311,9 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Thought Record Details</DialogTitle>
+              <DialogDescription>
+                Review the details of this thought record and its cognitive reflections.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -355,6 +358,9 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
         <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Thought Record History</DialogTitle>
+            <DialogDescription>
+              View your complete history of thought records and reflections.
+            </DialogDescription>
           </DialogHeader>
           <div className="overflow-x-auto">
             <Table>
