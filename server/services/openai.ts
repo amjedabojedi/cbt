@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import crypto from "crypto";
 
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -16,6 +17,119 @@ export interface JournalAnalysisResult {
   };
 }
 
+// Cache interface for storing analysis results
+interface CacheEntry {
+  result: JournalAnalysisResult;
+  timestamp: number;
+  hash: string;
+}
+
+// Simple LRU cache for OpenAI responses
+// Create a singleton instance for the application
+const analysisCache = new class AnalysisCache {
+  private cache: Map<string, CacheEntry> = new Map();
+  private maxEntries: number = 100;
+  private ttlMs: number = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+
+  // Generate a hash for the content
+  private generateHash(text: string): string {
+    return crypto.createHash('md5').update(text.toLowerCase().trim()).digest('hex');
+  }
+
+  // Check if we have a cached result for this content
+  public get(title: string, content: string): JournalAnalysisResult | null {
+    const now = Date.now();
+    const hash = this.generateHash(`${title}:${content}`);
+    
+    const cached = this.cache.get(hash);
+    
+    // If we have a cached entry and it's not expired
+    if (cached && (now - cached.timestamp) < this.ttlMs) {
+      console.log("CACHE HIT! Using cached analysis");
+      return cached.result;
+    }
+    
+    // Delete if expired
+    if (cached) {
+      console.log("CACHE EXPIRED. Deleting entry.");
+      this.cache.delete(hash);
+    }
+    
+    return null;
+  }
+
+  // Store a result in the cache
+  public set(title: string, content: string, result: JournalAnalysisResult): void {
+    const hash = this.generateHash(`${title}:${content}`);
+    
+    // Ensure we don't exceed max entries (simple LRU - delete oldest entry)
+    if (this.cache.size >= this.maxEntries) {
+      const oldestKey = this.cache.keys().next().value;
+      this.cache.delete(oldestKey);
+    }
+    
+    this.cache.set(hash, {
+      result,
+      timestamp: Date.now(),
+      hash
+    });
+    
+    console.log("CACHE STORE. New analysis cached.");
+  }
+
+  // Check if a text is similar to any cached entries
+  public findSimilar(title: string, content: string, threshold: number = 0.8): JournalAnalysisResult | null {
+    // Only try to find similar for shorter content (efficiency)
+    if (content.length > 1000) return null;
+    
+    const contentWords = new Set(
+      (title + ' ' + content).toLowerCase()
+        .replace(/[^\w\s]/g, '')
+        .split(/\s+/)
+        .filter(word => word.length > 3)  // Only consider words longer than 3 chars
+    );
+    
+    let bestMatch: { similarity: number, result: JournalAnalysisResult } | null = null;
+    
+    // Check each cache entry for similarity
+    for (const [key, entry] of this.cache.entries()) {
+      // Skip if entry is expired
+      if (Date.now() - entry.timestamp > this.ttlMs) continue;
+      
+      // Extract key parts (we stored as "title:content")
+      const [cachedTitle, ...cachedContentParts] = key.split(':');
+      const cachedContent = cachedContentParts.join(':');
+      
+      const cachedWords = new Set(
+        (cachedTitle + ' ' + cachedContent).toLowerCase()
+          .replace(/[^\w\s]/g, '')
+          .split(/\s+/)
+          .filter(word => word.length > 3)
+      );
+      
+      // Calculate Jaccard similarity (intersection over union)
+      const intersection = new Set([...contentWords].filter(x => cachedWords.has(x)));
+      const union = new Set([...contentWords, ...cachedWords]);
+      
+      const similarity = intersection.size / union.size;
+      
+      if (similarity >= threshold && (!bestMatch || similarity > bestMatch.similarity)) {
+        bestMatch = {
+          similarity,
+          result: entry.result
+        };
+      }
+    }
+    
+    if (bestMatch) {
+      console.log(`SIMILARITY CACHE HIT! Found content with ${Math.round(bestMatch.similarity * 100)}% similarity`);
+      return bestMatch.result;
+    }
+    
+    return null;
+  }
+}
+
 /**
  * Analyzes a journal entry to extract emotions, topics, and suggested tags
  * @param title Journal entry title
@@ -26,6 +140,23 @@ export async function analyzeJournalEntry(
   title: string,
   content: string
 ): Promise<JournalAnalysisResult> {
+  // Step 1: Check if we have an exact match in the cache
+  const cachedResult = analysisCache.get(title, content);
+  if (cachedResult) {
+    console.log("Using cached analysis result (exact match)");
+    return cachedResult;
+  }
+  
+  // Step 2: Check if we have a similar entry in the cache (for shorter entries)
+  if (content.length < 1000) {
+    const similarResult = analysisCache.findSimilar(title, content, 0.8);
+    if (similarResult) {
+      console.log("Using cached analysis result (similar content)");
+      return similarResult;
+    }
+  }
+  
+  // Step 3: If no cache hit, proceed with API call
   try {
     const prompt = `
     Please analyze the following journal entry in the context of cognitive behavioral therapy. 
@@ -57,6 +188,10 @@ export async function analyzeJournalEntry(
     
     try {
       const parsedResponse = JSON.parse(responseContent) as JournalAnalysisResult;
+      
+      // Step 4: Cache the successful result
+      analysisCache.set(title, content, parsedResponse);
+      
       return parsedResponse;
     } catch (parseError) {
       console.error("Failed to parse OpenAI response:", parseError);
