@@ -796,7 +796,7 @@ export default function Journal() {
                               <AccordionItem value="tags">
                                 <AccordionTrigger>
                                   <div className="flex items-center gap-2">
-                                    Tags Word Cloud
+                                    Emotion Word Cloud
                                     <TooltipProvider>
                                       <Tooltip>
                                         <TooltipTrigger asChild>
@@ -804,9 +804,7 @@ export default function Journal() {
                                         </TooltipTrigger>
                                         <TooltipContent className="max-w-[250px] p-4">
                                           <p className="text-xs">
-                                            <span className="font-bold">Larger tags</span> appear more frequently in your journal entries.
-                                            <br /><br />
-                                            <span className="font-bold">Tags with ✨ sparkles</span> appear less often and may have been suggested from recent comments.
+                                            <span className="font-bold">Larger emotions</span> appear more frequently in your journal entries.
                                             <br /><br />
                                             Colors indicate frequency from blue (less common) to red (most common).
                                           </p>
@@ -816,10 +814,10 @@ export default function Journal() {
                                   </div>
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                  {Object.keys(stats.tagsFrequency).length > 0 ? (
-                                    <TagCloud tags={stats.tagsFrequency} />
+                                  {Object.keys(stats.emotions).length > 0 ? (
+                                    <TagCloud tags={stats.emotions} />
                                   ) : (
-                                    <p className="text-muted-foreground">No tag data available</p>
+                                    <p className="text-muted-foreground">No emotion data available</p>
                                   )}
                                 </AccordionContent>
                               </AccordionItem>
