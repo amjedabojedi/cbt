@@ -19,8 +19,10 @@ import {
   Heart,
   Info as InfoIcon,
   X,
-  CheckSquare
+  CheckSquare,
+  Lightbulb
 } from "lucide-react";
+import InsightPanel from "@/components/journal/InsightPanel";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
