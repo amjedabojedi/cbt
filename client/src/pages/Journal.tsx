@@ -345,9 +345,13 @@ export default function Journal() {
       // First try to fetch related thoughts directly from the API endpoint
       const fetchRelatedThoughts = async () => {
         try {
+          console.log("Fetching related thoughts for journal entry:", currentEntry.id);
           const response = await apiRequest('GET', `/api/users/${userId}/journal/${currentEntry.id}/related-thoughts`);
           const relatedThoughts = await response.json();
+          console.log("Related thoughts API response:", relatedThoughts);
+          
           if (Array.isArray(relatedThoughts) && relatedThoughts.length > 0) {
+            console.log("Setting related thought records from API:", relatedThoughts);
             setRelatedThoughtRecords(relatedThoughts);
             return;
           }
@@ -357,6 +361,7 @@ export default function Journal() {
         }
         
         // Fallback: fetch individual thought records if the entry has relatedThoughtRecordIds
+        console.log("Using fallback method. Entry relatedThoughtRecordIds:", currentEntry.relatedThoughtRecordIds);
         if (currentEntry.relatedThoughtRecordIds?.length) {
           const recordPromises = currentEntry.relatedThoughtRecordIds.map(id => 
             apiRequest('GET', `/api/users/${userId}/thoughts/${id}`)
@@ -366,8 +371,10 @@ export default function Journal() {
           
           const recordResults = await Promise.all(recordPromises);
           const validRecords = recordResults.filter((r): r is ThoughtRecord => r !== null);
+          console.log("Setting related thought records from fallback:", validRecords);
           setRelatedThoughtRecords(validRecords);
         } else {
+          console.log("No related thought records found, setting empty array");
           setRelatedThoughtRecords([]);
         }
       };
@@ -419,23 +426,57 @@ export default function Journal() {
   };
   
   const loadEntryWithRelatedRecords = async (entry: JournalEntry) => {
+    console.log("Loading entry with related records:", entry);
     setCurrentEntry(entry);
     setTitle(entry.title);
     setContent(entry.content);
     setSelectedTags(entry.userSelectedTags || []);
     
-    if (entry.relatedThoughtRecordIds?.length && userId) {
-      const recordPromises = entry.relatedThoughtRecordIds.map(id => 
-        apiRequest('GET', `/api/users/${userId}/thoughts/${id}`)
-          .then(res => res.json())
-          .catch(() => null)
-      );
+    // First try to fetch related thoughts directly from the API endpoint
+    try {
+      console.log("Trying direct API for related thoughts", entry.id);
+      const response = await apiRequest('GET', `/api/users/${userId}/journal/${entry.id}/related-thoughts`);
+      const relatedThoughts = await response.json();
+      console.log("Direct API response:", relatedThoughts);
       
-      const recordResults = await Promise.all(recordPromises);
-      const validRecords = recordResults.filter(r => r !== null);
-      setRelatedThoughtRecords(validRecords);
-    } else {
-      setRelatedThoughtRecords([]);
+      if (Array.isArray(relatedThoughts) && relatedThoughts.length > 0) {
+        console.log("Setting thought records from direct API");
+        setRelatedThoughtRecords(relatedThoughts);
+      } else if (entry.relatedThoughtRecordIds?.length && userId) {
+        console.log("Direct API failed, using fallback with IDs:", entry.relatedThoughtRecordIds);
+        const recordPromises = entry.relatedThoughtRecordIds.map(id => 
+          apiRequest('GET', `/api/users/${userId}/thoughts/${id}`)
+            .then(res => res.json())
+            .catch(() => null)
+        );
+        
+        const recordResults = await Promise.all(recordPromises);
+        const validRecords = recordResults.filter(r => r !== null);
+        console.log("Fallback records loaded:", validRecords);
+        setRelatedThoughtRecords(validRecords);
+      } else {
+        console.log("No related records found");
+        setRelatedThoughtRecords([]);
+      }
+    } catch (error) {
+      console.error("Error fetching related thoughts:", error);
+      
+      // Fallback to original method
+      if (entry.relatedThoughtRecordIds?.length && userId) {
+        console.log("Error with direct API, using fallback with IDs:", entry.relatedThoughtRecordIds);
+        const recordPromises = entry.relatedThoughtRecordIds.map(id => 
+          apiRequest('GET', `/api/users/${userId}/thoughts/${id}`)
+            .then(res => res.json())
+            .catch(() => null)
+        );
+        
+        const recordResults = await Promise.all(recordPromises);
+        const validRecords = recordResults.filter(r => r !== null);
+        console.log("Fallback records loaded:", validRecords);
+        setRelatedThoughtRecords(validRecords);
+      } else {
+        setRelatedThoughtRecords([]);
+      }
     }
     
     setActiveTab("view");
