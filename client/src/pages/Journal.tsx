@@ -18,7 +18,7 @@ import {
   HelpCircle,
   Sparkles,
   Heart,
-
+  Check,
   Info as InfoIcon,
   X,
   CheckSquare,
@@ -1014,31 +1014,58 @@ export default function Journal() {
                             {/* Cognitive Distortions Section */}
                             {currentEntry.detectedDistortions && currentEntry.detectedDistortions.length > 0 && (
                               <div className="mt-4 pt-3 border-t border-primary/10">
-                                <p className="text-sm font-medium mb-2 flex items-center gap-1.5">
-                                  <Brain size={14} className="text-orange-500" />
-                                  Cognitive Patterns Detected:
-                                </p>
+                                <div className="flex items-center justify-between">
+                                  <p className="text-sm font-medium mb-2 flex items-center gap-1.5">
+                                    <Brain size={14} className="text-orange-500" />
+                                    Cognitive Patterns Detected:
+                                  </p>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={handleUpdateDistortions}
+                                    disabled={updateDistortionsMutation.isPending}
+                                    className="text-xs h-7 px-2"
+                                  >
+                                    {updateDistortionsMutation.isPending ? (
+                                      <>
+                                        <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin mr-1" />
+                                        Saving...
+                                      </>
+                                    ) : (
+                                      "Save Selection"
+                                    )}
+                                  </Button>
+                                </div>
                                 <div className="flex flex-wrap gap-1.5 mt-1">
-                                  {currentEntry.detectedDistortions.map((distortion, index) => (
-                                    <TooltipProvider key={index}>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Badge 
-                                            variant="outline" 
-                                            className="bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100"
-                                          >
-                                            {distortion}
-                                          </Badge>
-                                        </TooltipTrigger>
-                                        <TooltipContent className="max-w-xs">
-                                          <p>{getDistortionDescription(distortion)}</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  ))}
+                                  {currentEntry.detectedDistortions.map((distortion, index) => {
+                                    const isSelected = selectedDistortions.includes(distortion);
+                                    return (
+                                      <TooltipProvider key={index}>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Badge 
+                                              variant="outline" 
+                                              className={`cursor-pointer ${
+                                                isSelected 
+                                                  ? "bg-orange-500 text-white border-orange-500" 
+                                                  : "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100"
+                                              }`}
+                                              onClick={() => toggleDistortionSelection(distortion)}
+                                            >
+                                              {distortion}
+                                              {isSelected && <Check className="ml-1 h-3 w-3" />}
+                                            </Badge>
+                                          </TooltipTrigger>
+                                          <TooltipContent className="max-w-xs">
+                                            <p>{getDistortionDescription(distortion)}</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    );
+                                  })}
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-2">
-                                  These are thinking patterns identified in your entry that might benefit from reframing.
+                                  Click on the cognitive patterns you identify with in your entry. Your selections will help track your thinking patterns over time.
                                 </p>
                               </div>
                             )}
