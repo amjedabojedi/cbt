@@ -3064,6 +3064,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Re-analyze an existing journal entry to update with cognitive distortions
+  app.post("/api/users/:userId/journal/:entryId/reanalyze", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const entryId = Number(req.params.entryId);
+      if (isNaN(entryId)) {
+        return res.status(400).json({ message: "Invalid entry ID" });
+      }
+      
+      // Get the entry
+      const entry = await storage.getJournalEntryById(entryId);
+      if (!entry) {
+        return res.status(404).json({ message: "Journal entry not found" });
+      }
+      
+      // Double-check access (in addition to middleware)
+      const userId = Number(req.params.userId);
+      // Verify the user owns this entry or has access to it
+      if (entry.userId !== userId && req.user?.role !== 'admin' && 
+          (req.user?.role !== 'therapist' || !await isClientOfTherapist(entry.userId, req.user.id))) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(503).json({ message: "AI analysis is not available" });
+      }
+      
+      // Re-analyze the entry with OpenAI
+      const analysis = await analyzeJournalEntry(entry.title, entry.content);
+      
+      // Update the entry with new analysis including cognitive distortions
+      const updatedEntry = await storage.updateJournalEntry(entryId, {
+        aiAnalysis: analysis.analysis,
+        detectedDistortions: analysis.cognitiveDistortions || [],
+        sentimentPositive: analysis.sentiment.positive,
+        sentimentNegative: analysis.sentiment.negative,
+        sentimentNeutral: analysis.sentiment.neutral
+      });
+      
+      res.status(200).json(updatedEntry);
+    } catch (error) {
+      console.error("Journal re-analysis error:", error);
+      res.status(500).json({ message: "Failed to re-analyze journal entry" });
+    }
+  });
+  
+  // Legacy endpoint for backward compatibility
   app.post("/api/journal/:id/reanalyze", authenticate, async (req, res) => {
     try {
       const entryId = Number(req.params.id);
@@ -3072,7 +3117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get the entry
-      const entry = await storage.getJournalEntry(entryId);
+      const entry = await storage.getJournalEntryById(entryId);
       if (!entry) {
         return res.status(404).json({ message: "Journal entry not found" });
       }

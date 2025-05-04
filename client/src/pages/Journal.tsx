@@ -376,7 +376,7 @@ export default function Journal() {
   const reAnalyzeEntryMutation = useMutation({
     mutationFn: async (entryId: number) => {
       if (!userId) throw new Error("User not authenticated");
-      const response = await apiRequest('POST', `/api/journal/${entryId}/reanalyze`);
+      const response = await apiRequest('POST', `/api/users/${userId}/journal/${entryId}/reanalyze`);
       return response.json();
     },
     onSuccess: (data) => {
