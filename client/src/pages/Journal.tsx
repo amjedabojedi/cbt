@@ -1019,45 +1019,61 @@ export default function Journal() {
                   
                   <div className="mt-2 space-y-2">
                     {relatedThoughtRecords.length > 0 ? (
-                      <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2">
-                        {relatedThoughtRecords.map(record => (
-                          <div key={record.id} className="flex flex-col rounded-md border p-3 text-sm">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-medium text-muted-foreground">
-                                {format(new Date(record.createdAt), "MMM d, yyyy")}
-                              </span>
-                              <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="h-6 w-6 rounded-full ml-2"
-                                onClick={() => 
-                                  unlinkThoughtRecordMutation.mutate({
-                                    journalId: currentEntry!.id,
-                                    thoughtRecordId: record.id
-                                  })
-                                }
-                              >
-                                <X size={14} />
-                              </Button>
-                            </div>
-                            
-                            <div className="mt-1 font-medium text-xs">
-                              <span className="text-muted-foreground">Thoughts: </span>
-                              {record.automaticThoughts}
-                            </div>
-                            
-                            {record.cognitiveDistortions?.length > 0 && (
-                              <div className="mt-2 flex flex-wrap gap-1">
-                                {record.cognitiveDistortions.map(distortion => (
-                                  <Badge key={distortion} variant="outline" className="text-xs">
-                                    {distortion}
-                                  </Badge>
-                                ))}
+                      <>
+                        <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2">
+                          {relatedThoughtRecords.map(record => (
+                            <div key={record.id} className="flex flex-col rounded-md border p-3 text-sm">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-medium text-muted-foreground">
+                                  {format(new Date(record.createdAt), "MMM d, yyyy")}
+                                </span>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-6 w-6 rounded-full ml-2"
+                                  onClick={() => 
+                                    unlinkThoughtRecordMutation.mutate({
+                                      journalId: currentEntry!.id,
+                                      thoughtRecordId: record.id
+                                    })
+                                  }
+                                >
+                                  <X size={14} />
+                                </Button>
                               </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                              
+                              <div className="mt-1 font-medium text-xs">
+                                <span className="text-muted-foreground">Thoughts: </span>
+                                {record.automaticThoughts}
+                              </div>
+                              
+                              {record.cognitiveDistortions?.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-1">
+                                  {record.cognitiveDistortions.map(distortion => (
+                                    <Badge key={distortion} variant="outline" className="text-xs">
+                                      {distortion}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* New Insights Panel */}
+                        <div className="mt-4 pt-2 border-t border-border">
+                          <h4 className="text-sm font-semibold mb-2 flex items-center">
+                            <Lightbulb size={16} className="text-yellow-500 mr-2" />
+                            Insight Analysis
+                          </h4>
+                          
+                          <InsightPanel 
+                            journalContent={currentEntry?.content || ""}
+                            journalTags={currentEntry?.userSelectedTags || []}
+                            thoughtRecords={relatedThoughtRecords}
+                          />
+                        </div>
+                      </>
                     ) : (
                       <p className="text-xs text-muted-foreground italic">
                         No thought records linked
