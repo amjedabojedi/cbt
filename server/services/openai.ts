@@ -80,24 +80,77 @@ export async function analyzeJournalEntry(
       const combinedText = `${title} ${content}`.toLowerCase();
       const fallbackTags = [];
       
-      // Check for common emotions in the text
+      // Check for common emotions in the text - expanded list
       const emotionKeywords = [
         'happy', 'sad', 'angry', 'anxious', 'stressed', 
         'worried', 'excited', 'calm', 'frustrated', 'confident',
-        'fear', 'joy', 'love', 'trust', 'pride'
+        'fear', 'joy', 'love', 'trust', 'pride', 'hopeful',
+        'nervous', 'confused', 'overwhelmed', 'peaceful', 'grateful',
+        'motivated', 'disappointed', 'content', 'lonely', 'guilty',
+        'ashamed', 'embarrassed', 'surprised', 'jealous', 'hopeless',
+        'satisfied', 'hurt', 'insecure', 'regretful', 'optimistic',
+        'pessimistic', 'apathetic', 'bored', 'enthusiastic', 'determined',
+        'discouraged', 'vulnerable', 'resentful', 'compassionate'
       ];
       
       // Check for common topics
       const topicKeywords = [
         'work', 'family', 'relationship', 'health', 'sleep',
         'exercise', 'friends', 'challenge', 'success', 'failure',
-        'conflict', 'achievement', 'goal', 'worry', 'progress'
+        'conflict', 'achievement', 'goal', 'worry', 'progress',
+        'therapy', 'recovery', 'career', 'education', 'finances',
+        'hobby', 'self-care', 'mindfulness', 'meditation', 'spirituality',
+        'communication', 'boundaries', 'leisure', 'trauma', 'coping',
+        'personal growth', 'responsibility', 'self-esteem', 'identity',
+        'productivity', 'relaxation', 'habits', 'learning', 'time management',
+        'mental health', 'physical health', 'social life', 'home'
       ];
       
       // Build basic fallback tags from the content
-      for (const keyword of [...emotionKeywords, ...topicKeywords]) {
-        if (combinedText.includes(keyword)) {
+      // Collect found emotions and topics separately
+      const foundEmotions = [];
+      const foundTopics = [];
+      
+      // First, check for exact word matches using word boundaries
+      for (const keyword of emotionKeywords) {
+        const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+        if (regex.test(combinedText)) {
+          foundEmotions.push(keyword);
           fallbackTags.push(keyword);
+        }
+      }
+      
+      for (const keyword of topicKeywords) {
+        const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+        if (regex.test(combinedText)) {
+          foundTopics.push(keyword);
+          fallbackTags.push(keyword);
+        }
+      }
+      
+      // If we don't have enough emotions, try a more flexible approach
+      if (foundEmotions.length < 2) {
+        for (const keyword of emotionKeywords) {
+          // If we haven't already found this emotion and it's contained in the text
+          if (!foundEmotions.includes(keyword) && combinedText.includes(keyword)) {
+            foundEmotions.push(keyword);
+            fallbackTags.push(keyword);
+            // Stop after finding 3 emotions
+            if (foundEmotions.length >= 3) break;
+          }
+        }
+      }
+      
+      // If we don't have enough topics, try a more flexible approach
+      if (foundTopics.length < 2) {
+        for (const keyword of topicKeywords) {
+          // If we haven't already found this topic and it's contained in the text
+          if (!foundTopics.includes(keyword) && combinedText.includes(keyword)) {
+            foundTopics.push(keyword);
+            fallbackTags.push(keyword);
+            // Stop after finding 3 topics
+            if (foundTopics.length >= 3) break;
+          }
         }
       }
       
@@ -105,6 +158,26 @@ export async function analyzeJournalEntry(
       if (fallbackTags.length < 3) {
         // Add some general tags
         fallbackTags.push('journal', 'reflection');
+        
+        // Add a general emotion if we found none
+        if (foundEmotions.length === 0) {
+          // Pick default emotions based on title/content keywords
+          if (combinedText.includes('problem') || combinedText.includes('difficult') || 
+              combinedText.includes('bad') || combinedText.includes('hard') ||
+              combinedText.includes('trouble') || combinedText.includes('issue')) {
+            fallbackTags.push('concerned');
+            foundEmotions.push('concerned');
+          } else {
+            fallbackTags.push('reflective');
+            foundEmotions.push('reflective');
+          }
+        }
+        
+        // Add a general topic if we found none
+        if (foundTopics.length === 0) {
+          fallbackTags.push('personal development');
+          foundTopics.push('personal development');
+        }
         
         // Add a tag based on content length
         if (content.length > 500) {
@@ -117,12 +190,60 @@ export async function analyzeJournalEntry(
       // Limit to 8 tags maximum
       const limitedTags = fallbackTags.slice(0, 8);
       
+      // Create a more meaningful analysis based on found emotions and topics
+      let analysisText = "";
+      
+      // Generate analysis text based on found emotions and topics
+      if (foundEmotions.length > 0 && foundTopics.length > 0) {
+        analysisText = `This entry reflects ${foundEmotions.join(', ')} emotions in relation to ${foundTopics.join(', ')}. `;
+        
+        // Add a second sentence with a general insight
+        analysisText += `Consider how these feelings influence your approach to these areas of your life.`;
+      } else if (foundEmotions.length > 0) {
+        analysisText = `This entry primarily expresses ${foundEmotions.join(', ')} emotions. `;
+        analysisText += `Reflecting on the sources of these feelings may provide additional insights.`;
+      } else if (foundTopics.length > 0) {
+        analysisText = `This entry focuses on ${foundTopics.join(', ')}. `;
+        analysisText += `Consider exploring your emotional responses to these topics in future reflections.`;
+      } else {
+        analysisText = `This entry contains general reflections. Consider exploring specific emotions and scenarios in future entries for deeper insights.`;
+      }
+      
+      // Calculate a rough sentiment based on the emotions found
+      let positiveScore = 33;
+      let negativeScore = 33;
+      let neutralScore = 34;
+      
+      // Define positive, negative, and neutral emotions
+      const positiveEmotions = ['happy', 'excited', 'confident', 'joy', 'love', 'trust', 'pride', 'hopeful', 'peaceful', 'grateful', 'motivated', 'content', 'satisfied', 'optimistic', 'enthusiastic', 'determined', 'compassionate'];
+      const negativeEmotions = ['sad', 'angry', 'anxious', 'stressed', 'worried', 'frustrated', 'fear', 'nervous', 'confused', 'overwhelmed', 'lonely', 'guilty', 'ashamed', 'embarrassed', 'jealous', 'hopeless', 'hurt', 'insecure', 'regretful', 'pessimistic', 'discouraged', 'vulnerable', 'resentful'];
+      const neutralEmotions = ['calm', 'reflective', 'surprised', 'apathetic', 'bored'];
+      
+      // Count the emotions in each category
+      const positiveCount = foundEmotions.filter(e => positiveEmotions.includes(e)).length;
+      const negativeCount = foundEmotions.filter(e => negativeEmotions.includes(e)).length;
+      const neutralCount = foundEmotions.filter(e => neutralEmotions.includes(e)).length;
+      
+      // Calculate percentages if we have any emotions
+      const totalEmotions = positiveCount + negativeCount + neutralCount;
+      if (totalEmotions > 0) {
+        positiveScore = Math.round((positiveCount / totalEmotions) * 100);
+        negativeScore = Math.round((negativeCount / totalEmotions) * 100);
+        neutralScore = 100 - positiveScore - negativeScore;
+        // Ensure neutralScore is at least 0
+        neutralScore = Math.max(0, neutralScore);
+      }
+      
       return {
         suggestedTags: limitedTags,
-        analysis: "This entry has been analyzed with basic processing. For advanced analysis, please check your OpenAI API quota.",
-        emotions: limitedTags.filter(tag => emotionKeywords.includes(tag)),
-        topics: limitedTags.filter(tag => topicKeywords.includes(tag)),
-        sentiment: { positive: 33, negative: 33, neutral: 34 }
+        analysis: analysisText,
+        emotions: foundEmotions,
+        topics: foundTopics,
+        sentiment: { 
+          positive: positiveScore, 
+          negative: negativeScore, 
+          neutral: neutralScore 
+        }
       };
     };
     
