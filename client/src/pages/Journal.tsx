@@ -20,7 +20,8 @@ import {
   Info as InfoIcon,
   X,
   CheckSquare,
-  Lightbulb
+  Lightbulb,
+  Info
 } from "lucide-react";
 import InsightPanel from "@/components/journal/InsightPanel";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -814,43 +815,122 @@ export default function Journal() {
       
       {/* Dialog for creating or updating a journal entry */}
       <Dialog open={openNewEntry} onOpenChange={setOpenNewEntry}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>{currentEntry?.id ? "Edit Journal Entry" : "Create Journal Entry"}</DialogTitle>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              {editingEntryId ? <Edit className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+              {editingEntryId ? "Edit Journal Entry" : "Create Journal Entry"}
+            </DialogTitle>
             <DialogDescription>
-              {currentEntry?.id 
+              {editingEntryId 
                 ? "Edit your journal entry below." 
                 : "Write your thoughts and feelings. AI will analyze your entry to suggest tags."
               }
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Input
-                id="title"
-                placeholder="Entry Title"
-                className="col-span-4"
-                value={journalTitle}
-                onChange={(e) => setJournalTitle(e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Textarea
-                id="content"
-                placeholder="Write your thoughts here..."
-                className="col-span-4 min-h-[200px] max-h-[400px] overflow-auto"
-                value={journalContent}
-                onChange={(e) => setJournalContent(e.target.value)}
-              />
-            </div>
-          </div>
+          <Tabs defaultValue="write" className="mt-2">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="write">Write</TabsTrigger>
+              <TabsTrigger value="tips" disabled={!!editingEntryId}>Journal Tips</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="write" className="space-y-4 pt-4">
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center mb-2">
+                    <label htmlFor="title" className="text-sm font-medium mr-2">Title</label>
+                    <span className="text-xs text-muted-foreground">(What's on your mind today?)</span>
+                  </div>
+                  <Input
+                    id="title"
+                    placeholder="Entry Title"
+                    value={journalTitle}
+                    onChange={(e) => setJournalTitle(e.target.value)}
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <label htmlFor="content" className="text-sm font-medium mr-2">Journal Content</label>
+                      <span className="text-xs text-muted-foreground">(Express yourself freely)</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {journalContent.length} characters
+                    </div>
+                  </div>
+                  <Textarea
+                    id="content"
+                    placeholder="Write your thoughts here... What happened today? How did you feel? What was challenging? What went well?"
+                    className="min-h-[250px] resize-y"
+                    value={journalContent}
+                    onChange={(e) => setJournalContent(e.target.value)}
+                  />
+                </div>
+                
+                {editingEntryId === null && (
+                  <div className="bg-blue-50 border border-blue-100 rounded-md p-3">
+                    <div className="flex gap-2 text-blue-700">
+                      <Info className="h-5 w-5 flex-shrink-0" />
+                      <p className="text-sm">
+                        After creating your entry, AI will analyze it and suggest emotions and topics. You can then link 
+                        thought records for deeper insights into your patterns.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="tips" className="space-y-4 pt-4">
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Journal Prompts</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2 list-disc pl-5 text-sm">
+                      <li>What emotions did you experience today, and what triggered them?</li>
+                      <li>What thoughts kept recurring throughout your day?</li>
+                      <li>What was challenging today and how did you handle it?</li>
+                      <li>What are you grateful for right now?</li>
+                      <li>What did you learn about yourself today?</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Effective Journaling Tips</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2 list-disc pl-5 text-sm">
+                      <li>Be specific about situations and your reactions</li>
+                      <li>Note both positive and challenging experiences</li>
+                      <li>Identify emotions using specific emotion words (frustrated, joyful, etc.)</li>
+                      <li>Try to connect entries with previous thought records for deeper insights</li>
+                      <li>Be honest - this is your private space to reflect</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
           
-          <DialogFooter>
+          <DialogFooter className="mt-4 pt-2 border-t">
+            <Button
+              variant="outline" 
+              onClick={() => setOpenNewEntry(false)}
+              disabled={createJournalMutation.isPending}
+              className="mr-2"
+            >
+              Cancel
+            </Button>
             <Button
               type="submit"
               onClick={handleCreateJournal}
-              disabled={createJournalMutation.isPending}
+              disabled={createJournalMutation.isPending || !journalTitle.trim() || !journalContent.trim()}
             >
               {createJournalMutation.isPending ? (
                 <>
