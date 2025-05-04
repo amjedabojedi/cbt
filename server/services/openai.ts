@@ -66,7 +66,9 @@ const analysisCache = new class AnalysisCache {
     // Ensure we don't exceed max entries (simple LRU - delete oldest entry)
     if (this.cache.size >= this.maxEntries) {
       const oldestKey = this.cache.keys().next().value;
-      this.cache.delete(oldestKey);
+      if (oldestKey) {
+        this.cache.delete(oldestKey);
+      }
     }
     
     this.cache.set(hash, {
@@ -83,17 +85,19 @@ const analysisCache = new class AnalysisCache {
     // Only try to find similar for shorter content (efficiency)
     if (content.length > 1000) return null;
     
-    const contentWords = new Set(
-      (title + ' ' + content).toLowerCase()
-        .replace(/[^\w\s]/g, '')
-        .split(/\s+/)
-        .filter(word => word.length > 3)  // Only consider words longer than 3 chars
-    );
+    const contentWordsArray = (title + ' ' + content).toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .split(/\s+/)
+      .filter(word => word.length > 3);  // Only consider words longer than 3 chars
+    
+    const contentWords = new Set<string>(contentWordsArray);
     
     let bestMatch: { similarity: number, result: JournalAnalysisResult } | null = null;
     
     // Check each cache entry for similarity
-    for (const [key, entry] of this.cache.entries()) {
+    // Convert entries to array to avoid iterator issues
+    const cacheEntries = Array.from(this.cache.entries());
+    for (const [key, entry] of cacheEntries) {
       // Skip if entry is expired
       if (Date.now() - entry.timestamp > this.ttlMs) continue;
       
@@ -101,16 +105,21 @@ const analysisCache = new class AnalysisCache {
       const [cachedTitle, ...cachedContentParts] = key.split(':');
       const cachedContent = cachedContentParts.join(':');
       
-      const cachedWords = new Set(
-        (cachedTitle + ' ' + cachedContent).toLowerCase()
+      const cachedWordsArray = (cachedTitle + ' ' + cachedContent).toLowerCase()
           .replace(/[^\w\s]/g, '')
           .split(/\s+/)
-          .filter(word => word.length > 3)
-      );
+          .filter(word => word.length > 3);
+      
+      const cachedWords = new Set<string>(cachedWordsArray);
       
       // Calculate Jaccard similarity (intersection over union)
-      const intersection = new Set([...contentWords].filter(x => cachedWords.has(x)));
-      const union = new Set([...contentWords, ...cachedWords]);
+      const contentWordsArray = Array.from(contentWords);
+      const intersectionArray = contentWordsArray.filter(x => cachedWords.has(x));
+      const intersection = new Set<string>(intersectionArray);
+      
+      // Create union by combining arrays then creating a set
+      const unionArray = Array.prototype.concat.call(contentWordsArray, cachedWordsArray);
+      const union = new Set<string>(unionArray);
       
       const similarity = intersection.size / union.size;
       
