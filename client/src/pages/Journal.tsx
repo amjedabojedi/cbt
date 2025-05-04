@@ -1053,18 +1053,60 @@ export default function Journal() {
                     </div>
                   )}
                   
-                  {/* Insights Section - Moved here from the right sidebar */}
-                  {relatedThoughtRecords.length > 0 && (
-                    <div className="mt-6 pt-4 border-t">
-                      <Accordion type="single" collapsible defaultValue="insights" className="w-full">
-                        <AccordionItem value="insights">
-                          <AccordionTrigger className="py-2">
-                            <span className="flex items-center gap-2 text-sm font-medium">
-                              <Lightbulb className="h-4 w-4 text-yellow-500" />
-                              Cross-Reference Insights
-                            </span>
-                          </AccordionTrigger>
-                          <AccordionContent>
+                  {/* Insights Section - Always show, with different content based on linked records */}
+                  <div className="mt-6 pt-4 border-t">
+                    <Accordion type="single" collapsible defaultValue="insights" className="w-full">
+                      <AccordionItem value="insights">
+                        <AccordionTrigger className="py-2">
+                          <span className="flex items-center gap-2 text-sm font-medium">
+                            <Lightbulb className="h-4 w-4 text-yellow-500" />
+                            Emotional Tone & Cross-Reference Insights
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          {currentEntry.sentimentPositive !== undefined && (
+                            <div className="mb-4 border-b pb-4">
+                              <h4 className="text-sm font-semibold mb-3">Emotional Tone Analysis</h4>
+                              <div className="flex flex-col gap-2 mb-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs w-16">Positive:</span>
+                                  <div className="h-2 flex-1 bg-gray-200 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-green-500" 
+                                      style={{ width: `${currentEntry.sentimentPositive || 0}%` }}
+                                    ></div>
+                                  </div>
+                                  <span className="text-xs">{currentEntry.sentimentPositive || 0}%</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs w-16">Negative:</span>
+                                  <div className="h-2 flex-1 bg-gray-200 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-red-500" 
+                                      style={{ width: `${currentEntry.sentimentNegative || 0}%` }}
+                                    ></div>
+                                  </div>
+                                  <span className="text-xs">{currentEntry.sentimentNegative || 0}%</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs w-16">Neutral:</span>
+                                  <div className="h-2 flex-1 bg-gray-200 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-blue-500" 
+                                      style={{ width: `${currentEntry.sentimentNeutral || 0}%` }}
+                                    ></div>
+                                  </div>
+                                  <span className="text-xs">{currentEntry.sentimentNeutral || 0}%</span>
+                                </div>
+                              </div>
+                              
+                              <p className="text-sm text-muted-foreground mb-2">
+                                {currentEntry.aiAnalysis || "No analysis available"}
+                              </p>
+                            </div>
+                          )}
+                                                                    
+                          {relatedThoughtRecords.length > 0 ? (
                             <InsightPanel 
                               journalContent={currentEntry.content}
                               journalTags={currentEntry.userSelectedTags || []}
@@ -1075,11 +1117,24 @@ export default function Journal() {
                                 neutral: currentEntry.sentimentNeutral
                               }}
                             />
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    </div>
-                  )}
+                          ) : (
+                            <div className="text-sm text-muted-foreground">
+                              <p className="mb-3">No thought records are linked to this journal entry yet.</p>
+                              <p className="mb-3">Linking thought records provides deeper insights by connecting your journaled experiences with structured cognitive work.</p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full text-xs"
+                                onClick={openThoughtRecordDialog}
+                              >
+                                <Plus size={14} className="mr-1" /> Link Thought Record
+                              </Button>
+                            </div>
+                          )}
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </div>
                 </div>
                 
                 {/* Add comment form */}
@@ -1279,24 +1334,25 @@ export default function Journal() {
                 
                 <Separator />
                 
-                {currentEntry.emotions && currentEntry.emotions.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                      <Heart size={16} />
-                      Suggested Emotions
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <InfoIcon size={14} className="text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-[250px] p-4">
-                            <p className="text-xs">
-                              These emotions are detected by AI based on your entry content. They are suggestions only.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </h4>
+                {/* Always show the emotions section, with default text if no emotions detected */}
+                <div>
+                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                    <Heart size={16} />
+                    Suggested Emotions
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <InfoIcon size={14} className="text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-[250px] p-4">
+                          <p className="text-xs">
+                            These emotions are detected by AI based on your entry content. You can click on them to add to your selected tags.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </h4>
+                  {currentEntry.emotions && currentEntry.emotions.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {currentEntry.emotions.map((emotion) => (
                         <Badge 
@@ -1309,27 +1365,32 @@ export default function Journal() {
                         </Badge>
                       ))}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="text-sm text-muted-foreground italic px-2 mb-3">
+                      No emotions detected. Try adding more detailed emotional content to your entry.
+                    </div>
+                  )}
+                </div>
                 
-                {currentEntry.topics && currentEntry.topics.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                      <Tag size={16} />
-                      Suggested Topics
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <InfoIcon size={14} className="text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-[250px] p-4">
-                            <p className="text-xs">
-                              These topics are detected by AI based on your entry content. Click any topic to add it to your selected tags.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </h4>
+                {/* Always show Topics section */}
+                <div className="mt-4">
+                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                    <Tag size={16} />
+                    Suggested Topics
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <InfoIcon size={14} className="text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-[250px] p-4">
+                          <p className="text-xs">
+                            These topics are detected by AI based on your entry content. Click any topic to add it to your selected tags.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </h4>
+                  {currentEntry.topics && currentEntry.topics.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {currentEntry.topics.map((topic) => (
                         <Badge 
@@ -1342,8 +1403,12 @@ export default function Journal() {
                         </Badge>
                       ))}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="text-sm text-muted-foreground italic px-2 mb-3">
+                      No topics detected. Try adding more specific content to get topic suggestions.
+                    </div>
+                  )}
+                </div>
                 
                 {/* Emotional Tone section moved to the Insights Panel */}
               </div>
