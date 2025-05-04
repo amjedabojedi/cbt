@@ -576,7 +576,7 @@ export default function Journal() {
                       {/* Add new comment section */}
                       <div className="mt-8 pt-4 border-t">
                         <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
-                          <MessageSquarePlus size={16} className="text-green-500" />
+                          <MessageCircle size={16} className="text-green-500" />
                           Add Comment
                         </h4>
                         <div className="flex gap-3">
@@ -592,7 +592,7 @@ export default function Journal() {
                             disabled={!commentContent.trim()}
                             className="self-end"
                           >
-                            <Send className="h-4 w-4 mr-2" />
+                            <Plus className="h-4 w-4 mr-2" />
                             Post
                           </Button>
                         </div>
@@ -608,7 +608,7 @@ export default function Journal() {
                           
                           <div className="space-y-4">
                             {currentEntry.comments.map((comment) => (
-                              <div key={comment.id} className="flex gap-3">
+                              <div key={comment.id} className="flex gap-3 p-3 bg-slate-50 rounded-md border">
                                 <Avatar className="h-8 w-8">
                                   <AvatarFallback className="bg-primary/10 text-primary">
                                     {comment.user?.name?.charAt(0) || "U"}
