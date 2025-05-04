@@ -227,7 +227,8 @@ export const journalEntries = pgTable("journal_entries", {
   sentimentNeutral: real("sentiment_neutral"), // Neutral sentiment score
   isPrivate: boolean("is_private").default(false).notNull(), // If true, only visible to the user
   relatedThoughtRecordIds: jsonb("related_thought_record_ids").$type<number[]>(), // Bidirectional references
-  detectedDistortions: jsonb("detected_distortions").$type<number[]>(), // References to cognitive_distortions table
+  detectedDistortions: jsonb("detected_distortions").$type<string[]>(), // AI-detected cognitive distortions
+  userSelectedDistortions: jsonb("user_selected_distortions").$type<string[]>(), // Distortions selected by the user
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
