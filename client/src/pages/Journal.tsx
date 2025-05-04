@@ -539,7 +539,7 @@ export default function Journal() {
                   
                   <div className="flex items-center gap-2">
                     <div className="text-sm text-muted-foreground">
-                      {format(new Date(currentEntry.createdAt), "MMM d, yyyy • p")}
+                      {currentEntry.createdAt ? format(new Date(currentEntry.createdAt), "MMM d, yyyy • p") : "No date available"}
                     </div>
                     
                     <Button 

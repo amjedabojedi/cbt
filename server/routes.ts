@@ -3200,7 +3200,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Link the journal entry to the thought record
       await storage.linkJournalToThoughtRecord(journalId, thoughtRecordId);
       
-      res.status(200).json({ message: "Journal entry linked to thought record successfully" });
+      // After linking, get the updated journal entry with all data
+      const updatedJournal = await storage.getJournalEntryById(journalId);
+      
+      // Return the full updated journal entry
+      res.status(200).json(updatedJournal);
     } catch (error) {
       console.error("Link journal to thought record error:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -3208,7 +3212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Unlink a journal entry from a thought record
-  app.delete("/api/journal/:journalId/link-thought/:thoughtRecordId", authenticate, async (req, res) => {
+  app.delete("/api/users/:userId/journal/:journalId/link-thought/:thoughtRecordId", authenticate, checkUserAccess, async (req, res) => {
     try {
       const journalId = Number(req.params.journalId);
       const thoughtRecordId = Number(req.params.thoughtRecordId);
@@ -3244,7 +3248,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Unlink the journal entry from the thought record
       await storage.unlinkJournalFromThoughtRecord(journalId, thoughtRecordId);
       
-      res.status(200).json({ message: "Journal entry unlinked from thought record successfully" });
+      // After unlinking, get the updated journal entry with all data
+      const updatedJournal = await storage.getJournalEntryById(journalId);
+      
+      // Return the full updated journal entry
+      res.status(200).json(updatedJournal);
     } catch (error) {
       console.error("Unlink journal from thought record error:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -3252,7 +3260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get all thought records related to a journal entry
-  app.get("/api/journal/:journalId/related-thoughts", authenticate, async (req, res) => {
+  app.get("/api/users/:userId/journal/:journalId/related-thoughts", authenticate, checkUserAccess, async (req, res) => {
     try {
       const journalId = Number(req.params.journalId);
       
@@ -3283,7 +3291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get all journal entries related to a thought record
-  app.get("/api/thoughts/:thoughtRecordId/related-journals", authenticate, async (req, res) => {
+  app.get("/api/users/:userId/thoughts/:thoughtRecordId/related-journals", authenticate, checkUserAccess, async (req, res) => {
     try {
       const thoughtRecordId = Number(req.params.thoughtRecordId);
       
