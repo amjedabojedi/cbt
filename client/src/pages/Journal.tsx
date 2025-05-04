@@ -623,10 +623,10 @@ export default function Journal() {
                   </div>
                 </div>
                 
-                <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Left side: Journal content and comments */}
                   <div className="lg:col-span-2">
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       {/* Journal Content */}
                       <div className="whitespace-pre-wrap p-4 border rounded-md bg-white shadow-sm">
                         {currentEntry.content}
@@ -638,7 +638,10 @@ export default function Journal() {
                           <MessageCircle size={16} className="text-green-500" />
                           Add Comment
                         </h4>
-                        <div className="flex gap-3">
+                        <form onSubmit={(e) => {
+                          e.preventDefault();
+                          handleAddComment();
+                        }} className="flex gap-3">
                           <Textarea
                             placeholder="Write a comment..."
                             value={commentContent}
@@ -646,15 +649,18 @@ export default function Journal() {
                             className="flex-1"
                           />
                           <Button 
-                            size="sm" 
-                            onClick={handleAddComment}
-                            disabled={!commentContent.trim()}
+                            type="submit"
+                            disabled={!commentContent.trim() || addCommentMutation.isPending}
+                            size="sm"
                             className="self-end"
                           >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Post
+                            {addCommentMutation.isPending ? (
+                              <div className="animate-spin h-4 w-4 border-2 border-background border-t-transparent rounded-full" />
+                            ) : (
+                              "Post"
+                            )}
                           </Button>
-                        </div>
+                        </form>
                       </div>
                       
                       {/* Comments section - Moved above AI Analysis */}
@@ -855,7 +861,7 @@ export default function Journal() {
                   </div>
                   
                   {/* Right side: Tags, emotions, and related thought records */}
-                  <div className="space-y-6 p-4 border-l border-border hidden lg:block">
+                  <div className="space-y-6 p-5 border-l border-border hidden lg:block bg-slate-50/50 rounded-r-md shadow-sm">
                     {/* Related Thought Records Section */}
                     <div>
                       <h4 className="text-sm font-semibold mb-2 flex items-center justify-between">
