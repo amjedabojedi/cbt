@@ -830,34 +830,7 @@ export default function Journal() {
                       </div>
                     </div>
                     
-                    {/* Add comment form */}
-                    <div className="mt-4 pt-2 border-t">
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          handleAddComment();
-                        }}
-                        className="flex gap-2"
-                      >
-                        <Input
-                          placeholder="Add a comment..."
-                          value={commentContent}
-                          onChange={(e) => setCommentContent(e.target.value)}
-                          className="flex-1"
-                        />
-                        <Button
-                          type="submit"
-                          disabled={!commentContent.trim() || addCommentMutation.isPending}
-                          size="sm"
-                        >
-                          {addCommentMutation.isPending ? (
-                            <div className="animate-spin h-4 w-4 border-2 border-background border-t-transparent rounded-full" />
-                          ) : (
-                            "Post"
-                          )}
-                        </Button>
-                      </form>
-                    </div>
+                    {/* Removed duplicate comment form */}
                   </div>
                   
                   {/* Right side: Tags, emotions, and related thought records */}
