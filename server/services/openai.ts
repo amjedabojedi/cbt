@@ -69,12 +69,12 @@ export async function analyzeJournalEntry(
         sentiment: { positive: 0, negative: 0, neutral: 100 }
       };
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("OpenAI API error:", error);
     
-    // Provide fallback tags and analysis when there's an API error (like quota exceeded)
-    if (error.error?.type === 'insufficient_quota' || error.error?.code === 'insufficient_quota') {
-      console.log("Using fallback analysis due to quota error");
+    // Create a function to generate fallback analysis
+    const generateFallbackAnalysis = () => {
+      console.log("Using fallback analysis");
       
       // Generate basic fallback tags from the title and content
       const combinedText = `${title} ${content}`.toLowerCase();
@@ -119,14 +119,30 @@ export async function analyzeJournalEntry(
       
       return {
         suggestedTags: limitedTags,
-        analysis: "This entry has been analyzed with basic fallback processing. For advanced analysis, please check your OpenAI API quota.",
+        analysis: "This entry has been analyzed with basic processing. For advanced analysis, please check your OpenAI API quota.",
         emotions: limitedTags.filter(tag => emotionKeywords.includes(tag)),
         topics: limitedTags.filter(tag => topicKeywords.includes(tag)),
         sentiment: { positive: 33, negative: 33, neutral: 34 }
       };
+    };
+    
+    // Check if it's an object with an error property
+    if (typeof error === 'object' && error !== null) {
+      // Check for quota errors in various possible structures
+      const errorObj = error as any;
+      
+      if (
+        errorObj.error?.type === 'insufficient_quota' || 
+        errorObj.error?.code === 'insufficient_quota' ||
+        errorObj.statusCode === 429 ||
+        errorObj.status === 429 ||
+        (errorObj.message && errorObj.message.includes('quota'))
+      ) {
+        return generateFallbackAnalysis();
+      }
     }
     
-    // If it's not a quota error, throw the error
-    throw new Error(`Failed to analyze journal entry: ${error.message}`);
+    // For any API error, use fallback analysis
+    return generateFallbackAnalysis();
   }
 }
