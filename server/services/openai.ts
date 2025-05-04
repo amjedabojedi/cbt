@@ -285,23 +285,123 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
   // Limit to 8 tags maximum
   const limitedTags = fallbackTags.slice(0, 8);
   
-  // Create a more meaningful analysis based on found emotions and topics
+  // Create a more meaningful and personalized analysis
   let analysisText = "";
   
-  // Generate analysis text based on found emotions and topics
+  // First, let's check for specific meaningful patterns that might provide deeper insights
+  
+  // Check for isolation/loneliness patterns
+  const isolationPattern = /alone|lonely|isolated|no one|by myself|disconnected|distant|foreign|alien/i;
+  const isolationMatch = isolationPattern.test(combinedText);
+  
+  // Check for exhaustion/burnout patterns
+  const exhaustionPattern = /tired|exhausted|drained|no energy|can'?t focus|overwhelmed|burden/i;
+  const exhaustionMatch = exhaustionPattern.test(combinedText);
+  
+  // Check for self-doubt patterns
+  const selfDoubtPattern = /not good enough|failure|mistake|mess up|can'?t do|wrong with me|why can'?t I|failing|pointless/i;
+  const selfDoubtMatch = selfDoubtPattern.test(combinedText);
+  
+  // Check for concealing/pretending patterns
+  const concealingPattern = /pretend|fake|hide|mask|act like|nodding|rehearsed|putting on|nod, rehearsed|far from fine/i;
+  const concealingMatch = concealingPattern.test(combinedText);
+  
+  // Check for rumination/repetitive thoughts patterns
+  const ruminationPattern = /can'?t stop|keep thinking|over and over|racing thoughts|mind won'?t quiet|replaying|keep remembering/i;
+  const ruminationMatch = ruminationPattern.test(combinedText);
+  
+  // Create deeper insight based on matches
+  let insightText = "";
+  
+  if (isolationMatch && foundEmotions.includes('lonely')) {
+    insightText += "Your feelings of isolation may be intensified by disconnection from support systems. ";
+    // Add "connection" as a potential topic tag
+    if (!foundTopics.includes('connection')) {
+      foundTopics.push('connection');
+      fallbackTags.push('connection');
+    }
+  }
+  
+  if (exhaustionMatch && (foundEmotions.includes('tired') || foundEmotions.includes('exhausted'))) {
+    insightText += "The fatigue expressed may indicate a need for deeper rest or boundaries. ";
+    // Add "self-care" as a potential topic tag
+    if (!foundTopics.includes('self-care')) {
+      foundTopics.push('self-care');
+      fallbackTags.push('self-care');
+    }
+  }
+  
+  if (selfDoubtMatch) {
+    insightText += "Consider how negative self-evaluation influences your perspective. ";
+    // Add "self-esteem" as a potential topic tag
+    if (!foundTopics.includes('self-esteem')) {
+      foundTopics.push('self-esteem');
+      fallbackTags.push('self-esteem');
+    }
+    // Add "critical thoughts" as a tag
+    if (!fallbackTags.includes('critical thoughts')) {
+      fallbackTags.push('critical thoughts');
+    }
+  }
+  
+  if (concealingMatch) {
+    insightText += "The effort to conceal true feelings may create additional emotional tension. ";
+    // Add "authenticity" as a potential topic tag
+    if (!foundTopics.includes('authenticity')) {
+      foundTopics.push('authenticity');
+      fallbackTags.push('authenticity');
+    }
+  }
+  
+  if (ruminationMatch) {
+    insightText += "Repetitive thought patterns may be contributing to emotional intensity. ";
+    // Add "rumination" as a tag
+    if (!fallbackTags.includes('rumination')) {
+      fallbackTags.push('rumination');
+    }
+  }
+  
+  // Now generate the main analysis text with our enhanced insights
   if (foundEmotions.length > 0 && foundTopics.length > 0) {
     analysisText = `This entry reflects ${foundEmotions.join(', ')} emotions in relation to ${foundTopics.join(', ')}. `;
     
-    // Add a second sentence with a general insight
-    analysisText += `Consider how these feelings influence your approach to these areas of your life.`;
+    // Add insightText if available
+    if (insightText) {
+      analysisText += insightText;
+    } else {
+      // Default second sentence
+      analysisText += `Consider how these feelings influence your approach to these areas of your life.`;
+    }
   } else if (foundEmotions.length > 0) {
     analysisText = `This entry primarily expresses ${foundEmotions.join(', ')} emotions. `;
-    analysisText += `Reflecting on the sources of these feelings may provide additional insights.`;
+    
+    // Add insightText if available
+    if (insightText) {
+      analysisText += insightText;
+    } else {
+      // Default second sentence
+      analysisText += `Reflecting on the sources of these feelings may provide additional insights.`;
+    }
   } else if (foundTopics.length > 0) {
     analysisText = `This entry focuses on ${foundTopics.join(', ')}. `;
-    analysisText += `Consider exploring your emotional responses to these topics in future reflections.`;
+    
+    // Add insightText if available
+    if (insightText) {
+      analysisText += insightText;
+    } else {
+      // Default second sentence
+      analysisText += `Consider exploring your emotional responses to these topics in future reflections.`;
+    }
   } else {
-    analysisText = `This entry contains general reflections. Consider exploring specific emotions and scenarios in future entries for deeper insights.`;
+    analysisText = `This entry contains general reflections. `;
+    
+    // Add insightText if available
+    if (insightText) {
+      analysisText += insightText;
+    } else {
+      // Default second sentence
+      analysisText += `Consider exploring specific emotions and scenarios in future entries for deeper insights.`;
+    }
   }
   
   // Define positive, negative, and neutral emotions with expanded categories
@@ -465,38 +565,36 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     negativeScore = 85;
     neutralScore = 15;
   } else {
-  
-  // Count the emotions in each category
-  const positiveCount = foundEmotions.filter(e => positiveEmotions.includes(e)).length;
-  const negativeCount = foundEmotions.filter(e => negativeEmotions.includes(e)).length;
-  const neutralCount = foundEmotions.filter(e => neutralEmotions.includes(e)).length;
-  
-  // Calculate percentages if we have any emotions
-  const totalEmotions = positiveCount + negativeCount + neutralCount;
-  if (totalEmotions > 0) {
-    positiveScore = Math.round((positiveCount / totalEmotions) * 100);
-    negativeScore = Math.round((negativeCount / totalEmotions) * 100);
-    neutralScore = 100 - positiveScore - negativeScore;
-    // Ensure neutralScore is at least 0
-    neutralScore = Math.max(0, neutralScore);
-  }
-  
-  // If we found explicit negative expressions but somehow still have high positive score,
-  // adjust the sentiment to reflect the negative expressions
-  if (hasExplicitNegativeExpressions && positiveScore > 50) {
-    positiveScore = 20;
-    negativeScore = 60;
-    neutralScore = 20;
-  }
-  
-  // If we detected negated positive words but sentiment doesn't reflect it,
-  // adjust the sentiment scores
-  if (negatedWords.some(word => positiveEmotions.includes(word)) && positiveScore > negativeScore) {
-    positiveScore = 20;
-    negativeScore = 60;
-    neutralScore = 20;
-  }
-  
+    // Count the emotions in each category
+    const positiveCount = foundEmotions.filter(e => positiveEmotions.includes(e)).length;
+    const negativeCount = foundEmotions.filter(e => negativeEmotions.includes(e)).length;
+    const neutralCount = foundEmotions.filter(e => neutralEmotions.includes(e)).length;
+    
+    // Calculate percentages if we have any emotions
+    const totalEmotions = positiveCount + negativeCount + neutralCount;
+    if (totalEmotions > 0) {
+      positiveScore = Math.round((positiveCount / totalEmotions) * 100);
+      negativeScore = Math.round((negativeCount / totalEmotions) * 100);
+      neutralScore = 100 - positiveScore - negativeScore;
+      // Ensure neutralScore is at least 0
+      neutralScore = Math.max(0, neutralScore);
+    }
+    
+    // If we found explicit negative expressions but somehow still have high positive score,
+    // adjust the sentiment to reflect the negative expressions
+    if (hasExplicitNegativeExpressions && positiveScore > 50) {
+      positiveScore = 20;
+      negativeScore = 60;
+      neutralScore = 20;
+    }
+    
+    // If we detected negated positive words but sentiment doesn't reflect it,
+    // adjust the sentiment scores
+    if (negatedWords.some(word => positiveEmotions.includes(word)) && positiveScore > negativeScore) {
+      positiveScore = 20;
+      negativeScore = 60;
+      neutralScore = 20;
+    }
   }
   
   return {
