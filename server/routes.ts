@@ -2983,26 +2983,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Count emotions, topics, and tags - process both AI-suggested and user-selected tags
+      // Count emotions, topics, and tags - ONLY process user-selected tags
       entries.forEach(entry => {
-        // Process AI-suggested tags
-        const tagsToProcess = entry.aiSuggestedTags || [];
-        
-        // For emotions, directly use entry.emotions array
-        if (entry.emotions && Array.isArray(entry.emotions)) {
-          entry.emotions.forEach(emotion => {
-            stats.emotions[emotion] = (stats.emotions[emotion] || 0) + 1;
-            stats.tagsFrequency[emotion] = (stats.tagsFrequency[emotion] || 0) + 1;
-          });
-        }
-        
-        // For topics, directly use entry.topics array
-        if (entry.topics && Array.isArray(entry.topics)) {
-          entry.topics.forEach(topic => {
-            stats.topics[topic] = (stats.topics[topic] || 0) + 1;
-            stats.tagsFrequency[topic] = (stats.tagsFrequency[topic] || 0) + 1;
-          });
-        }
+        // Only process user-selected tags, not AI-suggested tags
+        const userTags = entry.userSelectedTags || [];
         
         // Also process user-selected tags if available
         if (entry.userSelectedTags && Array.isArray(entry.userSelectedTags)) {
