@@ -3002,19 +3002,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Count all user-selected tags
             stats.tagsFrequency[tag] = (stats.tagsFrequency[tag] || 0) + 1;
             
-            // Common emotion words - if the tag contains any of these, categorize as emotion
+            // Common emotion words - expanded list with more terms
             const emotionWords = [
+              // Basic emotions
               'happy', 'sad', 'angry', 'anxious', 'worried', 'excited', 'calm', 'stressed',
               'peaceful', 'nervous', 'joyful', 'depressed', 'content', 'upset', 'frustrated',
               'positive', 'negative', 'neutral', 'balanced', 'overwhelmed', 'hopeful',
               'relieved', 'grateful', 'afraid', 'confused', 'proud', 'ashamed', 'confident',
               'fearful', 'relaxed', 'annoyed', 'disappointed', 'satisfied', 'lonely', 'loved',
-              'fear', 'joy', 'disgust', 'surprise', 'trust', 'anticipation', 'acceptance',
-              'incompetence', 'hopelessness', 'frustration'
+              
+              // Core emotions and common variations
+              'fear', 'anxiety', 'scared', 'terror', 'horror', 'dread', 'panic',
+              'joy', 'happiness', 'delight', 'elation', 'ecstasy', 'thrill',
+              'disgust', 'repulsion', 'revulsion', 'distaste', 'aversion',
+              'surprise', 'astonishment', 'amazement', 'shock', 'wonder',
+              'trust', 'anticipation', 'acceptance', 'admiration', 'adoration',
+              
+              // Cognitive emotion terms
+              'incompetence', 'hopelessness', 'frustration', 'despair', 'grief',
+              'remorse', 'guilt', 'shame', 'regret', 'embarrassment',
+              'pride', 'triumph', 'satisfaction', 'contentment',
+              'rage', 'fury', 'resentment', 'irritation', 'annoyance', 'aggression',
+              'jealousy', 'envy', 'bitterness', 'disappointment',
+              
+              // Common emotional states
+              'stressed', 'tense', 'overwhelmed', 'burnout', 'exhausted',
+              'lonely', 'isolated', 'abandoned', 'rejected', 'betrayed',
+              'vulnerable', 'insecure', 'uncertain', 'helpless', 'powerless',
+              'hurt', 'pain', 'suffering', 'agony', 'torment',
+              
+              // Specific emotion patterns
+              'catastrophizing'
             ];
             
-            const tagLower = tag.toLowerCase();
-            const isLikelyEmotion = emotionWords.some(word => tagLower.includes(word));
+            const tagLower = tag.toLowerCase().trim();
+            
+            // Special case: directly check for exact matches with our most common emotions
+            if (
+              tagLower === 'fear' || 
+              tagLower === 'anxiety' || 
+              tagLower === 'joy' || 
+              tagLower === 'anger' || 
+              tagLower === 'sadness' || 
+              tagLower === 'disgust' || 
+              tagLower === 'surprise' || 
+              tagLower === 'trust' || 
+              tagLower === 'anticipation' || 
+              tagLower === 'worry'
+            ) {
+              stats.emotions[tag] = (stats.emotions[tag] || 0) + 1;
+              return;
+            }
+            
+            // For other terms, check if they contain emotion words
+            const isLikelyEmotion = emotionWords.some(word => 
+              tagLower === word || // exact match
+              tagLower.startsWith(word + ' ') || // starts with the word
+              tagLower.endsWith(' ' + word) || // ends with the word
+              tagLower.includes(' ' + word + ' ') // contains the word with spaces around it
+            );
             
             if (isLikelyEmotion) {
               stats.emotions[tag] = (stats.emotions[tag] || 0) + 1;
