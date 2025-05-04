@@ -10,6 +10,7 @@ export interface JournalAnalysisResult {
   analysis: string;
   emotions: string[];
   topics: string[];
+  cognitiveDistortions?: string[];
   sentiment: {
     positive: number;
     negative: number;
@@ -170,7 +171,18 @@ export async function analyzeJournalEntry(
     2. analysis: A brief (2-3 sentences) summary of the main themes and emotional content
     3. emotions: Up to 5 emotions expressed in the entry
     4. topics: Up to 5 main topics or themes discussed
-    5. sentiment: Score the overall emotional tone with percentages for positive, negative, and neutral (totaling 100%)
+    5. cognitiveDistortions: Identify any cognitive distortions present, such as:
+       - All-or-nothing thinking (black-and-white thinking)
+       - Overgeneralization (using words like "always", "never", "everyone")
+       - Mental filtering (focusing only on negatives)
+       - Disqualifying the positive (dismissing positive experiences)
+       - Jumping to conclusions (mind reading or fortune telling)
+       - Catastrophizing (expecting disaster)
+       - Emotional reasoning (believing feelings reflect reality)
+       - Should statements (using words like "should", "must", "ought to")
+       - Labeling (attaching negative labels to self or others)
+       - Personalization (blaming yourself for events outside your control)
+    6. sentiment: Score the overall emotional tone with percentages for positive, negative, and neutral (totaling 100%)
     
     Your response should be a valid JSON object with these fields.
     `;
@@ -421,6 +433,61 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     }
   }
   
+  // Identify cognitive distortions in the journal text
+  const cognitiveDistortions: string[] = [];
+  
+  // All-or-nothing thinking
+  if (/\b(all|nothing|every|none|always|never|everyone|no one|completely|totally|absolutely|perfect|failure|disaster)\b/i.test(combinedText)) {
+    cognitiveDistortions.push("All-or-nothing thinking");
+  }
+  
+  // Overgeneralization
+  if (/\b(always|never|everyone|nobody|everything|nothing|every time|all the time)\b/i.test(combinedText)) {
+    if (!cognitiveDistortions.includes("Overgeneralization")) {
+      cognitiveDistortions.push("Overgeneralization");
+    }
+  }
+  
+  // Mental filtering
+  if (/\b(only bad|only negative|only the worst|focus on bad|ignore good|didn't matter|doesn't count|still bad|still failed)\b/i.test(combinedText)) {
+    cognitiveDistortions.push("Mental filtering");
+  }
+  
+  // Disqualifying the positive
+  if (/\b(doesn't count|don't deserve|got lucky|fluke|accident|just being nice|not important|not real|meaningless)\b/i.test(combinedText)) {
+    cognitiveDistortions.push("Disqualifying the positive");
+  }
+  
+  // Jumping to conclusions
+  if (/\b(think|knows? what|they think|they feel|going to|will happen|will fail|will reject|won't like|won't approve|predict|foresee|expect the worst)\b/i.test(combinedText)) {
+    cognitiveDistortions.push("Jumping to conclusions");
+  }
+  
+  // Catastrophizing
+  if (/\b(disaster|catastrophe|terrible|horrible|worst|awful|unbearable|can'?t stand|can'?t handle|too much|end of the world|devastat(ing|ed)|nightmare)\b/i.test(combinedText)) {
+    cognitiveDistortions.push("Catastrophizing");
+  }
+  
+  // Emotional reasoning
+  if (/\b(feel like|feels? true|must be true|must be real|feels? like|emotions? tell|gut says|intuition says|sense that)\b/i.test(combinedText)) {
+    cognitiveDistortions.push("Emotional reasoning");
+  }
+  
+  // Should statements
+  if (/\b(should|must|have to|ought to|need to|supposed to|expected to|obligated to)\b/i.test(combinedText)) {
+    cognitiveDistortions.push("Should statements");
+  }
+  
+  // Labeling
+  if (/\b(I am a|I'm a|he is a|she is a|they are|we are|you are|you're)( a)? (failure|loser|idiot|stupid|worthless|useless|pathetic|horrible|terrible|awful|bad person)\b/i.test(combinedText)) {
+    cognitiveDistortions.push("Labeling");
+  }
+  
+  // Personalization
+  if (/\b(my fault|blame (me|myself)|responsible for|caused|should have prevented|could have stopped|if only I|blame (myself|me))\b/i.test(combinedText)) {
+    cognitiveDistortions.push("Personalization");
+  }
+
   // Ensure we have some tags
   if (fallbackTags.length < 3) {
     // Add standard journal tags
@@ -569,6 +636,7 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     analysis: analysisText,
     emotions: foundEmotions,
     topics: foundTopics,
+    cognitiveDistortions: cognitiveDistortions.length > 0 ? cognitiveDistortions : undefined,
     sentiment: { 
       positive: positiveScore, 
       negative: negativeScore, 
