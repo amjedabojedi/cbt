@@ -493,7 +493,7 @@ export default function Journal() {
 
   return (
     <AppLayout>
-      <div className="container py-6">
+      <div className="container py-8 px-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Journal</h1>
           <Button onClick={() => {
@@ -623,9 +623,9 @@ export default function Journal() {
                   </div>
                 </div>
                 
-                <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
                   {/* Left side: Journal content and comments */}
-                  <div className="lg:col-span-2">
+                  <div className="lg:col-span-2 space-y-6">
                     <div className="space-y-5">
                       {/* Journal Content */}
                       <div className="whitespace-pre-wrap p-4 border rounded-md bg-white shadow-sm">
@@ -834,7 +834,7 @@ export default function Journal() {
                   </div>
                   
                   {/* Right side: Tags, emotions, and related thought records */}
-                  <div className="space-y-6 p-5 border-l border-border hidden lg:block bg-slate-50/50 rounded-r-md shadow-sm">
+                  <div className="space-y-8 p-6 border-l border-border hidden lg:block bg-slate-50/50 rounded-r-md shadow-sm">
                     {/* Related Thought Records Section */}
                     <div>
                       <h4 className="text-sm font-semibold mb-2 flex items-center justify-between">
