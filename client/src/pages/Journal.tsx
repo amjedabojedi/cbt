@@ -466,7 +466,7 @@ export default function Journal() {
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg font-medium line-clamp-1">{entry.title || "Untitled Entry"}</CardTitle>
                         <div className="text-xs text-muted-foreground">
-                          {format(new Date(entry.createdAt), "MMM d, yyyy")}
+                          {entry.createdAt ? format(new Date(entry.createdAt), "MMM d, yyyy") : "No date available"}
                         </div>
                       </div>
                     </CardHeader>
@@ -620,7 +620,7 @@ export default function Journal() {
                                       {comment.user?.name || "User"}
                                     </h5>
                                     <span className="text-xs text-muted-foreground">
-                                      {format(new Date(comment.createdAt), "MMM d, p")}
+                                      {comment.createdAt ? format(new Date(comment.createdAt), "MMM d, p") : "No date available"}
                                     </span>
                                   </div>
                                   <p className="text-sm mt-1">{comment.comment}</p>
@@ -827,7 +827,7 @@ export default function Journal() {
                                 <div key={record.id} className="flex flex-col rounded-md border p-3 text-sm">
                                   <div className="flex items-center justify-between">
                                     <span className="text-xs font-medium text-muted-foreground">
-                                      {format(new Date(record.createdAt), "MMM d, yyyy")}
+                                      {record.createdAt ? format(new Date(record.createdAt), "MMM d, yyyy") : "No date available"}
                                     </span>
                                     <div className="flex items-center gap-1">
                                       <Button 
@@ -1208,7 +1208,7 @@ export default function Journal() {
                           Thought Record
                         </CardTitle>
                         <div className="text-xs text-muted-foreground">
-                          {format(new Date(record.createdAt), "MMM d, yyyy")}
+                          {record.createdAt ? format(new Date(record.createdAt), "MMM d, yyyy") : "No date available"}
                         </div>
                       </div>
                     </CardHeader>
