@@ -1044,20 +1044,7 @@ export default function Journal() {
                   {/* Journal Content */}
                   <div className="whitespace-pre-wrap">{currentEntry.content}</div>
                   
-                  {/* AI Analysis */}
-                  {currentEntry.aiAnalysis && (
-                    <div className="mt-6 p-4 bg-primary/5 rounded-md">
-                      <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                        <Sparkles size={16} className="text-yellow-500" />
-                        AI Analysis
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        {currentEntry.aiAnalysis}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {/* Comments section */}
+                  {/* Comments section - Moved above AI Analysis */}
                   {currentEntry.comments && currentEntry.comments.length > 0 && (
                     <div className="mt-6">
                       <h4 className="font-medium text-sm mb-4 flex items-center gap-2">
@@ -1087,6 +1074,19 @@ export default function Journal() {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+                  
+                  {/* AI Analysis - Moved below Comments */}
+                  {currentEntry.aiAnalysis && (
+                    <div className="mt-6 p-4 bg-primary/5 rounded-md">
+                      <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                        <Sparkles size={16} className="text-yellow-500" />
+                        AI Analysis
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {currentEntry.aiAnalysis}
+                      </p>
                     </div>
                   )}
                   
@@ -1238,23 +1238,6 @@ export default function Journal() {
                     </Button>
                   </form>
                 </div>
-                  <div className="mt-6 pt-4 border-t">
-                    <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                      <BrainCircuit size={16} className="text-primary" />
-                      Cognitive Pattern Analysis
-                    </h4>
-                    
-                    <div className="p-3 bg-primary/5 rounded-md border border-primary/10">
-                      {relatedThoughtRecords.length === 1 ? (
-                        <p className="text-sm text-muted-foreground">
-                          This journal entry is connected to a thought record, helping you track how your thoughts relate to this experience.
-                        </p>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          {`This journal entry connects to ${relatedThoughtRecords.length} different thought records, revealing recurring patterns in your cognitive responses.`}
-                        </p>
-                      )}
-                      
                       {/* Show patterns in cognitive distortions if present */}
                       {relatedThoughtRecords.some(r => r.cognitiveDistortions?.length > 0) && (
                         <div className="mt-3">
