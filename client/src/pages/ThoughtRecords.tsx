@@ -5,13 +5,11 @@ import AppLayout from "@/components/layout/AppLayout";
 import ThoughtRecordsList from "@/components/thought/ThoughtRecordsList";
 import { format } from "date-fns";
 import { ThoughtRecord as BaseThoughtRecord } from "@shared/schema";
-
-// Extended interface to include related journal entries
-interface ThoughtRecord extends BaseThoughtRecord {
-  relatedJournalEntryIds?: number[];
-}
 import useActiveUser from "@/hooks/use-active-user";
 import { ClientDebug } from "@/components/debug/ClientDebug";
+
+// Use the schema definition directly
+type ThoughtRecord = BaseThoughtRecord;
 
 import {
   Card,
