@@ -21,7 +21,11 @@ import {
   X,
   CheckSquare,
   Lightbulb,
-  Info
+  Info,
+  Link2,
+  ExternalLink,
+  BrainCircuit,
+  Brain
 } from "lucide-react";
 import InsightPanel from "@/components/journal/InsightPanel";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -109,7 +113,12 @@ interface ThoughtRecord {
   emotionRecordId: number | null;
   automaticThoughts: string;
   cognitiveDistortions: string[];
-  rationalThoughts: string;
+  evidenceFor: string | null;
+  evidenceAgainst: string | null;
+  alternativePerspective: string | null;
+  insightsGained: string | null;
+  reflectionRating: number | null;
+  rationalThoughts?: string;
   createdAt: string;
   updatedAt?: string;
   emotionIntensityBefore?: number;
@@ -1229,19 +1238,32 @@ export default function Journal() {
                                 <span className="text-xs font-medium text-muted-foreground">
                                   {format(new Date(record.createdAt), "MMM d, yyyy")}
                                 </span>
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="h-6 w-6 rounded-full ml-2"
-                                  onClick={() => 
-                                    unlinkThoughtRecordMutation.mutate({
-                                      journalId: currentEntry!.id,
-                                      thoughtRecordId: record.id
-                                    })
-                                  }
-                                >
-                                  <X size={14} />
-                                </Button>
+                                <div className="flex items-center gap-1">
+                                  <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    className="h-6 w-6 rounded-full"
+                                    asChild
+                                  >
+                                    <a href={`/thought-records?record=${record.id}`} title="View thought record details">
+                                      <ExternalLink size={14} />
+                                    </a>
+                                  </Button>
+                                  <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    className="h-6 w-6 rounded-full"
+                                    onClick={() => 
+                                      unlinkThoughtRecordMutation.mutate({
+                                        journalId: currentEntry!.id,
+                                        thoughtRecordId: record.id
+                                      })
+                                    }
+                                    title="Unlink this thought record"
+                                  >
+                                    <X size={14} />
+                                  </Button>
+                                </div>
                               </div>
                               
                               <div className="mt-1 font-medium text-xs">
@@ -1258,24 +1280,96 @@ export default function Journal() {
                                   ))}
                                 </div>
                               )}
+                              
+                              {/* Show alternative perspective if available */}
+                              {record.alternativePerspective && (
+                                <div className="mt-2 border-t pt-2 text-xs text-muted-foreground">
+                                  <span className="font-medium">Alternative perspective: </span>
+                                  <span className="italic line-clamp-2">{record.alternativePerspective}</span>
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
+                        
+                        {/* Insights panel for cross-component patterns - only show if we have 2+ records */}
+                        {relatedThoughtRecords.length >= 2 && (
+                          <div className="mt-4 p-3 bg-primary/5 rounded-md border border-primary/10">
+                            <h4 className="text-xs font-medium flex items-center gap-1 mb-2 text-primary">
+                              <BrainCircuit size={14} />
+                              Cross-Component Insights
+                            </h4>
+                            <p className="text-xs text-muted-foreground">
+                              {`This entry is connected to ${relatedThoughtRecords.length} thought records, revealing patterns in your thinking and emotional responses.`}
+                            </p>
+                            
+                            {/* Show patterns in cognitive distortions if present */}
+                            {relatedThoughtRecords.some(r => r.cognitiveDistortions?.length > 0) && (
+                              <div className="mt-2 text-xs">
+                                <p className="font-medium">Common thinking patterns:</p>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {/* Get all distortions across records */}
+                                  {(() => {
+                                    // Count distortion occurrences
+                                    const distortionCounts: Record<string, number> = {};
+                                    relatedThoughtRecords.forEach(record => {
+                                      if (record.cognitiveDistortions) {
+                                        record.cognitiveDistortions.forEach(d => {
+                                          distortionCounts[d] = (distortionCounts[d] || 0) + 1;
+                                        });
+                                      }
+                                    });
+                                    
+                                    // Sort by occurrence count
+                                    return Object.entries(distortionCounts)
+                                      .sort((a, b) => b[1] - a[1])
+                                      .slice(0, 3)
+                                      .map(([distortion, count]) => (
+                                        <Badge 
+                                          key={distortion} 
+                                          className="text-xs bg-primary/20 hover:bg-primary/30 text-primary border-primary/20"
+                                        >
+                                          {distortion.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+                                          {count > 1 && ` (${count})`}
+                                        </Badge>
+                                      ));
+                                  })()}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </>
                     ) : (
-                      <p className="text-xs text-muted-foreground italic">
-                        No thought records linked
-                      </p>
+                      <div className="flex flex-col items-center justify-center text-center py-3 px-2 bg-slate-50 rounded-md border border-dashed">
+                        <Brain className="h-10 w-10 text-muted-foreground/50 mb-2" />
+                        <p className="text-sm text-muted-foreground mb-1">No thought records linked yet</p>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          Linking thought records helps you track cognitive patterns and provides deeper insights about your emotional responses.
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-xs"
+                          onClick={openThoughtRecordDialog}
+                        >
+                          <Link2 size={14} className="mr-1" />
+                          Link Thought Record
+                        </Button>
+                      </div>
                     )}
                     
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full mt-2 text-xs"
-                      onClick={openThoughtRecordDialog}
-                    >
-                      <Plus size={14} className="mr-1" /> Link Thought Record
-                    </Button>
+                    {/* Only show Link button if we already have thought records linked */}
+                    {relatedThoughtRecords.length > 0 && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full mt-2 text-xs"
+                        onClick={openThoughtRecordDialog}
+                      >
+                        <Plus size={14} className="mr-1" /> Link Another Thought Record
+                      </Button>
+                    )}
                   </div>
                 </div>
                 
