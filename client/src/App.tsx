@@ -63,7 +63,6 @@ function Router() {
         <ProtectedRoute path="/dashboard" component={RoleDashboard} />
         <ProtectedRoute path="/emotion-tracking" component={EmotionTracking} />
         <ProtectedRoute path="/emotions" component={EmotionTracking} />
-        <ProtectedRoute path="/emotion-mapping" component={EmotionMapping} />
         <ProtectedRoute path="/thoughts" component={ThoughtRecords} />
         <ProtectedRoute path="/goals" component={GoalSetting} />
         <ProtectedRoute path="/library" component={ResourceLibrary} />
@@ -86,6 +85,11 @@ function Router() {
         <ProtectedRoute 
           path="/subscriptions" 
           component={SubscriptionManagement} 
+          allowedRoles={["admin"]} 
+        />
+        <ProtectedRoute 
+          path="/emotion-mapping" 
+          component={EmotionMapping} 
           allowedRoles={["admin"]} 
         />
         

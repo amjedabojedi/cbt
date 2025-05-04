@@ -68,13 +68,38 @@ export default function EmotionMapping() {
     );
   }
   
+  if (user.role !== "admin") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Admin Access Required</CardTitle>
+            <CardDescription>This feature is only available to administrators.</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+  
   return (
     <div className="container py-6 space-y-6">
       <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Emotion Mapping & Integration</h1>
         <p className="text-muted-foreground">
-          Explore connections between emotions and find related content across the application.
+          Admin configuration tool to manage emotion taxonomy and connections across the application.
         </p>
+        <div className="flex items-center mt-2 bg-amber-50 border border-amber-200 p-3 rounded-md">
+          <div className="text-amber-600 mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shield-alert">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="M12 8v4" />
+              <path d="M12 16h.01" />
+            </svg>
+          </div>
+          <div className="text-sm text-amber-800">
+            Changes made here will affect emotion relationships throughout the entire application.
+          </div>
+        </div>
       </div>
       
       <div className="grid gap-6 md:grid-cols-2">
