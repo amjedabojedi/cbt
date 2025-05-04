@@ -1238,7 +1238,7 @@ export default function Journal() {
                     </Button>
                   </form>
                 </div>
-              </div>
+                )}
               </div>
               
               {/* Right side: Tags, emotions, and related thought records */}
