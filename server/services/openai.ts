@@ -129,6 +129,7 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
   ];
   
   // Pattern matching for common emotional contexts and more complex emotional patterns
+  console.log("Starting emotional pattern detection");
   
   // Expanded patterns for depression/sadness
   const sadPatterns = [
@@ -138,11 +139,14 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     /behind closed curtains|hide/i
   ];
   
+  console.log("Testing sadness patterns on text:", combinedText);
   for (const pattern of sadPatterns) {
     if (pattern.test(combinedText)) {
+      console.log("MATCH FOUND! Sadness pattern matched:", pattern);
       if (!foundEmotions.includes('sad')) {
         foundEmotions.push('sad');
         fallbackTags.push('sad');
+        console.log("Added 'sad' to emotions:", foundEmotions);
       }
       break;
     }
@@ -424,7 +428,7 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     }
   }
   
-  return {
+  const result = {
     suggestedTags: limitedTags,
     analysis: analysisText,
     emotions: foundEmotions,
@@ -435,4 +439,8 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
       neutral: neutralScore 
     }
   };
+  
+  console.log("FINAL FALLBACK ANALYSIS RESULT:", JSON.stringify(result, null, 2));
+  
+  return result;
 }
