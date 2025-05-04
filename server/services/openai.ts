@@ -61,7 +61,7 @@ export async function analyzeJournalEntry(
     } catch (parseError) {
       console.error("Failed to parse OpenAI response:", parseError);
       // Return a default response structure with error information
-      return generateFallbackAnalysis();
+      return generateFallbackAnalysis(title, content);
     }
   } catch (error: unknown) {
     console.error("OpenAI API error:", error);
@@ -82,8 +82,9 @@ export async function analyzeJournalEntry(
       }
     }
     
-    // For any API error, use fallback analysis
-    return generateFallbackAnalysis();
+    // For any API error, use fallback analysis - IMPORTANT: Pass the original title and content
+    console.log(`Using fallback analysis for title: "${title}" and content starting with: "${content.substring(0, 50)}..."`);
+    return generateFallbackAnalysis(title, content);
   }
 }
 
