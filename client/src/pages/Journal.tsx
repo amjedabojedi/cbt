@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -585,7 +585,7 @@ export default function Journal() {
   };
   
   // Filter available thought records whenever dialog opens or related records change
-  React.useEffect(() => {
+  useEffect(() => {
     if (showThoughtRecordDialog && currentEntry) {
       // Filter available thought records (those not already linked)
       const linkedIds = relatedThoughtRecords.map(record => record.id);
