@@ -341,20 +341,38 @@ export default function Journal() {
 
   // Load already linked thought records when viewing an entry
   useEffect(() => {
-    if (currentEntry && currentEntry.relatedThoughtRecordIds?.length && userId) {
-      const fetchRelatedRecords = async () => {
-        const recordPromises = currentEntry.relatedThoughtRecordIds!.map(id => 
-          apiRequest('GET', `/api/users/${userId}/thoughts/${id}`)
-            .then(res => res.json())
-            .catch(() => null)
-        );
+    if (currentEntry && userId) {
+      // First try to fetch related thoughts directly from the API endpoint
+      const fetchRelatedThoughts = async () => {
+        try {
+          const response = await apiRequest('GET', `/api/users/${userId}/journal/${currentEntry.id}/related-thoughts`);
+          const relatedThoughts = await response.json();
+          if (Array.isArray(relatedThoughts) && relatedThoughts.length > 0) {
+            setRelatedThoughtRecords(relatedThoughts);
+            return;
+          }
+        } catch (error) {
+          console.error("Error fetching related thoughts directly:", error);
+          // Continue to fallback method
+        }
         
-        const recordResults = await Promise.all(recordPromises);
-        const validRecords = recordResults.filter((r): r is ThoughtRecord => r !== null);
-        setRelatedThoughtRecords(validRecords);
+        // Fallback: fetch individual thought records if the entry has relatedThoughtRecordIds
+        if (currentEntry.relatedThoughtRecordIds?.length) {
+          const recordPromises = currentEntry.relatedThoughtRecordIds.map(id => 
+            apiRequest('GET', `/api/users/${userId}/thoughts/${id}`)
+              .then(res => res.json())
+              .catch(() => null)
+          );
+          
+          const recordResults = await Promise.all(recordPromises);
+          const validRecords = recordResults.filter((r): r is ThoughtRecord => r !== null);
+          setRelatedThoughtRecords(validRecords);
+        } else {
+          setRelatedThoughtRecords([]);
+        }
       };
       
-      fetchRelatedRecords();
+      fetchRelatedThoughts();
     } else {
       setRelatedThoughtRecords([]);
     }
