@@ -2787,24 +2787,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const existingTags = entry.aiSuggestedTags || [];
           const allTags = [...new Set([...existingTags, ...analysis.suggestedTags])];
           
+          // Ensure we have a good mix of emotions and topics
+          const emotionTags = analysis.emotions || [];
+          const topicTags = analysis.topics || [];
+          
           console.log("Updating journal entry with combined tags:", {
             existingTagsCount: existingTags.length,
-            newTagsCount: allTags.length
+            newTagsCount: allTags.length,
+            emotionTagsCount: emotionTags.length,
+            topicTagsCount: topicTags.length
           });
           
-          // Update the entry with the additional suggested tags
-          // But make sure we keep the initialAiTags unchanged - they should always
-          // reflect the original tags from when the entry was first created
-          await storage.updateJournalEntry(entryId, {
+          // Get updated entry with full data for client response
+          const updatedEntry = await storage.updateJournalEntry(entryId, {
             aiSuggestedTags: allTags,
             // Do not modify initialAiTags, which tracks the original AI tags
             aiAnalysis: analysis.analysis,
-            emotions: [...new Set([...(entry.emotions || []), ...analysis.emotions])],
-            topics: [...new Set([...(entry.topics || []), ...analysis.topics])],
+            emotions: emotionTags.length > 0 ? emotionTags : entry.emotions || [],
+            topics: topicTags.length > 0 ? topicTags : entry.topics || [],
             sentimentPositive: analysis.sentiment.positive,
             sentimentNegative: analysis.sentiment.negative,
             sentimentNeutral: analysis.sentiment.neutral
           });
+          
+          // After comment creation, return the comment with the updated entry
+          // This ensures the client has the most recent tags
+          newComment.updatedEntry = updatedEntry;
           
           console.log("Successfully updated journal entry with new AI analysis");
         } catch (aiError) {
