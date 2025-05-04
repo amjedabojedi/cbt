@@ -2989,55 +2989,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Count emotions, topics, tags, and cognitive distortions
       entries.forEach(entry => {
-        // Process cognitive distortions if available
-        if (entry.detectedDistortions && Array.isArray(entry.detectedDistortions)) {
-          entry.detectedDistortions.forEach(distortion => {
+        // Process cognitive distortions if available - ONLY count user-confirmed distortions
+        if (entry.userSelectedDistortions && Array.isArray(entry.userSelectedDistortions)) {
+          entry.userSelectedDistortions.forEach(distortion => {
             stats.cognitiveDistortions[distortion] = (stats.cognitiveDistortions[distortion] || 0) + 1;
           });
         }
         
-        // Only process user-selected tags, not AI-suggested tags
-        const userTags = entry.userSelectedTags || [];
-        
-        // Also process user-selected tags if available
+        // ONLY process user-selected tags, not AI-suggested tags
         if (entry.userSelectedTags && Array.isArray(entry.userSelectedTags)) {
           entry.userSelectedTags.forEach(tag => {
             // Count all user-selected tags
             stats.tagsFrequency[tag] = (stats.tagsFrequency[tag] || 0) + 1;
             
-            // If this tag is also in the emotions array, count it as an emotion
-            if (entry.emotions && Array.isArray(entry.emotions) && entry.emotions.includes(tag)) {
+            // Common emotion words - if the tag contains any of these, categorize as emotion
+            const emotionWords = [
+              'happy', 'sad', 'angry', 'anxious', 'worried', 'excited', 'calm', 'stressed',
+              'peaceful', 'nervous', 'joyful', 'depressed', 'content', 'upset', 'frustrated',
+              'positive', 'negative', 'neutral', 'balanced', 'overwhelmed', 'hopeful',
+              'relieved', 'grateful', 'afraid', 'confused', 'proud', 'ashamed', 'confident',
+              'fearful', 'relaxed', 'annoyed', 'disappointed', 'satisfied', 'lonely', 'loved',
+              'fear', 'joy', 'disgust', 'surprise', 'trust', 'anticipation', 'acceptance',
+              'incompetence', 'hopelessness', 'frustration'
+            ];
+            
+            const tagLower = tag.toLowerCase();
+            const isLikelyEmotion = emotionWords.some(word => tagLower.includes(word));
+            
+            if (isLikelyEmotion) {
               stats.emotions[tag] = (stats.emotions[tag] || 0) + 1;
-            }
-            
-            // If this tag is also in the topics array, count it as a topic
-            if (entry.topics && Array.isArray(entry.topics) && entry.topics.includes(tag)) {
+            } else {
+              // Default to topic if not an emotion
               stats.topics[tag] = (stats.topics[tag] || 0) + 1;
-            }
-            
-            // For any tag that's not already classified as an emotion or topic,
-            // we'll determine if it should be an emotion or topic based on content
-            if ((!entry.emotions || !entry.emotions.includes(tag)) && 
-                (!entry.topics || !entry.topics.includes(tag))) {
-              
-              // Common emotion words - if the tag contains any of these, categorize as emotion
-              const emotionWords = [
-                'happy', 'sad', 'angry', 'anxious', 'worried', 'excited', 'calm', 'stressed',
-                'peaceful', 'nervous', 'joyful', 'depressed', 'content', 'upset', 'frustrated',
-                'positive', 'negative', 'neutral', 'balanced', 'overwhelmed', 'hopeful',
-                'relieved', 'grateful', 'afraid', 'confused', 'proud', 'ashamed', 'confident',
-                'fearful', 'relaxed', 'annoyed', 'disappointed', 'satisfied', 'lonely', 'loved'
-              ];
-              
-              const tagLower = tag.toLowerCase();
-              const isLikelyEmotion = emotionWords.some(word => tagLower.includes(word));
-              
-              if (isLikelyEmotion) {
-                stats.emotions[tag] = (stats.emotions[tag] || 0) + 1;
-              } else {
-                // Default to topic if not an emotion
-                stats.topics[tag] = (stats.topics[tag] || 0) + 1;
-              }
             }
           });
         }

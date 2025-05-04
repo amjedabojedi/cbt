@@ -1477,11 +1477,11 @@ export default function Journal() {
                         <div className="h-[150px] w-full">
                           {/* Prepare the data for the word cloud */}
                           {(() => {
-                            // Create word frequency object
-                            const uniqueEmotions = Array.from(new Set(currentEntry.emotions || []));
+                            // Create word frequency object using only user-selected tags
+                            const userTags = currentEntry.userSelectedTags || [];
                             const tagsObject: Record<string, number> = {};
                             
-                            uniqueEmotions.forEach(emotion => {
+                            userTags.forEach(emotion => {
                               if (typeof emotion === 'string') {
                                 tagsObject[emotion] = (tagsObject[emotion] || 0) + 1;
                               }
