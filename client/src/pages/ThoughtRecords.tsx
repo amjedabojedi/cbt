@@ -21,9 +21,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, ClipboardList } from "lucide-react";
+import { PlusCircle, ClipboardList, Info, HelpCircle } from "lucide-react";
 
 export default function ThoughtRecords() {
   const { user } = useAuth();
@@ -74,7 +86,22 @@ export default function ThoughtRecords() {
                   </>
                 ) : (
                   <>
-                    <CardTitle>Thought Records</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      Thought Records
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle size={16} className="text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[300px] p-4">
+                            <p className="text-xs">
+                              Thought records help identify and challenge unhelpful thought patterns.
+                              They're a core CBT tool for improving emotional well-being.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardTitle>
                     <CardDescription>
                       Review and analyze your thought patterns
                     </CardDescription>
@@ -94,8 +121,37 @@ export default function ThoughtRecords() {
             </CardHeader>
             <CardContent>
               {!isViewingClientData && user?.role !== 'therapist' && (
-                <div className="text-center py-4 text-sm text-neutral-500">
-                  Start with an emotion entry, then add reflections to create thought records.
+                <div className="space-y-4">
+                  <div className="bg-blue-50 border border-blue-100 rounded-md p-3">
+                    <div className="flex gap-2 text-blue-700">
+                      <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs">
+                        Start with an emotion entry, then add reflections to create thought records.
+                        Thought records help you identify patterns in your thinking and develop healthier perspectives.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="about-thought-records">
+                      <AccordionTrigger className="text-sm">
+                        About Cognitive Distortions
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-2 text-sm">
+                          <p>Cognitive distortions are patterns of thinking that can reinforce negative emotions. Common types include:</p>
+                          <ul className="list-disc pl-5 space-y-1 text-xs">
+                            <li><span className="font-medium">All-or-nothing thinking:</span> Seeing things in black and white categories</li>
+                            <li><span className="font-medium">Catastrophizing:</span> Expecting disaster or exaggerating negative outcomes</li>
+                            <li><span className="font-medium">Emotional reasoning:</span> Assuming feelings reflect reality ("I feel bad, so it must be bad")</li>
+                            <li><span className="font-medium">Mind reading:</span> Assuming you know what others are thinking</li>
+                            <li><span className="font-medium">Overgeneralization:</span> Seeing a single negative event as a never-ending pattern</li>
+                          </ul>
+                          <p className="text-xs text-muted-foreground mt-2">Identifying these patterns is the first step to challenging them.</p>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </div>
               )}
               {!isViewingClientData && user?.role === 'therapist' && (
