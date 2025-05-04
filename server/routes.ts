@@ -2930,6 +2930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalEntries: entries.length,
         emotions: {} as Record<string, number>,
         topics: {} as Record<string, number>,
+        cognitiveDistortions: {} as Record<string, number>, // Add tracking for cognitive distortions
         sentimentOverTime: entries.map(entry => ({
           date: entry.createdAt,
           positive: entry.sentimentPositive || 0,
@@ -2986,8 +2987,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Count emotions, topics, and tags - ONLY process user-selected tags
+      // Count emotions, topics, tags, and cognitive distortions
       entries.forEach(entry => {
+        // Process cognitive distortions if available
+        if (entry.detectedDistortions && Array.isArray(entry.detectedDistortions)) {
+          entry.detectedDistortions.forEach(distortion => {
+            stats.cognitiveDistortions[distortion] = (stats.cognitiveDistortions[distortion] || 0) + 1;
+          });
+        }
+        
         // Only process user-selected tags, not AI-suggested tags
         const userTags = entry.userSelectedTags || [];
         
