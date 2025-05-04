@@ -829,6 +829,19 @@ export default function Journal() {
             </DialogDescription>
           </DialogHeader>
           
+          {/* Info box moved completely outside of tabs to prevent overlap with buttons */}
+          {editingEntryId === null && (
+            <div className="bg-blue-50 border border-blue-100 rounded-md p-2 mb-2">
+              <div className="flex gap-2 text-blue-700">
+                <Info className="h-5 w-5 flex-shrink-0" />
+                <p className="text-sm">
+                  After creating your entry, AI will analyze it and suggest emotions and topics. You can then link 
+                  thought records for deeper insights into your patterns.
+                </p>
+              </div>
+            </div>
+          )}
+          
           <Tabs defaultValue="write" className="mt-2">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="write">Write</TabsTrigger>
@@ -868,21 +881,7 @@ export default function Journal() {
                     onChange={(e) => setJournalContent(e.target.value)}
                   />
                 </div>
-                
               </div>
-              
-              {/* Moved info box outside the tabs content to avoid covering buttons */}
-              {editingEntryId === null && (
-                <div className="bg-blue-50 border border-blue-100 rounded-md p-2 mt-3 mb-2">
-                  <div className="flex gap-2 text-blue-700">
-                    <Info className="h-5 w-5 flex-shrink-0" />
-                    <p className="text-sm">
-                      After creating your entry, AI will analyze it and suggest emotions and topics. You can then link 
-                      thought records for deeper insights into your patterns.
-                    </p>
-                  </div>
-                </div>
-              )}
             </TabsContent>
             
             <TabsContent value="tips" className="space-y-4 pt-4">
