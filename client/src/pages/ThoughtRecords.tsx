@@ -4,7 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
 import ThoughtRecordsList from "@/components/thought/ThoughtRecordsList";
 import { format } from "date-fns";
-import { ThoughtRecord } from "@shared/schema";
+import { ThoughtRecord as BaseThoughtRecord } from "@shared/schema";
+
+// Extended interface to include related journal entries
+interface ThoughtRecord extends BaseThoughtRecord {
+  relatedJournalEntryIds?: number[];
+}
 import useActiveUser from "@/hooks/use-active-user";
 import { ClientDebug } from "@/components/debug/ClientDebug";
 
@@ -208,6 +213,42 @@ export default function ThoughtRecords() {
                         <Badge key={idx} className="text-xs">
                           {formatDistortionName(distortion)}
                         </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Related Journal Entries - Cross-component connection */}
+                {selectedThought.relatedJournalEntryIds && selectedThought.relatedJournalEntryIds.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-neutral-500 mb-1 flex items-center gap-1">
+                      Related Journal Entries
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info size={12} className="text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs max-w-[200px]">
+                              These journal entries are linked to this thought record, providing additional context.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </h4>
+                    <div className="flex flex-col gap-2 text-sm">
+                      {selectedThought.relatedJournalEntryIds.map((journalId) => (
+                        <Button 
+                          key={journalId} 
+                          variant="outline" 
+                          size="sm" 
+                          className="justify-start text-left h-auto py-2 font-normal"
+                          asChild
+                        >
+                          <a href={`/journal?entry=${journalId}`}>
+                            <span className="truncate">View related journal entry</span>
+                          </a>
+                        </Button>
                       ))}
                     </div>
                   </div>
