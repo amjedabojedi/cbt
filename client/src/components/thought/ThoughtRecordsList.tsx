@@ -185,7 +185,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
     );
   }
   
-  const displayRecords = limit && !showFullHistory && thoughtRecords 
+  const displayRecords = limit && !showFullHistory && Array.isArray(thoughtRecords) 
     ? thoughtRecords.slice(0, limit) 
     : thoughtRecords;
   
@@ -210,7 +210,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
               </>
             )}
           </div>
-          {limit && thoughtRecords && thoughtRecords.length > limit && (
+          {limit && Array.isArray(thoughtRecords) && thoughtRecords.length > limit && (
             <Button 
               variant="ghost" 
               onClick={() => setShowFullHistory(true)}

@@ -350,7 +350,7 @@ export default function Journal() {
         );
         
         const recordResults = await Promise.all(recordPromises);
-        const validRecords = recordResults.filter(r => r !== null);
+        const validRecords = recordResults.filter((r): r is ThoughtRecord => r !== null);
         setRelatedThoughtRecords(validRecords);
       };
       
@@ -428,7 +428,7 @@ export default function Journal() {
   };
   
   // Get available records that can be linked (not already linked)
-  const availableThoughtRecords = userThoughtRecords.filter(record => 
+  const availableThoughtRecords = userThoughtRecords.filter((record: ThoughtRecord) => 
     !currentEntry?.relatedThoughtRecordIds?.includes(record.id)
   );
 
@@ -1200,7 +1200,7 @@ export default function Journal() {
                   </Button>
                 </div>
               ) : (
-                availableThoughtRecords.map(record => (
+                availableThoughtRecords.map((record: ThoughtRecord) => (
                   <Card key={record.id} className="overflow-hidden">
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-center">
@@ -1224,7 +1224,7 @@ export default function Journal() {
                           <div>
                             <h4 className="text-xs text-muted-foreground mb-1">Cognitive Distortions:</h4>
                             <div className="flex flex-wrap gap-1">
-                              {record.cognitiveDistortions.map(distortion => (
+                              {record.cognitiveDistortions.map((distortion: string) => (
                                 <Badge key={distortion} variant="outline" className="text-xs">
                                   {distortion}
                                 </Badge>
