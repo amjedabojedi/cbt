@@ -459,7 +459,7 @@ export default function Journal() {
       }
       return response.json();
     },
-    enabled: !!user && showThoughtRecordDialog
+    enabled: !!user
   });
   
   // Load full entry with comments
@@ -581,15 +581,28 @@ export default function Journal() {
   // Open dialog for linking thought records 
   const openThoughtRecordDialog = () => {
     if (!currentEntry) return;
-    
     setShowThoughtRecordDialog(true);
-    
-    // Filter available thought records (those not already linked)
-    const linkedIds = relatedThoughtRecords.map(record => record.id);
-    setAvailableThoughtRecords(
-      userThoughtRecords.filter(record => !linkedIds.includes(record.id))
-    );
   };
+  
+  // Filter available thought records whenever dialog opens or related records change
+  React.useEffect(() => {
+    if (showThoughtRecordDialog && currentEntry) {
+      // Filter available thought records (those not already linked)
+      const linkedIds = relatedThoughtRecords.map(record => record.id);
+      
+      // For debugging
+      console.log('Filtering thought records:', {
+        userThoughtRecords: userThoughtRecords.length,
+        relatedThoughtRecords: relatedThoughtRecords.length,
+        linkedIds
+      });
+      
+      const filteredRecords = userThoughtRecords.filter(record => !linkedIds.includes(record.id));
+      console.log('Filtered records:', filteredRecords.length);
+      
+      setAvailableThoughtRecords(filteredRecords);
+    }
+  }, [showThoughtRecordDialog, relatedThoughtRecords, userThoughtRecords, currentEntry]);
 
   // TagCloud component - inline implementation instead of imported component
   const TagCloud = ({ tags }: { tags: Record<string, number> }) => {
@@ -1427,12 +1440,17 @@ export default function Journal() {
             </DialogDescription>
           </DialogHeader>
           
-          {availableThoughtRecords.length === 0 ? (
+          {userThoughtRecords.length === 0 ? (
             <div className="py-6 text-center">
-              <p className="text-muted-foreground">No thought records available to link. 
-              {userThoughtRecords.length === 0 ? 
-                " Please create some thought records first." : 
-                " All your thought records are already linked to this entry."}</p>
+              <p className="text-muted-foreground">
+                No thought records found. Please create some thought records first.
+              </p>
+            </div>
+          ) : availableThoughtRecords.length === 0 ? (
+            <div className="py-6 text-center">
+              <p className="text-muted-foreground">
+                All your thought records are already linked to this entry.
+              </p>
             </div>
           ) : (
             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
