@@ -191,9 +191,18 @@ export default function Journal() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [`${apiPath}/journal`] });
       queryClient.invalidateQueries({ queryKey: [`${apiPath}/journal/stats`] });
-      setOpenNewEntry(false);
-      setJournalTitle("");
-      setJournalContent("");
+      
+      // Don't close dialog yet for new entries - wait until we see AI suggestions
+      if (data.id && data.updatedAt !== data.createdAt) {
+        // Only close immediately if this is an update operation
+        setOpenNewEntry(false);
+        setJournalTitle("");
+        setJournalContent("");
+        toast({
+          title: "Journal Entry Updated",
+          description: "Your entry was updated successfully",
+        });
+      }
       
       // Load the entry with AI analysis and suggested tags
       if (data && data.id) {
@@ -201,29 +210,30 @@ export default function Journal() {
         setTimeout(async () => {
           await loadEntryWithComments(data);
           
-          // Auto-select all suggested tags and save them
-          if (currentEntry && currentEntry.aiSuggestedTags && currentEntry.aiSuggestedTags.length > 0) {
-            setSelectedTags(currentEntry.aiSuggestedTags);
+          // For new entries - now show the entry with AI suggestions
+          if (data.updatedAt === data.createdAt) {
+            // Set current entry to display it
+            setCurrentEntry(data);
             
-            // Auto-save all suggested tags
-            await updateTagsMutation.mutateAsync({
-              entryId: currentEntry.id,
-              tags: currentEntry.aiSuggestedTags
+            // Now close the new entry dialog
+            setOpenNewEntry(false);
+            setJournalTitle("");
+            setJournalContent("");
+          
+            toast({
+              title: "Journal Entry Created",
+              description: "Your entry has been analyzed. You can now see AI suggestions and select tags.",
             });
           }
-          
-          toast({
-            title: data.updatedAt !== data.createdAt ? "Journal Entry Updated" : "Journal Entry Created",
-            description: data.updatedAt !== data.createdAt 
-              ? "Your entry was updated successfully" 
-              : "Your entry was analyzed and tags were automatically applied",
-          });
-        }, 1000); // Extended timeout to ensure AI processing completes
+        }, 1500); // Extended timeout to ensure AI processing completes
       } else {
         toast({
           title: "Success",
           description: "Journal entry saved successfully",
         });
+        setOpenNewEntry(false);
+        setJournalTitle("");
+        setJournalContent("");
       }
     },
     onError: (error: Error) => {
