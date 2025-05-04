@@ -3164,10 +3164,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
   
   // Link a journal entry to a thought record
-  app.post("/api/journal/:journalId/link-thought/:thoughtRecordId", authenticate, async (req, res) => {
+  app.post("/api/users/:userId/journal/:journalId/link-thought", authenticate, checkUserAccess, async (req, res) => {
     try {
       const journalId = Number(req.params.journalId);
-      const thoughtRecordId = Number(req.params.thoughtRecordId);
+      const thoughtRecordId = Number(req.body.thoughtRecordId);
       
       if (isNaN(journalId) || isNaN(thoughtRecordId)) {
         return res.status(400).json({ message: "Invalid ID format" });
