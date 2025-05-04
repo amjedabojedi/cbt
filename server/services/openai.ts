@@ -94,8 +94,10 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
   // Generate basic fallback tags from the title and content
   const combinedText = `${title} ${content}`.toLowerCase();
   const fallbackTags: string[] = [];
+  const foundEmotions: string[] = [];
+  const foundTopics: string[] = [];
   
-  // Check for common emotions in the text - expanded and categorized list
+  // Define emotion and topic keywords
   const emotionKeywords = [
     'happy', 'sad', 'angry', 'anxious', 'stressed', 
     'worried', 'excited', 'calm', 'frustrated', 'confident',
@@ -114,7 +116,6 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     'tense', 'uneasy', 'restless', 'unsettled', 'apprehensive'
   ];
   
-  // Check for common topics
   const topicKeywords = [
     'work', 'family', 'relationship', 'health', 'sleep',
     'exercise', 'friends', 'challenge', 'success', 'failure',
@@ -127,473 +128,212 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     'mental health', 'physical health', 'social life', 'home'
   ];
   
-  // Build basic fallback tags from the content
-  // Collect found emotions and topics separately
-  const foundEmotions: string[] = [];
-  const foundTopics: string[] = [];
-  
-  // First, check for exact word matches using word boundaries
-  for (const keyword of emotionKeywords) {
-    const regex = new RegExp(`\\b${keyword}\\b`, 'i');
-    if (regex.test(combinedText)) {
-      foundEmotions.push(keyword);
-      fallbackTags.push(keyword);
-    }
-  }
-  
-  for (const keyword of topicKeywords) {
-    const regex = new RegExp(`\\b${keyword}\\b`, 'i');
-    if (regex.test(combinedText)) {
-      foundTopics.push(keyword);
-      fallbackTags.push(keyword);
-    }
-  }
-  
-  // If we don't have enough emotions, try a more contextual approach
-  if (foundEmotions.length < 3) {
-    // Look for emotional phrases that don't directly mention emotion words
-    const emotionalPhrases = [
-      // Sadness indicators
-      { pattern: /hollow\s+ache|heavy\s+heart|heart\s+aches|chest\s+tight/i, emotion: 'sad' },
-      { pattern: /tears|cry|sobbing|weeping/i, emotion: 'sad' },
-      { pattern: /sinking feeling|pit of my stomach/i, emotion: 'sad' },
-      { pattern: /can'?t stop thinking about|keep remembering/i, emotion: 'sad' },
-      
-      // Anxiety indicators
-      { pattern: /dark\s+corners|dark\s+thoughts|restless|uninvited\s+thoughts/i, emotion: 'anxious' },
-      { pattern: /racing\s+heart|racing\s+mind|racing\s+thoughts|heart\s+pounds/i, emotion: 'anxious' },
-      { pattern: /can'?t\s+sleep|insomnia|awake\s+at\s+night|tossing\s+turning/i, emotion: 'anxious' },
-      { pattern: /pacing|fidgeting|nail biting|restless/i, emotion: 'anxious' },
-      { pattern: /worried|overthinking|ruminating|what if/i, emotion: 'anxious' },
-      
-      // Fear indicators
-      { pattern: /trembling|shaking|tremors|freeze/i, emotion: 'fearful' },
-      { pattern: /terror|scared|frightened|panic/i, emotion: 'fearful' },
-      
-      // Hiding/Concealing emotions
-      { pattern: /hide\s+struggle|hiding\s+pain|conceal\s+feelings|mask|facade/i, emotion: 'struggling' },
-      { pattern: /pretend|fake smile|act like|putting on a face/i, emotion: 'struggling' },
-      
-      // Overwhelm indicators
-      { pattern: /weight\s+on|burden|shoulders|carrying/i, emotion: 'overwhelmed' },
-      { pattern: /too much|can'?t handle|drowning|sinking/i, emotion: 'overwhelmed' },
-      
-      // Isolation indicators
-      { pattern: /alone|lonely|isolated|no\s+one|by myself/i, emotion: 'lonely' },
-      { pattern: /disconnected|cut off|abandoned|no one understands/i, emotion: 'lonely' },
-      
-      // Fatigue indicators
-      { pattern: /exhausted|drained|no\s+energy|tired|fatigue/i, emotion: 'exhausted' },
-      { pattern: /can'?t focus|brain fog|difficult to concentrate/i, emotion: 'exhausted' },
-      
-      // Frustration indicators
-      { pattern: /irritated|annoyed|bothered|agitated/i, emotion: 'frustrated' },
-      { pattern: /unfair|stuck|trapped|no way out/i, emotion: 'frustrated' },
-      
-      // Emptiness indicators
-      { pattern: /numb|nothing|emptiness|void|hollow/i, emotion: 'numb' },
-      { pattern: /can'?t feel|emotionless|blank|empty inside/i, emotion: 'numb' },
-      
-      // Empty/meaninglessness
-      { pattern: /empty|meaningless|pointless|purposeless/i, emotion: 'empty' },
-      { pattern: /why bother|what'?s the point|going through motions/i, emotion: 'empty' },
-      { pattern: /floating in a void|distant|far from|absent|not present/i, emotion: 'empty' },
-      
-      // Happiness indicators
-      { pattern: /smile|grin|laugh|chuckle|joy/i, emotion: 'happy' },
-      { pattern: /feeling good|great day|positive|cheerful/i, emotion: 'happy' },
-      
-      // Other positive emotions
-      { pattern: /grateful|thankful|appreciate|blessed/i, emotion: 'grateful' },
-      { pattern: /hopeful|looking\s+forward|optimistic|better\s+days/i, emotion: 'hopeful' },
-      { pattern: /quiet|silence|peaceful|tranquil/i, emotion: 'calm' },
-      
-      // Body-related signals
-      { pattern: /knot in (my|the) throat|lump in (my|the) throat/i, emotion: 'sad' },
-      { pattern: /stomach (in|into) knots|butterflies|churning/i, emotion: 'anxious' }
-    ];
-
-    // Check for contextual emotional phrases
-    for (const { pattern, emotion } of emotionalPhrases) {
-      if (pattern.test(combinedText) && !foundEmotions.includes(emotion)) {
-        foundEmotions.push(emotion);
-        fallbackTags.push(emotion);
-        if (foundEmotions.length >= 3) break;
-      }
-    }
-    
-    // If still not enough emotions, fall back to keyword searching
-    if (foundEmotions.length < 2) {
-      for (const keyword of emotionKeywords) {
-        // If we haven't already found this emotion and it's contained in the text
-        if (!foundEmotions.includes(keyword) && combinedText.includes(keyword)) {
-          foundEmotions.push(keyword);
-          fallbackTags.push(keyword);
-          // Stop after finding 3 emotions
-          if (foundEmotions.length >= 3) break;
-        }
-      }
-    }
-  }
-  
-  // If we don't have enough topics, try a more flexible approach
-  if (foundTopics.length < 2) {
-    for (const keyword of topicKeywords) {
-      // If we haven't already found this topic and it's contained in the text
-      if (!foundTopics.includes(keyword) && combinedText.includes(keyword)) {
-        foundTopics.push(keyword);
-        fallbackTags.push(keyword);
-        // Stop after finding 3 topics
-        if (foundTopics.length >= 3) break;
-      }
-    }
-  }
-  
-  // Ensure we have at least a few tags
-  if (fallbackTags.length < 3) {
-    // Add some general tags
-    fallbackTags.push('journal', 'reflection');
-    
-    // Add a general emotion if we found none
-    if (foundEmotions.length === 0) {
-      // Pick default emotions based on title/content keywords
-      if (combinedText.includes('problem') || combinedText.includes('difficult') || 
-          combinedText.includes('bad') || combinedText.includes('hard') ||
-          combinedText.includes('trouble') || combinedText.includes('issue')) {
-        fallbackTags.push('concerned');
-        foundEmotions.push('concerned');
-      } else {
-        fallbackTags.push('reflective');
-        foundEmotions.push('reflective');
-      }
-    }
-    
-    // Add a general topic if we found none
-    if (foundTopics.length === 0) {
-      fallbackTags.push('personal development');
-      foundTopics.push('personal development');
-    }
-    
-    // Add a tag based on content length
-    if (content.length > 500) {
-      fallbackTags.push('detailed');
-    } else {
-      fallbackTags.push('brief');
-    }
-  }
-  
-  // Limit to 8 tags maximum
-  const limitedTags = fallbackTags.slice(0, 8);
-  
-  // Create a more meaningful and personalized analysis
-  let analysisText = "";
-  
-  // First, let's check for specific meaningful patterns that might provide deeper insights
-  
+  // Pattern matching for common emotional contexts
   // Check for isolation/loneliness patterns
-  const isolationPattern = /alone|lonely|isolated|no one|by myself|disconnected|distant|foreign|alien/i;
-  const isolationMatch = isolationPattern.test(combinedText);
+  if (/alone|lonely|isolated|no one|by myself|disconnected|distant|foreign|alien/i.test(combinedText)) {
+    if (!foundEmotions.includes('lonely')) {
+      foundEmotions.push('lonely');
+      fallbackTags.push('lonely');
+    }
+    if (!foundTopics.includes('isolation')) {
+      foundTopics.push('isolation');
+      fallbackTags.push('isolation');
+    }
+  }
   
   // Check for exhaustion/burnout patterns
-  const exhaustionPattern = /tired|exhausted|drained|no energy|can'?t focus|overwhelmed|burden/i;
-  const exhaustionMatch = exhaustionPattern.test(combinedText);
-  
-  // Check for self-doubt patterns
-  const selfDoubtPattern = /not good enough|failure|mistake|mess up|can'?t do|wrong with me|why can'?t I|failing|pointless/i;
-  const selfDoubtMatch = selfDoubtPattern.test(combinedText);
-  
-  // Check for concealing/pretending patterns
-  const concealingPattern = /pretend|fake|hide|mask|act like|nodding|rehearsed|putting on|nod, rehearsed|far from fine/i;
-  const concealingMatch = concealingPattern.test(combinedText);
-  
-  // Check for rumination/repetitive thoughts patterns
-  const ruminationPattern = /can'?t stop|keep thinking|over and over|racing thoughts|mind won'?t quiet|replaying|keep remembering/i;
-  const ruminationMatch = ruminationPattern.test(combinedText);
-  
-  // Create deeper insight based on matches
-  let insightText = "";
-  
-  if (isolationMatch && foundEmotions.includes('lonely')) {
-    insightText += "Your feelings of isolation may be intensified by disconnection from support systems. ";
-    // Add "connection" as a potential topic tag
-    if (!foundTopics.includes('connection')) {
-      foundTopics.push('connection');
-      fallbackTags.push('connection');
+  if (/tired|exhausted|drained|no energy|can'?t focus|overwhelmed|burden/i.test(combinedText)) {
+    if (!foundEmotions.includes('exhausted')) {
+      foundEmotions.push('exhausted');
+      fallbackTags.push('exhausted');
     }
-  }
-  
-  if (exhaustionMatch && (foundEmotions.includes('tired') || foundEmotions.includes('exhausted'))) {
-    insightText += "The fatigue expressed may indicate a need for deeper rest or boundaries. ";
-    // Add "self-care" as a potential topic tag
     if (!foundTopics.includes('self-care')) {
       foundTopics.push('self-care');
       fallbackTags.push('self-care');
     }
   }
   
-  if (selfDoubtMatch) {
+  // Check for anxiety patterns
+  if (/anxious|anxiety|worry|worries|racing thoughts|heart racing|mind racing|nervous|tense|on edge|alert/i.test(combinedText)) {
+    if (!foundEmotions.includes('anxious')) {
+      foundEmotions.push('anxious');
+      fallbackTags.push('anxious');
+    }
+  }
+  
+  // Check for sadness patterns
+  if (/sad|tear|cry|blue|down|heartbreak|sorrow|grief|weep|upset|miserable/i.test(combinedText)) {
+    if (!foundEmotions.includes('sad')) {
+      foundEmotions.push('sad');
+      fallbackTags.push('sad');
+    }
+  }
+  
+  // Check for emptiness/numbness patterns
+  if (/empty|hollow|void|numb|nothing|emotionless|blank|can'?t feel|floating in a void|distant|far from|absent/i.test(combinedText)) {
+    if (!foundEmotions.includes('empty')) {
+      foundEmotions.push('empty');
+      fallbackTags.push('empty');
+    }
+    if (!foundEmotions.includes('numb')) {
+      foundEmotions.push('numb');
+      fallbackTags.push('numb');
+    }
+  }
+  
+  // Check for exact emotion word matches
+  for (const keyword of emotionKeywords) {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+    if (regex.test(combinedText) && !foundEmotions.includes(keyword)) {
+      foundEmotions.push(keyword);
+      fallbackTags.push(keyword);
+    }
+  }
+  
+  // Check for exact topic word matches
+  for (const keyword of topicKeywords) {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+    if (regex.test(combinedText) && !foundTopics.includes(keyword)) {
+      foundTopics.push(keyword);
+      fallbackTags.push(keyword);
+    }
+  }
+  
+  // If we don't have enough emotions, look for emotional phrases
+  if (foundEmotions.length < 2) {
+    // Emotional phrases that don't directly mention emotion words
+    const emotionalPhrases = [
+      { pattern: /tears|cry|sobbing|weeping/i, emotion: 'sad' },
+      { pattern: /dark\s+thoughts|restless|uninvited\s+thoughts/i, emotion: 'anxious' },
+      { pattern: /racing\s+thoughts|heart\s+pounds/i, emotion: 'anxious' },
+      { pattern: /trembling|shaking|tremors|freeze/i, emotion: 'fearful' },
+      { pattern: /hide\s+struggle|putting on a face/i, emotion: 'struggling' },
+      { pattern: /weight\s+on|burden|shoulders/i, emotion: 'overwhelmed' },
+      { pattern: /disconnected|abandoned/i, emotion: 'lonely' },
+      { pattern: /brain fog|difficult to concentrate/i, emotion: 'exhausted' },
+      { pattern: /irritated|annoyed|bothered/i, emotion: 'frustrated' },
+      { pattern: /can'?t feel|empty inside/i, emotion: 'numb' },
+      { pattern: /smile|grin|laugh|chuckle/i, emotion: 'happy' },
+      { pattern: /grateful|thankful|appreciate/i, emotion: 'grateful' },
+      { pattern: /hopeful|looking\s+forward/i, emotion: 'hopeful' },
+      { pattern: /quiet|silence|peaceful|tranquil/i, emotion: 'calm' }
+    ];
+
+    for (const { pattern, emotion } of emotionalPhrases) {
+      if (pattern.test(combinedText) && !foundEmotions.includes(emotion)) {
+        foundEmotions.push(emotion);
+        fallbackTags.push(emotion);
+      }
+    }
+  }
+  
+  // Ensure we have some tags
+  if (fallbackTags.length < 3) {
+    // Add standard journal tags
+    fallbackTags.push('journal', 'reflection');
+    
+    // Add a default emotion if none found
+    if (foundEmotions.length === 0) {
+      fallbackTags.push('reflective');
+      foundEmotions.push('reflective');
+    }
+    
+    // Add a default topic if none found
+    if (foundTopics.length === 0) {
+      fallbackTags.push('personal development');
+      foundTopics.push('personal development');
+    }
+    
+    // Add length-based tag
+    fallbackTags.push(content.length > 500 ? 'detailed' : 'brief');
+  }
+  
+  // Limit to 8 tags maximum
+  const limitedTags = fallbackTags.slice(0, 8);
+  
+  // Generate analysis text
+  let analysisText = "";
+  
+  // Check for specific patterns that might provide deeper insights
+  let insightText = "";
+  
+  // Self-doubt patterns
+  if (/not good enough|failure|mistake|mess up|can'?t do|wrong with me|why can'?t I|failing|pointless/i.test(combinedText)) {
     insightText += "Consider how negative self-evaluation influences your perspective. ";
-    // Add "self-esteem" as a potential topic tag
     if (!foundTopics.includes('self-esteem')) {
       foundTopics.push('self-esteem');
       fallbackTags.push('self-esteem');
     }
-    // Add "critical thoughts" as a tag
-    if (!fallbackTags.includes('critical thoughts')) {
-      fallbackTags.push('critical thoughts');
-    }
   }
   
-  if (concealingMatch) {
+  // Concealing feelings patterns
+  if (/pretend|fake|hide|mask|act like|nodding|rehearsed|putting on|far from fine/i.test(combinedText)) {
     insightText += "The effort to conceal true feelings may create additional emotional tension. ";
-    // Add "authenticity" as a potential topic tag
     if (!foundTopics.includes('authenticity')) {
       foundTopics.push('authenticity');
       fallbackTags.push('authenticity');
     }
   }
   
-  if (ruminationMatch) {
+  // Rumination patterns
+  if (/can'?t stop|keep thinking|over and over|racing thoughts|mind won'?t quiet|replaying|keep remembering/i.test(combinedText)) {
     insightText += "Repetitive thought patterns may be contributing to emotional intensity. ";
-    // Add "rumination" as a tag
     if (!fallbackTags.includes('rumination')) {
       fallbackTags.push('rumination');
     }
   }
   
-  // Now generate the main analysis text with our enhanced insights
+  // Create the final analysis text
   if (foundEmotions.length > 0 && foundTopics.length > 0) {
     analysisText = `This entry reflects ${foundEmotions.join(', ')} emotions in relation to ${foundTopics.join(', ')}. `;
-    
-    // Add insightText if available
-    if (insightText) {
-      analysisText += insightText;
-    } else {
-      // Default second sentence
-      analysisText += `Consider how these feelings influence your approach to these areas of your life.`;
-    }
+    analysisText += insightText || "Consider how these feelings influence your approach to these areas of your life.";
   } else if (foundEmotions.length > 0) {
     analysisText = `This entry primarily expresses ${foundEmotions.join(', ')} emotions. `;
-    
-    // Add insightText if available
-    if (insightText) {
-      analysisText += insightText;
-    } else {
-      // Default second sentence
-      analysisText += `Reflecting on the sources of these feelings may provide additional insights.`;
-    }
+    analysisText += insightText || "Reflecting on the sources of these feelings may provide additional insights.";
   } else if (foundTopics.length > 0) {
     analysisText = `This entry focuses on ${foundTopics.join(', ')}. `;
-    
-    // Add insightText if available
-    if (insightText) {
-      analysisText += insightText;
-    } else {
-      // Default second sentence
-      analysisText += `Consider exploring your emotional responses to these topics in future reflections.`;
-    }
+    analysisText += insightText || "Consider exploring your emotional responses to these topics in future reflections.";
   } else {
     analysisText = `This entry contains general reflections. `;
-    
-    // Add insightText if available
-    if (insightText) {
-      analysisText += insightText;
-    } else {
-      // Default second sentence
-      analysisText += `Consider exploring specific emotions and scenarios in future entries for deeper insights.`;
-    }
+    analysisText += insightText || "Consider exploring specific emotions and scenarios in future entries for deeper insights.";
   }
   
-  // Define positive, negative, and neutral emotions with expanded categories
-  const positiveEmotions = [
-    'happy', 'excited', 'confident', 'joy', 'love', 'trust', 'pride', 'hopeful', 
-    'peaceful', 'grateful', 'motivated', 'content', 'satisfied', 'optimistic', 
-    'enthusiastic', 'determined', 'compassionate', 'relieved', 'cheerful', 'pleased',
-    'delighted', 'joyful', 'elated', 'glad', 'serene', 'confident'
-  ];
-  
-  const negativeEmotions = [
-    'sad', 'angry', 'anxious', 'stressed', 'worried', 'frustrated', 'fear', 'nervous', 
-    'confused', 'overwhelmed', 'lonely', 'guilty', 'ashamed', 'embarrassed', 'jealous', 
-    'hopeless', 'hurt', 'insecure', 'regretful', 'pessimistic', 'discouraged', 'vulnerable', 
-    'resentful', 'unhappy', 'distrust', 'dislike', 'uncomfortable', 'dissatisfied', 'displeased',
-    'empty', 'numb', 'depressed', 'desperate', 'miserable', 'upset', 'grief', 'grieving',
-    'lost', 'helpless', 'drained', 'exhausted', 'tired', 'worried', 'distressed',
-    'alone', 'isolated', 'distant', 'disconnected', 'detached', 'abandoned', 
-    'suffocating', 'tense', 'uneasy', 'restless', 'unsettled', 'apprehensive'
-  ];
-  
-  const neutralEmotions = [
-    'calm', 'reflective', 'surprised', 'apathetic', 'bored', 'curious',
-    'interested', 'thoughtful', 'contemplative', 'nostalgic', 'indifferent',
-    'pensive', 'wondering'
-  ];
-  
-  // Check for negation patterns in the text (like "not happy", "don't like", etc.)
-  const negationPatterns = [
-    /\bnot\s+(\w+)\b/gi,             // "not happy"
-    /\bdon'?t\s+(\w+)\b/gi,          // "don't like"
-    /\bdidn'?t\s+(\w+)\b/gi,         // "didn't enjoy"
-    /\bisn'?t\s+(\w+)\b/gi,          // "isn't good"
-    /\baren'?t\s+(\w+)\b/gi,         // "aren't helpful"
-    /\bwasn'?t\s+(\w+)\b/gi,         // "wasn't pleasant"
-    /\bweren'?t\s+(\w+)\b/gi,        // "weren't nice"
-    /\bhaven'?t\s+(\w+)\b/gi,        // "haven't enjoyed"
-    /\bhasn'?t\s+(\w+)\b/gi,         // "hasn't improved"
-    /\bwouldn'?t\s+(\w+)\b/gi,       // "wouldn't recommend"
-    /\bcouldn'?t\s+(\w+)\b/gi,       // "couldn't understand"
-    /\bshouldn'?t\s+(\w+)\b/gi,      // "shouldn't worry"
-    /\bno\s+(\w+)\b/gi,              // "no interest"
-    /\bnever\s+(\w+)\b/gi,           // "never enjoy"
-    /\bnor\s+(\w+)\b/gi,             // "nor happy"
-    /\bneither\s+(\w+)\b/gi,         // "neither pleased"
-    /\black\s+of\s+(\w+)\b/gi,       // "lack of enthusiasm"
-    /\bavoid\s+(\w+)\b/gi,           // "avoid conflict"
-    /\brefuse\s+to\s+(\w+)\b/gi      // "refuse to participate"
-  ];
-  
-  // Check for negated positive emotions and add negative emotions instead
-  const negatedWords: string[] = [];
-  
-  // Process each negation pattern separately
-  negationPatterns.forEach(pattern => {
-    // Reset pattern's lastIndex to 0 before using
-    pattern.lastIndex = 0;
+  // Calculate sentiment scores
+  const positiveEmotions = ['happy', 'excited', 'confident', 'joy', 'love', 'trust', 'pride', 'hopeful', 
+    'peaceful', 'grateful', 'motivated', 'content', 'satisfied', 'optimistic', 'enthusiastic', 
+    'determined', 'compassionate', 'relieved', 'cheerful', 'pleased'];
     
-    let match;
-    while ((match = pattern.exec(combinedText)) !== null) {
-      if (match && match[1]) {
-        const negatedWord = match[1].toLowerCase();
-        negatedWords.push(negatedWord);
-        
-        // If a negated word is a positive emotion, add opposing negative emotions
-        if (positiveEmotions.includes(negatedWord)) {
-          // If not happy, add sad
-          if (negatedWord === 'happy') foundEmotions.push('sad');
-          // If not excited, add bored
-          else if (negatedWord === 'excited') foundEmotions.push('bored');
-          // If not love, add dislike
-          else if (negatedWord === 'love') foundEmotions.push('dislike');
-          // Generic case - add a negative emotion
-          else foundEmotions.push('unhappy');
-          
-          // Add to fallback tags
-          if (!fallbackTags.includes('unhappy')) fallbackTags.push('unhappy');
-          
-          // Remove any occurrences of the positive emotion
-          const indexToRemove = foundEmotions.indexOf(negatedWord);
-          if (indexToRemove > -1) foundEmotions.splice(indexToRemove, 1);
-          
-          // Remove from tags too
-          const tagIndexToRemove = fallbackTags.indexOf(negatedWord);
-          if (tagIndexToRemove > -1) fallbackTags.splice(tagIndexToRemove, 1);
-        }
-      }
-    }
-  });
+  const negativeEmotions = ['sad', 'angry', 'anxious', 'stressed', 'worried', 'frustrated', 'fear', 'nervous', 
+    'confused', 'overwhelmed', 'lonely', 'guilty', 'ashamed', 'embarrassed', 'jealous', 'hopeless', 'hurt', 
+    'insecure', 'regretful', 'pessimistic', 'discouraged', 'vulnerable', 'resentful', 'unhappy', 'empty', 
+    'numb', 'depressed', 'desperate', 'miserable', 'upset', 'helpless', 'drained', 'exhausted', 'tired'];
+    
+  const neutralEmotions = ['calm', 'reflective', 'surprised', 'apathetic', 'bored', 'curious', 'interested', 
+    'thoughtful', 'contemplative', 'nostalgic', 'indifferent', 'pensive', 'wondering'];
   
-  // Look for specific negative phrases
-  const negativePatterns = [
-    /not happy/i, /unhappy/i, /not satisfied/i, /dissatisfied/i,
-    /not comfortable/i, /uncomfortable/i, /not pleased/i, /displeased/i,
-    /not glad/i, /not excited/i, /not confident/i, /not trusting/i,
-    /distrust/i, /mistrust/i, /insecure/i, /anxious/i
-  ];
-  
-  let hasExplicitNegativeExpressions = false;
-  for (const pattern of negativePatterns) {
-    if (pattern.test(combinedText)) {
-      hasExplicitNegativeExpressions = true;
-      
-      // Add appropriate negative emotions if not already present
-      if (!foundEmotions.includes('unhappy')) {
-        foundEmotions.push('unhappy');
-        fallbackTags.push('unhappy');
-      }
-      
-      // For specific patterns, add more specific emotions
-      if (/anxious|anxiety/i.test(combinedText) && !foundEmotions.includes('anxious')) {
-        foundEmotions.push('anxious');
-        fallbackTags.push('anxious');
-      }
-      
-      if (/distrust|mistrust|not trust/i.test(combinedText) && !foundEmotions.includes('distrust')) {
-        foundEmotions.push('distrust');
-        fallbackTags.push('distrust');
-      }
-      
-      break;
-    }
-  }
-  
-  // Calculate a more accurate sentiment based on the emotions and content
+  // Calculate sentiment scores
   let positiveScore = 0;
   let negativeScore = 0;
   let neutralScore = 0;
   
-  // Check first for explicit negative content indicators
-  const explicitNegativeContent = 
-    /floating in a void|distant|far from|absent|not present|nod, rehearsed|far from fine|though i'm far from fine|knot tightens|go through motions|hollow|void|empty|numb|emotionless|blank|empty inside|can'?t feel/i.test(combinedText);
-  
-  // Override with negative sentiment for clearly negative content
-  if (explicitNegativeContent && foundEmotions.some(e => ['numb', 'empty', 'hollow', 'void', 'absent'].includes(e))) {
-    // Ensure happy is not incorrectly included for clearly empty/numb entries
-    const happyIndex = foundEmotions.indexOf('happy');
-    if (happyIndex > -1) {
-      foundEmotions.splice(happyIndex, 1);
-      
-      // Also remove happy from tags
-      const tagIndex = fallbackTags.indexOf('happy');
-      if (tagIndex > -1) {
-        fallbackTags.splice(tagIndex, 1);
-      }
-    }
-    
-    // Add more appropriate emotions if needed
-    if (!foundEmotions.includes('empty')) {
-      foundEmotions.push('empty');
-      fallbackTags.push('empty');
-    }
-    
-    if (!foundEmotions.includes('numb')) {
-      foundEmotions.push('numb');
-      fallbackTags.push('numb');
-    }
-    
-    // Force sentiment to negative for these specific emotion types
+  // Special case for clear negative content
+  if (/floating in a void|distant|far from|absent|not present|nod, rehearsed|far from fine|hollow|void|empty|numb|emotionless|blank|empty inside|can'?t feel/i.test(combinedText) && 
+      foundEmotions.some(e => ['numb', 'empty', 'hollow', 'void', 'absent'].includes(e))) {
     positiveScore = 0;
     negativeScore = 85;
     neutralScore = 15;
   } else {
-    // Count the emotions in each category
+    // Count emotions by category
     const positiveCount = foundEmotions.filter(e => positiveEmotions.includes(e)).length;
     const negativeCount = foundEmotions.filter(e => negativeEmotions.includes(e)).length;
     const neutralCount = foundEmotions.filter(e => neutralEmotions.includes(e)).length;
     
-    // Calculate percentages if we have any emotions
     const totalEmotions = positiveCount + negativeCount + neutralCount;
     if (totalEmotions > 0) {
       positiveScore = Math.round((positiveCount / totalEmotions) * 100);
       negativeScore = Math.round((negativeCount / totalEmotions) * 100);
       neutralScore = 100 - positiveScore - negativeScore;
-      // Ensure neutralScore is at least 0
       neutralScore = Math.max(0, neutralScore);
-    }
-    
-    // If we found explicit negative expressions but somehow still have high positive score,
-    // adjust the sentiment to reflect the negative expressions
-    if (hasExplicitNegativeExpressions && positiveScore > 50) {
-      positiveScore = 20;
-      negativeScore = 60;
-      neutralScore = 20;
-    }
-    
-    // If we detected negated positive words but sentiment doesn't reflect it,
-    // adjust the sentiment scores
-    if (negatedWords.some(word => positiveEmotions.includes(word)) && positiveScore > negativeScore) {
-      positiveScore = 20;
-      negativeScore = 60;
-      neutralScore = 20;
     }
   }
   
