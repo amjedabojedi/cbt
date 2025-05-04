@@ -1058,6 +1058,11 @@ export default function Journal() {
                               journalContent={currentEntry.content}
                               journalTags={currentEntry.userSelectedTags || []}
                               thoughtRecords={relatedThoughtRecords}
+                              emotionalTone={{
+                                positive: currentEntry.sentimentPositive,
+                                negative: currentEntry.sentimentNegative,
+                                neutral: currentEntry.sentimentNeutral
+                              }}
                             />
                           </AccordionContent>
                         </AccordionItem>
@@ -1329,13 +1334,7 @@ export default function Journal() {
                   </div>
                 )}
                 
-                {(currentEntry.sentimentPositive !== undefined || 
-                  currentEntry.sentimentNegative !== undefined || 
-                  currentEntry.sentimentNeutral !== undefined) && (
-                  <div>
-                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                      <User size={16} />
-                      Emotional Tone
+                {/* Emotional Tone section moved to the Insights Panel */}
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>

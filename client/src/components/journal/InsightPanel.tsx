@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Lightbulb, TrendingUp, Brain, AlertCircle, Check } from "lucide-react";
+import { Lightbulb, TrendingUp, Brain, AlertCircle, Check, Heart } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 // Define the ThoughtRecord interface here to avoid schema compatibility issues
 interface ThoughtRecord {
@@ -18,16 +18,24 @@ interface ThoughtRecord {
   relatedJournalEntryIds?: number[];
 }
 
+interface EmotionalTone {
+  positive?: number;
+  negative?: number;
+  neutral?: number;
+}
+
 interface InsightPanelProps {
   journalContent: string;
   journalTags: string[];
   thoughtRecords: ThoughtRecord[];
+  emotionalTone?: EmotionalTone;
 }
 
 const InsightPanel: React.FC<InsightPanelProps> = ({
   journalContent,
   journalTags,
   thoughtRecords,
+  emotionalTone,
 }) => {
   // Find patterns and generate insights
   const getPatternInsights = () => {
@@ -130,6 +138,80 @@ const InsightPanel: React.FC<InsightPanelProps> = ({
                 ))}
               </ul>
             </div>
+            
+            {/* Emotional Tone Analysis Section */}
+            {emotionalTone && (emotionalTone.positive !== undefined || 
+                              emotionalTone.negative !== undefined || 
+                              emotionalTone.neutral !== undefined) && (
+              <div>
+                <h4 className="text-sm font-medium flex items-center gap-2 mb-2">
+                  <Heart className="h-4 w-4 text-red-500" />
+                  Emotional Tone Analysis
+                </h4>
+                
+                {(() => {
+                  const positive = emotionalTone.positive || 0;
+                  const negative = emotionalTone.negative || 0; 
+                  const neutral = emotionalTone.neutral || 0;
+                  const total = positive + negative + neutral;
+                  
+                  if (total === 0) return null;
+                  
+                  // Find the dominant sentiment
+                  const max = Math.max(positive, negative, neutral);
+                  let dominantSentiment = "neutral";
+                  if (max === positive) dominantSentiment = "positive";
+                  if (max === negative) dominantSentiment = "negative";
+                  
+                  // Create insights based on emotional tone
+                  let toneInsight = "";
+                  
+                  if (dominantSentiment === "positive") {
+                    toneInsight = "Your entry reflects predominantly positive emotions. Consider what factors contributed to this positive state and how you might maintain these elements in your daily life.";
+                  } else if (dominantSentiment === "negative") {
+                    toneInsight = "Your entry shows more negative emotions. This awareness can help you identify triggers and apply coping strategies from your thought records when similar feelings arise.";
+                  } else {
+                    toneInsight = "Your entry has a balanced emotional tone, showing a mix of emotions or more neutral reflections.";
+                  }
+                  
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex justify-between h-5 w-full rounded-full overflow-hidden bg-gray-100">
+                        {positive > 0 && (
+                          <div 
+                            className="bg-green-500 h-full" 
+                            style={{ width: `${(positive / total) * 100}%` }}
+                            title={`Positive: ${Math.round(positive * 100)}%`}
+                          />
+                        )}
+                        {neutral > 0 && (
+                          <div 
+                            className="bg-gray-400 h-full" 
+                            style={{ width: `${(neutral / total) * 100}%` }}
+                            title={`Neutral: ${Math.round(neutral * 100)}%`}
+                          />
+                        )}
+                        {negative > 0 && (
+                          <div 
+                            className="bg-red-500 h-full" 
+                            style={{ width: `${(negative / total) * 100}%` }}
+                            title={`Negative: ${Math.round(negative * 100)}%`}
+                          />
+                        )}
+                      </div>
+                      
+                      <div className="flex justify-between text-xs">
+                        <span>Positive: {Math.round(positive * 100)}%</span>
+                        <span>Neutral: {Math.round(neutral * 100)}%</span>
+                        <span>Negative: {Math.round(negative * 100)}%</span>
+                      </div>
+                      
+                      <p className="text-sm mt-1">{toneInsight}</p>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
             
             {/* Cognitive Distortions Section */}
             {thoughtRecords.flatMap(r => r.cognitiveDistortions || []).length > 0 && (
