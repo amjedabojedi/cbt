@@ -2559,6 +2559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             aiAnalysis: analysis.analysis,
             emotions: analysis.emotions,
             topics: analysis.topics,
+            detectedDistortions: analysis.cognitiveDistortions || [], // Include detected cognitive distortions
             sentimentPositive: analysis.sentiment.positive,
             sentimentNegative: analysis.sentiment.negative,
             sentimentNeutral: analysis.sentiment.neutral
