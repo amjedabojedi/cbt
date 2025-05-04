@@ -116,11 +116,11 @@ interface JournalStats {
     neutral: number;
   }>;
   tagsFrequency: Record<string, number>;
-  sentimentPatterns?: {
+  sentimentPatterns: {
     positive: number;
     neutral: number;
     negative: number;
-  };
+  } | null;
 }
 
 interface ThoughtRecord {
@@ -179,11 +179,7 @@ export default function Journal() {
     topics: {}, 
     sentimentOverTime: [],
     tagsFrequency: {},
-    sentimentPatterns: {
-      positive: 30,
-      neutral: 40,
-      negative: 30
-    }
+    sentimentPatterns: null
   }} = useQuery<JournalStats>({
     queryKey: ['/api/users/:userId/journal/stats', userId],
     queryFn: async () => {
@@ -193,7 +189,7 @@ export default function Journal() {
         topics: {},
         sentimentOverTime: [],
         tagsFrequency: {},
-        sentimentPatterns: { positive: 30, neutral: 40, negative: 30 }
+        sentimentPatterns: null
       };
       const response = await apiRequest('GET', `/api/users/${userId}/journal/stats`);
       const data = await response.json();
@@ -706,8 +702,9 @@ export default function Journal() {
                             </div>
                           </>
                         ) : (
-                          <div className="flex items-center justify-center h-16 bg-muted/20 rounded-md">
+                          <div className="flex flex-col items-center justify-center h-16 bg-muted/20 rounded-md">
                             <span className="text-sm text-muted-foreground">No sentiment data available</span>
+                            <span className="text-xs text-muted-foreground mt-1">Add more journal entries to see your emotional patterns</span>
                           </div>
                         )}
                       </div>
