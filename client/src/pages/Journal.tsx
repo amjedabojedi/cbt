@@ -1470,25 +1470,19 @@ export default function Journal() {
                       )}
                     </div>
                     
-                    {/* Word cloud visualization of tags */}
-                    {currentEntry.emotions && currentEntry.emotions.length > 0 && (
+                    {/* Display user-selected tags in badges instead of a word cloud */}
+                    {currentEntry.userSelectedTags && currentEntry.userSelectedTags.length > 0 && (
                       <div className="mt-6">
-                        <h4 className="text-sm font-semibold mb-3">Emotion Cloud</h4>
-                        <div className="h-[150px] w-full">
-                          {/* Prepare the data for the word cloud */}
-                          {(() => {
-                            // Create word frequency object using only user-selected tags
-                            const userTags = currentEntry.userSelectedTags || [];
-                            const tagsObject: Record<string, number> = {};
-                            
-                            userTags.forEach(emotion => {
-                              if (typeof emotion === 'string') {
-                                tagsObject[emotion] = (tagsObject[emotion] || 0) + 1;
-                              }
-                            });
-                            
-                            return <JournalWordCloud words={tagsObject} maxTags={20} />;
-                          })()}
+                        <h4 className="text-sm font-semibold mb-3">Selected Tags</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {currentEntry.userSelectedTags.map((tag, index) => (
+                            <Badge 
+                              key={index} 
+                              className="bg-primary/10 text-primary hover:bg-primary/20 border-0"
+                            >
+                              {tag}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
                     )}
