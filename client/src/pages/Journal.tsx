@@ -213,7 +213,7 @@ export default function Journal() {
   const createEntryMutation = useMutation({
     mutationFn: async (newEntry: { title: string; content: string }) => {
       if (!userId) throw new Error("User not authenticated");
-      const response = await apiRequest('POST', `/api/users/${userId}/journal`, newEntry);
+      const response = await apiRequest('POST', `/api/journal`, newEntry);
       return response.json();
     },
     onSuccess: () => {
@@ -238,7 +238,7 @@ export default function Journal() {
   const updateEntryMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number, updates: Partial<JournalEntry> }) => {
       if (!userId) throw new Error("User not authenticated");
-      const response = await apiRequest('PATCH', `/api/users/${userId}/journal/${id}`, updates);
+      const response = await apiRequest('PATCH', `/api/journal/${id}`, updates);
       return response.json();
     },
     onSuccess: () => {
@@ -322,7 +322,7 @@ export default function Journal() {
     mutationFn: async () => {
       if (!currentEntry || !userId) return null;
       
-      const response = await apiRequest('PATCH', `/api/users/${userId}/journal/${currentEntry.id}`, {
+      const response = await apiRequest('PATCH', `/api/journal/${currentEntry.id}`, {
         userSelectedTags: selectedTags
       });
       return response.json();
