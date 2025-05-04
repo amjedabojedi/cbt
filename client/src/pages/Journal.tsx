@@ -361,7 +361,16 @@ export default function Journal() {
     onSuccess: (data) => {
       if (data) {
         setCurrentEntry(data);
+        
+        // Invalidate both journal entries and stats queries
         queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal/stats', userId] });
+        
+        // Force reload the stats tab if it's active
+        if (activeTab === "stats") {
+          setActiveTab("view");
+          setTimeout(() => setActiveTab("stats"), 100);
+        }
         
         toast({
           title: "Tags Updated",
@@ -390,7 +399,16 @@ export default function Journal() {
     onSuccess: (data) => {
       if (data) {
         setCurrentEntry(data);
+        
+        // Invalidate both journal entries and stats queries
         queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal/stats', userId] });
+        
+        // Force reload the stats tab if it's active
+        if (activeTab === "stats") {
+          setActiveTab("view");
+          setTimeout(() => setActiveTab("stats"), 100);
+        }
         
         toast({
           title: "Cognitive Patterns Updated",
@@ -416,7 +434,16 @@ export default function Journal() {
     },
     onSuccess: (data) => {
       setCurrentEntry(data);
+      
+      // Invalidate both journal entries and stats queries
       queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal/stats', userId] });
+      
+      // Force reload the stats tab if it's active
+      if (activeTab === "stats") {
+        setActiveTab("view");
+        setTimeout(() => setActiveTab("stats"), 100);
+      }
       
       toast({
         title: "Analysis Updated",
@@ -440,7 +467,10 @@ export default function Journal() {
     },
     onSuccess: (data) => {
       loadEntryWithRelatedRecords(data);
+      
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal/stats', userId] });
       queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/thoughts', userId] });
       
       toast({
@@ -465,7 +495,10 @@ export default function Journal() {
     },
     onSuccess: (data) => {
       loadEntryWithRelatedRecords(data);
+      
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal/stats', userId] });
       queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/thoughts', userId] });
       
       toast({
