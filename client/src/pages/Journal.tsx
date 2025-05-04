@@ -1097,13 +1097,12 @@ export default function Journal() {
                         <AccordionTrigger className="py-2">
                           <span className="flex items-center gap-2 text-sm font-medium">
                             <Lightbulb className="h-4 w-4 text-yellow-500" />
-                            Emotional Tone & Cross-Reference Insights
+                            Emotional Tone Analysis
                           </span>
                         </AccordionTrigger>
                         <AccordionContent>
                           {currentEntry.sentimentPositive !== undefined && (
-                            <div className="mb-4 border-b pb-4">
-                              <h4 className="text-sm font-semibold mb-3">Emotional Tone Analysis</h4>
+                            <div>
                               <div className="flex flex-col gap-2 mb-3">
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs w-16">Positive:</span>
@@ -1137,35 +1136,9 @@ export default function Journal() {
                                 </div>
                               </div>
                               
-                              <p className="text-sm text-muted-foreground mb-2">
+                              <p className="text-sm text-muted-foreground">
                                 {currentEntry.aiAnalysis || "No analysis available"}
                               </p>
-                            </div>
-                          )}
-                                                                    
-                          {relatedThoughtRecords.length > 0 ? (
-                            <InsightPanel 
-                              journalContent={currentEntry.content}
-                              journalTags={currentEntry.userSelectedTags || []}
-                              thoughtRecords={relatedThoughtRecords}
-                              emotionalTone={{
-                                positive: currentEntry.sentimentPositive,
-                                negative: currentEntry.sentimentNegative,
-                                neutral: currentEntry.sentimentNeutral
-                              }}
-                            />
-                          ) : (
-                            <div className="text-sm text-muted-foreground">
-                              <p className="mb-3">No thought records are linked to this journal entry yet.</p>
-                              <p className="mb-3">Linking thought records provides deeper insights by connecting your journaled experiences with structured cognitive work.</p>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="w-full text-xs"
-                                onClick={openThoughtRecordDialog}
-                              >
-                                <Plus size={14} className="mr-1" /> Link Thought Record
-                              </Button>
                             </div>
                           )}
                         </AccordionContent>
