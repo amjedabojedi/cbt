@@ -18,6 +18,7 @@ import {
   HelpCircle,
   Sparkles,
   Heart,
+
   Info as InfoIcon,
   X,
   CheckSquare,
@@ -643,21 +644,21 @@ export default function Journal() {
           </TabsContent>
           
           <TabsContent value="stats" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Left column: Journal Summary */}
+            <div className="grid grid-cols-1 gap-8">
+              {/* Emotional Insights Column */}
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5 text-primary" />
-                      Journal Summary
+                      <Heart className="h-5 w-5 text-primary" />
+                      Emotional Insights
                     </CardTitle>
                     <CardDescription>
-                      Overview of your journaling activity
+                      Understanding your emotional patterns from journal entries
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                       <div className="p-4 bg-primary/5 rounded-lg flex flex-col">
                         <span className="text-sm text-muted-foreground">Total Entries</span>
                         <span className="text-3xl font-bold text-primary">{stats.totalEntries}</span>
@@ -678,43 +679,58 @@ export default function Journal() {
                       </div>
                     </div>
                     
-                    <div className="mt-6">
-                      <h4 className="text-sm font-medium mb-3">Common Emotions</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {Object.entries(stats.emotions || {})
-                          .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
-                          .slice(0, 8)
-                          .map(([emotion, count]) => (
-                            <Badge key={emotion} variant="outline" className="bg-primary/5">
-                              {emotion} <span className="ml-1 text-xs">({count})</span>
-                            </Badge>
-                          ))}
+                    <h4 className="text-sm font-medium mb-4">Emotional Frequency</h4>
+                    
+                    <div className="grid grid-cols-1 gap-6">
+                      {/* Emotions Badge Cloud */}
+                      <div className="mb-4">
+                        <h5 className="text-xs text-muted-foreground mb-3">Most Common Emotions</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {Object.entries(stats.emotions || {})
+                            .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
+                            .slice(0, 12)
+                            .map(([emotion, count]) => {
+                              // Assign different colors based on emotion categories
+                              let badgeClass = "bg-primary/5";
+                              if (['joy', 'happy', 'excited', 'content'].some(e => 
+                                  emotion.toLowerCase().includes(e))) {
+                                badgeClass = "bg-green-100 text-green-800 hover:bg-green-200";
+                              } else if (['sad', 'lonely', 'depressed', 'grief'].some(e => 
+                                  emotion.toLowerCase().includes(e))) {
+                                badgeClass = "bg-blue-100 text-blue-800 hover:bg-blue-200";
+                              } else if (['angry', 'frustrated', 'annoyed', 'irritated'].some(e => 
+                                  emotion.toLowerCase().includes(e))) {
+                                badgeClass = "bg-red-100 text-red-800 hover:bg-red-200";
+                              } else if (['anxious', 'worried', 'nervous', 'fearful'].some(e => 
+                                  emotion.toLowerCase().includes(e))) {
+                                badgeClass = "bg-purple-100 text-purple-800 hover:bg-purple-200";
+                              }
+                              
+                              return (
+                                <Badge key={emotion} variant="outline" className={badgeClass}>
+                                  {emotion} <span className="ml-1 text-xs">({count})</span>
+                                </Badge>
+                              );
+                            })}
+                        </div>
                       </div>
+                      
+                      {/* Emotion Word Cloud */}
+                      <Card className="border-dashed">
+                        <CardHeader className="py-3">
+                          <CardTitle className="text-sm">Emotion Cloud Visualization</CardTitle>
+                        </CardHeader>
+                        <CardContent className="h-[250px] relative">
+                          {Object.keys(stats.emotions || {}).length === 0 ? (
+                            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                              No emotions have been recorded in your entries yet
+                            </div>
+                          ) : (
+                            <JournalWordCloud words={stats.emotions} height={250} />
+                          )}
+                        </CardContent>
+                      </Card>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              {/* Right column: Tag Cloud */}
-              <div>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Tag className="h-5 w-5 text-primary" />
-                      Tag Frequency
-                    </CardTitle>
-                    <CardDescription>
-                      Most common tags in your journal entries
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-[300px] relative">
-                    {Object.keys(stats.tagsFrequency || {}).length === 0 ? (
-                      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                        No tags have been added to your entries yet
-                      </div>
-                    ) : (
-                      <JournalWordCloud words={stats.tagsFrequency} height={300} />
-                    )}
                   </CardContent>
                 </Card>
               </div>
