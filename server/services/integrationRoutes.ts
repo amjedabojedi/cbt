@@ -5,174 +5,235 @@
  * particularly for connecting emotions between the emotion wheel and journal entries.
  */
 
-import { Express, Request, Response } from "express";
-import { storage } from "../storage";
+import { Request, Response } from "express";
+import { Express } from "express";
+import { db } from "../db";
+import { authenticate, checkUserAccess } from "../middleware/auth";
 import { 
-  CORE_EMOTIONS,
-  EMOTION_FAMILIES,
-  normalizeToCoreEmotion,
-  areRelatedEmotions,
-  getRelatedEmotions,
-  findMatchingJournalEmotions,
+  CORE_EMOTIONS, 
+  EMOTION_FAMILIES, 
+  getRelatedEmotions, 
+  normalizeToCoreEmotion, 
   getEmotionRelationshipMap
 } from "./emotionMapping";
-import { authenticate, checkUserAccess } from "../middleware/auth";
+import { eq, and, like, desc } from "drizzle-orm";
+import { 
+  journalEntries, 
+  journalTags, 
+  emotionRecords, 
+  thoughtRecords 
+} from "@shared/schema";
 
 export function registerIntegrationRoutes(app: Express): void {
-  // Get the emotion taxonomy mapping
+  // Get emotion taxonomy (core emotions and their families)
   app.get("/api/emotions/taxonomy", async (req: Request, res: Response) => {
     try {
-      const emotionMap = getEmotionRelationshipMap();
-      res.status(200).json({
+      // Return the core emotions and emotion families
+      res.json({
         coreEmotions: CORE_EMOTIONS,
-        emotionFamilies: emotionMap
+        emotionFamilies: EMOTION_FAMILIES,
+        relationships: getEmotionRelationshipMap()
       });
     } catch (error) {
-      console.error("Get emotion taxonomy error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      console.error("Error fetching emotion taxonomy:", error);
+      res.status(500).json({ message: "Failed to fetch emotion taxonomy" });
     }
   });
-  
-  // Get related emotions for a specific emotion
+
+  // Get emotions related to a specific emotion
   app.get("/api/emotions/related/:emotion", async (req: Request, res: Response) => {
     try {
       const emotion = req.params.emotion;
-      const relatedEmotions = getRelatedEmotions(emotion);
       const coreEmotion = normalizeToCoreEmotion(emotion);
+      const relatedEmotions = getRelatedEmotions(emotion);
       
-      res.status(200).json({
+      res.json({
         emotion,
         coreEmotion,
         relatedEmotions
       });
     } catch (error) {
-      console.error("Get related emotions error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      console.error(`Error fetching related emotions for "${req.params.emotion}":`, error);
+      res.status(500).json({ message: "Failed to fetch related emotions" });
     }
   });
-  
-  // Find journal entries related to an emotion
+
+  // Get journal entries related to a specific emotion
   app.get("/api/users/:userId/emotions/:emotion/related-journal", authenticate, checkUserAccess, async (req: Request, res: Response) => {
     try {
       const userId = parseInt(req.params.userId);
       const emotion = req.params.emotion;
+      const relatedEmotions = getRelatedEmotions(emotion);
       
-      // Get all journal entries for the user
-      const journalEntries = await storage.getJournalEntriesByUser(userId);
+      // Include the original emotion in the search
+      const searchEmotions = [emotion, ...relatedEmotions];
       
-      // Filter entries with matching emotions (using the mapping service)
-      const relatedEntries = journalEntries.filter(entry => {
-        if (!entry.userSelectedTags) return false;
-        
-        // Check if any of the entry's selected tags match related emotions
-        return entry.userSelectedTags.some(tag => 
-          areRelatedEmotions(tag, emotion)
+      // Get journal entries with matching tags
+      const entries = await db.select({
+        id: journalEntries.id,
+        title: journalEntries.title,
+        timestamp: journalEntries.createdAt,
+        userSelectedTags: journalEntries.userSelectedTags
+      })
+      .from(journalEntries)
+      .where(
+        and(
+          eq(journalEntries.userId, userId),
+          // At least one of userSelectedTags contains a matching emotion
+          // We use a simplified approach for JSON array search here
+          // In a production app, you might need a more sophisticated approach
+          // depending on the database being used
+          journalEntries.userSelectedTags.isNotNull()
+        )
+      )
+      .orderBy(desc(journalEntries.createdAt))
+      .limit(10);
+
+      // Filter entries to only those that contain matching emotions
+      const relatedEntries = entries.filter(entry => {
+        const entryTags = entry.userSelectedTags || [];
+        return entryTags.some(tag => 
+          searchEmotions.some(emotion => 
+            tag.toLowerCase() === emotion.toLowerCase()
+          )
         );
-      });
+      }).map(entry => ({
+        ...entry,
+        matchingEmotions: searchEmotions.filter(emotion => 
+          (entry.userSelectedTags || []).some(tag => 
+            tag.toLowerCase() === emotion.toLowerCase()
+          )
+        )
+      }));
       
-      res.status(200).json({
-        emotion,
-        relatedEntries: relatedEntries.map(entry => ({
-          id: entry.id,
-          title: entry.title,
-          timestamp: entry.timestamp,
-          userSelectedTags: entry.userSelectedTags,
-          matchingEmotions: entry.userSelectedTags ? 
-            entry.userSelectedTags.filter(tag => areRelatedEmotions(tag, emotion)) : 
-            []
-        }))
-      });
+      res.json({ relatedEntries });
     } catch (error) {
-      console.error("Get related journal entries error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      console.error(`Error fetching journal entries related to "${req.params.emotion}":`, error);
+      res.status(500).json({ message: "Failed to fetch related journal entries" });
     }
   });
-  
-  // Find wheel emotions related to a journal entry
+
+  // Get emotions related to a specific journal entry
   app.get("/api/users/:userId/journal/:entryId/related-emotions", authenticate, checkUserAccess, async (req: Request, res: Response) => {
     try {
       const userId = parseInt(req.params.userId);
       const entryId = parseInt(req.params.entryId);
       
       // Get the journal entry
-      const entry = await storage.getJournalEntryById(entryId);
+      const [entry] = await db.select()
+        .from(journalEntries)
+        .where(
+          and(
+            eq(journalEntries.id, entryId),
+            eq(journalEntries.userId, userId)
+          )
+        );
+      
       if (!entry) {
         return res.status(404).json({ message: "Journal entry not found" });
       }
       
-      if (!entry.userSelectedTags || entry.userSelectedTags.length === 0) {
-        return res.status(200).json({ 
-          entryId,
-          relatedEmotions: []
-        });
-      }
+      // Extract emotion tags from the entry
+      const entryEmotions = entry.userSelectedTags || [];
       
-      // Get emotion records from the emotion wheel
-      const emotionRecords = await storage.getEmotionRecordsByUser(userId);
+      // Create a set of all related emotions to search for
+      const allRelatedEmotionsSet = new Set<string>();
+      entryEmotions.forEach(emotion => {
+        const related = getRelatedEmotions(emotion);
+        related.forEach(rel => allRelatedEmotionsSet.add(rel));
+        allRelatedEmotionsSet.add(emotion);
+      });
       
-      // Filter emotion records with emotions related to the journal tags
-      const relatedEmotions = emotionRecords.filter(record => {
-        if (!entry.userSelectedTags) return false;
-        
-        return entry.userSelectedTags.some(tag => 
-          areRelatedEmotions(tag, record.tertiaryEmotion) ||
-          areRelatedEmotions(tag, record.primaryEmotion) ||
-          areRelatedEmotions(tag, record.coreEmotion)
+      const allRelatedEmotions = Array.from(allRelatedEmotionsSet);
+      
+      // Find emotion records that match the related emotions
+      const emotionResults = await db.select({
+        id: emotionRecords.id,
+        timestamp: emotionRecords.createdAt,
+        coreEmotion: emotionRecords.coreEmotion,
+        primaryEmotion: emotionRecords.primaryEmotion,
+        tertiaryEmotion: emotionRecords.tertiaryEmotion,
+        intensity: emotionRecords.intensity,
+        situation: emotionRecords.situation
+      })
+      .from(emotionRecords)
+      .where(
+        and(
+          eq(emotionRecords.userId, userId),
+          // Filter for matching emotions - this is a simplified approach
+          // This might need to be adjusted based on the database
+        )
+      )
+      .orderBy(desc(emotionRecords.createdAt))
+      .limit(10);
+      
+      // Post-filter results to find matching records
+      const relatedEmotions = emotionResults.filter(record => {
+        return allRelatedEmotions.some(emotion => 
+          record.tertiaryEmotion.toLowerCase() === emotion.toLowerCase() ||
+          record.primaryEmotion.toLowerCase() === emotion.toLowerCase() ||
+          record.coreEmotion.toLowerCase() === emotion.toLowerCase()
         );
-      });
+      }).map(record => ({
+        ...record,
+        matchingEmotions: entryEmotions.filter(emotion => 
+          getRelatedEmotions(emotion).some(rel => 
+            rel.toLowerCase() === record.tertiaryEmotion.toLowerCase() ||
+            rel.toLowerCase() === record.primaryEmotion.toLowerCase() ||
+            rel.toLowerCase() === record.coreEmotion.toLowerCase()
+          ) || 
+          emotion.toLowerCase() === record.tertiaryEmotion.toLowerCase() ||
+          emotion.toLowerCase() === record.primaryEmotion.toLowerCase() ||
+          emotion.toLowerCase() === record.coreEmotion.toLowerCase()
+        )
+      }));
       
-      res.status(200).json({
-        entryId,
-        journalTags: entry.userSelectedTags,
-        relatedEmotions: relatedEmotions.map(record => ({
-          id: record.id,
-          timestamp: record.timestamp,
-          coreEmotion: record.coreEmotion,
-          primaryEmotion: record.primaryEmotion,
-          tertiaryEmotion: record.tertiaryEmotion,
-          intensity: record.intensity,
-          situation: record.situation,
-          matchingEmotions: entry.userSelectedTags!.filter(tag => 
-            areRelatedEmotions(tag, record.tertiaryEmotion) || 
-            areRelatedEmotions(tag, record.primaryEmotion) || 
-            areRelatedEmotions(tag, record.coreEmotion)
-          )
-        }))
-      });
+      res.json({ relatedEmotions });
     } catch (error) {
-      console.error("Get related emotions error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      console.error(`Error fetching emotions related to journal entry ${req.params.entryId}:`, error);
+      res.status(500).json({ message: "Failed to fetch related emotions" });
     }
   });
-  
-  // Find thought records related to a specific emotion
+
+  // Get thought records related to a specific emotion
   app.get("/api/users/:userId/emotions/:emotion/related-thoughts", authenticate, checkUserAccess, async (req: Request, res: Response) => {
     try {
       const userId = parseInt(req.params.userId);
       const emotion = req.params.emotion;
+      const relatedEmotions = getRelatedEmotions(emotion);
       
-      // Get all thought records for the user
-      const thoughtRecords = await storage.getThoughtRecordsByUser(userId);
+      // Include the original emotion in the search
+      const searchEmotions = [emotion, ...relatedEmotions];
       
-      // Filter thought records with matching emotions
-      const relatedThoughts = thoughtRecords.filter(thought => 
-        areRelatedEmotions(thought.emotion, emotion)
+      // Get thought records with matching emotions
+      const thoughts = await db.select({
+        id: thoughtRecords.id,
+        situation: thoughtRecords.situation,
+        automaticThought: thoughtRecords.automaticThought,
+        emotion: thoughtRecords.emotion,
+        emotionIntensity: thoughtRecords.emotionIntensity,
+        timestamp: thoughtRecords.createdAt
+      })
+      .from(thoughtRecords)
+      .where(
+        and(
+          eq(thoughtRecords.userId, userId)
+        )
+      )
+      .orderBy(desc(thoughtRecords.createdAt))
+      .limit(10);
+      
+      // Filter thoughts to only those that match the emotions
+      const relatedThoughts = thoughts.filter(thought => 
+        searchEmotions.some(emotion => 
+          thought.emotion.toLowerCase().includes(emotion.toLowerCase())
+        )
       );
       
-      res.status(200).json({
-        emotion,
-        relatedThoughts: relatedThoughts.map(thought => ({
-          id: thought.id,
-          situation: thought.situation,
-          automaticThought: thought.automaticThought,
-          emotion: thought.emotion,
-          emotionIntensity: thought.emotionIntensity,
-          timestamp: thought.timestamp
-        }))
-      });
+      res.json({ relatedThoughts });
     } catch (error) {
-      console.error("Get related thought records error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      console.error(`Error fetching thought records related to "${req.params.emotion}":`, error);
+      res.status(500).json({ message: "Failed to fetch related thought records" });
     }
   });
 }

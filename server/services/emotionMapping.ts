@@ -1,108 +1,177 @@
 /**
  * Emotion Mapping Service
  * 
- * This service provides a standardized way to map different emotion terms
- * to their core emotions as defined in the emotion wheel. It helps connect
- * emotions recorded through different interfaces (journal entries, emotion wheel)
- * to enable cross-component data integration.
+ * This service provides functionality for mapping emotions to core categories
+ * and finding relationships between different emotion terms.
  */
 
-// Core emotions from our emotion wheel
+// Define core emotions
 export const CORE_EMOTIONS = [
+  "Joy",
+  "Sadness",
+  "Fear",
+  "Disgust",
   "Anger",
-  "Sadness", 
-  "Surprise", 
-  "Joy", 
-  "Love", 
-  "Fear"
+  "Love",
+  "Surprise"
 ];
 
-// Define emotion families based on the emotion wheel
+// Map emotions to their core families
 export const EMOTION_FAMILIES: Record<string, string[]> = {
-  "Anger": [
-    // Core
-    "anger", "angry",
-    // Secondary
-    "rage", "exasperated", "irritable", "envy", "disgust",
-    // Tertiary
-    "hate", "hostile", "agitated", "frustrated", "annoyed", "aggravated",
-    "resentful", "jealous", "contempt", "revolted",
-    // Common variations
-    "mad", "furious", "irritated", "outraged", "resentment"
-  ],
-  
-  "Sadness": [
-    // Core
-    "sadness", "sad",
-    // Secondary
-    "suffering", "disappointed", "shameful", "neglected", "despair",
-    // Tertiary
-    "agony", "hurt", "depressed", "depression", "sorrow", "dismayed", 
-    "displeased", "regretful", "guilty", "isolated", "lonely", 
-    "grief", "powerless",
-    // Common variations
-    "unhappy", "miserable", "gloomy", "heartbroken", "melancholy", "blue"
-  ],
-  
-  "Surprise": [
-    // Core
-    "surprise", "surprised",
-    // Secondary
-    "stunned", "confused", "amazed", "overcome", "moved",
-    // Tertiary
-    "shocked", "dismayed", "disillusioned", "perplexed", 
-    "astonished", "awe-struck", "awestruck", "speechless", 
-    "astounded", "stimulated", "touched",
-    // Common variations
-    "startled", "taken aback", "bewildered", "dumbfounded"
-  ],
-  
   "Joy": [
-    // Core
-    "joy", "joyful",
-    // Secondary
-    "content", "happy", "cheerful", "proud", "optimistic", 
-    "enthusiastic", "elation", "enthralled",
-    // Tertiary
-    "pleased", "satisfied", "amused", "delighted", "jovial", 
-    "blissful", "triumphant", "illustrious", "eager", 
-    "hopeful", "excited", "zeal", "euphoric", "jubilation", 
-    "enchanted", "rapture",
-    // Common variations
-    "glad", "ecstatic", "thrilled", "merry", "jovial", "gleeful"
+    "Joy",
+    "Happiness",
+    "Cheerfulness",
+    "Contentment",
+    "Delight",
+    "Elation",
+    "Gladness",
+    "Satisfaction",
+    "Pleasure",
+    "Bliss",
+    "Euphoria",
+    "Excitement",
+    "Exhilaration",
+    "Optimism",
+    "Pride",
+    "Triumph",
+    "Enthusiasm",
+    "Zeal",
+    "Hope",
+    "Thrill"
   ],
-  
-  "Love": [
-    // Core
-    "love", "loving",
-    // Secondary
-    "affectionate", "longing", "desire", "tenderness", "peaceful",
-    // Tertiary
-    "romantic", "fondness", "sentimental", "attracted", 
-    "passion", "infatuation", "caring", "compassionate", "relieved",
-    // Common variations
-    "adoration", "devotion", "warmth", "attachment", "affection"
+  "Sadness": [
+    "Sadness",
+    "Grief",
+    "Sorrow",
+    "Melancholy",
+    "Despair",
+    "Depression",
+    "Hopelessness",
+    "Gloom",
+    "Loneliness",
+    "Anguish",
+    "Dejection",
+    "Disappointment",
+    "Discontentment",
+    "Dismay",
+    "Homesickness",
+    "Regret",
+    "Remorse",
+    "Unhappiness",
+    "Woe",
+    "Misery"
   ],
-  
   "Fear": [
-    // Core
-    "fear", "fearful",
-    // Secondary
-    "scared", "terror", "insecure", "nervous", "horror",
-    // Tertiary
-    "frightened", "helpless", "panic", "hysterical", "inferior", 
-    "inadequate", "worried", "anxious", "anxiety", "mortified", "dread",
-    // Common variations
-    "afraid", "terrified", "alarmed", "phobia", "apprehensive", "worried",
-    "uneasy", "stressed", "distressed", "tense"
+    "Fear",
+    "Anxiety",
+    "Worry",
+    "Nervousness",
+    "Concern",
+    "Apprehension",
+    "Dread",
+    "Fright",
+    "Horror",
+    "Panic",
+    "Terror",
+    "Alarm",
+    "Distress",
+    "Paranoia",
+    "Hysteria",
+    "Insecurity",
+    "Tension",
+    "Uneasiness",
+    "Wariness",
+    "Phobia",
+    "Stress"
+  ],
+  "Disgust": [
+    "Disgust",
+    "Aversion",
+    "Dislike",
+    "Distaste",
+    "Nausea",
+    "Repulsion",
+    "Revulsion",
+    "Contempt",
+    "Loathing",
+    "Abhorrence",
+    "Antipathy",
+    "Disdain",
+    "Scorn",
+    "Derision",
+    "Disapproval",
+    "Resentment"
+  ],
+  "Anger": [
+    "Anger",
+    "Rage",
+    "Fury",
+    "Irritation",
+    "Annoyance",
+    "Agitation",
+    "Frustration",
+    "Hostility",
+    "Outrage",
+    "Wrath",
+    "Bitterness",
+    "Exasperation",
+    "Indignation",
+    "Resentment",
+    "Aggravation",
+    "Animosity",
+    "Displeasure",
+    "Grouchiness",
+    "Grumpiness",
+    "Irritability"
+  ],
+  "Love": [
+    "Love",
+    "Affection",
+    "Fondness",
+    "Adoration",
+    "Infatuation",
+    "Passion",
+    "Desire",
+    "Caring",
+    "Compassion",
+    "Tenderness",
+    "Attachment",
+    "Devotion",
+    "Admiration",
+    "Warmth",
+    "Kindness",
+    "Empathy",
+    "Sympathy",
+    "Gratitude",
+    "Appreciation",
+    "Trust"
+  ],
+  "Surprise": [
+    "Surprise",
+    "Amazement",
+    "Astonishment",
+    "Shock",
+    "Wonder",
+    "Awe",
+    "Bewilderment",
+    "Confusion",
+    "Curiosity",
+    "Fascination",
+    "Perplexity",
+    "Disbelief",
+    "Incredulity",
+    "Stupefaction",
+    "Startlement"
   ]
 };
 
-// Direct mapping for quick lookups
+// Create a mapping of each emotion variation to its core emotion
 export const EMOTION_MAP: Record<string, string> = {};
 
-// Initialize the direct mapping
-for (const [coreEmotion, variations] of Object.entries(EMOTION_FAMILIES)) {
+// Initialize the emotion map
+for (const coreEmotion of CORE_EMOTIONS) {
+  const variations = EMOTION_FAMILIES[coreEmotion];
   for (const variation of variations) {
     EMOTION_MAP[variation.toLowerCase()] = coreEmotion;
   }
@@ -115,8 +184,10 @@ for (const [coreEmotion, variations] of Object.entries(EMOTION_FAMILIES)) {
  * @returns The core emotion, or the original term if no mapping exists
  */
 export function normalizeToCoreEmotion(emotion: string): string {
-  const lowerEmotion = emotion.toLowerCase();
-  return EMOTION_MAP[lowerEmotion] || emotion;
+  if (!emotion) return "";
+  
+  const normalizedEmotion = emotion.toLowerCase().trim();
+  return EMOTION_MAP[normalizedEmotion] || emotion;
 }
 
 /**
@@ -127,6 +198,8 @@ export function normalizeToCoreEmotion(emotion: string): string {
  * @returns True if both emotions map to the same core emotion
  */
 export function areRelatedEmotions(emotion1: string, emotion2: string): boolean {
+  if (!emotion1 || !emotion2) return false;
+  
   const core1 = normalizeToCoreEmotion(emotion1);
   const core2 = normalizeToCoreEmotion(emotion2);
   
@@ -140,22 +213,34 @@ export function areRelatedEmotions(emotion1: string, emotion2: string): boolean 
  * @returns Array of emotions in the same family
  */
 export function getRelatedEmotions(emotion: string): string[] {
+  if (!emotion) return [];
+  
   const coreEmotion = normalizeToCoreEmotion(emotion);
   
   // If we found a core emotion, return all emotions in that family
-  if (CORE_EMOTIONS.includes(coreEmotion)) {
-    return EMOTION_FAMILIES[coreEmotion];
-  }
-  
-  // If we couldn't map to a core emotion, check each family
-  for (const [core, variations] of Object.entries(EMOTION_FAMILIES)) {
-    if (variations.includes(emotion.toLowerCase())) {
-      return variations;
+  for (const core of CORE_EMOTIONS) {
+    if (coreEmotion === core) {
+      return EMOTION_FAMILIES[core].filter(e => e.toLowerCase() !== emotion.toLowerCase());
     }
   }
   
-  // If no match found, return just the original emotion
-  return [emotion];
+  // If we didn't find a match, try to find partial matches
+  const normalizedEmotion = emotion.toLowerCase().trim();
+  
+  // Look through all emotion families for partial matches
+  for (const core of CORE_EMOTIONS) {
+    const family = EMOTION_FAMILIES[core];
+    // Check if any emotion in the family contains the search term
+    for (const familyEmotion of family) {
+      if (familyEmotion.toLowerCase().includes(normalizedEmotion) ||
+          normalizedEmotion.includes(familyEmotion.toLowerCase())) {
+        return family.filter(e => e.toLowerCase() !== normalizedEmotion);
+      }
+    }
+  }
+  
+  // If no match found, return an empty array
+  return [];
 }
 
 /**
@@ -169,19 +254,29 @@ export function findMatchingJournalEmotions(
   wheelEmotion: string, 
   journalEmotions: string[]
 ): string[] {
-  const relatedEmotions = getRelatedEmotions(wheelEmotion);
+  if (!wheelEmotion || !journalEmotions || journalEmotions.length === 0) {
+    return [];
+  }
   
-  return journalEmotions.filter(journalEmotion => {
-    // Direct match
-    if (journalEmotion.toLowerCase() === wheelEmotion.toLowerCase()) {
-      return true;
+  const relatedEmotions = getRelatedEmotions(wheelEmotion);
+  relatedEmotions.push(wheelEmotion); // Include the original emotion
+  
+  // Find emotions from journal that match any of the related emotions
+  const matches: string[] = [];
+  
+  for (const journalEmotion of journalEmotions) {
+    for (const relatedEmotion of relatedEmotions) {
+      // Check for exact match or substring match
+      if (journalEmotion.toLowerCase() === relatedEmotion.toLowerCase() ||
+          journalEmotion.toLowerCase().includes(relatedEmotion.toLowerCase()) ||
+          relatedEmotion.toLowerCase().includes(journalEmotion.toLowerCase())) {
+        matches.push(journalEmotion);
+        break;
+      }
     }
-    
-    // Check if journal emotion is in the related emotions list
-    return relatedEmotions.some(relatedEmotion => 
-      relatedEmotion.toLowerCase() === journalEmotion.toLowerCase()
-    );
-  });
+  }
+  
+  return matches;
 }
 
 /**
@@ -191,12 +286,14 @@ export function findMatchingJournalEmotions(
  * @returns Map of core emotions and their key variations
  */
 export function getEmotionRelationshipMap(): Record<string, string[]> {
-  const displayMap: Record<string, string[]> = {};
+  const relationshipMap: Record<string, string[]> = {};
   
-  for (const [core, emotions] of Object.entries(EMOTION_FAMILIES)) {
-    // Select representative emotions (first 5-7 variations) for display
-    displayMap[core] = emotions.slice(0, 6);
+  // Create a reduced set of emotions for visualization
+  for (const core of CORE_EMOTIONS) {
+    // Take up to 8 variations for a more manageable display
+    const variations = EMOTION_FAMILIES[core].slice(0, 8);
+    relationshipMap[core] = variations;
   }
   
-  return displayMap;
+  return relationshipMap;
 }

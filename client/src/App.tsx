@@ -14,6 +14,7 @@ const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Login = lazy(() => import("@/pages/Login"));
 const Register = lazy(() => import("@/pages/Register"));
 const EmotionTracking = lazy(() => import("@/pages/EmotionTracking"));
+const EmotionMapping = lazy(() => import("@/pages/EmotionMapping"));
 const ThoughtRecords = lazy(() => import("@/pages/ThoughtRecords"));
 const GoalSetting = lazy(() => import("@/pages/GoalSetting"));
 const ResourceLibrary = lazy(() => import("@/pages/ResourceLibrary"));
@@ -62,6 +63,7 @@ function Router() {
         <ProtectedRoute path="/dashboard" component={RoleDashboard} />
         <ProtectedRoute path="/emotion-tracking" component={EmotionTracking} />
         <ProtectedRoute path="/emotions" component={EmotionTracking} />
+        <ProtectedRoute path="/emotion-mapping" component={EmotionMapping} />
         <ProtectedRoute path="/thoughts" component={ThoughtRecords} />
         <ProtectedRoute path="/goals" component={GoalSetting} />
         <ProtectedRoute path="/library" component={ResourceLibrary} />
