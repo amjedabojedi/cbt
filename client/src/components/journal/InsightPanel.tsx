@@ -163,15 +163,23 @@ const InsightPanel: React.FC<InsightPanelProps> = ({
                   if (max === positive) dominantSentiment = "positive";
                   if (max === negative) dominantSentiment = "negative";
                   
-                  // Create insights based on emotional tone
+                  // Create detailed insights based on emotional tone
                   let toneInsight = "";
+                  let emotionDetails = "";
+                  let actionRecommendation = "";
                   
                   if (dominantSentiment === "positive") {
-                    toneInsight = "Your entry reflects predominantly positive emotions. Consider what factors contributed to this positive state and how you might maintain these elements in your daily life.";
+                    toneInsight = "Your entry reflects predominantly positive emotions.";
+                    emotionDetails = "Positive entries often indicate moments of joy, satisfaction, gratitude or accomplishment. These emotional states are valuable resources for building resilience.";
+                    actionRecommendation = "Consider what specific factors contributed to this positive state and how you might intentionally incorporate these elements into your daily routine.";
                   } else if (dominantSentiment === "negative") {
-                    toneInsight = "Your entry shows more negative emotions. This awareness can help you identify triggers and apply coping strategies from your thought records when similar feelings arise.";
+                    toneInsight = "Your entry shows more negative emotions.";
+                    emotionDetails = "Negative emotions like sadness, anxiety, or frustration often signal important needs or values that require attention. They can highlight areas for growth.";
+                    actionRecommendation = "This awareness can help you identify specific triggers and apply the coping strategies from your thought records when similar feelings arise.";
                   } else {
-                    toneInsight = "Your entry has a balanced emotional tone, showing a mix of emotions or more neutral reflections.";
+                    toneInsight = "Your entry has a balanced emotional tone.";
+                    emotionDetails = "A mixed emotional profile often indicates complex situations or a transitional emotional state where you're processing multiple perspectives.";
+                    actionRecommendation = "Consider how these different emotional aspects relate to each other and what this balance tells you about your current situation.";
                   }
                   
                   return (
@@ -206,7 +214,11 @@ const InsightPanel: React.FC<InsightPanelProps> = ({
                         <span>Negative: {Math.round(negative * 100)}%</span>
                       </div>
                       
-                      <p className="text-sm mt-1">{toneInsight}</p>
+                      <div className="mt-2 space-y-2 text-sm">
+                        <p><strong>{toneInsight}</strong></p>
+                        <p className="text-muted-foreground text-xs">{emotionDetails}</p>
+                        <p className="text-xs italic">{actionRecommendation}</p>
+                      </div>
                     </div>
                   );
                 })()}

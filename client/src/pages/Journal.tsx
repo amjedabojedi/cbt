@@ -815,8 +815,8 @@ export default function Journal() {
       
       {/* Dialog for creating or updating a journal entry */}
       <Dialog open={openNewEntry} onOpenChange={setOpenNewEntry}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh]">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="space-y-1 pb-2">
             <DialogTitle className="text-xl flex items-center gap-2">
               {editingEntryId ? <Edit className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
               {editingEntryId ? "Edit Journal Entry" : "Create Journal Entry"}
@@ -829,14 +829,14 @@ export default function Journal() {
             </DialogDescription>
           </DialogHeader>
           
-          {/* Info box moved completely outside of tabs to prevent overlap with buttons */}
+          {/* Info box moved completely outside of tabs, with reduced size to avoid overflow */}
           {editingEntryId === null && (
             <div className="bg-blue-50 border border-blue-100 rounded-md p-2 mb-2">
               <div className="flex gap-2 text-blue-700">
-                <Info className="h-5 w-5 flex-shrink-0" />
-                <p className="text-sm">
-                  After creating your entry, AI will analyze it and suggest emotions and topics. You can then link 
-                  thought records for deeper insights into your patterns.
+                <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <p className="text-xs">
+                  AI will analyze your entry to suggest emotions and topics. You can then link 
+                  thought records for deeper insights.
                 </p>
               </div>
             </div>
@@ -876,7 +876,7 @@ export default function Journal() {
                   <Textarea
                     id="content"
                     placeholder="Write your thoughts here... What happened today? How did you feel? What was challenging? What went well?"
-                    className="min-h-[250px] resize-y"
+                    className="min-h-[180px] max-h-[300px] resize-y"
                     value={journalContent}
                     onChange={(e) => setJournalContent(e.target.value)}
                   />
