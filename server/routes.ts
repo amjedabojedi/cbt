@@ -40,6 +40,7 @@ import cookieParser from "cookie-parser";
 import { sendClientInvitation } from "./services/email";
 import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
 import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
+import { registerIntegrationRoutes } from "./services/integrationRoutes";
 import { 
   CORE_EMOTIONS,
   EMOTION_FAMILIES,
@@ -106,6 +107,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { pool } = await import('./db');
   // Parse cookies
   app.use(cookieParser());
+  
+  // Register cross-component integration routes
+  registerIntegrationRoutes(app);
   
   // Subscription Plan Routes
   
