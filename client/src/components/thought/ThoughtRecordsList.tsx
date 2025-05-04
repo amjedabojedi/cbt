@@ -429,13 +429,13 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                           <path d="m9 10 3-2 3 2"></path>
                           <path d="m9 14 3 2 3-2"></path>
                         </svg>
-                        Cross-Component Insights
+                        Thought Pattern Analysis
                       </h5>
                       <p className="text-xs text-muted-foreground">
-                        This thought record is connected to multiple journal entries, showing how your cognitive reflections relate to different experiences.
+                        This thought record appears in multiple journal contexts ({selectedRecord.relatedJournalEntryIds.length} entries), suggesting it may represent a recurring thought pattern.
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Reviewing these connections can reveal patterns in how your thoughts influence different situations.
+                        Reviewing these connections can help identify how this cognitive pattern influences different situations in your life.
                       </p>
                     </div>
                   )}
