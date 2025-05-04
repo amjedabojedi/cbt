@@ -78,7 +78,7 @@ export async function analyzeJournalEntry(
       
       // Generate basic fallback tags from the title and content
       const combinedText = `${title} ${content}`.toLowerCase();
-      const fallbackTags = [];
+      const fallbackTags: string[] = [];
       
       // Check for common emotions in the text - expanded list
       const emotionKeywords = [
@@ -90,7 +90,10 @@ export async function analyzeJournalEntry(
         'ashamed', 'embarrassed', 'surprised', 'jealous', 'hopeless',
         'satisfied', 'hurt', 'insecure', 'regretful', 'optimistic',
         'pessimistic', 'apathetic', 'bored', 'enthusiastic', 'determined',
-        'discouraged', 'vulnerable', 'resentful', 'compassionate'
+        'discouraged', 'vulnerable', 'resentful', 'compassionate',
+        'depressed', 'numb', 'empty', 'exhausted', 'tired', 'drained',
+        'helpless', 'struggling', 'grief', 'grieving', 'hope', 'despair', 
+        'meaningless', 'lost', 'distressed', 'miserable', 'relief', 'relieved'
       ];
       
       // Check for common topics
@@ -108,8 +111,8 @@ export async function analyzeJournalEntry(
       
       // Build basic fallback tags from the content
       // Collect found emotions and topics separately
-      const foundEmotions = [];
-      const foundTopics = [];
+      const foundEmotions: string[] = [];
+      const foundTopics: string[] = [];
       
       // First, check for exact word matches using word boundaries
       for (const keyword of emotionKeywords) {
@@ -128,15 +131,48 @@ export async function analyzeJournalEntry(
         }
       }
       
-      // If we don't have enough emotions, try a more flexible approach
+      // If we don't have enough emotions, try a more contextual approach
       if (foundEmotions.length < 2) {
-        for (const keyword of emotionKeywords) {
-          // If we haven't already found this emotion and it's contained in the text
-          if (!foundEmotions.includes(keyword) && combinedText.includes(keyword)) {
-            foundEmotions.push(keyword);
-            fallbackTags.push(keyword);
-            // Stop after finding 3 emotions
+        // Look for emotional phrases that don't directly mention emotion words
+        const emotionalPhrases = [
+          { pattern: /hollow\s+ache|heavy\s+heart|heart\s+aches|chest\s+tight/i, emotion: 'sad' },
+          { pattern: /dark\s+corners|dark\s+thoughts|restless|uninvited\s+thoughts/i, emotion: 'anxious' },
+          { pattern: /trembling|shaking|tremors/i, emotion: 'fearful' },
+          { pattern: /hide\s+struggle|hiding\s+pain|conceal\s+feelings/i, emotion: 'struggling' },
+          { pattern: /weight\s+on|burden|shoulders|carrying/i, emotion: 'overwhelmed' },
+          { pattern: /tears|cry|sobbing|weeping/i, emotion: 'sad' },
+          { pattern: /racing\s+heart|racing\s+mind|racing\s+thoughts|heart\s+pounds/i, emotion: 'anxious' },
+          { pattern: /alone|lonely|isolated|no\s+one/i, emotion: 'lonely' },
+          { pattern: /exhausted|drained|no\s+energy|tired/i, emotion: 'exhausted' },
+          { pattern: /irritated|annoyed|bothered|agitated/i, emotion: 'frustrated' },
+          { pattern: /numb|nothing|emptiness|void|hollow/i, emotion: 'numb' },
+          { pattern: /smile|grin|laugh|chuckle|joy/i, emotion: 'happy' },
+          { pattern: /grateful|thankful|appreciate|blessed/i, emotion: 'grateful' },
+          { pattern: /hopeful|looking\s+forward|optimistic|better\s+days/i, emotion: 'hopeful' },
+          { pattern: /empty|meaningless|pointless|purposeless/i, emotion: 'empty' },
+          { pattern: /can't\s+sleep|insomnia|awake\s+at\s+night|tossing\s+turning/i, emotion: 'anxious' },
+          { pattern: /quiet|silence|peaceful|tranquil/i, emotion: 'calm' }
+        ];
+
+        // Check for contextual emotional phrases
+        for (const { pattern, emotion } of emotionalPhrases) {
+          if (pattern.test(combinedText) && !foundEmotions.includes(emotion)) {
+            foundEmotions.push(emotion);
+            fallbackTags.push(emotion);
             if (foundEmotions.length >= 3) break;
+          }
+        }
+        
+        // If still not enough emotions, fall back to keyword searching
+        if (foundEmotions.length < 2) {
+          for (const keyword of emotionKeywords) {
+            // If we haven't already found this emotion and it's contained in the text
+            if (!foundEmotions.includes(keyword) && combinedText.includes(keyword)) {
+              foundEmotions.push(keyword);
+              fallbackTags.push(keyword);
+              // Stop after finding 3 emotions
+              if (foundEmotions.length >= 3) break;
+            }
           }
         }
       }
