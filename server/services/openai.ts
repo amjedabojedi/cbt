@@ -209,15 +209,107 @@ export async function analyzeJournalEntry(
         analysisText = `This entry contains general reflections. Consider exploring specific emotions and scenarios in future entries for deeper insights.`;
       }
       
+      // Define positive, negative, and neutral emotions - defined here so we can use them in negation detection
+      const positiveEmotions = ['happy', 'excited', 'confident', 'joy', 'love', 'trust', 'pride', 'hopeful', 'peaceful', 'grateful', 'motivated', 'content', 'satisfied', 'optimistic', 'enthusiastic', 'determined', 'compassionate'];
+      const negativeEmotions = ['sad', 'angry', 'anxious', 'stressed', 'worried', 'frustrated', 'fear', 'nervous', 'confused', 'overwhelmed', 'lonely', 'guilty', 'ashamed', 'embarrassed', 'jealous', 'hopeless', 'hurt', 'insecure', 'regretful', 'pessimistic', 'discouraged', 'vulnerable', 'resentful', 'unhappy', 'distrust', 'dislike', 'uncomfortable', 'dissatisfied', 'displeased'];
+      const neutralEmotions = ['calm', 'reflective', 'surprised', 'apathetic', 'bored'];
+      
+      // Check for negation patterns in the text (like "not happy", "don't like", etc.)
+      const negationPatterns = [
+        /\bnot\s+(\w+)\b/gi,             // "not happy"
+        /\bdon'?t\s+(\w+)\b/gi,          // "don't like"
+        /\bdidn'?t\s+(\w+)\b/gi,         // "didn't enjoy"
+        /\bisn'?t\s+(\w+)\b/gi,          // "isn't good"
+        /\baren'?t\s+(\w+)\b/gi,         // "aren't helpful"
+        /\bwasn'?t\s+(\w+)\b/gi,         // "wasn't pleasant"
+        /\bweren'?t\s+(\w+)\b/gi,        // "weren't nice"
+        /\bhaven'?t\s+(\w+)\b/gi,        // "haven't enjoyed"
+        /\bhasn'?t\s+(\w+)\b/gi,         // "hasn't improved"
+        /\bwouldn'?t\s+(\w+)\b/gi,       // "wouldn't recommend"
+        /\bcouldn'?t\s+(\w+)\b/gi,       // "couldn't understand"
+        /\bshouldn'?t\s+(\w+)\b/gi,      // "shouldn't worry"
+        /\bno\s+(\w+)\b/gi,              // "no interest"
+        /\bnever\s+(\w+)\b/gi,           // "never enjoy"
+        /\bnor\s+(\w+)\b/gi,             // "nor happy"
+        /\bneither\s+(\w+)\b/gi,         // "neither pleased"
+        /\black\s+of\s+(\w+)\b/gi,       // "lack of enthusiasm"
+        /\bavoid\s+(\w+)\b/gi,           // "avoid conflict"
+        /\brefuse\s+to\s+(\w+)\b/gi      // "refuse to participate"
+      ];
+      
+      // Check for negated positive emotions and add negative emotions instead
+      const negatedWords = [];
+      for (const pattern of negationPatterns) {
+        const matches = [...combinedText.matchAll(pattern)];
+        matches.forEach(match => {
+          const negatedWord = match[1].toLowerCase();
+          negatedWords.push(negatedWord);
+          
+          // If a negated word is a positive emotion, add opposing negative emotions
+          if (positiveEmotions.includes(negatedWord)) {
+            // If not happy, add sad
+            if (negatedWord === 'happy') foundEmotions.push('sad');
+            // If not excited, add bored
+            else if (negatedWord === 'excited') foundEmotions.push('bored');
+            // If not love, add dislike
+            else if (negatedWord === 'love') foundEmotions.push('dislike');
+            // Generic case - add a negative emotion
+            else foundEmotions.push('unhappy');
+            
+            // Add to fallback tags
+            if (!fallbackTags.includes('unhappy')) fallbackTags.push('unhappy');
+            
+            // Remove any occurrences of the positive emotion
+            const indexToRemove = foundEmotions.indexOf(negatedWord);
+            if (indexToRemove > -1) foundEmotions.splice(indexToRemove, 1);
+            
+            // Remove from tags too
+            const tagIndexToRemove = fallbackTags.indexOf(negatedWord);
+            if (tagIndexToRemove > -1) fallbackTags.splice(tagIndexToRemove, 1);
+          }
+        });
+      }
+      
+      // Look for specific negative phrases
+      const negativePatterns = [
+        /not happy/i, /unhappy/i, /not satisfied/i, /dissatisfied/i,
+        /not comfortable/i, /uncomfortable/i, /not pleased/i, /displeased/i,
+        /not glad/i, /not excited/i, /not confident/i, /not trusting/i,
+        /distrust/i, /mistrust/i, /insecure/i, /anxious/i
+      ];
+      
+      let hasExplicitNegativeExpressions = false;
+      for (const pattern of negativePatterns) {
+        if (pattern.test(combinedText)) {
+          hasExplicitNegativeExpressions = true;
+          
+          // Add appropriate negative emotions if not already present
+          if (!foundEmotions.includes('unhappy')) {
+            foundEmotions.push('unhappy');
+            fallbackTags.push('unhappy');
+          }
+          
+          // For specific patterns, add more specific emotions
+          if (/anxious|anxiety/i.test(combinedText) && !foundEmotions.includes('anxious')) {
+            foundEmotions.push('anxious');
+            fallbackTags.push('anxious');
+          }
+          
+          if (/distrust|mistrust|not trust/i.test(combinedText) && !foundEmotions.includes('distrust')) {
+            foundEmotions.push('distrust');
+            fallbackTags.push('distrust');
+          }
+          
+          break;
+        }
+      }
+      
       // Calculate a rough sentiment based on the emotions found
       let positiveScore = 33;
       let negativeScore = 33;
       let neutralScore = 34;
       
-      // Define positive, negative, and neutral emotions
-      const positiveEmotions = ['happy', 'excited', 'confident', 'joy', 'love', 'trust', 'pride', 'hopeful', 'peaceful', 'grateful', 'motivated', 'content', 'satisfied', 'optimistic', 'enthusiastic', 'determined', 'compassionate'];
-      const negativeEmotions = ['sad', 'angry', 'anxious', 'stressed', 'worried', 'frustrated', 'fear', 'nervous', 'confused', 'overwhelmed', 'lonely', 'guilty', 'ashamed', 'embarrassed', 'jealous', 'hopeless', 'hurt', 'insecure', 'regretful', 'pessimistic', 'discouraged', 'vulnerable', 'resentful'];
-      const neutralEmotions = ['calm', 'reflective', 'surprised', 'apathetic', 'bored'];
+      // We already defined these emotions earlier, no need to redefine them
       
       // Count the emotions in each category
       const positiveCount = foundEmotions.filter(e => positiveEmotions.includes(e)).length;
@@ -232,6 +324,22 @@ export async function analyzeJournalEntry(
         neutralScore = 100 - positiveScore - negativeScore;
         // Ensure neutralScore is at least 0
         neutralScore = Math.max(0, neutralScore);
+      }
+      
+      // If we found explicit negative expressions but somehow still have high positive score,
+      // adjust the sentiment to reflect the negative expressions
+      if (hasExplicitNegativeExpressions && positiveScore > 50) {
+        positiveScore = 20;
+        negativeScore = 60;
+        neutralScore = 20;
+      }
+      
+      // If we detected negated positive words but sentiment doesn't reflect it,
+      // adjust the sentiment scores
+      if (negatedWords.some(word => positiveEmotions.includes(word)) && positiveScore > negativeScore) {
+        positiveScore = 20;
+        negativeScore = 60;
+        neutralScore = 20;
       }
       
       return {
