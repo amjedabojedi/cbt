@@ -4,13 +4,14 @@ interface JournalWordCloudProps {
   words: Record<string, number>;
   height?: number;
   className?: string;
+  maxTags?: number;
 }
 
 /**
  * A simple word cloud component for journal tags.
  * Displays tags with varying sizes based on their frequency.
  */
-const JournalWordCloud: React.FC<JournalWordCloudProps> = ({ words = {}, height = 300, className = '' }) => {
+const JournalWordCloud: React.FC<JournalWordCloudProps> = ({ words = {}, height = 300, className = '', maxTags = 30 }) => {
   // Calculate the min and max frequencies
   const frequencies = useMemo(() => {
     const values = Object.values(words);
@@ -52,20 +53,34 @@ const JournalWordCloud: React.FC<JournalWordCloudProps> = ({ words = {}, height 
     return `text-[${size}px]`;
   };
 
+  // Sort the words by frequency (highest first) and limit to maxTags
+  const sortedTags = useMemo(() => {
+    return Object.entries(words)
+      .sort((a, b) => (b[1] as number) - (a[1] as number)) // Sort by frequency (highest first)
+      .slice(0, maxTags); // Limit to maxTags
+  }, [words, maxTags]);
+
   return (
-    <div className={`flex flex-wrap justify-center items-center gap-3 p-4 ${className}`} style={{ height }}>
-      {Object.entries(words)
-        .sort(() => Math.random() - 0.5) // Randomize order for visual interest
-        .map(([tag, count]) => (
-          <span
-            key={tag}
-            className={`${getTagColor(count as number)} font-medium px-2 py-1 inline-block`}
-            style={{ fontSize: 12 + Math.floor(((count as number - frequencies.min) / (frequencies.max - frequencies.min || 1)) * 20) }}
-            title={`${tag}: mentioned ${count} times`}
-          >
-            {tag}
-          </span>
-        ))}
+    <div className={`flex flex-wrap justify-center items-center gap-3 p-4 overflow-hidden ${className}`} style={{ height, maxHeight: height }}>
+      {sortedTags.map(([tag, count]) => (
+        <span
+          key={tag}
+          className={`${getTagColor(count as number)} font-medium px-2 py-1 inline-block rounded-md`}
+          style={{ 
+            fontSize: 12 + Math.floor(((count as number - frequencies.min) / (frequencies.max - frequencies.min || 1)) * 20),
+            maxWidth: '100%',
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap'
+          }}
+          title={`${tag}: mentioned ${count} times`}
+        >
+          {tag}
+        </span>
+      ))}
+      {sortedTags.length === 0 && (
+        <div className="text-gray-400 italic text-sm">No tags available</div>
+      )}
     </div>
   );
 };

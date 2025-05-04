@@ -851,7 +851,7 @@ export default function Journal() {
                               No emotions have been recorded in your entries yet
                             </div>
                           ) : (
-                            <JournalWordCloud words={stats.emotions} height={250} />
+                            <JournalWordCloud words={stats.emotions} height={250} maxTags={15} />
                           )}
                         </CardContent>
                       </Card>
@@ -1487,7 +1487,7 @@ export default function Journal() {
                               }
                             });
                             
-                            return <JournalWordCloud words={tagsObject} />;
+                            return <JournalWordCloud words={tagsObject} maxTags={20} />;
                           })()}
                         </div>
                       </div>
