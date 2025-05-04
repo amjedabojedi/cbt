@@ -128,56 +128,110 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
     'mental health', 'physical health', 'social life', 'home'
   ];
   
-  // Pattern matching for common emotional contexts
-  // Check for isolation/loneliness patterns
-  if (/alone|lonely|isolated|no one|by myself|disconnected|distant|foreign|alien/i.test(combinedText)) {
-    if (!foundEmotions.includes('lonely')) {
-      foundEmotions.push('lonely');
-      fallbackTags.push('lonely');
-    }
-    if (!foundTopics.includes('isolation')) {
-      foundTopics.push('isolation');
-      fallbackTags.push('isolation');
+  // Pattern matching for common emotional contexts and more complex emotional patterns
+  
+  // Expanded patterns for depression/sadness
+  const sadPatterns = [
+    /sad|tear|cry|blue|down|heartbreak|sorrow|grief|weep|upset|miserable/i,
+    /hollow ache|heavy|gravity|weight|burden|struggle|push myself/i,
+    /hide my struggle|clinging|cling to|hiding|mask|facade/i,
+    /behind closed curtains|hide/i
+  ];
+  
+  for (const pattern of sadPatterns) {
+    if (pattern.test(combinedText)) {
+      if (!foundEmotions.includes('sad')) {
+        foundEmotions.push('sad');
+        fallbackTags.push('sad');
+      }
+      break;
     }
   }
   
-  // Check for exhaustion/burnout patterns
-  if (/tired|exhausted|drained|no energy|can'?t focus|overwhelmed|burden/i.test(combinedText)) {
-    if (!foundEmotions.includes('exhausted')) {
-      foundEmotions.push('exhausted');
-      fallbackTags.push('exhausted');
-    }
-    if (!foundTopics.includes('self-care')) {
-      foundTopics.push('self-care');
-      fallbackTags.push('self-care');
+  // Expanded patterns for anxiety
+  const anxietyPatterns = [
+    /anxious|anxiety|worry|worries|racing thoughts|heart racing|mind racing|nervous|tense|on edge|alert/i,
+    /trembling|shaking|dark corners|restless|uninvited|drift to dark/i,
+    /racing thoughts|heart pounds|tension|pressure|overwhelm/i,
+    /legs trembling|unsettled|uneasy|apprehensive/i
+  ];
+  
+  for (const pattern of anxietyPatterns) {
+    if (pattern.test(combinedText)) {
+      if (!foundEmotions.includes('anxious')) {
+        foundEmotions.push('anxious');
+        fallbackTags.push('anxious');
+      }
+      break;
     }
   }
   
-  // Check for anxiety patterns
-  if (/anxious|anxiety|worry|worries|racing thoughts|heart racing|mind racing|nervous|tense|on edge|alert/i.test(combinedText)) {
-    if (!foundEmotions.includes('anxious')) {
-      foundEmotions.push('anxious');
-      fallbackTags.push('anxious');
+  // Expanded patterns for emptiness/numbness
+  const emptinessPatterns = [
+    /empty|hollow|void|numb|nothing|emotionless|blank|can'?t feel|floating in a void|distant|far from|absent/i,
+    /hollow ache|settle in my chest|going through motions|emotionless/i,
+    /disconnected|detached|far away|absent|not present/i
+  ];
+  
+  for (const pattern of emptinessPatterns) {
+    if (pattern.test(combinedText)) {
+      if (!foundEmotions.includes('empty')) {
+        foundEmotions.push('empty');
+        fallbackTags.push('empty');
+      }
+      if (!foundEmotions.includes('numb')) {
+        foundEmotions.push('numb');
+        fallbackTags.push('numb');
+      }
+      break;
     }
   }
   
-  // Check for sadness patterns
-  if (/sad|tear|cry|blue|down|heartbreak|sorrow|grief|weep|upset|miserable/i.test(combinedText)) {
-    if (!foundEmotions.includes('sad')) {
-      foundEmotions.push('sad');
-      fallbackTags.push('sad');
+  // Expanded patterns for isolation/loneliness
+  const isolationPatterns = [
+    /alone|lonely|isolated|no one|by myself|disconnected|distant|foreign|alien/i,
+    /behind closed curtains|cling to the quiet|hide|hiding|isolated/i
+  ];
+  
+  for (const pattern of isolationPatterns) {
+    if (pattern.test(combinedText)) {
+      if (!foundEmotions.includes('lonely')) {
+        foundEmotions.push('lonely');
+        fallbackTags.push('lonely');
+      }
+      if (!foundTopics.includes('isolation')) {
+        foundTopics.push('isolation');
+        fallbackTags.push('isolation');
+      }
+      break;
     }
   }
   
-  // Check for emptiness/numbness patterns
-  if (/empty|hollow|void|numb|nothing|emotionless|blank|can'?t feel|floating in a void|distant|far from|absent/i.test(combinedText)) {
-    if (!foundEmotions.includes('empty')) {
-      foundEmotions.push('empty');
-      fallbackTags.push('empty');
+  // Expanded patterns for exhaustion/burnout
+  const exhaustionPatterns = [
+    /tired|exhausted|drained|no energy|can'?t focus|overwhelmed|burden/i,
+    /heavy|gravity|doubled|weight|push myself|struggle/i
+  ];
+  
+  for (const pattern of exhaustionPatterns) {
+    if (pattern.test(combinedText)) {
+      if (!foundEmotions.includes('exhausted')) {
+        foundEmotions.push('exhausted');
+        fallbackTags.push('exhausted');
+      }
+      if (!foundTopics.includes('self-care')) {
+        foundTopics.push('self-care');
+        fallbackTags.push('self-care');
+      }
+      break;
     }
-    if (!foundEmotions.includes('numb')) {
-      foundEmotions.push('numb');
-      fallbackTags.push('numb');
+  }
+  
+  // Check for fear/dread patterns
+  if (/fear|afraid|scared|terrified|frightened|panic|terror|trembling|freeze|shaking|dread/i.test(combinedText)) {
+    if (!foundEmotions.includes('fearful')) {
+      foundEmotions.push('fearful');
+      fallbackTags.push('fearful');
     }
   }
   
@@ -316,14 +370,47 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
   let negativeScore = 0;
   let neutralScore = 0;
   
-  // Special case for clear negative content
-  if (/floating in a void|distant|far from|absent|not present|nod, rehearsed|far from fine|hollow|void|empty|numb|emotionless|blank|empty inside|can'?t feel/i.test(combinedText) && 
-      foundEmotions.some(e => ['numb', 'empty', 'hollow', 'void', 'absent'].includes(e))) {
-    positiveScore = 0;
-    negativeScore = 85;
-    neutralScore = 15;
+  // Check for various negative content patterns
+  const hasNegativeContent = 
+      /floating in a void|distant|far from|absent|not present|nod, rehearsed|far from fine|hollow|void|empty|numb|emotionless|blank|empty inside|can'?t feel/i.test(combinedText) ||
+      /hollow ache|heavy|gravity|burden|struggle|push myself|trembling|dark corners|restless|uninvited/i.test(combinedText) ||
+      /behind closed curtains|cling to the quiet|hide|hiding|weight|doubled|heavy|legs trembling/i.test(combinedText);
+  
+  // Check for specifically negative emotions in our detected emotions
+  const hasNegativeEmotions = foundEmotions.some(e => 
+      ['sad', 'anxious', 'empty', 'numb', 'lonely', 'exhausted', 'fearful', 'struggling'].includes(e));
+  
+  // For journal entries with clear negative content or emotions
+  if ((hasNegativeContent || hasNegativeEmotions) && foundEmotions.length > 0) {
+    // If it has negative content and only neutral emotions, force a negative score
+    if (foundEmotions.every(e => neutralEmotions.includes(e))) {
+      positiveScore = 0;
+      negativeScore = 70;
+      neutralScore = 30;
+    } else if (hasNegativeContent && hasNegativeEmotions) {
+      // If both the content and emotions are negative, heavily weight the negative score
+      positiveScore = 0;
+      negativeScore = 85;
+      neutralScore = 15;
+    } else {
+      // Count emotions by category but give more weight to negative emotions if negative content
+      const positiveCount = foundEmotions.filter(e => positiveEmotions.includes(e)).length;
+      const negativeCount = foundEmotions.filter(e => negativeEmotions.includes(e)).length;
+      const neutralCount = foundEmotions.filter(e => neutralEmotions.includes(e)).length;
+      
+      // Give extra weight to negative emotions when negative content is detected
+      const weightedNegativeCount = hasNegativeContent ? negativeCount * 1.5 : negativeCount;
+      
+      const totalWeight = positiveCount + weightedNegativeCount + neutralCount;
+      if (totalWeight > 0) {
+        positiveScore = Math.round((positiveCount / totalWeight) * 100);
+        negativeScore = Math.round((weightedNegativeCount / totalWeight) * 100);
+        neutralScore = 100 - positiveScore - negativeScore;
+        neutralScore = Math.max(0, neutralScore);
+      }
+    }
   } else {
-    // Count emotions by category
+    // Standard calculation for entries without clear negative markers
     const positiveCount = foundEmotions.filter(e => positiveEmotions.includes(e)).length;
     const negativeCount = foundEmotions.filter(e => negativeEmotions.includes(e)).length;
     const neutralCount = foundEmotions.filter(e => neutralEmotions.includes(e)).length;
