@@ -1175,6 +1175,69 @@ export default function Journal() {
                     </Button>
                   </form>
                 </div>
+                
+                {/* Cognitive Pattern Analysis - Below comments for better readability */}
+                {relatedThoughtRecords.length > 0 && (
+                  <div className="mt-6 pt-4 border-t">
+                    <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                      <BrainCircuit size={16} className="text-primary" />
+                      Cognitive Pattern Analysis
+                    </h4>
+                    
+                    <div className="p-3 bg-primary/5 rounded-md border border-primary/10">
+                      {relatedThoughtRecords.length === 1 ? (
+                        <p className="text-sm text-muted-foreground">
+                          This journal entry is connected to a thought record, helping you track how your thoughts relate to this experience.
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          {`This journal entry connects to ${relatedThoughtRecords.length} different thought records, revealing recurring patterns in your cognitive responses.`}
+                        </p>
+                      )}
+                      
+                      {/* Show patterns in cognitive distortions if present */}
+                      {relatedThoughtRecords.some(r => r.cognitiveDistortions?.length > 0) && (
+                        <div className="mt-3">
+                          <p className="text-sm font-medium">Identified thinking patterns:</p>
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {/* Get all distortions across records */}
+                            {(() => {
+                              // Count distortion occurrences
+                              const distortionCounts: Record<string, number> = {};
+                              relatedThoughtRecords.forEach(record => {
+                                if (record.cognitiveDistortions) {
+                                  record.cognitiveDistortions.forEach(d => {
+                                    distortionCounts[d] = (distortionCounts[d] || 0) + 1;
+                                  });
+                                }
+                              });
+                              
+                              // Sort by occurrence count
+                              return Object.entries(distortionCounts)
+                                .sort((a, b) => b[1] - a[1])
+                                .slice(0, 3)
+                                .map(([distortion, count]) => (
+                                  <Badge 
+                                    key={distortion} 
+                                    className="text-sm bg-primary/20 hover:bg-primary/30 text-primary border-primary/20"
+                                  >
+                                    {distortion.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+                                    {count > 1 && ` (${count})`}
+                                  </Badge>
+                                ));
+                            })()}
+                          </div>
+                          
+                          {relatedThoughtRecords.length >= 2 && (
+                            <p className="mt-3 text-sm text-muted-foreground italic">
+                              These recurring patterns help identify your most common cognitive distortions across multiple situations.
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
               
               {/* Right side: Tags, emotions, and related thought records */}
@@ -1265,66 +1328,7 @@ export default function Journal() {
                           ))}
                         </div>
                         
-                        {/* Unified Cognitive Pattern Insights panel - only show if we have any records */}
-                        {relatedThoughtRecords.length > 0 && (
-                          <div className="mt-4 p-3 bg-primary/5 rounded-md border border-primary/10">
-                            <h4 className="text-xs font-medium flex items-center gap-1 mb-2 text-primary">
-                              <BrainCircuit size={14} />
-                              Cognitive Pattern Analysis
-                            </h4>
-                            
-                            {relatedThoughtRecords.length === 1 ? (
-                              <p className="text-xs text-muted-foreground">
-                                This journal entry is connected to a thought record, helping you track how your thoughts relate to this experience.
-                              </p>
-                            ) : (
-                              <p className="text-xs text-muted-foreground">
-                                {`This journal entry connects to ${relatedThoughtRecords.length} different thought records, revealing recurring patterns in your cognitive responses.`}
-                              </p>
-                            )}
-                            
-                            {/* Show patterns in cognitive distortions if present */}
-                            {relatedThoughtRecords.some(r => r.cognitiveDistortions?.length > 0) && (
-                              <div className="mt-2 text-xs">
-                                <p className="font-medium">Identified thinking patterns:</p>
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {/* Get all distortions across records */}
-                                  {(() => {
-                                    // Count distortion occurrences
-                                    const distortionCounts: Record<string, number> = {};
-                                    relatedThoughtRecords.forEach(record => {
-                                      if (record.cognitiveDistortions) {
-                                        record.cognitiveDistortions.forEach(d => {
-                                          distortionCounts[d] = (distortionCounts[d] || 0) + 1;
-                                        });
-                                      }
-                                    });
-                                    
-                                    // Sort by occurrence count
-                                    return Object.entries(distortionCounts)
-                                      .sort((a, b) => b[1] - a[1])
-                                      .slice(0, 3)
-                                      .map(([distortion, count]) => (
-                                        <Badge 
-                                          key={distortion} 
-                                          className="text-xs bg-primary/20 hover:bg-primary/30 text-primary border-primary/20"
-                                        >
-                                          {distortion.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
-                                          {count > 1 && ` (${count})`}
-                                        </Badge>
-                                      ));
-                                  })()}
-                                </div>
-                                
-                                {relatedThoughtRecords.length >= 2 && (
-                                  <p className="mt-2 text-xs text-muted-foreground italic">
-                                    These patterns appear across multiple thought records connected to your journal entries.
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        {/* The Cognitive Pattern Analysis section has been moved under comments */}
                       </>
                     ) : (
                       <div className="flex flex-col items-center justify-center text-center py-3 px-2 bg-slate-50 rounded-md border border-dashed">
