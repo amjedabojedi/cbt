@@ -108,6 +108,7 @@ interface JournalEntry {
   emotions?: string[];
   topics?: string[];
   detectedDistortions?: string[];
+  userSelectedDistortions?: string[];
   sentimentPositive?: number;
   sentimentNegative?: number;
   sentimentNeutral?: number;
@@ -180,6 +181,7 @@ export default function Journal() {
   const [content, setContent] = useState("");
   const [commentContent, setCommentContent] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedDistortions, setSelectedDistortions] = useState<string[]>([]);
   const [customTag, setCustomTag] = useState("");
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showThoughtRecordDialog, setShowThoughtRecordDialog] = useState(false);
@@ -372,6 +374,35 @@ export default function Journal() {
     }
   });
   
+  const updateDistortionsMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentEntry || !userId) return null;
+      
+      const response = await apiRequest('PATCH', `/api/journal/${currentEntry.id}`, {
+        userSelectedDistortions: selectedDistortions
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data) {
+        setCurrentEntry(data);
+        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+        
+        toast({
+          title: "Cognitive Patterns Updated",
+          description: "Your selected cognitive patterns have been updated."
+        });
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error Updating Cognitive Patterns",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+  
   // Re-analyze entry to detect cognitive distortions
   const reAnalyzeEntryMutation = useMutation({
     mutationFn: async (entryId: number) => {
@@ -522,8 +553,20 @@ export default function Journal() {
     }
   };
   
+  const toggleDistortionSelection = (distortion: string) => {
+    if (selectedDistortions.includes(distortion)) {
+      setSelectedDistortions(selectedDistortions.filter(d => d !== distortion));
+    } else {
+      setSelectedDistortions([...selectedDistortions, distortion]);
+    }
+  };
+  
   const handleUpdateTags = () => {
     updateTagsMutation.mutate();
+  };
+  
+  const handleUpdateDistortions = () => {
+    updateDistortionsMutation.mutate();
   };
   
   const loadEntryWithRelatedRecords = async (entry: JournalEntry) => {
@@ -532,6 +575,7 @@ export default function Journal() {
     setTitle(entry.title);
     setContent(entry.content);
     setSelectedTags(entry.userSelectedTags || []);
+    setSelectedDistortions(entry.userSelectedDistortions || []);
     
     // First try to fetch related thoughts directly from the API endpoint
     try {
