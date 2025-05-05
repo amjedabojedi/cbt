@@ -148,7 +148,7 @@ export function NotificationBell() {
     if (notification.isRead) return;
     
     try {
-      await apiRequest('PATCH', `/api/notifications/${notification.id}/read`);
+      await apiRequest('PATCH', `/api/notifications/${notification.id}/mark-read`);
       
       // Update local state
       setNotifications(prev => 

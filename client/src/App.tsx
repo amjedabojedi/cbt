@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/auth";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import { ClientProvider } from "@/context/ClientContext";
 import { ThemeProvider } from "next-themes";
@@ -53,65 +53,84 @@ const RoleDashboard = () => {
 };
 
 function Router() {
+  const { user, loading } = useAuth();
+
+  // If auth is still loading, show a loading indicator
+  if (loading) {
+    return <LoadingFallback />;
+  }
+
+  // Simple redirect component
+  const RedirectTo = ({ to }: { to: string }) => {
+    useEffect(() => {
+      window.location.href = to;
+    }, [to]);
+    return <LoadingFallback />;
+  };
+  
+  // Go back to using the ProtectedRoute component for simplicity and consistency
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Switch>
-        {/* Public routes */}
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Register} />
+        {/* Public routes - already logged in users go to dashboard */}
+        <Route path="/login">
+          {user ? <RedirectTo to="/dashboard" /> : <Login />}
+        </Route>
+        <Route path="/register">
+          {user ? <RedirectTo to="/dashboard" /> : <Register />}
+        </Route>
         
-        {/* All protected routes get wrapped in the Layout component */}
+        {/* Root route - redirect to login or show dashboard */}
+        <Route path="/">
+          {!user ? <RedirectTo to="/login" /> : (
+            <Layout>
+              <RoleDashboard />
+            </Layout>
+          )}
+        </Route>
+        
+        {/* All other protected routes */}
         <Route path="/:rest*">
-          {(params) => {
-            if (params.rest === "login" || params.rest === "register") {
-              return null; // Skip for login and register routes
-            } else {
-              return (
-                <Layout>
-                  <Switch>
-                    {/* Protected routes - require authentication */}
-                    <ProtectedRoute path="/dashboard" component={RoleDashboard} />
-                    <ProtectedRoute path="/emotion-tracking" component={EmotionTracking} />
-                    <ProtectedRoute path="/emotions" component={EmotionTracking} />
-                    <ProtectedRoute path="/thoughts" component={ThoughtRecords} />
-                    <ProtectedRoute path="/goals" component={GoalSetting} />
-                    <ProtectedRoute path="/library" component={ResourceLibrary} />
-                    <ProtectedRoute path="/journal" component={Journal} />
-                    <ProtectedRoute path="/reports" component={Reports} />
-                    
-                    {/* Role-restricted routes */}
-                    <ProtectedRoute 
-                      path="/clients" 
-                      component={Clients} 
-                      allowedRoles={["therapist", "admin"]} 
-                    />
-                    
-                    {/* Admin-only routes */}
-                    <ProtectedRoute 
-                      path="/users" 
-                      component={UserManagement} 
-                      allowedRoles={["admin"]} 
-                    />
-                    <ProtectedRoute 
-                      path="/subscriptions" 
-                      component={SubscriptionManagement} 
-                      allowedRoles={["admin"]} 
-                    />
-                    <ProtectedRoute 
-                      path="/emotion-mapping" 
-                      component={EmotionMapping} 
-                      allowedRoles={["admin"]} 
-                    />
-                    
-                    {/* General routes */}
-                    <ProtectedRoute path="/settings" component={Settings} />
-                    <Route path="/:subrest*" component={NotFound} />
-                    <ProtectedRoute path="/" component={RoleDashboard} />
-                  </Switch>
-                </Layout>
-              );
-            }
-          }}
+          {!user ? <RedirectTo to="/login" /> : (
+            <Layout>
+              <Switch>
+                <Route path="/dashboard" component={RoleDashboard} />
+                <Route path="/emotion-tracking" component={EmotionTracking} />
+                <Route path="/emotions" component={EmotionTracking} />
+                <Route path="/thoughts" component={ThoughtRecords} />
+                <Route path="/goals" component={GoalSetting} />
+                <Route path="/library" component={ResourceLibrary} />
+                <Route path="/journal" component={Journal} />
+                <Route path="/reports" component={Reports} />
+                <Route path="/settings" component={Settings} />
+                
+                {/* Role-specific routes with redirect for unauthorized access */}
+                <Route path="/clients">
+                  {(user.role === "therapist" || user.role === "admin") ? (
+                    <Clients />
+                  ) : (
+                    <RedirectTo to="/dashboard" />
+                  )}
+                </Route>
+                
+                {/* Admin-only routes */}
+                <Route path="/users">
+                  {user.role === "admin" ? <UserManagement /> : <RedirectTo to="/dashboard" />}
+                </Route>
+                
+                <Route path="/subscriptions">
+                  {user.role === "admin" ? <SubscriptionManagement /> : <RedirectTo to="/dashboard" />}
+                </Route>
+                
+                <Route path="/emotion-mapping">
+                  {user.role === "admin" ? <EmotionMapping /> : <RedirectTo to="/dashboard" />}
+                </Route>
+                
+                {/* Catch-all route */}
+                <Route component={NotFound} />
+              </Switch>
+            </Layout>
+          )}
         </Route>
       </Switch>
     </Suspense>

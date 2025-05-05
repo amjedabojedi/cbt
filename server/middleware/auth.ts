@@ -17,10 +17,22 @@ declare global {
  */
 export async function authenticate(req: Request, res: Response, next: NextFunction) {
   console.log("Authenticating request with cookies:", req.cookies);
+  console.log("Request headers:", req.headers);
+  
+  // Debug information
+  console.log("Cookie header:", req.headers.cookie);
+  
   const sessionId = req.cookies?.sessionId;
   
   if (!sessionId) {
     console.log("No sessionId cookie found");
+    
+    // Check if this is a preflight OPTIONS request from CORS
+    if (req.method === 'OPTIONS') {
+      console.log("This is a preflight OPTIONS request");
+      return next();
+    }
+    
     return res.status(401).json({ message: 'Authentication required' });
   }
   
@@ -54,6 +66,15 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     // Attach user and session to the request
     req.user = user;
     req.session = session;
+    
+    // For debugging - refresh cookie to ensure it persists
+    res.cookie("sessionId", session.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // Always use lax for better compatibility
+      path: '/', // Ensure cookie is available on all paths
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
     
     next();
   } catch (error) {

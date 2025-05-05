@@ -88,13 +88,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (username: string, password: string) => { 
     setLoading(true);
     try {
+      console.log("Attempting login with credentials:", { username });
       const response = await apiRequest("POST", "/api/auth/login", { username, password });
       const userData = await response.json();
+      console.log("Login successful, user data:", userData);
       setUser(userData as User);
+      
+      // Re-fetch current user to verify session cookie is working
+      try {
+        const meResponse = await fetch("/api/auth/me", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          }
+        });
+        
+        if (meResponse.ok) {
+          console.log("Session verified successfully");
+        } else {
+          console.warn("Session verification failed after login");
+        }
+      } catch (verifyError) {
+        console.error("Error verifying session:", verifyError);
+      }
+      
       navigate("/dashboard");
     } catch (err) {
       console.error("Login error:", err);
       setError(err as Error);
+      throw err; // Rethrow to allow consumers to catch errors
     } finally {
       setLoading(false);
     }
@@ -167,13 +190,36 @@ export function useAuth(): AuthContextType {
     const login = async (username: string, password: string) => { 
       setLoading(true);
       try {
+        console.log("Attempting login with credentials:", { username });
         const response = await apiRequest("POST", "/api/auth/login", { username, password });
         const userData = await response.json();
+        console.log("Login successful, user data:", userData);
         setUser(userData as User);
+        
+        // Re-fetch current user to verify session cookie is working
+        try {
+          const meResponse = await fetch("/api/auth/me", {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            }
+          });
+          
+          if (meResponse.ok) {
+            console.log("Session verified successfully");
+          } else {
+            console.warn("Session verification failed after login");
+          }
+        } catch (verifyError) {
+          console.error("Error verifying session:", verifyError);
+        }
+        
         navigate("/dashboard");
       } catch (err) {
         console.error("Login error:", err);
         setError(err as Error);
+        throw err; // Rethrow to allow consumers to catch errors
       } finally {
         setLoading(false);
       }
