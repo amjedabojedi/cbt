@@ -39,7 +39,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -1146,7 +1146,7 @@ export default function Journal() {
                       <p className="text-sm text-muted-foreground">Avg. Entry Length</p>
                       <p className="text-2xl font-bold">
                         {entries.length > 0 
-                          ? Math.round(entries.reduce((sum, entry) => sum + entry.content.length, 0) / entries.length) 
+                          ? Math.round(entries.reduce((sum: number, entry: JournalEntry) => sum + entry.content.length, 0) / entries.length) 
                           : 0}
                       </p>
                     </div>
@@ -1345,8 +1345,8 @@ export default function Journal() {
             {userThoughtRecords.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto p-1">
                 {userThoughtRecords
-                  .filter(record => !(currentEntry?.relatedThoughtRecordIds || []).includes(record.id))
-                  .map(record => (
+                  .filter((record: ThoughtRecord) => !(currentEntry?.relatedThoughtRecordIds || []).includes(record.id))
+                  .map((record: ThoughtRecord) => (
                     <Card key={record.id} className="cursor-pointer hover:border-primary" onClick={() => handleLinkThoughtRecord(record.id)}>
                       <CardHeader className="p-3">
                         <CardTitle className="text-sm">
@@ -1362,7 +1362,7 @@ export default function Journal() {
                         
                         {record.cognitiveDistortions && record.cognitiveDistortions.length > 0 && (
                           <div className="flex flex-wrap gap-1">
-                            {record.cognitiveDistortions.slice(0, 2).map((d, i) => (
+                            {record.cognitiveDistortions.slice(0, 2).map((d: string, i: number) => (
                               <Badge key={i} variant="outline" className="text-[10px] py-0 px-1 bg-orange-50">
                                 {d}
                               </Badge>
