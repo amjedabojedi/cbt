@@ -955,6 +955,27 @@ export default function Journal() {
                         {currentEntry.content}
                       </div>
                       
+                      {/* Display tags if available */}
+                      {currentEntry.userSelectedTags && currentEntry.userSelectedTags.length > 0 && (
+                        <div className="mt-3">
+                          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                            <Tag size={14} className="text-primary" />
+                            Tags
+                          </h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            {currentEntry.userSelectedTags.map((tag) => (
+                              <Badge 
+                                key={tag} 
+                                variant="secondary"
+                                className="bg-secondary/20 text-secondary-foreground"
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
                       {/* Add new comment section */}
                       <div className="mt-8 pt-4 border-t">
                         <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
