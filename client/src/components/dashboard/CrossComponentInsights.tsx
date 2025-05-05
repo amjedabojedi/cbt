@@ -536,13 +536,116 @@ export default function CrossComponentInsights() {
       color: insight.color
     }));
 
+  // Process protective factors data
+  const processProtectiveFactorsData = () => {
+    if (!protectiveFactors || !Array.isArray(protectiveFactors) || protectiveFactors.length === 0) {
+      return [];
+    }
+    
+    // Count occurrences of each protective factor
+    const factorCounts: Record<string, {name: string, count: number, effectiveness: number}> = {};
+    
+    protectiveFactors.forEach(factor => {
+      const name = factor.name;
+      if (!factorCounts[name]) {
+        factorCounts[name] = { 
+          name, 
+          count: 0,
+          effectiveness: factor.effectiveness || 0 
+        };
+      }
+      factorCounts[name].count += 1;
+      if (factor.effectiveness) {
+        // Average the effectiveness ratings
+        const currentTotal = factorCounts[name].effectiveness * (factorCounts[name].count - 1);
+        factorCounts[name].effectiveness = (currentTotal + factor.effectiveness) / factorCounts[name].count;
+      }
+    });
+    
+    // Convert to array and sort by count descending
+    return Object.values(factorCounts)
+      .sort((a, b) => b.count - a.count)
+      .map(item => ({
+        name: item.name,
+        count: item.count,
+        effectiveness: parseFloat(item.effectiveness.toFixed(1)),
+        fill: getRandomColor(item.name)
+      }));
+  };
+  
+  // Process coping strategies data
+  const processCopingStrategiesData = () => {
+    if (!copingStrategies || !Array.isArray(copingStrategies) || copingStrategies.length === 0) {
+      return [];
+    }
+    
+    // Count occurrences of each coping strategy
+    const strategyCounts: Record<string, {name: string, count: number, effectiveness: number}> = {};
+    
+    copingStrategies.forEach(strategy => {
+      const name = strategy.name;
+      if (!strategyCounts[name]) {
+        strategyCounts[name] = { 
+          name, 
+          count: 0,
+          effectiveness: strategy.effectiveness || 0
+        };
+      }
+      strategyCounts[name].count += 1;
+      if (strategy.effectiveness) {
+        // Average the effectiveness ratings
+        const currentTotal = strategyCounts[name].effectiveness * (strategyCounts[name].count - 1);
+        strategyCounts[name].effectiveness = (currentTotal + strategy.effectiveness) / strategyCounts[name].count;
+      }
+    });
+    
+    // Convert to array and sort by count descending
+    return Object.values(strategyCounts)
+      .sort((a, b) => b.count - a.count)
+      .map(item => ({
+        name: item.name,
+        count: item.count,
+        effectiveness: parseFloat(item.effectiveness.toFixed(1)),
+        fill: getRandomColor(item.name)
+      }));
+  };
+  
+  // Helper function to generate consistent colors based on string
+  const getRandomColor = (name: string) => {
+    // Generate a color based on the strategy name for consistency
+    const stringToHash = (str: string) => {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return hash;
+    };
+    
+    const hashToRGB = (hash: number) => {
+      const r = (hash & 0xFF0000) >> 16;
+      const g = (hash & 0x00FF00) >> 8;
+      const b = hash & 0x0000FF;
+      return `rgb(${r}, ${g}, ${b})`;
+    };
+    
+    return hashToRGB(stringToHash(name));
+  };
+  
+  // Prepare data for protective factors chart
+  const protectiveFactorsData = processProtectiveFactorsData();
+  
+  // Prepare data for coping strategies chart
+  const copingStrategiesData = processCopingStrategiesData();
+
   // Loading state
-  const isLoading = isLoadingEmotions || isLoadingThoughts || isLoadingJournal || isLoadingEnhancedInsights;
+  const isLoading = isLoadingEmotions || isLoadingThoughts || isLoadingJournal || 
+                   isLoadingEnhancedInsights || isLoadingProtectiveFactors || isLoadingCopingStrategies;
 
   // Check if we have meaningful data
   const hasData = connectedInsights.length > 0;
   const hasConnectionData = connectionStrengthData.length > 0;
   const hasImprovementData = improvementData.length > 0;
+  const hasStrategiesData = protectiveFactorsData.length > 0 || copingStrategiesData.length > 0;
 
   // Custom tooltip for charts
   const CustomTooltip = ({ active, payload, label }: any) => {
