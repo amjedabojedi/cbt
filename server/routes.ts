@@ -3472,6 +3472,250 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Notification API Routes
+  
+  // Get recent notifications for a user
+  app.get("/api/users/:userId/notifications", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = Number(req.params.userId);
+      const limit = req.query.limit ? Number(req.query.limit) : 10;
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const notifications = await storage.getRecentNotifications(userId, limit);
+      res.status(200).json(notifications);
+    } catch (error) {
+      console.error("Get notifications error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get unread notifications count
+  app.get("/api/users/:userId/notifications/unread-count", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = Number(req.params.userId);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const count = await storage.getUnreadNotificationsCount(userId);
+      res.status(200).json({ count });
+    } catch (error) {
+      console.error("Get unread notifications count error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Mark a notification as read
+  app.patch("/api/notifications/:id/read", authenticate, async (req, res) => {
+    try {
+      const notificationId = Number(req.params.id);
+      
+      if (isNaN(notificationId)) {
+        return res.status(400).json({ message: "Invalid notification ID" });
+      }
+      
+      const notification = await storage.getNotificationById(notificationId);
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      // Check if the user owns this notification
+      if (notification.userId !== req.user?.id && req.user?.role !== 'admin') {
+        return res.status(403).json({ message: "You don't have permission to mark this notification as read" });
+      }
+      
+      const updatedNotification = await storage.updateNotification(notificationId, { isRead: true });
+      res.status(200).json(updatedNotification);
+    } catch (error) {
+      console.error("Mark notification as read error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Mark all notifications as read
+  app.post("/api/users/:userId/notifications/mark-all-read", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = Number(req.params.userId);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      await storage.markAllNotificationsAsRead(userId);
+      res.status(200).json({ message: "All notifications marked as read" });
+    } catch (error) {
+      console.error("Mark all notifications as read error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Delete a notification
+  app.delete("/api/notifications/:id", authenticate, async (req, res) => {
+    try {
+      const notificationId = Number(req.params.id);
+      
+      if (isNaN(notificationId)) {
+        return res.status(400).json({ message: "Invalid notification ID" });
+      }
+      
+      const notification = await storage.getNotificationById(notificationId);
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      // Check if the user owns this notification
+      if (notification.userId !== req.user?.id && req.user?.role !== 'admin') {
+        return res.status(403).json({ message: "You don't have permission to delete this notification" });
+      }
+      
+      await storage.deleteNotification(notificationId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Delete notification error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get notification preferences
+  app.get("/api/users/:userId/notification-preferences", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = Number(req.params.userId);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const preferences = await storage.getNotificationPreferences(userId);
+      
+      if (!preferences) {
+        // Return default preferences if not set
+        return res.status(200).json({
+          userId,
+          emailEnabled: true,
+          pushEnabled: true,
+          reminderFrequency: "daily",
+          journalReminders: true,
+          emotionReminders: true,
+          goalReminders: true,
+          therapistMessages: true,
+          progressSummaries: true
+        });
+      }
+      
+      res.status(200).json(preferences);
+    } catch (error) {
+      console.error("Get notification preferences error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Update notification preferences
+  app.patch("/api/users/:userId/notification-preferences", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = Number(req.params.userId);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Check if preferences exist
+      const existingPreferences = await storage.getNotificationPreferences(userId);
+      
+      let preferences;
+      if (existingPreferences) {
+        // Update existing preferences
+        preferences = await storage.updateNotificationPreferences(userId, req.body);
+      } else {
+        // Create new preferences
+        preferences = await storage.createNotificationPreferences({
+          userId,
+          ...req.body
+        });
+      }
+      
+      res.status(200).json(preferences);
+    } catch (error) {
+      console.error("Update notification preferences error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Initialize HTTP server
   const httpServer = createServer(app);
+  
+  // Initialize WebSocket server
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws' 
+  });
+  
+  // Handle WebSocket connections
+  wss.on('connection', async (ws, req) => {
+    console.log('WebSocket connection established');
+    
+    // Parse URL to get session ID from the query parameter
+    const url = new URL(req.url || '', `http://${req.headers.host}`);
+    const sessionId = url.searchParams.get('sessionId');
+    
+    if (!sessionId) {
+      console.error('No session ID provided for WebSocket connection');
+      ws.close(1008, 'Authentication required');
+      return;
+    }
+    
+    try {
+      // Get user from session
+      const session = await storage.getSessionById(sessionId);
+      
+      if (!session) {
+        console.error('Invalid session ID for WebSocket connection');
+        ws.close(1008, 'Invalid session');
+        return;
+      }
+      
+      const userId = session.userId;
+      console.log(`Authenticated WebSocket connection for user ${userId}`);
+      
+      // Register this connection
+      const { registerConnection, unregisterConnection } = await import('./services/notifications');
+      registerConnection(userId, ws);
+      
+      // Send a welcome message
+      ws.send(JSON.stringify({ 
+        type: 'connection', 
+        data: { userId, connected: true, timestamp: new Date().toISOString() } 
+      }));
+      
+      // Handle incoming messages
+      ws.on('message', async (message) => {
+        try {
+          const data = JSON.parse(message.toString());
+          console.log('Received WebSocket message:', data);
+          
+          // Handle different message types
+          if (data.type === 'ping') {
+            ws.send(JSON.stringify({ type: 'pong', timestamp: new Date().toISOString() }));
+          }
+        } catch (e) {
+          console.error('Error processing WebSocket message:', e);
+        }
+      });
+      
+      // Handle connection close
+      ws.on('close', () => {
+        console.log(`WebSocket connection closed for user ${userId}`);
+        unregisterConnection(userId, ws);
+      });
+      
+    } catch (error) {
+      console.error('WebSocket connection error:', error);
+      ws.close(1011, 'Server error');
+    }
+  });
+  
   return httpServer;
 }

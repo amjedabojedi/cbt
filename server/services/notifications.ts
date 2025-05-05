@@ -1,70 +1,69 @@
 import { WebSocket } from 'ws';
 import { storage } from '../storage';
-import { Notification, InsertNotification, NotificationPreference } from '@shared/schema';
+import { InsertNotification } from '@shared/schema';
 
-// WebSocket connections organized by user ID
-const activeConnections = new Map<number, Set<WebSocket>>();
+/**
+ * Map of user IDs to WebSocket connections
+ * Each user can have multiple active connections (different devices/tabs)
+ */
+const userConnections = new Map<number, Set<WebSocket>>();
 
 /**
  * Register a user's websocket connection
  */
 export function registerConnection(userId: number, ws: WebSocket): void {
-  if (!activeConnections.has(userId)) {
-    activeConnections.set(userId, new Set());
+  if (!userConnections.has(userId)) {
+    userConnections.set(userId, new Set());
   }
   
-  activeConnections.get(userId)?.add(ws);
-  
-  console.log(`WebSocket connection registered for user ${userId}`);
-  console.log(`Active connections: ${Array.from(activeConnections.keys()).join(', ')}`);
+  userConnections.get(userId)?.add(ws);
+  console.log(`User ${userId} connected. Active connections: ${userConnections.get(userId)?.size}`);
 }
 
 /**
  * Unregister a user's websocket connection
  */
 export function unregisterConnection(userId: number, ws: WebSocket): void {
-  if (activeConnections.has(userId)) {
-    activeConnections.get(userId)?.delete(ws);
+  const connections = userConnections.get(userId);
+  
+  if (connections) {
+    connections.delete(ws);
+    console.log(`User ${userId} disconnected. Remaining connections: ${connections.size}`);
     
-    // Clean up if no more connections
-    if (activeConnections.get(userId)?.size === 0) {
-      activeConnections.delete(userId);
+    // Clean up if no connections remain
+    if (connections.size === 0) {
+      userConnections.delete(userId);
     }
-    
-    console.log(`WebSocket connection unregistered for user ${userId}`);
   }
 }
 
 /**
  * Send a notification to a specific user
  */
-export async function sendNotification(userId: number, notification: InsertNotification): Promise<Notification | undefined> {
-  try {
-    // First, store the notification in the database
-    const savedNotification = await storage.createNotification(notification);
+export async function sendNotification(userId: number, notification: InsertNotification): Promise<void> {
+  // Store notification in database first
+  const createdNotification = await storage.createNotification(notification);
+  
+  // Then send real-time notification if user is connected
+  const connections = userConnections.get(userId);
+  
+  if (connections && connections.size > 0) {
+    // Format notification message
+    const message = JSON.stringify({
+      type: 'notification',
+      data: createdNotification
+    });
     
-    // Then, send it through WebSocket if the user is connected
-    if (activeConnections.has(userId)) {
-      const sockets = activeConnections.get(userId);
-      if (sockets && sockets.size > 0) {
-        const message = JSON.stringify({
-          type: 'notification',
-          data: savedNotification
-        });
-        
-        // Send to all active connections for this user
-        sockets.forEach(socket => {
-          if (socket.readyState === WebSocket.OPEN) {
-            socket.send(message);
-          }
-        });
+    // Send to all user connections
+    connections.forEach(connection => {
+      if (connection.readyState === WebSocket.OPEN) {
+        connection.send(message);
       }
-    }
+    });
     
-    return savedNotification;
-  } catch (error) {
-    console.error('Error sending notification:', error);
-    return undefined;
+    console.log(`Real-time notification sent to user ${userId}`);
+  } else {
+    console.log(`User ${userId} not connected. Notification saved for later retrieval.`);
   }
 }
 
@@ -74,19 +73,20 @@ export async function sendNotification(userId: number, notification: InsertNotif
 export async function createSystemNotification(
   userId: number, 
   title: string, 
-  content: string, 
-  linkPath?: string
-): Promise<Notification | undefined> {
+  body: string, 
+  link?: string
+): Promise<void> {
   const notification: InsertNotification = {
     userId,
     type: 'system',
     title,
-    content,
-    linkPath: linkPath || null,
-    isRead: false
+    body,
+    link,
+    isRead: false,
+    createdAt: new Date()
   };
   
-  return sendNotification(userId, notification);
+  await sendNotification(userId, notification);
 }
 
 /**
@@ -94,21 +94,25 @@ export async function createSystemNotification(
  */
 export async function createJournalCommentNotification(
   userId: number,
-  commenterId: number,
-  commenterName: string,
-  entryId: number,
-  entryTitle: string
-): Promise<Notification | undefined> {
+  therapistName: string,
+  journalEntryId: number,
+  journalTitle: string
+): Promise<void> {
   const notification: InsertNotification = {
     userId,
-    type: 'journal_comment',
-    title: 'New Journal Comment',
-    content: `${commenterName} commented on your journal entry "${entryTitle}"`,
-    linkPath: `/journal/${entryId}`,
-    isRead: false
+    type: 'comment',
+    title: `New comment from ${therapistName}`,
+    body: `${therapistName} commented on your journal entry "${journalTitle}"`,
+    link: `/journal/${journalEntryId}`,
+    isRead: false,
+    createdAt: new Date(),
+    metadata: {
+      journalEntryId,
+      therapistName
+    }
   };
   
-  return sendNotification(userId, notification);
+  await sendNotification(userId, notification);
 }
 
 /**
@@ -118,18 +122,23 @@ export async function createResourceAssignmentNotification(
   userId: number,
   therapistName: string,
   resourceId: number,
-  resourceTitle: string
-): Promise<Notification | undefined> {
+  resourceName: string
+): Promise<void> {
   const notification: InsertNotification = {
     userId,
-    type: 'resource_assignment',
-    title: 'New Resource Assigned',
-    content: `${therapistName} has assigned you a new resource: "${resourceTitle}"`,
-    linkPath: `/resources/${resourceId}`,
-    isRead: false
+    type: 'resource',
+    title: `New resource from ${therapistName}`,
+    body: `${therapistName} assigned the resource "${resourceName}" to you`,
+    link: `/resources/${resourceId}`,
+    isRead: false,
+    createdAt: new Date(),
+    metadata: {
+      resourceId,
+      therapistName
+    }
   };
   
-  return sendNotification(userId, notification);
+  await sendNotification(userId, notification);
 }
 
 /**
@@ -137,59 +146,49 @@ export async function createResourceAssignmentNotification(
  */
 export async function createGoalStatusNotification(
   userId: number,
+  therapistName: string,
   goalId: number,
   goalTitle: string,
-  newStatus: string,
-  therapistName: string
-): Promise<Notification | undefined> {
-  let title: string;
-  let content: string;
-  
-  switch (newStatus) {
-    case 'approved':
-      title = 'Goal Approved';
-      content = `${therapistName} has approved your goal: "${goalTitle}"`;
-      break;
-    case 'in-progress':
-      title = 'Goal Status Updated';
-      content = `${therapistName} has marked your goal "${goalTitle}" as in progress`;
-      break;
-    case 'completed':
-      title = 'Goal Completed';
-      content = `Your goal "${goalTitle}" has been marked as completed`;
-      break;
-    default:
-      title = 'Goal Status Updated';
-      content = `The status of your goal "${goalTitle}" has been updated to ${newStatus}`;
-  }
+  status: string
+): Promise<void> {
+  const statusText = status === 'approved' ? 'approved' : 
+                    status === 'in-progress' ? 'updated' : 
+                    status === 'completed' ? 'marked as completed' : 
+                    'updated';
   
   const notification: InsertNotification = {
     userId,
-    type: 'goal_status',
-    title,
-    content,
-    linkPath: `/goals/${goalId}`,
-    isRead: false
+    type: 'goal',
+    title: `Goal ${statusText}`,
+    body: `${therapistName} has ${statusText} your goal "${goalTitle}"`,
+    link: `/goals/${goalId}`,
+    isRead: false,
+    createdAt: new Date(),
+    metadata: {
+      goalId,
+      therapistName,
+      status
+    }
   };
   
-  return sendNotification(userId, notification);
+  await sendNotification(userId, notification);
 }
 
 /**
  * Create a reminder notification for emotion tracking
  */
-export async function createEmotionTrackingReminder(userId: number): Promise<Notification | undefined> {
-  const userPreferences = await storage.getNotificationPreferences(userId);
+export async function createEmotionTrackingReminder(userId: number): Promise<void> {
+  // Check user preferences before sending
+  const preferences = await storage.getNotificationPreferences(userId);
   
-  // Respect user preferences
-  if (userPreferences?.emotionReminders === false) {
-    return undefined;
+  if (preferences?.emotionReminders === false) {
+    return;
   }
   
-  return createSystemNotification(
+  await createSystemNotification(
     userId,
-    'Emotion Tracking Reminder',
-    'Remember to track your emotions today. Regular tracking helps identify patterns and improve emotional awareness.',
+    'Emotion Check-In Reminder',
+    'Taking a moment to track your emotions can help you understand your patterns better.',
     '/emotions'
   );
 }
@@ -197,18 +196,18 @@ export async function createEmotionTrackingReminder(userId: number): Promise<Not
 /**
  * Create a reminder notification for journal writing
  */
-export async function createJournalReminderNotification(userId: number): Promise<Notification | undefined> {
-  const userPreferences = await storage.getNotificationPreferences(userId);
+export async function createJournalReminderNotification(userId: number): Promise<void> {
+  // Check user preferences before sending
+  const preferences = await storage.getNotificationPreferences(userId);
   
-  // Respect user preferences
-  if (userPreferences?.journalReminders === false) {
-    return undefined;
+  if (preferences?.journalReminders === false) {
+    return;
   }
   
-  return createSystemNotification(
+  await createSystemNotification(
     userId,
-    'Journal Writing Reminder',
-    'Take a moment to reflect and write in your journal today. Regular journaling can help process emotions and gain insights.',
+    'Journal Reminder',
+    'Regular journaling can help process thoughts and emotions. Take a moment to write today.',
     '/journal'
   );
 }
@@ -216,18 +215,18 @@ export async function createJournalReminderNotification(userId: number): Promise
 /**
  * Create a weekly progress notification
  */
-export async function createWeeklyProgressNotification(userId: number): Promise<Notification | undefined> {
-  const userPreferences = await storage.getNotificationPreferences(userId);
+export async function createWeeklyProgressNotification(userId: number): Promise<void> {
+  // Check user preferences before sending
+  const preferences = await storage.getNotificationPreferences(userId);
   
-  // Respect user preferences
-  if (userPreferences?.progressSummaries === false) {
-    return undefined;
+  if (preferences?.progressSummaries === false) {
+    return;
   }
   
-  return createSystemNotification(
+  await createSystemNotification(
     userId,
-    'Weekly Progress Summary',
-    'Your weekly progress summary is ready. Check your dashboard to see how you\'ve been doing.',
+    'Weekly Progress Update',
+    'Your weekly progress report is ready. Check out your insights and patterns.',
     '/dashboard'
   );
 }
@@ -235,15 +234,15 @@ export async function createWeeklyProgressNotification(userId: number): Promise<
 /**
  * Mark a notification as read
  */
-export async function markNotificationAsRead(notificationId: number): Promise<Notification | undefined> {
-  return storage.updateNotification(notificationId, { isRead: true });
+export async function markNotificationAsRead(notificationId: number): Promise<void> {
+  await storage.updateNotification(notificationId, { isRead: true });
 }
 
 /**
  * Mark all notifications for a user as read
  */
 export async function markAllNotificationsAsRead(userId: number): Promise<void> {
-  return storage.markAllNotificationsAsRead(userId);
+  await storage.markAllNotificationsAsRead(userId);
 }
 
 /**
@@ -256,7 +255,7 @@ export async function getUnreadNotificationsCount(userId: number): Promise<numbe
 /**
  * Get recent notifications for a user
  */
-export async function getRecentNotifications(userId: number, limit: number = 10): Promise<Notification[]> {
+export async function getRecentNotifications(userId: number, limit: number = 10): Promise<any[]> {
   return storage.getRecentNotifications(userId, limit);
 }
 
@@ -264,7 +263,7 @@ export async function getRecentNotifications(userId: number, limit: number = 10)
  * Delete a notification
  */
 export async function deleteNotification(notificationId: number): Promise<void> {
-  return storage.deleteNotification(notificationId);
+  await storage.deleteNotification(notificationId);
 }
 
 /**
@@ -272,9 +271,9 @@ export async function deleteNotification(notificationId: number): Promise<void> 
  */
 export async function updateNotificationPreferences(
   userId: number, 
-  preferences: Partial<NotificationPreference>
-): Promise<NotificationPreference> {
-  // Check if preferences already exist
+  preferences: any
+): Promise<any> {
+  // Check if preferences exist
   const existingPreferences = await storage.getNotificationPreferences(userId);
   
   if (existingPreferences) {
