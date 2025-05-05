@@ -1117,74 +1117,74 @@ export default function Journal() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex items-center gap-2 p-4 border rounded-md">
                       <div className="bg-blue-100 p-3 rounded-md">
-                      <Edit className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Entries</p>
-                      <p className="text-2xl font-bold">{stats.totalEntries}</p>
-                    </div>
+                        <Edit className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total Entries</p>
+                        <p className="text-2xl font-bold">{stats.totalEntries}</p>
+                      </div>
                   </div>
                   
-                  <div className="flex items-center gap-2 p-4 border rounded-md">
-                    <div className="bg-orange-100 p-3 rounded-md">
-                      <BrainCircuit className="h-5 w-5 text-orange-600" />
+                    <div className="flex items-center gap-2 p-4 border rounded-md">
+                      <div className="bg-orange-100 p-3 rounded-md">
+                        <BrainCircuit className="h-5 w-5 text-orange-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Identified Cognitive Patterns</p>
+                        <p className="text-2xl font-bold">
+                          {Object.keys(stats.topics).filter(t => 
+                            t.includes("catastrophizing") || 
+                            t.includes("all-or-nothing") || 
+                            t.includes("should")
+                          ).length}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Identified Cognitive Patterns</p>
-                      <p className="text-2xl font-bold">
-                        {Object.keys(stats.topics).filter(t => 
-                          t.includes("catastrophizing") || 
-                          t.includes("all-or-nothing") || 
-                          t.includes("should")
-                        ).length}
-                      </p>
-                    </div>
-                  </div>
                   
-                  <div className="flex items-center gap-2 p-4 border rounded-md">
-                    <div className="bg-green-100 p-3 rounded-md">
-                      <Activity className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Avg. Entry Length</p>
-                      <p className="text-2xl font-bold">
-                        {entries.length > 0 
-                          ? Math.round(entries.reduce((sum: number, entry: JournalEntry) => sum + entry.content.length, 0) / entries.length) 
-                          : 0}
-                      </p>
+                    <div className="flex items-center gap-2 p-4 border rounded-md">
+                      <div className="bg-green-100 p-3 rounded-md">
+                        <Activity className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Avg. Entry Length</p>
+                        <p className="text-2xl font-bold">
+                          {entries.length > 0 
+                            ? Math.round(entries.reduce((sum: number, entry: JournalEntry) => sum + entry.content.length, 0) / entries.length) 
+                            : 0}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
               </CardContent>
             </Card>
             
             {/* Word Cloud */}
-            <Card className="lg:col-span-12">
-              <CardHeader>
-                <CardTitle className="text-lg">Tags Word Cloud</CardTitle>
-                <CardDescription>Visual representation of tag frequency from your journal entries</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-48 w-full">
-                  {Object.keys(stats.tagsFrequency).length > 0 ? (
-                    <JournalWordCloud words={stats.tagsFrequency} height={180} maxTags={40} />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <p className="text-sm text-muted-foreground">Not enough tagged entries yet.</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
+              <Card className="lg:col-span-12">
+                <CardHeader>
+                  <CardTitle className="text-lg">Tags Word Cloud</CardTitle>
+                  <CardDescription>Visual representation of tag frequency from your journal entries</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-48 w-full">
+                    {Object.keys(stats.tagsFrequency).length > 0 ? (
+                      <JournalWordCloud words={stats.tagsFrequency} height={180} maxTags={40} />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-sm text-muted-foreground">Not enough tagged entries yet.</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
             </Card>
             
             {/* Emotional Patterns */}
-            <Card className="lg:col-span-6">
-              <CardHeader>
-                <CardTitle className="text-lg">Emotional Patterns</CardTitle>
-                <CardDescription>Most frequent emotions in your journal entries</CardDescription>
-              </CardHeader>
-              <CardContent className="p-4">
-                {Object.keys(stats.emotions).length > 0 ? (
+              <Card className="lg:col-span-6">
+                <CardHeader>
+                  <CardTitle className="text-lg">Emotional Patterns</CardTitle>
+                  <CardDescription>Most frequent emotions in your journal entries</CardDescription>
+                </CardHeader>
+                <CardContent className="p-4">
+                  {Object.keys(stats.emotions).length > 0 ? (
                   <div className="space-y-3">
                     {Object.entries(stats.emotions)
                       .sort((a, b) => b[1] - a[1])
