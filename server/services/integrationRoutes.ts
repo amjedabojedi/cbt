@@ -218,10 +218,9 @@ export function registerIntegrationRoutes(app: Express): void {
       // Get thought records with matching emotions
       const thoughts = await db.select({
         id: thoughtRecords.id,
-        situation: thoughtRecords.situation,
-        automaticThought: thoughtRecords.automaticThought,
-        emotion: thoughtRecords.emotion,
-        emotionIntensity: thoughtRecords.emotionIntensity,
+        automaticThoughts: thoughtRecords.automaticThoughts,
+        cognitiveDistortions: thoughtRecords.cognitiveDistortions,
+        emotionRecordId: thoughtRecords.emotionRecordId, 
         timestamp: thoughtRecords.createdAt
       })
       .from(thoughtRecords)
@@ -233,12 +232,43 @@ export function registerIntegrationRoutes(app: Express): void {
       .orderBy(desc(thoughtRecords.createdAt))
       .limit(10);
       
-      // Filter thoughts to only those that match the emotions
-      const relatedThoughts = thoughts.filter(thought => 
-        searchEmotions.some(emotion => 
-          thought.emotion.toLowerCase().includes(emotion.toLowerCase())
+      // We need to get the emotion records first to filter thoughts
+      // First get emotion records to match with thought records
+      const emotionResults = await db.select({
+        id: emotionRecords.id,
+        coreEmotion: emotionRecords.coreEmotion,
+        primaryEmotion: emotionRecords.primaryEmotion,
+        tertiaryEmotion: emotionRecords.tertiaryEmotion,
+      })
+      .from(emotionRecords)
+      .where(
+        and(
+          eq(emotionRecords.userId, userId)
         )
       );
+      
+      // Filter thoughts by joining with emotion records
+      const relatedThoughts = thoughts.filter(thought => {
+        // If the thought record has an emotion record ID
+        if (thought.emotionRecordId) {
+          // Find the matching emotion record
+          const emotionRecord = emotionResults.find(e => e.id === thought.emotionRecordId);
+          if (emotionRecord) {
+            // Check if any of the emotions in this record match our search emotions
+            return searchEmotions.some(searchEmotion => 
+              emotionRecord.coreEmotion.toLowerCase() === searchEmotion.toLowerCase() ||
+              emotionRecord.primaryEmotion.toLowerCase() === searchEmotion.toLowerCase() ||
+              emotionRecord.tertiaryEmotion.toLowerCase() === searchEmotion.toLowerCase()
+            );
+          }
+        }
+        
+        // If no matching emotion record, check if any cognitive distortions contain emotion keywords
+        // This is a fallback strategy since we don't have direct emotion fields in thought records
+        return searchEmotions.some(searchEmotion => 
+          thought.automaticThoughts.toLowerCase().includes(searchEmotion.toLowerCase())
+        );
+      });
       
       res.json({ relatedThoughts });
     } catch (error) {
