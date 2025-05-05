@@ -163,7 +163,7 @@ export default function CrossComponentInsights() {
         totalEntries: 0,
         averageIntensity: 0,
         averageImprovement: 0,
-        color: EMOTION_COLORS[emotionName] || '#CCCCCC'
+        color: getEmotionColor(emotionName)
       };
     });
     
@@ -421,7 +421,7 @@ export default function CrossComponentInsights() {
         totalEntries: 0,
         averageIntensity: 0,
         averageImprovement: 0,
-        color: EMOTION_COLORS['Love'] || '#E91E63'
+        color: getEmotionColor('Love')
       }];
     }
     
@@ -455,7 +455,7 @@ export default function CrossComponentInsights() {
           totalEntries: data.totalEntries || 0,
           averageIntensity: data.averageIntensity || 0,
           averageImprovement: data.averageImprovement || 0,
-          color: data.color || EMOTION_COLORS[emotionName] || '#CCCCCC'
+          color: data.color || getEmotionColor(emotionName)
         });
       });
       
@@ -470,7 +470,7 @@ export default function CrossComponentInsights() {
             totalEntries: 0,
             averageIntensity: 0,
             averageImprovement: 0,
-            color: EMOTION_COLORS[emotion] || '#CCCCCC'
+            color: getEmotionColor(emotion)
           });
         }
       });
