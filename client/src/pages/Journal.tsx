@@ -577,7 +577,7 @@ export default function Journal() {
   return (
     <AppLayout title="Journal">
       <div className="container py-6 px-8 max-w-6xl ml-4">
-      <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Journal</h1>
         <Button onClick={() => {
           setCurrentEntry(null);
@@ -588,10 +588,10 @@ export default function Journal() {
           <Plus className="mr-2 h-4 w-4" />
           New Entry
         </Button>
-      </div>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-4">
+        </div>
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4">
           <TabsTrigger value="list">
             <Tag className="mr-2 h-4 w-4" />
             Entries
@@ -1455,6 +1455,6 @@ export default function Journal() {
         </DialogContent>
       </Dialog>
       </div>
-    </AppLayout>
+      </AppLayout>
   );
 }
