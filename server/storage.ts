@@ -13,6 +13,8 @@ import {
   resourceAssignments, type ResourceAssignment, type InsertResourceAssignment,
   resourceFeedback, type ResourceFeedback, type InsertResourceFeedback,
   journalEntries, type JournalEntry, type InsertJournalEntry,
+  notifications, type Notification, type InsertNotification,
+  notificationPreferences, type NotificationPreferences, type InsertNotificationPreferences,
   journalComments, type JournalComment, type InsertJournalComment,
   sessions, type Session, type InsertSession,
   subscriptionPlans, type SubscriptionPlan, type InsertSubscriptionPlan,
