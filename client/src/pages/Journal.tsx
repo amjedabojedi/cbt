@@ -1185,133 +1185,133 @@ export default function Journal() {
                 </CardHeader>
                 <CardContent className="p-4">
                   {Object.keys(stats.emotions).length > 0 ? (
-                  <div className="space-y-3">
-                    {Object.entries(stats.emotions)
-                      .sort((a, b) => b[1] - a[1])
-                      .slice(0, 5)
-                      .map(([emotion, count]) => (
-                        <div key={emotion} className="flex items-center gap-2">
-                          <div className="w-full flex-1">
-                            <div className="flex justify-between mb-1">
-                              <p className="text-sm font-medium">{emotion}</p>
-                              <p className="text-sm text-muted-foreground">{count}</p>
-                            </div>
-                            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-blue-500 rounded-full" 
-                                style={{ 
-                                  width: `${Math.min(100, count / Math.max(...Object.values(stats.emotions)) * 100)}%` 
-                                }}
-                              ></div>
+                    <div className="space-y-3">
+                      {Object.entries(stats.emotions)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5)
+                        .map(([emotion, count]) => (
+                          <div key={emotion} className="flex items-center gap-2">
+                            <div className="w-full flex-1">
+                              <div className="flex justify-between mb-1">
+                                <p className="text-sm font-medium">{emotion}</p>
+                                <p className="text-sm text-muted-foreground">{count}</p>
+                              </div>
+                              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-blue-500 rounded-full" 
+                                  style={{ 
+                                    width: `${Math.min(100, count / Math.max(...Object.values(stats.emotions)) * 100)}%` 
+                                  }}
+                                ></div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-sm text-muted-foreground">Not enough data to display emotional patterns yet.</p>
-                  </div>
-                )}
-              </CardContent>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-sm text-muted-foreground">Not enough data to display emotional patterns yet.</p>
+                    </div>
+                  )}
+                </CardContent>
             </Card>
             
             {/* Topics */}
-            <Card className="lg:col-span-6">
-              <CardHeader>
-                <CardTitle className="text-lg">Topics & Themes</CardTitle>
-                <CardDescription>Common themes in your journaling</CardDescription>
-              </CardHeader>
-              <CardContent className="p-4">
-                {Object.keys(stats.topics).length > 0 ? (
-                  <div className="space-y-3">
-                    {Object.entries(stats.topics)
-                      .sort((a, b) => b[1] - a[1])
-                      .slice(0, 5)
-                      .map(([topic, count]) => (
-                        <div key={topic} className="flex items-center gap-2">
-                          <div className="w-full flex-1">
-                            <div className="flex justify-between mb-1">
-                              <p className="text-sm font-medium">{topic}</p>
-                              <p className="text-sm text-muted-foreground">{count}</p>
-                            </div>
-                            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-amber-500 rounded-full" 
-                                style={{ 
-                                  width: `${Math.min(100, count / Math.max(...Object.values(stats.topics)) * 100)}%` 
-                                }}
-                              ></div>
+              <Card className="lg:col-span-6">
+                <CardHeader>
+                  <CardTitle className="text-lg">Topics & Themes</CardTitle>
+                  <CardDescription>Common themes in your journaling</CardDescription>
+                </CardHeader>
+                <CardContent className="p-4">
+                  {Object.keys(stats.topics).length > 0 ? (
+                    <div className="space-y-3">
+                      {Object.entries(stats.topics)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5)
+                        .map(([topic, count]) => (
+                          <div key={topic} className="flex items-center gap-2">
+                            <div className="w-full flex-1">
+                              <div className="flex justify-between mb-1">
+                                <p className="text-sm font-medium">{topic}</p>
+                                <p className="text-sm text-muted-foreground">{count}</p>
+                              </div>
+                              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-amber-500 rounded-full" 
+                                  style={{ 
+                                    width: `${Math.min(100, count / Math.max(...Object.values(stats.topics)) * 100)}%` 
+                                  }}
+                                ></div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-sm text-muted-foreground">Not enough data to display topics yet.</p>
-                  </div>
-                )}
-              </CardContent>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-sm text-muted-foreground">Not enough data to display topics yet.</p>
+                    </div>
+                  )}
+                </CardContent>
             </Card>
             
             {/* Sentiment Over Time */}
-            <Card className="lg:col-span-12">
-              <CardHeader>
-                <CardTitle className="text-lg">Sentiment Over Time</CardTitle>
-                <CardDescription>Tracking your emotional tone across journal entries</CardDescription>
-              </CardHeader>
-              <CardContent className="px-2">
-                {stats.sentimentOverTime && stats.sentimentOverTime.length > 2 ? (
-                  <div className="h-64 w-full">
-                    {/* Simple sentiment chart visualization */}
-                    <div className="h-full w-full grid grid-cols-1">
-                      {stats.sentimentOverTime.map((day, index) => (
-                        <div key={index} className="flex items-center w-full mb-2">
-                          <div className="w-24 text-xs text-muted-foreground">
-                            {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              <Card className="lg:col-span-12">
+                <CardHeader>
+                  <CardTitle className="text-lg">Sentiment Over Time</CardTitle>
+                  <CardDescription>Tracking your emotional tone across journal entries</CardDescription>
+                </CardHeader>
+                <CardContent className="px-2">
+                  {stats.sentimentOverTime && stats.sentimentOverTime.length > 2 ? (
+                    <div className="h-64 w-full">
+                      {/* Simple sentiment chart visualization */}
+                      <div className="h-full w-full grid grid-cols-1">
+                        {stats.sentimentOverTime.map((day, index) => (
+                          <div key={index} className="flex items-center w-full mb-2">
+                            <div className="w-24 text-xs text-muted-foreground">
+                              {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
+                            <div className="flex-1 flex h-6 rounded-md overflow-hidden">
+                              <div 
+                                className="bg-green-400" 
+                                style={{ width: `${day.positive * 100}%` }}
+                                title={`Positive: ${Math.round(day.positive * 100)}%`}
+                              ></div>
+                              <div 
+                                className="bg-gray-300" 
+                                style={{ width: `${day.neutral * 100}%` }}
+                                title={`Neutral: ${Math.round(day.neutral * 100)}%`}
+                              ></div>
+                              <div 
+                                className="bg-red-400" 
+                                style={{ width: `${day.negative * 100}%` }}
+                                title={`Negative: ${Math.round(day.negative * 100)}%`}
+                              ></div>
+                            </div>
                           </div>
-                          <div className="flex-1 flex h-6 rounded-md overflow-hidden">
-                            <div 
-                              className="bg-green-400" 
-                              style={{ width: `${day.positive * 100}%` }}
-                              title={`Positive: ${Math.round(day.positive * 100)}%`}
-                            ></div>
-                            <div 
-                              className="bg-gray-300" 
-                              style={{ width: `${day.neutral * 100}%` }}
-                              title={`Neutral: ${Math.round(day.neutral * 100)}%`}
-                            ></div>
-                            <div 
-                              className="bg-red-400" 
-                              style={{ width: `${day.negative * 100}%` }}
-                              title={`Negative: ${Math.round(day.negative * 100)}%`}
-                            ></div>
+                        ))}
+                        <div className="flex justify-end space-x-4 text-xs text-muted-foreground mt-2">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-green-400 rounded-sm mr-1"></div>
+                            Positive
                           </div>
-                        </div>
-                      ))}
-                      <div className="flex justify-end space-x-4 text-xs text-muted-foreground mt-2">
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 bg-green-400 rounded-sm mr-1"></div>
-                          Positive
-                        </div>
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 bg-gray-300 rounded-sm mr-1"></div>
-                          Neutral
-                        </div>
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 bg-red-400 rounded-sm mr-1"></div>
-                          Negative
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-gray-300 rounded-sm mr-1"></div>
+                            Neutral
+                          </div>
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-red-400 rounded-sm mr-1"></div>
+                            Negative
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-sm text-muted-foreground">Not enough data to display sentiment trends yet. Keep journaling!</p>
-                  </div>
-                )}
-              </CardContent>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-sm text-muted-foreground">Not enough data to display sentiment trends yet. Keep journaling!</p>
+                    </div>
+                  )}
+                </CardContent>
             </Card>
           </div>
         </TabsContent>
