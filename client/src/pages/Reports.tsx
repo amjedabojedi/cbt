@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
+import AppLayout from "@/components/layout/AppLayout";
 import { format, subDays, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 
 import {
@@ -266,7 +267,8 @@ export default function Reports() {
   const isLoading = emotionsLoading || thoughtsLoading || goalsLoading;
   
   return (
-    <div className="container mx-auto px-4 py-6">
+    <AppLayout title="Reports">
+      <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-neutral-800">Progress Reports</h1>
@@ -549,6 +551,7 @@ export default function Reports() {
           </TabsContent>
         </Tabs>
       </div>
+    </AppLayout>
   );
 }
 

@@ -1,27 +1,23 @@
-import { ReactNode } from "react";
-import Sidebar from "./Sidebar";
-import Header from "./Header";
-import { useAuth } from "@/lib/auth";
+import React, { ReactNode } from "react";
+import Sidebar from "@/components/layout/Sidebar";
+import Header from "@/components/layout/Header";
 
 interface LayoutProps {
   children: ReactNode;
+  title?: string;
 }
 
-export default function Layout({ children }: LayoutProps) {
-  const { user } = useAuth();
-  
-  // Don't render layout if user is not authenticated
-  if (!user) return <>{children}</>;
-  
+export default function Layout({ children, title = "Dashboard" }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50 flex">
       <Sidebar />
-      <Header />
-      <main className="pt-16 md:ml-64">
-        <div className="p-4 md:p-6">
+      
+      <div className="flex-1 flex flex-col">
+        <Header title={title} />
+        <main className="flex-1 overflow-auto">
           {children}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

@@ -335,41 +335,5 @@ export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
 export type JournalComment = typeof journalComments.$inferSelect;
 export type InsertJournalComment = z.infer<typeof insertJournalCommentSchema>;
 
-// Notifications table for in-app notification system
-export const notifications = pgTable("notifications", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  type: varchar("type", { length: 50 }).notNull(),
-  title: varchar("title", { length: 100 }).notNull(),
-  body: text("body").notNull(),
-  isRead: boolean("is_read").default(false).notNull(),
-  linkPath: varchar("link_path", { length: 255 }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  expiresAt: timestamp("expires_at")
-});
-
-// Notification preferences for users
-export const notificationPreferences = pgTable("notification_preferences", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  emailEnabled: boolean("email_enabled").default(true).notNull(),
-  pushEnabled: boolean("push_enabled").default(true).notNull(),
-  reminderFrequency: varchar("reminder_frequency", { length: 20 }).default("daily").notNull(),
-  journalReminders: boolean("journal_reminders").default(true).notNull(),
-  emotionReminders: boolean("emotion_reminders").default(true).notNull(),
-  goalReminders: boolean("goal_reminders").default(true).notNull(),
-  therapistMessages: boolean("therapist_messages").default(true).notNull(),
-  progressSummaries: boolean("progress_summaries").default(true).notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
-});
-
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = z.infer<typeof insertSessionSchema>;
-
-export const insertNotificationSchema = createInsertSchema(notifications);
-export type Notification = typeof notifications.$inferSelect;
-export type InsertNotification = z.infer<typeof insertNotificationSchema>;
-
-export const insertNotificationPreferenceSchema = createInsertSchema(notificationPreferences);
-export type NotificationPreference = typeof notificationPreferences.$inferSelect;
-export type InsertNotificationPreference = z.infer<typeof insertNotificationPreferenceSchema>;

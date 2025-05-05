@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Login() {
-  const { user, login } = useAuth();
+  const { user } = useAuth();
   const [, navigate] = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -27,17 +27,23 @@ export default function Login() {
     setLoading(true);
     
     try {
-      // Use the auth context's login function instead of directly calling the API
-      await login(username, password);
-      
-      // Navigate to dashboard using wouter's navigate
-      // The auth context will update the user state
-      navigate("/dashboard");
-      
-      toast({
-        title: "Login Successful",
-        description: "Welcome back!",
+      // Use apiRequest from queryClient which handles headers and credentials
+      const response = await apiRequest("POST", "/api/auth/login", { 
+        username, 
+        password 
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Login failed");
+      }
+      
+      // Get the user data
+      const userData = await response.json();
+      console.log("Login successful, user data:", userData);
+      
+      // Reload the page to refresh authentication state
+      window.location.href = "/dashboard";
     } catch (error) {
       console.error("Login error:", error);
       toast({

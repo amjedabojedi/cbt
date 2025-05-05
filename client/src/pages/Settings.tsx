@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTheme } from "next-themes";
-
+import AppLayout from "@/components/layout/AppLayout";
 import { useToast } from "@/hooks/use-toast";
 
 import {
@@ -167,7 +167,7 @@ export default function Settings() {
   };
 
   return (
-    
+    <AppLayout title="Settings">
       <div className="container mx-auto px-4 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-neutral-800">Settings</h1>
@@ -580,5 +580,6 @@ export default function Settings() {
           </TabsContent>
         </Tabs>
       </div>
+    </AppLayout>
   );
 }

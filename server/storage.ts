@@ -16,9 +16,7 @@ import {
   journalComments, type JournalComment, type InsertJournalComment,
   sessions, type Session, type InsertSession,
   subscriptionPlans, type SubscriptionPlan, type InsertSubscriptionPlan,
-  cognitiveDistortions, type CognitiveDistortion, type InsertCognitiveDistortion,
-  notifications, type Notification, type InsertNotification,
-  notificationPreferences, type NotificationPreference, type InsertNotificationPreference
+  cognitiveDistortions, type CognitiveDistortion, type InsertCognitiveDistortion
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, or, isNull, gte } from "drizzle-orm";
@@ -51,21 +49,6 @@ export interface IStorage {
   getDefaultSubscriptionPlan(): Promise<SubscriptionPlan | undefined>;
   setDefaultSubscriptionPlan(id: number): Promise<SubscriptionPlan>;
   deactivateSubscriptionPlan(id: number): Promise<SubscriptionPlan>;
-  
-  // Notification management
-  createNotification(notification: InsertNotification): Promise<Notification>;
-  getNotificationById(id: number): Promise<Notification | undefined>;
-  getNotificationsByUser(userId: number): Promise<Notification[]>;
-  getRecentNotifications(userId: number, limit?: number): Promise<Notification[]>;
-  getUnreadNotificationsCount(userId: number): Promise<number>;
-  updateNotification(id: number, data: Partial<Notification>): Promise<Notification | undefined>;
-  markAllNotificationsAsRead(userId: number): Promise<void>;
-  deleteNotification(id: number): Promise<void>;
-  
-  // Notification preferences
-  getNotificationPreferences(userId: number): Promise<NotificationPreference | undefined>;
-  createNotificationPreferences(preferences: InsertNotificationPreference): Promise<NotificationPreference>;
-  updateNotificationPreferences(userId: number, preferences: Partial<NotificationPreference>): Promise<NotificationPreference>;
   
   // Session management
   createSession(userId: number): Promise<Session>;
@@ -1284,115 +1267,6 @@ export class DatabaseStorage implements IStorage {
     }
     
     return relatedEntries;
-  }
-  
-  // Notification management
-  async createNotification(notification: InsertNotification): Promise<Notification> {
-    const [newNotification] = await db
-      .insert(notifications)
-      .values(notification)
-      .returning();
-    
-    return newNotification;
-  }
-  
-  async getNotificationById(id: number): Promise<Notification | undefined> {
-    const [notification] = await db
-      .select()
-      .from(notifications)
-      .where(eq(notifications.id, id));
-    
-    return notification;
-  }
-  
-  async getNotificationsByUser(userId: number): Promise<Notification[]> {
-    return db
-      .select()
-      .from(notifications)
-      .where(eq(notifications.userId, userId))
-      .orderBy(desc(notifications.createdAt));
-  }
-  
-  async getRecentNotifications(userId: number, limit: number = 10): Promise<Notification[]> {
-    return db
-      .select()
-      .from(notifications)
-      .where(eq(notifications.userId, userId))
-      .orderBy(desc(notifications.createdAt))
-      .limit(limit);
-  }
-  
-  async getUnreadNotificationsCount(userId: number): Promise<number> {
-    const result = await db
-      .select({ count: sql`count(*)` })
-      .from(notifications)
-      .where(and(
-        eq(notifications.userId, userId),
-        eq(notifications.isRead, false)
-      ));
-    
-    return parseInt(result[0].count as string);
-  }
-  
-  async updateNotification(id: number, data: Partial<Notification>): Promise<Notification | undefined> {
-    const [updatedNotification] = await db
-      .update(notifications)
-      .set(data)
-      .where(eq(notifications.id, id))
-      .returning();
-    
-    return updatedNotification;
-  }
-  
-  async markAllNotificationsAsRead(userId: number): Promise<void> {
-    await db
-      .update(notifications)
-      .set({ isRead: true })
-      .where(and(
-        eq(notifications.userId, userId),
-        eq(notifications.isRead, false)
-      ));
-  }
-  
-  async deleteNotification(id: number): Promise<void> {
-    await db
-      .delete(notifications)
-      .where(eq(notifications.id, id));
-  }
-  
-  // Notification preferences
-  async getNotificationPreferences(userId: number): Promise<NotificationPreference | undefined> {
-    const [preferences] = await db
-      .select()
-      .from(notificationPreferences)
-      .where(eq(notificationPreferences.userId, userId));
-    
-    return preferences;
-  }
-  
-  async createNotificationPreferences(preferences: InsertNotificationPreference): Promise<NotificationPreference> {
-    const [newPreferences] = await db
-      .insert(notificationPreferences)
-      .values({
-        ...preferences,
-        updatedAt: new Date()
-      })
-      .returning();
-    
-    return newPreferences;
-  }
-  
-  async updateNotificationPreferences(userId: number, preferences: Partial<NotificationPreference>): Promise<NotificationPreference> {
-    const [updatedPreferences] = await db
-      .update(notificationPreferences)
-      .set({
-        ...preferences,
-        updatedAt: new Date()
-      })
-      .where(eq(notificationPreferences.userId, userId))
-      .returning();
-    
-    return updatedPreferences;
   }
 }
 
