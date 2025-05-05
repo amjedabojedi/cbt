@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Globe, Moon, Sun, Menu } from "lucide-react";
+import { Globe, Moon, Sun, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import RoleIndicator from "./RoleIndicator";
 import { useClientContext } from "@/context/ClientContext";
+import NotificationBell from "@/components/ui/notification-bell";
 
 interface HeaderProps {
   title: string;
@@ -52,14 +53,7 @@ export default function Header({ title }: HeaderProps) {
 
           {/* Notifications */}
           <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative rounded-full text-neutral-500 hover:text-primary focus:outline-none"
-            >
-              <Bell size={20} />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-destructive rounded-full"></span>
-            </Button>
+            <NotificationBell />
           </div>
 
           {/* Language Toggle */}

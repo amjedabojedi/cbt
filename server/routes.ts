@@ -1924,6 +1924,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // In-app notification endpoints
+  app.get("/api/notifications", authenticate, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+      const notifications = await storage.getNotificationsByUser(userId, limit);
+      res.status(200).json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+  
+  app.get("/api/notifications/unread", authenticate, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const notifications = await storage.getUnreadNotificationsByUser(userId);
+      res.status(200).json(notifications);
+    } catch (error) {
+      console.error("Error fetching unread notifications:", error);
+      res.status(500).json({ message: "Failed to fetch unread notifications" });
+    }
+  });
+  
+  app.post("/api/notifications/read/:id", authenticate, async (req, res) => {
+    try {
+      const notificationId = parseInt(req.params.id);
+      const notification = await storage.getNotificationById(notificationId);
+      
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      if (notification.userId !== req.user!.id) {
+        return res.status(403).json({ message: "You don't have permission to modify this notification" });
+      }
+      
+      const updatedNotification = await storage.markNotificationAsRead(notificationId);
+      res.status(200).json(updatedNotification);
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+  
+  app.post("/api/notifications/read-all", authenticate, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      await storage.markAllNotificationsAsRead(userId);
+      res.status(200).json({ message: "All notifications marked as read" });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
+  
+  app.delete("/api/notifications/:id", authenticate, async (req, res) => {
+    try {
+      const notificationId = parseInt(req.params.id);
+      const notification = await storage.getNotificationById(notificationId);
+      
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      if (notification.userId !== req.user!.id) {
+        return res.status(403).json({ message: "You don't have permission to delete this notification" });
+      }
+      
+      await storage.deleteNotification(notificationId);
+      res.status(200).json({ message: "Notification deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      res.status(500).json({ message: "Failed to delete notification" });
+    }
+  });
+  
+  // Test endpoint to create a notification (will be removed in production)
+  app.post("/api/notifications/test", authenticate, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const testNotification = await storage.createNotification({
+        userId,
+        title: "Test Notification",
+        content: "This is a test notification to verify functionality.",
+        type: "system",
+        isRead: false
+      });
+      res.status(201).json(testNotification);
+    } catch (error) {
+      console.error("Error creating test notification:", error);
+      res.status(500).json({ message: "Failed to create test notification" });
+    }
+  });
+  
   // Get protective factors used for a specific thought record
   app.get("/api/users/:userId/thoughts/:id/protective-factors", authenticate, checkUserAccess, async (req, res) => {
     try {

@@ -21,7 +21,7 @@ import {
   cognitiveDistortions, type CognitiveDistortion, type InsertCognitiveDistortion
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql, or, isNull, gte } from "drizzle-orm";
+import { eq, and, desc, sql, or, isNull, gte, gt } from "drizzle-orm";
 import * as bcrypt from "bcrypt";
 import { nanoid } from "nanoid";
 
@@ -1313,7 +1313,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         or(
           isNull(notifications.expiresAt),
-          gt(notifications.expiresAt, new Date())
+          gte(notifications.expiresAt, new Date())
         )
       )
       .orderBy(desc(notifications.createdAt));
