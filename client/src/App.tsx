@@ -8,6 +8,7 @@ import { Suspense, lazy } from "react";
 import NotFound from "@/pages/not-found";
 import { ClientProvider } from "@/context/ClientContext";
 import { ThemeProvider } from "next-themes";
+import Layout from "@/components/layout/Layout";
 
 // Lazy load pages
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
@@ -59,44 +60,59 @@ function Router() {
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         
-        {/* Protected routes - require authentication */}
-        <ProtectedRoute path="/dashboard" component={RoleDashboard} />
-        <ProtectedRoute path="/emotion-tracking" component={EmotionTracking} />
-        <ProtectedRoute path="/emotions" component={EmotionTracking} />
-        <ProtectedRoute path="/thoughts" component={ThoughtRecords} />
-        <ProtectedRoute path="/goals" component={GoalSetting} />
-        <ProtectedRoute path="/library" component={ResourceLibrary} />
-        <ProtectedRoute path="/journal" component={Journal} />
-        <ProtectedRoute path="/reports" component={Reports} />
-        
-        {/* Role-restricted routes */}
-        <ProtectedRoute 
-          path="/clients" 
-          component={Clients} 
-          allowedRoles={["therapist", "admin"]} 
-        />
-        
-        {/* Admin-only routes */}
-        <ProtectedRoute 
-          path="/users" 
-          component={UserManagement} 
-          allowedRoles={["admin"]} 
-        />
-        <ProtectedRoute 
-          path="/subscriptions" 
-          component={SubscriptionManagement} 
-          allowedRoles={["admin"]} 
-        />
-        <ProtectedRoute 
-          path="/emotion-mapping" 
-          component={EmotionMapping} 
-          allowedRoles={["admin"]} 
-        />
-        
-        {/* General routes */}
-        <ProtectedRoute path="/settings" component={Settings} />
-        <Route path="/:rest*" component={NotFound} />
-        <ProtectedRoute path="/" component={RoleDashboard} />
+        {/* All protected routes get wrapped in the Layout component */}
+        <Route path="/:rest*">
+          {(params) => {
+            if (params.rest === "login" || params.rest === "register") {
+              return null; // Skip for login and register routes
+            } else {
+              return (
+                <Layout>
+                  <Switch>
+                    {/* Protected routes - require authentication */}
+                    <ProtectedRoute path="/dashboard" component={RoleDashboard} />
+                    <ProtectedRoute path="/emotion-tracking" component={EmotionTracking} />
+                    <ProtectedRoute path="/emotions" component={EmotionTracking} />
+                    <ProtectedRoute path="/thoughts" component={ThoughtRecords} />
+                    <ProtectedRoute path="/goals" component={GoalSetting} />
+                    <ProtectedRoute path="/library" component={ResourceLibrary} />
+                    <ProtectedRoute path="/journal" component={Journal} />
+                    <ProtectedRoute path="/reports" component={Reports} />
+                    
+                    {/* Role-restricted routes */}
+                    <ProtectedRoute 
+                      path="/clients" 
+                      component={Clients} 
+                      allowedRoles={["therapist", "admin"]} 
+                    />
+                    
+                    {/* Admin-only routes */}
+                    <ProtectedRoute 
+                      path="/users" 
+                      component={UserManagement} 
+                      allowedRoles={["admin"]} 
+                    />
+                    <ProtectedRoute 
+                      path="/subscriptions" 
+                      component={SubscriptionManagement} 
+                      allowedRoles={["admin"]} 
+                    />
+                    <ProtectedRoute 
+                      path="/emotion-mapping" 
+                      component={EmotionMapping} 
+                      allowedRoles={["admin"]} 
+                    />
+                    
+                    {/* General routes */}
+                    <ProtectedRoute path="/settings" component={Settings} />
+                    <Route path="/:subrest*" component={NotFound} />
+                    <ProtectedRoute path="/" component={RoleDashboard} />
+                  </Switch>
+                </Layout>
+              );
+            }
+          }}
+        </Route>
       </Switch>
     </Suspense>
   );

@@ -40,7 +40,7 @@ export function NotificationBell() {
 
     const fetchUnreadCount = async () => {
       try {
-        const response = await apiRequest('GET', `/api/users/${user.id}/notifications/unread-count`);
+        const response = await apiRequest('GET', '/api/notifications/unread-count');
         const data = await response.json();
         setUnreadCount(data.count);
       } catch (error) {
@@ -129,7 +129,7 @@ export function NotificationBell() {
     const fetchNotifications = async () => {
       setLoading(true);
       try {
-        const response = await apiRequest('GET', `/api/users/${user.id}/notifications?limit=20`);
+        const response = await apiRequest('GET', '/api/notifications?limit=20');
         const data = await response.json();
         setNotifications(data);
       } catch (error) {
@@ -146,7 +146,7 @@ export function NotificationBell() {
     if (notification.isRead) return;
     
     try {
-      await apiRequest('PATCH', `/api/notifications/${notification.id}/read`);
+      await apiRequest('PATCH', `/api/notifications/${notification.id}/mark-read`);
       
       // Update local state
       setNotifications(prev => 
@@ -167,7 +167,7 @@ export function NotificationBell() {
     if (!user || unreadCount === 0) return;
     
     try {
-      await apiRequest('POST', `/api/users/${user.id}/notifications/mark-all-read`);
+      await apiRequest('POST', `/api/notifications/mark-all-read`);
       
       // Update local state
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));

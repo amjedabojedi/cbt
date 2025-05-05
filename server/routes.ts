@@ -7,9 +7,14 @@ import { z } from "zod";
 import * as bcrypt from "bcrypt";
 import Stripe from "stripe";
 import * as emotionMapping from "./services/emotionMapping";
-
-// WebSocket client connections map
-const clients = new Map<number, WebSocket[]>();
+import { 
+  registerConnection, 
+  unregisterConnection,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  getUnreadNotificationsCount
+} from "./services/notifications";
+import { parse } from 'url';
 import { 
   insertUserSchema, 
   insertEmotionRecordSchema,
@@ -73,6 +78,220 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register cross-component integration routes
   registerIntegrationRoutes(app);
+  
+  // Create HTTP server (don't redeclare it later)
+  const httpServer = createServer(app);
+  
+  // Initialize WebSocket server with a specific path to avoid conflict with Vite HMR
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws'
+  });
+  
+  // Handle WebSocket connections
+  wss.on('connection', (ws, req) => {
+    console.log('New WebSocket connection');
+    
+    // Parse the URL to get query parameters
+    const { query } = parse(req.url || '', true);
+    const userId = query.userId ? Number(query.userId) : null;
+    const sessionId = query.sessionId as string;
+    
+    // Handle unauthorized connections
+    if (!userId || !sessionId) {
+      console.log('WebSocket connection rejected: Missing userId or sessionId');
+      ws.close(1008, 'Authentication required');
+      return;
+    }
+    
+    // Verify the user's session
+    storage.getUserBySessionId(sessionId).then(user => {
+      if (!user || user.id !== userId) {
+        console.log('WebSocket connection rejected: Invalid session');
+        ws.close(1008, 'Authentication failed');
+        return;
+      }
+      
+      // Register this connection
+      registerConnection(userId, ws);
+      
+      // Handle incoming messages
+      ws.on('message', (message) => {
+        try {
+          const data = JSON.parse(message.toString());
+          
+          // Handle different message types
+          if (data.type === 'markAsRead' && data.id) {
+            markNotificationAsRead(data.id);
+          } else if (data.type === 'markAllAsRead') {
+            markAllNotificationsAsRead(userId);
+          }
+        } catch (error) {
+          console.error('Error processing WebSocket message:', error);
+        }
+      });
+      
+      // Handle connection close
+      ws.on('close', () => {
+        unregisterConnection(userId, ws);
+      });
+      
+      // Send initial notification count
+      getUnreadNotificationsCount(userId).then(count => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ 
+            type: 'unreadCount', 
+            count 
+          }));
+        }
+      }).catch(error => {
+        console.error('Error getting unread notifications count:', error);
+      });
+    }).catch(error => {
+      console.error('Error authenticating WebSocket connection:', error);
+      ws.close(1008, 'Authentication error');
+    });
+  });
+  
+  // Notification API endpoints
+  
+  // Get recent notifications for a user
+  app.get("/api/notifications", authenticate, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // Default limit to 20 if not specified
+      const limit = req.query.limit ? Number(req.query.limit) : 20;
+      
+      const notifications = await storage.getRecentNotifications(userId, limit);
+      res.status(200).json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Error fetching notifications" });
+    }
+  });
+  
+  // Get unread notification count
+  app.get("/api/notifications/unread-count", authenticate, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const count = await storage.getUnreadNotificationsCount(userId);
+      res.status(200).json({ count });
+    } catch (error) {
+      console.error("Error fetching unread notification count:", error);
+      res.status(500).json({ message: "Error fetching unread notification count" });
+    }
+  });
+  
+  // Mark a notification as read
+  app.patch("/api/notifications/:id/mark-read", authenticate, async (req, res) => {
+    try {
+      const notificationId = Number(req.params.id);
+      if (isNaN(notificationId)) {
+        return res.status(400).json({ message: "Invalid notification ID" });
+      }
+      
+      // Verify the notification belongs to the user
+      const notification = await storage.getNotificationById(notificationId);
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      if (notification.userId !== req.user?.id) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
+      await storage.updateNotification(notificationId, { isRead: true });
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Error marking notification as read" });
+    }
+  });
+  
+  // Mark all notifications as read
+  app.post("/api/notifications/mark-all-read", authenticate, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      await storage.markAllNotificationsAsRead(userId);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ message: "Error marking all notifications as read" });
+    }
+  });
+  
+  // Get notification preferences
+  app.get("/api/notification-preferences", authenticate, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const preferences = await storage.getNotificationPreferences(userId);
+      
+      if (!preferences) {
+        // Return default preferences if not set
+        return res.status(200).json({
+          userId,
+          emailEnabled: true,
+          pushEnabled: true,
+          reminderFrequency: "daily",
+          journalReminders: true,
+          emotionReminders: true,
+          goalReminders: true,
+          therapistMessages: true,
+          progressSummaries: true
+        });
+      }
+      
+      res.status(200).json(preferences);
+    } catch (error) {
+      console.error("Error fetching notification preferences:", error);
+      res.status(500).json({ message: "Error fetching notification preferences" });
+    }
+  });
+  
+  // Update notification preferences
+  app.patch("/api/notification-preferences", authenticate, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // Get or create user preferences
+      let preferences = await storage.getNotificationPreferences(userId);
+      
+      if (preferences) {
+        // Update existing preferences
+        preferences = await storage.updateNotificationPreferences(userId, req.body);
+      } else {
+        // Create new preferences
+        preferences = await storage.createNotificationPreferences({
+          userId,
+          ...req.body
+        });
+      }
+      
+      res.status(200).json(preferences);
+    } catch (error) {
+      console.error("Error updating notification preferences:", error);
+      res.status(500).json({ message: "Error updating notification preferences" });
+    }
+  });
   
   // Enhanced insights endpoint that uses the improved emotion mapping service
   app.get("/api/users/:userId/enhanced-insights", authenticate, checkUserAccess, async (req, res) => {
@@ -3644,17 +3863,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Initialize HTTP server
-  const httpServer = createServer(app);
+  // WebSocket server is already initialized at the beginning of this function
   
-  // Initialize WebSocket server
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws' 
-  });
-  
-  // Handle WebSocket connections
-  wss.on('connection', async (ws, req) => {
+  // The following connection handler is redundant with the one above
+  /* wss.on('connection', async (ws, req) => {
     console.log('WebSocket connection established');
     
     // Parse URL to get session ID from the query parameter
@@ -3716,6 +3928,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ws.close(1011, 'Server error');
     }
   });
+  
+  */
   
   return httpServer;
 }
