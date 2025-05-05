@@ -1107,16 +1107,16 @@ export default function Journal() {
         
         {/* Stats and Insights Tab */}
         <TabsContent value="stats">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Stats Overview */}
-            <Card className="lg:col-span-12">
-              <CardHeader>
-                <CardTitle className="text-xl">Journal Stats Overview</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="flex items-center gap-2 p-4 border rounded-md">
-                    <div className="bg-blue-100 p-3 rounded-md">
+              <Card className="lg:col-span-12">
+                <CardHeader>
+                  <CardTitle className="text-xl">Journal Stats Overview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex items-center gap-2 p-4 border rounded-md">
+                      <div className="bg-blue-100 p-3 rounded-md">
                       <Edit className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
