@@ -79,6 +79,18 @@ export default function CrossComponentInsights() {
     enabled: !!activeUserId,
   });
   
+  // Fetch protective factors
+  const { data: protectiveFactors, isLoading: isLoadingProtectiveFactors } = useQuery<any[]>({
+    queryKey: activeUserId ? [`/api/users/${activeUserId}/protective-factors`] : [],
+    enabled: !!activeUserId,
+  });
+  
+  // Fetch coping strategies
+  const { data: copingStrategies, isLoading: isLoadingCopingStrategies } = useQuery<any[]>({
+    queryKey: activeUserId ? [`/api/users/${activeUserId}/coping-strategies`] : [],
+    enabled: !!activeUserId,
+  });
+  
   // Fetch enhanced cross-component insights from our new endpoint
   const { data: enhancedApiInsights, isLoading: isLoadingEnhancedInsights } = useQuery<any>({
     queryKey: activeUserId ? [`/api/users/${activeUserId}/enhanced-insights`] : [],
@@ -607,6 +619,9 @@ export default function CrossComponentInsights() {
                 </TabsTrigger>
                 <TabsTrigger value="patterns">
                   Intensity vs. Improvement
+                </TabsTrigger>
+                <TabsTrigger value="strategies">
+                  Coping Strategies
                 </TabsTrigger>
               </TabsList>
               
