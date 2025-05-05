@@ -85,7 +85,7 @@ function Router() {
             <Layout>
               <Switch>
                 {/* Default route */}
-                <Route path="/" exact>
+                <Route path="/">
                   <RoleDashboard />
                 </Route>
                 
