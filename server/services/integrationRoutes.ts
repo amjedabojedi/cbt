@@ -13,7 +13,6 @@ import * as emotionMapping from "./emotionMapping";
 import { eq, and, like, desc } from "drizzle-orm";
 import { 
   journalEntries, 
-  journalTags, 
   emotionRecords, 
   thoughtRecords 
 } from "@shared/schema";
@@ -39,7 +38,12 @@ export function registerIntegrationRoutes(app: Express): void {
     try {
       const emotion = req.params.emotion;
       const coreEmotion = emotionMapping.findCoreEmotion(emotion);
-      const relatedEmotions = emotionMapping.getRelatedEmotions(emotion || '');
+      
+      // If we found a core emotion, get all related emotions for that core emotion
+      // Otherwise, just get related emotions for the input emotion
+      const relatedEmotions = coreEmotion 
+        ? emotionMapping.getRelatedEmotions(coreEmotion) 
+        : emotionMapping.getRelatedEmotions(emotion || '');
       
       res.json({
         emotion,
@@ -57,7 +61,13 @@ export function registerIntegrationRoutes(app: Express): void {
     try {
       const userId = parseInt(req.params.userId);
       const emotion = req.params.emotion;
-      const relatedEmotions = emotionMapping.getRelatedEmotions(emotion || '');
+      const coreEmotion = emotionMapping.findCoreEmotion(emotion);
+      
+      // If we found a core emotion, get all related emotions for that core emotion
+      // Otherwise, just get related emotions for the input emotion
+      const relatedEmotions = coreEmotion 
+        ? emotionMapping.getRelatedEmotions(coreEmotion) 
+        : emotionMapping.getRelatedEmotions(emotion || '');
       
       // Include the original emotion in the search
       const searchEmotions = [emotion, ...relatedEmotions];
@@ -77,7 +87,7 @@ export function registerIntegrationRoutes(app: Express): void {
           // We use a simplified approach for JSON array search here
           // In a production app, you might need a more sophisticated approach
           // depending on the database being used
-          journalEntries.userSelectedTags.isNotNull()
+          journalEntries.userSelectedTags
         )
       )
       .orderBy(desc(journalEntries.createdAt))
@@ -194,7 +204,13 @@ export function registerIntegrationRoutes(app: Express): void {
     try {
       const userId = parseInt(req.params.userId);
       const emotion = req.params.emotion;
-      const relatedEmotions = emotionMapping.getRelatedEmotions(emotion || '');
+      const coreEmotion = emotionMapping.findCoreEmotion(emotion);
+      
+      // If we found a core emotion, get all related emotions for that core emotion
+      // Otherwise, just get related emotions for the input emotion
+      const relatedEmotions = coreEmotion 
+        ? emotionMapping.getRelatedEmotions(coreEmotion) 
+        : emotionMapping.getRelatedEmotions(emotion || '');
       
       // Include the original emotion in the search
       const searchEmotions = [emotion, ...relatedEmotions];
