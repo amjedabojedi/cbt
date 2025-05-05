@@ -413,16 +413,40 @@ export default function CrossComponentInsights() {
       
       // Process each emotion in the connections
       Object.entries(enhancedApiInsights.connections).forEach(([emotionName, data]: [string, any]) => {
+        // Count journal entries and thought records from the data
+        const journalEntries = Array.isArray(data.journalEntries) ? data.journalEntries : [];
+        const thoughtRecords = Array.isArray(data.thoughtRecords) ? data.thoughtRecords : [];
+        
+        // Calculate correct counts
+        const journalCount = journalEntries.length;
+        const thoughtRecordCount = thoughtRecords.length;
+        
         // Map the data to our insight format
         apiInsights.push({
           emotionName,
-          journalCount: data.journalCount || 0,
-          thoughtRecordCount: data.thoughtRecordCount || 0,
-          totalEntries: data.emotionCount || 0,
+          journalCount: journalCount,
+          thoughtRecordCount: thoughtRecordCount,
+          totalEntries: data.totalEntries || 0,
           averageIntensity: data.averageIntensity || 0,
           averageImprovement: data.averageImprovement || 0,
           color: data.color || EMOTION_COLORS[emotionName] || '#CCCCCC'
         });
+      });
+      
+      // Add essential emotions if missing
+      const coreEmotions = ['Joy', 'Sadness', 'Fear', 'Anger', 'Disgust', 'Love', 'Anxiety'];
+      coreEmotions.forEach(emotion => {
+        if (!apiInsights.some(insight => insight.emotionName === emotion)) {
+          apiInsights.push({
+            emotionName: emotion,
+            journalCount: 0,
+            thoughtRecordCount: 0,
+            totalEntries: 0,
+            averageIntensity: 0,
+            averageImprovement: 0,
+            color: EMOTION_COLORS[emotion] || '#CCCCCC'
+          });
+        }
       });
       
       return apiInsights.length > 0 ? apiInsights : processConnectedInsights();
