@@ -610,7 +610,7 @@ export default function Journal() {
         
           {/* List of Journal Entries */}
           <TabsContent value="list">
-          {isLoading ? (
+            {isLoading ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <Card key={i} className="animate-pulse">
@@ -698,8 +698,8 @@ export default function Journal() {
         
           {/* Single Entry Detailed View */}
           <TabsContent value="view">
-          {currentEntry && (
-            <div className="space-y-8">
+            {currentEntry && (
+              <div className="space-y-8">
               <Card>
                 <CardHeader>
                   <div className="flex justify-between items-start">
