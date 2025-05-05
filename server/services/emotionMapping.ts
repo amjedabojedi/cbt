@@ -197,15 +197,15 @@ export const TERTIARY_EMOTIONS = {
   'Worried': 'Nervous',
   'Anxious': 'Nervous',
   
-  // Anxiety tertiary emotions
-  'Overwhelmed': 'Stressed',
+  // Fear-related anxiety tertiary emotions
+  'Overwhelmed': 'Anxious',
   'Frantic': 'Stressed',
-  'Jittery': 'Nervous',
-  'Restless': 'Nervous',
-  'Uneasy': 'Tense',
-  'Distressed': 'Tense',
+  'Jittery': 'Tense',
+  'Restless': 'Tense',
+  'Uneasy': 'Worried',
+  'Distressed': 'Panicky',
   'Concerned': 'Worried',
-  'Troubled': 'Worried',
+  'Troubled': 'Apprehensive',
   
   // Anger tertiary emotions
   'Hate': 'Rage',
@@ -293,16 +293,22 @@ export const EMOTION_COLORS: Record<string, string> = {
   'Joy': '#F9D71C',       // Yellow
   'Sadness': '#6D87C4',   // Blue
   'Fear': '#8A65AA',      // Purple
-  'Anxiety': '#9C27B0',   // Purple
   'Anger': '#E43D40',     // Red
   'Disgust': '#7DB954',   // Green
   'Love': '#E91E63',      // Pink
   'Surprise': '#F47B20',  // Orange
   'Trust': '#8DC4BD',     // Teal
+  'Shame': '#FF6B81',     // Pink-Red
+  'Interest': '#4DB6AC',  // Teal-Green
+  'Gratitude': '#FFB74D', // Light Orange
+  'Calm': '#81C784',      // Light Green
+  
+  // Secondary emotions with specific colors
   'Worry': '#9932CC',     // Purple
-  'Frustration': '#B22222', // Dark Red
-  'Happiness': '#FFA07A', // Light Red
-  'Depression': '#4682B4', // Blue
+  'Anxious': '#9C27B0',   // Purple 
+  'Frustrated': '#B22222', // Dark Red
+  'Happy': '#FFA07A',     // Light Red
+  'Depressed': '#4682B4', // Blue
 };
 
 /**
@@ -469,12 +475,7 @@ export function areEmotionsRelated(emotion1: string, emotion2: string): boolean 
   const core1 = findCoreEmotion(emotion1);
   const core2 = findCoreEmotion(emotion2);
   
-  // Special case: Anxiety and Fear are considered related
-  if ((core1 === 'Anxiety' && core2 === 'Fear') || 
-      (core1 === 'Fear' && core2 === 'Anxiety')) {
-    return true;
-  }
-  
+  // Check if core emotions match and are valid
   return core1 === core2 && core1 !== null;
 }
 
@@ -591,7 +592,7 @@ export async function enhanceComponentConnections(
       });
     }
     
-    // Special hard-coded fallback for Fear and Anxiety based on the sample data we know exists
+    // Special hard-coded fallback for Fear based on the sample data we know exists
     // This ensures we have consistent visualization for demo purposes
     if (journal.content && (
       journal.content.toLowerCase().includes('fear') || 
@@ -600,7 +601,6 @@ export async function enhanceComponentConnections(
       journal.content.toLowerCase().includes('worry')
     )) {
       emotionConnections['Fear'].journalEntries.push(journal);
-      emotionConnections['Anxiety'].journalEntries.push(journal);
     }
   });
   

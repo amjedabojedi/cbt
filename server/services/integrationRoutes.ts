@@ -33,6 +33,28 @@ export function registerIntegrationRoutes(app: Express): void {
     }
   });
 
+  // Handle the base case with no emotion specified
+  app.get("/api/emotions/related", async (req: Request, res: Response) => {
+    try {
+      // Return all core emotions with their relationships
+      const coreEmotions = Object.keys(emotionMapping.CORE_EMOTION_FAMILIES);
+      const relationshipMap: Record<string, string[]> = {};
+      
+      // For each core emotion, get a sample of related emotions
+      coreEmotions.forEach(core => {
+        relationshipMap[core] = emotionMapping.getRelatedEmotions(core).slice(0, 5); // Just return a few examples
+      });
+      
+      res.json({
+        coreEmotions,
+        relationships: relationshipMap
+      });
+    } catch (error) {
+      console.error("Error fetching related emotions:", error);
+      res.status(500).json({ message: "Failed to fetch related emotions" });
+    }
+  });
+
   // Get emotions related to a specific emotion
   app.get("/api/emotions/related/:emotion", async (req: Request, res: Response) => {
     try {
