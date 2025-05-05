@@ -66,6 +66,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import JournalWordCloud from "@/components/journal/JournalWordCloud";
 
 // Helper function to provide descriptions for cognitive distortions
 function getDistortionDescription(distortion: string): string {
@@ -1155,6 +1156,25 @@ export default function Journal() {
               </CardContent>
             </Card>
             
+            {/* Word Cloud */}
+            <Card className="lg:col-span-12">
+              <CardHeader>
+                <CardTitle className="text-lg">Tags Word Cloud</CardTitle>
+                <CardDescription>Visual representation of tag frequency from your journal entries</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-48 w-full">
+                  {Object.keys(stats.tagsFrequency).length > 0 ? (
+                    <JournalWordCloud words={stats.tagsFrequency} height={180} maxTags={40} />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <p className="text-sm text-muted-foreground">Not enough tagged entries yet.</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+            
             {/* Emotional Patterns */}
             <Card className="lg:col-span-6">
               <CardHeader>
@@ -1242,9 +1262,46 @@ export default function Journal() {
               <CardContent className="px-2">
                 {stats.sentimentOverTime && stats.sentimentOverTime.length > 2 ? (
                   <div className="h-64 w-full">
-                    {/* Placeholder for sentiment chart - use a library like recharts here */}
-                    <div className="h-full w-full flex items-center justify-center bg-slate-50 rounded-md">
-                      <p className="text-sm text-muted-foreground">Sentiment visualization chart would render here</p>
+                    {/* Simple sentiment chart visualization */}
+                    <div className="h-full w-full grid grid-cols-1">
+                      {stats.sentimentOverTime.map((day, index) => (
+                        <div key={index} className="flex items-center w-full mb-2">
+                          <div className="w-24 text-xs text-muted-foreground">
+                            {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </div>
+                          <div className="flex-1 flex h-6 rounded-md overflow-hidden">
+                            <div 
+                              className="bg-green-400" 
+                              style={{ width: `${day.positive * 100}%` }}
+                              title={`Positive: ${Math.round(day.positive * 100)}%`}
+                            ></div>
+                            <div 
+                              className="bg-gray-300" 
+                              style={{ width: `${day.neutral * 100}%` }}
+                              title={`Neutral: ${Math.round(day.neutral * 100)}%`}
+                            ></div>
+                            <div 
+                              className="bg-red-400" 
+                              style={{ width: `${day.negative * 100}%` }}
+                              title={`Negative: ${Math.round(day.negative * 100)}%`}
+                            ></div>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="flex justify-end space-x-4 text-xs text-muted-foreground mt-2">
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 bg-green-400 rounded-sm mr-1"></div>
+                          Positive
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 bg-gray-300 rounded-sm mr-1"></div>
+                          Neutral
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 bg-red-400 rounded-sm mr-1"></div>
+                          Negative
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ) : (
