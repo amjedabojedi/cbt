@@ -41,15 +41,7 @@ import { sendClientInvitation } from "./services/email";
 import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
 import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
 import { registerIntegrationRoutes } from "./services/integrationRoutes";
-import { 
-  CORE_EMOTIONS,
-  EMOTION_FAMILIES,
-  normalizeToCoreEmotion,
-  areRelatedEmotions,
-  getRelatedEmotions,
-  findMatchingJournalEmotions,
-  getEmotionRelationshipMap
-} from "./services/emotionMapping";
+import * as emotionMapping from "./services/emotionMapping";
 import { db, pool } from "./db";
 import { eq, or, isNull, desc, and } from "drizzle-orm";
 

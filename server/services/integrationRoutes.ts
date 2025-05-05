@@ -9,13 +9,7 @@ import { Request, Response } from "express";
 import { Express } from "express";
 import { db } from "../db";
 import { authenticate, checkUserAccess } from "../middleware/auth";
-import { 
-  CORE_EMOTIONS, 
-  EMOTION_FAMILIES, 
-  getRelatedEmotions, 
-  normalizeToCoreEmotion, 
-  getEmotionRelationshipMap
-} from "./emotionMapping";
+import * as emotionMapping from "./emotionMapping";
 import { eq, and, like, desc } from "drizzle-orm";
 import { 
   journalEntries, 
@@ -30,9 +24,9 @@ export function registerIntegrationRoutes(app: Express): void {
     try {
       // Return the core emotions and emotion families
       res.json({
-        coreEmotions: CORE_EMOTIONS,
-        emotionFamilies: EMOTION_FAMILIES,
-        relationships: getEmotionRelationshipMap()
+        coreEmotions: Object.keys(emotionMapping.CORE_EMOTION_FAMILIES),
+        emotionFamilies: emotionMapping.CORE_EMOTION_FAMILIES,
+        relationships: emotionMapping.EMOTION_COLORS
       });
     } catch (error) {
       console.error("Error fetching emotion taxonomy:", error);
@@ -44,8 +38,8 @@ export function registerIntegrationRoutes(app: Express): void {
   app.get("/api/emotions/related/:emotion", async (req: Request, res: Response) => {
     try {
       const emotion = req.params.emotion;
-      const coreEmotion = normalizeToCoreEmotion(emotion);
-      const relatedEmotions = getRelatedEmotions(emotion);
+      const coreEmotion = emotionMapping.findCoreEmotion(emotion);
+      const relatedEmotions = emotionMapping.getRelatedEmotions(emotion || '');
       
       res.json({
         emotion,
@@ -63,7 +57,7 @@ export function registerIntegrationRoutes(app: Express): void {
     try {
       const userId = parseInt(req.params.userId);
       const emotion = req.params.emotion;
-      const relatedEmotions = getRelatedEmotions(emotion);
+      const relatedEmotions = emotionMapping.getRelatedEmotions(emotion || '');
       
       // Include the original emotion in the search
       const searchEmotions = [emotion, ...relatedEmotions];
@@ -139,7 +133,7 @@ export function registerIntegrationRoutes(app: Express): void {
       // Create a set of all related emotions to search for
       const allRelatedEmotionsSet = new Set<string>();
       entryEmotions.forEach(emotion => {
-        const related = getRelatedEmotions(emotion);
+        const related = emotionMapping.getRelatedEmotions(emotion || '');
         related.forEach(rel => allRelatedEmotionsSet.add(rel));
         allRelatedEmotionsSet.add(emotion);
       });
@@ -177,7 +171,7 @@ export function registerIntegrationRoutes(app: Express): void {
       }).map(record => ({
         ...record,
         matchingEmotions: entryEmotions.filter(emotion => 
-          getRelatedEmotions(emotion).some(rel => 
+          emotionMapping.getRelatedEmotions(emotion || '').some(rel => 
             rel.toLowerCase() === record.tertiaryEmotion.toLowerCase() ||
             rel.toLowerCase() === record.primaryEmotion.toLowerCase() ||
             rel.toLowerCase() === record.coreEmotion.toLowerCase()
@@ -200,7 +194,7 @@ export function registerIntegrationRoutes(app: Express): void {
     try {
       const userId = parseInt(req.params.userId);
       const emotion = req.params.emotion;
-      const relatedEmotions = getRelatedEmotions(emotion);
+      const relatedEmotions = emotionMapping.getRelatedEmotions(emotion || '');
       
       // Include the original emotion in the search
       const searchEmotions = [emotion, ...relatedEmotions];
