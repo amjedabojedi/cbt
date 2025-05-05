@@ -592,24 +592,24 @@ export default function Journal() {
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4">
-          <TabsTrigger value="list">
-            <Tag className="mr-2 h-4 w-4" />
-            Entries
-          </TabsTrigger>
-          {currentEntry && (
-            <TabsTrigger value="view">
-              <Edit className="mr-2 h-4 w-4" />
-              View Entry
+            <TabsTrigger value="list">
+              <Tag className="mr-2 h-4 w-4" />
+              Entries
             </TabsTrigger>
-          )}
-          <TabsTrigger value="stats">
-            <BarChart className="mr-2 h-4 w-4" />
-            Stats & Insights
-          </TabsTrigger>
-        </TabsList>
+            {currentEntry && (
+              <TabsTrigger value="view">
+                <Edit className="mr-2 h-4 w-4" />
+                View Entry
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="stats">
+              <BarChart className="mr-2 h-4 w-4" />
+              Stats & Insights
+            </TabsTrigger>
+          </TabsList>
         
-        {/* List of Journal Entries */}
-        <TabsContent value="list">
+          {/* List of Journal Entries */}
+          <TabsContent value="list">
           {isLoading ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -696,8 +696,8 @@ export default function Journal() {
           )}
         </TabsContent>
         
-        {/* Single Entry Detailed View */}
-        <TabsContent value="view">
+          {/* Single Entry Detailed View */}
+          <TabsContent value="view">
           {currentEntry && (
             <div className="space-y-8">
               <Card>
