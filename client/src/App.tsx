@@ -68,7 +68,6 @@ function Router() {
     return <LoadingFallback />;
   };
   
-  // Go back to using the ProtectedRoute component for simplicity and consistency
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Switch>
@@ -80,21 +79,20 @@ function Router() {
           {user ? <RedirectTo to="/dashboard" /> : <Register />}
         </Route>
         
-        {/* Root route - redirect to login or show dashboard */}
-        <Route path="/">
-          {!user ? <RedirectTo to="/login" /> : (
-            <Layout>
-              <RoleDashboard />
-            </Layout>
-          )}
-        </Route>
-        
-        {/* All other protected routes */}
+        {/* All protected routes in a single Layout wrapper */}
         <Route path="/:rest*">
           {!user ? <RedirectTo to="/login" /> : (
             <Layout>
               <Switch>
-                <Route path="/dashboard" component={RoleDashboard} />
+                {/* Default route */}
+                <Route path="/" exact>
+                  <RoleDashboard />
+                </Route>
+                
+                {/* Common routes */}
+                <Route path="/dashboard">
+                  <RoleDashboard />
+                </Route>
                 <Route path="/emotion-tracking" component={EmotionTracking} />
                 <Route path="/emotions" component={EmotionTracking} />
                 <Route path="/thoughts" component={ThoughtRecords} />
