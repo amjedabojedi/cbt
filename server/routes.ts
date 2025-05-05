@@ -6,6 +6,7 @@ import { z } from "zod";
 import * as bcrypt from "bcrypt";
 import Stripe from "stripe";
 import * as emotionMapping from "./services/emotionMapping";
+import { initializeWebSocketServer, sendNotificationToUser } from "./services/websocket";
 import { 
   insertUserSchema, 
   insertEmotionRecordSchema,
@@ -42,7 +43,6 @@ import { sendClientInvitation } from "./services/email";
 import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
 import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
 import { registerIntegrationRoutes } from "./services/integrationRoutes";
-import { initializeWebSocketServer, sendNotificationToUser } from "./services/websocket";
 import { db, pool } from "./db";
 import { eq, or, isNull, desc, and } from "drizzle-orm";
 
@@ -2013,6 +2013,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: "system",
         isRead: false
       });
+      
+      // Send real-time notification via WebSocket
+      sendNotificationToUser(userId, testNotification);
+      
       res.status(201).json(testNotification);
     } catch (error) {
       console.error("Error creating test notification:", error);
@@ -3565,5 +3569,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   const httpServer = createServer(app);
+  
+  // Initialize WebSocket server for real-time notifications
+  initializeWebSocketServer(httpServer);
+  
   return httpServer;
 }
