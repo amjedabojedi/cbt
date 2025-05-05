@@ -51,7 +51,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 const stripe = process.env.STRIPE_SECRET_KEY ? 
-  new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' }) : 
+  new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-04-30.basil' }) : 
   null;
 
 // Helper function to get emotion color by name
@@ -75,13 +75,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = Number(req.params.userId);
       
       // Fetch emotion records
-      const emotions = await storage.getEmotionRecords(userId);
+      const emotions = await storage.getEmotionRecordsByUser(userId);
       
       // Fetch journal entries
-      const journals = await storage.getJournalEntries(userId);
+      const journals = await storage.getJournalEntriesByUser(userId);
       
       // Fetch thought records
-      const thoughts = await storage.getThoughtRecords(userId);
+      const thoughts = await storage.getThoughtRecordsByUser(userId);
       
       // Use enhanced component connections
       const connections = await emotionMapping.enhanceComponentConnections(
