@@ -17,7 +17,7 @@ import { eq } from 'drizzle-orm';
 // Core emotion families that define the major categories (Ring 1)
 export const CORE_EMOTION_FAMILIES = {
   'Joy': [
-    'joy', 'happy', 'happiness', 'delight', 'content', 'pleased', 'satisfied', 
+    'joy', 'happy', 'happiness', 'joyful', 'delight', 'content', 'pleased', 'satisfied', 
     'enthusiastic', 'excited', 'cheerful', 'ecstatic', 'elated', 'jubilant',
     'content', 'amused', 'delighted', 'optimistic', 'proud', 'eager', 'illustrious', 'triumphant'
   ],
@@ -90,6 +90,7 @@ export const SECONDARY_EMOTIONS = {
   'Content': 'Joy',
   'Happy': 'Joy',
   'Cheerful': 'Joy',
+  'Joyful': 'Joy',
   'Proud': 'Joy',
   'Optimistic': 'Joy',
   'Enthusiastic': 'Joy',
