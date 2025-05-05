@@ -18,49 +18,80 @@
 }
 
 :root {
-      --background: 0 0% 100%;
---foreground: 20 14.3% 4.1%;
---muted: 60 4.8% 95.9%;
---muted-foreground: 25 5.3% 44.7%;
---popover: 0 0% 100%;
---popover-foreground: 20 14.3% 4.1%;
---card: 0 0% 100%;
---card-foreground: 20 14.3% 4.1%;
---border: 20 5.9% 90%;
---input: 20 5.9% 90%;
---primary: 207 90% 54%;
---primary-foreground: 211 100% 99%;
---secondary: 60 4.8% 95.9%;
---secondary-foreground: 24 9.8% 10%;
---accent: 60 4.8% 95.9%;
---accent-foreground: 24 9.8% 10%;
---destructive: 0 84.2% 60.2%;
---destructive-foreground: 60 9.1% 97.8%;
---ring: 20 14.3% 4.1%;
---radius: 0.5rem;
-  }
-  .dark {
-      --background: 240 10% 3.9%;
---foreground: 0 0% 98%;
---muted: 240 3.7% 15.9%;
---muted-foreground: 240 5% 64.9%;
---popover: 240 10% 3.9%;
---popover-foreground: 0 0% 98%;
---card: 240 10% 3.9%;
---card-foreground: 0 0% 98%;
---border: 240 3.7% 15.9%;
---input: 240 3.7% 15.9%;
---primary: 207 90% 54%;
---primary-foreground: 211 100% 99%;
---secondary: 240 3.7% 15.9%;
---secondary-foreground: 0 0% 98%;
---accent: 240 3.7% 15.9%;
---accent-foreground: 0 0% 98%;
---destructive: 0 62.8% 30.6%;
---destructive-foreground: 0 0% 98%;
---ring: 240 4.9% 83.9%;
---radius: 0.5rem;
-  }
+  /* Base theme colors */
+  --background: 0 0% 100%;
+  --foreground: 20 14.3% 4.1%;
+  --muted: 60 4.8% 95.9%;
+  --muted-foreground: 25 5.3% 44.7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 14.3% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 14.3% 4.1%;
+  --border: 20 5.9% 90%;
+  --input: 20 5.9% 90%;
+  --primary: 207 90% 54%;
+  --primary-foreground: 211 100% 99%;
+  --secondary: 60 4.8% 95.9%;
+  --secondary-foreground: 24 9.8% 10%;
+  --accent: 60 4.8% 95.9%;
+  --accent-foreground: 24 9.8% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 20 14.3% 4.1%;
+  --radius: 0.5rem;
+  
+  /* Standardized emotion colors */
+  --emotion-joy: 47 95% 55%;       /* #f9d423 - Vibrant yellow */
+  --emotion-sadness: 215 100% 65%; /* #4a90e2 - Blue */
+  --emotion-anger: 0 100% 60%;     /* #ff3b30 - Red */
+  --emotion-fear: 265 95% 70%;     /* #9c27b0 - Purple */
+  --emotion-disgust: 120 75% 40%;  /* #34a853 - Green */
+  --emotion-surprise: 30 100% 65%; /* #ff9500 - Orange */
+  --emotion-love: 350 90% 65%;     /* #ff2d55 - Pink */
+  --emotion-trust: 180 75% 40%;    /* #1abc9c - Teal */
+  
+  /* Status colors */
+  --status-pending: 48 96% 53%;    /* #f9ca24 - Yellow */
+  --status-inprogress: 214 100% 50%; /* #3498db - Blue */
+  --status-approved: 262 100% 60%;  /* #8e44ad - Purple */
+  --status-completed: 142 70% 45%;  /* #28a745 - Green */
+  
+  /* Chart colors */
+  --chart-1: var(--emotion-joy);
+  --chart-2: var(--emotion-sadness);
+  --chart-3: var(--emotion-anger);
+  --chart-4: var(--emotion-fear);
+  --chart-5: var(--emotion-disgust);
+  --chart-6: var(--emotion-surprise);
+  --chart-7: var(--emotion-love);
+  --chart-8: var(--emotion-trust);
+  
+  /* Cognitive distortion color */
+  --cognitive-distortion: 30 100% 65%; /* #ff9500 - Orange */
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 207 90% 54%;
+  --primary-foreground: 211 100% 99%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 240 4.9% 83.9%;
+  --radius: 0.5rem;
+}
 
 @layer base {
   * {
@@ -70,5 +101,98 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+  
+  /* Consistent typography scale */
+  h1, .h1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+  
+  h2, .h2 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  
+  h3, .h3 {
+    @apply text-xl font-semibold;
+  }
+  
+  h4, .h4 {
+    @apply text-lg font-medium;
+  }
+  
+  h5, .h5 {
+    @apply text-base font-medium;
+  }
+  
+  h6, .h6 {
+    @apply text-sm font-medium;
+  }
+  
+  /* Consistent spacing helpers */
+  .section-spacing {
+    @apply mb-8;
+  }
+  
+  .subsection-spacing {
+    @apply mb-4;
+  }
+}
+
+/* Add utility classes for emotion colors */
+.text-emotion-joy {
+  color: hsl(var(--emotion-joy));
+}
+.text-emotion-sadness {
+  color: hsl(var(--emotion-sadness));
+}
+.text-emotion-anger {
+  color: hsl(var(--emotion-anger));
+}
+.text-emotion-fear {
+  color: hsl(var(--emotion-fear));
+}
+.text-emotion-disgust {
+  color: hsl(var(--emotion-disgust));
+}
+.text-emotion-surprise {
+  color: hsl(var(--emotion-surprise));
+}
+.text-emotion-love {
+  color: hsl(var(--emotion-love));
+}
+.text-emotion-trust {
+  color: hsl(var(--emotion-trust));
+}
+
+/* Add utility classes for status colors */
+.text-status-pending {
+  color: hsl(var(--status-pending));
+}
+.text-status-inprogress {
+  color: hsl(var(--status-inprogress));
+}
+.text-status-approved {
+  color: hsl(var(--status-approved));
+}
+.text-status-completed {
+  color: hsl(var(--status-completed));
+}
+
+/* Consistent focus styles for accessibility */
+.focus-visible:focus-visible {
+  @apply outline-none ring-2 ring-offset-2 ring-primary;
+}
+
+/* Consistent skeleton loader */
+.skeleton {
+  @apply animate-pulse bg-neutral-200 rounded;
+}
+
+/* Navigation visual connection indicator */
+.connected-indicator {
+  @apply relative;
+}
+.connected-indicator::after {
+  content: "";
+  @apply absolute w-2 h-2 bg-primary rounded-full -right-1 -top-1;
 }
 
