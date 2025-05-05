@@ -1,11 +1,15 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from 'ws';
 import { storage } from "./storage";
 import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission } from "./middleware/auth";
 import { z } from "zod";
 import * as bcrypt from "bcrypt";
 import Stripe from "stripe";
 import * as emotionMapping from "./services/emotionMapping";
+
+// WebSocket client connections map
+const clients = new Map<number, WebSocket[]>();
 import { 
   insertUserSchema, 
   insertEmotionRecordSchema,
