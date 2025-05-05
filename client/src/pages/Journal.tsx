@@ -948,7 +948,7 @@ export default function Journal() {
                 
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
                   {/* Left side: Journal content and comments */}
-                  <div className="lg:col-span-2 space-y-6">
+                  <div className="order-2 lg:order-1 lg:col-span-2 space-y-6">
                     <div className="space-y-5">
                       {/* Journal Content */}
                       <div className="whitespace-pre-wrap p-4 border rounded-md bg-white shadow-sm">
@@ -1241,7 +1241,7 @@ export default function Journal() {
                   </div>
                   
                   {/* Right side: Tags, emotions, and related thought records */}
-                  <div className="space-y-8 p-6 border-l border-border hidden lg:block bg-slate-50/50 rounded-r-md shadow-sm">
+                  <div className="space-y-8 p-6 border-l border-border order-1 lg:order-2 bg-slate-50/50 rounded-r-md shadow-sm">
                     {/* Related Thought Records Section */}
                     <div>
                       <h4 className="text-sm font-semibold mb-2 flex items-center justify-between">
