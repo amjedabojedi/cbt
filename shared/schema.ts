@@ -341,7 +341,7 @@ export const notifications = pgTable("notifications", {
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   type: varchar("type", { length: 50 }).notNull(),
   title: varchar("title", { length: 100 }).notNull(),
-  content: text("content").notNull(),
+  body: text("body").notNull(),
   isRead: boolean("is_read").default(false).notNull(),
   linkPath: varchar("link_path", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),

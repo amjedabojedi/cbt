@@ -157,7 +157,7 @@ export function NotificationBell() {
       setUnreadCount(prev => Math.max(0, prev - 1));
       
       // Invalidate query cache
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/notifications`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
     }
@@ -174,7 +174,7 @@ export function NotificationBell() {
       setUnreadCount(0);
       
       // Invalidate query cache
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/notifications`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
     }
@@ -203,7 +203,7 @@ export function NotificationBell() {
       }
       
       // Invalidate query cache
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/notifications`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     } catch (error) {
       console.error('Failed to delete notification:', error);
     }
