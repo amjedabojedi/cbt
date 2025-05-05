@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -982,10 +982,10 @@ export default function Journal() {
                             </CardContent>
                             <CardFooter className="pt-0">
                               <Button variant="link" className="p-0 h-auto" size="sm">
-                                <Link className="flex items-center text-xs">
+                                <div className="flex items-center text-xs">
                                   View Complete Record
                                   <ExternalLink size={12} className="ml-1" />
-                                </Link>
+                                </div>
                               </Button>
                             </CardFooter>
                           </Card>
@@ -1157,7 +1157,7 @@ export default function Journal() {
                   </CardHeader>
                   <CardContent className="h-[200px]">
                     {Object.keys(stats.tagsFrequency).length > 0 ? (
-                      <JournalWordCloud tags={stats.tagsFrequency} />
+                      <JournalWordCloud words={stats.tagsFrequency} />
                     ) : (
                       <div className="flex h-full items-center justify-center">
                         <p className="text-center text-muted-foreground">
