@@ -42,6 +42,7 @@ import { sendClientInvitation } from "./services/email";
 import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
 import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
 import { registerIntegrationRoutes } from "./services/integrationRoutes";
+import { initializeWebSocketServer, sendNotificationToUser } from "./services/websocket";
 import { db, pool } from "./db";
 import { eq, or, isNull, desc, and } from "drizzle-orm";
 

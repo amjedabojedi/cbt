@@ -135,6 +135,29 @@ export default function NotificationBell() {
     }
   }
 
+  // Create a test notification for development purposes
+  async function createTestNotification() {
+    try {
+      const response = await apiRequest("POST", "/api/notifications/test");
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Test notification created",
+        });
+        // Refresh notifications list and unread count
+        fetchNotifications();
+        fetchUnreadCount();
+      }
+    } catch (error) {
+      console.error("Error creating test notification:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create test notification",
+        variant: "destructive",
+      });
+    }
+  }
+
   // Format notification date to a more readable format
   function formatDate(dateString: string) {
     const date = new Date(dateString);
@@ -204,7 +227,15 @@ export default function NotificationBell() {
         <ScrollArea className="h-[300px]">
           {notifications.length === 0 ? (
             <div className="p-4 text-center text-sm text-gray-500">
-              No notifications yet
+              <div>No notifications yet</div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={createTestNotification}
+                className="mt-2 w-full text-xs"
+              >
+                Create Test Notification
+              </Button>
             </div>
           ) : (
             notifications.map((notification) => (
