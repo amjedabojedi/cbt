@@ -15,10 +15,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 interface Notification {
   id: number;
   title: string;
-  content: string;
+  body: string; // Changed from "content" to "body" to match database
   type: string;
   isRead: boolean;
   createdAt: string;
+  link?: string;
+  linkPath?: string;
 }
 
 export default function NotificationBell() {
@@ -235,7 +237,7 @@ export default function NotificationBell() {
                     </Button>
                   </div>
                 </div>
-                <p className="text-xs text-gray-700">{notification.content}</p>
+                <p className="text-xs text-gray-700">{notification.body}</p>
                 <div className="flex justify-between mt-1">
                   <span className={`text-[10px] px-1.5 py-0.5 rounded ${getNotificationColor(notification.type)}`}>
                     {notification.type}

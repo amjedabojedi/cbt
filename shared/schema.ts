@@ -343,12 +343,13 @@ export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   title: text("title").notNull(),
-  content: text("content").notNull(),
+  body: text("body").notNull(), // Use "body" instead of "content" to match the database column
   type: text("type", { 
     enum: ["reminder", "therapist_message", "progress_update", "system"] 
   }).notNull().default("system"),
   isRead: boolean("is_read").notNull().default(false),
   linkPath: text("link_path"), // Optional path to navigate when clicked
+  link: text("link"), // Added to match database column
   metadata: jsonb("metadata"), // Optional additional data
   createdAt: timestamp("created_at").defaultNow().notNull(),
   expiresAt: timestamp("expires_at"), // Optional expiration time

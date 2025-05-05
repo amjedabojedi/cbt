@@ -2008,7 +2008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const testNotification = await storage.createNotification({
         userId,
         title: "Test Notification",
-        content: "This is a test notification to verify functionality.",
+        body: "This is a test notification to verify functionality.", // Changed from content to body
         type: "system",
         isRead: false
       });
