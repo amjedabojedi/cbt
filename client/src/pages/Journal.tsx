@@ -35,7 +35,8 @@ import {
   BarChart3,
   LineChart,
   ArrowUpDown,
-  Activity
+  Activity,
+  CheckCircle
 } from "lucide-react";
 import InsightPanel from "@/components/journal/InsightPanel";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -946,16 +947,144 @@ export default function Journal() {
                   </div>
                 </div>
                 
-                <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Left side: Journal content and comments */}
-                  <div className="order-2 lg:order-1 lg:col-span-2 space-y-6">
-                    <div className="space-y-5">
-                      {/* Journal Content */}
-                      <div className="whitespace-pre-wrap p-4 border rounded-md bg-white shadow-sm">
-                        {currentEntry.content}
+                <div className="mt-6 space-y-6">
+                  {/* Journal Content */}
+                  <div className="whitespace-pre-wrap p-4 border rounded-md bg-white shadow-sm">
+                    {currentEntry.content}
+                  </div>
+
+                  {/* Tag Editor Section - moved from sidebar to directly under content */}
+                  <div className="p-4 border rounded-md bg-slate-50/50">
+                    <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                      <Tag size={16} />
+                      Tag Editor
+                    </h4>
+
+                    {/* Three column layout for emotions, topics, and selected tags */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      {/* Suggested Emotions Column */}
+                      <div className="space-y-2">
+                        <h5 className="text-xs font-semibold flex items-center gap-1">
+                          <Heart size={14} className="text-red-500" />
+                          Suggested Emotions
+                        </h5>
+                        <div className="flex flex-wrap gap-1">
+                          {currentEntry.emotions && currentEntry.emotions.length > 0 ? (
+                            Array.from(new Set(currentEntry.emotions.map(e => e.toLowerCase())))
+                              .map((emotion, index) => (
+                                <Badge 
+                                  key={`${emotion}-${index}`}
+                                  variant="outline"
+                                  className="bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer"
+                                  onClick={() => toggleTagSelection(emotion)}
+                                >
+                                  {emotion}
+                                </Badge>
+                              ))
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">
+                              None detected
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      
-                      {/* Add new comment section */}
+
+                      {/* Topics Column */}
+                      <div className="space-y-2">
+                        <h5 className="text-xs font-semibold flex items-center gap-1">
+                          <Info size={14} className="text-purple-500" />
+                          Topics
+                        </h5>
+                        <div className="flex flex-wrap gap-1">
+                          {currentEntry.topics && currentEntry.topics.length > 0 ? (
+                            Array.from(new Set(currentEntry.topics.map(t => t.toLowerCase())))
+                              .map((topic, index) => (
+                                <Badge 
+                                  key={`${topic}-${index}`}
+                                  variant="outline"
+                                  className="bg-purple-50 text-purple-600 hover:bg-purple-100 cursor-pointer"
+                                  onClick={() => toggleTagSelection(topic)}
+                                >
+                                  {topic}
+                                </Badge>
+                              ))
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">
+                              None detected
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Selected Tags Column */}
+                      <div className="space-y-2">
+                        <h5 className="text-xs font-semibold flex items-center gap-1">
+                          <CheckCircle size={14} className="text-green-500" />
+                          Selected Tags
+                        </h5>
+                        <div className="flex flex-wrap gap-1 min-h-[28px]">
+                          {selectedTags.length > 0 ? (
+                            selectedTags.map((tag) => (
+                              <Badge 
+                                key={tag} 
+                                variant="secondary"
+                                className="bg-secondary/50 text-secondary-foreground hover:bg-secondary/60 cursor-pointer flex items-center gap-1"
+                                onClick={() => toggleTagSelection(tag)}
+                              >
+                                {tag}
+                                <X size={12} className="opacity-70" />
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">
+                              None selected
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Custom tag input row */}
+                    <div className="flex gap-2 mt-3">
+                      <Input
+                        placeholder="Create your own custom tag..."
+                        className="flex-1"
+                        value={customTag}
+                        onChange={(e) => setCustomTag(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && customTag.trim()) {
+                            e.preventDefault();
+                            toggleTagSelection(customTag.trim());
+                            setCustomTag('');
+                          }
+                        }}
+                      />
+                      <Button 
+                        size="sm"
+                        onClick={() => {
+                          if (customTag.trim()) {
+                            toggleTagSelection(customTag.trim());
+                            setCustomTag('');
+                          }
+                        }}
+                      >
+                        Add
+                      </Button>
+                    </div>
+
+                    {/* Save button */}
+                    <Button
+                      onClick={handleUpdateTags}
+                      disabled={updateTagsMutation.isPending}
+                      className="w-full mt-3"
+                      size="sm"
+                    >
+                      {updateTagsMutation.isPending ? "Saving..." : "Save Selected Tags"}
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-5">
+                    {/* Add new comment section */}
                       <div className="mt-8 pt-4 border-t">
                         <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
                           <MessageCircle size={16} className="text-green-500" />
@@ -1240,7 +1369,7 @@ export default function Journal() {
                     {/* Removed duplicate comment form */}
                   </div>
                   
-                  {/* Right side: Tags, emotions, and related thought records */}
+                  {/* Right side: Only Related Thought Records section */}
                   <div className="space-y-8 p-6 border-l border-border order-1 lg:order-2 bg-slate-50/50 rounded-r-md shadow-sm">
                     {/* Related Thought Records Section */}
                     <div>
@@ -1362,175 +1491,6 @@ export default function Journal() {
                         )}
                       </div>
                     </div>
-                    
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2 flex items-center justify-between">
-                        <span className="flex items-center gap-2">
-                          <Tag size={16} />
-                          Selected Tags
-                        </span>
-                        
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <InfoIcon size={14} className="text-muted-foreground cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-[250px] p-4">
-                              <p className="text-xs">
-                                These are the tags that will be saved with your journal entry. Click on suggested emotions or topics below to add them, or create your own custom tags.
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </h4>
-                      
-                      <div className="flex flex-wrap gap-2 mt-2 min-h-[40px]">
-                        {selectedTags.length > 0 ? (
-                          selectedTags.map((tag) => (
-                            <Badge 
-                              key={tag} 
-                              variant="secondary"
-                              className="bg-secondary/50 text-secondary-foreground hover:bg-secondary/60 cursor-pointer flex items-center gap-1"
-                              onClick={() => toggleTagSelection(tag)}
-                            >
-                              {tag}
-                              <X size={12} className="opacity-70" />
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className="text-sm text-muted-foreground italic px-2">
-                            No tags selected yet
-                          </span>
-                        )}
-                      </div>
-                      
-                      {/* Add custom tag input */}
-                      <div className="mt-4 mb-2">
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Create your own custom tag..."
-                            className="flex-1"
-                            value={customTag}
-                            onChange={(e) => setCustomTag(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' && customTag.trim()) {
-                                e.preventDefault();
-                                toggleTagSelection(customTag.trim());
-                                setCustomTag('');
-                              }
-                            }}
-                          />
-                          <Button 
-                            size="sm"
-                            onClick={() => {
-                              if (customTag.trim()) {
-                                toggleTagSelection(customTag.trim());
-                                setCustomTag('');
-                              }
-                            }}
-                          >
-                            Add
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <Button
-                        onClick={handleUpdateTags}
-                        disabled={updateTagsMutation.isPending}
-                        className="w-full mt-3"
-                        size="sm"
-                      >
-                        {updateTagsMutation.isPending ? "Saving..." : "Save Selected Tags"}
-                      </Button>
-                    </div>
-                    
-                    <Separator />
-                    
-                    {/* Always show the emotions section, with default text if no emotions detected */}
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                        <Heart size={16} />
-                        Suggested Emotions
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <InfoIcon size={14} className="text-muted-foreground cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-[250px] p-4">
-                              <p className="text-xs">
-                                These emotions are detected by AI based on your entry content. You can click on them to add to your selected tags.
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </h4>
-                      {currentEntry.emotions && currentEntry.emotions.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                          {/* Deduplicate emotions before displaying them */}
-                          {Array.from(new Set(currentEntry.emotions.map(e => e.toLowerCase())))
-                            .map((emotion, index) => (
-                              <Badge 
-                                key={`${emotion}-${index}`}
-                                variant="outline"
-                                className="bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer"
-                                onClick={() => toggleTagSelection(emotion)}
-                              >
-                                {emotion}
-                              </Badge>
-                            ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground italic">
-                          No emotions detected in this entry
-                        </p>
-                      )}
-                    </div>
-                    
-                    {/* Topics section - similar to emotions */}
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                        <Info size={16} />
-                        Topics
-                      </h4>
-                      
-                      {currentEntry.topics && currentEntry.topics.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                          {/* Deduplicate topics before displaying them */}
-                          {Array.from(new Set(currentEntry.topics.map(t => t.toLowerCase())))
-                            .map((topic, index) => (
-                              <Badge 
-                                key={`${topic}-${index}`}
-                                variant="outline"
-                                className="bg-purple-50 text-purple-600 hover:bg-purple-100 cursor-pointer"
-                                onClick={() => toggleTagSelection(topic)}
-                              >
-                                {topic}
-                              </Badge>
-                            ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground italic">
-                          No topics detected
-                        </p>
-                      )}
-                    </div>
-                    
-                    {/* Display user-selected tags in badges instead of a word cloud */}
-                    {currentEntry.userSelectedTags && currentEntry.userSelectedTags.length > 0 && (
-                      <div className="mt-6">
-                        <h4 className="text-sm font-semibold mb-3">Selected Tags</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {currentEntry.userSelectedTags.map((tag, index) => (
-                            <Badge 
-                              key={index} 
-                              className="bg-primary/10 text-primary hover:bg-primary/20 border-0"
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
