@@ -67,6 +67,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import JournalWordCloud from "@/components/journal/JournalWordCloud";
+import AppLayout from "@/components/layout/AppLayout";
 
 // Helper function to provide descriptions for cognitive distortions
 function getDistortionDescription(distortion: string): string {
@@ -574,7 +575,8 @@ export default function Journal() {
   };
   
   return (
-    <div className="container py-6 px-8 max-w-6xl ml-4">
+    <AppLayout title="Journal">
+      <div className="container py-6 px-8 max-w-6xl ml-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Journal</h1>
         <Button onClick={() => {
@@ -1452,6 +1454,7 @@ export default function Journal() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </AppLayout>
   );
 }
