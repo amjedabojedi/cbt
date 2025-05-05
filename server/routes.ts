@@ -5,6 +5,7 @@ import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin, c
 import { z } from "zod";
 import * as bcrypt from "bcrypt";
 import Stripe from "stripe";
+import * as emotionMapping from "./services/emotionMapping";
 import { 
   insertUserSchema, 
   insertEmotionRecordSchema,
@@ -41,7 +42,6 @@ import { sendClientInvitation } from "./services/email";
 import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
 import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
 import { registerIntegrationRoutes } from "./services/integrationRoutes";
-import * as emotionMapping from "./services/emotionMapping";
 import { db, pool } from "./db";
 import { eq, or, isNull, desc, and } from "drizzle-orm";
 
@@ -56,42 +56,8 @@ const stripe = process.env.STRIPE_SECRET_KEY ?
 
 // Helper function to get emotion color by name
 function getEmotionColor(emotion: string): string {
-  const colorMap: Record<string, string> = {
-    // Core emotions
-    "Joy": "#F9D71C",
-    "Sadness": "#6D87C4",
-    "Fear": "#8A65AA",
-    "Disgust": "#7DB954",
-    "Anger": "#E43D40",
-    // Secondary/tertiary fallbacks
-    "Happy": "#F9D71C",
-    "Excited": "#E8B22B",
-    "Proud": "#D6A338",
-    "Content": "#C8953F",
-    "Hopeful": "#BAA150",
-    "Depressed": "#6D87C4",
-    "Lonely": "#5D78B5",
-    "Guilty": "#4C69A6",
-    "Disappointed": "#3B5A97",
-    "Hurt": "#2A4B88",
-    "Worried": "#8A65AA",
-    "Anxious": "#7A569B",
-    "Insecure": "#6A478C",
-    "Rejected": "#5A387D",
-    "Overwhelmed": "#4A296E",
-    "Disgusted": "#7DB954",
-    "Judgmental": "#6DAA45",
-    "Disapproving": "#5D9B36",
-    "Critical": "#4D8C27",
-    "Repulsed": "#3D7D18",
-    "Furious": "#E43D40",
-    "Annoyed": "#D42E31",
-    "Frustrated": "#C41F22",
-    "Irritated": "#B41013",
-    "Resentful": "#A40104"
-  };
-  
-  return colorMap[emotion] || "#888888";
+  // Use the centralized emotion mapping service
+  return emotionMapping.getEmotionColor(emotion);
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -102,6 +68,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register cross-component integration routes
   registerIntegrationRoutes(app);
+  
+  // Enhanced insights endpoint that uses the improved emotion mapping service
+  app.get("/api/users/:userId/enhanced-insights", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = Number(req.params.userId);
+      
+      // Fetch emotion records
+      const emotions = await storage.getEmotionRecords(userId);
+      
+      // Fetch journal entries
+      const journals = await storage.getJournalEntries(userId);
+      
+      // Fetch thought records
+      const thoughts = await storage.getThoughtRecords(userId);
+      
+      // Use enhanced component connections
+      const connections = await emotionMapping.enhanceComponentConnections(
+        emotions || [], 
+        journals || [], 
+        thoughts || []
+      );
+      
+      // Generate data insights
+      const insights = emotionMapping.generateDataInsights(connections);
+      
+      res.json({
+        connections,
+        insights,
+        summary: {
+          emotions: emotions?.length || 0,
+          journals: journals?.length || 0,
+          thoughts: thoughts?.length || 0
+        }
+      });
+    } catch (error) {
+      console.error("Error generating enhanced insights:", error);
+      res.status(500).json({ message: "Error generating insights" });
+    }
+  });
   
   // Subscription Plan Routes
   
