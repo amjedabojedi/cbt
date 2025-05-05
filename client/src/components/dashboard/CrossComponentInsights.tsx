@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { SkeletonLoader } from '@/components/ui/skeleton-loader';
 import {
   BarChart,
   Bar,
@@ -24,7 +25,8 @@ import {
 } from 'recharts';
 import { Separator } from '@/components/ui/separator';
 import useActiveUser from '@/hooks/use-active-user';
-import { Link2, Lightbulb, ArrowRightLeft, Maximize2 } from 'lucide-react';
+import { Link2, Lightbulb, ArrowRightLeft, Maximize2, ShieldCheck, Zap } from 'lucide-react';
+import { getEmotionColor, stringToColor, CHART_COLORS } from '@/lib/colors';
 
 // Type to represent connected data insights
 interface ConnectedInsight {
@@ -61,19 +63,7 @@ interface ProcessedStrategyData {
   fill: string;
 }
 
-// Define emotion colors for consistency
-const EMOTION_COLORS: Record<string, string> = {
-  'Joy': '#F9D71C',
-  'Sadness': '#6D87C4',
-  'Fear': '#8A65AA',
-  'Disgust': '#7DB954',
-  'Anger': '#E43D40',
-  'Surprise': '#F47B20',
-  'Trust': '#8DC4BD',
-  'Love': '#E91E63',
-  'Anxiety': '#9C27B0',
-  'Anticipation': '#FF9800'
-};
+// Use our centralized color system instead of defining colors here
 
 export default function CrossComponentInsights() {
   const { activeUserId } = useActiveUser();
@@ -636,23 +626,8 @@ export default function CrossComponentInsights() {
   
   // Helper function to generate consistent colors based on string
   const getRandomColor = (name: string) => {
-    // Generate a color based on the strategy name for consistency
-    const stringToHash = (str: string) => {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      return hash;
-    };
-    
-    const hashToRGB = (hash: number) => {
-      const r = (hash & 0xFF0000) >> 16;
-      const g = (hash & 0x00FF00) >> 8;
-      const b = hash & 0x0000FF;
-      return `rgb(${r}, ${g}, ${b})`;
-    };
-    
-    return hashToRGB(stringToHash(name));
+    // Use our centralized color generation utility
+    return stringToColor(name);
   };
   
   // Prepare data for protective factors chart
