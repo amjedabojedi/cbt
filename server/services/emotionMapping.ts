@@ -11,77 +11,26 @@ import { eq } from 'drizzle-orm';
 
 /**
  * Complete emotion taxonomy based on the emotion wheel with all three levels
- * Core emotions (Ring 1) -> Primary emotions (Ring 2) -> Tertiary emotions (Ring 3)
+ * Core emotions (Ring 1) -> Secondary emotions (Ring 2) -> Tertiary emotions (Ring 3)
+ * 
+ * This structure exactly matches the emotion wheel visualization in the application.
  */
 
 // Core emotion families that define the major categories (Ring 1)
+// For each core emotion, we only list the emotion name variants, not its children
 export const CORE_EMOTION_FAMILIES = {
-  'Joy': [
-    'joy', 'happy', 'happiness', 'joyful', 'delight', 'content', 'pleased', 'satisfied', 
-    'enthusiastic', 'excited', 'cheerful', 'ecstatic', 'elated', 'jubilant',
-    'content', 'amused', 'delighted', 'optimistic', 'proud', 'eager', 'illustrious', 'triumphant'
-  ],
-  'Sadness': [
-    'sad', 'sadness', 'depressed', 'depression', 'grief', 'sorrow', 'despair', 
-    'melancholy', 'gloomy', 'miserable', 'discouraged', 'hurt', 'agony', 'suffering',
-    'disappointed', 'dismayed', 'displeased', 'shameful', 'regretful', 'guilty',
-    'neglected', 'isolated', 'lonely', 'despair', 'grief', 'powerless'
-  ],
-  'Fear': [
-    'fear', 'afraid', 'scared', 'frightened', 'terrified', 'horror', 'panicked', 
-    'apprehensive', 'worried', 'nervous', 'anxious', 'timid', 'insecure', 
-    'suspicious', 'threatened', 'overwhelmed', 'vulnerable', 'dread'
-  ],
-  'Anxiety': [
-    'anxiety', 'anxious', 'nervous', 'worried', 'stressed', 'tense', 'uneasy', 
-    'distressed', 'overwhelmed', 'apprehensive', 'concerned', 'restless', 'jittery',
-    'vigilant', 'uncomfortable', 'insecure', 'inadequate', 'frightened', 'alarmed', 'panicked'
-  ],
-  'Anger': [
-    'anger', 'angry', 'mad', 'frustrated', 'irritated', 'annoyed', 'furious', 
-    'resentful', 'enraged', 'hostile', 'outraged', 'bitter', 'hatred', 'rage',
-    'hate', 'hostile', 'exasperated', 'agitated', 'frustrated', 'irritable',
-    'annoyed', 'aggravated', 'envy', 'resentful', 'jealous', 'disgusted', 'contempt', 'revolted'
-  ],
-  'Disgust': [
-    'disgust', 'disgusted', 'repulsed', 'revolted', 'aversion', 'loathing', 
-    'contempt', 'dislike', 'disapproval', 'revulsion', 'horrified', 'offended',
-    'appalled', 'repelled', 'abhorrence'
-  ],
-  'Love': [
-    'love', 'loving', 'affection', 'care', 'caring', 'fond', 'tenderness', 
-    'compassion', 'warmth', 'adoration', 'passionate', 'longing', 'desire',
-    'enchanted', 'infatuated', 'cherished', 'devoted', 'sentimental', 'attracted'
-  ],
-  'Surprise': [
-    'surprise', 'surprised', 'shocked', 'amazed', 'astonished', 'stunned', 
-    'startled', 'awe', 'wonder', 'disbelief', 'confused', 'perplexed',
-    'stunned', 'shocked', 'dismayed', 'confused', 'disillusioned', 'perplexed',
-    'amazed', 'astonished', 'awe-struck', 'overcome', 'speechless', 'astounded',
-    'moved', 'stimulated', 'touched'
-  ],
-  'Trust': [
-    'trust', 'trusting', 'faithful', 'secure', 'confident', 'safe', 'reliable',
-    'dependable', 'open', 'accepting', 'honored', 'respected', 'valued',
-    'encouraged', 'hopeful', 'inspired'
-  ],
-  'Gratitude': [
-    'grateful', 'gratitude', 'thankful', 'appreciative', 'indebted', 'recognition',
-    'acknowledgment', 'blessed'
-  ],
-  'Interest': [
-    'interest', 'interested', 'curious', 'fascinated', 'engaged', 'attentive',
-    'intrigued', 'captivated', 'absorbed', 'engrossed', 'enthralled'
-  ],
-  'Calm': [
-    'calm', 'peaceful', 'relaxed', 'tranquil', 'serene', 'at ease', 'composed',
-    'centered', 'comfortable', 'settled', 'harmonious', 'balanced', 'satisfied',
-    'content', 'placid', 'still', 'quiet', 'rested'
-  ],
-  'Shame': [
-    'shame', 'ashamed', 'embarrassed', 'humiliated', 'mortified', 'disgraced',
-    'dishonored', 'guilty', 'regretful', 'remorseful', 'apologetic'
-  ]
+  'Joy': ['joy', 'happiness', 'joyful'],
+  'Sadness': ['sad', 'sadness', 'sorrow'],
+  'Fear': ['fear', 'afraid', 'scared'],
+  'Surprise': ['surprise', 'surprised', 'astonished'],
+  'Anger': ['anger', 'angry', 'mad', 'fury'],
+  'Love': ['love', 'loving', 'affection'],
+  'Disgust': ['disgust', 'disgusted', 'repulsed'],
+  'Trust': ['trust', 'trusting', 'reliance'],
+  'Gratitude': ['gratitude', 'grateful', 'thankful'],
+  'Interest': ['interest', 'interested', 'engaged'],
+  'Calm': ['calm', 'peaceful', 'tranquil'],
+  'Shame': ['shame', 'ashamed', 'embarrassed']
 };
 
 // Secondary emotion groupings (Ring 2) that map to core emotions (Ring 1)
@@ -118,15 +67,15 @@ export const SECONDARY_EMOTIONS = {
   'Rejected': 'Fear',
   'Threatened': 'Fear',
   
-  // Anxiety secondary emotions
-  'Stressed': 'Anxiety',
-  'Overwhelmed': 'Anxiety',
-  'Worry': 'Anxiety',
-  'Tense': 'Anxiety',
-  'Anxious': 'Anxiety', // Using 'Anxious' instead of duplicate 'Nervous'
-  'Unsettled': 'Anxiety',
-  'Apprehensive': 'Anxiety',
-  'Panicky': 'Anxiety',
+  // Note: Anxiety is now considered part of Fear core emotion
+  'Anxious': 'Fear',
+  'Stressed': 'Fear',
+  'Overwhelmed': 'Fear',
+  'Worry': 'Fear',
+  'Tense': 'Fear',
+  'Panicky': 'Fear',
+  'Unsettled': 'Fear',
+  'Apprehensive': 'Fear',
   
   // Anger secondary emotions
   'Rage': 'Anger',
