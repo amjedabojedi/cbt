@@ -6,6 +6,7 @@ import EmotionHistory from "@/components/dashboard/EmotionHistory";
 import MoodTrends from "@/components/dashboard/MoodTrends";
 import ReflectionTrends from "@/components/dashboard/ReflectionTrends";
 import ReflectionInsights from "@/components/dashboard/ReflectionInsights";
+import CrossComponentInsights from "@/components/dashboard/CrossComponentInsights";
 import useActiveUser from "@/hooks/use-active-user";
 import { useClientContext } from "@/context/ClientContext";
 import { ClientDebug } from "@/components/debug/ClientDebug";
@@ -73,6 +74,11 @@ export default function Dashboard() {
         {/* Reflection Insights */}
         <div className="mb-6">
           <ReflectionInsights />
+        </div>
+        
+        {/* Cross-Component Insights */}
+        <div className="mb-6">
+          <CrossComponentInsights />
         </div>
       </div>
     </AppLayout>
