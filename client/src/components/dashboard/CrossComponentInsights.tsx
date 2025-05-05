@@ -37,6 +37,30 @@ interface ConnectedInsight {
   color: string;
 }
 
+// Type for protective factors data
+interface ProtectiveFactorData {
+  id: number;
+  name: string;
+  effectiveness?: number;
+  usageCount?: number;
+}
+
+// Type for coping strategies data
+interface CopingStrategyData {
+  id: number;
+  name: string;
+  effectiveness?: number;
+  usageCount?: number;
+}
+
+// Type for processed strategies chart data
+interface ProcessedStrategyData {
+  name: string;
+  count: number;
+  effectiveness: number;
+  fill: string;
+}
+
 // Define emotion colors for consistency
 const EMOTION_COLORS: Record<string, string> = {
   'Joy': '#F9D71C',
@@ -889,6 +913,128 @@ export default function CrossComponentInsights() {
                           </Scatter>
                         </ScatterChart>
                       </ResponsiveContainer>
+                    </div>
+                  </>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="strategies" className="space-y-4">
+                {!hasStrategiesData ? (
+                  <div className="h-64 flex flex-col items-center justify-center text-center">
+                    <Lightbulb className="h-8 w-8 text-muted-foreground mb-2" />
+                    <p className="text-neutral-500">No coping strategies data available yet.</p>
+                    <p className="text-sm text-neutral-400 mt-1">
+                      Continue using protective factors and coping strategies in thought records to see their effectiveness.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Coping Strategies Chart */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium">Coping Strategies Effectiveness</h3>
+                        <p className="text-xs text-muted-foreground">
+                          This chart shows your most frequently used coping strategies and their effectiveness.
+                        </p>
+                        <div className="h-72">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={copingStrategiesData}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 30 }}
+                              layout="vertical"
+                            >
+                              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                              <XAxis type="number" domain={[0, 10]} />
+                              <YAxis 
+                                dataKey="name" 
+                                type="category" 
+                                width={120}
+                                tick={{ fontSize: 12 }}
+                              />
+                              <Tooltip
+                                formatter={(value, name) => {
+                                  if (name === 'effectiveness') return [`${value}/10`, 'Effectiveness'];
+                                  return [value, name];
+                                }}
+                              />
+                              <Legend />
+                              <Bar 
+                                dataKey="effectiveness" 
+                                name="Effectiveness" 
+                                radius={[0, 4, 4, 0]}
+                              >
+                                {copingStrategiesData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                      
+                      {/* Protective Factors Chart */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium">Protective Factors Usage</h3>
+                        <p className="text-xs text-muted-foreground">
+                          This chart shows your most frequently utilized protective factors.
+                        </p>
+                        <div className="h-72">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={protectiveFactorsData}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                outerRadius={90}
+                                fill="#8884d8"
+                                dataKey="count"
+                                nameKey="name"
+                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                              >
+                                {protectiveFactorsData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                                ))}
+                              </Pie>
+                              <Tooltip
+                                formatter={(value, name, props) => {
+                                  return [`${value} uses`, name];
+                                }}
+                              />
+                              <Legend />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium mb-2">Strategy Insights:</h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        {copingStrategiesData.length > 0 && (
+                          <li>
+                            <span className="font-medium text-primary">
+                              {copingStrategiesData[0]?.name}
+                            </span> is your most frequently used coping strategy.
+                          </li>
+                        )}
+                        {copingStrategiesData.length > 1 && (
+                          <li>
+                            <span className="font-medium text-primary">
+                              {copingStrategiesData.sort((a, b) => b.effectiveness - a.effectiveness)[0]?.name}
+                            </span> has been your most effective strategy with a rating of {
+                              copingStrategiesData.sort((a, b) => b.effectiveness - a.effectiveness)[0]?.effectiveness
+                            }/10.
+                          </li>
+                        )}
+                        {protectiveFactorsData.length > 0 && (
+                          <li>
+                            <span className="font-medium text-primary">
+                              {protectiveFactorsData[0]?.name}
+                            </span> is your most utilized protective factor.
+                          </li>
+                        )}
+                      </ul>
                     </div>
                   </>
                 )}
