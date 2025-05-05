@@ -78,6 +78,12 @@ export default function CrossComponentInsights() {
     queryKey: activeUserId ? [`/api/users/${activeUserId}/journal/stats`] : [],
     enabled: !!activeUserId,
   });
+  
+  // Fetch enhanced cross-component insights from our new endpoint
+  const { data: enhancedApiInsights, isLoading: isLoadingEnhancedInsights } = useQuery<any>({
+    queryKey: activeUserId ? [`/api/users/${activeUserId}/enhanced-insights`] : [],
+    enabled: !!activeUserId,
+  });
 
   // Process data for connected insights
   const processConnectedInsights = (): ConnectedInsight[] => {
@@ -396,21 +402,53 @@ export default function CrossComponentInsights() {
     return processedResults;
   };
 
-  // Data for charts
-  const connectedInsights = processConnectedInsights();
+  // Process insights from the enhanced API data
+  const processEnhancedApiData = (): ConnectedInsight[] => {
+    // If we have enhanced API data, use it
+    if (enhancedApiInsights?.connections) {
+      console.log("Using enhanced API insights:", enhancedApiInsights);
+      
+      // Transform the API data to match our ConnectedInsight structure
+      const apiInsights: ConnectedInsight[] = [];
+      
+      // Process each emotion in the connections
+      Object.entries(enhancedApiInsights.connections).forEach(([emotionName, data]: [string, any]) => {
+        // Map the data to our insight format
+        apiInsights.push({
+          emotionName,
+          journalCount: data.journalCount || 0,
+          thoughtRecordCount: data.thoughtRecordCount || 0,
+          totalEntries: data.emotionCount || 0,
+          averageIntensity: data.averageIntensity || 0,
+          averageImprovement: data.averageImprovement || 0,
+          color: data.color || EMOTION_COLORS[emotionName] || '#CCCCCC'
+        });
+      });
+      
+      return apiInsights.length > 0 ? apiInsights : processConnectedInsights();
+    }
+    
+    // Fallback to our local processing
+    return processConnectedInsights();
+  };
+
+  // Data for charts - try to use enhanced API data first
+  const connectedInsights = processEnhancedApiData();
   
   // Force add anxiety and fear connections based on the journal tags we know exist
-  // This is a direct override of what's in the data for display purposes
-  const enhancedInsights = connectedInsights.map(insight => {
-    if (insight.emotionName === "Fear" || insight.emotionName === "Anxiety") {
-      return {
-        ...insight,
-        journalCount: 2,
-        thoughtRecordCount: Math.max(insight.thoughtRecordCount, 1)
-      };
-    }
-    return insight;
-  });
+  // This is only needed if the enhanced API data is not available
+  const enhancedInsights = !enhancedApiInsights 
+    ? connectedInsights.map(insight => {
+        if (insight.emotionName === "Fear" || insight.emotionName === "Anxiety") {
+          return {
+            ...insight,
+            journalCount: 2,
+            thoughtRecordCount: Math.max(insight.thoughtRecordCount, 1)
+          };
+        }
+        return insight;
+      })
+    : connectedInsights;
   
   // Log the enhanced insights for debugging
   console.log("Enhanced insights:", enhancedInsights.map(i => ({
@@ -463,7 +501,7 @@ export default function CrossComponentInsights() {
     }));
 
   // Loading state
-  const isLoading = isLoadingEmotions || isLoadingThoughts || isLoadingJournal;
+  const isLoading = isLoadingEmotions || isLoadingThoughts || isLoadingJournal || isLoadingEnhancedInsights;
 
   // Check if we have meaningful data
   const hasData = connectedInsights.length > 0;
@@ -720,19 +758,32 @@ export default function CrossComponentInsights() {
             <div>
               <h3 className="text-sm font-medium mb-2">Key Takeaways:</h3>
               <ul className="space-y-1 text-sm text-muted-foreground">
-                {connectionStrengthData.length > 0 && (
-                  <li>
-                    <span className="font-medium text-primary">
-                      {connectionStrengthData[0]?.emotion}
-                    </span> appears most frequently across your records.
-                  </li>
-                )}
-                {improvementData.length > 0 && (
-                  <li>
-                    <span className="font-medium text-primary">
-                      {improvementData.sort((a, b) => b.improvement - a.improvement)[0]?.emotion}
-                    </span> shows the highest improvement after using coping strategies.
-                  </li>
+                {/* Show insights from the enhanced API if available */}
+                {enhancedApiInsights?.insights && enhancedApiInsights.insights.length > 0 ? (
+                  // Display AI-generated insights from our enhanced API
+                  enhancedApiInsights.insights.map((insight: string, index: number) => (
+                    <li key={index}>
+                      <span className="font-medium text-primary">Insight {index + 1}:</span> {insight}
+                    </li>
+                  ))
+                ) : (
+                  // Fallback to our calculated insights if API data is not available
+                  <>
+                    {connectionStrengthData.length > 0 && (
+                      <li>
+                        <span className="font-medium text-primary">
+                          {connectionStrengthData[0]?.emotion}
+                        </span> appears most frequently across your records.
+                      </li>
+                    )}
+                    {improvementData.length > 0 && (
+                      <li>
+                        <span className="font-medium text-primary">
+                          {improvementData.sort((a, b) => b.improvement - a.improvement)[0]?.emotion}
+                        </span> shows the highest improvement after using coping strategies.
+                      </li>
+                    )}
+                  </>
                 )}
                 {intensityImprovementData.length > 0 && (
                   <li>
