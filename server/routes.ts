@@ -796,7 +796,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.cookie("sessionId", session.id, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: "lax", // Changed from strict to lax to allow redirects
+        path: '/', // Ensures cookie is available on all paths
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
       
@@ -850,7 +851,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.cookie("sessionId", session.id, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: "lax", // Changed from strict to lax to allow redirects
+        path: '/', // Ensures cookie is available on all paths
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
       
@@ -866,7 +868,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/logout", authenticate, async (req, res) => {
     try {
       await storage.deleteSession(req.session.id);
-      res.clearCookie("sessionId");
+      res.clearCookie("sessionId", {
+        path: '/',
+        sameSite: "lax",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production"
+      });
       res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
       console.error("Logout error:", error);

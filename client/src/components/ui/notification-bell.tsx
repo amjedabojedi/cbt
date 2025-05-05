@@ -18,7 +18,7 @@ interface Notification {
   type: string;
   title: string;
   body: string;
-  link?: string;
+  linkPath?: string;
   isRead: boolean;
   createdAt: string;
   metadata?: Record<string, any>;
@@ -40,9 +40,11 @@ export function NotificationBell() {
 
     const fetchUnreadCount = async () => {
       try {
-        const response = await apiRequest('GET', '/api/notifications/unread-count');
+        // Get all notifications and count unread ones client-side
+        const response = await apiRequest('GET', '/api/notifications');
         const data = await response.json();
-        setUnreadCount(data.count);
+        const unread = data.filter((n: Notification) => !n.isRead).length;
+        setUnreadCount(unread);
       } catch (error) {
         console.error('Failed to fetch unread count:', error);
       }
@@ -146,7 +148,7 @@ export function NotificationBell() {
     if (notification.isRead) return;
     
     try {
-      await apiRequest('PATCH', `/api/notifications/${notification.id}/mark-read`);
+      await apiRequest('PATCH', `/api/notifications/${notification.id}/read`);
       
       // Update local state
       setNotifications(prev => 
@@ -183,8 +185,9 @@ export function NotificationBell() {
   const handleNavigate = (notification: Notification) => {
     handleMarkAsRead(notification);
     
-    if (notification.link) {
-      navigate(notification.link);
+    // Use linkPath from schema instead of link
+    if (notification.linkPath) {
+      navigate(notification.linkPath);
       setOpen(false);
     }
   };
