@@ -9,45 +9,333 @@ import { db } from '../db';
 import * as schema from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
-// Core emotion families that define the major categories
+/**
+ * Complete emotion taxonomy based on the emotion wheel with all three levels
+ * Core emotions (Ring 1) -> Primary emotions (Ring 2) -> Tertiary emotions (Ring 3)
+ */
+
+// Core emotion families that define the major categories (Ring 1)
 export const CORE_EMOTION_FAMILIES = {
-  'Joy': ['joy', 'happy', 'happiness', 'delight', 'content', 'pleased', 'satisfied', 'enthusiastic', 'excited', 'cheerful', 'ecstatic'],
-  'Sadness': ['sad', 'sadness', 'depressed', 'depression', 'grief', 'sorrow', 'despair', 'melancholy', 'gloomy', 'miserable', 'discouraged'],
-  'Fear': ['fear', 'afraid', 'scared', 'frightened', 'terrified', 'horror', 'panicked', 'apprehensive'],
-  'Anxiety': ['anxiety', 'anxious', 'nervous', 'worried', 'stressed', 'tense', 'uneasy', 'distressed', 'overwhelmed'],
-  'Anger': ['anger', 'angry', 'mad', 'frustrated', 'irritated', 'annoyed', 'furious', 'resentful', 'enraged', 'hostile', 'outraged'],
-  'Disgust': ['disgust', 'disgusted', 'repulsed', 'revolted', 'aversion', 'loathing', 'contempt', 'dislike'],
-  'Love': ['love', 'loving', 'affection', 'care', 'caring', 'fond', 'tenderness', 'compassion', 'warmth', 'adoration'],
-  'Surprise': ['surprise', 'surprised', 'shocked', 'amazed', 'astonished', 'stunned', 'startled', 'awe', 'wonder'],
+  'Joy': [
+    'joy', 'happy', 'happiness', 'delight', 'content', 'pleased', 'satisfied', 
+    'enthusiastic', 'excited', 'cheerful', 'ecstatic', 'elated', 'jubilant',
+    'content', 'amused', 'delighted', 'optimistic', 'proud', 'eager', 'illustrious', 'triumphant'
+  ],
+  'Sadness': [
+    'sad', 'sadness', 'depressed', 'depression', 'grief', 'sorrow', 'despair', 
+    'melancholy', 'gloomy', 'miserable', 'discouraged', 'hurt', 'agony', 'suffering',
+    'disappointed', 'dismayed', 'displeased', 'shameful', 'regretful', 'guilty',
+    'neglected', 'isolated', 'lonely', 'despair', 'grief', 'powerless'
+  ],
+  'Fear': [
+    'fear', 'afraid', 'scared', 'frightened', 'terrified', 'horror', 'panicked', 
+    'apprehensive', 'worried', 'nervous', 'anxious', 'timid', 'insecure', 
+    'suspicious', 'threatened', 'overwhelmed', 'vulnerable', 'dread'
+  ],
+  'Anxiety': [
+    'anxiety', 'anxious', 'nervous', 'worried', 'stressed', 'tense', 'uneasy', 
+    'distressed', 'overwhelmed', 'apprehensive', 'concerned', 'restless', 'jittery',
+    'vigilant', 'uncomfortable', 'insecure', 'inadequate', 'frightened', 'alarmed', 'panicked'
+  ],
+  'Anger': [
+    'anger', 'angry', 'mad', 'frustrated', 'irritated', 'annoyed', 'furious', 
+    'resentful', 'enraged', 'hostile', 'outraged', 'bitter', 'hatred', 'rage',
+    'hate', 'hostile', 'exasperated', 'agitated', 'frustrated', 'irritable',
+    'annoyed', 'aggravated', 'envy', 'resentful', 'jealous', 'disgusted', 'contempt', 'revolted'
+  ],
+  'Disgust': [
+    'disgust', 'disgusted', 'repulsed', 'revolted', 'aversion', 'loathing', 
+    'contempt', 'dislike', 'disapproval', 'revulsion', 'horrified', 'offended',
+    'appalled', 'repelled', 'abhorrence'
+  ],
+  'Love': [
+    'love', 'loving', 'affection', 'care', 'caring', 'fond', 'tenderness', 
+    'compassion', 'warmth', 'adoration', 'passionate', 'longing', 'desire',
+    'enchanted', 'infatuated', 'cherished', 'devoted', 'sentimental', 'attracted'
+  ],
+  'Surprise': [
+    'surprise', 'surprised', 'shocked', 'amazed', 'astonished', 'stunned', 
+    'startled', 'awe', 'wonder', 'disbelief', 'confused', 'perplexed',
+    'stunned', 'shocked', 'dismayed', 'confused', 'disillusioned', 'perplexed',
+    'amazed', 'astonished', 'awe-struck', 'overcome', 'speechless', 'astounded',
+    'moved', 'stimulated', 'touched'
+  ],
+  'Trust': [
+    'trust', 'trusting', 'faithful', 'secure', 'confident', 'safe', 'reliable',
+    'dependable', 'open', 'accepting', 'honored', 'respected', 'valued',
+    'encouraged', 'hopeful', 'inspired'
+  ],
+  'Gratitude': [
+    'grateful', 'gratitude', 'thankful', 'appreciative', 'indebted', 'recognition',
+    'acknowledgment', 'blessed'
+  ],
+  'Interest': [
+    'interest', 'interested', 'curious', 'fascinated', 'engaged', 'attentive',
+    'intrigued', 'captivated', 'absorbed', 'engrossed', 'enthralled'
+  ],
+  'Calm': [
+    'calm', 'peaceful', 'relaxed', 'tranquil', 'serene', 'at ease', 'composed',
+    'centered', 'comfortable', 'settled', 'harmonious', 'balanced', 'satisfied',
+    'content', 'placid', 'still', 'quiet', 'rested'
+  ],
+  'Shame': [
+    'shame', 'ashamed', 'embarrassed', 'humiliated', 'mortified', 'disgraced',
+    'dishonored', 'guilty', 'regretful', 'remorseful', 'apologetic'
+  ]
 };
 
-// Secondary emotion groupings that map to core emotions
+// Secondary emotion groupings (Ring 2) that map to core emotions (Ring 1)
 export const SECONDARY_EMOTIONS = {
+  // Joy secondary emotions
+  'Content': 'Joy',
+  'Happy': 'Joy',
+  'Cheerful': 'Joy',
+  'Proud': 'Joy',
+  'Optimistic': 'Joy',
+  'Enthusiastic': 'Joy',
+  'Elated': 'Joy',
+  'Triumphant': 'Joy',
+  'Excited': 'Joy',
+  
+  // Sadness secondary emotions
+  'Suffering': 'Sadness',
+  'Disappointed': 'Sadness',
+  'Shameful': 'Sadness',
+  'Neglected': 'Sadness',
+  'Despair': 'Sadness',
+  'Depression': 'Sadness',
+  'Lonely': 'Sadness',
+  'Grieving': 'Sadness',
+  
+  // Fear secondary emotions
+  'Scared': 'Fear',
+  'Terrified': 'Fear',
+  'Insecure': 'Fear',
+  'Nervous': 'Fear',
+  'Worried': 'Fear',
+  'Inadequate': 'Fear',
+  'Rejected': 'Fear',
+  'Threatened': 'Fear',
+  
+  // Anxiety secondary emotions
+  'Stressed': 'Anxiety',
+  'Overwhelmed': 'Anxiety',
+  'Worry': 'Anxiety',
+  'Tense': 'Anxiety',
+  'Nervous': 'Anxiety',
+  'Unsettled': 'Anxiety',
+  'Apprehensive': 'Anxiety',
+  'Panicky': 'Anxiety',
+  
+  // Anger secondary emotions
+  'Rage': 'Anger',
+  'Exasperated': 'Anger',
+  'Irritable': 'Anger',
+  'Envy': 'Anger',
+  'Disgust': 'Anger',
   'Frustration': 'Anger',
   'Irritation': 'Anger',
-  'Disappointment': 'Sadness',
-  'Loneliness': 'Sadness',
-  'Worry': 'Anxiety',
-  'Stress': 'Anxiety',
-  'Nervousness': 'Anxiety',
-  'Dread': 'Fear',
-  'Terror': 'Fear',
-  'Contentment': 'Joy',
-  'Excitement': 'Joy',
-  'Amusement': 'Joy',
-  'Pride': 'Joy',
-  'Pleasure': 'Joy',
-  'Satisfaction': 'Joy',
-  'Peace': 'Joy',
-  'Serenity': 'Joy',
+  'Resentful': 'Anger',
+  'Jealous': 'Anger',
+  
+  // Disgust secondary emotions
+  'Disapproval': 'Disgust',
+  'Disappointed': 'Disgust',
+  'Avoidance': 'Disgust',
+  'Revulsion': 'Disgust',
+  'Contempt': 'Disgust',
+  'Loathing': 'Disgust',
+  'Aversion': 'Disgust',
+  
+  // Love secondary emotions
   'Affection': 'Love',
+  'Longing': 'Love',
   'Compassion': 'Love',
-  'Empathy': 'Love',
+  'Tenderness': 'Love',
+  'Caring': 'Love',
+  'Desire': 'Love',
+  'Fondness': 'Love',
+  'Passion': 'Love',
+  'Adoration': 'Love',
+  
+  // Surprise secondary emotions
+  'Stunned': 'Surprise',
+  'Confused': 'Surprise',
+  'Amazed': 'Surprise',
+  'Overcome': 'Surprise',
+  'Moved': 'Surprise',
+  'Astonished': 'Surprise',
   'Wonder': 'Surprise',
   'Awe': 'Surprise',
-  'Amazement': 'Surprise',
-  'Revulsion': 'Disgust',
-  'Aversion': 'Disgust',
+  'Startled': 'Surprise',
+  
+  // Trust secondary emotions
+  'Secure': 'Trust',
+  'Confident': 'Trust',
+  'Faithful': 'Trust',
+  'Respected': 'Trust',
+  'Safe': 'Trust',
+  'Reliable': 'Trust',
+  'Honored': 'Trust',
+  
+  // Gratitude secondary emotions
+  'Thankful': 'Gratitude',
+  'Appreciative': 'Gratitude',
+  'Recognized': 'Gratitude',
+  'Blessed': 'Gratitude',
+  
+  // Interest secondary emotions
+  'Curious': 'Interest',
+  'Engaged': 'Interest',
+  'Fascinated': 'Interest',
+  'Intrigued': 'Interest',
+  
+  // Calm secondary emotions
+  'Peaceful': 'Calm',
+  'Relaxed': 'Calm',
+  'Tranquil': 'Calm',
+  'Serene': 'Calm',
+  'Composed': 'Calm',
+  'Balanced': 'Calm',
+  
+  // Shame secondary emotions
+  'Embarrassed': 'Shame',
+  'Humiliated': 'Shame',
+  'Regretful': 'Shame',
+  'Guilty': 'Shame',
+};
+
+// Tertiary emotions (Ring 3) mapping to secondary emotions (Ring 2)
+export const TERTIARY_EMOTIONS = {
+  // Joy tertiary emotions
+  'Pleased': 'Content',
+  'Satisfied': 'Content',
+  'Amused': 'Happy',
+  'Delighted': 'Happy',
+  'Jovial': 'Cheerful',
+  'Blissful': 'Cheerful',
+  'Illustrious': 'Proud',
+  'Triumphant': 'Proud',
+  'Hopeful': 'Optimistic',
+  'Eager': 'Optimistic',
+  'Zealous': 'Enthusiastic',
+  'Energetic': 'Enthusiastic',
+  'Jubilant': 'Elated',
+  'Ecstatic': 'Elated',
+  
+  // Sadness tertiary emotions
+  'Agony': 'Suffering',
+  'Hurt': 'Suffering',
+  'Depressed': 'Sadness',
+  'Sorrow': 'Sadness',
+  'Dismayed': 'Disappointed',
+  'Displeased': 'Disappointed',
+  'Regretful': 'Shameful',
+  'Guilty': 'Shameful',
+  'Isolated': 'Neglected',
+  'Lonely': 'Neglected',
+  'Grief': 'Despair',
+  'Powerless': 'Despair',
+  
+  // Fear tertiary emotions
+  'Frightened': 'Scared',
+  'Helpless': 'Scared',
+  'Horrified': 'Terrified',
+  'Panic': 'Terrified',
+  'Doubtful': 'Insecure',
+  'Inadequate': 'Insecure',
+  'Worried': 'Nervous',
+  'Anxious': 'Nervous',
+  
+  // Anxiety tertiary emotions
+  'Overwhelmed': 'Stressed',
+  'Frantic': 'Stressed',
+  'Jittery': 'Nervous',
+  'Restless': 'Nervous',
+  'Uneasy': 'Tense',
+  'Distressed': 'Tense',
+  'Concerned': 'Worried',
+  'Troubled': 'Worried',
+  
+  // Anger tertiary emotions
+  'Hate': 'Rage',
+  'Hostile': 'Rage',
+  'Agitated': 'Exasperated',
+  'Frustrated': 'Exasperated',
+  'Annoyed': 'Irritable',
+  'Aggravated': 'Irritable',
+  'Resentful': 'Envy',
+  'Jealous': 'Envy',
+  'Contempt': 'Disgust',
+  'Revolted': 'Disgust',
+  
+  // Disgust tertiary emotions
+  'Judgmental': 'Disapproval',
+  'Critical': 'Disapproval',
+  'Repulsed': 'Revulsion',
+  'Appalled': 'Revulsion',
+  'Disdain': 'Contempt',
+  'Scornful': 'Contempt',
+  
+  // Love tertiary emotions
+  'Caring': 'Affection',
+  'Warm': 'Affection',
+  'Yearning': 'Longing',
+  'Missing': 'Longing',
+  'Empathetic': 'Compassion',
+  'Sympathetic': 'Compassion',
+  'Gentle': 'Tenderness',
+  'Soft': 'Tenderness',
+  
+  // Surprise tertiary emotions
+  'Shocked': 'Stunned',
+  'Dismayed': 'Stunned',
+  'Disillusioned': 'Confused',
+  'Perplexed': 'Confused',
+  'Astonished': 'Amazed',
+  'Awe-struck': 'Amazed',
+  'Speechless': 'Overcome',
+  'Astounded': 'Overcome',
+  'Stimulated': 'Moved',
+  'Touched': 'Moved',
+  
+  // Trust tertiary emotions
+  'Protected': 'Secure',
+  'Sheltered': 'Secure',
+  'Reassured': 'Confident',
+  'Empowered': 'Confident',
+  'Loyal': 'Faithful',
+  'Devoted': 'Faithful',
+  
+  // Gratitude tertiary emotions
+  'Indebted': 'Thankful',
+  'Obliged': 'Thankful',
+  'Acknowledged': 'Appreciative',
+  'Valued': 'Appreciative',
+  
+  // Interest tertiary emotions
+  'Inquisitive': 'Curious',
+  'Inquiring': 'Curious',
+  'Attentive': 'Engaged',
+  'Absorbed': 'Engaged',
+  'Captivated': 'Fascinated',
+  'Enthralled': 'Fascinated',
+  
+  // Calm tertiary emotions
+  'Quiet': 'Peaceful',
+  'Still': 'Peaceful',
+  'Rested': 'Relaxed',
+  'At ease': 'Relaxed',
+  'Centered': 'Composed',
+  'Collected': 'Composed',
+  
+  // Shame tertiary emotions
+  'Mortified': 'Embarrassed',
+  'Self-conscious': 'Embarrassed',
+  'Disgraced': 'Humiliated',
+  'Dishonored': 'Humiliated',
+  'Apologetic': 'Regretful',
+  'Remorseful': 'Regretful',
 };
 
 // Emotion colors for consistent visualization
