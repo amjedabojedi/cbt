@@ -122,7 +122,7 @@ export const SECONDARY_EMOTIONS = {
   'Overwhelmed': 'Anxiety',
   'Worry': 'Anxiety',
   'Tense': 'Anxiety',
-  'Nervous': 'Anxiety',
+  'Anxious': 'Anxiety', // Using 'Anxious' instead of duplicate 'Nervous'
   'Unsettled': 'Anxiety',
   'Apprehensive': 'Anxiety',
   'Panicky': 'Anxiety',
@@ -140,7 +140,7 @@ export const SECONDARY_EMOTIONS = {
   
   // Disgust secondary emotions
   'Disapproval': 'Disgust',
-  'Disappointed': 'Disgust',
+  'Distaste': 'Disgust', // Changed from duplicate 'Disappointed'
   'Avoidance': 'Disgust',
   'Revulsion': 'Disgust',
   'Contempt': 'Disgust',
@@ -289,7 +289,7 @@ export const TERTIARY_EMOTIONS = {
   
   // Surprise tertiary emotions
   'Shocked': 'Stunned',
-  'Dismayed': 'Stunned',
+  'Bewildered': 'Stunned', // Changed from duplicate 'Dismayed'
   'Disillusioned': 'Confused',
   'Perplexed': 'Confused',
   'Astonished': 'Amazed',
@@ -356,14 +356,16 @@ export const EMOTION_COLORS: Record<string, string> = {
 };
 
 /**
- * Find the core emotion for a given emotion term
+ * Find the core emotion (Ring 1) for a given emotion term
  * @param emotion The emotion term to categorize
  * @returns The matching core emotion or null if no match
  */
 export function findCoreEmotion(emotion: string): string | null {
+  if (!emotion) return null;
+  
   const normalizedEmotion = emotion.toLowerCase().trim();
   
-  // Direct match with a core emotion
+  // 1. Direct match with a core emotion
   for (const [coreEmotion, variants] of Object.entries(CORE_EMOTION_FAMILIES)) {
     if (coreEmotion.toLowerCase() === normalizedEmotion) {
       return coreEmotion;
@@ -375,10 +377,57 @@ export function findCoreEmotion(emotion: string): string | null {
     }
   }
   
-  // Check if it's a secondary emotion
+  // 2. Check if it's a secondary emotion (Ring 2)
   for (const [secondaryEmotion, coreEmotion] of Object.entries(SECONDARY_EMOTIONS)) {
     if (secondaryEmotion.toLowerCase() === normalizedEmotion) {
       return coreEmotion;
+    }
+  }
+  
+  // 3. Check if it's a tertiary emotion (Ring 3)
+  for (const [tertiaryEmotion, secondaryEmotion] of Object.entries(TERTIARY_EMOTIONS)) {
+    if (tertiaryEmotion.toLowerCase() === normalizedEmotion) {
+      // Map tertiary → secondary → core
+      const secondaryKey = secondaryEmotion as keyof typeof SECONDARY_EMOTIONS;
+      return SECONDARY_EMOTIONS[secondaryKey] || null;
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Find the secondary emotion (Ring 2) for a given emotion term
+ * @param emotion The emotion term to categorize
+ * @returns The matching secondary emotion or null if no match
+ */
+export function findSecondaryEmotion(emotion: string): string | null {
+  if (!emotion) return null;
+  
+  const normalizedEmotion = emotion.toLowerCase().trim();
+  
+  // 1. Check if the emotion is a secondary emotion directly
+  for (const secondaryEmotion of Object.keys(SECONDARY_EMOTIONS)) {
+    if (secondaryEmotion.toLowerCase() === normalizedEmotion) {
+      return secondaryEmotion;
+    }
+  }
+  
+  // 2. Check if it's a tertiary emotion, and get its parent
+  for (const [tertiaryEmotion, secondaryEmotion] of Object.entries(TERTIARY_EMOTIONS)) {
+    if (tertiaryEmotion.toLowerCase() === normalizedEmotion) {
+      return secondaryEmotion;
+    }
+  }
+  
+  // 3. If it's a core emotion, find the most closely related secondary emotion
+  const coreEmotion = findCoreEmotion(emotion);
+  if (coreEmotion) {
+    // Find the first secondary emotion that maps to this core emotion
+    for (const [secondaryEmotion, core] of Object.entries(SECONDARY_EMOTIONS)) {
+      if (core === coreEmotion) {
+        return secondaryEmotion;
+      }
     }
   }
   
@@ -391,6 +440,8 @@ export function findCoreEmotion(emotion: string): string | null {
  * @returns Array of related emotion terms
  */
 export function getRelatedEmotions(coreEmotion: string): string[] {
+  if (!coreEmotion) return [];
+  
   const results: string[] = [coreEmotion];
   const coreEmotionLower = coreEmotion.toLowerCase();
   
@@ -406,6 +457,13 @@ export function getRelatedEmotions(coreEmotion: string): string[] {
   for (const [secondary, core] of Object.entries(SECONDARY_EMOTIONS)) {
     if (core === coreEmotion) {
       results.push(secondary);
+      
+      // Also add tertiary emotions that map to these secondary emotions
+      for (const [tertiary, secondaryParent] of Object.entries(TERTIARY_EMOTIONS)) {
+        if (secondaryParent === secondary) {
+          results.push(tertiary);
+        }
+      }
     }
   }
   
@@ -563,7 +621,8 @@ export async function enhanceComponentConnections(
         }
         
         // Also check for common secondary emotions
-        CORE_EMOTION_FAMILIES[emotion].forEach(subEmotion => {
+        const emotionKey = emotion as keyof typeof CORE_EMOTION_FAMILIES;
+        CORE_EMOTION_FAMILIES[emotionKey].forEach((subEmotion: string) => {
           if (journal.content.toLowerCase().includes(subEmotion)) {
             allTags.push(subEmotion);
           }
