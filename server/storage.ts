@@ -151,6 +151,20 @@ export interface IStorage {
   unlinkJournalFromThoughtRecord(journalId: number, thoughtRecordId: number): Promise<void>;
   getRelatedThoughtRecords(journalId: number): Promise<ThoughtRecord[]>;
   getRelatedJournalEntries(thoughtRecordId: number): Promise<JournalEntry[]>;
+  
+  // Notification management
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getNotificationsByUser(userId: number, limit?: number): Promise<Notification[]>;
+  getUnreadNotificationsByUser(userId: number): Promise<Notification[]>;
+  getNotificationById(id: number): Promise<Notification | undefined>;
+  markNotificationAsRead(id: number): Promise<Notification>;
+  markAllNotificationsAsRead(userId: number): Promise<void>;
+  deleteNotification(id: number): Promise<void>;
+  
+  // Notification preferences
+  getNotificationPreferences(userId: number): Promise<NotificationPreferences | undefined>;
+  createNotificationPreferences(preferences: InsertNotificationPreferences): Promise<NotificationPreferences>;
+  updateNotificationPreferences(userId: number, preferences: Partial<InsertNotificationPreferences>): Promise<NotificationPreferences>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1267,6 +1281,104 @@ export class DatabaseStorage implements IStorage {
     }
     
     return relatedEntries;
+  }
+  
+  // Notification management
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [newNotification] = await db
+      .insert(notifications)
+      .values(notification)
+      .returning();
+    
+    return newNotification;
+  }
+  
+  async getNotificationsByUser(userId: number, limit: number = 20): Promise<Notification[]> {
+    return db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt))
+      .limit(limit);
+  }
+  
+  async getUnreadNotificationsByUser(userId: number): Promise<Notification[]> {
+    return db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .where(eq(notifications.isRead, false))
+      .where(
+        or(
+          isNull(notifications.expiresAt),
+          gt(notifications.expiresAt, new Date())
+        )
+      )
+      .orderBy(desc(notifications.createdAt));
+  }
+  
+  async getNotificationById(id: number): Promise<Notification | undefined> {
+    const [notification] = await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.id, id));
+    
+    return notification;
+  }
+  
+  async markNotificationAsRead(id: number): Promise<Notification> {
+    const [notification] = await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, id))
+      .returning();
+    
+    return notification;
+  }
+  
+  async markAllNotificationsAsRead(userId: number): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.userId, userId));
+  }
+  
+  async deleteNotification(id: number): Promise<void> {
+    await db
+      .delete(notifications)
+      .where(eq(notifications.id, id));
+  }
+  
+  // Notification preferences
+  async getNotificationPreferences(userId: number): Promise<NotificationPreferences | undefined> {
+    const [preferences] = await db
+      .select()
+      .from(notificationPreferences)
+      .where(eq(notificationPreferences.userId, userId));
+    
+    return preferences;
+  }
+  
+  async createNotificationPreferences(preferences: InsertNotificationPreferences): Promise<NotificationPreferences> {
+    const [newPreferences] = await db
+      .insert(notificationPreferences)
+      .values(preferences)
+      .returning();
+    
+    return newPreferences;
+  }
+  
+  async updateNotificationPreferences(userId: number, preferences: Partial<InsertNotificationPreferences>): Promise<NotificationPreferences> {
+    const [updatedPreferences] = await db
+      .update(notificationPreferences)
+      .set({
+        ...preferences,
+        updatedAt: new Date()
+      })
+      .where(eq(notificationPreferences.userId, userId))
+      .returning();
+    
+    return updatedPreferences;
   }
 }
 

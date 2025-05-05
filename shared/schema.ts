@@ -337,3 +337,52 @@ export type InsertJournalComment = z.infer<typeof insertJournalCommentSchema>;
 
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = z.infer<typeof insertSessionSchema>;
+
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  type: text("type", { 
+    enum: ["reminder", "therapist_message", "progress_update", "system"] 
+  }).notNull().default("system"),
+  isRead: boolean("is_read").notNull().default(false),
+  linkPath: text("link_path"), // Optional path to navigate when clicked
+  metadata: jsonb("metadata"), // Optional additional data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at"), // Optional expiration time
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+// Notification preferences table
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id).unique(),
+  emailEnabled: boolean("email_enabled").notNull().default(true),
+  pushEnabled: boolean("push_enabled").notNull().default(true),
+  reminderFrequency: text("reminder_frequency", { 
+    enum: ["daily", "weekly", "monthly", "none"] 
+  }).notNull().default("daily"),
+  journalReminders: boolean("journal_reminders").notNull().default(true),
+  emotionReminders: boolean("emotion_reminders").notNull().default(true),
+  goalReminders: boolean("goal_reminders").notNull().default(true),
+  therapistMessages: boolean("therapist_messages").notNull().default(true),
+  progressSummaries: boolean("progress_summaries").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertNotificationPreferencesSchema = createInsertSchema(notificationPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
