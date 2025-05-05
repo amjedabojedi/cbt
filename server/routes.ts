@@ -50,8 +50,9 @@ if (!process.env.STRIPE_SECRET_KEY) {
   console.warn("STRIPE_SECRET_KEY is not set. Subscription functionality may be limited.");
 }
 
+// Use Type assertion for Stripe API version to avoid TypeScript errors
 const stripe = process.env.STRIPE_SECRET_KEY ? 
-  new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-04-30.basil' }) : 
+  new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-04-30.basil' as any }) : 
   null;
 
 // Helper function to get emotion color by name
@@ -240,6 +241,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user;
       
+      // Make sure user is defined
+      if (!user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       // Get subscription plan if user has one
       let plan = null;
       if (user.subscriptionPlanId) {
@@ -264,7 +270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stripeSubscription: stripeSubscription ? {
           id: stripeSubscription.id,
           status: stripeSubscription.status,
-          currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+          currentPeriodEnd: new Date((stripeSubscription as any).current_period_end * 1000),
           cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end
         } : null
       });
