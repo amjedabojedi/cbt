@@ -1132,10 +1132,10 @@ export default function Journal() {
                       <div>
                         <p className="text-sm text-muted-foreground">Identified Cognitive Patterns</p>
                         <p className="text-2xl font-bold">
-                          {Object.keys(stats.topics).filter(t => 
-                            t.includes("catastrophizing") || 
-                            t.includes("all-or-nothing") || 
-                            t.includes("should")
+                          {/* Count entries that have detected or user-selected distortions */}
+                          {entries.filter((entry: JournalEntry) => 
+                            (entry.detectedDistortions && entry.detectedDistortions.length > 0) || 
+                            (entry.userSelectedDistortions && entry.userSelectedDistortions.length > 0)
                           ).length}
                         </p>
                       </div>
@@ -1252,6 +1252,66 @@ export default function Journal() {
                       <p className="text-sm text-muted-foreground">Not enough data to display topics yet.</p>
                     </div>
                   )}
+                </CardContent>
+            </Card>
+            
+            {/* Cognitive Distortion Patterns */}
+              <Card className="lg:col-span-12">
+                <CardHeader>
+                  <CardTitle className="text-lg">Cognitive Distortion Patterns</CardTitle>
+                  <CardDescription>Thinking patterns identified in your journal entries</CardDescription>
+                </CardHeader>
+                <CardContent className="p-4">
+                  {/* Create a distortion frequency map from entries */}
+                  {(() => {
+                    const distortionMap: Record<string, number> = {};
+                    entries.forEach((entry: JournalEntry) => {
+                      // Count both detected and user-selected distortions
+                      const distortions = [
+                        ...(entry.detectedDistortions || []),
+                        ...(entry.userSelectedDistortions || [])
+                      ];
+                      
+                      // Count unique distortions (no duplicates)
+                      new Set(distortions).forEach(distortion => {
+                        distortionMap[distortion] = (distortionMap[distortion] || 0) + 1;
+                      });
+                    });
+                    
+                    if (Object.keys(distortionMap).length > 0) {
+                      return (
+                        <div className="space-y-3">
+                          {Object.entries(distortionMap)
+                            .sort((a, b) => b[1] - a[1])
+                            .map(([distortion, count]) => (
+                              <div key={distortion} className="flex items-center gap-2">
+                                <div className="w-full flex-1">
+                                  <div className="flex justify-between mb-1">
+                                    <p className="text-sm font-medium">{distortion}</p>
+                                    <p className="text-sm text-muted-foreground">{count}</p>
+                                  </div>
+                                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-orange-500 rounded-full" 
+                                      style={{ 
+                                        width: `${Math.min(100, count / Math.max(...Object.values(distortionMap)) * 100)}%` 
+                                      }}
+                                    ></div>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1">{getDistortionDescription(distortion)}</p>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div className="text-center py-8">
+                          <p className="text-sm text-muted-foreground">No cognitive distortions identified yet.</p>
+                        </div>
+                      );
+                    }
+                  })()}
                 </CardContent>
             </Card>
             
