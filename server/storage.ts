@@ -42,6 +42,7 @@ export interface IStorage {
   assignSubscriptionPlan(userId: number, planId: number): Promise<User>;
   countTherapistClients(therapistId: number): Promise<number>;
   deleteUser(userId: number): Promise<void>;
+  updateUserTherapist(userId: number, therapistId: number): Promise<User>;
   
   // Subscription plans management
   createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan>;
@@ -293,6 +294,16 @@ export class DatabaseStorage implements IStorage {
     return parseInt(result[0].count as string);
   }
   
+  async updateUserTherapist(userId: number, therapistId: number): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ therapistId })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser;
+  }
+    
   async deleteUser(userId: number): Promise<void> {
     console.log(`Deleting user with ID: ${userId}`);
     
