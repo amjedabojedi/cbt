@@ -7,6 +7,7 @@ import MoodTrends from "@/components/dashboard/MoodTrends";
 import ReflectionTrends from "@/components/dashboard/ReflectionTrends";
 import ReflectionInsights from "@/components/dashboard/ReflectionInsights";
 import CrossComponentInsights from "@/components/dashboard/CrossComponentInsights";
+import TherapistStats from "@/components/dashboard/TherapistStats";
 import useActiveUser from "@/hooks/use-active-user";
 import { useClientContext } from "@/context/ClientContext";
 import { ClientDebug } from "@/components/debug/ClientDebug";
@@ -16,19 +17,25 @@ export default function Dashboard() {
   const { activeUserId, isViewingClientData } = useActiveUser();
   const { viewingClientName } = useClientContext();
   
+  const isTherapist = user?.role === "therapist";
+  const isClient = user?.role === "client";
+  
   // Determine whose name to display
   const displayName = isViewingClientData 
     ? viewingClientName 
     : user?.name?.split(' ')[0] || 'there';
     
-  // Different message based on whether viewing own or client's dashboard
-  const welcomeMessage = isViewingClientData
-    ? `${displayName}'s Dashboard`
-    : `Welcome back, ${displayName}`;
-    
-  const subMessage = isViewingClientData
-    ? "You are viewing this client's emotion tracking and reflection data."
-    : "Track your emotions, thoughts, and progress on your journey to clarity.";
+  // Different welcome message based on role and viewing context
+  let welcomeMessage = `Welcome back, ${displayName}`;
+  let subMessage = "Track your emotions, thoughts, and progress on your journey to clarity.";
+  
+  if (isTherapist && !isViewingClientData) {
+    welcomeMessage = `Welcome back, ${displayName}`;
+    subMessage = "Manage your practice and view insights about your clients.";
+  } else if (isViewingClientData) {
+    welcomeMessage = `${displayName}'s Dashboard`;
+    subMessage = "You are viewing this client's emotion tracking and reflection data.";
+  }
   
   return (
     <AppLayout title="Dashboard">
@@ -46,40 +53,55 @@ export default function Dashboard() {
           </p>
         </div>
         
-        {/* Getting Started Checklist - only show for user's own dashboard */}
-        {!isViewingClientData && <GettingStarted />}
+        {/* Therapist-specific view */}
+        {isTherapist && !isViewingClientData && (
+          <div className="mb-6">
+            <TherapistStats />
+          </div>
+        )}
         
-        {/* Quick Actions - only show for user's own dashboard */}
-        {!isViewingClientData && (
+        {/* Getting Started Checklist - only for client's own dashboard */}
+        {isClient && !isViewingClientData && <GettingStarted />}
+        
+        {/* Quick Actions - for clients and when viewing client data */}
+        {(isClient || isViewingClientData) && !isTherapist && (
           <div className="mb-6">
             <QuickActions />
           </div>
         )}
         
-        {/* Recent Emotion History */}
-        <div className="mb-6">
-          <EmotionHistory limit={3} />
-        </div>
-        
-        {/* Mood Trends and Reflection Trends Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <div>
-            <MoodTrends />
+        {/* Recent Emotion History - for clients and when viewing client data */}
+        {(isClient || isViewingClientData) && (
+          <div className="mb-6">
+            <EmotionHistory limit={3} />
           </div>
-          <div>
-            {activeUserId && <ReflectionTrends userId={activeUserId} days={30} />}
+        )}
+        
+        {/* Mood Trends and Reflection Trends Charts - for clients and when viewing client data */}
+        {(isClient || isViewingClientData) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div>
+              <MoodTrends />
+            </div>
+            <div>
+              {activeUserId && <ReflectionTrends userId={activeUserId} days={30} />}
+            </div>
           </div>
-        </div>
+        )}
         
-        {/* Reflection Insights */}
-        <div className="mb-6">
-          <ReflectionInsights />
-        </div>
+        {/* Reflection Insights - for clients and when viewing client data */}
+        {(isClient || isViewingClientData) && (
+          <div className="mb-6">
+            <ReflectionInsights />
+          </div>
+        )}
         
-        {/* Cross-Component Insights */}
-        <div className="mb-6">
-          <CrossComponentInsights />
-        </div>
+        {/* Cross-Component Insights - for clients and when viewing client data */}
+        {(isClient || isViewingClientData) && (
+          <div className="mb-6">
+            <CrossComponentInsights />
+          </div>
+        )}
       </div>
     </AppLayout>
   );
