@@ -36,7 +36,8 @@ import {
   journalEntries,
   journalComments,
   cognitiveDistortions,
-  thoughtRecords
+  thoughtRecords,
+  users
 } from "@shared/schema";
 import cookieParser from "cookie-parser";
 import { sendClientInvitation } from "./services/email";
@@ -44,7 +45,7 @@ import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./servi
 import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
 import { registerIntegrationRoutes } from "./services/integrationRoutes";
 import { db, pool } from "./db";
-import { eq, or, isNull, desc, and } from "drizzle-orm";
+import { eq, or, isNull, desc, and, inArray, sql } from "drizzle-orm";
 
 // Initialize Stripe
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -820,6 +821,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get clients error:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Therapist dashboard statistics
+  app.get("/api/therapist/stats/journal", authenticate, isTherapist, async (req, res) => {
+    try {
+      const therapistId = req.user.id;
+      
+      // Get all clients of this therapist
+      const clients = await storage.getClients(therapistId);
+      const clientIds = clients.map(client => client.id);
+      
+      // If no clients, return 0 count
+      if (clientIds.length === 0) {
+        return res.json({ totalCount: 0 });
+      }
+      
+      // Count journal entries for all clients
+      let totalCount = 0;
+      for (const clientId of clientIds) {
+        const journals = await storage.getJournalEntriesByUser(clientId);
+        totalCount += journals?.length || 0;
+      }
+      
+      res.json({ totalCount });
+    } catch (error) {
+      console.error('Error fetching journal stats:', error);
+      res.status(500).json({ message: 'Failed to fetch journal statistics' });
+    }
+  });
+  
+  app.get("/api/therapist/stats/thoughts", authenticate, isTherapist, async (req, res) => {
+    try {
+      const therapistId = req.user.id;
+      
+      // Get all clients of this therapist
+      const clients = await storage.getClients(therapistId);
+      const clientIds = clients.map(client => client.id);
+      
+      // If no clients, return 0 count
+      if (clientIds.length === 0) {
+        return res.json({ totalCount: 0 });
+      }
+      
+      // Count thought records for all clients
+      let totalCount = 0;
+      for (const clientId of clientIds) {
+        const thoughts = await storage.getThoughtRecordsByUser(clientId);
+        totalCount += thoughts?.length || 0;
+      }
+      
+      res.json({ totalCount });
+    } catch (error) {
+      console.error('Error fetching thought stats:', error);
+      res.status(500).json({ message: 'Failed to fetch thought record statistics' });
+    }
+  });
+  
+  app.get("/api/therapist/stats/goals", authenticate, isTherapist, async (req, res) => {
+    try {
+      const therapistId = req.user.id;
+      
+      // Get all clients of this therapist
+      const clients = await storage.getClients(therapistId);
+      const clientIds = clients.map(client => client.id);
+      
+      // If no clients, return 0 count
+      if (clientIds.length === 0) {
+        return res.json({ totalCount: 0 });
+      }
+      
+      // Count goals for all clients
+      let totalCount = 0;
+      for (const clientId of clientIds) {
+        const clientGoals = await storage.getGoalsByUser(clientId);
+        totalCount += clientGoals?.length || 0;
+      }
+      
+      res.json({ totalCount });
+    } catch (error) {
+      console.error('Error fetching goal stats:', error);
+      res.status(500).json({ message: 'Failed to fetch goal statistics' });
     }
   });
   

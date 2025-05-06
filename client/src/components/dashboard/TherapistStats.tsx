@@ -17,10 +17,31 @@ export default function TherapistStats() {
     enabled: !!user && user.role === "therapist",
   });
 
+  // Fetch therapist's client journal entries stats
+  const { data: journalStats, isLoading: isLoadingJournalStats } = useQuery<{ totalCount: number }>({
+    queryKey: [`/api/therapist/stats/journal`],
+    enabled: !!user && user.role === "therapist",
+    placeholderData: { totalCount: 0 }
+  });
+
+  // Fetch therapist's client thought records stats
+  const { data: thoughtStats, isLoading: isLoadingThoughtStats } = useQuery<{ totalCount: number }>({
+    queryKey: [`/api/therapist/stats/thoughts`],
+    enabled: !!user && user.role === "therapist",
+    placeholderData: { totalCount: 0 }
+  });
+
+  // Fetch therapist's client goals stats
+  const { data: goalStats, isLoading: isLoadingGoalStats } = useQuery<{ totalCount: number }>({
+    queryKey: [`/api/therapist/stats/goals`],
+    enabled: !!user && user.role === "therapist",
+    placeholderData: { totalCount: 0 }
+  });
+
   // Client count by activity status
   const clientStats = {
     total: clients?.length || 0,
-    active: clients?.filter(c => true).length || 0, // Placeholder for active clients logic
+    active: clients?.filter(c => true).length || 0, // All clients are considered active for now
     new: clients?.filter(c => {
       // Consider clients registered in the last 14 days as "new"
       if (!c.createdAt) return false;
@@ -69,24 +90,24 @@ export default function TherapistStats() {
               />
               <StatCard 
                 title="Journal Entries" 
-                value={42} 
+                value={journalStats?.totalCount || 0} 
                 icon={<BookText className="h-5 w-5" />}
                 color="indigo"
-                isLoading={isLoadingClients}
+                isLoading={isLoadingJournalStats}
               />
               <StatCard 
                 title="Thought Records" 
-                value={28} 
+                value={thoughtStats?.totalCount || 0} 
                 icon={<Brain className="h-5 w-5" />}
                 color="pink"
-                isLoading={isLoadingClients}
+                isLoading={isLoadingThoughtStats}
               />
               <StatCard 
                 title="Active Goals" 
-                value={15} 
+                value={goalStats?.totalCount || 0} 
                 icon={<Goal className="h-5 w-5" />}
                 color="amber"
-                isLoading={isLoadingClients}
+                isLoading={isLoadingGoalStats}
               />
             </div>
           </TabsContent>
@@ -95,39 +116,29 @@ export default function TherapistStats() {
             <div className="mt-4 space-y-4">
               <p className="text-neutral-500 text-sm">Recent client activity across your practice:</p>
               
-              <div className="space-y-2">
-                <ActivityItem 
-                  title="Most Active Clients"
-                  items={[
-                    { label: "Sarah Johnson", value: "12 entries" },
-                    { label: "Michael Chen", value: "8 entries" },
-                    { label: "Emily Davis", value: "6 entries" },
-                  ]}
-                  icon={<ListChecks className="h-5 w-5 text-blue-500" />}
-                  isLoading={isLoadingClients}
-                />
-                
-                <ActivityItem 
-                  title="Recently Active"
-                  items={[
-                    { label: "Sarah Johnson", value: "2 hours ago" },
-                    { label: "James Wilson", value: "Yesterday" },
-                    { label: "Emma Rodriguez", value: "2 days ago" },
-                  ]}
-                  icon={<Calendar className="h-5 w-5 text-green-500" />}
-                  isLoading={isLoadingClients}
-                />
-                
-                <ActivityItem 
-                  title="Needs Attention"
-                  items={[
-                    { label: "David Miller", value: "No activity (14d)" },
-                    { label: "Anna Garcia", value: "Missed goal deadline" },
-                  ]}
-                  icon={<User className="h-5 w-5 text-red-500" />}
-                  isLoading={isLoadingClients}
-                />
-              </div>
+              {isLoadingClients ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin inline-block w-8 h-8 border-2 border-current border-t-transparent text-primary rounded-full mb-4"></div>
+                  <p className="text-neutral-500">Loading client activity data...</p>
+                </div>
+              ) : clients && clients.length > 0 ? (
+                <div className="space-y-2">
+                  <ActivityItem 
+                    title="Your Clients"
+                    items={clients.map(client => ({ 
+                      label: client.name || client.username, 
+                      value: "" 
+                    })).slice(0, 5)}
+                    icon={<ListChecks className="h-5 w-5 text-blue-500" />}
+                    isLoading={isLoadingClients}
+                  />
+                </div>
+              ) : (
+                <div className="text-center p-6 border border-dashed border-neutral-200 rounded-lg">
+                  <p className="text-neutral-500">No client activity data available yet.</p>
+                  <p className="text-neutral-400 text-sm mt-1">Activity will appear as clients use the platform.</p>
+                </div>
+              )}
             </div>
           </TabsContent>
           
@@ -135,36 +146,28 @@ export default function TherapistStats() {
             <div className="mt-4 space-y-4">
               <p className="text-neutral-500 text-sm">Client engagement with therapy components:</p>
               
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <EngagementBar 
-                    label="Emotion Tracking" 
-                    percentage={78} 
-                    color="bg-blue-500" 
-                    isLoading={isLoadingClients}
-                  />
-                  <EngagementBar 
-                    label="Thought Records" 
-                    percentage={62} 
-                    color="bg-purple-500" 
-                    isLoading={isLoadingClients}
-                  />
-                  <EngagementBar 
-                    label="Journaling" 
-                    percentage={85} 
-                    color="bg-green-500" 
-                    isLoading={isLoadingClients}
-                  />
-                  <EngagementBar 
-                    label="Goal Setting" 
-                    percentage={45} 
-                    color="bg-amber-500" 
-                    isLoading={isLoadingClients}
-                  />
-                </div>
-                
-                <div className="text-xs text-neutral-500 mt-2">
-                  * Engagement percentage based on client activity in the last 30 days
+              <div className="flex items-center justify-center p-8 border border-dashed border-neutral-200 rounded-lg">
+                <div className="text-center">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="40" 
+                    height="40" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className="mx-auto mb-4 text-neutral-400"
+                  >
+                    <path d="M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14"></path>
+                    <path d="M2 20h20"></path>
+                    <path d="M14 12v.01"></path>
+                  </svg>
+                  <h3 className="font-medium mb-1">No Engagement Data Yet</h3>
+                  <p className="text-neutral-500 text-sm max-w-xs mx-auto">
+                    Engagement statistics will be available as clients interact with the platform.
+                  </p>
                 </div>
               </div>
             </div>
