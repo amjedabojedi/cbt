@@ -41,7 +41,6 @@ export default function Sidebar() {
     navItems = [
       { href: "/", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
       { href: "/clients", label: "My Clients", icon: <Users size={20} /> },
-      { href: "/reports", label: "Client Reports", icon: <BarChart size={20} /> },
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
     ];
   }
