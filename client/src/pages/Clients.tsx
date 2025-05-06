@@ -298,6 +298,18 @@ export default function Clients() {
           description: "A user with this email already exists. Try a different email.",
           variant: "destructive",
         });
+      } else if (error.message.includes("administrator and cannot be invited")) {
+        toast({
+          title: "Invalid Client Email",
+          description: "This email belongs to an administrator and cannot be invited as a client.",
+          variant: "destructive",
+        });
+      } else if (error.message.includes("therapist and cannot be invited")) {
+        toast({
+          title: "Invalid Client Email",
+          description: "This email belongs to a therapist and cannot be invited as a client.",
+          variant: "destructive",
+        });
       } else {
         toast({
           title: "Error",

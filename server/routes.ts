@@ -884,6 +884,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingUser = await storage.getUserByEmail(email);
       
       if (existingUser) {
+        // Check user's role - admin can't be invited as a client
+        if (existingUser.role === "admin") {
+          return res.status(409).json({ 
+            message: "This email belongs to an administrator and cannot be invited as a client",
+            user: {
+              id: existingUser.id,
+              email: existingUser.email,
+              name: existingUser.name,
+              role: existingUser.role
+            }
+          });
+        }
+        
+        // Check if user is already a therapist
+        if (existingUser.role === "therapist") {
+          return res.status(409).json({ 
+            message: "This email belongs to a therapist and cannot be invited as a client",
+            user: {
+              id: existingUser.id,
+              email: existingUser.email,
+              name: existingUser.name,
+              role: existingUser.role
+            }
+          });
+        }
+        
         // If user exists, check if they're already a client of this therapist
         if (existingUser.therapistId === req.user.id) {
           return res.status(409).json({ 
