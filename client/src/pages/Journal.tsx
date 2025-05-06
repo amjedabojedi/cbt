@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
 import { 
   CalendarIcon, 
   Plus, 
@@ -587,6 +588,9 @@ export default function Journal() {
   return (
     <AppLayout title="Journal">
       <div className="container py-6 px-8 max-w-6xl ml-4">
+        {/* Back to Clients button */}
+        <BackToClientsButton />
+        
         <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Journal</h1>
         {canCreateEntries && (
