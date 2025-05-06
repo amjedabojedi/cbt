@@ -26,7 +26,9 @@ import {
   Heart, // Using the Lucide Heart component
   MoreHorizontal,
   UserPlus,
-  BarChart
+  BarChart,
+  Trash2,
+  AlertTriangle
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -427,6 +429,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -448,6 +451,8 @@ export default function Clients() {
   const { viewingClientId, setViewingClient } = useClientContext();
   const [isInviting, setIsInviting] = useState(false);
   const [selectedClient, setSelectedClient] = useState<User | null>(null);
+  const [clientToDelete, setClientToDelete] = useState<User | null>(null);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [_, navigate] = useLocation();
   
@@ -537,6 +542,59 @@ export default function Clients() {
   // Submit handler for invite form
   const onInviteSubmit = (data: InviteClientFormValues) => {
     inviteMutation.mutate(data);
+  };
+  
+  // Delete client mutation
+  const deleteClientMutation = useMutation({
+    mutationFn: async (clientId: number) => {
+      const response = await apiRequest("DELETE", `/api/users/clients/${clientId}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to remove client");
+      }
+      return clientId;
+    },
+    onSuccess: (clientId: number) => {
+      toast({
+        title: "Client Removed",
+        description: "The client has been removed from your list."
+      });
+      
+      // If we were viewing this client, reset the viewing client
+      if (viewingClientId === clientId) {
+        setViewingClient(null, null);
+        localStorage.removeItem('viewingClientId');
+        localStorage.removeItem('viewingClientName');
+      }
+      
+      // Close any dialogs
+      setIsConfirmingDelete(false);
+      setClientToDelete(null);
+      
+      // Refresh the clients list
+      queryClient.invalidateQueries({ queryKey: ["/api/users/clients"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove client.",
+        variant: "destructive"
+      });
+      setIsConfirmingDelete(false);
+    }
+  });
+  
+  // Handler for deleting a client
+  const handleDeleteClient = (client: User) => {
+    setClientToDelete(client);
+    setIsConfirmingDelete(true);
+  };
+  
+  // Confirm deletion
+  const confirmDeleteClient = () => {
+    if (clientToDelete) {
+      deleteClientMutation.mutate(clientToDelete.id);
+    }
   };
   
   // Fetch clients data
@@ -740,6 +798,16 @@ export default function Clients() {
                                 >
                                   <Send className="h-4 w-4 mr-2" />
                                   Send Message
+                                </DropdownMenuItem>
+                                
+                                <DropdownMenuSeparator />
+                                
+                                <DropdownMenuItem 
+                                  className="cursor-pointer text-red-600"
+                                  onClick={() => handleDeleteClient(client)}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Remove Client
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -1071,6 +1139,49 @@ export default function Clients() {
             </DialogContent>
           </Dialog>
         )}
+        
+        {/* Delete Client Confirmation Dialog */}
+        <Dialog open={isConfirmingDelete} onOpenChange={setIsConfirmingDelete}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center text-red-600">
+                <AlertTriangle className="h-5 w-5 mr-2" />
+                Remove Client
+              </DialogTitle>
+              <DialogDescription>
+                Are you sure you want to remove {clientToDelete?.name || clientToDelete?.username}? 
+                This will unlink the client from your account. Their account and data will still exist, 
+                but you will no longer have access to their records.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <DialogFooter className="flex space-x-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setIsConfirmingDelete(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteClient}
+                disabled={deleteClientMutation.isPending}
+              >
+                {deleteClientMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Removing...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Remove Client
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
