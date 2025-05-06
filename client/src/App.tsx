@@ -13,6 +13,7 @@ import { ThemeProvider } from "next-themes";
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Login = lazy(() => import("@/pages/Login"));
 const Register = lazy(() => import("@/pages/Register"));
+const AuthPage = lazy(() => import("@/pages/auth-page"));
 const EmotionTracking = lazy(() => import("@/pages/EmotionTracking"));
 const EmotionMapping = lazy(() => import("@/pages/EmotionMapping"));
 const ThoughtRecords = lazy(() => import("@/pages/ThoughtRecords"));
@@ -58,6 +59,7 @@ function Router() {
         {/* Public routes */}
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
+        <Route path="/auth" component={AuthPage} />
         
         {/* Protected routes - require authentication */}
         <ProtectedRoute path="/dashboard" component={RoleDashboard} />

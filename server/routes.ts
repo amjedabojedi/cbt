@@ -967,9 +967,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isRead: false
       });
       
-      // Generate an invitation link (in a real production app, this would be a frontend URL)
+      // Generate an invitation link with email parameter
       const baseUrl = process.env.BASE_URL || 'https://newhorizon-cbt.replit.app';
-      const inviteLink = `${baseUrl}/auth?invitation=true`;
+      const encodedEmail = encodeURIComponent(email);
+      const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodedEmail}`;
       
       // Send email with the client's credentials
       const emailSent = await sendClientInvitation(
