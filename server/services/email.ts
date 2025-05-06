@@ -71,27 +71,26 @@ export async function sendClientInvitation(
       <p><strong>${therapistName}</strong> has invited you to join New Horizon CBT, a platform for cognitive behavioral therapy support.</p>
       <p>New Horizon CBT will help you track emotions, manage thoughts, set goals, and monitor your progress with structured CBT tools.</p>
       
-      <h2 style="color: #4A6FA5; margin-top: 25px; font-size: 18px;">Getting Started:</h2>
+      <h2 style="color: #4A6FA5; margin-top: 25px; font-size: 18px;">Your Next Steps:</h2>
       <ol style="margin-bottom: 25px;">
-        <li>Click the button below to access your account</li>
-        <li>Your account has already been created; you just need to log in</li>
-        <li>Use your temporary username and password (shown below)</li>
-        <li>After logging in, you can update your profile information</li>
+        <li><strong>Register Your Account</strong>: Click the button below to create your account (your email address will be pre-filled)</li>
+        <li><strong>Complete Registration</strong>: Create a username and password of your choice</li>
+        <li><strong>Start Using the Platform</strong>: Once registered, you'll be automatically connected with your therapist</li>
       </ol>
-      
-      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #4A6FA5;">
-        <p style="margin: 0; font-weight: bold;">Your Temporary Login Credentials:</p>
-        <p style="margin: 8px 0 0 0;"><strong>Username:</strong> Check the message in your portal</p>
-        <p style="margin: 8px 0 0 0;"><strong>Password:</strong> Check the message in your portal</p>
-        <p style="margin: 8px 0 0 0; font-style: italic; font-size: 13px; color: #555;">
-          For security reasons, your credentials have been sent in a separate notification within the platform.
-        </p>
-      </div>
       
       <div style="margin: 30px 0;">
         <a href="${inviteLink}" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-          Access Your Account
+          Register Your Account
         </a>
+      </div>
+      
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #4A6FA5;">
+        <p style="margin: 0; font-weight: bold;">What to Expect After Registration:</p>
+        <ul style="margin-top: 10px; padding-left: 20px;">
+          <li>Immediate access to all therapy tools</li>
+          <li>Automatic connection to your therapist's practice</li>
+          <li>Access to resources shared by your therapist</li>
+        </ul>
       </div>
       
       <p style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #4A6FA5;">
