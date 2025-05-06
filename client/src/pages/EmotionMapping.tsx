@@ -23,6 +23,25 @@ import { Separator } from "@/components/ui/separator";
 import { Heart, Search, Link, Network } from "lucide-react";
 import RelatedEmotionsPanel from "@/components/emotions/RelatedEmotionsPanel";
 
+// Types for the API responses
+interface EmotionTaxonomyResponse {
+  coreEmotions: string[];
+  emotionFamilies: Record<string, string[]>;
+  relationships: Record<string, string>;
+  completeTaxonomy?: Record<string, {
+    variants: string[];
+    secondaryEmotions: Record<string, {
+      tertiaryEmotions: string[];
+    }>;
+  }>;
+}
+
+interface RelatedEmotionsResponse {
+  emotion: string;
+  coreEmotion: string;
+  relatedEmotions: string[];
+}
+
 export default function EmotionMapping() {
   const { user } = useAuth();
   const [searchEmotion, setSearchEmotion] = useState("");
@@ -30,12 +49,12 @@ export default function EmotionMapping() {
   const [activeTab, setActiveTab] = useState("taxonomy");
   
   // Get the emotion taxonomy
-  const { data: taxonomyData, isLoading: isLoadingTaxonomy } = useQuery({
+  const { data: taxonomyData, isLoading: isLoadingTaxonomy } = useQuery<EmotionTaxonomyResponse>({
     queryKey: ['/api/emotions/taxonomy'],
   });
   
   // Get related emotions when an emotion is selected
-  const { data: relatedData, isLoading: isLoadingRelated } = useQuery({
+  const { data: relatedData, isLoading: isLoadingRelated } = useQuery<RelatedEmotionsResponse>({
     queryKey: ['/api/emotions/related', selectedEmotion],
     enabled: !!selectedEmotion,
   });
@@ -153,27 +172,35 @@ export default function EmotionMapping() {
                     </div>
                   ) : (
                     <Accordion type="single" collapsible className="w-full">
-                      {taxonomyData?.coreEmotions.map((coreEmotion: string) => (
-                        <AccordionItem key={coreEmotion} value={coreEmotion}>
-                          <AccordionTrigger className="text-lg font-medium">
-                            {coreEmotion}
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <div className="flex flex-wrap gap-2 pt-2">
-                              {taxonomyData?.emotionFamilies[coreEmotion]?.map((emotion: string) => (
-                                <Badge 
-                                  key={emotion}
-                                  variant="outline"
-                                  className="cursor-pointer hover:bg-accent"
-                                  onClick={() => handleSelectEmotion(emotion)}
-                                >
-                                  {emotion}
-                                </Badge>
-                              ))}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
+                      {taxonomyData && taxonomyData.coreEmotions ? (
+                        taxonomyData.coreEmotions.map((coreEmotion: string) => (
+                          <AccordionItem key={coreEmotion} value={coreEmotion}>
+                            <AccordionTrigger className="text-lg font-medium">
+                              {coreEmotion}
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="flex flex-wrap gap-2 pt-2">
+                                {taxonomyData.emotionFamilies && taxonomyData.emotionFamilies[coreEmotion] ? (
+                                  taxonomyData.emotionFamilies[coreEmotion].map((emotion: string) => (
+                                    <Badge 
+                                      key={emotion}
+                                      variant="outline"
+                                      className="cursor-pointer hover:bg-accent"
+                                      onClick={() => handleSelectEmotion(emotion)}
+                                    >
+                                      {emotion}
+                                    </Badge>
+                                  ))
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">No emotion variants found.</p>
+                                )}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground py-4">No emotion data available.</p>
+                      )}
                     </Accordion>
                   )}
                 </CardContent>
@@ -209,20 +236,24 @@ export default function EmotionMapping() {
                         <div>
                           <h3 className="text-sm font-medium mb-2">Related Emotions:</h3>
                           <div className="flex flex-wrap gap-2">
-                            {relatedData?.relatedEmotions.map((emotion: string) => (
-                              <Badge 
-                                key={emotion}
-                                variant={emotion === selectedEmotion ? "default" : "outline"}
-                                className={`${
-                                  emotion === selectedEmotion 
-                                    ? "ring-2 ring-offset-1" 
-                                    : "hover:bg-accent cursor-pointer"
-                                }`}
-                                onClick={() => emotion !== selectedEmotion && handleSelectEmotion(emotion)}
-                              >
-                                {emotion}
-                              </Badge>
-                            ))}
+                            {relatedData && relatedData.relatedEmotions ? (
+                              relatedData.relatedEmotions.map((emotion: string) => (
+                                <Badge 
+                                  key={emotion}
+                                  variant={emotion === selectedEmotion ? "default" : "outline"}
+                                  className={`${
+                                    emotion === selectedEmotion 
+                                      ? "ring-2 ring-offset-1" 
+                                      : "hover:bg-accent cursor-pointer"
+                                  }`}
+                                  onClick={() => emotion !== selectedEmotion && handleSelectEmotion(emotion)}
+                                >
+                                  {emotion}
+                                </Badge>
+                              ))
+                            ) : (
+                              <p className="text-sm text-muted-foreground">No related emotions found.</p>
+                            )}
                           </div>
                         </div>
                       </div>
