@@ -47,7 +47,7 @@ const EMOTION_COLORS: Record<string, string> = {
 const DEFAULT_TABS = ['overview', 'emotions', 'strategies', 'distortions'];
 
 export default function ReflectionInsights() {
-  const { activeUserId, isViewingClientData, currentUser } = useActiveUser();
+  const { activeUserId, isViewingClientData } = useActiveUser();
   const [activeTab, setActiveTab] = useState('overview');
   const [emotionGroups, setEmotionGroups] = useState<EmotionGroup[]>([]);
   const [emotionRecords, setEmotionRecords] = useState<EmotionRecord[]>([]);
@@ -272,7 +272,8 @@ export default function ReflectionInsights() {
       count: group.count,
       averageIntensity: parseFloat(group.averageIntensity.toFixed(1)),
       improvement: parseFloat(group.improvementRate.toFixed(1)),
-      fill: EMOTION_COLORS[group.coreEmotion] || '#8884d8'
+      fill: EMOTION_COLORS[group.coreEmotion] || '#8884d8',
+      color: EMOTION_COLORS[group.coreEmotion] || '#8884d8'
     }));
   };
 
@@ -511,17 +512,30 @@ export default function ReflectionInsights() {
   // Helper function to prepare data for strategies chart
   const prepareStrategiesData = () => {
     const strategyCounts: Record<string, number> = {};
+    const strategyEmotions: Record<string, string> = {}; // Track primary emotion for each strategy
     
     // Combine all strategies from all emotion groups
     emotionGroups.forEach(group => {
       group.mostUsedStrategies.forEach(strategy => {
         strategyCounts[strategy.name] = (strategyCounts[strategy.name] || 0) + strategy.count;
+        
+        // Assign emotion to strategy if it's used more for this emotion or not yet assigned
+        if (!strategyEmotions[strategy.name] || 
+            strategy.count > (strategyCounts[strategy.name] / 2)) {
+          strategyEmotions[strategy.name] = group.coreEmotion;
+        }
       });
     });
     
     // Convert to array format for chart
     return Object.entries(strategyCounts)
-      .map(([name, value]) => ({ name, value }))
+      .map(([name, value]) => ({ 
+        name, 
+        value,
+        // Use emotion color for the associated emotion, or fallback to COLORS array
+        color: strategyEmotions[name] ? EMOTION_COLORS[strategyEmotions[name]] : undefined,
+        emotion: strategyEmotions[name]
+      }))
       .sort((a, b) => b.value - a.value);
   };
   
@@ -553,7 +567,10 @@ export default function ReflectionInsights() {
                       label={(entry) => entry.name}
                     >
                       {strategiesData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={entry.color || COLORS[index % COLORS.length]} 
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -568,7 +585,7 @@ export default function ReflectionInsights() {
                     <li key={i} className="flex items-center gap-2">
                       <div 
                         className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                        style={{ backgroundColor: strategy.color || COLORS[i % COLORS.length] }}
                       />
                       <span>{strategy.name}</span>
                       <span className="text-sm text-muted-foreground ml-auto">
