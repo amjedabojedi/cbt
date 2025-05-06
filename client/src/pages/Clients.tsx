@@ -608,8 +608,8 @@ export default function Clients() {
   // Filter clients based on active tab
   const filteredClients = clients.filter((client) => {
     if (activeTab === "all") return true;
-    if (activeTab === "active") return client.role === "client";
-    if (activeTab === "pending") return client.status === "pending"; // Using status field instead of role
+    if (activeTab === "active") return client.status === "active";
+    if (activeTab === "pending") return client.status === "pending";
     return true;
   });
   
