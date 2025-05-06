@@ -165,13 +165,9 @@ export default function MoodTrends() {
         startOfDay(day.date).getTime() === emotionDate.getTime()
       );
       
-      console.log("Found matching day?", dayIndex !== -1 ? "Yes" : "No");
-      
       if (dayIndex !== -1) {
         // Increment the count for the core emotion and track intensity
         const coreEmotion = emotion.coreEmotion;
-        
-        console.log("Core emotion:", coreEmotion, "Does property exist?", dataByDate[dayIndex][coreEmotion] !== undefined);
         
         // If this emotion matches one of our core emotions
         if (coreEmotion) {
@@ -186,11 +182,8 @@ export default function MoodTrends() {
             }
             
             dataByDate[dayIndex].emotionIntensities[coreEmotion].push(emotion.intensity);
-            console.log("Updated emotion data for", coreEmotion, "intensity:", emotion.intensity);
           } else {
             // The emotion name doesn't match exactly with our core emotions list
-            console.log("Core emotion", coreEmotion, "doesn't match any of our defined core emotions");
-            
             // Try to map to one of our core emotions
             const matchedEmotion = Object.keys(CORE_EMOTIONS).find(key => 
               CORE_EMOTIONS[key].name.toLowerCase() === coreEmotion.toLowerCase()
@@ -198,7 +191,6 @@ export default function MoodTrends() {
             
             if (matchedEmotion) {
               const emotionName = CORE_EMOTIONS[matchedEmotion].name;
-              console.log("Matched to standard core emotion:", emotionName);
               
               // Use the matched emotion name
               dataByDate[dayIndex][emotionName] += 1;
@@ -357,7 +349,6 @@ export default function MoodTrends() {
   }
   
   const chartData = getChartData();
-  console.log("Final chart data:", chartData);
   
   // We have valid data if there are emotions records 
   // AND they contain at least one data point with a value > 0
@@ -369,8 +360,6 @@ export default function MoodTrends() {
       return typeof value === 'number' && value > 0;
     });
   });
-  
-  console.log("Has non-zero data:", hasNonZeroData);
   const hasData = emotions && emotions.length > 0 && hasNonZeroData;
 
   return (

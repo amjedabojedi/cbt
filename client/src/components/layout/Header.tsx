@@ -26,7 +26,6 @@ export default function Header({ title }: HeaderProps) {
     // This function is passed to RoleIndicator, but the component
     // now handles setting the view using the context directly.
     // It remains here for potential future functionality.
-    console.log("Client change handled in Header:", clientId);
   };
 
   // Show appropriate title based on context
