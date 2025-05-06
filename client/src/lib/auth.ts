@@ -17,7 +17,8 @@ interface AuthContextType {
     name: string;
     role: string;
     therapistId?: number;
-  }) => Promise<void>;
+    status?: string;
+  }) => Promise<User>;
   logout: () => Promise<void>;
 }
 
@@ -189,6 +190,7 @@ export function useAuth(): AuthContextType {
       name: string;
       role: string;
       therapistId?: number;
+      status?: string;
     }) => {
       setLoading(true);
       try {
@@ -196,9 +198,11 @@ export function useAuth(): AuthContextType {
         const userData = await response.json();
         setUser(userData as User);
         navigate("/dashboard");
+        return userData as User;
       } catch (err) {
         console.error("Registration error:", err);
         setError(err as Error);
+        throw err;
       } finally {
         setLoading(false);
       }
