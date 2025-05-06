@@ -392,7 +392,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(notificationPreferences).where(eq(notificationPreferences.userId, userId));
     
     // Delete resource assignments for this user
-    await db.delete(resourceAssignments).where(eq(resourceAssignments.clientId, userId));
+    await db.delete(resourceAssignments).where(eq(resourceAssignments.assignedTo, userId));
     
     // Delete resource feedback provided by this user
     await db.delete(resourceFeedback).where(eq(resourceFeedback.userId, userId));
