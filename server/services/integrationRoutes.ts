@@ -21,11 +21,45 @@ export function registerIntegrationRoutes(app: Express): void {
   // Get emotion taxonomy (core emotions and their families)
   app.get("/api/emotions/taxonomy", async (req: Request, res: Response) => {
     try {
-      // Return the core emotions and emotion families
+      // Build a complete emotion taxonomy with all rings from the wheel
+      const completeEmotionTaxonomy: Record<string, any> = {};
+      
+      // Start with core emotions (Ring 1)
+      Object.keys(emotionMapping.CORE_EMOTION_FAMILIES).forEach(coreEmotion => {
+        completeEmotionTaxonomy[coreEmotion] = {
+          variants: emotionMapping.CORE_EMOTION_FAMILIES[coreEmotion],
+          secondaryEmotions: {}
+        };
+      });
+      
+      // Add secondary emotions (Ring 2)
+      Object.entries(emotionMapping.SECONDARY_EMOTIONS).forEach(([secondaryEmotion, coreEmotion]) => {
+        if (completeEmotionTaxonomy[coreEmotion]) {
+          completeEmotionTaxonomy[coreEmotion].secondaryEmotions[secondaryEmotion] = {
+            tertiaryEmotions: []
+          };
+        }
+      });
+      
+      // Add tertiary emotions (Ring 3)
+      Object.entries(emotionMapping.TERTIARY_EMOTIONS).forEach(([tertiaryEmotion, secondaryEmotion]) => {
+        // Find which core emotion this belongs to
+        const coreEmotion = emotionMapping.SECONDARY_EMOTIONS[secondaryEmotion];
+        
+        if (
+          completeEmotionTaxonomy[coreEmotion] && 
+          completeEmotionTaxonomy[coreEmotion].secondaryEmotions[secondaryEmotion]
+        ) {
+          completeEmotionTaxonomy[coreEmotion].secondaryEmotions[secondaryEmotion].tertiaryEmotions.push(tertiaryEmotion);
+        }
+      });
+      
+      // Return the complete taxonomy structure
       res.json({
         coreEmotions: Object.keys(emotionMapping.CORE_EMOTION_FAMILIES),
         emotionFamilies: emotionMapping.CORE_EMOTION_FAMILIES,
-        relationships: emotionMapping.EMOTION_COLORS
+        relationships: emotionMapping.EMOTION_COLORS,
+        completeTaxonomy: completeEmotionTaxonomy
       });
     } catch (error) {
       console.error("Error fetching emotion taxonomy:", error);
