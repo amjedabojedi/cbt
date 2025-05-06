@@ -70,11 +70,25 @@ export async function sendClientInvitation(
       <p>Hello,</p>
       <p><strong>${therapistName}</strong> has invited you to join New Horizon CBT, a platform for cognitive behavioral therapy support.</p>
       <p>New Horizon CBT will help you track emotions, manage thoughts, set goals, and monitor your progress with structured CBT tools.</p>
+      
+      <h2 style="color: #4A6FA5; margin-top: 25px; font-size: 18px;">Getting Started:</h2>
+      <ol style="margin-bottom: 25px;">
+        <li>Click the button below to accept the invitation</li>
+        <li>Complete the registration form (your email will be pre-filled)</li>
+        <li>Create a username and password</li>
+        <li>You'll be automatically connected to your therapist: <strong>${therapistName}</strong></li>
+      </ol>
+      
       <div style="margin: 30px 0;">
         <a href="${inviteLink}" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
           Accept Invitation
         </a>
       </div>
+      
+      <p style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #4A6FA5;">
+        <strong>Important:</strong> This link contains information connecting you to your therapist. Please use this link directly rather than copying the URL.
+      </p>
+      
       <p>This invitation link will expire in 7 days.</p>
       <p>If you have any questions, please contact your therapist directly.</p>
       <p>Best regards,<br>The New Horizon CBT Team</p>

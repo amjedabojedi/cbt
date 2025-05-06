@@ -57,6 +57,7 @@ export default function AuthPage() {
   const searchParams = new URLSearchParams(window.location.search);
   const invitationParam = searchParams.get("invitation");
   const emailParam = searchParams.get("email");
+  const therapistIdParam = searchParams.get("therapistId");
   
   // Initialize forms
   const loginForm = useForm<LoginFormValues>({
@@ -121,7 +122,18 @@ export default function AuthPage() {
   const onRegisterSubmit = async (data: RegisterFormValues) => {
     setRegisterSubmitting(true);
     try {
-      await registerUser(data);
+      // Include therapistId in registration data if present in URL parameters
+      const registrationData = { ...data };
+      
+      if (therapistIdParam) {
+        const therapistId = parseInt(therapistIdParam);
+        if (!isNaN(therapistId)) {
+          registrationData.therapistId = therapistId;
+          console.log("Registering with therapist ID:", therapistId);
+        }
+      }
+      
+      await registerUser(registrationData);
       // Registration is handled by the auth hook which will redirect on success
       
       if (isInvitation) {

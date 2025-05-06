@@ -566,8 +566,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ message: "Email already exists" });
       }
       
-      // Create the user
+      // Create the user - if therapistId is provided, it will be included in validatedData 
+      // due to our schema allowing it in the insertUserSchema
       const user = await storage.createUser(validatedData);
+      
+      // Log the registration with therapist information
+      if (validatedData.therapistId) {
+        console.log(`User ${user.id} (${user.username}) registered with therapist ID: ${validatedData.therapistId}`);
+        
+        // If therapistId is provided, create a notification for the therapist
+        const therapist = await storage.getUser(validatedData.therapistId);
+        if (therapist) {
+          await storage.createNotification({
+            userId: therapist.id,
+            title: "New Client Registration",
+            body: `${user.name} has registered as your client.`,
+            type: "system",
+            isRead: false
+          });
+        }
+      }
       
       // Create a session
       const session = await storage.createSession(user.id);
@@ -576,8 +594,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.cookie("sessionId", session.id, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: "lax", // Changed from strict to lax to allow cross-site navigation when clicking links
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+      
+      // Create a welcome notification for the new user
+      await storage.createNotification({
+        userId: user.id,
+        title: "Welcome to New Horizon CBT",
+        body: "Thank you for joining. Start your journey by tracking your emotions or setting your first goal.",
+        type: "system",
+        isRead: false
       });
       
       // Return the user (without password)
@@ -967,10 +994,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isRead: false
       });
       
-      // Generate an invitation link with email parameter
+      // Generate an invitation link with email parameter and therapist ID
       const baseUrl = process.env.BASE_URL || 'https://newhorizon-cbt.replit.app';
       const encodedEmail = encodeURIComponent(email);
-      const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodedEmail}`;
+      const therapistId = req.user.id;
+      const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodedEmail}&therapistId=${therapistId}`;
       
       // Send email with the client's credentials
       const emailSent = await sendClientInvitation(
