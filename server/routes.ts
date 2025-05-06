@@ -824,6 +824,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Client invitation endpoint
+  app.post("/api/users/invite-client", authenticate, isTherapist, async (req, res) => {
+    try {
+      const { email, name } = req.body;
+      
+      if (!email || !name) {
+        return res.status(400).json({ message: "Email and name are required" });
+      }
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      
+      if (existingUser) {
+        // If user exists, check if they're already a client of this therapist
+        if (existingUser.therapistId === req.user.id) {
+          return res.status(409).json({ 
+            message: "This user is already your client",
+            user: existingUser
+          });
+        }
+        
+        // If user exists but doesn't have a therapist, assign them to this therapist
+        if (!existingUser.therapistId) {
+          const updatedUser = await storage.updateUserTherapist(existingUser.id, req.user.id);
+          
+          // Create a notification for the client
+          await storage.createNotification({
+            userId: existingUser.id,
+            title: "New Therapist Assignment",
+            message: `You have been assigned to ${req.user.name || req.user.username} as your therapist.`,
+            type: "assignment",
+            read: false,
+            createdAt: new Date()
+          });
+          
+          return res.status(200).json({ 
+            message: "Existing user assigned as your client",
+            user: updatedUser
+          });
+        } else {
+          // User exists but has a different therapist
+          return res.status(409).json({ 
+            message: "This user is already assigned to another therapist",
+            user: existingUser
+          });
+        }
+      }
+      
+      // Create a new user account for the client
+      const username = email.split("@")[0] + Math.floor(Math.random() * 1000); // Generate unique username
+      const tempPassword = Math.random().toString(36).slice(-8); // Generate random password
+      const hashedPassword = await bcrypt.hash(tempPassword, 10);
+      
+      const newUser = await storage.createUser({
+        username,
+        email,
+        name,
+        password: hashedPassword,
+        role: "client",
+        therapistId: req.user.id
+      });
+      
+      // Create a welcome notification for the new client
+      await storage.createNotification({
+        userId: newUser.id,
+        title: "Welcome to New Horizon-CBT",
+        message: `Welcome to New Horizon-CBT! You have been registered by ${req.user.name || req.user.username}. Your temporary username is ${username} and password is ${tempPassword}. Please change your password after logging in.`,
+        type: "system",
+        read: false,
+        createdAt: new Date()
+      });
+      
+      // In a real application, send an email to the client with their credentials
+      // We'll just return them for now
+      const { password, ...userWithoutPassword } = newUser;
+      
+      res.status(201).json({
+        message: "New client account created successfully",
+        user: userWithoutPassword,
+        credentials: {
+          username,
+          tempPassword
+        }
+      });
+    } catch (error) {
+      console.error("Error inviting client:", error);
+      res.status(500).json({ message: "Error inviting client" });
+    }
+  });
+  
   // Therapist dashboard statistics
   app.get("/api/therapist/stats/journal", authenticate, isTherapist, async (req, res) => {
     try {
@@ -994,56 +1084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Client invitation endpoint
-  app.post("/api/users/invite-client", authenticate, isTherapist, async (req, res) => {
-    try {
-      const { email, name } = req.body;
-      
-      if (!email || !name) {
-        return res.status(400).json({ message: "Email and name are required" });
-      }
-      
-      // Check if email is already registered
-      const existingUser = await storage.getUserByEmail(email);
-      if (existingUser) {
-        return res.status(409).json({ message: "Email already registered" });
-      }
-      
-      // Generate a unique invite token (this would typically be stored in the database)
-      const crypto = await import('crypto');
-      const inviteToken = crypto.randomBytes(32).toString('hex');
-      
-      // Generate invite link with token
-      const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-      const inviteLink = `${baseUrl}/register?token=${inviteToken}&therapistId=${req.user.id}`;
-      
-      // Send the invitation email
-      const emailSent = await sendClientInvitation(
-        email,
-        req.user.name,
-        inviteLink
-      );
-      
-      if (!emailSent) {
-        return res.status(500).json({ 
-          message: "Failed to send invitation email. Please check your SendGrid configuration." 
-        });
-      }
-      
-      // In a production app, you would store the invitation in the database
-      // with the token, expiration date, etc.
-      
-      res.status(200).json({ 
-        message: "Invitation sent successfully",
-        email,
-        name,
-        inviteLink // In production, you might not want to return this
-      });
-    } catch (error) {
-      console.error("Invite client error:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
+  // Client invitation endpoint (email-based) has been replaced with a more robust solution above
   
   // Emotion tracking routes - only clients can create records
   app.post("/api/users/:userId/emotions", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {

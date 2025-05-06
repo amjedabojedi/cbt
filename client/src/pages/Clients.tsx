@@ -176,38 +176,73 @@ export default function Clients() {
   // Invite client mutation (mock - would send email invitation in real app)
   const inviteClientMutation = useMutation({
     mutationFn: async (data: InviteClientFormValues) => {
-      // In a real application, this would send an invitation email
-      // For now, we'll create a client user directly
       const response = await apiRequest(
         "POST",
-        "/api/auth/register",
-        {
-          ...data,
-          username: data.email.split("@")[0], // Generate username from email
-          password: "temppassword123", // In real app, this would be a generated secure password
-          role: "client",
-          therapistId: user?.id,
-        }
+        "/api/users/invite-client",
+        data
       );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to invite client");
+      }
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/clients`] });
       setIsInviting(false);
       inviteForm.reset();
-      toast({
-        title: "Client Invited",
-        description: "An invitation has been sent to the client.",
-      });
+      
+      if (data.credentials) {
+        // For new client accounts
+        toast({
+          title: "New Client Account Created",
+          description: `Client account for ${data.user.name} created successfully. Username: ${data.credentials.username}`,
+        });
+      } else if (data.message.includes("assigned as your client")) {
+        // For existing users without a therapist
+        toast({
+          title: "Client Assigned",
+          description: `${data.user.name} has been assigned as your client.`,
+        });
+      } else {
+        // For invitation emails
+        toast({
+          title: "Client Invited",
+          description: "An invitation has been sent to the client.",
+        });
+      }
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Error inviting client:", error);
-      toast({
-        title: "Error",
-        description: "Failed to invite client. Please try again.",
-        variant: "destructive",
-      });
+      
+      // Provide more specific error messages
+      if (error.message.includes("already your client")) {
+        toast({
+          title: "Already a Client",
+          description: "This user is already registered as your client.",
+          variant: "destructive",
+        });
+      } else if (error.message.includes("already assigned to another therapist")) {
+        toast({
+          title: "Client Unavailable",
+          description: "This user is already assigned to another therapist.",
+          variant: "destructive",
+        });
+      } else if (error.message.includes("Email already exists")) {
+        toast({
+          title: "Email Already Registered",
+          description: "A user with this email already exists. Try a different email.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to invite client. Please try again.",
+          variant: "destructive",
+        });
+      }
     },
   });
   
