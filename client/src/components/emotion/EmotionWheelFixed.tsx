@@ -893,11 +893,6 @@ export default function EmotionWheel({
                         
                         // Then directly call the callback with full path information
                         if (onEmotionSelect) {
-                          console.log("Direct callback with full path:", {
-                            coreEmotion: coreEmotion.name,
-                            primaryEmotion: primaryEmotion.name,
-                            tertiaryEmotion: tertiary.name
-                          });
                           
                           onEmotionSelect({
                             coreEmotion: coreEmotion.name,
@@ -971,27 +966,12 @@ export default function EmotionWheel({
   const handleTertiarySelect = (emotionName: string) => {
     setSelectedTertiary(emotionName);
     
-    // Log the values for debugging
-    console.log("Selected emotions:", {
-      core: selectedCore,
-      primary: selectedPrimary,
-      tertiary: emotionName
-    });
-    
     if (selectedCore && selectedPrimary && onEmotionSelect) {
       // Call the parent component's callback with the selected emotions
       onEmotionSelect({
         coreEmotion: selectedCore,
         primaryEmotion: selectedPrimary,
         tertiaryEmotion: emotionName,
-      });
-      
-      console.log("Emotion selection callback called");
-    } else {
-      console.log("Callback not called:", { 
-        hasCore: !!selectedCore, 
-        hasPrimary: !!selectedPrimary, 
-        hasCallback: !!onEmotionSelect 
       });
     }
   };
