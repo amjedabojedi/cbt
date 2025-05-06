@@ -127,7 +127,6 @@ export default function EmotionTrackingForm({
     primaryEmotion: string; 
     tertiaryEmotion: string 
   }) => {
-    console.log("EmotionTrackingForm received selection:", selection);
     
     form.setValue("coreEmotion", selection.coreEmotion);
     form.setValue("primaryEmotion", selection.primaryEmotion);
@@ -135,12 +134,6 @@ export default function EmotionTrackingForm({
     
     // Force form validation update to make the button enabled immediately
     form.trigger("tertiaryEmotion");
-    
-    console.log("Updated form values:", {
-      core: form.getValues("coreEmotion"),
-      primary: form.getValues("primaryEmotion"),
-      tertiary: form.getValues("tertiaryEmotion")
-    });
   };
   
   // Handle current time checkbox change
@@ -241,7 +234,6 @@ export default function EmotionTrackingForm({
         }
       } catch (e) {
         // If parsing the error response fails, fall back to generic error
-        console.log("Could not parse error details:", e);
       }
       
       toast({

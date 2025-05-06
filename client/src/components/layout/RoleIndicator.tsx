@@ -120,14 +120,10 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
 
   // Handle returning to own view
   const handleReturnToSelf = async () => {
-    console.log("Returning to self view");
-    
     try {
       // Update viewing client to null in the database
       const response = await apiRequest("POST", "/api/users/current-viewing-client", { clientId: null });
       const result = await response.json();
-      
-      console.log("Database updated, cleared current viewing client:", result);
       
       // Clear localStorage (legacy support)
       localStorage.removeItem('viewingClientId');
