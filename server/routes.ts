@@ -860,37 +860,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid client ID" });
       }
       
-      // Attempt to remove the client from the therapist
-      const updatedClient = await storage.removeClientFromTherapist(clientId, req.user.id);
+      // First, check if this client belongs to this therapist
+      const client = await storage.getUser(clientId);
       
-      if (!updatedClient) {
+      if (!client || client.therapistId !== req.user.id) {
         return res.status(404).json({ message: "Client not found or does not belong to you" });
       }
       
-      // Create notification for the client that they've been removed
-      await storage.createNotification({
-        userId: clientId,
-        title: "Therapist Connection Removed",
-        body: `Your connection with ${req.user.name || req.user.username} has been removed.`,
-        type: "system",
-        isRead: false
-      });
+      // Get client info before deletion for notification
+      const clientName = client.name || client.username;
       
-      // Create notification for the therapist that they've removed a client
+      // Delete the client completely
+      await storage.deleteUser(clientId);
+      
+      // Create notification for the therapist that they've deleted a client
       await storage.createNotification({
         userId: req.user.id,
-        title: "Client Removed",
-        body: `You have removed ${updatedClient.name || updatedClient.username} from your clients list.`,
+        title: "Client Deleted",
+        body: `You have deleted ${clientName} from your clients list.`,
         type: "system",
         isRead: false
       });
       
-      // Remove the password from the response
-      const { password, ...clientWithoutPassword } = updatedClient;
-      
       res.status(200).json({ 
-        message: "Client removed successfully", 
-        client: clientWithoutPassword 
+        message: "Client deleted successfully"
       });
     } catch (error) {
       console.error("Remove client error:", error);
