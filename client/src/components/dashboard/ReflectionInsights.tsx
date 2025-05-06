@@ -353,7 +353,11 @@ export default function ReflectionInsights() {
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="count" name="Frequency" fill="#8884d8" />
+              <Bar dataKey="count" name="Frequency">
+                {emotionData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={EMOTION_COLORS[entry.name] || COLORS[index % COLORS.length]} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
           <div className="mt-2 text-sm text-muted-foreground">
