@@ -115,12 +115,7 @@ export default function CrossComponentInsights() {
   const processConnectedInsights = (): ConnectedInsight[] => {
     if (!emotions || !thoughtRecords || !journalEntries) return [];
 
-    // For debugging - log the data
-    console.log("Processing data for insights:", { 
-      emotions: Array.isArray(emotions) ? emotions.length : 0, 
-      thoughtRecords: Array.isArray(thoughtRecords) ? thoughtRecords.length : 0, 
-      journalEntries: Array.isArray(journalEntries) ? journalEntries.length : 0 
-    });
+    // Process the data from all sources
 
     // First, collect all emotion names from all three data sources
     const allEmotionNames = new Set<string>();

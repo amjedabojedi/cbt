@@ -21,9 +21,6 @@ export function useActiveUser() {
   // Check if the user is a therapist or admin (roles with elevated permissions)
   const hasElevatedPermissions = user?.role === "therapist" || user?.role === "admin";
   
-  console.log("useActiveUser - Current auth user:", user?.id, user?.username, user?.role);
-  console.log("useActiveUser - Final API path prefix:", apiPath);
-  
   // For backward compatibility
   const isViewingClientData = !isViewingSelf;
   
