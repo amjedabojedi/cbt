@@ -107,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     name: string;
     role: string;
     therapistId?: number;
+    status?: string;
   }) => {
     setLoading(true);
     try {
@@ -114,9 +115,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData = await response.json();
       setUser(userData as User);
       navigate("/dashboard");
+      return userData as User; // Return the user data for additional processing
     } catch (err) {
       console.error("Registration error:", err);
       setError(err as Error);
+      throw err; // Rethrow the error to allow handling in the caller
     } finally {
       setLoading(false);
     }

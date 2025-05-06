@@ -684,6 +684,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint to update user status (used by client registration from invitation)
+  app.post("/api/users/:userId/update-status", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { status } = req.body;
+      
+      if (!status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+      
+      // For now, allow unauthenticated access to this endpoint
+      // This is needed for the initial client registration from invitation
+      // where they're not yet logged in
+      
+      // Check if user exists
+      const targetUser = await storage.getUser(userId);
+      
+      if (!targetUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update the user's status
+      const updatedUser = await storage.updateUserStatus(userId, status);
+      
+      // If the user is a client and is being set to active, create a notification for their therapist
+      if (targetUser.role === 'client' && status === 'active' && targetUser.therapistId) {
+        await storage.createNotification({
+          userId: targetUser.therapistId,
+          title: "Client Status Updated",
+          body: `${targetUser.name} has completed registration and is now an active client.`,
+          type: "system",
+          isRead: false
+        });
+      }
+      
+      res.status(200).json({ 
+        message: "User status updated successfully",
+        user: {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          status: updatedUser.status
+        }
+      });
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      res.status(500).json({ message: "Failed to update user status" });
+    }
+  });
+  
   app.get("/api/auth/me", authenticate, (req, res) => {
     const { password, ...userWithoutPassword } = req.user;
     res.status(200).json(userWithoutPassword);
