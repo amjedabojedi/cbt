@@ -103,12 +103,8 @@ export default function MoodTrends() {
   const getChartData = () => {
     if (!emotions || emotions.length === 0) return [];
     
-    // Log all emotions to see what data we have
-    console.log("Emotions data:", emotions);
-    
-    // Add a log to check what core emotions are defined
+    // Get the core emotion names from our defined emotional taxonomy
     const coreEmotionNames = Object.keys(CORE_EMOTIONS).map(key => CORE_EMOTIONS[key].name);
-    console.log("Available core emotions:", coreEmotionNames);
     
     let startDate: Date;
     let dateFormat: string;
@@ -160,13 +156,9 @@ export default function MoodTrends() {
       return dataPoint;
     });
     
-    // Log the generated date range
-    console.log("Date range:", dateRange.map(d => format(d, 'yyyy-MM-dd')));
-    
     // Aggregate emotions by date and core emotion
     emotions.forEach((emotion: EmotionRecord) => {
       const emotionDate = startOfDay(new Date(emotion.timestamp));
-      console.log("Processing emotion:", emotion.coreEmotion, "recorded at", emotion.timestamp, "date:", format(emotionDate, 'yyyy-MM-dd'));
       
       // Find matching day in our date range
       const dayIndex = dataByDate.findIndex(day => 

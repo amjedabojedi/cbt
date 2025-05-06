@@ -144,7 +144,7 @@ export default function CrossComponentInsights() {
       allEmotionNames.add(emotion);
     });
     
-    console.log("All emotion names found:", Array.from(allEmotionNames));
+    // All emotion names collected from data sources
     
     // Create a map to track emotions across different data sources
     const emotionMap: Record<string, ConnectedInsight> = {};
@@ -181,7 +181,7 @@ export default function CrossComponentInsights() {
 
     // Process thought records to count associated emotions
     if (Array.isArray(thoughtRecords)) {
-      console.log("Examining thought records:", thoughtRecords);
+      // Process thought records for emotion connections
       
       thoughtRecords.forEach((record: any) => {
         // Try multiple fields that might contain emotion names
@@ -298,8 +298,7 @@ export default function CrossComponentInsights() {
         
         // Check each tag to see if it matches an emotion
         if (tags.length > 0) {
-          // Log for debugging
-          console.log("Journal entry tags:", tags);
+          // Process journal tags for emotion matching
           
           // Force add Fear and Anxiety for this specific journal that we know has these emotions
           emotionMap["Fear"].journalCount = 2;  // Set directly based on the tags we saw in logs
@@ -398,13 +397,7 @@ export default function CrossComponentInsights() {
       )
       .sort((a, b) => b.totalEntries - a.totalEntries); // Sort by total entries descending
     
-    // Log the processed results for debugging
-    console.log("Processed insights:", processedResults.map(i => ({
-      emotion: i.emotionName,
-      totalEntries: i.totalEntries,
-      journalCount: i.journalCount,
-      thoughtRecordCount: i.thoughtRecordCount,
-    })));
+    // Generated the processed insights
     
     // Create default data if no records found
     if (processedResults.length === 0) {
@@ -427,7 +420,7 @@ export default function CrossComponentInsights() {
   const processEnhancedApiData = (): ConnectedInsight[] => {
     // If we have enhanced API data, use it
     if (enhancedApiInsights?.connections) {
-      console.log("Using enhanced API insights:", enhancedApiInsights);
+      // Process enhanced API insights data
       
       // Transform the API data to match our ConnectedInsight structure
       const apiInsights: ConnectedInsight[] = [];
@@ -495,12 +488,7 @@ export default function CrossComponentInsights() {
       })
     : connectedInsights;
   
-  // Log the enhanced insights for debugging
-  console.log("Enhanced insights:", enhancedInsights.map(i => ({
-    emotion: i.emotionName,
-    journalCount: i.journalCount,
-    thoughtRecordCount: i.thoughtRecordCount
-  })));
+  // Enhanced insights data ready for charts
   
   // Data for connection strength chart - emotions with strongest presence
   // Modified to include data even when connections aren't perfect
