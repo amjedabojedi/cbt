@@ -518,7 +518,7 @@ export default function Clients() {
   // Invite client mutation
   const inviteMutation = useMutation({
     mutationFn: async (data: InviteClientFormValues) => {
-      const response = await apiRequest("POST", "/api/invite-client", data);
+      const response = await apiRequest("POST", "/api/users/invite-client", data);
       return response.json();
     },
     onSuccess: () => {
