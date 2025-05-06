@@ -8,7 +8,7 @@ import { Suspense, lazy, useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import { ClientProvider } from "@/context/ClientContext";
 import { ThemeProvider } from "next-themes";
-import { useWebSocket } from "@/hooks/useWebSocket";
+import { WebSocketProvider } from "@/context/WebSocketContext";
 
 // Lazy load pages
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
@@ -110,12 +110,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <AuthProvider>
-          <ClientProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Router />
-            </TooltipProvider>
-          </ClientProvider>
+          <WebSocketProvider>
+            <ClientProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Router />
+              </TooltipProvider>
+            </ClientProvider>
+          </WebSocketProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

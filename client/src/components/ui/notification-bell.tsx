@@ -12,6 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/lib/auth";
+import { useWebSocketContext } from "@/context/WebSocketContext";
 
 interface Notification {
   id: number;
@@ -30,6 +31,7 @@ export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { lastMessage, isConnected } = useWebSocketContext();
 
   // Fetch notifications when component mounts or dropdown is opened
   useEffect(() => {
@@ -44,6 +46,26 @@ export default function NotificationBell() {
     const interval = setInterval(fetchUnreadCount, 60000);
     return () => clearInterval(interval);
   }, []);
+  
+  // Handle real-time notifications via WebSocket
+  useEffect(() => {
+    // Process incoming WebSocket messages
+    if (lastMessage && lastMessage.type === 'notification') {
+      // Refresh notifications when we receive a new one
+      if (isOpen) {
+        fetchNotifications();
+      }
+      // Always refresh the unread count
+      fetchUnreadCount();
+      
+      // Show a toast notification
+      toast({
+        title: lastMessage.data.title || 'New Notification',
+        description: lastMessage.data.body || '',
+        duration: 5000,
+      });
+    }
+  }, [lastMessage, isOpen, toast]);
 
   async function fetchNotifications() {
     try {
@@ -210,6 +232,9 @@ export default function NotificationBell() {
               {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
           )}
+          {/* Connection status indicator - small dot in bottom right */}
+          <div className={`absolute bottom-0 right-0 h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-gray-400'}`} 
+               title={isConnected ? "Connected" : "Disconnected"} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
