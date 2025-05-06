@@ -853,10 +853,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.createNotification({
             userId: existingUser.id,
             title: "New Therapist Assignment",
-            message: `You have been assigned to ${req.user.name || req.user.username} as your therapist.`,
-            type: "assignment",
-            read: false,
-            createdAt: new Date()
+            body: `You have been assigned to ${req.user.name || req.user.username} as your therapist.`,
+            type: "system",
+            isRead: false
           });
           
           return res.status(200).json({ 
@@ -890,10 +889,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createNotification({
         userId: newUser.id,
         title: "Welcome to New Horizon-CBT",
-        message: `Welcome to New Horizon-CBT! You have been registered by ${req.user.name || req.user.username}. Your temporary username is ${username} and password is ${tempPassword}. Please change your password after logging in.`,
+        body: `Welcome to New Horizon-CBT! You have been registered by ${req.user.name || req.user.username}. Your temporary username is ${username} and password is ${tempPassword}. Please change your password after logging in.`,
         type: "system",
-        read: false,
-        createdAt: new Date()
+        isRead: false
       });
       
       // In a real application, send an email to the client with their credentials
@@ -2127,13 +2125,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Test endpoint to create a notification (will be removed in production)
-  app.post("/api/notifications/test", authenticate, async (req, res) => {
+  app.post("/api/notifications/test", authenticate, isAdmin, async (req, res) => {
     try {
       const userId = req.user!.id;
       const testNotification = await storage.createNotification({
         userId,
         title: "Test Notification",
-        body: "This is a test notification to verify functionality.", // Changed from content to body
+        body: "This is a test notification to verify functionality.",
         type: "system",
         isRead: false
       });
