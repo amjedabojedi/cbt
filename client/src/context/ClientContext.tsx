@@ -61,14 +61,13 @@ export function ClientProvider({ children }: { children: ReactNode }) {
             if (data.viewingClient) {
               setViewingClientId(data.viewingClient.id);
               setViewingClientName(data.viewingClient.name);
-              console.log("Loaded viewing client from database:", data.viewingClient);
+              // Client data loaded from database
               
               // Also update localStorage for backwards compatibility
               localStorage.setItem('viewingClientId', data.viewingClient.id.toString());
               localStorage.setItem('viewingClientName', data.viewingClient.name);
             } else {
               // No viewing client, use localStorage if available
-              console.log("No viewing client from server, using localStorage values");
             }
           }
         } catch (error) {
@@ -92,10 +91,9 @@ export function ClientProvider({ children }: { children: ReactNode }) {
     };
   }, [user]);
 
-  console.log("ClientContext initialized with:", { viewingClientId, viewingClientName });
+  // ClientContext initialized
 
   const setViewingClient = (id: number | null, name: string | null) => {
-    console.log("Setting viewing client:", { id, name });
     setViewingClientId(id);
     setViewingClientName(name);
     

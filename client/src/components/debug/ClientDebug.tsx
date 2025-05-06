@@ -3,12 +3,17 @@ import useActiveUser from "@/hooks/use-active-user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function ClientDebug() {
+  // Disable debug component completely
+  return null;
+  
+  /* Original code - temporarily disabled
   const { viewingClientId, viewingClientName } = useClientContext();
   const { activeUserId, isViewingSelf, apiPath } = useActiveUser();
   
   if (process.env.NODE_ENV === 'production') {
     return null;
   }
+  */
   
   return (
     <Card className="mb-4 border-dashed border-yellow-500">
