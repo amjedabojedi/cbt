@@ -480,7 +480,51 @@ export default function Clients() {
                                   onClick={() => handleViewRecords(client)}
                                 >
                                   <FileText className="h-4 w-4 mr-2" />
-                                  View Records
+                                  View Emotion Records
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  className="cursor-pointer"
+                                  onClick={() => handleViewJournals(client)}
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="h-4 w-4 mr-2"
+                                  >
+                                    <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                                    <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" />
+                                    <path d="M9 9h1" />
+                                    <path d="M9 13h6" />
+                                    <path d="M9 17h6" />
+                                  </svg>
+                                  View Journals
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  className="cursor-pointer"
+                                  onClick={() => handleViewThoughtRecords(client)}
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="h-4 w-4 mr-2"
+                                  >
+                                    <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
+                                  </svg>
+                                  View Thought Records
                                 </DropdownMenuItem>
                                 <DropdownMenuItem 
                                   className="cursor-pointer"
@@ -668,7 +712,7 @@ export default function Clients() {
                       </Card>
                     </TabsContent>
                     
-                    <TabsContent value="records" className="mt-4">
+                    <TabsContent value="records" className="mt-4 space-y-4">
                       <Card>
                         <CardHeader className="pb-2">
                           <CardTitle className="text-base">Emotion Records</CardTitle>
@@ -680,7 +724,7 @@ export default function Clients() {
                               className="w-full"
                             >
                               <FileText className="mr-2 h-4 w-4" />
-                              View Full Records
+                              View Emotion Records
                             </Button>
                             <div className="space-y-3">
                               <div className="flex items-start bg-blue-50 p-3 rounded-md">
@@ -693,15 +737,121 @@ export default function Clients() {
                                   <p className="text-sm mt-1">Feeling worried about upcoming presentation</p>
                                 </div>
                               </div>
-                              
-                              <div className="flex items-start bg-green-50 p-3 rounded-md">
-                                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3 mt-0.5">
-                                  <Heart className="h-4 w-4" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-base">Journal Entries</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <Button 
+                              onClick={() => handleViewJournals(selectedClient)}
+                              className="w-full"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="mr-2 h-4 w-4"
+                              >
+                                <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                                <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" />
+                                <path d="M9 9h1" />
+                                <path d="M9 13h6" />
+                                <path d="M9 17h6" />
+                              </svg>
+                              View Journal Entries
+                            </Button>
+                            <div className="space-y-3">
+                              <div className="flex items-start bg-purple-50 p-3 rounded-md">
+                                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mr-3 mt-0.5">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="h-4 w-4"
+                                  >
+                                    <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                                    <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" />
+                                    <path d="M9 9h1" />
+                                    <path d="M9 13h6" />
+                                    <path d="M9 17h6" />
+                                  </svg>
                                 </div>
                                 <div>
-                                  <p className="font-medium">Content <span className="text-green-600">(6/10)</span></p>
-                                  <p className="text-sm text-neutral-500">Yesterday, 10:23 AM</p>
-                                  <p className="text-sm mt-1">Morning meditation helped with stress</p>
+                                  <p className="font-medium">Morning Reflection</p>
+                                  <p className="text-sm text-neutral-500">Yesterday</p>
+                                  <p className="text-sm mt-1">Started my day with meditation and felt more grounded...</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-base">Thought Records</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <Button 
+                              onClick={() => handleViewThoughtRecords(selectedClient)}
+                              className="w-full"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="mr-2 h-4 w-4"
+                              >
+                                <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
+                              </svg>
+                              View Thought Records
+                            </Button>
+                            <div className="space-y-3">
+                              <div className="flex items-start bg-green-50 p-3 rounded-md">
+                                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3 mt-0.5">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="h-4 w-4"
+                                  >
+                                    <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p className="font-medium">Challenging negative thought</p>
+                                  <p className="text-sm text-neutral-500">3 days ago</p>
                                 </div>
                               </div>
                             </div>
