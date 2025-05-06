@@ -536,9 +536,21 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
             <FormControl>
               <Textarea
                 placeholder="I think that..."
-                className="min-h-[120px] focus:border-primary focus:ring-1 focus:ring-primary"
-                {...field}
+                className="min-h-[120px] focus:border-primary focus:ring-1 focus:ring-primary w-full"
+                value={field.value || ''}
+                onChange={(e) => {
+                  // Fixed event handling to ensure text is correctly processed
+                  const value = e.target.value;
+                  field.onChange(value);
+                  form.setValue("automaticThoughts", value, { 
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true 
+                  });
+                }}
+                onBlur={field.onBlur}
                 ref={field.ref}
+                name={field.name}
               />
             </FormControl>
             <FormMessage />
@@ -651,8 +663,10 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                 rows={3}
                 value={field.value || ''}
                 onChange={(e) => {
-                  field.onChange(e.target.value);
-                  form.setValue("evidenceFor", e.target.value, { 
+                  // Fixed event handling to ensure text is correctly processed
+                  const value = e.target.value;
+                  field.onChange(value);
+                  form.setValue("evidenceFor", value, { 
                     shouldValidate: true,
                     shouldDirty: true,
                     shouldTouch: true 
@@ -661,7 +675,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                 onBlur={field.onBlur}
                 ref={field.ref}
                 name={field.name}
-                className="focus:border-primary focus:ring-1 focus:ring-primary"
+                className="focus:border-primary focus:ring-1 focus:ring-primary w-full"
               />
             </FormControl>
             <FormMessage />
@@ -684,8 +698,10 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                 rows={3}
                 value={field.value || ''}
                 onChange={(e) => {
-                  field.onChange(e.target.value);
-                  form.setValue("evidenceAgainst", e.target.value, { 
+                  // Fixed event handling to ensure text is correctly processed
+                  const value = e.target.value;
+                  field.onChange(value);
+                  form.setValue("evidenceAgainst", value, { 
                     shouldValidate: true,
                     shouldDirty: true,
                     shouldTouch: true 
@@ -694,7 +710,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                 onBlur={field.onBlur}
                 ref={field.ref}
                 name={field.name}
-                className="focus:border-primary focus:ring-1 focus:ring-primary"
+                className="focus:border-primary focus:ring-1 focus:ring-primary w-full"
               />
             </FormControl>
             <FormMessage />
@@ -832,8 +848,10 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                 rows={4}
                 value={field.value || ''}
                 onChange={(e) => {
-                  field.onChange(e);
-                  form.setValue("alternativePerspective", e.target.value, { 
+                  // Fixed event handling to ensure text is correctly processed
+                  const value = e.target.value;
+                  field.onChange(value);
+                  form.setValue("alternativePerspective", value, { 
                     shouldValidate: true,
                     shouldDirty: true,
                     shouldTouch: true 
@@ -842,7 +860,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                 onBlur={field.onBlur}
                 ref={field.ref}
                 name={field.name}
-                className="focus:border-primary focus:ring-1 focus:ring-primary"
+                className="focus:border-primary focus:ring-1 focus:ring-primary w-full"
               />
             </FormControl>
             <FormMessage />
@@ -980,8 +998,10 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                 rows={4}
                 value={field.value || ''}
                 onChange={(e) => {
-                  field.onChange(e);
-                  form.setValue("insightsGained", e.target.value, { 
+                  // Fixed event handling to ensure text is correctly processed
+                  const value = e.target.value;
+                  field.onChange(value);
+                  form.setValue("insightsGained", value, { 
                     shouldValidate: true,
                     shouldDirty: true,
                     shouldTouch: true 
@@ -990,7 +1010,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
                 onBlur={field.onBlur}
                 ref={field.ref}
                 name={field.name}
-                className="focus:border-primary focus:ring-1 focus:ring-primary"
+                className="focus:border-primary focus:ring-1 focus:ring-primary w-full"
               />
             </FormControl>
             <FormMessage />
