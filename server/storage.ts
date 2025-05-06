@@ -304,6 +304,18 @@ export class DatabaseStorage implements IStorage {
     return updatedUser;
   }
   
+  async updateUserStatus(userId: number, status: string): Promise<User> {
+    console.log(`Updating user ${userId} status to ${status}`);
+    
+    const [updatedUser] = await db
+      .update(users)
+      .set({ status })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser;
+  }
+  
   async removeClientFromTherapist(clientId: number, therapistId: number): Promise<User | null> {
     // First verify that this client belongs to this therapist
     const client = await this.getUser(clientId);

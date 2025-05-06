@@ -133,10 +133,31 @@ export default function AuthPage() {
         }
       }
       
-      await registerUser(registrationData);
-      // Registration is handled by the auth hook which will redirect on success
-      
+      // If this is coming from an invitation, explicitly set status to active
       if (isInvitation) {
+        console.log("Registering from invitation - setting status to active");
+        registrationData.status = "active";
+      }
+      
+      const result = await registerUser(registrationData);
+      
+      // Registration is handled by the auth hook which will redirect on success
+      if (isInvitation) {
+        // If it's an invitation registration, make another API call to update the status to active
+        try {
+          const response = await fetch(`/api/users/${result.id}/update-status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'active' })
+          });
+          
+          if (response.ok) {
+            console.log(`Successfully updated user status to active`);
+          }
+        } catch (statusError) {
+          console.error("Error updating status:", statusError);
+        }
+        
         toast({
           title: "Registration Complete",
           description: "Your account has been created and connected to your therapist.",
