@@ -73,20 +73,29 @@ export async function sendClientInvitation(
       
       <h2 style="color: #4A6FA5; margin-top: 25px; font-size: 18px;">Getting Started:</h2>
       <ol style="margin-bottom: 25px;">
-        <li>Click the button below to accept the invitation</li>
-        <li>Complete the registration form (your email will be pre-filled)</li>
-        <li>Create a username and password</li>
-        <li>You'll be automatically connected to your therapist: <strong>${therapistName}</strong></li>
+        <li>Click the button below to access your account</li>
+        <li>Your account has already been created; you just need to log in</li>
+        <li>Use your temporary username and password (shown below)</li>
+        <li>After logging in, you can update your profile information</li>
       </ol>
+      
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #4A6FA5;">
+        <p style="margin: 0; font-weight: bold;">Your Temporary Login Credentials:</p>
+        <p style="margin: 8px 0 0 0;"><strong>Username:</strong> Check the message in your portal</p>
+        <p style="margin: 8px 0 0 0;"><strong>Password:</strong> Check the message in your portal</p>
+        <p style="margin: 8px 0 0 0; font-style: italic; font-size: 13px; color: #555;">
+          For security reasons, your credentials have been sent in a separate notification within the platform.
+        </p>
+      </div>
       
       <div style="margin: 30px 0;">
         <a href="${inviteLink}" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-          Accept Invitation
+          Access Your Account
         </a>
       </div>
       
       <p style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #4A6FA5;">
-        <strong>Important:</strong> This link contains information connecting you to your therapist. Please use this link directly rather than copying the URL.
+        <strong>Important:</strong> This link contains information connecting you to your therapist. Please click the button above rather than copying the URL.
       </p>
       
       <p>This invitation link will expire in 7 days.</p>

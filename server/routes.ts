@@ -1034,7 +1034,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Generate an invitation link with email parameter and therapist ID
-      const baseUrl = process.env.BASE_URL || 'https://newhorizon-cbt.replit.app';
+      // Use the request's host for the base URL if BASE_URL is not set
+      const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+      console.log(`Using base URL for invitation: ${baseUrl}`);
       const encodedEmail = encodeURIComponent(email);
       const therapistId = req.user.id;
       const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodedEmail}&therapistId=${therapistId}`;
