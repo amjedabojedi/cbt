@@ -514,6 +514,22 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/thoughts`] });
       
+      // Reset form data
+      form.reset({
+        automaticThoughts: "",
+        cognitiveDistortions: [],
+        evidenceFor: "",
+        evidenceAgainst: "",
+        alternativePerspective: "",
+        insightsGained: "",
+        reflectionRating: 5,
+      });
+      
+      // Reset other form-related state
+      setSelectedProtectiveFactors([]);
+      setSelectedCopingStrategies([]);
+      setStep(1);
+      
       // Show success message
       toast({
         title: "Reflection Completed",

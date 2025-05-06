@@ -198,6 +198,19 @@ export default function EmotionTrackingForm({
       // Invalidate emotion records query to refresh data
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/emotions`] });
       
+      // Reset form to default values
+      form.reset({
+        coreEmotion: "",
+        primaryEmotion: "",
+        tertiaryEmotion: "",
+        intensity: 5,
+        situation: "",
+        location: "",
+        company: "",
+        timestamp: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+        useCurrentTime: true,
+      });
+      
       // Show success message
       toast({
         title: "Emotion Recorded",
