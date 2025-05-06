@@ -10,6 +10,68 @@ import { z } from "zod";
 import { User } from "@shared/schema";
 import { useClientContext } from "@/context/ClientContext";
 import { useLocation } from "wouter";
+import { 
+  HeartPulse, 
+  Sparkles, 
+  BrainCircuit, 
+  Loader2,
+  FileText as FileTextIcon
+} from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Client Stats Component
+interface ClientStatProps {
+  clientId: number;
+}
+
+function ClientStats({ clientId }: ClientStatProps) {
+  // Fetch emotion records count for this client
+  const { data: emotionCount, isLoading: loadingEmotions } = useQuery<{ totalCount: number }>({
+    queryKey: [`/api/users/${clientId}/emotions/count`],
+    enabled: !!clientId,
+  });
+
+  // Fetch journal entries count for this client
+  const { data: journalCount, isLoading: loadingJournals } = useQuery<{ totalCount: number }>({
+    queryKey: [`/api/users/${clientId}/journals/count`],
+    enabled: !!clientId,
+  });
+
+  // Fetch thought records count for this client
+  const { data: thoughtsCount, isLoading: loadingThoughts } = useQuery<{ totalCount: number }>({
+    queryKey: [`/api/users/${clientId}/thoughts/count`],
+    enabled: !!clientId,
+  });
+
+  const isLoading = loadingEmotions || loadingJournals || loadingThoughts;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-4 w-30" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col space-y-1">
+      <div className="flex items-center text-sm">
+        <HeartPulse className="text-blue-500 h-4 w-4 mr-1" />
+        <span>{emotionCount?.totalCount || 0} Emotion Records</span>
+      </div>
+      <div className="flex items-center text-sm">
+        <FileTextIcon className="text-purple-500 h-4 w-4 mr-1" />
+        <span>{journalCount?.totalCount || 0} Journal Entries</span>
+      </div>
+      <div className="flex items-center text-sm">
+        <BrainCircuit className="text-green-500 h-4 w-4 mr-1" />
+        <span>{thoughtsCount?.totalCount || 0} Thought Records</span>
+      </div>
+    </div>
+  );
+}
 
 import {
   Card,
