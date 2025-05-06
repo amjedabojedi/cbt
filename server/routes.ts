@@ -566,6 +566,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ message: "Email already exists" });
       }
       
+      // When users register directly, they are automatically active
+      validatedData.status = "active";
+      
       // Create the user - if therapistId is provided, it will be included in validatedData 
       // due to our schema allowing it in the insertUserSchema
       const user = await storage.createUser(validatedData);
@@ -1021,7 +1024,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name,
         password: hashedPassword,
         role: "client",
-        therapistId: req.user.id
+        therapistId: req.user.id,
+        status: "pending" // Set status to pending for invited users
       });
       
       // Create a welcome notification for the new client

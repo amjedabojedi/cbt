@@ -27,6 +27,8 @@ export const users = pgTable("users", {
   role: text("role", { enum: ["client", "therapist", "admin"] }).notNull().default("client"),
   therapistId: integer("therapist_id").references(() => users.id),
   currentViewingClientId: integer("current_viewing_client_id").references(() => users.id),
+  // User status for client accounts (pending = invited but not activated yet)
+  status: text("status", { enum: ["pending", "active"] }).default("active").notNull(),
   // Subscription related fields
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
