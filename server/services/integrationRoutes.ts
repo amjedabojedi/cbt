@@ -18,6 +18,22 @@ import {
 } from "@shared/schema";
 
 export function registerIntegrationRoutes(app: Express): void {
+  // Categorize any emotion text into our standard taxonomy
+  app.get("/api/emotions/categorize/:emotion", async (req: Request, res: Response) => {
+    try {
+      const emotion = req.params.emotion;
+      const categorized = emotionMapping.categorizeEmotion(emotion);
+      
+      res.json({
+        input: emotion,
+        ...categorized,
+        color: categorized.coreEmotion ? emotionMapping.getEmotionColor(categorized.coreEmotion) : null
+      });
+    } catch (error) {
+      console.error(`Error categorizing emotion "${req.params.emotion}":`, error);
+      res.status(500).json({ message: "Failed to categorize emotion" });
+    }
+  });
   // Get emotion taxonomy (core emotions and their families)
   app.get("/api/emotions/taxonomy", async (req: Request, res: Response) => {
     try {
@@ -27,7 +43,7 @@ export function registerIntegrationRoutes(app: Express): void {
       // Start with core emotions (Ring 1)
       Object.keys(emotionMapping.CORE_EMOTION_FAMILIES).forEach(coreEmotion => {
         completeEmotionTaxonomy[coreEmotion] = {
-          variants: emotionMapping.CORE_EMOTION_FAMILIES[coreEmotion],
+          variants: emotionMapping.CORE_EMOTION_FAMILIES[coreEmotion as keyof typeof emotionMapping.CORE_EMOTION_FAMILIES],
           secondaryEmotions: {}
         };
       });
@@ -44,7 +60,7 @@ export function registerIntegrationRoutes(app: Express): void {
       // Add tertiary emotions (Ring 3)
       Object.entries(emotionMapping.TERTIARY_EMOTIONS).forEach(([tertiaryEmotion, secondaryEmotion]) => {
         // Find which core emotion this belongs to
-        const coreEmotion = emotionMapping.SECONDARY_EMOTIONS[secondaryEmotion];
+        const coreEmotion = emotionMapping.SECONDARY_EMOTIONS[secondaryEmotion as keyof typeof emotionMapping.SECONDARY_EMOTIONS];
         
         if (
           completeEmotionTaxonomy[coreEmotion] && 
