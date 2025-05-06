@@ -852,6 +852,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Delete (remove) client from therapist
+  app.delete("/api/users/clients/:clientId", authenticate, isTherapist, async (req, res) => {
+    try {
+      const clientId = parseInt(req.params.clientId);
+      if (isNaN(clientId)) {
+        return res.status(400).json({ message: "Invalid client ID" });
+      }
+      
+      // Attempt to remove the client from the therapist
+      const updatedClient = await storage.removeClientFromTherapist(clientId, req.user.id);
+      
+      if (!updatedClient) {
+        return res.status(404).json({ message: "Client not found or does not belong to you" });
+      }
+      
+      // Create notification for the client that they've been removed
+      await storage.createNotification({
+        userId: clientId,
+        title: "Therapist Connection Removed",
+        body: `Your connection with ${req.user.name || req.user.username} has been removed.`,
+        type: "system",
+        isRead: false
+      });
+      
+      // Create notification for the therapist that they've removed a client
+      await storage.createNotification({
+        userId: req.user.id,
+        title: "Client Removed",
+        body: `You have removed ${updatedClient.name || updatedClient.username} from your clients list.`,
+        type: "system",
+        isRead: false
+      });
+      
+      // Remove the password from the response
+      const { password, ...clientWithoutPassword } = updatedClient;
+      
+      res.status(200).json({ 
+        message: "Client removed successfully", 
+        client: clientWithoutPassword 
+      });
+    } catch (error) {
+      console.error("Remove client error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Statistics endpoints for client counts
   app.get("/api/users/:userId/emotions/count", authenticate, checkUserAccess, async (req, res) => {
     try {

@@ -609,7 +609,7 @@ export default function Clients() {
   const filteredClients = clients.filter((client) => {
     if (activeTab === "all") return true;
     if (activeTab === "active") return client.role === "client";
-    if (activeTab === "pending") return client.role === "pending";
+    if (activeTab === "pending") return client.status === "pending"; // Using status field instead of role
     return true;
   });
   
@@ -698,10 +698,10 @@ export default function Clients() {
                         <TableRow key={client.id}>
                           <TableCell className="font-medium">{client.name || client.username}</TableCell>
                           <TableCell>
-                            {client.role === "client" ? (
-                              <Badge className="bg-green-100 text-green-800 border-0">Active</Badge>
-                            ) : client.role === "pending" ? (
+                            {client.status === "pending" ? (
                               <Badge className="bg-amber-100 text-amber-800 border-0">Pending</Badge>
+                            ) : client.role === "client" ? (
+                              <Badge className="bg-green-100 text-green-800 border-0">Active</Badge>
                             ) : (
                               <Badge className="bg-gray-100 text-gray-800 border-0">{client.role}</Badge>
                             )}

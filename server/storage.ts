@@ -303,6 +303,39 @@ export class DatabaseStorage implements IStorage {
     
     return updatedUser;
   }
+  
+  async removeClientFromTherapist(clientId: number, therapistId: number): Promise<User | null> {
+    // First verify that this client belongs to this therapist
+    const client = await this.getUser(clientId);
+    
+    if (!client || client.therapistId !== therapistId) {
+      console.log(`Client ${clientId} does not belong to therapist ${therapistId}`);
+      return null;
+    }
+    
+    console.log(`Removing client ${clientId} from therapist ${therapistId}`);
+    
+    // Update the client to remove the therapist association
+    const [updatedClient] = await db
+      .update(users)
+      .set({ therapistId: null })
+      .where(eq(users.id, clientId))
+      .returning();
+    
+    // Update any current viewing client references for this therapist
+    await db
+      .update(users)
+      .set({ currentViewingClientId: null })
+      .where(
+        and(
+          eq(users.id, therapistId),
+          eq(users.currentViewingClientId, clientId)
+        )
+      );
+    
+    console.log(`Client ${clientId} removed from therapist ${therapistId}`);
+    return updatedClient;
+  }
     
   async deleteUser(userId: number): Promise<void> {
     console.log(`Deleting user with ID: ${userId}`);
