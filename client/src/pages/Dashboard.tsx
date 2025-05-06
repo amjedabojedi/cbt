@@ -63,22 +63,22 @@ export default function Dashboard() {
         {/* Getting Started Checklist - only for client's own dashboard */}
         {isClient && !isViewingClientData && <GettingStarted />}
         
-        {/* Quick Actions - for clients and when viewing client data */}
-        {(isClient || isViewingClientData) && !isTherapist && (
+        {/* Quick Actions - for clients and when a therapist is viewing client data */}
+        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
           <div className="mb-6">
             <QuickActions />
           </div>
         )}
         
-        {/* Recent Emotion History - for clients and when viewing client data */}
-        {(isClient || isViewingClientData) && (
+        {/* Recent Emotion History - for clients and when a therapist is viewing client data */}
+        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
           <div className="mb-6">
             <EmotionHistory limit={3} />
           </div>
         )}
         
-        {/* Mood Trends and Reflection Trends Charts - for clients and when viewing client data */}
-        {(isClient || isViewingClientData) && (
+        {/* Mood Trends and Reflection Trends Charts - for clients and when a therapist is viewing client data */}
+        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <div>
               <MoodTrends />
@@ -89,15 +89,15 @@ export default function Dashboard() {
           </div>
         )}
         
-        {/* Reflection Insights - for clients and when viewing client data */}
-        {(isClient || isViewingClientData) && (
+        {/* Reflection Insights - for clients and when a therapist is viewing client data */}
+        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
           <div className="mb-6">
             <ReflectionInsights />
           </div>
         )}
         
-        {/* Cross-Component Insights - for clients and when viewing client data */}
-        {(isClient || isViewingClientData) && (
+        {/* Cross-Component Insights - for clients and when a therapist is viewing client data */}
+        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
           <div className="mb-6">
             <CrossComponentInsights />
           </div>
