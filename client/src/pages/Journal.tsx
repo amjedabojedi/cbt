@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
+import { useClientContext } from "@/context/ClientContext";
+import useActiveUser from "@/hooks/use-active-user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -172,7 +174,11 @@ export default function Journal() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const userId = user?.id;
+  const { viewingClientId } = useClientContext();
+  const { activeUserId, isViewingSelf } = useActiveUser();
+  
+  // If viewing client data, use client's ID, otherwise use current user's ID
+  const userId = activeUserId;
   
   const [activeTab, setActiveTab] = useState("list");
   const [showEntryDialog, setShowEntryDialog] = useState(false);
