@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { User } from "@shared/schema";
 import { useClientContext } from "@/context/ClientContext";
+import { useLocation } from "wouter";
 
 import {
   Card,
@@ -53,7 +54,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, MoreHorizontal, Eye, FileText, Flag, Send } from "lucide-react";
+import { UserPlus, MoreHorizontal, Eye, FileText, Flag, Send, BarChart } from "lucide-react";
 
 // Schema for client invitation
 const inviteClientSchema = z.object({
@@ -71,6 +72,7 @@ export default function Clients() {
   const [isInviting, setIsInviting] = useState(false);
   const [selectedClient, setSelectedClient] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [_, navigate] = useLocation();
   
   // Invite client form - always initialize regardless of role to avoid hook issues
   const inviteForm = useForm<InviteClientFormValues>({
@@ -88,7 +90,7 @@ export default function Clients() {
     // Save to localStorage as fallback
     localStorage.setItem('viewingClientId', client.id.toString());
     localStorage.setItem('viewingClientName', client.name || client.username);
-    window.location.href = `/emotions`;
+    navigate("/emotions");
   };
   
   // Helper function to view a client's goals
@@ -98,7 +100,7 @@ export default function Clients() {
     // Save to localStorage as fallback
     localStorage.setItem('viewingClientId', client.id.toString());
     localStorage.setItem('viewingClientName', client.name || client.username);
-    window.location.href = `/goals`;
+    navigate("/goals");
   };
   
   // Helper function to view a client's journals
@@ -108,7 +110,7 @@ export default function Clients() {
     // Save to localStorage as fallback
     localStorage.setItem('viewingClientId', client.id.toString());
     localStorage.setItem('viewingClientName', client.name || client.username);
-    window.location.href = `/journal`;
+    navigate("/journal");
   };
   
   // Helper function to view a client's thought records
@@ -118,7 +120,7 @@ export default function Clients() {
     // Save to localStorage as fallback
     localStorage.setItem('viewingClientId', client.id.toString());
     localStorage.setItem('viewingClientName', client.name || client.username);
-    window.location.href = `/thoughts`;
+    navigate("/thoughts");
   };
   
   // Check if user is a therapist
@@ -597,7 +599,10 @@ export default function Clients() {
                                     localStorage.setItem('viewingClientId', client.id.toString());
                                     localStorage.setItem('viewingClientName', client.name || client.username);
                                     setViewingClient(client.id, client.name || client.username);
+                                    
+                                    // Use the navigate function from useLocation
                                     navigate("/");
+                                    
                                     toast({
                                       title: "Client Selected",
                                       description: `Now viewing ${client.name}'s statistics.`
