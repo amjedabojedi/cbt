@@ -783,22 +783,17 @@ export default function Clients() {
                           <CardTitle className="text-base">Client Summary</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-neutral-500">Records:</span>
-                              <span className="font-medium">24</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-neutral-500">Active Goals:</span>
-                              <span className="font-medium">3</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-neutral-500">Last Activity:</span>
-                              <span className="font-medium">2 hours ago</span>
-                            </div>
+                          {selectedClient && (
+                            <ClientStats clientId={selectedClient.id} />
+                          )}
+                          <div className="space-y-2 mt-2">
                             <div className="flex justify-between">
                               <span className="text-neutral-500">Member Since:</span>
-                              <span className="font-medium">Jan 15, 2023</span>
+                              <span className="font-medium">
+                                {selectedClient?.createdAt 
+                                  ? new Date(selectedClient.createdAt).toLocaleDateString()
+                                  : 'N/A'}
+                              </span>
                             </div>
                           </div>
                         </CardContent>
@@ -809,37 +804,9 @@ export default function Clients() {
                           <CardTitle className="text-base">Recent Activity</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-4">
-                            <div className="flex items-start">
-                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 mt-0.5">
-                                <Heart className="h-4 w-4" />
-                              </div>
-                              <div>
-                                <p className="font-medium">Recorded emotion: <span className="text-blue-600">Anxious (7/10)</span></p>
-                                <p className="text-sm text-neutral-500">2 hours ago</p>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-start">
-                              <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mr-3 mt-0.5">
-                                <FileText className="h-4 w-4" />
-                              </div>
-                              <div>
-                                <p className="font-medium">Completed a thought record</p>
-                                <p className="text-sm text-neutral-500">Yesterday, 3:45 PM</p>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-start">
-                              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3 mt-0.5">
-                                <Flag className="h-4 w-4" />
-                              </div>
-                              <div>
-                                <p className="font-medium">Updated goal: <span className="text-green-600">Morning Meditation</span></p>
-                                <p className="text-sm text-neutral-500">Jan 20, 2023</p>
-                              </div>
-                            </div>
-                          </div>
+                          {selectedClient && (
+                            <ClientRecentActivity clientId={selectedClient.id} />
+                          )}
                         </CardContent>
                       </Card>
                     </TabsContent>
@@ -850,27 +817,18 @@ export default function Clients() {
                           <CardTitle className="text-base">Emotion Records</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-4">
-                            <Button 
-                              onClick={() => handleViewRecords(selectedClient)}
-                              className="w-full"
-                            >
-                              <FileText className="mr-2 h-4 w-4" />
-                              View Emotion Records
-                            </Button>
-                            <div className="space-y-3">
-                              <div className="flex items-start bg-blue-50 p-3 rounded-md">
-                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 mt-0.5">
-                                  <Heart className="h-4 w-4" />
-                                </div>
-                                <div>
-                                  <p className="font-medium">Anxious <span className="text-blue-600">(7/10)</span></p>
-                                  <p className="text-sm text-neutral-500">2 hours ago</p>
-                                  <p className="text-sm mt-1">Feeling worried about upcoming presentation</p>
-                                </div>
-                              </div>
+                          {selectedClient && (
+                            <div className="space-y-4">
+                              <Button 
+                                onClick={() => handleViewRecords(selectedClient)}
+                                className="w-full"
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                View Emotion Records
+                              </Button>
+                              <ClientEmotionRecordsList clientId={selectedClient.id} limit={3} />
                             </div>
-                          </div>
+                          )}
                         </CardContent>
                       </Card>
 
@@ -879,61 +837,35 @@ export default function Clients() {
                           <CardTitle className="text-base">Journal Entries</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-4">
-                            <Button 
-                              onClick={() => handleViewJournals(selectedClient)}
-                              className="w-full"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2 h-4 w-4"
+                          {selectedClient && (
+                            <div className="space-y-4">
+                              <Button 
+                                onClick={() => handleViewJournals(selectedClient)}
+                                className="w-full"
                               >
-                                <path d="M14 3v4a1 1 0 0 0 1 1h4" />
-                                <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" />
-                                <path d="M9 9h1" />
-                                <path d="M9 13h6" />
-                                <path d="M9 17h6" />
-                              </svg>
-                              View Journal Entries
-                            </Button>
-                            <div className="space-y-3">
-                              <div className="flex items-start bg-purple-50 p-3 rounded-md">
-                                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mr-3 mt-0.5">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className="h-4 w-4"
-                                  >
-                                    <path d="M14 3v4a1 1 0 0 0 1 1h4" />
-                                    <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" />
-                                    <path d="M9 9h1" />
-                                    <path d="M9 13h6" />
-                                    <path d="M9 17h6" />
-                                  </svg>
-                                </div>
-                                <div>
-                                  <p className="font-medium">Morning Reflection</p>
-                                  <p className="text-sm text-neutral-500">Yesterday</p>
-                                  <p className="text-sm mt-1">Started my day with meditation and felt more grounded...</p>
-                                </div>
-                              </div>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="mr-2 h-4 w-4"
+                                >
+                                  <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                                  <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" />
+                                  <path d="M9 9h1" />
+                                  <path d="M9 13h6" />
+                                  <path d="M9 17h6" />
+                                </svg>
+                                View Journal Entries
+                              </Button>
+                              <ClientJournalsList clientId={selectedClient.id} limit={3} />
                             </div>
-                          </div>
+                          )}
                         </CardContent>
                       </Card>
 
@@ -942,52 +874,31 @@ export default function Clients() {
                           <CardTitle className="text-base">Thought Records</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-4">
-                            <Button 
-                              onClick={() => handleViewThoughtRecords(selectedClient)}
-                              className="w-full"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2 h-4 w-4"
+                          {selectedClient && (
+                            <div className="space-y-4">
+                              <Button 
+                                onClick={() => handleViewThoughtRecords(selectedClient)}
+                                className="w-full"
                               >
-                                <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
-                              </svg>
-                              View Thought Records
-                            </Button>
-                            <div className="space-y-3">
-                              <div className="flex items-start bg-green-50 p-3 rounded-md">
-                                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3 mt-0.5">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className="h-4 w-4"
-                                  >
-                                    <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
-                                  </svg>
-                                </div>
-                                <div>
-                                  <p className="font-medium">Challenging negative thought</p>
-                                  <p className="text-sm text-neutral-500">3 days ago</p>
-                                </div>
-                              </div>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="mr-2 h-4 w-4"
+                                >
+                                  <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
+                                </svg>
+                                View Thought Records
+                              </Button>
+                              <ClientThoughtRecordsList clientId={selectedClient.id} limit={3} />
                             </div>
-                          </div>
+                          )}
                         </CardContent>
                       </Card>
                     </TabsContent>
@@ -998,44 +909,18 @@ export default function Clients() {
                           <CardTitle className="text-base">Current Goals</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-4">
-                            <Button 
-                              onClick={() => handleViewGoals(selectedClient)}
-                              className="w-full"
-                            >
-                              <Flag className="mr-2 h-4 w-4" />
-                              View All Goals
-                            </Button>
-                            <div className="space-y-3">
-                              <div className="border rounded-md p-3">
-                                <div className="flex justify-between items-center mb-2">
-                                  <h4 className="font-medium">Morning Meditation</h4>
-                                  <Badge className="bg-green-100 text-green-800 border-0">In Progress</Badge>
-                                </div>
-                                <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden mb-2">
-                                  <div 
-                                    className="h-full bg-primary rounded-full" 
-                                    style={{ width: '60%' }} 
-                                  ></div>
-                                </div>
-                                <p className="text-sm text-neutral-500">3 of 5 milestones completed</p>
-                              </div>
-                              
-                              <div className="border rounded-md p-3">
-                                <div className="flex justify-between items-center mb-2">
-                                  <h4 className="font-medium">Weekly Exercise Routine</h4>
-                                  <Badge className="bg-blue-100 text-blue-800 border-0">New</Badge>
-                                </div>
-                                <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden mb-2">
-                                  <div 
-                                    className="h-full bg-primary rounded-full" 
-                                    style={{ width: '20%' }} 
-                                  ></div>
-                                </div>
-                                <p className="text-sm text-neutral-500">1 of 5 milestones completed</p>
-                              </div>
+                          {selectedClient && (
+                            <div className="space-y-4">
+                              <Button 
+                                onClick={() => handleViewGoals(selectedClient)}
+                                className="w-full"
+                              >
+                                <Flag className="mr-2 h-4 w-4" />
+                                View All Goals
+                              </Button>
+                              <ClientGoalsList clientId={selectedClient.id} limit={3} />
                             </div>
-                          </div>
+                          )}
                         </CardContent>
                       </Card>
                     </TabsContent>
