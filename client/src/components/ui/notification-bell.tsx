@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/lib/auth";
 
 interface Notification {
   id: number;
@@ -29,6 +29,7 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Fetch notifications when component mounts or dropdown is opened
   useEffect(() => {
@@ -229,14 +230,16 @@ export default function NotificationBell() {
           {notifications.length === 0 ? (
             <div className="p-4 text-center text-sm text-gray-500">
               <div>No notifications yet</div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={createTestNotification}
-                className="mt-2 w-full text-xs"
-              >
-                Create Test Notification
-              </Button>
+              {user?.role === "admin" && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={createTestNotification}
+                  className="mt-2 w-full text-xs"
+                >
+                  Create Test Notification
+                </Button>
+              )}
             </div>
           ) : (
             notifications.map((notification) => (
