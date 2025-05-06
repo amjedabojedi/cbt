@@ -376,8 +376,26 @@ export class DatabaseStorage implements IStorage {
       await db.delete(goals).where(eq(goals.id, goal.id));
     }
     
+    // Delete journal entries and their associated comments
+    const userJournals = await this.getJournalEntriesByUser(userId);
+    for (const journal of userJournals) {
+      await this.deleteJournalEntry(journal.id);
+    }
+    
     // Delete actions for this user
     await db.delete(actions).where(eq(actions.userId, userId));
+    
+    // Delete all notifications for this user
+    await db.delete(notifications).where(eq(notifications.userId, userId));
+    
+    // Delete notification preferences for this user
+    await db.delete(notificationPreferences).where(eq(notificationPreferences.userId, userId));
+    
+    // Delete resource assignments for this user
+    await db.delete(resourceAssignments).where(eq(resourceAssignments.clientId, userId));
+    
+    // Delete resource feedback provided by this user
+    await db.delete(resourceFeedback).where(eq(resourceFeedback.userId, userId));
     
     // Update therapist references for clients of this user (if the user is a therapist)
     await db
