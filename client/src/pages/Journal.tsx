@@ -580,20 +580,26 @@ export default function Journal() {
     unlinkThoughtRecordMutation.mutate(recordId);
   };
   
+  // Determine if user can create new entries (only clients can create their own entries)
+  // If viewing another user's data and current user is a therapist, they should only view
+  const canCreateEntries = isViewingSelf || user?.role === 'client';
+  
   return (
     <AppLayout title="Journal">
       <div className="container py-6 px-8 max-w-6xl ml-4">
         <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Journal</h1>
-        <Button onClick={() => {
-          setCurrentEntry(null);
-          setTitle("");
-          setContent("");
-          setShowEntryDialog(true);
-        }}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Entry
-        </Button>
+        {canCreateEntries && (
+          <Button onClick={() => {
+            setCurrentEntry(null);
+            setTitle("");
+            setContent("");
+            setShowEntryDialog(true);
+          }}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Entry
+          </Button>
+        )}
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -635,14 +641,16 @@ export default function Journal() {
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-lg">{entry.title}</CardTitle>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => handleEdit(entry)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(entry)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
+                      {canCreateEntries && (
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(entry)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(entry)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     <CardDescription className="flex items-center text-xs">
                       <CalendarIcon className="mr-1 h-3 w-3" />
@@ -726,27 +734,29 @@ export default function Journal() {
                       </div>
                     </div>
                     
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          setTitle(currentEntry.title);
-                          setContent(currentEntry.content);
-                          setShowEntryDialog(true);
-                        }}
-                      >
-                        <Edit size={16} className="mr-1" />
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => setShowConfirmDelete(true)}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
+                    {canCreateEntries && (
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setTitle(currentEntry.title);
+                            setContent(currentEntry.content);
+                            setShowEntryDialog(true);
+                          }}
+                        >
+                          <Edit size={16} className="mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => setShowConfirmDelete(true)}
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
                 
@@ -850,43 +860,47 @@ export default function Journal() {
                       </div>
                     </div>
 
-                    {/* Custom tag input */}
-                    <div className="flex gap-2 mt-4">
-                      <Input
-                        type="text"
-                        placeholder="Add a custom tag..."
-                        value={customTag}
-                        onChange={(e) => setCustomTag(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && customTag.trim()) {
-                            e.preventDefault();
-                            toggleTagSelection(customTag.trim());
-                            setCustomTag('');
-                          }
-                        }}
-                      />
-                      <Button 
-                        size="sm"
-                        onClick={() => {
-                          if (customTag.trim()) {
-                            toggleTagSelection(customTag.trim());
-                            setCustomTag('');
-                          }
-                        }}
-                      >
-                        Add
-                      </Button>
-                    </div>
+                    {canCreateEntries && (
+                      <>
+                        {/* Custom tag input */}
+                        <div className="flex gap-2 mt-4">
+                          <Input
+                            type="text"
+                            placeholder="Add a custom tag..."
+                            value={customTag}
+                            onChange={(e) => setCustomTag(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && customTag.trim()) {
+                                e.preventDefault();
+                                toggleTagSelection(customTag.trim());
+                                setCustomTag('');
+                              }
+                            }}
+                          />
+                          <Button 
+                            size="sm"
+                            onClick={() => {
+                              if (customTag.trim()) {
+                                toggleTagSelection(customTag.trim());
+                                setCustomTag('');
+                              }
+                            }}
+                          >
+                            Add
+                          </Button>
+                        </div>
 
-                    {/* Save button */}
-                    <Button
-                      onClick={handleUpdateTags}
-                      disabled={updateTagsMutation.isPending}
-                      className="w-full mt-3"
-                      size="sm"
-                    >
-                      {updateTagsMutation.isPending ? "Saving..." : "Save Selected Tags"}
-                    </Button>
+                        {/* Save button */}
+                        <Button
+                          onClick={handleUpdateTags}
+                          disabled={updateTagsMutation.isPending}
+                          className="w-full mt-3"
+                          size="sm"
+                        >
+                          {updateTagsMutation.isPending ? "Saving..." : "Save Selected Tags"}
+                        </Button>
+                      </>
+                    )}
                   </div>
                   
                   {/* Cognitive Distortions Section */}
@@ -926,15 +940,17 @@ export default function Journal() {
                         ))}
                       </div>
                       
-                      <Button
-                        onClick={handleUpdateDistortions}
-                        disabled={updateDistortionsMutation.isPending}
-                        className="w-full"
-                        size="sm"
-                        variant="outline"
-                      >
-                        {updateDistortionsMutation.isPending ? "Saving..." : "Confirm Selected Distortions"}
-                      </Button>
+                      {canCreateEntries && (
+                        <Button
+                          onClick={handleUpdateDistortions}
+                          disabled={updateDistortionsMutation.isPending}
+                          className="w-full"
+                          size="sm"
+                          variant="outline"
+                        >
+                          {updateDistortionsMutation.isPending ? "Saving..." : "Confirm Selected Distortions"}
+                        </Button>
+                      )}
                     </div>
                   )}
 
@@ -956,14 +972,16 @@ export default function Journal() {
                         <Brain size={16} />
                         Related Thought Records
                       </h4>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setShowThoughtRecordDialog(true)}
-                      >
-                        <Link2 size={14} className="mr-1" />
-                        Link Record
-                      </Button>
+                      {canCreateEntries && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setShowThoughtRecordDialog(true)}
+                        >
+                          <Link2 size={14} className="mr-1" />
+                          Link Record
+                        </Button>
+                      )}
                     </div>
                     
                     {relatedThoughtRecords.length > 0 ? (
@@ -975,14 +993,16 @@ export default function Journal() {
                                 <CardTitle className="text-sm">
                                   Thought Record
                                 </CardTitle>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-6 w-6"
-                                  onClick={() => handleUnlinkThoughtRecord(record.id)}
-                                >
-                                  <Unlink size={14} />
-                                </Button>
+                                {canCreateEntries && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-6 w-6"
+                                    onClick={() => handleUnlinkThoughtRecord(record.id)}
+                                  >
+                                    <Unlink size={14} />
+                                  </Button>
+                                )}
                               </div>
                               <CardDescription className="text-xs">
                                 {format(new Date(record.createdAt), "MMM d, yyyy")}
@@ -1027,13 +1047,15 @@ export default function Journal() {
                         <p className="text-sm text-muted-foreground">
                           No thought records linked to this journal entry yet.
                         </p>
-                        <Button 
-                          variant="link" 
-                          onClick={() => setShowThoughtRecordDialog(true)}
-                          className="mt-2"
-                        >
-                          Link a thought record
-                        </Button>
+                        {canCreateEntries && (
+                          <Button 
+                            variant="link" 
+                            onClick={() => setShowThoughtRecordDialog(true)}
+                            className="mt-2"
+                          >
+                            Link a thought record
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>
