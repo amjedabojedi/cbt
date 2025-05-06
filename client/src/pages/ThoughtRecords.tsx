@@ -41,7 +41,24 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, ClipboardList, Info, HelpCircle } from "lucide-react";
+import { 
+  PlusCircle, 
+  ClipboardList, 
+  Info, 
+  HelpCircle, 
+  CalendarDays, 
+  HeartPulse, 
+  BrainCircuit,
+  AlertTriangle,
+  Scale,
+  Lightbulb,
+  Sparkles,
+  LineChart,
+  BookOpen,
+  BookText,
+  ArrowUpRight,
+  ExternalLink
+} from "lucide-react";
 
 export default function ThoughtRecords() {
   const { user } = useAuth();
@@ -202,139 +219,233 @@ export default function ThoughtRecords() {
         {selectedThought && (
           <Dialog open={!!selectedThought} onOpenChange={() => setSelectedThought(null)}>
             <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Thought Record Details</DialogTitle>
+              <DialogHeader className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <DialogTitle className="text-xl font-bold">Thought Record</DialogTitle>
+                  <div className="flex items-center">
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      <CalendarDays size={14} className="mr-1" />
+                      {formatDate(selectedThought.createdAt)}
+                    </Badge>
+                  </div>
+                </div>
                 <DialogDescription>
-                  View the details of this thought record and its connections to journal entries.
+                  Cognitive behavioral therapy worksheet for examining thoughts and beliefs
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-neutral-500">Date</h4>
-                    <p>{formatDate(selectedThought.createdAt)}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-neutral-500">Related Emotion</h4>
-                    <p>
-                      {findRelatedEmotion(selectedThought.emotionRecordId)?.tertiaryEmotion || "None"}
-                      {findRelatedEmotion(selectedThought.emotionRecordId) && (
-                        <span className="text-sm text-neutral-500 ml-1">
-                          ({findRelatedEmotion(selectedThought.emotionRecordId)?.intensity}/10)
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-neutral-500 mb-1">Automatic Thoughts</h4>
-                  <p className="text-sm p-3 bg-neutral-50 rounded border border-neutral-200">
-                    {selectedThought.automaticThoughts}
-                  </p>
-                </div>
-                
-                {selectedThought.cognitiveDistortions && selectedThought.cognitiveDistortions.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium text-neutral-500 mb-1">Cognitive Distortions</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {selectedThought.cognitiveDistortions.map((distortion, idx) => (
-                        <Badge key={idx} className="text-xs">
-                          {formatDistortionName(distortion)}
-                        </Badge>
-                      ))}
+              <div className="space-y-6 py-4">
+                {/* Emotion Connection Card */}
+                {findRelatedEmotion(selectedThought.emotionRecordId) && (
+                  <Card className="border-l-4 border-l-blue-500 shadow-sm">
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <HeartPulse size={16} className="text-blue-500" />
+                        Connected Emotion
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-0">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <Badge className="mr-2 bg-blue-100 text-blue-800 border-none hover:bg-blue-200">
+                            {findRelatedEmotion(selectedThought.emotionRecordId)?.tertiaryEmotion}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            Intensity: {findRelatedEmotion(selectedThought.emotionRecordId)?.intensity}/10
+                          </span>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 text-xs text-blue-600"
+                          asChild
+                        >
+                          <a href={`/emotion-tracking?id=${selectedThought.emotionRecordId}`}>
+                            <ExternalLink size={14} className="mr-1" />
+                            View Record
+                          </a>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Main Content Sections */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                      <BrainCircuit size={18} className="text-primary" />
+                      Automatic Thoughts
+                    </CardTitle>
+                    <CardDescription>
+                      The thoughts that automatically came to mind in the situation
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="p-4 border rounded-md bg-card shadow-sm whitespace-pre-wrap">
+                      {selectedThought.automaticThoughts}
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
+
+                {/* Cognitive Distortions Section */}
+                {selectedThought.cognitiveDistortions && selectedThought.cognitiveDistortions.length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <AlertTriangle size={18} className="text-amber-500" />
+                        Cognitive Distortions
+                      </CardTitle>
+                      <CardDescription>
+                        Patterns of thinking that can reinforce negative emotions
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2 p-2">
+                        {selectedThought.cognitiveDistortions.map((distortion, idx) => (
+                          <Badge 
+                            key={idx} 
+                            className="bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200"
+                          >
+                            {formatDistortionName(distortion)}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                {/* Evidence Section */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                      <Scale size={18} className="text-primary" />
+                      Evidence Evaluation
+                    </CardTitle>
+                    <CardDescription>
+                      Facts and observations for and against the automatic thoughts
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedThought.evidenceFor && (
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-medium text-primary">Supporting Evidence</h4>
+                          <div className="p-4 border rounded-md bg-card/50 shadow-sm">
+                            <p className="text-sm">{selectedThought.evidenceFor}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {selectedThought.evidenceAgainst && (
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-medium text-primary">Contradicting Evidence</h4>
+                          <div className="p-4 border rounded-md bg-card/50 shadow-sm">
+                            <p className="text-sm">{selectedThought.evidenceAgainst}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Alternative Perspective Section */}
+                {selectedThought.alternativePerspective && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <Lightbulb size={18} className="text-amber-500" />
+                        Alternative Perspective
+                      </CardTitle>
+                      <CardDescription>
+                        A more balanced and realistic view of the situation
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="p-4 border rounded-md bg-card shadow-sm">
+                        <p className="text-sm">{selectedThought.alternativePerspective}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                {/* Insights Section */}
+                {selectedThought.insightsGained && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <Sparkles size={18} className="text-purple-500" />
+                        Insights Gained
+                      </CardTitle>
+                      <CardDescription>
+                        What was learned from this reflection process
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="p-4 border rounded-md bg-card shadow-sm">
+                        <p className="text-sm">{selectedThought.insightsGained}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                {/* Reflection Rating */}
+                {selectedThought.reflectionRating !== null && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <LineChart size={18} className="text-green-500" />
+                        Progress Rating
+                      </CardTitle>
+                      <CardDescription>
+                        How helpful was this reflection in changing perspective
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center p-2">
+                        <div className="w-full bg-neutral-200 rounded-full h-3 mr-3">
+                          <div 
+                            className="bg-gradient-to-r from-green-300 to-green-500 h-3 rounded-full" 
+                            style={{ width: `${(selectedThought.reflectionRating / 10) * 100}%` }}
+                          ></div>
+                        </div>
+                        <Badge className="bg-green-100 text-green-800 border-none">
+                          {selectedThought.reflectionRating}/10
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
                 
                 {/* Related Journal Entries - Cross-component connection */}
                 {selectedThought.relatedJournalEntryIds && selectedThought.relatedJournalEntryIds.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium text-neutral-500 mb-1 flex items-center gap-1">
-                      Related Journal Entries
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info size={12} className="text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-xs max-w-[200px]">
-                              These journal entries are linked to this thought record, providing additional context.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </h4>
-                    <div className="flex flex-col gap-2 text-sm">
-                      {selectedThought.relatedJournalEntryIds.map((journalId) => (
-                        <Button 
-                          key={journalId} 
-                          variant="outline" 
-                          size="sm" 
-                          className="justify-start text-left h-auto py-2 font-normal"
-                          asChild
-                        >
-                          <a href={`/journal?entry=${journalId}`}>
-                            <span className="truncate">View related journal entry</span>
-                          </a>
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedThought.evidenceFor && (
-                    <div>
-                      <h4 className="text-sm font-medium text-neutral-500 mb-1">Evidence For</h4>
-                      <p className="text-sm p-3 bg-neutral-50 rounded border border-neutral-200">
-                        {selectedThought.evidenceFor}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {selectedThought.evidenceAgainst && (
-                    <div>
-                      <h4 className="text-sm font-medium text-neutral-500 mb-1">Evidence Against</h4>
-                      <p className="text-sm p-3 bg-neutral-50 rounded border border-neutral-200">
-                        {selectedThought.evidenceAgainst}
-                      </p>
-                    </div>
-                  )}
-                </div>
-                
-                {selectedThought.alternativePerspective && (
-                  <div>
-                    <h4 className="text-sm font-medium text-neutral-500 mb-1">Alternative Perspective</h4>
-                    <p className="text-sm p-3 bg-neutral-50 rounded border border-neutral-200">
-                      {selectedThought.alternativePerspective}
-                    </p>
-                  </div>
-                )}
-                
-                {selectedThought.insightsGained && (
-                  <div>
-                    <h4 className="text-sm font-medium text-neutral-500 mb-1">Insights Gained</h4>
-                    <p className="text-sm p-3 bg-neutral-50 rounded border border-neutral-200">
-                      {selectedThought.insightsGained}
-                    </p>
-                  </div>
-                )}
-                
-                {selectedThought.reflectionRating !== null && (
-                  <div>
-                    <h4 className="text-sm font-medium text-neutral-500 mb-1">Reflection Rating</h4>
-                    <div className="flex items-center">
-                      <div className="w-full bg-neutral-200 rounded-full h-2.5 mr-2">
-                        <div 
-                          className="bg-primary h-2.5 rounded-full" 
-                          style={{ width: `${(selectedThought.reflectionRating / 10) * 100}%` }}
-                        ></div>
+                  <Card className="border-l-4 border-l-purple-500 shadow-sm">
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <BookOpen size={16} className="text-purple-500" />
+                        Connected Journal Entries
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-2">
+                      <div className="flex flex-col gap-2">
+                        {selectedThought.relatedJournalEntryIds.map((journalId) => (
+                          <Button 
+                            key={journalId} 
+                            variant="outline" 
+                            size="sm" 
+                            className="justify-start text-left h-auto py-2 font-normal"
+                            asChild
+                          >
+                            <a href={`/journal?entry=${journalId}`}>
+                              <BookText size={14} className="mr-2 text-purple-500" />
+                              <span className="truncate">View journal entry</span>
+                              <ArrowUpRight size={14} className="ml-auto text-muted-foreground" />
+                            </a>
+                          </Button>
+                        ))}
                       </div>
-                      <span className="text-sm font-medium">{selectedThought.reflectionRating}/10</span>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 )}
               </div>
             </DialogContent>
