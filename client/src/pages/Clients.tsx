@@ -10,12 +10,23 @@ import { z } from "zod";
 import { User } from "@shared/schema";
 import { useClientContext } from "@/context/ClientContext";
 import { useLocation } from "wouter";
+import { formatDistanceToNow } from "date-fns";
 import { 
   HeartPulse, 
   Sparkles, 
   BrainCircuit, 
   Loader2,
-  FileText as FileTextIcon
+  FileText,
+  Flag,
+  Eye,
+  Send,
+  Clock,
+  Calendar,
+  CheckCircle,
+  Heart,
+  MoreHorizontal,
+  UserPlus,
+  BarChart
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -62,13 +73,318 @@ function ClientStats({ clientId }: ClientStatProps) {
         <span>{emotionCount?.totalCount || 0} Emotion Records</span>
       </div>
       <div className="flex items-center text-sm">
-        <FileTextIcon className="text-purple-500 h-4 w-4 mr-1" />
+        <FileText className="text-purple-500 h-4 w-4 mr-1" />
         <span>{journalCount?.totalCount || 0} Journal Entries</span>
       </div>
       <div className="flex items-center text-sm">
         <BrainCircuit className="text-green-500 h-4 w-4 mr-1" />
         <span>{thoughtsCount?.totalCount || 0} Thought Records</span>
       </div>
+    </div>
+  );
+}
+
+// Component to display client recent activity
+function ClientRecentActivity({ clientId }: ClientStatProps) {
+  // Fetch recent activity for this client
+  const { data: recentActivity, isLoading } = useQuery<any[]>({
+    queryKey: [`/api/users/${clientId}/recent-activity`],
+    enabled: !!clientId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+      </div>
+    );
+  }
+
+  if (!recentActivity || recentActivity.length === 0) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-neutral-500">No recent activity found.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {recentActivity.map((activity, index) => {
+        let icon;
+        let colorClass;
+        
+        // Determine icon and color based on activity type
+        switch(activity.type) {
+          case 'emotion':
+            icon = <Heart className="h-4 w-4" />;
+            colorClass = 'bg-blue-100 text-blue-600';
+            break;
+          case 'journal':
+            icon = <FileText className="h-4 w-4" />;
+            colorClass = 'bg-purple-100 text-purple-600';
+            break;
+          case 'thought_record':
+            icon = <BrainCircuit className="h-4 w-4" />;
+            colorClass = 'bg-green-100 text-green-600';
+            break;
+          case 'goal':
+            icon = <Flag className="h-4 w-4" />;
+            colorClass = 'bg-amber-100 text-amber-600';
+            break;
+          default:
+            icon = <Clock className="h-4 w-4" />;
+            colorClass = 'bg-gray-100 text-gray-600';
+        }
+        
+        return (
+          <div key={index} className="flex items-start">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 mt-0.5 ${colorClass}`}>
+              {icon}
+            </div>
+            <div>
+              <p className="font-medium">{activity.title}</p>
+              <p className="text-sm text-neutral-500">
+                {activity.timestamp ? formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true }) : 'Unknown time'}
+              </p>
+              {activity.description && (
+                <p className="text-sm mt-1">{activity.description}</p>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Component to display client emotion records
+function ClientEmotionRecordsList({ clientId, limit = 3 }: ClientStatProps & { limit?: number }) {
+  // Fetch emotion records for this client
+  const { data: emotions, isLoading } = useQuery<any[]>({
+    queryKey: [`/api/users/${clientId}/emotions`],
+    enabled: !!clientId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+      </div>
+    );
+  }
+
+  if (!emotions || emotions.length === 0) {
+    return (
+      <div className="text-center py-2">
+        <p className="text-neutral-500">No emotion records found.</p>
+      </div>
+    );
+  }
+
+  // Display only the most recent records up to the limit
+  const recentEmotions = emotions.slice(0, limit);
+
+  return (
+    <div className="space-y-3">
+      {recentEmotions.map((emotion, index) => (
+        <div key={index} className="flex items-start bg-blue-50 p-3 rounded-md">
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 mt-0.5">
+            <Heart className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="font-medium">
+              {emotion.name} {emotion.intensity && <span className="text-blue-600">({emotion.intensity}/10)</span>}
+            </p>
+            <p className="text-sm text-neutral-500">
+              {emotion.createdAt ? formatDistanceToNow(new Date(emotion.createdAt), { addSuffix: true }) : 'Unknown time'}
+            </p>
+            {emotion.situation && (
+              <p className="text-sm mt-1">{emotion.situation}</p>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Component to display client journal entries
+function ClientJournalsList({ clientId, limit = 3 }: ClientStatProps & { limit?: number }) {
+  // Fetch journal entries for this client
+  const { data: journals, isLoading } = useQuery<any[]>({
+    queryKey: [`/api/users/${clientId}/journals`],
+    enabled: !!clientId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+      </div>
+    );
+  }
+
+  if (!journals || journals.length === 0) {
+    return (
+      <div className="text-center py-2">
+        <p className="text-neutral-500">No journal entries found.</p>
+      </div>
+    );
+  }
+
+  // Display only the most recent entries up to the limit
+  const recentJournals = journals.slice(0, limit);
+
+  return (
+    <div className="space-y-3">
+      {recentJournals.map((journal, index) => (
+        <div key={index} className="flex items-start bg-purple-50 p-3 rounded-md">
+          <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mr-3 mt-0.5">
+            <FileText className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="font-medium">{journal.title || "Journal Entry"}</p>
+            <p className="text-sm text-neutral-500">
+              {journal.createdAt ? formatDistanceToNow(new Date(journal.createdAt), { addSuffix: true }) : 'Unknown time'}
+            </p>
+            {journal.content && (
+              <p className="text-sm mt-1 line-clamp-2">{journal.content.substring(0, 100)}{journal.content.length > 100 ? '...' : ''}</p>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Component to display client thought records
+function ClientThoughtRecordsList({ clientId, limit = 3 }: ClientStatProps & { limit?: number }) {
+  // Fetch thought records for this client
+  const { data: thoughts, isLoading } = useQuery<any[]>({
+    queryKey: [`/api/users/${clientId}/thoughts`],
+    enabled: !!clientId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+      </div>
+    );
+  }
+
+  if (!thoughts || thoughts.length === 0) {
+    return (
+      <div className="text-center py-2">
+        <p className="text-neutral-500">No thought records found.</p>
+      </div>
+    );
+  }
+
+  // Display only the most recent records up to the limit
+  const recentThoughts = thoughts.slice(0, limit);
+
+  return (
+    <div className="space-y-3">
+      {recentThoughts.map((thought, index) => (
+        <div key={index} className="flex items-start bg-green-50 p-3 rounded-md">
+          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3 mt-0.5">
+            <BrainCircuit className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="font-medium">{thought.situation || "Thought Record"}</p>
+            <p className="text-sm text-neutral-500">
+              {thought.createdAt ? formatDistanceToNow(new Date(thought.createdAt), { addSuffix: true }) : 'Unknown time'}
+            </p>
+            {thought.automaticThoughts && (
+              <p className="text-sm mt-1 line-clamp-1">{thought.automaticThoughts}</p>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Component to display client goals
+function ClientGoalsList({ clientId, limit = 3 }: ClientStatProps & { limit?: number }) {
+  // Fetch goals for this client
+  const { data: goals, isLoading } = useQuery<any[]>({
+    queryKey: [`/api/users/${clientId}/goals`],
+    enabled: !!clientId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+      </div>
+    );
+  }
+
+  if (!goals || goals.length === 0) {
+    return (
+      <div className="text-center py-2">
+        <p className="text-neutral-500">No goals found.</p>
+      </div>
+    );
+  }
+
+  // Display only the most recent goals up to the limit
+  const recentGoals = goals.slice(0, limit);
+
+  const getStatusBadge = (status) => {
+    switch(status) {
+      case 'pending':
+        return <Badge className="bg-amber-100 text-amber-800 border-0">Pending</Badge>;
+      case 'in_progress':
+        return <Badge className="bg-blue-100 text-blue-800 border-0">In Progress</Badge>;
+      case 'approved':
+        return <Badge className="bg-purple-100 text-purple-800 border-0">Approved</Badge>;
+      case 'completed':
+        return <Badge className="bg-green-100 text-green-800 border-0">Completed</Badge>;
+      default:
+        return <Badge className="bg-gray-100 text-gray-800 border-0">Unknown</Badge>;
+    }
+  };
+
+  const calculateProgress = (goal) => {
+    if (!goal.milestones || goal.milestones.length === 0) return 0;
+    const completed = goal.milestones.filter(m => m.completed).length;
+    return Math.round((completed / goal.milestones.length) * 100);
+  };
+
+  return (
+    <div className="space-y-3">
+      {recentGoals.map((goal, index) => {
+        const progress = calculateProgress(goal);
+        const milestonesCount = goal.milestones?.length || 0;
+        const completedMilestones = goal.milestones?.filter(m => m.completed)?.length || 0;
+        
+        return (
+          <div key={index} className="border rounded-md p-3">
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="font-medium">{goal.title}</h4>
+              {getStatusBadge(goal.status)}
+            </div>
+            <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden mb-2">
+              <div 
+                className="h-full bg-primary rounded-full" 
+                style={{ width: `${progress}%` }} 
+              ></div>
+            </div>
+            <p className="text-sm text-neutral-500">
+              {completedMilestones} of {milestonesCount} milestones completed
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -116,7 +432,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, MoreHorizontal, Eye, FileText, Flag, Send, BarChart } from "lucide-react";
 
 // Schema for client invitation
 const inviteClientSchema = z.object({
