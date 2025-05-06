@@ -101,6 +101,26 @@ export default function Clients() {
     window.location.href = `/goals`;
   };
   
+  // Helper function to view a client's journals
+  const handleViewJournals = (client: User) => {
+    console.log("View Journals clicked for client:", client);
+    setViewingClient(client.id, client.name || client.username);
+    // Save to localStorage as fallback
+    localStorage.setItem('viewingClientId', client.id.toString());
+    localStorage.setItem('viewingClientName', client.name || client.username);
+    window.location.href = `/journal`;
+  };
+  
+  // Helper function to view a client's thought records
+  const handleViewThoughtRecords = (client: User) => {
+    console.log("View Thought Records clicked for client:", client);
+    setViewingClient(client.id, client.name || client.username);
+    // Save to localStorage as fallback
+    localStorage.setItem('viewingClientId', client.id.toString());
+    localStorage.setItem('viewingClientName', client.name || client.username);
+    window.location.href = `/thoughts`;
+  };
+  
   // Check if user is a therapist
   const isTherapist = user?.role === "therapist";
   
