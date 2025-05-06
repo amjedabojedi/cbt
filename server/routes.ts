@@ -37,7 +37,8 @@ import {
   journalComments,
   cognitiveDistortions,
   thoughtRecords,
-  users
+  users,
+  emotionRecords
 } from "@shared/schema";
 import cookieParser from "cookie-parser";
 import { sendClientInvitation } from "./services/email";
@@ -824,6 +825,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Statistics endpoints for client counts
+  app.get("/api/users/:userId/emotions/count", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Count emotion records for this user
+      const result = await db.select({ count: sql`count(*)::int` }).from(emotionRecords)
+        .where(eq(emotionRecords.userId, userId));
+      
+      res.json({ totalCount: result[0].count });
+    } catch (error) {
+      console.error("Error counting emotions:", error);
+      res.status(500).json({ message: "Error counting emotion records" });
+    }
+  });
+  
+  app.get("/api/users/:userId/journals/count", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Count journal entries for this user
+      const result = await db.select({ count: sql`count(*)::int` }).from(journalEntries)
+        .where(eq(journalEntries.userId, userId));
+      
+      res.json({ totalCount: result[0].count });
+    } catch (error) {
+      console.error("Error counting journals:", error);
+      res.status(500).json({ message: "Error counting journal entries" });
+    }
+  });
+  
+  app.get("/api/users/:userId/thoughts/count", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Count thought records for this user
+      const result = await db.select({ count: sql`count(*)::int` }).from(thoughtRecords)
+        .where(eq(thoughtRecords.userId, userId));
+      
+      res.json({ totalCount: result[0].count });
+    } catch (error) {
+      console.error("Error counting thoughts:", error);
+      res.status(500).json({ message: "Error counting thought records" });
+    }
+  });
+  
   // Client invitation endpoint
   app.post("/api/users/invite-client", authenticate, isTherapist, async (req, res) => {
     try {
@@ -894,8 +941,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isRead: false
       });
       
-      // In a real application, send an email to the client with their credentials
-      // We'll just return them for now
+      // Generate an invitation link (in a real production app, this would be a frontend URL)
+      const baseUrl = process.env.BASE_URL || 'https://newhorizon-cbt.replit.app';
+      const inviteLink = `${baseUrl}/auth?invitation=true`;
+      
+      // Send email with the client's credentials
+      const emailSent = await sendClientInvitation(
+        email,
+        req.user.name || req.user.username,
+        inviteLink
+      );
+      
+      if (emailSent) {
+        console.log(`Invitation email sent to ${email}`);
+      } else {
+        console.warn(`Failed to send invitation email to ${email}. Check if SPARKPOST_API_KEY is correctly configured.`);
+      }
+      
       const { password, ...userWithoutPassword } = newUser;
       
       res.status(201).json({
