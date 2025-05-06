@@ -18,6 +18,7 @@ import { eq } from 'drizzle-orm';
 
 // Core emotion families that define the major categories (Ring 1)
 // For each core emotion, we only list the emotion name variants, not its children
+// These 8 core emotions match the standard emotion wheel structure
 export const CORE_EMOTION_FAMILIES = {
   'Joy': ['joy', 'happiness', 'joyful'],
   'Sadness': ['sad', 'sadness', 'sorrow'],
@@ -26,11 +27,7 @@ export const CORE_EMOTION_FAMILIES = {
   'Anger': ['anger', 'angry', 'mad', 'fury'],
   'Love': ['love', 'loving', 'affection'],
   'Disgust': ['disgust', 'disgusted', 'repulsed'],
-  'Trust': ['trust', 'trusting', 'reliance'],
-  'Gratitude': ['gratitude', 'grateful', 'thankful'],
-  'Interest': ['interest', 'interested', 'engaged'],
-  'Calm': ['calm', 'peaceful', 'tranquil'],
-  'Shame': ['shame', 'ashamed', 'embarrassed']
+  'Trust': ['trust', 'trusting', 'reliance']
 };
 
 // Secondary emotion groupings (Ring 2) that map to core emotions (Ring 1)
@@ -128,31 +125,35 @@ export const SECONDARY_EMOTIONS = {
   'Reliable': 'Trust',
   'Honored': 'Trust',
   
-  // Gratitude secondary emotions
-  'Thankful': 'Gratitude',
-  'Appreciative': 'Gratitude',
-  'Recognized': 'Gratitude',
-  'Blessed': 'Gratitude',
+  // Map Gratitude secondary emotions to Joy core emotion
+  'Thankful': 'Joy',
+  'Appreciative': 'Joy',
+  'Recognized': 'Joy',
+  'Blessed': 'Joy',
+  'Gratitude': 'Joy',
   
-  // Interest secondary emotions
-  'Curious': 'Interest',
-  'Engaged': 'Interest',
-  'Fascinated': 'Interest',
-  'Intrigued': 'Interest',
+  // Map Interest secondary emotions to Trust core emotion
+  'Curious': 'Trust',
+  'Engaged': 'Trust',
+  'Fascinated': 'Trust',
+  'Intrigued': 'Trust',
+  'Interest': 'Trust',
   
-  // Calm secondary emotions
-  'Peaceful': 'Calm',
-  'Relaxed': 'Calm',
-  'Tranquil': 'Calm',
-  'Serene': 'Calm',
-  'Composed': 'Calm',
-  'Balanced': 'Calm',
+  // Map Calm secondary emotions to Trust core emotion
+  'Peaceful': 'Trust',
+  'Relaxed': 'Trust',
+  'Tranquil': 'Trust',
+  'Serene': 'Trust',
+  'Composed': 'Trust',
+  'Balanced': 'Trust',
+  'Calm': 'Trust',
   
-  // Shame secondary emotions
-  'Embarrassed': 'Shame',
-  'Humiliated': 'Shame',
-  'Regretful': 'Shame',
-  'Guilty': 'Shame',
+  // Map Shame secondary emotions to Sadness core emotion
+  'Embarrassed': 'Sadness',
+  'Humiliated': 'Sadness',
+  'Regretful': 'Sadness',
+  'Guilty': 'Sadness',
+  'Shame': 'Sadness',
 };
 
 // Tertiary emotions (Ring 3) mapping to secondary emotions (Ring 2)
@@ -290,6 +291,7 @@ export const TERTIARY_EMOTIONS = {
 
 // Emotion colors for consistent visualization
 export const EMOTION_COLORS: Record<string, string> = {
+  // Core emotions (Ring 1) - The standard 8 core emotions from the emotion wheel
   'Joy': '#F9D71C',       // Yellow
   'Sadness': '#6D87C4',   // Blue
   'Fear': '#8A65AA',      // Purple
@@ -298,17 +300,17 @@ export const EMOTION_COLORS: Record<string, string> = {
   'Love': '#E91E63',      // Pink
   'Surprise': '#F47B20',  // Orange
   'Trust': '#8DC4BD',     // Teal
-  'Shame': '#FF6B81',     // Pink-Red
-  'Interest': '#4DB6AC',  // Teal-Green
-  'Gratitude': '#FFB74D', // Light Orange
-  'Calm': '#81C784',      // Light Green
   
-  // Secondary emotions with specific colors
-  'Worry': '#9932CC',     // Purple
-  'Anxious': '#9C27B0',   // Purple 
-  'Frustrated': '#B22222', // Dark Red
-  'Happy': '#FFA07A',     // Light Red
-  'Depressed': '#4682B4', // Blue
+  // Secondary emotions with specific colors (these are now mapped to the 8 core emotions)
+  'Worry': '#9932CC',     // Purple (maps to Fear)
+  'Anxious': '#9C27B0',   // Purple (maps to Fear)
+  'Frustrated': '#B22222', // Dark Red (maps to Anger)
+  'Happy': '#FFA07A',     // Light Red (maps to Joy)
+  'Depressed': '#4682B4', // Blue (maps to Sadness)
+  'Shame': '#FF6B81',     // Pink-Red (maps to Sadness)
+  'Gratitude': '#FFB74D', // Light Orange (maps to Joy)
+  'Calm': '#81C784',      // Light Green (maps to Trust)
+  'Interest': '#4DB6AC',  // Teal-Green (maps to Trust)
 };
 
 /**
