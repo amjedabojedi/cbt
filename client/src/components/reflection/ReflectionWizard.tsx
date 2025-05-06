@@ -446,16 +446,29 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
     setIsSubmitting(true);
     
     try {
+      // Get form values from the DOM as fallback since we're using native textareas
+      const evidenceForEl = document.querySelector('textarea[placeholder="List facts that support this thought..."]') as HTMLTextAreaElement;
+      const evidenceAgainstEl = document.querySelector('textarea[placeholder="List facts that don\'t support this thought..."]') as HTMLTextAreaElement;
+      const alternativePerspectiveEl = document.querySelector('textarea[placeholder="A more realistic way to see this situation might be..."]') as HTMLTextAreaElement;
+      const insightsGainedEl = document.querySelector('textarea[placeholder="What I\'ve learned from this reflection..."]') as HTMLTextAreaElement;
+      
+      console.log("Text values:", {
+        evidenceFor: evidenceForEl?.value,
+        evidenceAgainst: evidenceAgainstEl?.value,
+        alternativePerspective: alternativePerspectiveEl?.value,
+        insightsGained: insightsGainedEl?.value
+      });
+      
       // Format data for API
       const thoughtRecordData = {
         userId: user.id,
         emotionRecordId: emotion.id,
         automaticThoughts: data.automaticThoughts,
         cognitiveDistortions: data.cognitiveDistortions || [],
-        evidenceFor: data.evidenceFor || "",
-        evidenceAgainst: data.evidenceAgainst || "",
-        alternativePerspective: data.alternativePerspective || "",
-        insightsGained: data.insightsGained || "",
+        evidenceFor: evidenceForEl?.value || data.evidenceFor || "",
+        evidenceAgainst: evidenceAgainstEl?.value || data.evidenceAgainst || "",
+        alternativePerspective: alternativePerspectiveEl?.value || data.alternativePerspective || "",
+        insightsGained: insightsGainedEl?.value || data.insightsGained || "",
         reflectionRating: data.reflectionRating || 5,
       };
       
@@ -658,24 +671,14 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
               List facts that actually support your thought. Focus on objective information, not feelings.
             </FormDescription>
             <FormControl>
-              <Textarea
+              <textarea
                 placeholder="List facts that support this thought..."
                 rows={3}
                 value={field.value || ''}
                 onChange={(e) => {
-                  // Fixed event handling to ensure text is correctly processed
-                  const value = e.target.value;
-                  field.onChange(value);
-                  form.setValue("evidenceFor", value, { 
-                    shouldValidate: true,
-                    shouldDirty: true,
-                    shouldTouch: true 
-                  });
+                  field.onChange(e.target.value);
                 }}
-                onBlur={field.onBlur}
-                ref={field.ref}
-                name={field.name}
-                className="focus:border-primary focus:ring-1 focus:ring-primary w-full"
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
               />
             </FormControl>
             <FormMessage />
@@ -693,24 +696,14 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
               List facts that challenge your thought. Look for alternative explanations and realities.
             </FormDescription>
             <FormControl>
-              <Textarea
+              <textarea
                 placeholder="List facts that don't support this thought..."
                 rows={3}
                 value={field.value || ''}
                 onChange={(e) => {
-                  // Fixed event handling to ensure text is correctly processed
-                  const value = e.target.value;
-                  field.onChange(value);
-                  form.setValue("evidenceAgainst", value, { 
-                    shouldValidate: true,
-                    shouldDirty: true,
-                    shouldTouch: true 
-                  });
+                  field.onChange(e.target.value);
                 }}
-                onBlur={field.onBlur}
-                ref={field.ref}
-                name={field.name}
-                className="focus:border-primary focus:ring-1 focus:ring-primary w-full"
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
               />
             </FormControl>
             <FormMessage />
@@ -843,24 +836,14 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
               Consider the evidence for and against your thoughts to create a more balanced view.
             </FormDescription>
             <FormControl>
-              <Textarea
+              <textarea
                 placeholder="A more realistic way to see this situation might be..."
                 rows={4}
                 value={field.value || ''}
                 onChange={(e) => {
-                  // Fixed event handling to ensure text is correctly processed
-                  const value = e.target.value;
-                  field.onChange(value);
-                  form.setValue("alternativePerspective", value, { 
-                    shouldValidate: true,
-                    shouldDirty: true,
-                    shouldTouch: true 
-                  });
+                  field.onChange(e.target.value);
                 }}
-                onBlur={field.onBlur}
-                ref={field.ref}
-                name={field.name}
-                className="focus:border-primary focus:ring-1 focus:ring-primary w-full"
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
               />
             </FormControl>
             <FormMessage />
@@ -993,24 +976,14 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
               Summarize what you've learned about your thoughts, feelings, and reactions.
             </FormDescription>
             <FormControl>
-              <Textarea
+              <textarea
                 placeholder="What I've learned from this reflection..."
                 rows={4}
                 value={field.value || ''}
                 onChange={(e) => {
-                  // Fixed event handling to ensure text is correctly processed
-                  const value = e.target.value;
-                  field.onChange(value);
-                  form.setValue("insightsGained", value, { 
-                    shouldValidate: true,
-                    shouldDirty: true,
-                    shouldTouch: true 
-                  });
+                  field.onChange(e.target.value);
                 }}
-                onBlur={field.onBlur}
-                ref={field.ref}
-                name={field.name}
-                className="focus:border-primary focus:ring-1 focus:ring-primary w-full"
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
               />
             </FormControl>
             <FormMessage />
