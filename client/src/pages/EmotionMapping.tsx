@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Heart, Search, Link, Network } from "lucide-react";
 import RelatedEmotionsPanel from "@/components/emotions/RelatedEmotionsPanel";
+import AppLayout from "@/components/layout/AppLayout";
 
 // Types for the API responses
 interface EmotionTaxonomyResponse {
@@ -100,7 +101,7 @@ export default function EmotionMapping() {
     );
   }
   
-  return (
+  const content = (
     <div className="container py-6 space-y-6">
       <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Emotion Mapping & Integration</h1>
@@ -275,5 +276,11 @@ export default function EmotionMapping() {
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <AppLayout title="Emotion Mapping & Integration">
+      {content}
+    </AppLayout>
   );
 }
