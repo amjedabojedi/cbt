@@ -8,6 +8,7 @@ import { ThoughtRecord as BaseThoughtRecord } from "@shared/schema";
 import useActiveUser from "@/hooks/use-active-user";
 import { ClientDebug } from "@/components/debug/ClientDebug";
 import { useLocation } from "wouter";
+import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
 
 // Use the schema definition directly
 type ThoughtRecord = BaseThoughtRecord;
@@ -95,6 +96,9 @@ export default function ThoughtRecords() {
   return (
     <AppLayout title="Thought Records">
       <div className="container mx-auto px-4 py-6">
+        {/* Back to Clients button */}
+        <BackToClientsButton />
+        
         {/* Debug Information (Development Only) */}
         <ClientDebug />
         

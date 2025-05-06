@@ -19,6 +19,7 @@ import {
 import { Globe, ClipboardList } from "lucide-react";
 import useActiveUser from "@/hooks/use-active-user";
 import { ClientDebug } from "@/components/debug/ClientDebug";
+import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
 
 export default function EmotionTracking() {
   const { user } = useAuth();

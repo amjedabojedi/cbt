@@ -9,6 +9,7 @@ import { format, parseISO } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import AppLayout from "@/components/layout/AppLayout";
 import { useToast } from "@/hooks/use-toast";
+import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
 
 import {
   Card,
@@ -289,6 +290,9 @@ export default function GoalSetting() {
   return (
     <AppLayout>
       <div className="container py-6">
+        {/* Back to Clients button */}
+        <BackToClientsButton />
+        
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold">Goal Setting</h1>
