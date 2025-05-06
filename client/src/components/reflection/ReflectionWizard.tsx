@@ -661,55 +661,49 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
         </div>
       </div>
       
-      <FormField
-        control={form.control}
-        name="evidenceFor"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>What evidence supports this thought?</FormLabel>
-            <FormDescription>
-              List facts that actually support your thought. Focus on objective information, not feelings.
-            </FormDescription>
-            <FormControl>
-              <textarea
-                placeholder="List facts that support this thought..."
-                rows={3}
-                value={field.value || ''}
-                onChange={(e) => {
-                  field.onChange(e.target.value);
-                }}
-                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div className="space-y-2">
+        <label htmlFor="evidenceFor" className="text-sm font-medium">What evidence supports this thought?</label>
+        <p className="text-sm text-muted-foreground">
+          List facts that actually support your thought. Focus on objective information, not feelings.
+        </p>
+        <textarea
+          id="evidenceFor"
+          name="evidenceFor"
+          placeholder="List facts that support this thought..."
+          rows={3}
+          value={form.getValues("evidenceFor") || ''}
+          onChange={(e) => {
+            form.setValue("evidenceFor", e.target.value, {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true
+            });
+          }}
+          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </div>
       
-      <FormField
-        control={form.control}
-        name="evidenceAgainst"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>What evidence contradicts this thought?</FormLabel>
-            <FormDescription>
-              List facts that challenge your thought. Look for alternative explanations and realities.
-            </FormDescription>
-            <FormControl>
-              <textarea
-                placeholder="List facts that don't support this thought..."
-                rows={3}
-                value={field.value || ''}
-                onChange={(e) => {
-                  field.onChange(e.target.value);
-                }}
-                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div className="space-y-2">
+        <label htmlFor="evidenceAgainst" className="text-sm font-medium">What evidence contradicts this thought?</label>
+        <p className="text-sm text-muted-foreground">
+          List facts that challenge your thought. Look for alternative explanations and realities.
+        </p>
+        <textarea
+          id="evidenceAgainst"
+          name="evidenceAgainst"
+          placeholder="List facts that don't support this thought..."
+          rows={3}
+          value={form.getValues("evidenceAgainst") || ''}
+          onChange={(e) => {
+            form.setValue("evidenceAgainst", e.target.value, {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true
+            });
+          }}
+          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </div>
       
       <div className="space-y-3">
         <div className="flex justify-between items-start mb-2">
@@ -826,30 +820,27 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   // Step 3: Alternative Perspective & Coping Strategies
   const renderStepThree = () => (
     <div className="space-y-4">
-      <FormField
-        control={form.control}
-        name="alternativePerspective"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>What's a more balanced perspective?</FormLabel>
-            <FormDescription>
-              Consider the evidence for and against your thoughts to create a more balanced view.
-            </FormDescription>
-            <FormControl>
-              <textarea
-                placeholder="A more realistic way to see this situation might be..."
-                rows={4}
-                value={field.value || ''}
-                onChange={(e) => {
-                  field.onChange(e.target.value);
-                }}
-                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div className="space-y-2">
+        <label htmlFor="alternativePerspective" className="text-sm font-medium">What's a more balanced perspective?</label>
+        <p className="text-sm text-muted-foreground">
+          Consider the evidence for and against your thoughts to create a more balanced view.
+        </p>
+        <textarea
+          id="alternativePerspective"
+          name="alternativePerspective"
+          placeholder="A more realistic way to see this situation might be..."
+          rows={4}
+          value={form.getValues("alternativePerspective") || ''}
+          onChange={(e) => {
+            form.setValue("alternativePerspective", e.target.value, {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true
+            });
+          }}
+          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </div>
       
       <div className="space-y-3">
         <div className="flex justify-between items-start mb-2">
@@ -966,30 +957,27 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   // Step 4: Insights & Reflection Rating
   const renderStepFour = () => (
     <div className="space-y-6">
-      <FormField
-        control={form.control}
-        name="insightsGained"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>What insights did you gain from this reflection?</FormLabel>
-            <FormDescription>
-              Summarize what you've learned about your thoughts, feelings, and reactions.
-            </FormDescription>
-            <FormControl>
-              <textarea
-                placeholder="What I've learned from this reflection..."
-                rows={4}
-                value={field.value || ''}
-                onChange={(e) => {
-                  field.onChange(e.target.value);
-                }}
-                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div className="space-y-2">
+        <label htmlFor="insightsGained" className="text-sm font-medium">What insights did you gain from this reflection?</label>
+        <p className="text-sm text-muted-foreground">
+          Summarize what you've learned about your thoughts, feelings, and reactions.
+        </p>
+        <textarea
+          id="insightsGained"
+          name="insightsGained"
+          placeholder="What I've learned from this reflection..."
+          rows={4}
+          value={form.getValues("insightsGained") || ''}
+          onChange={(e) => {
+            form.setValue("insightsGained", e.target.value, {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true
+            });
+          }}
+          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </div>
       
       <FormField
         control={form.control}
