@@ -14,8 +14,6 @@ export default function useActiveUser() {
   const { user } = useAuth();
   const { viewingClientId } = useClientContext();
   
-  console.log("useActiveUser - Current auth user:", user?.id, user?.username, user?.role);
-  
   // Determine the active user ID to use for API calls
   function determineActiveUserId(): number | undefined {
     // If no user logged in yet, return undefined
@@ -27,14 +25,13 @@ export default function useActiveUser() {
       if (localStorage.getItem('viewingClientId')) {
         localStorage.removeItem('viewingClientId');
         localStorage.removeItem('viewingClientName');
-        console.log("useActiveUser - Cleared localStorage viewingClientId for client role");
+
       }
       return user.id;
     }
     
     // For therapists/admins viewing a client
     if ((user.role === "therapist" || user.role === "admin") && viewingClientId) {
-      console.log("useActiveUser - Using client ID for API calls:", viewingClientId);
       return viewingClientId;
     }
     
@@ -42,12 +39,10 @@ export default function useActiveUser() {
     const storedClientId = localStorage.getItem('viewingClientId');
     if ((user.role === "therapist" || user.role === "admin") && storedClientId) {
       const storedClientIdNumber = parseInt(storedClientId);
-      console.log("useActiveUser - Using stored client ID:", storedClientIdNumber);
       return storedClientIdNumber;
     }
     
     // Otherwise, use the user's own ID
-    console.log("useActiveUser - Using own ID for API calls:", user.id);
     return user.id;
   }
   
@@ -64,7 +59,6 @@ export default function useActiveUser() {
   function getPathPrefix(): string | null {
     if (!activeUserId) return null;
     const prefix = `/api/users/${activeUserId}`;
-    console.log("useActiveUser - Final API path prefix:", prefix);
     return prefix;
   }
   

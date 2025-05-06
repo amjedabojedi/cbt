@@ -45,7 +45,6 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
           if (data.viewingClient) {
             // Set the viewing client in context
             setViewingClient(data.viewingClient.id, data.viewingClient.name);
-            console.log("Loaded viewing client from database:", data.viewingClient);
           }
         } catch (error) {
           console.error("Error fetching current viewing client:", error);
@@ -89,14 +88,10 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
 
   // Handle client selection
   const handleClientSelect = async (clientId: number, clientName: string) => {
-    console.log("Selecting client:", clientId, clientName);
-    
     try {
       // First update the viewing client in the database
       const response = await apiRequest("POST", "/api/users/current-viewing-client", { clientId });
       const result = await response.json();
-      
-      console.log("Database updated with current viewing client:", result);
       
       // Update the client context (client-side)
       setViewingClient(clientId, clientName);
