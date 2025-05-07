@@ -93,15 +93,15 @@ export default function CrossComponentInsights() {
     enabled: !!activeUserId,
   });
   
-  // Fetch protective factors
+  // Fetch protective factors usage with effectiveness ratings
   const { data: protectiveFactors, isLoading: isLoadingProtectiveFactors } = useQuery<any[]>({
-    queryKey: activeUserId ? [`/api/users/${activeUserId}/protective-factors`] : [],
+    queryKey: activeUserId ? [`/api/users/${activeUserId}/protective-factor-usage`] : [],
     enabled: !!activeUserId,
   });
   
-  // Fetch coping strategies
+  // Fetch coping strategies usage with effectiveness ratings
   const { data: copingStrategies, isLoading: isLoadingCopingStrategies } = useQuery<any[]>({
-    queryKey: activeUserId ? [`/api/users/${activeUserId}/coping-strategies`] : [],
+    queryKey: activeUserId ? [`/api/users/${activeUserId}/coping-strategy-usage`] : [],
     enabled: !!activeUserId,
   });
   
