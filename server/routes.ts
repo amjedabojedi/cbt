@@ -2377,9 +2377,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Thought record not found' });
       }
       
-      // Query the database to get protective factors used in this thought record
+      // Query the database to get protective factors used in this thought record with effectiveness ratings
       const query = `
-        SELECT pf.id, pf.name
+        SELECT pf.id, pf.name, pfu.effectiveness_rating as effectiveness
         FROM protective_factors pf
         JOIN protective_factor_usage pfu ON pf.id = pfu.protective_factor_id
         WHERE pfu.thought_record_id = $1
@@ -2405,9 +2405,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Thought record not found' });
       }
       
-      // Query the database to get coping strategies used in this thought record
+      // Query the database to get coping strategies used in this thought record with effectiveness ratings
       const query = `
-        SELECT cs.id, cs.name
+        SELECT cs.id, cs.name, csu.effectiveness_rating as effectiveness
         FROM coping_strategies cs
         JOIN coping_strategy_usage csu ON cs.id = csu.coping_strategy_id
         WHERE csu.thought_record_id = $1
