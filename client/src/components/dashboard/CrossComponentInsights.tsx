@@ -902,23 +902,32 @@ export default function CrossComponentInsights() {
                               layout="vertical"
                             >
                               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                              <XAxis type="number" domain={[0, 10]} />
+                              <XAxis type="number" />
                               <YAxis 
                                 dataKey="name" 
                                 type="category" 
-                                width={120}
+                                width={90}
                                 tick={{ fontSize: 12 }}
                               />
                               <Tooltip
                                 formatter={(value, name) => {
                                   if (name === 'effectiveness') return [`${value}/10`, 'Effectiveness'];
+                                  if (name === 'count') return [`${value}`, 'Usage Count'];
                                   return [value, name];
                                 }}
                               />
                               <Legend />
                               <Bar 
+                                dataKey="count"
+                                name="Usage Count"
+                                fill="#8884d8"
+                                radius={[0, 4, 4, 0]}
+                                barSize={10}
+                              />
+                              <Bar 
                                 dataKey="effectiveness" 
                                 name="Effectiveness" 
+                                fill="#82ca9d"
                                 radius={[0, 4, 4, 0]}
                               >
                                 {copingStrategiesData.map((entry, index) => (
@@ -938,29 +947,25 @@ export default function CrossComponentInsights() {
                         </p>
                         <div className="h-72">
                           <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                              <Pie
-                                data={protectiveFactorsData}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                outerRadius={90}
-                                fill="#8884d8"
-                                dataKey="count"
-                                nameKey="name"
-                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                              >
+                            <BarChart
+                              data={protectiveFactorsData}
+                              layout="vertical"
+                              margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+                            >
+                              <XAxis type="number" />
+                              <YAxis type="category" dataKey="name" width={90} />
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <Tooltip
+                                formatter={(value, name, props) => {
+                                  return [`${value} uses`, "Count"];
+                                }}
+                              />
+                              <Bar dataKey="count" name="Usage Count">
                                 {protectiveFactorsData.map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
-                              </Pie>
-                              <Tooltip
-                                formatter={(value, name, props) => {
-                                  return [`${value} uses`, name];
-                                }}
-                              />
-                              <Legend />
-                            </PieChart>
+                              </Bar>
+                            </BarChart>
                           </ResponsiveContainer>
                         </div>
                       </div>
