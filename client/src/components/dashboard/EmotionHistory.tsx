@@ -157,7 +157,9 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   };
   
   // Get emotion badge color
-  const getEmotionBadgeColor = (emotion: string) => {
+  const getEmotionBadgeColor = (emotion: string | null | undefined) => {
+    if (!emotion) return "bg-gray-100 text-gray-800";
+    
     if (emotion.includes("Joy") || emotion.includes("Happy") || emotion.includes("Optimistic")) {
       return "bg-yellow-100 text-yellow-800";
     } else if (emotion.includes("Anger") || emotion.includes("Frustrat") || emotion.includes("Annoyed")) {
