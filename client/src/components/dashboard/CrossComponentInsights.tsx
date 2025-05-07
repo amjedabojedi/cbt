@@ -21,7 +21,8 @@ import {
   Cell,
   Scatter,
   ScatterChart,
-  ZAxis
+  ZAxis,
+  ReferenceLine
 } from 'recharts';
 import { Separator } from '@/components/ui/separator';
 import useActiveUser from '@/hooks/use-active-user';
@@ -921,26 +922,39 @@ export default function CrossComponentInsights() {
                       {/* Coping Strategies Tab */}
                       <TabsContent value="coping" className="space-y-4">
                         <div className="flex flex-col">
-                          <h3 className="text-sm font-medium">Coping Strategies Effectiveness</h3>
+                          <h3 className="text-sm font-medium">Coping Strategies Usage & Effectiveness</h3>
                           <p className="text-xs text-muted-foreground mb-3">
-                            This chart shows your most frequently used coping strategies and their effectiveness ratings.
+                            This chart shows the relationship between how often you use each strategy and how effective it is.
                           </p>
                           
-                          {/* Modern styled chart with cleaner layout */}
-                          <div className="h-80"> 
+                          {/* Combined chart showing both usage and effectiveness */}
+                          <div className="h-96"> 
                             <ResponsiveContainer width="100%" height="100%">
                               <BarChart
                                 data={copingStrategiesData.slice(0, 5)} // Limit to top 5 for better readability
-                                margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
+                                margin={{ top: 20, right: 60, left: 30, bottom: 40 }}
                                 layout="vertical"
                               >
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
                                 <XAxis 
                                   type="number" 
-                                  domain={[0, 10]} 
+                                  orientation="bottom"
+                                  xAxisId="count"
                                   label={{ 
-                                    value: 'Rating Scale', 
+                                    value: 'Usage Count', 
                                     position: 'bottom', 
+                                    offset: 0,
+                                    style: { textAnchor: 'middle' }
+                                  }}
+                                />
+                                <XAxis 
+                                  type="number" 
+                                  orientation="top"
+                                  xAxisId="effectiveness"
+                                  domain={[0, 10]}
+                                  label={{ 
+                                    value: 'Effectiveness (1-10)', 
+                                    position: 'top', 
                                     offset: 0,
                                     style: { textAnchor: 'middle' }
                                   }}
@@ -949,7 +963,7 @@ export default function CrossComponentInsights() {
                                   dataKey="name" 
                                   type="category" 
                                   width={150}
-                                  tick={{ fontSize: 13 }}
+                                  tick={{ fontSize: 14 }}
                                 />
                                 <Tooltip
                                   formatter={(value, name) => {
@@ -959,66 +973,65 @@ export default function CrossComponentInsights() {
                                   }}
                                   cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
                                 />
-                                <Legend verticalAlign="top" height={36} />
-                                <Bar 
-                                  dataKey="effectiveness" 
-                                  name="Effectiveness Rating" 
-                                  fill="#82ca9d"
-                                  radius={[0, 4, 4, 0]}
-                                  barSize={30}
-                                />
-                              </BarChart>
-                            </ResponsiveContainer>
-                          </div>
-                          
-                          {/* Usage frequency chart */}
-                          <div className="h-80 mt-8"> 
-                            <h3 className="text-sm font-medium mb-1">Coping Strategies Usage Frequency</h3>
-                            <p className="text-xs text-muted-foreground mb-3">
-                              This chart shows how frequently you've used each coping strategy.
-                            </p>
-                            <ResponsiveContainer width="100%" height="100%">
-                              <BarChart
-                                data={copingStrategiesData.slice(0, 5)} // Limit to top 5 for better readability
-                                margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
-                                layout="vertical"
-                              >
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                                <XAxis 
-                                  type="number"
-                                  label={{ 
-                                    value: 'Number of Uses', 
-                                    position: 'bottom', 
-                                    offset: 0,
-                                    style: { textAnchor: 'middle' }
-                                  }}
-                                />
-                                <YAxis 
-                                  dataKey="name" 
-                                  type="category" 
-                                  width={150}
-                                  tick={{ fontSize: 13 }}
-                                />
-                                <Tooltip
-                                  formatter={(value, name) => {
-                                    if (name === 'count') return [`${value} times`, 'Usage'];
-                                    return [value, name];
-                                  }}
-                                  cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-                                />
-                                <Legend verticalAlign="top" height={36} />
+                                <Legend verticalAlign="bottom" height={40} />
                                 <Bar 
                                   dataKey="count"
                                   name="Usage Count"
+                                  xAxisId="count"
                                   barSize={30}
                                   radius={[0, 4, 4, 0]}
+                                  fill="#8884d8"
                                 >
                                   {copingStrategiesData.slice(0, 5).map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.fill} />
                                   ))}
                                 </Bar>
+                                <Bar 
+                                  dataKey="effectiveness" 
+                                  name="Effectiveness Rating" 
+                                  xAxisId="effectiveness"
+                                  fill="#82ca9d"
+                                  radius={[0, 4, 4, 0]}
+                                  barSize={30}
+                                />
+                                <ReferenceLine 
+                                  x={5} 
+                                  xAxisId="effectiveness" 
+                                  stroke="#d3d3d3" 
+                                  strokeDasharray="3 3" 
+                                  label={{ 
+                                    value: 'Average', 
+                                    position: 'insideTopRight',
+                                    style: { fill: '#888', fontSize: 12 } 
+                                  }} 
+                                />
                               </BarChart>
                             </ResponsiveContainer>
+                          </div>
+                          
+                          {/* Simple data table for clarity */}
+                          <div className="mt-6">
+                            <h3 className="text-sm font-medium mb-2">Strategy Details</h3>
+                            <div className="overflow-hidden rounded-md border">
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="bg-muted/50">
+                                    <th className="px-4 py-2 text-left font-medium">Strategy</th>
+                                    <th className="px-4 py-2 text-center font-medium">Times Used</th>
+                                    <th className="px-4 py-2 text-center font-medium">Effectiveness</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {copingStrategiesData.slice(0, 5).map((strategy, index) => (
+                                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-muted/20'}>
+                                      <td className="px-4 py-2">{strategy.name}</td>
+                                      <td className="px-4 py-2 text-center">{strategy.count}</td>
+                                      <td className="px-4 py-2 text-center">{strategy.effectiveness}/10</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
                           </div>
                         </div>
                       </TabsContent>
@@ -1026,26 +1039,39 @@ export default function CrossComponentInsights() {
                       {/* Protective Factors Tab */}
                       <TabsContent value="factors" className="space-y-4">
                         <div className="flex flex-col">
-                          <h3 className="text-sm font-medium">Protective Factors Effectiveness</h3>
+                          <h3 className="text-sm font-medium">Protective Factors Usage & Effectiveness</h3>
                           <p className="text-xs text-muted-foreground mb-3">
-                            This chart shows your most frequently utilized protective factors and their effectiveness ratings.
+                            This chart shows the relationship between how often you utilize each protective factor and how effective it is.
                           </p>
                           
-                          {/* Modern styled chart with cleaner layout */}
-                          <div className="h-80"> 
+                          {/* Combined chart showing both usage and effectiveness */}
+                          <div className="h-96"> 
                             <ResponsiveContainer width="100%" height="100%">
                               <BarChart
                                 data={protectiveFactorsData.slice(0, 5)} // Limit to top 5 for better readability
-                                margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
+                                margin={{ top: 20, right: 60, left: 30, bottom: 40 }}
                                 layout="vertical"
                               >
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
                                 <XAxis 
                                   type="number" 
-                                  domain={[0, 10]} 
+                                  orientation="bottom"
+                                  xAxisId="count"
                                   label={{ 
-                                    value: 'Rating Scale', 
+                                    value: 'Usage Count', 
                                     position: 'bottom', 
+                                    offset: 0,
+                                    style: { textAnchor: 'middle' }
+                                  }}
+                                />
+                                <XAxis 
+                                  type="number" 
+                                  orientation="top"
+                                  xAxisId="effectiveness"
+                                  domain={[0, 10]}
+                                  label={{ 
+                                    value: 'Effectiveness (1-10)', 
+                                    position: 'top', 
                                     offset: 0,
                                     style: { textAnchor: 'middle' }
                                   }}
@@ -1054,7 +1080,7 @@ export default function CrossComponentInsights() {
                                   dataKey="name" 
                                   type="category" 
                                   width={150}
-                                  tick={{ fontSize: 13 }}
+                                  tick={{ fontSize: 14 }}
                                 />
                                 <Tooltip
                                   formatter={(value, name) => {
@@ -1064,66 +1090,65 @@ export default function CrossComponentInsights() {
                                   }}
                                   cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
                                 />
-                                <Legend verticalAlign="top" height={36} />
-                                <Bar 
-                                  dataKey="effectiveness" 
-                                  name="Effectiveness Rating" 
-                                  fill="#82ca9d"
-                                  radius={[0, 4, 4, 0]}
-                                  barSize={30}
-                                />
-                              </BarChart>
-                            </ResponsiveContainer>
-                          </div>
-                          
-                          {/* Usage frequency chart */}
-                          <div className="h-80 mt-8"> 
-                            <h3 className="text-sm font-medium mb-1">Protective Factors Usage Frequency</h3>
-                            <p className="text-xs text-muted-foreground mb-3">
-                              This chart shows how frequently you've used each protective factor.
-                            </p>
-                            <ResponsiveContainer width="100%" height="100%">
-                              <BarChart
-                                data={protectiveFactorsData.slice(0, 5)} // Limit to top 5 for better readability
-                                margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
-                                layout="vertical"
-                              >
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                                <XAxis 
-                                  type="number"
-                                  label={{ 
-                                    value: 'Number of Uses', 
-                                    position: 'bottom', 
-                                    offset: 0,
-                                    style: { textAnchor: 'middle' }
-                                  }}
-                                />
-                                <YAxis 
-                                  dataKey="name" 
-                                  type="category" 
-                                  width={150}
-                                  tick={{ fontSize: 13 }}
-                                />
-                                <Tooltip
-                                  formatter={(value, name) => {
-                                    if (name === 'count') return [`${value} times`, 'Usage'];
-                                    return [value, name];
-                                  }}
-                                  cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-                                />
-                                <Legend verticalAlign="top" height={36} />
+                                <Legend verticalAlign="bottom" height={40} />
                                 <Bar 
                                   dataKey="count"
                                   name="Usage Count"
+                                  xAxisId="count"
                                   barSize={30}
                                   radius={[0, 4, 4, 0]}
+                                  fill="#8884d8"
                                 >
                                   {protectiveFactorsData.slice(0, 5).map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.fill} />
                                   ))}
                                 </Bar>
+                                <Bar 
+                                  dataKey="effectiveness" 
+                                  name="Effectiveness Rating" 
+                                  xAxisId="effectiveness"
+                                  fill="#82ca9d"
+                                  radius={[0, 4, 4, 0]}
+                                  barSize={30}
+                                />
+                                <ReferenceLine 
+                                  x={5} 
+                                  xAxisId="effectiveness" 
+                                  stroke="#d3d3d3" 
+                                  strokeDasharray="3 3" 
+                                  label={{ 
+                                    value: 'Average', 
+                                    position: 'insideTopRight',
+                                    style: { fill: '#888', fontSize: 12 } 
+                                  }} 
+                                />
                               </BarChart>
                             </ResponsiveContainer>
+                          </div>
+                          
+                          {/* Simple data table for clarity */}
+                          <div className="mt-6">
+                            <h3 className="text-sm font-medium mb-2">Protective Factors Details</h3>
+                            <div className="overflow-hidden rounded-md border">
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="bg-muted/50">
+                                    <th className="px-4 py-2 text-left font-medium">Protective Factor</th>
+                                    <th className="px-4 py-2 text-center font-medium">Times Used</th>
+                                    <th className="px-4 py-2 text-center font-medium">Effectiveness</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {protectiveFactorsData.slice(0, 5).map((factor, index) => (
+                                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-muted/20'}>
+                                      <td className="px-4 py-2">{factor.name}</td>
+                                      <td className="px-4 py-2 text-center">{factor.count}</td>
+                                      <td className="px-4 py-2 text-center">{factor.effectiveness}/10</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
                           </div>
                         </div>
                       </TabsContent>
