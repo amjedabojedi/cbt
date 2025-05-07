@@ -929,7 +929,7 @@ export default function CrossComponentInsights() {
                           </p>
                           
                           {/* Combined chart showing both usage and effectiveness */}
-                          <div className="h-96">
+                          <div className="h-[430px]">
                             <ResponsiveContainer width="100%" height="100%">
                               <ComposedChart
                                 data={copingStrategiesData.slice(0, 5)} // Limit to top 5 for better readability
@@ -1030,7 +1030,7 @@ export default function CrossComponentInsights() {
                           </p>
                           
                           {/* Combined chart showing both usage and effectiveness */}
-                          <div className="h-96">
+                          <div className="h-[430px]">
                             <ResponsiveContainer width="100%" height="100%">
                               <ComposedChart
                                 data={protectiveFactorsData.slice(0, 5)} // Limit to top 5 for better readability
