@@ -1034,7 +1034,7 @@ export default function CrossComponentInsights() {
                             <ResponsiveContainer width="100%" height="100%">
                               <ComposedChart
                                 data={protectiveFactorsData.slice(0, 5)} // Limit to top 5 for better readability
-                                margin={{ top: 20, right: 50, left: 30, bottom: 90 }}
+                                margin={{ top: 20, right: 50, left: 30, bottom: 120 }}
                                 layout="vertical"
                               >
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={true} />
