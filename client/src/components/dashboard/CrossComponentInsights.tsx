@@ -964,14 +964,12 @@ export default function CrossComponentInsights() {
                                   height={70}
                                   iconSize={20}
                                   wrapperStyle={{ 
-                                    paddingTop: "20px",
-                                    paddingLeft: "40px",
-                                    paddingRight: "40px"
+                                    paddingTop: "20px"
                                   }}
-                                  layout="horizontal"
-                                  align="center"
+                                  formatter={(value, entry) => {
+                                    return <span style={{ marginRight: "60px", paddingLeft: "30px" }}>{value}</span>;
+                                  }}
                                 />
-                                <Bar 
                                   dataKey="count"
                                   name="Usage Count"
                                   barSize={20}
@@ -1062,19 +1060,17 @@ export default function CrossComponentInsights() {
                                 />
                                 <Tooltip
                                   formatter={(value, name) => {
-                                    if (name === 'Usage Count') return [`${value} times`, 'Usage'];
-                                    if (name === 'Effectiveness') return [`${value}/10`, 'Effectiveness'];
-                                    return [value, name];
-                                  }}
-                                />
                                 <Legend 
                                   verticalAlign="bottom" 
                                   height={70}
                                   iconSize={20}
                                   wrapperStyle={{ 
-                                    paddingTop: "20px",
-                                    paddingLeft: "40px",
-                                    paddingRight: "40px"
+                                    paddingTop: "20px"
+                                  }}
+                                  formatter={(value, entry) => {
+                                    return <span style={{ marginRight: "60px", paddingLeft: "30px" }}>{value}</span>;
+                                  }}
+                                />
                                   }}
                                   layout="horizontal"
                                   align="center"
