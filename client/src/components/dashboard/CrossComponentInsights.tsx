@@ -890,9 +890,9 @@ export default function CrossComponentInsights() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Coping Strategies Chart */}
                       <div className="space-y-4">
-                        <h3 className="text-sm font-medium">Coping Strategies Effectiveness</h3>
+                        <h3 className="text-sm font-medium">Coping Strategies Usage</h3>
                         <p className="text-xs text-muted-foreground">
-                          This chart shows your most frequently used coping strategies and their effectiveness.
+                          This chart shows your most frequently used coping strategies.
                         </p>
                         <div className="h-72">
                           <ResponsiveContainer width="100%" height="100%">
@@ -911,8 +911,8 @@ export default function CrossComponentInsights() {
                               />
                               <Tooltip
                                 formatter={(value, name) => {
+                                  if (name === 'count') return [`${value} times`, 'Usage'];
                                   if (name === 'effectiveness') return [`${value}/10`, 'Effectiveness'];
-                                  if (name === 'count') return [`${value}`, 'Usage Count'];
                                   return [value, name];
                                 }}
                               />
@@ -922,18 +922,17 @@ export default function CrossComponentInsights() {
                                 name="Usage Count"
                                 fill="#8884d8"
                                 radius={[0, 4, 4, 0]}
-                                barSize={10}
-                              />
-                              <Bar 
-                                dataKey="effectiveness" 
-                                name="Effectiveness" 
-                                fill="#82ca9d"
-                                radius={[0, 4, 4, 0]}
                               >
                                 {copingStrategiesData.map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                               </Bar>
+                              <Bar 
+                                dataKey="effectiveness" 
+                                name="Effectiveness Rating" 
+                                fill="#82ca9d"
+                                radius={[0, 4, 4, 0]}
+                              />
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
@@ -950,21 +949,40 @@ export default function CrossComponentInsights() {
                             <BarChart
                               data={protectiveFactorsData}
                               layout="vertical"
-                              margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                             >
+                              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                               <XAxis type="number" />
-                              <YAxis type="category" dataKey="name" width={90} />
-                              <CartesianGrid strokeDasharray="3 3" />
+                              <YAxis 
+                                dataKey="name" 
+                                type="category" 
+                                width={90}
+                                tick={{ fontSize: 12 }}
+                              />
                               <Tooltip
-                                formatter={(value, name, props) => {
-                                  return [`${value} uses`, "Count"];
+                                formatter={(value, name) => {
+                                  if (name === 'count') return [`${value} times`, 'Usage'];
+                                  if (name === 'effectiveness') return [`${value}/10`, 'Effectiveness'];
+                                  return [value, name];
                                 }}
                               />
-                              <Bar dataKey="count" name="Usage Count">
+                              <Legend />
+                              <Bar 
+                                dataKey="count"
+                                name="Usage Count"
+                                fill="#8884d8"
+                                radius={[0, 4, 4, 0]}
+                              >
                                 {protectiveFactorsData.map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                               </Bar>
+                              <Bar 
+                                dataKey="effectiveness" 
+                                name="Effectiveness Rating" 
+                                fill="#82ca9d"
+                                radius={[0, 4, 4, 0]}
+                              />
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
