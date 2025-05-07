@@ -17,8 +17,14 @@ export function useWebSocket() {
     try {
       // Determine protocol based on page protocol (ws for http, wss for https)
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      const wsUrl = `${protocol}//${host}/ws`;
+      
+      // Use the current hostname and port from the browser
+      const hostname = window.location.hostname;
+      const port = window.location.port || (protocol === 'wss:' ? '443' : '80');
+      
+      // Construct a safe WebSocket URL with explicit port
+      const wsUrl = `${protocol}//${hostname}:${port}/ws`;
+      console.log('Connecting to WebSocket URL:', wsUrl);
       
       // Create WebSocket connection
       const socket = new WebSocket(wsUrl);
