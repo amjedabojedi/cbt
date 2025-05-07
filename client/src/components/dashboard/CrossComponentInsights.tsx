@@ -961,8 +961,15 @@ export default function CrossComponentInsights() {
                                 />
                                 <Legend 
                                   verticalAlign="bottom" 
-                                  height={36} 
-                                  wrapperStyle={{ paddingTop: "20px" }}
+                                  height={70}
+                                  iconSize={20}
+                                  wrapperStyle={{ 
+                                    paddingTop: "20px",
+                                    paddingLeft: "40px",
+                                    paddingRight: "40px"
+                                  }}
+                                  layout="horizontal"
+                                  align="center"
                                 />
                                 <Bar 
                                   dataKey="count"
@@ -1062,8 +1069,15 @@ export default function CrossComponentInsights() {
                                 />
                                 <Legend 
                                   verticalAlign="bottom" 
-                                  height={36} 
-                                  wrapperStyle={{ paddingTop: "20px" }}
+                                  height={70}
+                                  iconSize={20}
+                                  wrapperStyle={{ 
+                                    paddingTop: "20px",
+                                    paddingLeft: "40px",
+                                    paddingRight: "40px"
+                                  }}
+                                  layout="horizontal"
+                                  align="center"
                                 />
                                 <Bar 
                                   dataKey="count"
