@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/lib/auth";
 
 import {
   Table,
@@ -61,7 +61,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   const queryClient = useQueryClient();
   
   // Fetch emotion records for the active user (could be a client viewed by a therapist)
-  const { data: emotions, isLoading, error } = useQuery<EmotionRecord[]>({
+  const { data: emotions = [], isLoading, error } = useQuery<EmotionRecord[]>({
     queryKey: activeUserId ? [`/api/users/${activeUserId}/emotions`] : [],
     enabled: !!activeUserId,
   });
@@ -203,7 +203,8 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
     );
   }
   
-  const displayEmotions = limit && !showFullHistory ? emotions?.slice(0, limit) : emotions;
+  const displayEmotions = limit && !showFullHistory && emotions ? emotions.slice(0, limit) : emotions;
+  const emotionsArray = Array.isArray(emotions) ? emotions : [];
 
   return (
     <>
@@ -215,7 +216,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               Your recently recorded emotions and thoughts
             </CardDescription>
           </div>
-          {limit && emotions?.length > limit && (
+          {limit && emotionsArray.length > limit && (
             <Button 
               variant="ghost" 
               onClick={() => setShowFullHistory(true)}
@@ -226,7 +227,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
           )}
         </CardHeader>
         <CardContent>
-          {emotions?.length === 0 ? (
+          {emotionsArray.length === 0 ? (
             <div className="text-center py-6">
               <p className="text-neutral-500">No emotion records yet.</p>
               <p className="text-sm text-neutral-400 mt-1">
@@ -392,7 +393,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {emotions?.map((emotion) => (
+                {emotionsArray.map((emotion) => (
                   <TableRow key={emotion.id}>
                     <TableCell className="whitespace-nowrap text-sm">
                       {formatDate(emotion.timestamp)}
