@@ -272,9 +272,23 @@ export const insertEmotionRecordSchema = z.object({
 });
 export const insertThoughtRecordSchema = createInsertSchema(thoughtRecords).omit({ id: true, createdAt: true });
 export const insertProtectiveFactorSchema = createInsertSchema(protectiveFactors).omit({ id: true, createdAt: true });
-export const insertProtectiveFactorUsageSchema = createInsertSchema(protectiveFactorUsage).omit({ id: true, createdAt: true });
+// Custom schema for protective factor usage to better handle validation
+export const insertProtectiveFactorUsageSchema = z.object({
+  userId: z.number(),
+  thoughtRecordId: z.number(),
+  protectiveFactorId: z.number(),
+  effectivenessRating: z.number().optional(),
+  notes: z.string().optional()
+});
 export const insertCopingStrategySchema = createInsertSchema(copingStrategies).omit({ id: true, createdAt: true });
-export const insertCopingStrategyUsageSchema = createInsertSchema(copingStrategyUsage).omit({ id: true, createdAt: true });
+// Custom schema for coping strategy usage to better handle validation
+export const insertCopingStrategyUsageSchema = z.object({
+  userId: z.number(),
+  thoughtRecordId: z.number(),
+  copingStrategyId: z.number(),
+  effectivenessRating: z.number().optional(),
+  notes: z.string().optional()
+});
 export const insertGoalSchema = createInsertSchema(goals).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertGoalMilestoneSchema = createInsertSchema(goalMilestones).omit({ id: true, createdAt: true });
 export const insertActionSchema = createInsertSchema(actions).omit({ id: true, createdAt: true, completedAt: true });
