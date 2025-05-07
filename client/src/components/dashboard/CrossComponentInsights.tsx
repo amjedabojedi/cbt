@@ -907,107 +907,227 @@ export default function CrossComponentInsights() {
                   </div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Coping Strategies Chart */}
-                      <div className="space-y-4">
-                        <h3 className="text-sm font-medium">Coping Strategies Usage</h3>
-                        <p className="text-xs text-muted-foreground">
-                          This chart shows your most frequently used coping strategies.
-                        </p>
-                        <div className="h-72">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                              data={copingStrategiesData}
-                              margin={{ top: 5, right: 30, left: 20, bottom: 30 }}
-                              layout="vertical"
-                            >
-                              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                              <XAxis type="number" />
-                              <YAxis 
-                                dataKey="name" 
-                                type="category" 
-                                width={90}
-                                tick={{ fontSize: 12 }}
-                              />
-                              <Tooltip
-                                formatter={(value, name) => {
-                                  if (name === 'count') return [`${value} times`, 'Usage'];
-                                  if (name === 'effectiveness') return [`${value}/10`, 'Effectiveness'];
-                                  return [value, name];
-                                }}
-                              />
-                              <Legend />
-                              <Bar 
-                                dataKey="count"
-                                name="Usage Count"
-                                fill="#8884d8"
-                                radius={[0, 4, 4, 0]}
-                              >
-                                {copingStrategiesData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                                ))}
-                              </Bar>
-                              <Bar 
-                                dataKey="effectiveness" 
-                                name="Effectiveness Rating" 
-                                fill="#82ca9d"
-                                radius={[0, 4, 4, 0]}
-                              />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
+                    {/* Inner tabbed interface for strategies/factors */}
+                    <Tabs defaultValue="coping">
+                      <TabsList className="mb-4">
+                        <TabsTrigger value="coping">
+                          Coping Strategies
+                        </TabsTrigger>
+                        <TabsTrigger value="factors">
+                          Protective Factors
+                        </TabsTrigger>
+                      </TabsList>
                       
-                      {/* Protective Factors Chart */}
-                      <div className="space-y-4">
-                        <h3 className="text-sm font-medium">Protective Factors Usage</h3>
-                        <p className="text-xs text-muted-foreground">
-                          This chart shows your most frequently utilized protective factors.
-                        </p>
-                        <div className="h-72">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                              data={protectiveFactorsData}
-                              layout="vertical"
-                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                              <XAxis type="number" />
-                              <YAxis 
-                                dataKey="name" 
-                                type="category" 
-                                width={90}
-                                tick={{ fontSize: 12 }}
-                              />
-                              <Tooltip
-                                formatter={(value, name) => {
-                                  if (name === 'count') return [`${value} times`, 'Usage'];
-                                  if (name === 'effectiveness') return [`${value}/10`, 'Effectiveness'];
-                                  return [value, name];
-                                }}
-                              />
-                              <Legend />
-                              <Bar 
-                                dataKey="count"
-                                name="Usage Count"
-                                fill="#8884d8"
-                                radius={[0, 4, 4, 0]}
+                      {/* Coping Strategies Tab */}
+                      <TabsContent value="coping" className="space-y-4">
+                        <div className="flex flex-col">
+                          <h3 className="text-sm font-medium">Coping Strategies Effectiveness</h3>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            This chart shows your most frequently used coping strategies and their effectiveness ratings.
+                          </p>
+                          
+                          {/* Modern styled chart with cleaner layout */}
+                          <div className="h-80"> 
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart
+                                data={copingStrategiesData.slice(0, 5)} // Limit to top 5 for better readability
+                                margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
+                                layout="vertical"
                               >
-                                {protectiveFactorsData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                                ))}
-                              </Bar>
-                              <Bar 
-                                dataKey="effectiveness" 
-                                name="Effectiveness Rating" 
-                                fill="#82ca9d"
-                                radius={[0, 4, 4, 0]}
-                              />
-                            </BarChart>
-                          </ResponsiveContainer>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+                                <XAxis 
+                                  type="number" 
+                                  domain={[0, 10]} 
+                                  label={{ 
+                                    value: 'Rating Scale', 
+                                    position: 'bottom', 
+                                    offset: 0,
+                                    style: { textAnchor: 'middle' }
+                                  }}
+                                />
+                                <YAxis 
+                                  dataKey="name" 
+                                  type="category" 
+                                  width={150}
+                                  tick={{ fontSize: 13 }}
+                                />
+                                <Tooltip
+                                  formatter={(value, name) => {
+                                    if (name === 'count') return [`${value} times`, 'Usage'];
+                                    if (name === 'effectiveness') return [`${value}/10`, 'Effectiveness'];
+                                    return [value, name];
+                                  }}
+                                  cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
+                                />
+                                <Legend verticalAlign="top" height={36} />
+                                <Bar 
+                                  dataKey="effectiveness" 
+                                  name="Effectiveness Rating" 
+                                  fill="#82ca9d"
+                                  radius={[0, 4, 4, 0]}
+                                  barSize={30}
+                                />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                          
+                          {/* Usage frequency chart */}
+                          <div className="h-80 mt-8"> 
+                            <h3 className="text-sm font-medium mb-1">Coping Strategies Usage Frequency</h3>
+                            <p className="text-xs text-muted-foreground mb-3">
+                              This chart shows how frequently you've used each coping strategy.
+                            </p>
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart
+                                data={copingStrategiesData.slice(0, 5)} // Limit to top 5 for better readability
+                                margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
+                                layout="vertical"
+                              >
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+                                <XAxis 
+                                  type="number"
+                                  label={{ 
+                                    value: 'Number of Uses', 
+                                    position: 'bottom', 
+                                    offset: 0,
+                                    style: { textAnchor: 'middle' }
+                                  }}
+                                />
+                                <YAxis 
+                                  dataKey="name" 
+                                  type="category" 
+                                  width={150}
+                                  tick={{ fontSize: 13 }}
+                                />
+                                <Tooltip
+                                  formatter={(value, name) => {
+                                    if (name === 'count') return [`${value} times`, 'Usage'];
+                                    return [value, name];
+                                  }}
+                                  cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
+                                />
+                                <Legend verticalAlign="top" height={36} />
+                                <Bar 
+                                  dataKey="count"
+                                  name="Usage Count"
+                                  barSize={30}
+                                  radius={[0, 4, 4, 0]}
+                                >
+                                  {copingStrategiesData.slice(0, 5).map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                  ))}
+                                </Bar>
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      </TabsContent>
+                      
+                      {/* Protective Factors Tab */}
+                      <TabsContent value="factors" className="space-y-4">
+                        <div className="flex flex-col">
+                          <h3 className="text-sm font-medium">Protective Factors Effectiveness</h3>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            This chart shows your most frequently utilized protective factors and their effectiveness ratings.
+                          </p>
+                          
+                          {/* Modern styled chart with cleaner layout */}
+                          <div className="h-80"> 
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart
+                                data={protectiveFactorsData.slice(0, 5)} // Limit to top 5 for better readability
+                                margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
+                                layout="vertical"
+                              >
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+                                <XAxis 
+                                  type="number" 
+                                  domain={[0, 10]} 
+                                  label={{ 
+                                    value: 'Rating Scale', 
+                                    position: 'bottom', 
+                                    offset: 0,
+                                    style: { textAnchor: 'middle' }
+                                  }}
+                                />
+                                <YAxis 
+                                  dataKey="name" 
+                                  type="category" 
+                                  width={150}
+                                  tick={{ fontSize: 13 }}
+                                />
+                                <Tooltip
+                                  formatter={(value, name) => {
+                                    if (name === 'count') return [`${value} times`, 'Usage'];
+                                    if (name === 'effectiveness') return [`${value}/10`, 'Effectiveness'];
+                                    return [value, name];
+                                  }}
+                                  cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
+                                />
+                                <Legend verticalAlign="top" height={36} />
+                                <Bar 
+                                  dataKey="effectiveness" 
+                                  name="Effectiveness Rating" 
+                                  fill="#82ca9d"
+                                  radius={[0, 4, 4, 0]}
+                                  barSize={30}
+                                />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                          
+                          {/* Usage frequency chart */}
+                          <div className="h-80 mt-8"> 
+                            <h3 className="text-sm font-medium mb-1">Protective Factors Usage Frequency</h3>
+                            <p className="text-xs text-muted-foreground mb-3">
+                              This chart shows how frequently you've used each protective factor.
+                            </p>
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart
+                                data={protectiveFactorsData.slice(0, 5)} // Limit to top 5 for better readability
+                                margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
+                                layout="vertical"
+                              >
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+                                <XAxis 
+                                  type="number"
+                                  label={{ 
+                                    value: 'Number of Uses', 
+                                    position: 'bottom', 
+                                    offset: 0,
+                                    style: { textAnchor: 'middle' }
+                                  }}
+                                />
+                                <YAxis 
+                                  dataKey="name" 
+                                  type="category" 
+                                  width={150}
+                                  tick={{ fontSize: 13 }}
+                                />
+                                <Tooltip
+                                  formatter={(value, name) => {
+                                    if (name === 'count') return [`${value} times`, 'Usage'];
+                                    return [value, name];
+                                  }}
+                                  cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
+                                />
+                                <Legend verticalAlign="top" height={36} />
+                                <Bar 
+                                  dataKey="count"
+                                  name="Usage Count"
+                                  barSize={30}
+                                  radius={[0, 4, 4, 0]}
+                                >
+                                  {protectiveFactorsData.slice(0, 5).map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                  ))}
+                                </Bar>
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
                     
                     <div className="mt-6">
                       <h4 className="text-sm font-medium mb-2">Strategy Insights:</h4>
