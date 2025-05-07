@@ -561,7 +561,10 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
           <FormItem>
             <FormLabel>What thoughts are going through your mind?</FormLabel>
             <FormDescription>
-              Write down any automatic thoughts that came up when you experienced {emotion.primaryEmotion} ({emotion.tertiaryEmotion}).
+              Write down any automatic thoughts that came up when you experienced {emotion.tertiaryEmotion ? 
+                `${emotion.primaryEmotion || emotion.coreEmotion || "this emotion"} (${emotion.tertiaryEmotion})` : 
+                (emotion.primaryEmotion || emotion.coreEmotion || "this emotion")
+              }.
             </FormDescription>
             <FormControl>
               <Textarea
@@ -1139,14 +1142,11 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
           <DialogTitle className="text-2xl flex items-center">
             <div 
               className="w-3 h-3 rounded-full mr-2"
-              style={{ backgroundColor: getEmotionColor(emotion.primaryEmotion || emotion.coreEmotion) }}
+              style={{ backgroundColor: getEmotionColor(emotion.primaryEmotion || emotion.coreEmotion || "") }}
             ></div>
-            Reflect on {emotion.primaryEmotion ? 
-              (emotion.tertiaryEmotion ? 
-                `${emotion.primaryEmotion} (${emotion.tertiaryEmotion})` : 
-                emotion.primaryEmotion
-              ) : 
-              emotion.coreEmotion
+            Reflect on {emotion.tertiaryEmotion ? 
+              `${emotion.primaryEmotion || emotion.coreEmotion || "Emotion"} (${emotion.tertiaryEmotion})` : 
+              (emotion.primaryEmotion || emotion.coreEmotion || "Emotion")
             }
           </DialogTitle>
           <div className="text-sm text-neutral-500 mt-1">
