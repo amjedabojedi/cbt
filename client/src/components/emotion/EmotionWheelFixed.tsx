@@ -954,12 +954,30 @@ export default function EmotionWheel({
     setSelectedCore(emotionName);
     setSelectedPrimary(null);
     setSelectedTertiary(null);
+    
+    // New: Allow selection from core level
+    if (onEmotionSelect) {
+      onEmotionSelect({
+        coreEmotion: emotionName,
+        primaryEmotion: "",
+        tertiaryEmotion: "",
+      });
+    }
   };
 
   // Handle selection of primary emotion
   const handlePrimarySelect = (emotionName: string) => {
     setSelectedPrimary(emotionName);
     setSelectedTertiary(null);
+    
+    // New: Allow selection from primary level
+    if (selectedCore && onEmotionSelect) {
+      onEmotionSelect({
+        coreEmotion: selectedCore,
+        primaryEmotion: emotionName,
+        tertiaryEmotion: "",
+      });
+    }
   };
 
   // Handle selection of tertiary emotion

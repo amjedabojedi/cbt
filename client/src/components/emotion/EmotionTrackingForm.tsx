@@ -58,8 +58,8 @@ import ReflectionWizard from "../reflection/ReflectionWizard";
 // Define schema for the form
 const formSchema = z.object({
   coreEmotion: z.string().min(1, "Core emotion is required"),
-  primaryEmotion: z.string().min(1, "Primary emotion is required"),
-  tertiaryEmotion: z.string().min(1, "Tertiary emotion is required"),
+  primaryEmotion: z.string().optional(),
+  tertiaryEmotion: z.string().optional(),
   intensity: z.number().min(1).max(10),
   situation: z.string().min(3, "Please describe the situation"),
   location: z.string().optional(),
@@ -133,7 +133,7 @@ export default function EmotionTrackingForm({
     form.setValue("tertiaryEmotion", selection.tertiaryEmotion);
     
     // Force form validation update to make the button enabled immediately
-    form.trigger("tertiaryEmotion");
+    form.trigger("coreEmotion");
   };
   
   // Handle current time checkbox change
@@ -424,23 +424,23 @@ export default function EmotionTrackingForm({
               onEmotionSelect={handleEmotionSelect} 
             />
             
-            {!form.getValues("tertiaryEmotion") && (
+            {!form.getValues("coreEmotion") && (
               <div className="text-sm text-amber-600 mt-2">
                 Please select an emotion from the wheel above
               </div>
             )}
             
-            {form.getValues("tertiaryEmotion") && (
+            {form.getValues("coreEmotion") && (
               <div className="mt-3 p-3 bg-blue-50 rounded-md">
                 <TooltipProvider>
                   <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-medium">Your Selected Emotion Path:</h4>
+                    <h4 className="text-sm font-medium">Your Selected Emotion:</h4>
                     <Tooltip>
                       <TooltipTrigger>
                         <InfoIcon className="h-4 w-4 text-blue-500" />
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs">
-                        <p>Moving from general to specific emotion categories helps you pinpoint your exact feeling state.</p>
+                        <p>You can select emotions from any level - core emotions (inner ring), primary emotions (middle ring), or tertiary emotions (outer ring).</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
@@ -448,14 +448,24 @@ export default function EmotionTrackingForm({
                     <span className={`px-2 py-1 rounded text-sm font-medium bg-opacity-20 ${getEmotionColor(form.getValues("coreEmotion"))}`}>
                       {form.getValues("coreEmotion")}
                     </span>
-                    <span className="mx-2 text-gray-400">→</span>
-                    <span className={`px-2 py-1 rounded text-sm font-medium bg-opacity-30 ${getEmotionColor(form.getValues("coreEmotion"))}`}>
-                      {form.getValues("primaryEmotion")}
-                    </span>
-                    <span className="mx-2 text-gray-400">→</span>
-                    <span className={`px-2 py-1 rounded text-sm font-medium bg-opacity-40 ${getEmotionColor(form.getValues("coreEmotion"))}`}>
-                      {form.getValues("tertiaryEmotion")}
-                    </span>
+                    
+                    {form.getValues("primaryEmotion") && (
+                      <>
+                        <span className="mx-2 text-gray-400">→</span>
+                        <span className={`px-2 py-1 rounded text-sm font-medium bg-opacity-30 ${getEmotionColor(form.getValues("coreEmotion"))}`}>
+                          {form.getValues("primaryEmotion")}
+                        </span>
+                      </>
+                    )}
+                    
+                    {form.getValues("tertiaryEmotion") && (
+                      <>
+                        <span className="mx-2 text-gray-400">→</span>
+                        <span className={`px-2 py-1 rounded text-sm font-medium bg-opacity-40 ${getEmotionColor(form.getValues("coreEmotion"))}`}>
+                          {form.getValues("tertiaryEmotion")}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </TooltipProvider>
               </div>
@@ -614,16 +624,16 @@ export default function EmotionTrackingForm({
           <div className="flex justify-end">
             <Button 
               type="submit" 
-              disabled={!form.getValues("tertiaryEmotion")}
-              className={form.getValues("tertiaryEmotion") ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400"}
+              disabled={!form.getValues("coreEmotion")}
+              className={form.getValues("coreEmotion") ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400"}
             >
-              {form.getValues("tertiaryEmotion") ? "Record Emotion" : "Select an Emotion First"}
+              {form.getValues("coreEmotion") ? "Record Emotion" : "Select an Emotion First"}
             </Button>
           </div>
           
           {/* Debug info - remove in production */}
           <div className="text-xs text-gray-400 mt-2">
-            Tertiary emotion value: "{form.getValues("tertiaryEmotion")}"
+            Selected emotion: {form.getValues("coreEmotion") ? `${form.getValues("coreEmotion")}${form.getValues("primaryEmotion") ? ` → ${form.getValues("primaryEmotion")}` : ''}${form.getValues("tertiaryEmotion") ? ` → ${form.getValues("tertiaryEmotion")}` : ''}` : "None"}
           </div>
         </form>
       </Form>
