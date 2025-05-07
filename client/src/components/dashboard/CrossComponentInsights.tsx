@@ -932,7 +932,7 @@ export default function CrossComponentInsights() {
                             <ResponsiveContainer width="100%" height="100%">
                               <BarChart
                                 data={copingStrategiesData.slice(0, 5)} // Limit to top 5 for better readability
-                                margin={{ top: 20, right: 60, left: 30, bottom: 40 }}
+                                margin={{ top: 20, right: 50, left: 30, bottom: 50 }}
                                 layout="vertical"
                               >
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
@@ -943,8 +943,8 @@ export default function CrossComponentInsights() {
                                   label={{ 
                                     value: 'Usage Count', 
                                     position: 'bottom', 
-                                    offset: 0,
-                                    style: { textAnchor: 'middle' }
+                                    offset: 15,
+                                    style: { textAnchor: 'middle', fill: '#5a61d6', fontWeight: 'bold' }
                                   }}
                                 />
                                 <XAxis 
@@ -955,8 +955,8 @@ export default function CrossComponentInsights() {
                                   label={{ 
                                     value: 'Effectiveness (1-10)', 
                                     position: 'top', 
-                                    offset: 0,
-                                    style: { textAnchor: 'middle' }
+                                    offset: 15,
+                                    style: { textAnchor: 'middle', fill: '#22c55e', fontWeight: 'bold' }
                                   }}
                                 />
                                 <YAxis 
@@ -967,42 +967,43 @@ export default function CrossComponentInsights() {
                                 />
                                 <Tooltip
                                   formatter={(value, name) => {
-                                    if (name === 'count') return [`${value} times`, 'Usage'];
-                                    if (name === 'effectiveness') return [`${value}/10`, 'Effectiveness'];
+                                    if (name === 'Usage Count') return [`${value} times`, 'Usage'];
+                                    if (name === 'Effectiveness Rating') return [`${value}/10`, 'Effectiveness'];
                                     return [value, name];
                                   }}
                                   cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
                                 />
-                                <Legend verticalAlign="bottom" height={40} />
+                                <Legend 
+                                  verticalAlign="bottom" 
+                                  height={36} 
+                                  layout="horizontal"
+                                  wrapperStyle={{ paddingTop: "20px" }}
+                                />
                                 <Bar 
                                   dataKey="count"
                                   name="Usage Count"
                                   xAxisId="count"
-                                  barSize={30}
+                                  barSize={20}
                                   radius={[0, 4, 4, 0]}
-                                  fill="#8884d8"
-                                >
-                                  {copingStrategiesData.slice(0, 5).map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                                  ))}
-                                </Bar>
+                                  fill="#5a61d6"
+                                />
                                 <Bar 
                                   dataKey="effectiveness" 
                                   name="Effectiveness Rating" 
                                   xAxisId="effectiveness"
-                                  fill="#82ca9d"
+                                  fill="#22c55e"
                                   radius={[0, 4, 4, 0]}
-                                  barSize={30}
+                                  barSize={20}
                                 />
                                 <ReferenceLine 
                                   x={5} 
                                   xAxisId="effectiveness" 
-                                  stroke="#d3d3d3" 
+                                  stroke="#ff7777" 
                                   strokeDasharray="3 3" 
                                   label={{ 
                                     value: 'Average', 
                                     position: 'insideTopRight',
-                                    style: { fill: '#888', fontSize: 12 } 
+                                    style: { fill: '#666', fontSize: 12, fontWeight: 'bold' } 
                                   }} 
                                 />
                               </BarChart>
@@ -1049,7 +1050,7 @@ export default function CrossComponentInsights() {
                             <ResponsiveContainer width="100%" height="100%">
                               <BarChart
                                 data={protectiveFactorsData.slice(0, 5)} // Limit to top 5 for better readability
-                                margin={{ top: 20, right: 60, left: 30, bottom: 40 }}
+                                margin={{ top: 20, right: 50, left: 30, bottom: 50 }}
                                 layout="vertical"
                               >
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
@@ -1060,8 +1061,8 @@ export default function CrossComponentInsights() {
                                   label={{ 
                                     value: 'Usage Count', 
                                     position: 'bottom', 
-                                    offset: 0,
-                                    style: { textAnchor: 'middle' }
+                                    offset: 15,
+                                    style: { textAnchor: 'middle', fill: '#5a61d6', fontWeight: 'bold' }
                                   }}
                                 />
                                 <XAxis 
@@ -1072,8 +1073,8 @@ export default function CrossComponentInsights() {
                                   label={{ 
                                     value: 'Effectiveness (1-10)', 
                                     position: 'top', 
-                                    offset: 0,
-                                    style: { textAnchor: 'middle' }
+                                    offset: 15,
+                                    style: { textAnchor: 'middle', fill: '#22c55e', fontWeight: 'bold' }
                                   }}
                                 />
                                 <YAxis 
@@ -1084,42 +1085,43 @@ export default function CrossComponentInsights() {
                                 />
                                 <Tooltip
                                   formatter={(value, name) => {
-                                    if (name === 'count') return [`${value} times`, 'Usage'];
-                                    if (name === 'effectiveness') return [`${value}/10`, 'Effectiveness'];
+                                    if (name === 'Usage Count') return [`${value} times`, 'Usage'];
+                                    if (name === 'Effectiveness Rating') return [`${value}/10`, 'Effectiveness'];
                                     return [value, name];
                                   }}
                                   cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
                                 />
-                                <Legend verticalAlign="bottom" height={40} />
+                                <Legend 
+                                  verticalAlign="bottom" 
+                                  height={36} 
+                                  layout="horizontal"
+                                  wrapperStyle={{ paddingTop: "20px" }}
+                                />
                                 <Bar 
                                   dataKey="count"
                                   name="Usage Count"
                                   xAxisId="count"
-                                  barSize={30}
+                                  barSize={20}
                                   radius={[0, 4, 4, 0]}
-                                  fill="#8884d8"
-                                >
-                                  {protectiveFactorsData.slice(0, 5).map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                                  ))}
-                                </Bar>
+                                  fill="#5a61d6"
+                                />
                                 <Bar 
                                   dataKey="effectiveness" 
                                   name="Effectiveness Rating" 
                                   xAxisId="effectiveness"
-                                  fill="#82ca9d"
+                                  fill="#22c55e"
                                   radius={[0, 4, 4, 0]}
-                                  barSize={30}
+                                  barSize={20}
                                 />
                                 <ReferenceLine 
                                   x={5} 
                                   xAxisId="effectiveness" 
-                                  stroke="#d3d3d3" 
+                                  stroke="#ff7777" 
                                   strokeDasharray="3 3" 
                                   label={{ 
                                     value: 'Average', 
                                     position: 'insideTopRight',
-                                    style: { fill: '#888', fontSize: 12 } 
+                                    style: { fill: '#666', fontSize: 12, fontWeight: 'bold' } 
                                   }} 
                                 />
                               </BarChart>
