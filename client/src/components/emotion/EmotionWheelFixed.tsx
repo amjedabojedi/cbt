@@ -1127,13 +1127,17 @@ export default function EmotionWheel({
       </motion.div>
       
       <div className="mt-6 text-center text-sm text-gray-500">
-        {selectedTertiary ? (
+        {selectedCore ? (
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="py-2 px-4 bg-indigo-50 inline-block rounded-full"
           >
-            {translate("You selected")}: <span className="font-semibold text-indigo-700">{translate(selectedTertiary)}</span>
+            {translate("You selected")}: <span className="font-semibold text-indigo-700">
+              {selectedTertiary ? translate(selectedTertiary) : 
+               selectedPrimary ? translate(selectedPrimary) : 
+               translate(selectedCore)}
+            </span>
           </motion.p>
         ) : (
           <p>{translate("Click on the wheel to select your emotion")}</p>
