@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { pool } from "./db";
 import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission } from "./middleware/auth";
 import { z } from "zod";
 import * as bcrypt from "bcrypt";
@@ -45,7 +46,6 @@ import { sendClientInvitation } from "./services/email";
 import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
 import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
 import { registerIntegrationRoutes } from "./services/integrationRoutes";
-import { db, pool } from "./db";
 import { eq, or, isNull, desc, and, inArray, sql } from "drizzle-orm";
 
 // Initialize Stripe
@@ -1662,6 +1662,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get protective factor usage with effectiveness ratings for a user
+  app.get("/api/users/:userId/protective-factor-usage", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Query the database to get all protective factor usage with effectiveness ratings
+      const query = `
+        SELECT 
+          pf.id, 
+          pf.name, 
+          pfu.effectiveness_rating as effectiveness
+        FROM protective_factors pf
+        JOIN protective_factor_usage pfu ON pf.id = pfu.protective_factor_id
+        JOIN thought_records tr ON pfu.thought_record_id = tr.id
+        WHERE tr.user_id = $1
+      `;
+      
+      const result = await pool.query(query, [userId]);
+      res.status(200).json(result.rows);
+    } catch (error) {
+      console.error("Get protective factor usage error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   app.put("/api/users/:userId/protective-factors/:factorId", authenticate, checkUserAccess, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
@@ -1782,6 +1807,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json(strategies);
     } catch (error) {
       console.error("Get coping strategies error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Get coping strategy usage with effectiveness ratings for a user
+  app.get("/api/users/:userId/coping-strategy-usage", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Query the database to get all coping strategy usage with effectiveness ratings
+      const query = `
+        SELECT 
+          cs.id, 
+          cs.name, 
+          csu.effectiveness_rating as effectiveness
+        FROM coping_strategies cs
+        JOIN coping_strategy_usage csu ON cs.id = csu.coping_strategy_id
+        JOIN thought_records tr ON csu.thought_record_id = tr.id
+        WHERE tr.user_id = $1
+      `;
+      
+      const result = await pool.query(query, [userId]);
+      res.status(200).json(result.rows);
+    } catch (error) {
+      console.error("Get coping strategy usage error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
