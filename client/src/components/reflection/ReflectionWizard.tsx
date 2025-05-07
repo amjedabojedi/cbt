@@ -197,6 +197,10 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   const [newProtectiveFactor, setNewProtectiveFactor] = useState("");
   const [newCopingStrategy, setNewCopingStrategy] = useState("");
   
+  // Effectiveness ratings state
+  const [protectiveFactorRatings, setProtectiveFactorRatings] = useState<Record<number, number>>({});
+  const [copingStrategyRatings, setCopingStrategyRatings] = useState<Record<number, number>>({});
+  
   // Data state
   const [protectiveFactors, setProtectiveFactors] = useState<Array<{id: number, name: string}>>([]);
   const [copingStrategies, setCopingStrategies] = useState<Array<{id: number, name: string}>>([]);
@@ -319,20 +323,48 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   
   // Handler for toggling protective factors
   const toggleProtectiveFactor = (id: number) => {
-    setSelectedProtectiveFactors(prev => 
-      prev.includes(id) 
-        ? prev.filter(itemId => itemId !== id) 
-        : [...prev, id]
-    );
+    if (selectedProtectiveFactors.includes(id)) {
+      // Remove from selected list
+      setSelectedProtectiveFactors(prev => prev.filter(itemId => itemId !== id));
+      // Remove rating
+      setProtectiveFactorRatings(prev => {
+        const newRatings = {...prev};
+        delete newRatings[id];
+        return newRatings;
+      });
+    } else {
+      // Add to selected list with default rating of 5
+      setSelectedProtectiveFactors(prev => [...prev, id]);
+      setProtectiveFactorRatings(prev => ({...prev, [id]: 5}));
+    }
   };
   
   // Handler for toggling coping strategies
   const toggleCopingStrategy = (id: number) => {
-    setSelectedCopingStrategies(prev => 
-      prev.includes(id) 
-        ? prev.filter(itemId => itemId !== id) 
-        : [...prev, id]
-    );
+    if (selectedCopingStrategies.includes(id)) {
+      // Remove from selected list
+      setSelectedCopingStrategies(prev => prev.filter(itemId => itemId !== id));
+      // Remove rating
+      setCopingStrategyRatings(prev => {
+        const newRatings = {...prev};
+        delete newRatings[id];
+        return newRatings;
+      });
+    } else {
+      // Add to selected list with default rating of 5
+      setSelectedCopingStrategies(prev => [...prev, id]);
+      setCopingStrategyRatings(prev => ({...prev, [id]: 5}));
+    }
+  };
+  
+  // Handler for updating protective factor effectiveness ratings
+  const updateProtectiveFactorRating = (id: number, rating: number) => {
+    setProtectiveFactorRatings(prev => ({...prev, [id]: rating}));
+  };
+  
+  // Handler for updating coping strategy effectiveness ratings
+  const updateCopingStrategyRating = (id: number, rating: number) => {
+    setCopingStrategyRatings(prev => ({...prev, [id]: rating}));
   };
   
   // Handler for adding new protective factor
@@ -492,6 +524,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
               userId: user.id,
               thoughtRecordId: thoughtRecord.id,
               protectiveFactorId: factorId,
+              effectivenessRating: protectiveFactorRatings[factorId] || 5, // Include the effectiveness rating
             }
           )
         ));
@@ -507,6 +540,7 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
               userId: user.id,
               thoughtRecordId: thoughtRecord.id,
               copingStrategyId: strategyId,
+              effectivenessRating: copingStrategyRatings[strategyId] || 5, // Include the effectiveness rating
             }
           )
         ));
