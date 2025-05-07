@@ -22,7 +22,8 @@ import {
   Scatter,
   ScatterChart,
   ZAxis,
-  ReferenceLine
+  ReferenceLine,
+  ComposedChart
 } from 'recharts';
 import { Separator } from '@/components/ui/separator';
 import useActiveUser from '@/hooks/use-active-user';
@@ -1046,35 +1047,21 @@ export default function CrossComponentInsights() {
                           </p>
                           
                           {/* Combined chart showing both usage and effectiveness */}
-                          <div className="h-96"> 
+                          <div className="h-96">
                             <ResponsiveContainer width="100%" height="100%">
-                              <BarChart
+                              <ComposedChart
                                 data={protectiveFactorsData.slice(0, 5)} // Limit to top 5 for better readability
                                 margin={{ top: 20, right: 50, left: 30, bottom: 50 }}
                                 layout="vertical"
                               >
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={true} />
                                 <XAxis 
-                                  type="number" 
-                                  orientation="bottom"
-                                  xAxisId="count"
+                                  type="number"
                                   label={{ 
-                                    value: 'Usage Count', 
+                                    value: 'Usage Count & Effectiveness', 
                                     position: 'bottom', 
                                     offset: 15,
-                                    style: { textAnchor: 'middle', fill: '#5a61d6', fontWeight: 'bold' }
-                                  }}
-                                />
-                                <XAxis 
-                                  type="number" 
-                                  orientation="top"
-                                  xAxisId="effectiveness"
-                                  domain={[0, 10]}
-                                  label={{ 
-                                    value: 'Effectiveness (1-10)', 
-                                    position: 'top', 
-                                    offset: 15,
-                                    style: { textAnchor: 'middle', fill: '#22c55e', fontWeight: 'bold' }
+                                    style: { textAnchor: 'middle', fontWeight: 'bold' }
                                   }}
                                 />
                                 <YAxis 
@@ -1086,45 +1073,42 @@ export default function CrossComponentInsights() {
                                 <Tooltip
                                   formatter={(value, name) => {
                                     if (name === 'Usage Count') return [`${value} times`, 'Usage'];
-                                    if (name === 'Effectiveness Rating') return [`${value}/10`, 'Effectiveness'];
+                                    if (name === 'Effectiveness') return [`${value}/10`, 'Effectiveness'];
                                     return [value, name];
                                   }}
-                                  cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
                                 />
                                 <Legend 
                                   verticalAlign="bottom" 
                                   height={36} 
-                                  layout="horizontal"
                                   wrapperStyle={{ paddingTop: "20px" }}
                                 />
                                 <Bar 
                                   dataKey="count"
                                   name="Usage Count"
-                                  xAxisId="count"
                                   barSize={20}
-                                  radius={[0, 4, 4, 0]}
                                   fill="#5a61d6"
                                 />
-                                <Bar 
-                                  dataKey="effectiveness" 
-                                  name="Effectiveness Rating" 
-                                  xAxisId="effectiveness"
-                                  fill="#22c55e"
-                                  radius={[0, 4, 4, 0]}
-                                  barSize={20}
+                                <Line
+                                  type="monotone"
+                                  dataKey="effectiveness"
+                                  name="Effectiveness"
+                                  stroke="#22c55e"
+                                  strokeWidth={3}
+                                  dot={{ fill: '#22c55e', strokeWidth: 2, r: 6 }}
+                                  activeDot={{ r: 8 }}
                                 />
                                 <ReferenceLine 
-                                  x={5} 
-                                  xAxisId="effectiveness" 
+                                  y={5} 
+                                  strokeWidth={2}
                                   stroke="#ff7777" 
                                   strokeDasharray="3 3" 
                                   label={{ 
-                                    value: 'Average', 
-                                    position: 'insideTopRight',
+                                    value: 'Average (5/10)', 
+                                    position: 'right',
                                     style: { fill: '#666', fontSize: 12, fontWeight: 'bold' } 
                                   }} 
                                 />
-                              </BarChart>
+                              </ComposedChart>
                             </ResponsiveContainer>
                           </div>
                           
