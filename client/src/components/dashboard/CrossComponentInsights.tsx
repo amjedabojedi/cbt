@@ -630,8 +630,8 @@ export default function CrossComponentInsights() {
   
   // Helper function to generate consistent colors based on string
   const getRandomColor = (name: string) => {
-    // Use our centralized color generation utility
-    return stringToColor(name);
+    // Return fixed blue color instead of random colors
+    return '#5a61d6';
   };
   
   // Prepare data for protective factors chart
