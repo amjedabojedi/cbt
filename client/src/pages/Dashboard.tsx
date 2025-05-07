@@ -8,6 +8,7 @@ import ReflectionTrends from "@/components/dashboard/ReflectionTrends";
 import ReflectionInsights from "@/components/dashboard/ReflectionInsights";
 import CrossComponentInsights from "@/components/dashboard/CrossComponentInsights";
 import TherapistStats from "@/components/dashboard/TherapistStats";
+import TestEndpoints from "@/components/dashboard/TestEndpoints";
 import useActiveUser from "@/hooks/use-active-user";
 import { useClientContext } from "@/context/ClientContext";
 import { ClientDebug } from "@/components/debug/ClientDebug";
@@ -102,6 +103,11 @@ export default function Dashboard() {
             <CrossComponentInsights />
           </div>
         )}
+        
+        {/* Temporary test component to verify API data */}
+        <div className="mb-6">
+          <TestEndpoints />
+        </div>
       </div>
     </AppLayout>
   );
