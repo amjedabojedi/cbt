@@ -252,8 +252,8 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                         {formatDate(emotion.timestamp)}
                       </TableCell>
                       <TableCell>
-                        <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(emotion.tertiaryEmotion)}`}>
-                          {emotion.tertiaryEmotion}
+                        <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion)}`}>
+                          {emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion}
                         </span>
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-sm">
@@ -322,8 +322,8 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                 <div>
                   <h4 className="text-sm font-medium text-neutral-500">Emotion</h4>
                   <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(selectedEmotion.tertiaryEmotion)}`}>
-                      {selectedEmotion.tertiaryEmotion}
+                    <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(selectedEmotion.tertiaryEmotion || selectedEmotion.primaryEmotion || selectedEmotion.coreEmotion)}`}>
+                      {selectedEmotion.tertiaryEmotion || selectedEmotion.primaryEmotion || selectedEmotion.coreEmotion}
                     </span>
                     <span className="text-sm text-neutral-500">
                       ({selectedEmotion.intensity}/10)
@@ -398,8 +398,8 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                       {formatDate(emotion.timestamp)}
                     </TableCell>
                     <TableCell>
-                      <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(emotion.tertiaryEmotion)}`}>
-                        {emotion.tertiaryEmotion}
+                      <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion)}`}>
+                        {emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion}
                       </span>
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-sm">
