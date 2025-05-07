@@ -41,7 +41,7 @@ export default function TherapistStats() {
   // Client count by activity status
   const clientStats = {
     total: clients?.length || 0,
-    active: clients?.filter(c => true).length || 0, // All clients are considered active for now
+    active: clients?.filter(c => c.status === "active").length || 0,
     new: clients?.filter(c => {
       // Consider clients registered in the last 14 days as "new"
       if (!c.createdAt) return false;
@@ -124,11 +124,13 @@ export default function TherapistStats() {
               ) : clients && clients.length > 0 ? (
                 <div className="space-y-2">
                   <ActivityItem 
-                    title="Your Clients"
-                    items={clients.map(client => ({ 
-                      label: client.name || client.username, 
-                      value: "" 
-                    })).slice(0, 5)}
+                    title="Your Active Clients"
+                    items={clients
+                      .filter(client => client.status === "active")
+                      .map(client => ({ 
+                        label: client.name || client.username, 
+                        value: "" 
+                      })).slice(0, 5)}
                     icon={<ListChecks className="h-5 w-5 text-blue-500" />}
                     isLoading={isLoadingClients}
                   />
