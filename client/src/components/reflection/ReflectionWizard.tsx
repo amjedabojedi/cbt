@@ -787,86 +787,120 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
           </Button>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {protectiveFactors.map((factor) => (
-            <div 
-              key={factor.id}
-              className={`px-3 py-2 text-sm border rounded-full cursor-pointer transition-colors ${
-                selectedProtectiveFactors.includes(factor.id)
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white text-neutral-700 border-neutral-300 hover:border-primary"
-              }`}
-              onClick={() => toggleProtectiveFactor(factor.id)}
-            >
-              {factor.name}
-            </div>
-          ))}
+        <div className="flex flex-col gap-3">
+          {/* Factors selection */}
+          <div className="flex flex-wrap gap-2">
+            {protectiveFactors.map((factor) => (
+              <div 
+                key={factor.id}
+                className={`px-3 py-2 text-sm border rounded-full cursor-pointer transition-colors ${
+                  selectedProtectiveFactors.includes(factor.id)
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white text-neutral-700 border-neutral-300 hover:border-primary"
+                }`}
+                onClick={() => toggleProtectiveFactor(factor.id)}
+              >
+                {factor.name}
+              </div>
+            ))}
+            
+            {showAddProtectiveFactorForm ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  className="w-48"
+                  placeholder="Enter new factor..."
+                  value={newProtectiveFactor}
+                  onChange={(e) => setNewProtectiveFactor(e.target.value)}
+                />
+                <Button 
+                  size="sm" 
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAddProtectiveFactor();
+                  }}
+                  disabled={!newProtectiveFactor.trim()}
+                >
+                  Add
+                </Button>
+                <Button 
+                  size="sm" 
+                  type="button"
+                  variant="outline" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowAddProtectiveFactorForm(false);
+                    setNewProtectiveFactor("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <div 
+                className="px-3 py-2 text-sm border border-dashed border-neutral-400 rounded-full cursor-pointer hover:border-primary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowAddProtectiveFactorForm(true);
+                }}
+              >
+                + Add New
+              </div>
+            )}
+          </div>
           
-          {showAddProtectiveFactorForm ? (
-            <div className="flex items-center gap-2">
-              <Input
-                className="w-48"
-                placeholder="Enter new factor..."
-                value={newProtectiveFactor}
-                onChange={(e) => setNewProtectiveFactor(e.target.value)}
-              />
-              <Button 
-                size="sm" 
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleAddProtectiveFactor();
-                }}
-                disabled={!newProtectiveFactor.trim()}
-              >
-                Add
-              </Button>
-              <Button 
-                size="sm" 
-                type="button"
-                variant="outline" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setShowAddProtectiveFactorForm(false);
-                  setNewProtectiveFactor("");
-                }}
-              >
-                Cancel
-              </Button>
+          {/* Effectiveness ratings for selected factors */}
+          {selectedProtectiveFactors.length > 0 && (
+            <div className="space-y-3 mt-2 p-3 border rounded-md bg-muted/20">
+              <h5 className="text-sm font-medium">Rate how effective each protective factor is (1-10):</h5>
+              
+              <div className="space-y-3">
+                {selectedProtectiveFactors.map(factorId => {
+                  const factor = protectiveFactors.find(f => f.id === factorId);
+                  if (!factor) return null;
+                  
+                  return (
+                    <div key={`rating-${factorId}`} className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">{factor.name}</span>
+                        <span className="text-sm">{protectiveFactorRatings[factorId] || 5}/10</span>
+                      </div>
+                      <Slider
+                        value={[protectiveFactorRatings[factorId] || 5]}
+                        min={1}
+                        max={10}
+                        step={1}
+                        onValueChange={(values) => updateProtectiveFactorRating(factorId, values[0])}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          ) : (
-            <div 
-              className="px-3 py-2 text-sm border border-dashed border-neutral-400 rounded-full cursor-pointer hover:border-primary"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowAddProtectiveFactorForm(true);
-              }}
-            >
-              + Add New
+          )}
+          
+          {/* Information about protective factors */}
+          {selectedProtectiveFactors.length > 0 && (
+            <div className="mt-2 p-3 bg-muted/40 rounded-lg text-sm">
+              <h5 className="font-medium mb-1">Why protective factors matter:</h5>
+              <p>Identifying and using your protective factors can build resilience and help you handle difficult situations more effectively.</p>
+              <div className="mt-2 grid grid-cols-1 gap-2">
+                <div className="bg-background p-2 rounded-md">
+                  <span className="font-medium">Examples of protective factors:</span>
+                  <ul className="list-disc pl-5 mt-1 space-y-1">
+                    <li>Social support - Friends, family, community connections</li>
+                    <li>Personal skills - Problem-solving abilities, emotional awareness</li>
+                    <li>Resources - Access to healthcare, stable housing, education</li>
+                    <li>Activities - Exercise, creative outlets, spiritual practices</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           )}
         </div>
-
-        {selectedProtectiveFactors.length > 0 && (
-          <div className="mt-2 p-3 bg-muted/40 rounded-lg text-sm">
-            <h5 className="font-medium mb-1">Why protective factors matter:</h5>
-            <p>Identifying and using your protective factors can build resilience and help you handle difficult situations more effectively.</p>
-            <div className="mt-2 grid grid-cols-1 gap-2">
-              <div className="bg-background p-2 rounded-md">
-                <span className="font-medium">Examples of protective factors:</span>
-                <ul className="list-disc pl-5 mt-1 space-y-1">
-                  <li>Social support - Friends, family, community connections</li>
-                  <li>Personal skills - Problem-solving abilities, emotional awareness</li>
-                  <li>Resources - Access to healthcare, stable housing, education</li>
-                  <li>Activities - Exercise, creative outlets, spiritual practices</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -924,86 +958,120 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
           </Button>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {copingStrategies.map((strategy) => (
-            <div 
-              key={strategy.id}
-              className={`px-3 py-2 text-sm border rounded-full cursor-pointer transition-colors ${
-                selectedCopingStrategies.includes(strategy.id)
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white text-neutral-700 border-neutral-300 hover:border-primary"
-              }`}
-              onClick={() => toggleCopingStrategy(strategy.id)}
-            >
-              {strategy.name}
-            </div>
-          ))}
+        <div className="flex flex-col gap-3">
+          {/* Strategies selection */}
+          <div className="flex flex-wrap gap-2">
+            {copingStrategies.map((strategy) => (
+              <div 
+                key={strategy.id}
+                className={`px-3 py-2 text-sm border rounded-full cursor-pointer transition-colors ${
+                  selectedCopingStrategies.includes(strategy.id)
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white text-neutral-700 border-neutral-300 hover:border-primary"
+                }`}
+                onClick={() => toggleCopingStrategy(strategy.id)}
+              >
+                {strategy.name}
+              </div>
+            ))}
+            
+            {showAddCopingStrategyForm ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  className="w-48"
+                  placeholder="Enter new strategy..."
+                  value={newCopingStrategy}
+                  onChange={(e) => setNewCopingStrategy(e.target.value)}
+                />
+                <Button 
+                  size="sm" 
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAddCopingStrategy();
+                  }}
+                  disabled={!newCopingStrategy.trim()}
+                >
+                  Add
+                </Button>
+                <Button 
+                  size="sm" 
+                  type="button"
+                  variant="outline" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowAddCopingStrategyForm(false);
+                    setNewCopingStrategy("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <div 
+                className="px-3 py-2 text-sm border border-dashed border-neutral-400 rounded-full cursor-pointer hover:border-primary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowAddCopingStrategyForm(true);
+                }}
+              >
+                + Add New
+              </div>
+            )}
+          </div>
           
-          {showAddCopingStrategyForm ? (
-            <div className="flex items-center gap-2">
-              <Input
-                className="w-48"
-                placeholder="Enter new strategy..."
-                value={newCopingStrategy}
-                onChange={(e) => setNewCopingStrategy(e.target.value)}
-              />
-              <Button 
-                size="sm" 
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleAddCopingStrategy();
-                }}
-                disabled={!newCopingStrategy.trim()}
-              >
-                Add
-              </Button>
-              <Button 
-                size="sm" 
-                type="button"
-                variant="outline" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setShowAddCopingStrategyForm(false);
-                  setNewCopingStrategy("");
-                }}
-              >
-                Cancel
-              </Button>
+          {/* Effectiveness ratings for selected strategies */}
+          {selectedCopingStrategies.length > 0 && (
+            <div className="space-y-3 mt-2 p-3 border rounded-md bg-muted/20">
+              <h5 className="text-sm font-medium">Rate how effective each coping strategy is (1-10):</h5>
+              
+              <div className="space-y-3">
+                {selectedCopingStrategies.map(strategyId => {
+                  const strategy = copingStrategies.find(s => s.id === strategyId);
+                  if (!strategy) return null;
+                  
+                  return (
+                    <div key={`rating-${strategyId}`} className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">{strategy.name}</span>
+                        <span className="text-sm">{copingStrategyRatings[strategyId] || 5}/10</span>
+                      </div>
+                      <Slider
+                        value={[copingStrategyRatings[strategyId] || 5]}
+                        min={1}
+                        max={10}
+                        step={1}
+                        onValueChange={(values) => updateCopingStrategyRating(strategyId, values[0])}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          ) : (
-            <div 
-              className="px-3 py-2 text-sm border border-dashed border-neutral-400 rounded-full cursor-pointer hover:border-primary"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowAddCopingStrategyForm(true);
-              }}
-            >
-              + Add New
+          )}
+          
+          {/* Information about coping strategies */}
+          {selectedCopingStrategies.length > 0 && (
+            <div className="mt-2 p-3 bg-muted/40 rounded-lg text-sm">
+              <h5 className="font-medium mb-1">How to use coping strategies:</h5>
+              <p>Effective coping strategies can help you manage stress, regulate emotions, and solve problems more effectively.</p>
+              <div className="mt-2 grid grid-cols-1 gap-2">
+                <div className="bg-background p-2 rounded-md">
+                  <span className="font-medium">Types of coping strategies:</span>
+                  <ul className="list-disc pl-5 mt-1 space-y-1">
+                    <li><strong>Emotional coping</strong> - Managing feelings (deep breathing, mindfulness, journaling)</li>
+                    <li><strong>Problem-focused coping</strong> - Taking action (making plans, seeking information, solving problems)</li>
+                    <li><strong>Social coping</strong> - Connecting with others (talking to friends, joining support groups)</li>
+                    <li><strong>Physical coping</strong> - Taking care of your body (exercise, proper sleep, healthy eating)</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           )}
         </div>
-
-        {selectedCopingStrategies.length > 0 && (
-          <div className="mt-2 p-3 bg-muted/40 rounded-lg text-sm">
-            <h5 className="font-medium mb-1">How to use coping strategies:</h5>
-            <p>Effective coping strategies can help you manage stress, regulate emotions, and solve problems more effectively.</p>
-            <div className="mt-2 grid grid-cols-1 gap-2">
-              <div className="bg-background p-2 rounded-md">
-                <span className="font-medium">Types of coping strategies:</span>
-                <ul className="list-disc pl-5 mt-1 space-y-1">
-                  <li><strong>Emotional coping</strong> - Managing feelings (deep breathing, mindfulness, journaling)</li>
-                  <li><strong>Problem-focused coping</strong> - Taking action (making plans, seeking information, solving problems)</li>
-                  <li><strong>Social coping</strong> - Connecting with others (talking to friends, joining support groups)</li>
-                  <li><strong>Physical coping</strong> - Taking care of your body (exercise, proper sleep, healthy eating)</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
