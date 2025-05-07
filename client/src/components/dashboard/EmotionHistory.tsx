@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/hooks/use-auth";
 
 import {
   Table,
@@ -61,7 +61,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   const queryClient = useQueryClient();
   
   // Fetch emotion records for the active user (could be a client viewed by a therapist)
-  const { data: emotions, isLoading, error } = useQuery({
+  const { data: emotions, isLoading, error } = useQuery<EmotionRecord[]>({
     queryKey: activeUserId ? [`/api/users/${activeUserId}/emotions`] : [],
     enabled: !!activeUserId,
   });
