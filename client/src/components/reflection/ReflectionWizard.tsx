@@ -135,7 +135,8 @@ interface ReflectionWizardProps {
 }
 
 // Helper function to get color based on emotion
-const getEmotionColor = (emotion: string): string => {
+const getEmotionColor = (emotion?: string): string => {
+  if (!emotion) return "#cccccc"; // Default gray color if emotion is undefined/null
   const colorMap: Record<string, string> = {
     // Core emotions
     "Joy": "#F9D71C",
@@ -1138,9 +1139,15 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
           <DialogTitle className="text-2xl flex items-center">
             <div 
               className="w-3 h-3 rounded-full mr-2"
-              style={{ backgroundColor: getEmotionColor(emotion.primaryEmotion) }}
+              style={{ backgroundColor: getEmotionColor(emotion.primaryEmotion || emotion.coreEmotion) }}
             ></div>
-            Reflect on {emotion.primaryEmotion} ({emotion.tertiaryEmotion})
+            Reflect on {emotion.primaryEmotion ? 
+              (emotion.tertiaryEmotion ? 
+                `${emotion.primaryEmotion} (${emotion.tertiaryEmotion})` : 
+                emotion.primaryEmotion
+              ) : 
+              emotion.coreEmotion
+            }
           </DialogTitle>
           <div className="text-sm text-neutral-500 mt-1">
             {new Date(emotion.timestamp).toLocaleString()}
