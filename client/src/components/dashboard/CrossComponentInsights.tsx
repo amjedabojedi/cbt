@@ -540,7 +540,7 @@ export default function CrossComponentInsights() {
     }
     
     // Count occurrences of each protective factor
-    const factorCounts: Record<string, {name: string, count: number, effectiveness: number}> = {};
+    const factorCounts: Record<string, {name: string, count: number, effectiveValues: number[], effectiveness: number}> = {};
     
     protectiveFactors.forEach(factor => {
       const name = factor.name;
@@ -548,14 +548,24 @@ export default function CrossComponentInsights() {
         factorCounts[name] = { 
           name, 
           count: 0,
-          effectiveness: factor.effectiveness || 0 
+          effectiveValues: [],
+          effectiveness: 0 
         };
       }
       factorCounts[name].count += 1;
+      // Only include effectiveness ratings that are actually provided
       if (factor.effectiveness) {
-        // Average the effectiveness ratings
-        const currentTotal = factorCounts[name].effectiveness * (factorCounts[name].count - 1);
-        factorCounts[name].effectiveness = (currentTotal + factor.effectiveness) / factorCounts[name].count;
+        factorCounts[name].effectiveValues.push(factor.effectiveness);
+      }
+    });
+    
+    // Calculate average effectiveness for each factor
+    Object.keys(factorCounts).forEach(name => {
+      const values = factorCounts[name].effectiveValues;
+      if (values.length > 0) {
+        // Calculate true average from all values
+        const sum = values.reduce((acc, val) => acc + val, 0);
+        factorCounts[name].effectiveness = sum / values.length;
       }
     });
     
@@ -577,7 +587,7 @@ export default function CrossComponentInsights() {
     }
     
     // Count occurrences of each coping strategy
-    const strategyCounts: Record<string, {name: string, count: number, effectiveness: number}> = {};
+    const strategyCounts: Record<string, {name: string, count: number, effectiveValues: number[], effectiveness: number}> = {};
     
     copingStrategies.forEach(strategy => {
       const name = strategy.name;
@@ -585,14 +595,24 @@ export default function CrossComponentInsights() {
         strategyCounts[name] = { 
           name, 
           count: 0,
-          effectiveness: strategy.effectiveness || 0
+          effectiveValues: [],
+          effectiveness: 0
         };
       }
       strategyCounts[name].count += 1;
+      // Only include effectiveness ratings that are actually provided
       if (strategy.effectiveness) {
-        // Average the effectiveness ratings
-        const currentTotal = strategyCounts[name].effectiveness * (strategyCounts[name].count - 1);
-        strategyCounts[name].effectiveness = (currentTotal + strategy.effectiveness) / strategyCounts[name].count;
+        strategyCounts[name].effectiveValues.push(strategy.effectiveness);
+      }
+    });
+    
+    // Calculate average effectiveness for each strategy
+    Object.keys(strategyCounts).forEach(name => {
+      const values = strategyCounts[name].effectiveValues;
+      if (values.length > 0) {
+        // Calculate true average from all values
+        const sum = values.reduce((acc, val) => acc + val, 0);
+        strategyCounts[name].effectiveness = sum / values.length;
       }
     });
     
