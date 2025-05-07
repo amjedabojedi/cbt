@@ -174,12 +174,13 @@ export default function EmotionTrackingForm({
       const emotionData = {
         userId: user.id,
         coreEmotion: data.coreEmotion,
-        primaryEmotion: data.primaryEmotion,
-        tertiaryEmotion: data.tertiaryEmotion,
+        // Only include fields if they actually have values
+        ...(data.primaryEmotion ? { primaryEmotion: data.primaryEmotion } : {}),
+        ...(data.tertiaryEmotion ? { tertiaryEmotion: data.tertiaryEmotion } : {}),
         intensity: data.intensity,
         situation: data.situation.trim(), // Ensure it's not empty
-        location: data.location || "", // Ensure it's not undefined
-        company: data.company || "", // Ensure it's not undefined
+        location: data.location || null, // Use null instead of empty string
+        company: data.company || null, // Use null instead of empty string
         // Send ISO string - schema will convert it to Date
         timestamp: data.useCurrentTime 
           ? new Date().toISOString() 

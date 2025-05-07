@@ -1302,11 +1302,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.userId);
       
       // Prepare emotion data with properly typed timestamp
-      const emotionData = { 
+      const emotionData: any = { 
         userId,
         coreEmotion: req.body.coreEmotion,
-        primaryEmotion: req.body.primaryEmotion,
-        tertiaryEmotion: req.body.tertiaryEmotion,
         intensity: req.body.intensity,
         situation: req.body.situation,
         location: req.body.location || null,
@@ -1314,6 +1312,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Always convert timestamp to a Date object for database insertion
         timestamp: req.body.timestamp ? new Date(req.body.timestamp) : new Date()
       };
+      
+      // Only include emotional fields if they have actual values (not empty strings)
+      if (req.body.primaryEmotion && req.body.primaryEmotion.trim() !== '') {
+        emotionData.primaryEmotion = req.body.primaryEmotion;
+      }
+      
+      if (req.body.tertiaryEmotion && req.body.tertiaryEmotion.trim() !== '') {
+        emotionData.tertiaryEmotion = req.body.tertiaryEmotion;
+      }
       
       // Log the processed data for debugging
       console.log("Processing emotion record:", {
