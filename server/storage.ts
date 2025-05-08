@@ -19,7 +19,8 @@ import {
   sessions, type Session, type InsertSession,
   subscriptionPlans, type SubscriptionPlan, type InsertSubscriptionPlan,
   cognitiveDistortions, type CognitiveDistortion, type InsertCognitiveDistortion,
-  systemLogs, type SystemLog, type InsertSystemLog
+  systemLogs, type SystemLog, type InsertSystemLog,
+  clientInvitations, type ClientInvitation, type InsertClientInvitation
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, or, isNull, gte, gt } from "drizzle-orm";
@@ -179,6 +180,13 @@ export interface IStorage {
   getNotificationPreferences(userId: number): Promise<NotificationPreferences | undefined>;
   createNotificationPreferences(preferences: InsertNotificationPreferences): Promise<NotificationPreferences>;
   updateNotificationPreferences(userId: number, preferences: Partial<InsertNotificationPreferences>): Promise<NotificationPreferences>;
+  
+  // Client invitations
+  createClientInvitation(invitation: InsertClientInvitation): Promise<ClientInvitation>;
+  getClientInvitationById(id: number): Promise<ClientInvitation | undefined>;
+  getClientInvitationByEmail(email: string): Promise<ClientInvitation | undefined>;
+  getClientInvitationsByTherapist(therapistId: number): Promise<ClientInvitation[]>;
+  updateClientInvitationStatus(id: number, status: string): Promise<ClientInvitation>;
 }
 
 export class DatabaseStorage implements IStorage {

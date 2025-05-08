@@ -367,7 +367,7 @@ export const notifications = pgTable("notifications", {
   title: text("title").notNull(),
   body: text("body").notNull(), // Use "body" instead of "content" to match the database column
   type: text("type", { 
-    enum: ["reminder", "therapist_message", "progress_update", "system"] 
+    enum: ["reminder", "therapist_message", "progress_update", "system", "alert", "invitation"] 
   }).notNull().default("system"),
   isRead: boolean("is_read").notNull().default(false),
   linkPath: text("link_path"), // Optional path to navigate when clicked
@@ -426,3 +426,27 @@ export const insertSystemLogSchema = createInsertSchema(systemLogs).omit({
 });
 export type SystemLog = typeof systemLogs.$inferSelect;
 export type InsertSystemLog = z.infer<typeof insertSystemLogSchema>;
+
+// Client invitations table for tracking invitations sent to potential clients
+export const clientInvitations = pgTable("client_invitations", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  therapistId: integer("therapist_id").notNull().references(() => users.id),
+  status: text("status", { 
+    enum: ["pending", "email_sent", "email_failed", "accepted", "expired"] 
+  }).notNull().default("pending"),
+  tempUsername: text("temp_username").notNull(),
+  tempPassword: text("temp_password").notNull(),
+  inviteLink: text("invite_link").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  acceptedAt: timestamp("accepted_at"), // When the invitation was accepted
+  expiresAt: timestamp("expires_at").defaultNow(), // Set to 7 days after creation by default
+});
+
+export const insertClientInvitationSchema = createInsertSchema(clientInvitations).omit({
+  id: true,
+  createdAt: true,
+  acceptedAt: true
+});
+export type ClientInvitation = typeof clientInvitations.$inferSelect;
+export type InsertClientInvitation = z.infer<typeof insertClientInvitationSchema>;
