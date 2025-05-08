@@ -972,7 +972,7 @@ export default function CrossComponentInsights() {
                                   }} 
                                   formatter={(value, entry) => {
                                     return <span style={{ 
-                                      marginRight: value === "Usage Count" ? "150px" : "50px", 
+                                      marginRight: "80px", 
                                       fontSize: "16px", 
                                       fontWeight: "bold" 
                                     }}>{value}</span>
@@ -1086,7 +1086,7 @@ export default function CrossComponentInsights() {
                                   }}
                                   formatter={(value, entry) => {
                                     return <span style={{ 
-                                      marginRight: value === "Usage Count" ? "150px" : "50px", 
+                                      marginRight: "80px", 
                                       fontSize: "16px", 
                                       fontWeight: "bold" 
                                     }}>{value}</span>
