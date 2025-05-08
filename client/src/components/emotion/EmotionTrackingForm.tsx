@@ -480,47 +480,56 @@ export default function EmotionTrackingForm({
             )}
           </div>
           
-          {/* Emotion Intensity */}
+          {/* Emotion Intensity - Enhanced for mobile */}
           <FormField
             control={form.control}
             name="intensity"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center">
-                  <FormLabel>Intensity (1-10)</FormLabel>
+                <div className="flex flex-wrap items-center gap-1">
+                  <FormLabel className="text-base">Intensity (1-10)</FormLabel>
                   <ResearchTooltip 
                     content="Rating the intensity of emotions helps build self-awareness and improves emotion regulation."
                     research="Linehan (1993) in Dialectical Behavior Therapy" 
                   />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-neutral-500">Low</span>
-                  <FormControl>
-                    <Slider
-                      min={1}
-                      max={10}
-                      step={1}
-                      defaultValue={[field.value]}
-                      onValueChange={(vals) => field.onChange(vals[0])}
-                      className="flex-grow h-2 intensity-slider bg-gradient-to-r from-blue-200 via-blue-400 to-blue-600"
-                    />
-                  </FormControl>
-                  <span className="text-xs text-neutral-500">High</span>
-                  <span className="ml-2 w-8 text-center font-medium">{field.value}</span>
+                <div className="mt-2 mb-1 flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                  <div className="flex items-center space-x-2 w-full mb-2 sm:mb-0">
+                    <span className="text-xs text-neutral-500 min-w-[30px]">Low</span>
+                    <FormControl>
+                      <Slider
+                        min={1}
+                        max={10}
+                        step={1}
+                        defaultValue={[field.value]}
+                        onValueChange={(vals) => field.onChange(vals[0])}
+                        className="flex-grow h-2 intensity-slider bg-gradient-to-r from-blue-200 via-blue-400 to-blue-600"
+                      />
+                    </FormControl>
+                    <span className="text-xs text-neutral-500 min-w-[30px]">High</span>
+                  </div>
+                  <div className="flex justify-center sm:justify-start">
+                    <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-center font-medium min-w-[40px]">
+                      {field.value}
+                    </span>
+                  </div>
                 </div>
+                <FormDescription className="text-xs sm:text-sm">
+                  How strongly did you feel this emotion?
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
           
-          {/* Situation Description */}
+          {/* Situation Description - Improved mobile experience */}
           <FormField
             control={form.control}
             name="situation"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center">
-                  <FormLabel>What happened? (Situation)</FormLabel>
+                <div className="flex flex-wrap items-center gap-1">
+                  <FormLabel className="text-base">What happened? (Situation)</FormLabel>
                   <ResearchTooltip 
                     content="Documenting the situation that triggered your emotion helps identify patterns and develop more effective responses."
                     research="Beck & Haigh (2014) on cognitive models of emotional disorders" 
@@ -529,123 +538,132 @@ export default function EmotionTrackingForm({
                 <FormControl>
                   <Textarea
                     placeholder="Describe what happened that led to this emotion..."
-                    className="resize-none"
+                    className="resize-none w-full min-h-[80px]"
                     rows={3}
                     {...field}
                   />
                 </FormControl>
+                <FormDescription className="text-xs sm:text-sm">
+                  Be specific about what triggered your emotion
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
           
-          {/* Location Dropdown */}
-          <FormField
-            control={form.control}
-            name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Where were you?</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a location" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="home">Home</SelectItem>
-                    <SelectItem value="work">Work</SelectItem>
-                    <SelectItem value="school">School</SelectItem>
-                    <SelectItem value="public">Public Place</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Location and Company in a responsive grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Location Dropdown */}
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Where were you?</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a location" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="home">Home</SelectItem>
+                      <SelectItem value="work">Work</SelectItem>
+                      <SelectItem value="school">School</SelectItem>
+                      <SelectItem value="public">Public Place</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Company Dropdown */}
+            <FormField
+              control={form.control}
+              name="company"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Who were you with?</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an option" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="alone">Alone</SelectItem>
+                      <SelectItem value="family">Family</SelectItem>
+                      <SelectItem value="friends">Friends</SelectItem>
+                      <SelectItem value="coworkers">Coworkers</SelectItem>
+                      <SelectItem value="strangers">Strangers</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           
-          {/* Company Dropdown */}
-          <FormField
-            control={form.control}
-            name="company"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Who were you with?</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+          {/* Time Selection with Responsive Layout */}
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="useCurrentTime"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>When did this happen?</FormLabel>
+                  <div className="flex items-center space-x-2">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={(checked) => {
+                          field.onChange(!!checked);
+                          handleCurrentTimeChange(!!checked);
+                        }}
+                      />
+                    </FormControl>
+                    <Label htmlFor="current-time" className="text-sm text-neutral-600">
+                      Use current time
+                    </Label>
+                  </div>
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="timestamp"
+              render={({ field }) => (
+                <FormItem>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select an option" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="alone">Alone</SelectItem>
-                    <SelectItem value="family">Family</SelectItem>
-                    <SelectItem value="friends">Friends</SelectItem>
-                    <SelectItem value="coworkers">Coworkers</SelectItem>
-                    <SelectItem value="strangers">Strangers</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Time */}
-          <FormField
-            control={form.control}
-            name="useCurrentTime"
-            render={({ field }) => (
-              <FormItem className="space-y-2">
-                <FormLabel>When did this happen?</FormLabel>
-                <div className="flex items-center space-x-2">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={(checked) => {
-                        field.onChange(!!checked);
-                        handleCurrentTimeChange(!!checked);
-                      }}
+                    <Input
+                      type="datetime-local"
+                      disabled={form.getValues("useCurrentTime")}
+                      className="w-full"
+                      {...field}
                     />
                   </FormControl>
-                  <Label htmlFor="current-time" className="text-sm text-neutral-600">
-                    Use current time
-                  </Label>
-                </div>
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           
-          <FormField
-            control={form.control}
-            name="timestamp"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input
-                    type="datetime-local"
-                    disabled={form.getValues("useCurrentTime")}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Submit Button */}
-          <div className="flex justify-end">
+          {/* Submit Button - Full width on mobile, right-aligned on larger screens */}
+          <div className="flex sm:justify-end mt-2">
             <Button 
               type="submit" 
               disabled={!form.getValues("coreEmotion")}
-              className={form.getValues("coreEmotion") ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400"}
+              className={`w-full sm:w-auto ${form.getValues("coreEmotion") ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400"}`}
             >
               {form.getValues("coreEmotion") ? "Record Emotion" : "Select an Emotion First"}
             </Button>
