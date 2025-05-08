@@ -2,6 +2,7 @@ import SparkPost from 'sparkpost';
 
 // Initialize SparkPost client with API key
 export const sparkPostClient = new SparkPost(process.env.SPARKPOST_API_KEY);
+console.log('SparkPost client initialized with API key:', process.env.SPARKPOST_API_KEY ? 'CONFIGURED' : 'MISSING');
 
 // Track email service status
 let sparkPostServiceAvailable = true;
@@ -20,19 +21,23 @@ interface EmailParams {
 // Use proper format that SparkPost accepts
 const DEFAULT_FROM_EMAIL = {
   name: "New Horizon CBT",
-  email: "support@sparkpostbox.com" // Using SparkPost's sandbox domain which is always enabled
+  email: "no-reply@mail.sparkpostapp.com" // Using official SparkPost app domain
 };
 
 // Alternative domains that can be tried if the default is having issues
 // These are in proper SparkPost object format with name and email separated
 const ALTERNATIVE_DOMAINS = [
   {
-    name: "New Horizon CBT",
-    email: "noreply@sparkpostbox.com"
+    name: "New Horizon CBT Support",
+    email: "support@sparkpostmail.com" // Alternative SparkPost domain
   },
   {
-    name: "New Horizon CBT Support",
-    email: "support@sparkpostbox.com"
+    name: "New Horizon CBT Team",
+    email: "team@sparkpostbox.com" // Using sandbox domain
+  },
+  {
+    name: "New Horizon CBT",
+    email: "no-reply@eu.sparkpostapp.com" // European SparkPost app domain
   }
 ];
 
