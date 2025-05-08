@@ -26,17 +26,18 @@ export default function LandingPage() {
           A comprehensive cognitive behavioral therapy platform connecting therapists with clients
           for personalized mental health support.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild size="lg" className="gap-2">
-            <Link href="/auth">
-              Get Started <ArrowRight size={18} />
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline" className="gap-2">
-            <Link href="/auth">
-              Login
-            </Link>
-          </Button>
+        <div className="flex flex-col gap-6 max-w-md mx-auto">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" className="gap-2">
+              <Link href="/auth">
+                Therapist Login <ArrowRight size={18} />
+              </Link>
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground text-center">
+            Clients need an invitation from their therapist to access the platform.
+            If you've received an invitation, check your email for the registration link.
+          </p>
         </div>
       </header>
 
@@ -209,15 +210,17 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20 text-center">
-        <h2 className="text-3xl font-bold mb-6">Start Your Mental Health Journey Today</h2>
+        <h2 className="text-3xl font-bold mb-6">For Mental Health Professionals</h2>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-          Join New Horizon CBT to access powerful tools for cognitive behavioral therapy and connect with professional therapists.
+          Are you a therapist looking to enhance your practice with digital CBT tools? Join New Horizon CBT to provide your clients with powerful therapeutic resources.
         </p>
-        <Button asChild size="lg" className="gap-2">
-          <Link href="/auth">
-            Sign Up Now <ArrowRight size={18} />
-          </Link>
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button asChild size="lg" className="gap-2">
+            <Link href="/auth">
+              Therapist Login <ArrowRight size={18} />
+            </Link>
+          </Button>
+        </div>
       </section>
 
       {/* Footer */}
@@ -230,10 +233,7 @@ export default function LandingPage() {
             </div>
             <div className="flex flex-col md:flex-row gap-6 md:gap-12">
               <Link href="/auth" className="text-muted-foreground hover:text-primary transition-colors">
-                Login
-              </Link>
-              <Link href="/auth" className="text-muted-foreground hover:text-primary transition-colors">
-                Register
+                Therapist Portal
               </Link>
               <Link href="/privacy-policy" className="text-muted-foreground hover:text-primary transition-colors">
                 Privacy Policy
