@@ -38,6 +38,12 @@ export const users = pgTable("users", {
   }),
   subscriptionEndDate: date("subscription_end_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  // Therapist profile fields
+  bio: text("bio"),
+  specialty: text("specialty"),
+  licenses: text("licenses"),
+  education: text("education"), 
+  approach: text("approach"),
 });
 
 // Emotion records

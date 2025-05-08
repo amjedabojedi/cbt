@@ -4433,6 +4433,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
     
+    // A simple test endpoint to send a direct email with minimal formatting
+    app.get("/api/test/direct-email", async (req, res) => {
+      try {
+        const testEmail = req.query.email?.toString();
+        if (!testEmail) {
+          return res.status(400).json({ 
+            success: false, 
+            message: "Email parameter is required"
+          });
+        }
+        
+        console.log(`Sending direct email test to: ${testEmail}`);
+        
+        // Use the SparkPost client directly to ensure no formatting issues
+        const result = await sparkPostClient.transmissions.send({
+          content: {
+            from: "noreply@mail.sparkpost.com",
+            subject: "Direct Test Email",
+            text: "This is a direct test email with minimal formatting to test deliverability."
+          },
+          recipients: [
+            { address: testEmail }
+          ]
+        });
+        
+        console.log("Direct email test response:", JSON.stringify(result, null, 2));
+        
+        res.json({
+          success: true,
+          message: `Direct email test sent to ${testEmail}. Please check your inbox and spam folder.`,
+          transmissionId: result.results.id
+        });
+      } catch (error) {
+        console.error("Direct email test error:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to send direct email test",
+          error: error.message
+        });
+      }
+    });
+    
     // Comprehensive email diagnostics endpoint with SparkPost API check
     app.get("/api/test/email-diagnostics", async (req, res) => {
       try {
