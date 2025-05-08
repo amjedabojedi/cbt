@@ -234,3 +234,61 @@ export async function sendPasswordResetEmail(
     html,
   });
 }
+
+/**
+ * Send a therapist account creation email
+ * 
+ * @param therapistEmail Therapist's email address
+ * @param therapistName Therapist's name
+ * @param username The username created for the therapist
+ * @param password The temporary password
+ * @param loginLink Link to the login page
+ * @returns Promise resolving to a boolean indicating success
+ */
+export async function sendTherapistWelcomeEmail(
+  therapistEmail: string,
+  therapistName: string,
+  username: string,
+  password: string,
+  loginLink: string = "https://new-horizon-cbt.replit.app/login"
+): Promise<boolean> {
+  const subject = 'Welcome to New Horizon CBT - Your Account Details';
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h1 style="color: #4A6FA5;">Welcome to New Horizon CBT</h1>
+      <p>Hello ${therapistName},</p>
+      <p>An administrator has created a therapist account for you on the New Horizon CBT platform. This platform will help you manage your clients' therapy journeys with tools for emotion tracking, thought records, journaling, and goal setting.</p>
+      
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4A6FA5;">
+        <h2 style="color: #4A6FA5; margin-top: 0; font-size: 18px;">Your Account Details:</h2>
+        <p><strong>Username:</strong> ${username}</p>
+        <p><strong>Temporary Password:</strong> ${password}</p>
+        <p style="color: #e74c3c; font-weight: bold;">Important: Please change your password after your first login for security reasons.</p>
+      </div>
+      
+      <div style="margin: 30px 0;">
+        <a href="${loginLink}" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+          Log In Now
+        </a>
+      </div>
+      
+      <h2 style="color: #4A6FA5; margin-top: 25px; font-size: 18px;">Getting Started:</h2>
+      <ol style="margin-bottom: 25px;">
+        <li><strong>Log in</strong> with the credentials above</li>
+        <li><strong>Change your password</strong> in your profile settings</li>
+        <li><strong>Invite clients</strong> from your dashboard</li>
+        <li><strong>Explore the resource library</strong> with therapeutic materials</li>
+      </ol>
+      
+      <p>If you have any questions or need assistance, please contact the administrator who created your account.</p>
+      <p>Best regards,<br>The New Horizon CBT Team</p>
+    </div>
+  `;
+  
+  return sendEmail({
+    to: therapistEmail,
+    subject,
+    html,
+  });
+}

@@ -42,7 +42,7 @@ import {
   emotionRecords
 } from "@shared/schema";
 import cookieParser from "cookie-parser";
-import { sendClientInvitation } from "./services/email";
+import { sendClientInvitation, sendTherapistWelcomeEmail } from "./services/email";
 import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
 import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
 import { registerIntegrationRoutes } from "./services/integrationRoutes";
@@ -796,6 +796,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "active"
       });
       
+      // Store temporary password for email only
+      const unhashedPassword = password;
+      
       // Remove the password from the response
       const { password: _, ...userWithoutPassword } = user;
       
@@ -807,6 +810,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: "system",
         isRead: false
       });
+      
+      // Get the base URL from the request
+      const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+      const loginLink = `${baseUrl}/login`;
+      
+      // Send welcome email to therapist with their credentials
+      if (role === "therapist") {
+        try {
+          await sendTherapistWelcomeEmail(
+            email,
+            name,
+            username,
+            unhashedPassword,
+            loginLink
+          );
+          console.log(`Welcome email sent to therapist: ${email}`);
+        } catch (emailError) {
+          console.error("Error sending therapist welcome email:", emailError);
+          // Continue with the response even if email fails
+        }
+      }
       
       res.status(201).json(userWithoutPassword);
     } catch (error) {
