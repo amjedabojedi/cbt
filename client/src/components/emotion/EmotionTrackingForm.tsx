@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ResearchTooltip } from "@/components/ui/research-tooltip";
 import {
   Tooltip,
   TooltipContent,
@@ -306,7 +307,13 @@ export default function EmotionTrackingForm({
             {/* Educational Component */}
             <div className="mb-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Emotion Wheel</h3>
+                <div className="flex items-center">
+                  <h3 className="text-lg font-medium">Emotion Wheel</h3>
+                  <ResearchTooltip 
+                    content="People who can identify specific emotions are better at managing stress and react less impulsively to difficult situations."
+                    research="Kashdan, Barrett, & McKnight (2015)" 
+                  />
+                </div>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="flex items-center gap-1">
@@ -479,7 +486,13 @@ export default function EmotionTrackingForm({
             name="intensity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Intensity (1-10)</FormLabel>
+                <div className="flex items-center">
+                  <FormLabel>Intensity (1-10)</FormLabel>
+                  <ResearchTooltip 
+                    content="Rating the intensity of emotions helps build self-awareness and improves emotion regulation."
+                    research="Linehan (1993) in Dialectical Behavior Therapy" 
+                  />
+                </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-xs text-neutral-500">Low</span>
                   <FormControl>

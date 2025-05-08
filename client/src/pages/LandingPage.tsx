@@ -49,7 +49,7 @@ export default function LandingPage() {
 
       {/* Features Section */}
       <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">Comprehensive CBT Tools</h2>
+        <h2 className="text-3xl font-bold text-center mb-12">CBT Tools for Better Mental Health</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Feature 1 */}
           <div className="bg-card rounded-lg p-6 shadow-sm border">
@@ -114,6 +114,48 @@ export default function LandingPage() {
             <h3 className="text-xl font-semibold mb-2">Therapist-Client Connection</h3>
             <p className="text-muted-foreground">
               Secure communication and sharing between therapists and clients with real-time notifications.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Research Section */}
+      <section className="container mx-auto px-4 py-16">
+        <h2 className="text-3xl font-bold text-center mb-8">Research-Based Tools</h2>
+        <p className="text-center text-muted-foreground max-w-3xl mx-auto mb-12">
+          Our CBT tools are designed based on scientific research that shows how specific mental health exercises improve wellbeing.
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="bg-card rounded-lg p-6 shadow-sm border">
+            <h3 className="text-lg font-semibold mb-2">Better Emotion Recognition</h3>
+            <p className="text-muted-foreground text-sm">
+              Research shows that people who can identify specific emotions react less impulsively and manage stress better. Our emotion wheel helps build this important skill.
+              <span className="block mt-2 text-xs italic">Based on research by Kashdan, Barrett, & McKnight (2015)</span>
+            </p>
+          </div>
+          
+          <div className="bg-card rounded-lg p-6 shadow-sm border">
+            <h3 className="text-lg font-semibold mb-2">Effective Homework</h3>
+            <p className="text-muted-foreground text-sm">
+              Studies prove that completing thought records between therapy sessions leads to better outcomes for depression and anxiety. Our digital tools make this easier.
+              <span className="block mt-2 text-xs italic">Based on research by Rees, McEvoy, & Nathan (2005)</span>
+            </p>
+          </div>
+          
+          <div className="bg-card rounded-lg p-6 shadow-sm border">
+            <h3 className="text-lg font-semibold mb-2">Clear Goals Work Better</h3>
+            <p className="text-muted-foreground text-sm">
+              Setting specific, measurable goals improves motivation and success rates. Our SMART goal system helps break down big changes into achievable steps.
+              <span className="block mt-2 text-xs italic">Based on research by Locke & Latham (2002)</span>
+            </p>
+          </div>
+          
+          <div className="bg-card rounded-lg p-6 shadow-sm border">
+            <h3 className="text-lg font-semibold mb-2">Building Resilience</h3>
+            <p className="text-muted-foreground text-sm">
+              Tracking what helps you cope during difficult times builds lasting resilience. Our tools help identify your personal protective factors and coping strategies.
+              <span className="block mt-2 text-xs italic">Based on research by Werner (1995)</span>
             </p>
           </div>
         </div>
@@ -235,7 +277,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
               <h3 className="text-xl font-bold">New Horizon CBT</h3>
-              <p className="text-muted-foreground mt-2">Comprehensive mental health support</p>
+              <p className="text-muted-foreground mt-2">Mental health support tools for therapists and clients</p>
             </div>
             <div className="flex flex-col md:flex-row gap-6 md:gap-12">
               <Link href="/auth" className="text-muted-foreground hover:text-primary transition-colors">
