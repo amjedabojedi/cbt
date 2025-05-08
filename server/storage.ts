@@ -187,6 +187,7 @@ export interface IStorage {
   getClientInvitationByEmail(email: string): Promise<ClientInvitation | undefined>;
   getClientInvitationsByTherapist(therapistId: number): Promise<ClientInvitation[]>;
   updateClientInvitationStatus(id: number, status: string): Promise<ClientInvitation>;
+  deleteClientInvitation(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
