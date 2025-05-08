@@ -306,7 +306,7 @@ export default function EmotionTrackingForm({
             
             {/* Educational Component */}
             <div className="mb-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="flex items-center">
                   <h3 className="text-lg font-medium">Emotion Wheel</h3>
                   <ResearchTooltip 
@@ -316,12 +316,12 @@ export default function EmotionTrackingForm({
                 </div>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <Button variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto justify-center">
                       <InfoIcon className="h-4 w-4" />
                       <span>About Emotions</span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-3xl">
+                  <DialogContent className="w-[95vw] max-w-3xl">
                     <DialogHeader>
                       <DialogTitle>Understanding the Emotion Wheel</DialogTitle>
                       <DialogDescription>
