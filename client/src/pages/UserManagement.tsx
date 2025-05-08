@@ -98,6 +98,14 @@ export default function UserManagement() {
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [resetPassword, setResetPassword] = useState(false);
+  const [newUserOpen, setNewUserOpen] = useState(false);
+  const [newUserRole, setNewUserRole] = useState<"therapist" | "admin">("therapist");
+  const [newUserFormState, setNewUserFormState] = useState({
+    name: "",
+    email: "",
+    username: "",
+    password: ""
+  });
   
   // Fetch subscription plans
   const { 
@@ -238,6 +246,43 @@ export default function UserManagement() {
       });
     }
   });
+  
+  // Mutation to create a new user
+  const createUserMutation = useMutation({
+    mutationFn: async (userData: { name: string; email: string; username: string; password: string; role: string }) => {
+      const res = await apiRequest("POST", "/api/users/register-by-admin", userData);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to create user");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "User Created",
+        description: `The ${newUserRole} has been created successfully.`,
+      });
+      
+      // Reset form and close dialog
+      setNewUserFormState({
+        name: "",
+        email: "",
+        username: "",
+        password: ""
+      });
+      setNewUserOpen(false);
+      
+      // Refresh the user list
+      fetchUsers();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "User Creation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
 
   // Function to fetch users data - can be called anytime to refresh
   const fetchUsers = async () => {
@@ -322,11 +367,22 @@ export default function UserManagement() {
             </p>
           </div>
           <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-2">
-            <Button className="flex items-center">
+            <Button 
+              className="flex items-center"
+              onClick={() => {
+                setNewUserRole("therapist");
+                setNewUserOpen(true);
+              }}
+            >
               <UserPlus className="mr-2 h-4 w-4" />
               Add Therapist
             </Button>
-            <Button>
+            <Button
+              onClick={() => {
+                setNewUserRole("admin");
+                setNewUserOpen(true);
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add Admin
             </Button>
@@ -859,6 +915,115 @@ export default function UserManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* New User Dialog */}
+      <Dialog
+        open={newUserOpen}
+        onOpenChange={(open) => {
+          setNewUserOpen(open);
+          if (!open) {
+            // Reset form when dialog is closed
+            setNewUserFormState({
+              name: "",
+              email: "",
+              username: "",
+              password: ""
+            });
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {newUserRole === "therapist" ? "Add New Therapist" : "Add New Admin"}
+            </DialogTitle>
+            <DialogDescription>
+              Create a new {newUserRole} account.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                className="col-span-3"
+                placeholder="Full name"
+                value={newUserFormState.name}
+                onChange={(e) => setNewUserFormState(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="email"
+                className="col-span-3"
+                type="email"
+                placeholder="Email address"
+                value={newUserFormState.email}
+                onChange={(e) => setNewUserFormState(prev => ({ ...prev, email: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="username" className="text-right">
+                Username
+              </Label>
+              <Input
+                id="username"
+                className="col-span-3"
+                placeholder="Username for login"
+                value={newUserFormState.username}
+                onChange={(e) => setNewUserFormState(prev => ({ ...prev, username: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                className="col-span-3"
+                placeholder="Temporary password"
+                value={newUserFormState.password}
+                onChange={(e) => setNewUserFormState(prev => ({ ...prev, password: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setNewUserOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                createUserMutation.mutate({
+                  ...newUserFormState,
+                  role: newUserRole
+                });
+              }}
+              disabled={
+                createUserMutation.isPending || 
+                !newUserFormState.name ||
+                !newUserFormState.email ||
+                !newUserFormState.username ||
+                !newUserFormState.password
+              }
+            >
+              {createUserMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : "Create User"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
