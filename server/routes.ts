@@ -4485,67 +4485,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
     
-    // Test invitation notification endpoint
+    // Test invitation notification endpoint with detailed diagnostics
     app.get("/api/test/invitation-notification", async (req, res) => {
       const email = req.query.email as string;
       if (!email) {
         return res.status(400).json({ success: false, message: "Email parameter is required" });
       }
       
+      // Collect diagnostic info
+      const diagnostics = {
+        timestamp: new Date().toISOString(),
+        notificationCreated: false,
+        invitationCreated: false,
+        errors: [] as string[]
+      };
+      
       try {
-        // Create a test notification
-        await storage.createNotification({
-          userId: 1, // Admin user
-          title: "Test Client Invitation",
-          body: `This is a test notification for inviting ${email} to New Horizon-CBT. This demonstrates the new invitation notification type.`,
-          type: "invitation",
-          isRead: false,
-          linkPath: "/clients",
-          metadata: {
-            email: email,
-            invitedAt: new Date().toISOString()
-          }
-        });
+        console.log(`=== INVITATION SYSTEM TEST ===`);
+        console.log(`Testing with email: ${email}`);
         
-        // Try to create an entry in client_invitations table
+        // Step 1: Create a test notification
         try {
-          await storage.createClientInvitation({
+          console.log("Step 1: Creating test notification...");
+          const notification = await storage.createNotification({
+            userId: 1, // Admin user
+            title: "Test Client Invitation",
+            body: `This is a test notification for inviting ${email} to New Horizon-CBT. This demonstrates the new invitation notification type.`,
+            type: "invitation",
+            isRead: false,
+            linkPath: "/clients",
+            metadata: {
+              email: email,
+              invitedAt: new Date().toISOString()
+            }
+          });
+          
+          console.log("Notification created successfully:", notification.id);
+          diagnostics.notificationCreated = true;
+        } catch (notificationError: any) {
+          console.error("Error creating notification:", notificationError);
+          diagnostics.errors.push(`Notification error: ${notificationError.message}`);
+        }
+        
+        // Step 2: Try to create an entry in client_invitations table
+        try {
+          console.log("Step 2: Creating client invitation record...");
+          const username = "testuser_" + Math.floor(Math.random() * 1000);
+          const password = "temp" + Math.floor(Math.random() * 10000);
+          
+          const invitation = await storage.createClientInvitation({
             email: email,
             therapistId: 1,
             status: "pending",
-            tempUsername: "testuser_" + Math.floor(Math.random() * 1000),
-            tempPassword: "temp" + Math.floor(Math.random() * 10000),
-            inviteLink: "https://example.com/invite-link"
+            tempUsername: username,
+            tempPassword: password,
+            inviteLink: `https://example.com/invite?email=${encodeURIComponent(email)}&code=${Math.random().toString(36).substring(2, 15)}`
           });
           
+          console.log("Client invitation created successfully:", invitation.id);
+          diagnostics.invitationCreated = true;
+        } catch (invitationError: any) {
+          console.error("Error creating client invitation:", invitationError);
+          diagnostics.errors.push(`Invitation error: ${invitationError.message}`);
+        }
+        
+        // Format response based on test results
+        if (diagnostics.notificationCreated && diagnostics.invitationCreated) {
+          // Both operations succeeded
           return res.status(200).send(`
             <html>
-              <head><title>Test Successful</title></head>
+              <head>
+                <title>Test Successful</title>
+                <style>
+                  body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                  h1 { color: #4A6FA5; }
+                  .success { background: #e6ffe6; border-left: 4px solid #4CAF50; padding: 10px; }
+                  pre { background: #f5f5f5; padding: 10px; overflow: auto; }
+                </style>
+              </head>
               <body>
-                <h1>Test Successful</h1>
-                <p>Successfully created notification and client invitation record for ${email}</p>
-                <p>Client invitations table is working correctly.</p>
+                <h1>Client Invitation System Test: Success</h1>
+                <div class="success">
+                  <p>✅ Successfully created notification for ${email}</p>
+                  <p>✅ Successfully created client invitation record</p>
+                  <p>The client invitation system is working correctly.</p>
+                </div>
+                <h3>Diagnostic Information:</h3>
+                <pre>${JSON.stringify(diagnostics, null, 2)}</pre>
               </body>
             </html>
           `);
-        } catch (error) {
-          console.error("Client invitation record creation error:", error);
+        } else if (diagnostics.notificationCreated) {
+          // Only notification succeeded
           return res.status(200).send(`
             <html>
-              <head><title>Partial Test Success</title></head>
+              <head>
+                <title>Partial Test Success</title>
+                <style>
+                  body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                  h1 { color: #FFA500; }
+                  .warning { background: #fff8e6; border-left: 4px solid #FFA500; padding: 10px; }
+                  .command { background: #f5f5f5; padding: 10px; font-family: monospace; }
+                  pre { background: #f5f5f5; padding: 10px; overflow: auto; }
+                </style>
+              </head>
               <body>
-                <h1>Partial Success</h1>
-                <p>Successfully created notification for ${email}</p>
-                <p>Failed to create client_invitations record. Table might not be created yet.</p>
-                <p>Error: ${error.message}</p>
-                <p>You may need to run: npm run db:push</p>
+                <h1>Client Invitation System Test: Partial Success</h1>
+                <div class="warning">
+                  <p>✅ Successfully created notification for ${email}</p>
+                  <p>❌ Failed to create client invitation record</p>
+                  <p>The client_invitations table might not be created in the database yet.</p>
+                </div>
+                <h3>Recommended Action:</h3>
+                <p>Run the following command to push the schema changes to the database:</p>
+                <div class="command">npm run db:push</div>
+                <h3>Error Details:</h3>
+                <pre>${diagnostics.errors.join('\n')}</pre>
+              </body>
+            </html>
+          `);
+        } else {
+          // Both operations failed
+          return res.status(500).send(`
+            <html>
+              <head>
+                <title>Test Failed</title>
+                <style>
+                  body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                  h1 { color: #D32F2F; }
+                  .error { background: #ffe6e6; border-left: 4px solid #D32F2F; padding: 10px; }
+                  pre { background: #f5f5f5; padding: 10px; overflow: auto; }
+                </style>
+              </head>
+              <body>
+                <h1>Client Invitation System Test: Failed</h1>
+                <div class="error">
+                  <p>❌ Failed to create notification</p>
+                  <p>❌ Failed to create client invitation record</p>
+                  <p>The client invitation system is not working correctly.</p>
+                </div>
+                <h3>Error Details:</h3>
+                <pre>${diagnostics.errors.join('\n')}</pre>
               </body>
             </html>
           `);
         }
-      } catch (error) {
-        console.error("Invitation notification test error:", error);
-        res.status(500).json({ success: false, message: "Failed to create invitation notification", error: error.message });
+      } catch (error: any) {
+        console.error("Overall test execution error:", error);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Failed to execute invitation system test", 
+          error: error.message,
+          diagnostics 
+        });
       }
     });
     
