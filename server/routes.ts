@@ -558,16 +558,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       const validatedData = insertUserSchema.parse(req.body);
+      const isInvitation = req.body.isInvitation === true;
       
-      // Check if user already exists
+      // Check if user already exists by username
       const existingUser = await storage.getUserByUsername(validatedData.username);
       if (existingUser) {
         return res.status(409).json({ message: "Username already exists" });
       }
       
+      // Check if email exists
       const existingEmail = await storage.getUserByEmail(validatedData.email);
+      
+      // If this is an invitation and the email exists with a pending status, we'll update that user instead
       if (existingEmail) {
-        return res.status(409).json({ message: "Email already exists" });
+        if (isInvitation && existingEmail.status === "pending") {
+          console.log(`Invitation acceptance: Updating existing user ${existingEmail.id} with new credentials`);
+          
+          // Update the existing user with the new username and password
+          const updatedUser = await storage.updateUser(existingEmail.id, {
+            username: validatedData.username,
+            password: validatedData.password, // This is already hashed from client
+            status: "active"
+          });
+          
+          // Create a session
+          const session = await storage.createSession(updatedUser.id);
+          
+          // Set the session cookie
+          res.cookie("sessionId", session.id, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+          });
+          
+          // Return the user (without password)
+          const { password, ...userWithoutPassword } = updatedUser;
+          return res.status(200).json(userWithoutPassword);
+        } else {
+          return res.status(409).json({ message: "Email already exists" });
+        }
       }
       
       // When users register directly, they are automatically active
