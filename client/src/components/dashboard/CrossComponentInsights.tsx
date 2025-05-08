@@ -933,7 +933,7 @@ export default function CrossComponentInsights() {
                             <ResponsiveContainer width="100%" height="100%">
                               <ComposedChart
                                 data={copingStrategiesData.slice(0, 5)} // Limit to top 5 for better readability
-                                margin={{ top: 20, right: 50, left: 30, bottom: 90 }}
+                                margin={{ top: 20, right: 50, left: 30, bottom: 180 }}
                                 layout="vertical"
                               >
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={true} />
@@ -961,15 +961,22 @@ export default function CrossComponentInsights() {
                                 />
                                 <Legend 
                                   verticalAlign="bottom" 
-                                  height={70} 
-                                  iconSize={15} 
+                                  height={90} 
+                                  iconSize={18} 
                                   layout="horizontal" 
                                   align="center" 
                                   wrapperStyle={{ 
-                                    paddingTop: "20px", 
-                                    paddingLeft: "30px", 
-                                    paddingRight: "30px" 
+                                    paddingTop: "30px", 
+                                    paddingLeft: "40px", 
+                                    paddingRight: "40px" 
                                   }} 
+                                  formatter={(value, entry) => {
+                                    return <span style={{ 
+                                      marginRight: "80px", 
+                                      fontSize: "16px", 
+                                      fontWeight: "bold" 
+                                    }}>{value}</span>
+                                  }}
                                 />
                                 <Bar
                                   dataKey="count"
@@ -1041,7 +1048,7 @@ export default function CrossComponentInsights() {
                             <ResponsiveContainer width="100%" height="100%">
                               <ComposedChart
                                 data={protectiveFactorsData.slice(0, 5)} // Limit to top 5 for better readability
-                                margin={{ top: 20, right: 50, left: 30, bottom: 150 }}
+                                margin={{ top: 20, right: 50, left: 30, bottom: 180 }}
                                 layout="vertical"
                               >
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={true} />
@@ -1068,14 +1075,21 @@ export default function CrossComponentInsights() {
                                 />
                                 <Legend 
                                   verticalAlign="bottom" 
-                                  height={70}
-                                  iconSize={15}
+                                  height={90}
+                                  iconSize={18}
                                   layout="horizontal"
                                   align="center"
                                   wrapperStyle={{ 
-                                    paddingTop: "20px",
-                                    paddingLeft: "30px",
-                                    paddingRight: "30px"
+                                    paddingTop: "30px",
+                                    paddingLeft: "40px",
+                                    paddingRight: "40px"
+                                  }}
+                                  formatter={(value, entry) => {
+                                    return <span style={{ 
+                                      marginRight: "80px", 
+                                      fontSize: "16px", 
+                                      fontWeight: "bold" 
+                                    }}>{value}</span>
                                   }}
                                 />
                                 <Bar 
