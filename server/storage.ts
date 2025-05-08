@@ -44,6 +44,9 @@ export interface IStorage {
   deleteUser(userId: number): Promise<void>;
   updateUserTherapist(userId: number, therapistId: number): Promise<User>;
   
+  // System logs
+  createSystemLog(log: InsertSystemLog): Promise<SystemLog>;
+  
   // Admin statistics methods
   getAllEmotionRecords(): Promise<EmotionRecord[]>;
   getAllThoughtRecords(): Promise<ThoughtRecord[]>;
@@ -432,6 +435,16 @@ export class DatabaseStorage implements IStorage {
     await db.delete(users).where(eq(users.id, userId));
     
     console.log(`User ${userId} and all related records deleted successfully`);
+  }
+  
+  // System logs
+  async createSystemLog(log: InsertSystemLog): Promise<SystemLog> {
+    const [newLog] = await db
+      .insert(systemLogs)
+      .values(log)
+      .returning();
+    
+    return newLog;
   }
   
   // Admin statistics methods

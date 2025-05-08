@@ -396,6 +396,16 @@ export const notificationPreferences = pgTable("notification_preferences", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// System logs for tracking admin actions and system events
+export const systemLogs = pgTable("system_logs", {
+  id: serial("id").primaryKey(),
+  action: text("action").notNull(), // The action that occurred (user_deleted, user_created, etc.)
+  performedBy: integer("performed_by").references(() => users.id), // The user who performed the action (if applicable)
+  details: jsonb("details").notNull().$type<Record<string, any>>(), // Details about the action
+  ipAddress: text("ip_address"), // IP address of the user who performed the action
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
 export const insertNotificationPreferencesSchema = createInsertSchema(notificationPreferences).omit({
   id: true,
   createdAt: true,
@@ -403,3 +413,10 @@ export const insertNotificationPreferencesSchema = createInsertSchema(notificati
 });
 export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
 export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
+
+export const insertSystemLogSchema = createInsertSchema(systemLogs).omit({
+  id: true,
+  timestamp: true,
+});
+export type SystemLog = typeof systemLogs.$inferSelect;
+export type InsertSystemLog = z.infer<typeof insertSystemLogSchema>;
