@@ -1740,6 +1740,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Delete/cancel an invitation
+  app.delete("/api/invitations/:id", authenticate, isTherapist, async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const invitationId = parseInt(req.params.id);
+      const invitation = await storage.getClientInvitationById(invitationId);
+      
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      // Verify the therapist owns this invitation
+      if (invitation.therapistId !== req.user.id) {
+        return res.status(403).json({ message: "Not authorized to delete this invitation" });
+      }
+      
+      // Delete the invitation
+      const deleted = await storage.deleteClientInvitation(invitationId);
+      
+      if (deleted) {
+        // Create a notification for the therapist about the cancellation
+        await storage.createNotification({
+          userId: req.user.id,
+          title: "Invitation Canceled",
+          body: `Invitation to ${invitation.email} has been canceled.`,
+          type: "system",
+          isRead: false
+        });
+        
+        res.json({ 
+          success: true, 
+          message: "Invitation canceled successfully" 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "Failed to cancel invitation" 
+        });
+      }
+    } catch (error) {
+      console.error("Error canceling invitation:", error);
+      res.status(500).json({ message: "Failed to cancel invitation" });
+    }
+  });
+  
   // Emotion tracking routes - only clients can create records
   app.post("/api/users/:userId/emotions", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
     try {

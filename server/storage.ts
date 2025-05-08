@@ -1652,6 +1652,20 @@ export class DatabaseStorage implements IStorage {
     
     return updatedInvitation;
   }
+  
+  async deleteClientInvitation(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(clientInvitations)
+        .where(eq(clientInvitations.id, id))
+        .returning({ id: clientInvitations.id });
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error deleting client invitation:", error);
+      return false;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
