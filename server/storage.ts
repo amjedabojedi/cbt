@@ -41,7 +41,7 @@ export interface IStorage {
   updateSubscriptionStatus(userId: number, status: string, endDate?: Date): Promise<User>;
   assignSubscriptionPlan(userId: number, planId: number): Promise<User>;
   countTherapistClients(therapistId: number): Promise<number>;
-  deleteUser(userId: number): Promise<void>;
+  deleteUser(userId: number, adminId?: number): Promise<void>;
   updateUserTherapist(userId: number, therapistId: number): Promise<User>;
   
   // System logs
@@ -359,8 +359,64 @@ export class DatabaseStorage implements IStorage {
     return updatedClient;
   }
     
-  async deleteUser(userId: number): Promise<void> {
+  async deleteUser(userId: number, adminId?: number): Promise<void> {
     console.log(`Deleting user with ID: ${userId}`);
+    
+    // Fetch user details before deletion for logging
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User ${userId} not found`);
+    }
+    
+    // Create a system log entry for this deletion
+    if (adminId) {
+      const admin = await this.getUser(adminId);
+      await this.createSystemLog({
+        action: "user_deleted",
+        performedBy: adminId,
+        details: {
+          deletedUserId: userId,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          adminUsername: admin?.username || "Unknown"
+        },
+        ipAddress: null
+      });
+    }
+    
+    // If user is a therapist, notify all clients about their therapist being removed
+    if (user.role === "therapist") {
+      // Find all clients of this therapist
+      const clients = await db
+        .select()
+        .from(users)
+        .where(eq(users.therapistId, userId));
+      
+      // Create notifications for all affected clients
+      for (const client of clients) {
+        await this.createNotification({
+          userId: client.id,
+          title: "Therapist Account Removed",
+          message: `Your therapist's account has been removed from the system. Please contact administration for more information.`,
+          type: "system",
+          read: false,
+          link: null
+        });
+      }
+    }
+    
+    // If user is a client with a therapist, notify the therapist
+    if (user.role === "client" && user.therapistId) {
+      await this.createNotification({
+        userId: user.therapistId,
+        title: "Client Account Removed",
+        message: `Your client ${user.name} (${user.username}) has been removed from the system.`,
+        type: "system",
+        read: false,
+        link: null
+      });
+    }
     
     // First, delete all sessions for this user
     await db

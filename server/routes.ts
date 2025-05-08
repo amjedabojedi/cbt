@@ -1005,22 +1005,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Delete the user and all related data
-      await storage.deleteUser(userId);
+      // Pass the admin ID to the deleteUser method which will handle system logging 
+      // and notifications to affected users
+      await storage.deleteUser(userId, req.user?.id);
       
       console.log(`User ${userId} deleted successfully by admin ${req.user?.id}`);
-      
-      // Create a notification log for tracking purposes
-      const adminUser = await storage.getUser(req.user?.id);
-      await storage.createSystemLog({
-        action: "user_deleted",
-        details: {
-          deletedUserId: userId,
-          deletedUserRole: userToDelete.role,
-          deletedUserName: userToDelete.name,
-          deletedByAdmin: adminUser?.name || "Unknown admin",
-          affectedUsers: affectedUserIds.length
-        }
-      });
       
       res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
@@ -1169,17 +1158,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get client info before deletion for notification
       const clientName = client.name || client.username;
       
-      // Delete the client completely
-      await storage.deleteUser(clientId);
+      // Delete the client completely - pass therapist ID for logging
+      await storage.deleteUser(clientId, req.user.id);
       
-      // Create notification for the therapist that they've deleted a client
-      await storage.createNotification({
-        userId: req.user.id,
-        title: "Client Deleted",
-        body: `You have deleted ${clientName} from your clients list.`,
-        type: "system",
-        isRead: false
-      });
+      // The notification to the therapist is now handled inside the deleteUser method
       
       res.status(200).json({ 
         message: "Client deleted successfully"
