@@ -639,11 +639,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First try to get the user by username
       console.log("Finding user with username:", username);
       let user = await storage.getUserByUsername(username);
+      console.log("User lookup by username result:", user ? `Found user ${user.id}` : "Not found");
       
       // If user not found by username, try by email
       if (!user) {
         console.log("User not found by username, trying email lookup");
+        // Debug email lookup
+        const allUsers = await storage.getAllUsers();
+        console.log("All user emails:", allUsers.map(u => u.email));
+        console.log("Looking up by email:", username);
+        
         user = await storage.getUserByEmail(username);
+        console.log("User lookup by email result:", user ? `Found user ${user.id}` : "Not found");
       }
       
       if (!user) {
