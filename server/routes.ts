@@ -4347,7 +4347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Target email: ${testEmail}`);
         console.log(`SparkPost API Key configured: ${process.env.SPARKPOST_API_KEY ? 'Yes' : 'No'}`);
         console.log(`SparkPost API Key length: ${process.env.SPARKPOST_API_KEY?.length || 0}`);
-        console.log(`Sender email: New Horizon CBT <notreply@send.rcrc.ca>`);
+        console.log(`Sender email: New Horizon CBT <noreply@send.rcrc.ca>`);
         
         // Check SparkPost API directly
         let sparkPostApiStatus = 'Unknown';

@@ -15,12 +15,12 @@ interface EmailParams {
 const DEFAULT_FROM_EMAIL = 'New Horizon CBT <noreply@send.rcrc.ca>';
 
 // Alternative domains that can be tried if the default is having issues
-// These should be uncommented and tested if email delivery issues persist
-// const ALTERNATIVE_DOMAINS = [
-//   'New Horizon CBT <noreply@sparkpostmail.com>',
-//   'New Horizon CBT <noreply@eu.sparkpostmail.com>',
-//   'New Horizon CBT <noreply@mail.sparkpost.com>'
-// ];
+// These are enabled for testing purposes to troubleshoot email delivery
+const ALTERNATIVE_DOMAINS = [
+  'New Horizon CBT <noreply@sparkpostmail.com>',
+  'New Horizon CBT <noreply@eu.sparkpostmail.com>',
+  'New Horizon CBT <noreply@mail.sparkpost.com>'
+];
 
 /**
  * Send an email using SparkPost
@@ -36,50 +36,75 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       return false;
     }
 
-    // Add a check for the SparkPost sender domain
-    const fromEmail = DEFAULT_FROM_EMAIL;
-    console.log(`Using sender email: ${fromEmail}`);
+    // First try with the default sender domain
+    let fromEmail = DEFAULT_FROM_EMAIL;
+    let success = await trySendWithDomain(params, fromEmail);
     
-    const transmission = {
-      content: {
-        from: fromEmail,
-        subject: params.subject,
-        html: params.html || params.text, // Fallback to text if HTML not provided
-        text: params.text
-      },
-      recipients: [
-        { address: params.to }
-      ]
-    };
-
-    console.log(`Attempting to send email to: ${params.to}`);
-    console.log(`Email subject: ${params.subject}`);
-    
-    // Show detailed debugging for SparkPost
-    try {
-      const result = await sparkPostClient.transmissions.send(transmission);
-      console.log('SparkPost API Response:', JSON.stringify(result, null, 2));
-      console.log(`Email sent successfully to ${params.to}`);
+    // If default domain fails, try alternative domains
+    if (!success && ALTERNATIVE_DOMAINS.length > 0) {
+      console.log('Default domain sending failed, trying alternative domains...');
       
-      // Log additional info about the response
-      if (result && result.results) {
-        console.log(`Total accepted recipients: ${result.results.total_accepted_recipients}`);
-        console.log(`Total rejected recipients: ${result.results.total_rejected_recipients}`);
-        if (result.results.id) {
-          console.log(`Transmission ID: ${result.results.id}`);
+      for (const altDomain of ALTERNATIVE_DOMAINS) {
+        console.log(`Trying alternative domain: ${altDomain}`);
+        success = await trySendWithDomain(params, altDomain);
+        if (success) {
+          console.log(`Successfully sent with alternative domain: ${altDomain}`);
+          break;
         }
       }
-      
-      return true;
-    } catch (sparkPostError) {
-      console.error('SparkPost transmission error:', sparkPostError);
-      if (sparkPostError.response && sparkPostError.response.body) {
-        console.error('SparkPost API error details:', JSON.stringify(sparkPostError.response.body, null, 2));
-      }
-      return false;
     }
+    
+    return success;
   } catch (error) {
     console.error('SparkPost email error:', error);
+    return false;
+  }
+}
+
+/**
+ * Helper function to attempt sending an email with a specific sender domain
+ * @param params Email parameters
+ * @param fromDomain The sender domain to use
+ * @returns Promise resolving to a boolean indicating success
+ */
+async function trySendWithDomain(params: EmailParams, fromDomain: string): Promise<boolean> {
+  console.log(`Attempting to send email with sender: ${fromDomain}`);
+  
+  const transmission = {
+    content: {
+      from: fromDomain,
+      subject: params.subject,
+      html: params.html || params.text, // Fallback to text if HTML not provided
+      text: params.text
+    },
+    recipients: [
+      { address: params.to }
+    ]
+  };
+
+  console.log(`Attempting to send email to: ${params.to}`);
+  console.log(`Email subject: ${params.subject}`);
+  
+  try {
+    const result = await sparkPostClient.transmissions.send(transmission);
+    console.log('SparkPost API Response:', JSON.stringify(result, null, 2));
+    console.log(`Email sent successfully to ${params.to}`);
+    
+    // Log additional info about the response
+    if (result && result.results) {
+      console.log(`Total accepted recipients: ${result.results.total_accepted_recipients}`);
+      console.log(`Total rejected recipients: ${result.results.total_rejected_recipients}`);
+      if (result.results.id) {
+        console.log(`Transmission ID: ${result.results.id}`);
+      }
+    }
+    
+    return true;
+  } catch (sparkPostError) {
+    console.error(`SparkPost transmission error with domain ${fromDomain}:`, sparkPostError);
+    if (sparkPostError.response && sparkPostError.response.body) {
+      console.error('SparkPost API error details:', JSON.stringify(sparkPostError.response.body, null, 2));
+    }
     return false;
   }
 }
