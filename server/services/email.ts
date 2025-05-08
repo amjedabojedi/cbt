@@ -11,7 +11,7 @@ interface EmailParams {
 }
 
 // Default sender email from the provided configuration
-const DEFAULT_FROM_EMAIL = 'notreply@send.rcrc.ca';
+const DEFAULT_FROM_EMAIL = 'New Horizon CBT <notreply@send.rcrc.ca>';
 
 /**
  * Send an email using SparkPost

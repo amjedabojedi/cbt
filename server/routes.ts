@@ -4219,7 +4219,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Test endpoint for therapist email (development only)
   if (process.env.NODE_ENV === "development") {
-    // This endpoint doesn't require authentication for easier testing
+    // Test endpoints don't require authentication for easier debugging
+    
+    // Test sending a basic email
     app.get("/api/test/email-debug", async (req, res) => {
       try {
         // Create a simple test email
@@ -4254,6 +4256,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
     
+    // Test sending a therapist welcome email without authentication
+    app.get("/api/test/welcome-email", async (req, res) => {
+      try {
+        const testEmail = req.query.email?.toString() || "test@example.com";
+        console.log(`Attempting to send therapist welcome email to: ${testEmail}`);
+        
+        const emailSent = await sendTherapistWelcomeEmail(
+          testEmail,
+          "Test Therapist",
+          "testuser123",
+          "password123",
+          `${req.protocol}://${req.get('host')}/login`
+        );
+        
+        if (emailSent) {
+          console.log(`Therapist welcome email successfully sent to ${testEmail}`);
+          res.json({ 
+            success: true, 
+            message: `Therapist welcome email sent to ${testEmail}`,
+            details: "Check email inbox or spam folder" 
+          });
+        } else {
+          console.log(`Failed to send therapist welcome email to ${testEmail}`);
+          res.json({ 
+            success: false, 
+            message: "Email sending failed. Check server logs for details."
+          });
+        }
+      } catch (error) {
+        console.error("Therapist welcome email error:", error);
+        res.status(500).json({ 
+          error: "Failed to send therapist welcome email", 
+          details: error.message,
+          stack: process.env.NODE_ENV === "development" ? error.stack : undefined
+        });
+      }
+    });
+    
+    // Original authenticated therapist email test endpoint
     app.get("/api/test/therapist-email", authenticate, isAdmin, async (req, res) => {
       try {
         const testEmail = req.query.email?.toString() || "test@example.com";
