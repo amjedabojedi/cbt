@@ -1109,6 +1109,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Update user profile (authenticated users can update their own profile, admins can update any profile)
+  app.patch("/api/users/:userId", authenticate, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Check if user exists
+      const userToUpdate = await storage.getUser(userId);
+      if (!userToUpdate) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Only allow users to update their own profile unless they're an admin
+      if (userId !== req.user.id && req.user.role !== "admin") {
+        return res.status(403).json({ message: "You can only update your own profile" });
+      }
+      
+      // Get fields to update from the request body
+      const { 
+        name, 
+        email,
+        bio,
+        specialty,
+        licenses,
+        education,
+        approach
+      } = req.body;
+      
+      // Create an object with the fields to update
+      const updateData = {};
+      
+      // Only add fields that are present in the request
+      if (name !== undefined) updateData.name = name;
+      if (email !== undefined) updateData.email = email;
+      
+      // These fields are only applicable to therapist profiles
+      if (userToUpdate.role === "therapist") {
+        if (bio !== undefined) updateData.bio = bio;
+        if (specialty !== undefined) updateData.specialty = specialty;
+        if (licenses !== undefined) updateData.licenses = licenses;
+        if (education !== undefined) updateData.education = education;
+        if (approach !== undefined) updateData.approach = approach;
+      }
+      
+      // Update the user
+      const updatedUser = await storage.updateUser(userId, updateData);
+      
+      // Remove sensitive information before responding
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.status(200).json(userWithoutPassword);
+    } catch (error) {
+      console.error("Update user profile error:", error);
+      res.status(500).json({ 
+        message: "Failed to update user profile",
+        error: error.message 
+      });
+    }
+  });
+  
   // Assign subscription plan to a therapist (admin only)
   app.post("/api/users/:userId/subscription-plan", authenticate, isAdmin, async (req, res) => {
     try {
