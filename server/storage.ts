@@ -223,6 +223,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: number, data: Partial<User>): Promise<User> {
+    // If password is being updated, hash it
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+    }
+    
     const [updatedUser] = await db
       .update(users)
       .set(data)
