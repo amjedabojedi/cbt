@@ -519,7 +519,13 @@ export default function EmotionTrackingForm({
             name="situation"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>What happened? (Situation)</FormLabel>
+                <div className="flex items-center">
+                  <FormLabel>What happened? (Situation)</FormLabel>
+                  <ResearchTooltip 
+                    content="Documenting the situation that triggered your emotion helps identify patterns and develop more effective responses."
+                    research="Beck & Haigh (2014) on cognitive models of emotional disorders" 
+                  />
+                </div>
                 <FormControl>
                   <Textarea
                     placeholder="Describe what happened that led to this emotion..."
