@@ -21,7 +21,7 @@ interface EmailParams {
 // Use proper format that SparkPost accepts
 const DEFAULT_FROM_EMAIL = {
   name: "New Horizon CBT",
-  email: "noreply@sparkpostapp.com" // Using SparkPost app domain
+  email: "noreply@send.rcrc.ca" // Using verified sending domain
 };
 
 // Alternative domains that can be tried if the default is having issues
@@ -29,11 +29,11 @@ const DEFAULT_FROM_EMAIL = {
 const ALTERNATIVE_DOMAINS = [
   {
     name: "New Horizon CBT Support",
-    email: "support@sparkpostapp.com" // Default SparkPost app domain
+    email: "noreply@send.rcrc.ca" // Same verified domain with different display name
   },
   {
     name: "New Horizon Notifications",
-    email: "no-reply@sparkpostapp.com" // Default SparkPost app domain with different format
+    email: "noreply@send.rcrc.ca" // Same verified domain with different display name
   }
 ];
 
