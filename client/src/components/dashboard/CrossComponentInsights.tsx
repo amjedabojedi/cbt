@@ -959,7 +959,7 @@ export default function CrossComponentInsights() {
                                     return [value, name];
                                   }}
                                 />
->                                <Legend 
+                                <Legend 
                                   verticalAlign="bottom" 
                                   height={70} 
                                   iconSize={15} 
@@ -970,14 +970,6 @@ export default function CrossComponentInsights() {
                                     paddingLeft: "30px", 
                                     paddingRight: "30px" 
                                   }} 
-                                />
-                                  verticalAlign="bottom" 
-                                  height={70}
-                                  iconSize={15}
-                                  wrapperStyle={{ paddingTop: "20px", paddingLeft: "30px", paddingRight: "30px" }} layout="horizontal" align="center"
-                                  wrapperStyle={{ 
-                                    paddingTop: "20px"
-                                  }}
                                 />
                                 <Bar
                                   dataKey="count"
@@ -1078,9 +1070,12 @@ export default function CrossComponentInsights() {
                                   verticalAlign="bottom" 
                                   height={70}
                                   iconSize={15}
-                                  wrapperStyle={{ paddingTop: "20px", paddingLeft: "30px", paddingRight: "30px" }} layout="horizontal" align="center"
+                                  layout="horizontal"
+                                  align="center"
                                   wrapperStyle={{ 
-                                    paddingTop: "20px"
+                                    paddingTop: "20px",
+                                    paddingLeft: "30px",
+                                    paddingRight: "30px"
                                   }}
                                 />
                                 <Bar 
