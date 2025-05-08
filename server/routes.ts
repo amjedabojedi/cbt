@@ -4331,6 +4331,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
     });
+    
+    // Comprehensive email diagnostics endpoint with SparkPost API check
+    app.get("/api/test/email-diagnostics", async (req, res) => {
+      try {
+        const testEmail = req.query.email?.toString();
+        if (!testEmail) {
+          return res.status(400).json({ 
+            success: false, 
+            message: "Email parameter is required"
+          });
+        }
+        
+        console.log("=== EMAIL DIAGNOSTICS START ===");
+        console.log(`Target email: ${testEmail}`);
+        console.log(`SparkPost API Key configured: ${process.env.SPARKPOST_API_KEY ? 'Yes' : 'No'}`);
+        console.log(`SparkPost API Key length: ${process.env.SPARKPOST_API_KEY?.length || 0}`);
+        console.log(`Sender email: New Horizon CBT <notreply@send.rcrc.ca>`);
+        
+        // Check SparkPost API directly
+        let sparkPostApiStatus = 'Unknown';
+        let sparkPostApiDetails = null;
+        
+        try {
+          if (process.env.SPARKPOST_API_KEY) {
+            console.log("\nChecking SparkPost API health...");
+            const SparkPost = require('sparkpost');
+            const sparkPostClient = new SparkPost(process.env.SPARKPOST_API_KEY);
+            const apiResponse = await sparkPostClient.sendingDomains.list();
+            
+            console.log("SparkPost API responded successfully");
+            console.log("Sending domains:", JSON.stringify(apiResponse.results || [], null, 2));
+            
+            // Check if our domain is verified
+            const ourDomain = 'send.rcrc.ca';
+            const domainInfo = apiResponse.results.find(domain => domain.domain === ourDomain);
+            
+            if (domainInfo) {
+              console.log(`Domain '${ourDomain}' status:`, JSON.stringify(domainInfo, null, 2));
+              sparkPostApiStatus = 'Active';
+              sparkPostApiDetails = {
+                domainFound: true,
+                domainStatus: domainInfo.status,
+                dkimStatus: domainInfo.dkim?.status,
+                spfStatus: domainInfo.spf_status,
+                complianceStatus: domainInfo.compliance_status
+              };
+            } else {
+              console.log(`Domain '${ourDomain}' not found in SparkPost account`);
+              sparkPostApiStatus = 'Domain Not Found';
+              sparkPostApiDetails = { domainFound: false };
+            }
+          } else {
+            console.log("Cannot check SparkPost API without API key");
+            sparkPostApiStatus = 'Missing API Key';
+          }
+        } catch (sparkPostError) {
+          console.error("Error checking SparkPost API:", sparkPostError);
+          sparkPostApiStatus = 'Error';
+          sparkPostApiDetails = {
+            error: sparkPostError.message,
+            statusCode: sparkPostError.statusCode,
+            response: sparkPostError.response?.body
+          };
+        }
+        
+        // Test plain text email
+        console.log("\n1. Testing plain text email...");
+        const plainTextResult = await sendEmail({
+          to: testEmail,
+          subject: "Diagnostics: Plain Text Email",
+          text: "This is a plain text email for diagnostics purposes."
+        });
+        console.log(`Plain text email result: ${plainTextResult ? 'Success' : 'Failed'}`);
+        
+        // Test HTML email
+        console.log("\n2. Testing HTML email...");
+        const htmlResult = await sendEmail({
+          to: testEmail,
+          subject: "Diagnostics: HTML Email",
+          html: "<h1>HTML Email Test</h1><p>This is an HTML email for diagnostics purposes.</p>"
+        });
+        console.log(`HTML email result: ${htmlResult ? 'Success' : 'Failed'}`);
+        
+        // Test welcome email
+        console.log("\n3. Testing therapist welcome email...");
+        const welcomeResult = await sendTherapistWelcomeEmail(
+          testEmail,
+          "Test Therapist",
+          "testuser123",
+          "password123",
+          `${req.protocol}://${req.get('host')}/login`
+        );
+        console.log(`Welcome email result: ${welcomeResult ? 'Success' : 'Failed'}`);
+        
+        console.log("=== EMAIL DIAGNOSTICS END ===");
+        
+        res.json({
+          success: true,
+          diagnostics: {
+            targetEmail: testEmail,
+            sparkPostConfigured: process.env.SPARKPOST_API_KEY ? true : false,
+            sparkPostApiStatus,
+            sparkPostApiDetails,
+            senderEmail: "New Horizon CBT <notreply@send.rcrc.ca>",
+            plainTextEmailSent: plainTextResult,
+            htmlEmailSent: htmlResult,
+            welcomeEmailSent: welcomeResult,
+            timestamp: new Date().toISOString()
+          },
+          message: "Email diagnostics completed. Check server logs for detailed results."
+        });
+      } catch (error) {
+        console.error("Email diagnostics error:", error);
+        res.status(500).json({
+          success: false,
+          error: "Email diagnostics failed",
+          details: error.message,
+          stack: process.env.NODE_ENV === "development" ? error.stack : undefined
+        });
+      }
+    });
   }
   
   return httpServer;

@@ -11,7 +11,16 @@ interface EmailParams {
 }
 
 // Default sender email from the provided configuration
+// Make sure this is a verified sending domain in SparkPost
 const DEFAULT_FROM_EMAIL = 'New Horizon CBT <notreply@send.rcrc.ca>';
+
+// Alternative domains that can be tried if the default is having issues
+// These should be uncommented and tested if email delivery issues persist
+// const ALTERNATIVE_DOMAINS = [
+//   'New Horizon CBT <noreply@sparkpostmail.com>',
+//   'New Horizon CBT <noreply@eu.sparkpostmail.com>',
+//   'New Horizon CBT <noreply@mail.sparkpost.com>'
+// ];
 
 /**
  * Send an email using SparkPost
