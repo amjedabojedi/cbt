@@ -27,9 +27,13 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       return false;
     }
 
+    // Add a check for the SparkPost sender domain
+    const fromEmail = DEFAULT_FROM_EMAIL;
+    console.log(`Using sender email: ${fromEmail}`);
+    
     const transmission = {
       content: {
-        from: DEFAULT_FROM_EMAIL,
+        from: fromEmail,
         subject: params.subject,
         html: params.html || params.text, // Fallback to text if HTML not provided
         text: params.text
@@ -39,10 +43,32 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       ]
     };
 
-    await sparkPostClient.transmissions.send(transmission);
+    console.log(`Attempting to send email to: ${params.to}`);
+    console.log(`Email subject: ${params.subject}`);
     
-    console.log(`Email sent successfully to ${params.to}`);
-    return true;
+    // Show detailed debugging for SparkPost
+    try {
+      const result = await sparkPostClient.transmissions.send(transmission);
+      console.log('SparkPost API Response:', JSON.stringify(result, null, 2));
+      console.log(`Email sent successfully to ${params.to}`);
+      
+      // Log additional info about the response
+      if (result && result.results) {
+        console.log(`Total accepted recipients: ${result.results.total_accepted_recipients}`);
+        console.log(`Total rejected recipients: ${result.results.total_rejected_recipients}`);
+        if (result.results.id) {
+          console.log(`Transmission ID: ${result.results.id}`);
+        }
+      }
+      
+      return true;
+    } catch (sparkPostError) {
+      console.error('SparkPost transmission error:', sparkPostError);
+      if (sparkPostError.response && sparkPostError.response.body) {
+        console.error('SparkPost API error details:', JSON.stringify(sparkPostError.response.body, null, 2));
+      }
+      return false;
+    }
   } catch (error) {
     console.error('SparkPost email error:', error);
     return false;

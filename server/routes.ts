@@ -8,6 +8,7 @@ import * as bcrypt from "bcrypt";
 import Stripe from "stripe";
 import * as emotionMapping from "./services/emotionMapping";
 import { initializeWebSocketServer, sendNotificationToUser } from "./services/websocket";
+import { sendEmail, sendTherapistWelcomeEmail, sendClientInvitation, sendEmotionTrackingReminder, sendPasswordResetEmail, sendWeeklyProgressDigest } from "./services/email";
 import { 
   insertUserSchema, 
   insertEmotionRecordSchema,
@@ -42,7 +43,7 @@ import {
   emotionRecords
 } from "@shared/schema";
 import cookieParser from "cookie-parser";
-import { sendClientInvitation, sendTherapistWelcomeEmail } from "./services/email";
+// Email services already imported above
 import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
 import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
 import { registerIntegrationRoutes } from "./services/integrationRoutes";
@@ -4218,6 +4219,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Test endpoint for therapist email (development only)
   if (process.env.NODE_ENV === "development") {
+    // This endpoint doesn't require authentication for easier testing
+    app.get("/api/test/email-debug", async (req, res) => {
+      try {
+        // Create a simple test email
+        const testEmail = req.query.email?.toString() || "test@example.com";
+        console.log(`Attempting to send test email to: ${testEmail}`);
+        
+        const emailSent = await sendEmail({
+          to: testEmail,
+          subject: "Email System Test",
+          html: "<h1>Test Email</h1><p>This is a test email sent from New Horizon CBT application.</p>"
+        });
+        
+        if (emailSent) {
+          res.json({ 
+            success: true, 
+            message: `Test email sent to ${testEmail}`,
+            details: "Check your email inbox or spam folder"
+          });
+        } else {
+          res.json({ 
+            success: false, 
+            message: "Email sending failed. See server logs for details."
+          });
+        }
+      } catch (error) {
+        console.error("Test email error:", error);
+        res.status(500).json({ 
+          error: "Failed to send test email", 
+          details: error.message,
+          stack: process.env.NODE_ENV === "development" ? error.stack : undefined 
+        });
+      }
+    });
+    
     app.get("/api/test/therapist-email", authenticate, isAdmin, async (req, res) => {
       try {
         const testEmail = req.query.email?.toString() || "test@example.com";
