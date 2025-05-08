@@ -408,9 +408,9 @@ export class DatabaseStorage implements IStorage {
         await this.createNotification({
           userId: client.id,
           title: "Therapist Account Removed",
-          message: `Your therapist's account has been removed from the system. Please contact administration for more information.`,
+          body: `Your therapist's account has been removed from the system. Please contact administration for more information.`,
           type: "system",
-          read: false,
+          isRead: false,
           link: null
         });
       }
@@ -421,9 +421,9 @@ export class DatabaseStorage implements IStorage {
       await this.createNotification({
         userId: user.therapistId,
         title: "Client Account Removed",
-        message: `Your client ${user.name} (${user.username}) has been removed from the system.`,
+        body: `Your client ${user.name} (${user.username}) has been removed from the system.`,
         type: "system",
-        read: false,
+        isRead: false,
         link: null
       });
     }
