@@ -970,10 +970,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
+      // Capture relevant data before deletion for notifications
+      let affectedUserIds = [];
+      
+      // If deleting a therapist, get all their clients for notifications
+      if (userToDelete.role === "therapist") {
+        const clients = await storage.getAllUsers();
+        const therapistClients = clients.filter(client => client.therapistId === userId);
+        
+        // Collect client IDs for notifications
+        affectedUserIds = therapistClients.map(client => client.id);
+        
+        // Create notifications for affected clients
+        for (const clientId of affectedUserIds) {
+          await storage.createNotification({
+            userId: clientId,
+            title: "Therapist Assignment Update",
+            body: `Your therapist ${userToDelete.name} is no longer available. Please contact administration for reassignment.`,
+            type: "system",
+            isRead: false
+          });
+        }
+      }
+      
+      // If deleting a client who has a therapist, notify the therapist
+      if (userToDelete.role === "client" && userToDelete.therapistId) {
+        await storage.createNotification({
+          userId: userToDelete.therapistId,
+          title: "Client Removed",
+          body: `Your client ${userToDelete.name} has been removed from the system.`,
+          type: "system",
+          isRead: false
+        });
+      }
+      
       // Delete the user and all related data
       await storage.deleteUser(userId);
       
       console.log(`User ${userId} deleted successfully by admin ${req.user?.id}`);
+      
+      // Create a notification log for tracking purposes
+      const adminUser = await storage.getUser(req.user?.id);
+      await storage.createSystemLog({
+        action: "user_deleted",
+        details: {
+          deletedUserId: userId,
+          deletedUserRole: userToDelete.role,
+          deletedUserName: userToDelete.name,
+          deletedByAdmin: adminUser?.name || "Unknown admin",
+          affectedUsers: affectedUserIds.length
+        }
+      });
+      
       res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
       console.error("Delete user error:", error);
