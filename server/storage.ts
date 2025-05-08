@@ -44,6 +44,13 @@ export interface IStorage {
   deleteUser(userId: number): Promise<void>;
   updateUserTherapist(userId: number, therapistId: number): Promise<User>;
   
+  // Admin statistics methods
+  getAllEmotionRecords(): Promise<EmotionRecord[]>;
+  getAllThoughtRecords(): Promise<ThoughtRecord[]>;
+  getAllGoals(): Promise<Goal[]>;
+  getAllResources(): Promise<Resource[]>;
+  getAllResourceAssignments(): Promise<ResourceAssignment[]>;
+  
   // Subscription plans management
   createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan>;
   getSubscriptionPlans(activeOnly?: boolean): Promise<SubscriptionPlan[]>;

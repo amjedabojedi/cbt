@@ -756,6 +756,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get admin statistics (admin only)
+  app.get("/api/admin/stats", authenticate, isAdmin, async (req, res) => {
+    try {
+      // Fetch all users
+      const users = await storage.getAllUsers();
+      const clients = users.filter(u => u.role === 'client');
+      const therapists = users.filter(u => u.role === 'therapist');
+      
+      // Get counts by user role
+      const activeClients = clients.filter(c => c.status === 'active').length;
+      
+      // Calculate therapist-client relationships
+      const clientsWithoutTherapist = clients.filter(c => !c.therapistId).length;
+      const therapistsWithClients = new Set(
+        clients
+          .filter(c => c.therapistId)
+          .map(c => c.therapistId)
+      );
+      const therapistsWithoutClients = therapists.length - therapistsWithClients.size;
+      
+      // Fetch emotion records
+      const emotionRecords = await storage.getAllEmotionRecords();
+      
+      // Fetch thought records
+      const thoughtRecords = await storage.getAllThoughtRecords();
+      
+      // Fetch goals
+      const goals = await storage.getAllGoals();
+      
+      // Calculate clients with goals
+      const clientsWithGoalsSet = new Set(goals.map(g => g.userId));
+      const clientsWithGoals = clientsWithGoalsSet.size;
+      
+      // Calculate resource usage
+      const resources = await storage.getAllResources();
+      const resourceAssignments = await storage.getAllResourceAssignments();
+      
+      // Calculate averages
+      const avgGoalsPerClient = clients.length ? (goals.length / clients.length) : 0;
+      const avgEmotionsPerClient = clients.length ? (emotionRecords.length / clients.length) : 0;
+      
+      // Find most active therapist (therapist with most clients)
+      const therapistClientCounts = {};
+      clients.forEach(client => {
+        if (client.therapistId) {
+          therapistClientCounts[client.therapistId] = (therapistClientCounts[client.therapistId] || 0) + 1;
+        }
+      });
+      
+      let mostActiveTherapistId = null;
+      let maxClientCount = 0;
+      
+      Object.entries(therapistClientCounts).forEach(([therapistId, count]) => {
+        if (count > maxClientCount) {
+          mostActiveTherapistId = parseInt(therapistId);
+          maxClientCount = count;
+        }
+      });
+      
+      const mostActiveTherapist = therapists.find(t => t.id === mostActiveTherapistId)?.name || 'N/A';
+      
+      // Find most active client (client with most emotion records)
+      const clientEmotionCounts = {};
+      emotionRecords.forEach(emotion => {
+        clientEmotionCounts[emotion.userId] = (clientEmotionCounts[emotion.userId] || 0) + 1;
+      });
+      
+      let mostActiveClientId = null;
+      let maxEmotionCount = 0;
+      
+      Object.entries(clientEmotionCounts).forEach(([clientId, count]) => {
+        if (count > maxEmotionCount) {
+          mostActiveClientId = parseInt(clientId);
+          maxEmotionCount = count;
+        }
+      });
+      
+      const mostActiveClient = clients.find(c => c.id === mostActiveClientId)?.name || 'N/A';
+      
+      // Find most used resource
+      const resourceUsageCounts = {};
+      resourceAssignments.forEach(assignment => {
+        resourceUsageCounts[assignment.resourceId] = (resourceUsageCounts[assignment.resourceId] || 0) + 1;
+      });
+      
+      let mostUsedResourceId = null;
+      let maxResourceCount = 0;
+      
+      Object.entries(resourceUsageCounts).forEach(([resourceId, count]) => {
+        if (count > maxResourceCount) {
+          mostUsedResourceId = parseInt(resourceId);
+          maxResourceCount = count;
+        }
+      });
+      
+      const mostUsedResource = resources.find(r => r.id === mostUsedResourceId)?.title || 'N/A';
+      
+      // Get top 5 resources by usage
+      const topResources = resources
+        .map(resource => {
+          const usageCount = resourceAssignments.filter(a => a.resourceId === resource.id).length;
+          return {
+            id: resource.id,
+            title: resource.title,
+            usageCount
+          };
+        })
+        .sort((a, b) => b.usageCount - a.usageCount)
+        .slice(0, 5);
+      
+      // Compile the stats
+      const stats = {
+        totalUsers: users.length,
+        totalClients: clients.length,
+        totalTherapists: therapists.length,
+        totalEmotions: emotionRecords.length,
+        totalThoughts: thoughtRecords.length,
+        totalGoals: goals.length,
+        activeClients,
+        activeTherapists: therapists.length,
+        resourceUsage: resourceAssignments.length,
+        clientsWithoutTherapist,
+        therapistsWithoutClients,
+        clientsWithGoals,
+        averageGoalsPerClient: Math.round(avgGoalsPerClient * 10) / 10,
+        averageEmotionsPerClient: Math.round(avgEmotionsPerClient * 10) / 10,
+        mostActiveTherapist,
+        mostActiveClient,
+        mostUsedResource,
+        topResources
+      };
+      
+      res.status(200).json(stats);
+    } catch (error) {
+      console.error("Admin stats error:", error);
+      res.status(500).json({ message: "Failed to retrieve admin statistics" });
+    }
+  });
+  
   // Delete a user (admin only)
   app.delete("/api/users/:userId", authenticate, isAdmin, async (req, res) => {
     try {
