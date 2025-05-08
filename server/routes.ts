@@ -4446,10 +4446,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`Sending direct email test to: ${testEmail}`);
         
-        // Use the SparkPost client directly to ensure no formatting issues
+        // Use the SparkPost client directly with from email that has both name and address parts
         const result = await sparkPostClient.transmissions.send({
           content: {
-            from: "noreply@mail.sparkpost.com",
+            from: {
+              name: "New Horizon CBT",
+              email: "support@sparkpostbox.com"  // Using SparkPost's sandbox domain which is always enabled
+            },
             subject: "Direct Test Email",
             text: "This is a direct test email with minimal formatting to test deliverability."
           },

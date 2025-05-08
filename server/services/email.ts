@@ -12,15 +12,23 @@ interface EmailParams {
 
 // Default sender email from the provided configuration
 // Make sure this is a verified sending domain in SparkPost
-// Change the sender email format to improve deliverability
-const DEFAULT_FROM_EMAIL = 'noreply@mail.sparkpost.com';
+// Use proper format that SparkPost accepts
+const DEFAULT_FROM_EMAIL = {
+  name: "New Horizon CBT",
+  email: "support@sparkpostbox.com" // Using SparkPost's sandbox domain which is always enabled
+};
 
 // Alternative domains that can be tried if the default is having issues
-// These are enabled for testing purposes to troubleshoot email delivery
+// These are in proper SparkPost object format with name and email separated
 const ALTERNATIVE_DOMAINS = [
-  'noreply@sparkpostmail.com',
-  'noreply@eu.sparkpostmail.com',
-  'noreply@send.rcrc.ca'
+  {
+    name: "New Horizon CBT",
+    email: "noreply@sparkpostbox.com"
+  },
+  {
+    name: "New Horizon CBT Support",
+    email: "support@sparkpostbox.com"
+  }
 ];
 
 /**
@@ -65,15 +73,22 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
 /**
  * Helper function to attempt sending an email with a specific sender domain
  * @param params Email parameters
- * @param fromDomain The sender domain to use
+ * @param fromDomain The sender domain to use (can be string or {name, email} object)
  * @returns Promise resolving to a boolean indicating success
  */
-async function trySendWithDomain(params: EmailParams, fromDomain: string): Promise<boolean> {
-  console.log(`Attempting to send email with sender: ${fromDomain}`);
+async function trySendWithDomain(params: EmailParams, fromDomain: any): Promise<boolean> {
+  // Handle string or object format for the sender
+  let senderInfo = fromDomain;
+  
+  if (typeof fromDomain === 'object') {
+    console.log(`Attempting to send email with sender: ${fromDomain.name} <${fromDomain.email}>`);
+  } else {
+    console.log(`Attempting to send email with sender: ${fromDomain}`);
+  }
   
   const transmission = {
     content: {
-      from: fromDomain,
+      from: senderInfo,
       subject: params.subject,
       html: params.html || params.text, // Fallback to text if HTML not provided
       text: params.text
