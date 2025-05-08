@@ -12,7 +12,7 @@ interface EmailParams {
 
 // Default sender email from the provided configuration
 // Make sure this is a verified sending domain in SparkPost
-const DEFAULT_FROM_EMAIL = 'New Horizon CBT <notreply@send.rcrc.ca>';
+const DEFAULT_FROM_EMAIL = 'New Horizon CBT <noreply@send.rcrc.ca>';
 
 // Alternative domains that can be tried if the default is having issues
 // These should be uncommented and tested if email delivery issues persist

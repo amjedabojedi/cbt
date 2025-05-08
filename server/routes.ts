@@ -4356,9 +4356,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           if (process.env.SPARKPOST_API_KEY) {
             console.log("\nChecking SparkPost API health...");
-            // Use the same SparkPost instance we use elsewhere
-            const sparkPostClient = sparkPostLib.client;
-            const apiResponse = await sparkPostClient.sendingDomains.list();
+            // Use the imported sparkPostClient
+            const apiResponse = await sparkPostClient.sendingDomains.all();
             
             console.log("SparkPost API responded successfully");
             console.log("Sending domains:", JSON.stringify(apiResponse.results || [], null, 2));
@@ -4434,7 +4433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sparkPostConfigured: process.env.SPARKPOST_API_KEY ? true : false,
             sparkPostApiStatus,
             sparkPostApiDetails,
-            senderEmail: "New Horizon CBT <notreply@send.rcrc.ca>",
+            senderEmail: "New Horizon CBT <noreply@send.rcrc.ca>",
             plainTextEmailSent: plainTextResult,
             htmlEmailSent: htmlResult,
             welcomeEmailSent: welcomeResult,
