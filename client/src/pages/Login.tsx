@@ -78,14 +78,18 @@ export default function Login() {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium">Username</label>
+              <label htmlFor="username" className="text-sm font-medium">Username or Email</label>
               <Input 
                 id="username" 
                 type="text" 
                 value={username} 
                 onChange={(e) => setUsername(e.target.value)} 
+                placeholder="johndoe or john@example.com"
                 required
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                You can log in with either your username or email address
+              </p>
             </div>
             
             <div className="space-y-2">
