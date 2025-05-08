@@ -495,12 +495,25 @@ export class DatabaseStorage implements IStorage {
   
   // System logs
   async createSystemLog(log: InsertSystemLog): Promise<SystemLog> {
-    const [newLog] = await db
-      .insert(systemLogs)
-      .values(log)
-      .returning();
-    
-    return newLog;
+    try {
+      const [newLog] = await db
+        .insert(systemLogs)
+        .values(log)
+        .returning();
+      
+      return newLog;
+    } catch (error) {
+      console.error("Error creating system log:", error);
+      // Return a minimal valid log object to avoid blocking operations
+      return {
+        id: 0,
+        action: log.action,
+        performedBy: log.performedBy,
+        details: log.details,
+        ipAddress: log.ipAddress || null,
+        timestamp: new Date().toISOString(),
+      } as SystemLog;
+    }
   }
   
   // Admin statistics methods

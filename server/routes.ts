@@ -4356,8 +4356,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           if (process.env.SPARKPOST_API_KEY) {
             console.log("\nChecking SparkPost API health...");
-            const SparkPost = require('sparkpost');
-            const sparkPostClient = new SparkPost(process.env.SPARKPOST_API_KEY);
+            // Use the same SparkPost instance we use elsewhere
+            const sparkPostClient = sparkPostLib.client;
             const apiResponse = await sparkPostClient.sendingDomains.list();
             
             console.log("SparkPost API responded successfully");
