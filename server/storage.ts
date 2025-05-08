@@ -1589,6 +1589,68 @@ export class DatabaseStorage implements IStorage {
     
     return updatedPreferences;
   }
+  
+  // Client invitations implementations
+  async createClientInvitation(invitation: InsertClientInvitation): Promise<ClientInvitation> {
+    // Set expiration date to 7 days from now if not provided
+    if (!invitation.expiresAt) {
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+      invitation.expiresAt = expiresAt;
+    }
+    
+    const [newInvitation] = await db
+      .insert(clientInvitations)
+      .values(invitation)
+      .returning();
+    
+    return newInvitation;
+  }
+  
+  async getClientInvitationById(id: number): Promise<ClientInvitation | undefined> {
+    const [invitation] = await db
+      .select()
+      .from(clientInvitations)
+      .where(eq(clientInvitations.id, id));
+    
+    return invitation;
+  }
+  
+  async getClientInvitationByEmail(email: string): Promise<ClientInvitation | undefined> {
+    const [invitation] = await db
+      .select()
+      .from(clientInvitations)
+      .where(eq(clientInvitations.email, email))
+      .orderBy(desc(clientInvitations.createdAt))
+      .limit(1);
+    
+    return invitation;
+  }
+  
+  async getClientInvitationsByTherapist(therapistId: number): Promise<ClientInvitation[]> {
+    return db
+      .select()
+      .from(clientInvitations)
+      .where(eq(clientInvitations.therapistId, therapistId))
+      .orderBy(desc(clientInvitations.createdAt));
+  }
+  
+  async updateClientInvitationStatus(id: number, status: string): Promise<ClientInvitation> {
+    const updateData: any = { status };
+    
+    // If status is "accepted", set the acceptedAt timestamp
+    if (status === "accepted") {
+      updateData.acceptedAt = new Date();
+    }
+    
+    const [updatedInvitation] = await db
+      .update(clientInvitations)
+      .set(updateData)
+      .where(eq(clientInvitations.id, id))
+      .returning();
+    
+    return updatedInvitation;
+  }
 }
 
 export const storage = new DatabaseStorage();

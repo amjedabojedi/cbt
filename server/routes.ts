@@ -1437,14 +1437,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create a record of the invitation in the database for tracking
       try {
-        await db.insert(clientInvitations).values({
+        await storage.createClientInvitation({
           email: email,
           therapistId: req.user.id,
           status: emailSent ? "email_sent" : "email_failed",
           tempUsername: username,
           tempPassword: tempPassword,
-          inviteLink: inviteLink,
-          createdAt: new Date()
+          inviteLink: inviteLink
         });
       } catch (error) {
         console.error("Failed to record invitation:", error);
@@ -1637,7 +1636,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Client invitation endpoint (email-based) has been replaced with a more robust solution above
+  // Client invitation management endpoints
+  
+  // Get all invitations for a therapist
+  app.get("/api/invitations", authenticate, isTherapist, async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const invitations = await storage.getClientInvitationsByTherapist(req.user.id);
+      res.json(invitations);
+    } catch (error) {
+      console.error("Error fetching invitations:", error);
+      res.status(500).json({ message: "Failed to fetch invitations" });
+    }
+  });
+  
+  // Get specific invitation
+  app.get("/api/invitations/:id", authenticate, isTherapist, async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const invitationId = parseInt(req.params.id);
+      const invitation = await storage.getClientInvitationById(invitationId);
+      
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      // Verify the therapist owns this invitation
+      if (invitation.therapistId !== req.user.id) {
+        return res.status(403).json({ message: "Not authorized to view this invitation" });
+      }
+      
+      res.json(invitation);
+    } catch (error) {
+      console.error("Error fetching invitation:", error);
+      res.status(500).json({ message: "Failed to fetch invitation" });
+    }
+  });
+  
+  // Resend invitation (creates a new notification even if email fails)
+  app.post("/api/invitations/:id/resend", authenticate, isTherapist, async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const invitationId = parseInt(req.params.id);
+      const invitation = await storage.getClientInvitationById(invitationId);
+      
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      // Verify the therapist owns this invitation
+      if (invitation.therapistId !== req.user.id) {
+        return res.status(403).json({ message: "Not authorized to resend this invitation" });
+      }
+      
+      // Send email with the client's credentials
+      const therapist = await storage.getUser(req.user.id);
+      if (!therapist) {
+        return res.status(404).json({ message: "Therapist not found" });
+      }
+      
+      const emailSent = await sendClientInvitation(
+        invitation.email,
+        therapist.name || therapist.username,
+        invitation.inviteLink
+      );
+      
+      // Create a notification for the therapist regardless of email status
+      await storage.createNotification({
+        userId: req.user.id,
+        title: emailSent ? "Invitation Resent" : "Invitation Email Failed",
+        body: emailSent 
+          ? `Invitation to ${invitation.email} has been resent successfully.`
+          : `Failed to send invitation email to ${invitation.email}. Please provide account details directly: Username: ${invitation.tempUsername}, Password: ${invitation.tempPassword}`,
+        type: emailSent ? "system" : "alert",
+        isRead: false
+      });
+      
+      // Update invitation status
+      await storage.updateClientInvitationStatus(
+        invitationId, 
+        emailSent ? "email_sent" : "email_failed"
+      );
+      
+      res.json({ 
+        success: true, 
+        emailSent,
+        message: emailSent 
+          ? "Invitation resent successfully" 
+          : "Email failed, but notification created"
+      });
+    } catch (error) {
+      console.error("Error resending invitation:", error);
+      res.status(500).json({ message: "Failed to resend invitation" });
+    }
+  });
   
   // Emotion tracking routes - only clients can create records
   app.post("/api/users/:userId/emotions", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
@@ -4381,6 +4482,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
           details: error.message,
           stack: process.env.NODE_ENV === "development" ? error.stack : undefined
         });
+      }
+    });
+    
+    // Test invitation notification endpoint
+    app.get("/api/test/invitation-notification", async (req, res) => {
+      const email = req.query.email as string;
+      if (!email) {
+        return res.status(400).json({ success: false, message: "Email parameter is required" });
+      }
+      
+      try {
+        // Create a test notification
+        await storage.createNotification({
+          userId: 1, // Admin user
+          title: "Test Client Invitation",
+          body: `This is a test notification for inviting ${email} to New Horizon-CBT. This demonstrates the new invitation notification type.`,
+          type: "invitation",
+          isRead: false,
+          linkPath: "/clients",
+          metadata: {
+            email: email,
+            invitedAt: new Date().toISOString()
+          }
+        });
+        
+        // Try to create an entry in client_invitations table
+        try {
+          await storage.createClientInvitation({
+            email: email,
+            therapistId: 1,
+            status: "pending",
+            tempUsername: "testuser_" + Math.floor(Math.random() * 1000),
+            tempPassword: "temp" + Math.floor(Math.random() * 10000),
+            inviteLink: "https://example.com/invite-link"
+          });
+          
+          return res.status(200).send(`
+            <html>
+              <head><title>Test Successful</title></head>
+              <body>
+                <h1>Test Successful</h1>
+                <p>Successfully created notification and client invitation record for ${email}</p>
+                <p>Client invitations table is working correctly.</p>
+              </body>
+            </html>
+          `);
+        } catch (error) {
+          console.error("Client invitation record creation error:", error);
+          return res.status(200).send(`
+            <html>
+              <head><title>Partial Test Success</title></head>
+              <body>
+                <h1>Partial Success</h1>
+                <p>Successfully created notification for ${email}</p>
+                <p>Failed to create client_invitations record. Table might not be created yet.</p>
+                <p>Error: ${error.message}</p>
+                <p>You may need to run: npm run db:push</p>
+              </body>
+            </html>
+          `);
+        }
+      } catch (error) {
+        console.error("Invitation notification test error:", error);
+        res.status(500).json({ success: false, message: "Failed to create invitation notification", error: error.message });
       }
     });
     
