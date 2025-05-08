@@ -959,7 +959,18 @@ export default function CrossComponentInsights() {
                                     return [value, name];
                                   }}
                                 />
-                                <Legend 
+>                                <Legend 
+                                  verticalAlign="bottom" 
+                                  height={70} 
+                                  iconSize={15} 
+                                  layout="horizontal" 
+                                  align="center" 
+                                  wrapperStyle={{ 
+                                    paddingTop: "20px", 
+                                    paddingLeft: "30px", 
+                                    paddingRight: "30px" 
+                                  }} 
+                                />
                                   verticalAlign="bottom" 
                                   height={70}
                                   iconSize={15}
