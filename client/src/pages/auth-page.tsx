@@ -222,10 +222,13 @@ export default function AuthPage() {
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Username</FormLabel>
+                            <FormLabel>Username or Email</FormLabel>
                             <FormControl>
-                              <Input placeholder="johndoe" {...field} />
+                              <Input placeholder="johndoe or john@example.com" {...field} />
                             </FormControl>
+                            <FormDescription>
+                              You can log in with either your username or email address
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
