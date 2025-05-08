@@ -1424,6 +1424,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Invitation email sent to ${email}`);
       } else {
         console.warn(`Failed to send invitation email to ${email}. Check if SPARKPOST_API_KEY is correctly configured.`);
+        
+        // Create an additional notification for the therapist about the email failure
+        await storage.createNotification({
+          userId: req.user.id,
+          title: "Email Delivery Issue",
+          body: `We couldn't send an invitation email to ${email}. Please provide this information to your client directly: Username: ${username}, Temporary Password: ${tempPassword}, and the invitation link.`,
+          type: "alert",
+          isRead: false
+        });
+      }
+      
+      // Create a record of the invitation in the database for tracking
+      try {
+        await db.insert(clientInvitations).values({
+          email: email,
+          therapistId: req.user.id,
+          status: emailSent ? "email_sent" : "email_failed",
+          tempUsername: username,
+          tempPassword: tempPassword,
+          inviteLink: inviteLink,
+          createdAt: new Date()
+        });
+      } catch (error) {
+        console.error("Failed to record invitation:", error);
+        // Non-critical error, continue with the response
       }
       
       const { password, ...userWithoutPassword } = newUser;

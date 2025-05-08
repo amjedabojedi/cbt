@@ -1,7 +1,12 @@
 import SparkPost from 'sparkpost';
 
-// Initialize SparkPost client
+// Initialize SparkPost client with API key
 export const sparkPostClient = new SparkPost(process.env.SPARKPOST_API_KEY);
+
+// Track email service status
+let sparkPostServiceAvailable = true;
+let lastSparkPostError: any = null;
+let failureCount = 0;
 
 interface EmailParams {
   to: string;
@@ -42,7 +47,20 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     // Check if SparkPost API key is configured
     if (!process.env.SPARKPOST_API_KEY) {
       console.error('SparkPost API key not configured');
+      // Record the service issue
+      sparkPostServiceAvailable = false;
+      lastSparkPostError = new Error('SparkPost API key not configured');
+      failureCount++;
       return false;
+    }
+
+    // If the SparkPost service has had multiple failures, log a detailed warning
+    if (failureCount > 3) {
+      console.warn(`⚠️ WARNING: SparkPost email service has failed ${failureCount} times.`);
+      console.warn(`Last error: ${lastSparkPostError?.message || 'Unknown error'}`);
+      
+      // Still try to send, but log the warning to help troubleshooting
+      console.warn(`Attempting to send email despite previous failures to: ${params.to}`);
     }
 
     // First try with the default sender domain
@@ -54,18 +72,33 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       console.log('Default domain sending failed, trying alternative domains...');
       
       for (const altDomain of ALTERNATIVE_DOMAINS) {
-        console.log(`Trying alternative domain: ${altDomain}`);
+        console.log(`Trying alternative domain: ${JSON.stringify(altDomain)}`);
         success = await trySendWithDomain(params, altDomain);
         if (success) {
-          console.log(`Successfully sent with alternative domain: ${altDomain}`);
+          console.log(`Successfully sent with alternative domain: ${JSON.stringify(altDomain)}`);
+          // Reset failure count on success
+          failureCount = 0;
+          sparkPostServiceAvailable = true;
+          lastSparkPostError = null;
           break;
         }
       }
+    }
+
+    // If all attempts failed, record the failure
+    if (!success) {
+      failureCount++;
+      sparkPostServiceAvailable = false;
+      console.error(`Failed to send email after trying all domains. Total failures: ${failureCount}`);
     }
     
     return success;
   } catch (error) {
     console.error('SparkPost email error:', error);
+    // Record the service issue
+    sparkPostServiceAvailable = false;
+    lastSparkPostError = error;
+    failureCount++;
     return false;
   }
 }
