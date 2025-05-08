@@ -83,7 +83,7 @@ export default function TermsOfService() {
             
             <h2>12. Contact Us</h2>
             <p>
-              If you have any questions about these Terms, please contact us at terms@newhorizoncbt.com.
+              If you have any questions about these Terms, please contact us at mail@resiliencec.com.
             </p>
           </div>
         </div>
