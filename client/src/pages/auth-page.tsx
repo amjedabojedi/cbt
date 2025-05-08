@@ -40,6 +40,9 @@ const registerSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   name: z.string().min(2, "Name must be at least 2 characters"),
   role: z.string().default("client"),
+  therapistId: z.number().optional(),
+  status: z.string().optional(),
+  isInvitation: z.boolean().optional(),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -76,6 +79,9 @@ export default function AuthPage() {
       password: "",
       name: "",
       role: "client",
+      therapistId: therapistIdParam ? parseInt(therapistIdParam) : undefined,
+      status: isInvitation ? "active" : undefined,
+      isInvitation: isInvitation || false,
     },
   });
   
@@ -133,10 +139,11 @@ export default function AuthPage() {
         }
       }
       
-      // If this is coming from an invitation, explicitly set status to active
+      // If this is coming from an invitation, explicitly set status to active and isInvitation flag
       if (isInvitation) {
-        console.log("Registering from invitation - setting status to active");
+        console.log("Registering from invitation - setting status to active and isInvitation flag");
         registrationData.status = "active";
+        registrationData.isInvitation = true;
       }
       
       const result = await registerUser(registrationData);

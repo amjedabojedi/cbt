@@ -18,6 +18,7 @@ interface AuthContextType {
     role: string;
     therapistId?: number;
     status?: string;
+    isInvitation?: boolean;
   }) => Promise<User>;
   logout: () => Promise<void>;
 }
@@ -109,6 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     role: string;
     therapistId?: number;
     status?: string;
+    isInvitation?: boolean;
   }) => {
     setLoading(true);
     try {
@@ -191,6 +193,7 @@ export function useAuth(): AuthContextType {
       role: string;
       therapistId?: number;
       status?: string;
+      isInvitation?: boolean;
     }) => {
       setLoading(true);
       try {
