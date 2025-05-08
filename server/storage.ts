@@ -380,19 +380,24 @@ export class DatabaseStorage implements IStorage {
     
     // Create a system log entry for this deletion
     if (adminId) {
-      const admin = await this.getUser(adminId);
-      await this.createSystemLog({
-        action: "user_deleted",
-        performedBy: adminId,
-        details: {
-          deletedUserId: userId,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-          adminUsername: admin?.username || "Unknown"
-        },
-        ipAddress: null
-      });
+      try {
+        const admin = await this.getUser(adminId);
+        await this.createSystemLog({
+          action: "user_deleted",
+          performedBy: adminId,
+          details: {
+            deletedUserId: userId,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            adminUsername: admin?.username || "Unknown"
+          },
+          ipAddress: null
+        });
+      } catch (error) {
+        // Log the error but continue with deletion
+        console.error("Error creating system log:", error);
+      }
     }
     
     // If user is a therapist, notify all clients about their therapist being removed
