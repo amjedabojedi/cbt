@@ -84,45 +84,12 @@ export default function AdminDashboard() {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        // Fetch all users to get stats
-        const response = await apiRequest("GET", "/api/users");
-        const users = await response.json();
+        // Fetch admin stats from our dedicated endpoint
+        const response = await apiRequest("GET", "/api/admin/stats");
+        const adminStats = await response.json();
         
-        // Calculate basic stats
-        const clients = users.filter((u: any) => u.role === 'client');
-        const therapists = users.filter((u: any) => u.role === 'therapist');
-        
-        // Calculate additional client-therapist relationship metrics
-        const clientsWithoutTherapist = clients.filter((c: any) => !c.therapistId).length;
-        const therapistsWithClients = new Set(clients.filter((c: any) => c.therapistId).map((c: any) => c.therapistId));
-        const therapistsWithoutClients = therapists.length - therapistsWithClients.size;
-        
-        // For demo purposes, estimate additional metrics
-        // In a real app, we'd fetch this data from actual DB queries
-        const clientsWithGoals = Math.round(clients.length * 0.6);
-        const avgGoalsPerClient = Math.round((stats.totalGoals || 42) / (clients.length || 1) * 10) / 10;
-        const avgEmotionsPerClient = Math.round((stats.totalEmotions || 125) / (clients.length || 1) * 10) / 10;
-        
-        // Set stats with our new metrics included
-        setStats({
-          totalUsers: users.length,
-          totalClients: clients.length,
-          totalTherapists: therapists.length,
-          totalEmotions: 125,
-          totalThoughts: 87,
-          totalGoals: 42,
-          activeClients: Math.round(clients.length * 0.7),
-          activeTherapists: therapists.length,
-          resourceUsage: 78,
-          clientsWithoutTherapist,
-          therapistsWithoutClients,
-          clientsWithGoals,
-          averageGoalsPerClient: avgGoalsPerClient,
-          averageEmotionsPerClient: avgEmotionsPerClient,
-          mostActiveTherapist: therapists.length > 0 ? therapists[0].name : 'N/A',
-          mostActiveClient: clients.length > 0 ? clients[0].name : 'N/A',
-          mostUsedResource: 'Cognitive Distortions Guide',
-        });
+        // Update state with real data from the server
+        setStats(adminStats);
       } catch (error) {
         console.error("Error fetching stats:", error);
         toast({
@@ -319,31 +286,21 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center space-x-2 rounded-md bg-slate-50 p-2">
-                      <BookmarkCheck className="h-4 w-4 text-primary" />
-                      <span className="flex-grow text-sm font-medium">Cognitive Distortions Guide</span>
-                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">24 uses</span>
-                    </div>
-                    <div className="flex items-center space-x-2 rounded-md bg-slate-50 p-2">
-                      <BookmarkCheck className="h-4 w-4 text-primary" />
-                      <span className="flex-grow text-sm font-medium">Thought Record Template</span>
-                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">18 uses</span>
-                    </div>
-                    <div className="flex items-center space-x-2 rounded-md bg-slate-50 p-2">
-                      <BookmarkCheck className="h-4 w-4 text-primary" />
-                      <span className="flex-grow text-sm font-medium">Emotion Wheel Guide</span>
-                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">15 uses</span>
-                    </div>
-                    <div className="flex items-center space-x-2 rounded-md bg-slate-50 p-2">
-                      <BookmarkCheck className="h-4 w-4 text-primary" />
-                      <span className="flex-grow text-sm font-medium">SMART Goals Worksheet</span>
-                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">12 uses</span>
-                    </div>
-                    <div className="flex items-center space-x-2 rounded-md bg-slate-50 p-2">
-                      <BookmarkCheck className="h-4 w-4 text-primary" />
-                      <span className="flex-grow text-sm font-medium">Mindfulness Techniques</span>
-                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">9 uses</span>
-                    </div>
+                    {stats.topResources && stats.topResources.length > 0 ? (
+                      stats.topResources.map((resource, index) => (
+                        <div key={index} className="flex items-center space-x-2 rounded-md bg-slate-50 p-2">
+                          <BookmarkCheck className="h-4 w-4 text-primary" />
+                          <span className="flex-grow text-sm font-medium">{resource.title}</span>
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                            {resource.useCount} {resource.useCount === 1 ? 'use' : 'uses'}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-muted-foreground py-4">
+                        No resource usage data available
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

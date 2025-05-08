@@ -434,6 +434,41 @@ export class DatabaseStorage implements IStorage {
     console.log(`User ${userId} and all related records deleted successfully`);
   }
   
+  // Admin statistics methods
+  async getAllEmotionRecords(): Promise<EmotionRecord[]> {
+    return db
+      .select()
+      .from(emotionRecords)
+      .orderBy(desc(emotionRecords.timestamp));
+  }
+  
+  async getAllThoughtRecords(): Promise<ThoughtRecord[]> {
+    return db
+      .select()
+      .from(thoughtRecords)
+      .orderBy(desc(thoughtRecords.createdAt));
+  }
+  
+  async getAllGoals(): Promise<Goal[]> {
+    return db
+      .select()
+      .from(goals)
+      .orderBy(desc(goals.createdAt));
+  }
+  
+  async getAllResources(): Promise<Resource[]> {
+    return db
+      .select()
+      .from(resources)
+      .orderBy(resources.title);
+  }
+  
+  async getAllResourceAssignments(): Promise<ResourceAssignment[]> {
+    return db
+      .select()
+      .from(resourceAssignments);
+  }
+  
   // Subscription plans management
   async createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan> {
     const [newPlan] = await db
