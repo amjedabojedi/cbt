@@ -15,6 +15,7 @@ const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Login = lazy(() => import("@/pages/Login"));
 const Register = lazy(() => import("@/pages/Register"));
 const AuthPage = lazy(() => import("@/pages/auth-page"));
+const LandingPage = lazy(() => import("@/pages/LandingPage"));
 const EmotionTracking = lazy(() => import("@/pages/EmotionTracking"));
 const EmotionMapping = lazy(() => import("@/pages/EmotionMapping"));
 const ThoughtRecords = lazy(() => import("@/pages/ThoughtRecords"));
@@ -58,6 +59,7 @@ function Router() {
     <Suspense fallback={<LoadingFallback />}>
       <Switch>
         {/* Public routes */}
+        <Route path="/" component={LandingPage} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/auth" component={AuthPage} />
@@ -99,7 +101,6 @@ function Router() {
         {/* General routes */}
         <ProtectedRoute path="/settings" component={Settings} />
         <Route path="/:rest*" component={NotFound} />
-        <ProtectedRoute path="/" component={RoleDashboard} />
       </Switch>
     </Suspense>
   );
