@@ -76,44 +76,45 @@ export default function Sidebar() {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="p-4 border-b border-neutral-200">
+          <div className="p-3 sm:p-4 border-b border-neutral-200">
             <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 rounded bg-primary/20 flex items-center justify-center text-primary">
-                <Brain size={24} />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded bg-primary/20 flex items-center justify-center text-primary">
+                <Brain size={20} className="sm:w-6 sm:h-6" />
               </div>
-              <h1 className="text-xl font-bold text-primary">New Horizon-CBT</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-primary truncate">New Horizon-CBT</h1>
             </div>
           </div>
 
           {/* User Profile Summary */}
-          <div className="p-4 border-b border-neutral-200">
+          <div className="p-3 sm:p-4 border-b border-neutral-200">
             <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center text-primary">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary-light flex items-center justify-center text-primary">
                 {user?.name?.charAt(0) || "U"}
               </div>
-              <div className="ml-3">
-                <p className="font-medium text-sm">{user?.name}</p>
+              <div className="ml-2 sm:ml-3">
+                <p className="font-medium text-xs sm:text-sm truncate max-w-[130px]">{user?.name}</p>
                 <p className="text-xs text-neutral-500 capitalize">{user?.role}</p>
               </div>
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-grow py-4 overflow-y-auto">
+          <nav className="flex-grow py-2 sm:py-4 overflow-y-auto">
             <ul>
               {navItems.map((item, index) => item && (
-                <li key={index} className="px-4 py-2">
+                <li key={index} className="px-2 sm:px-4 py-1 sm:py-2">
                   <Link 
                     href={item.href}
                     className={cn(
-                      "flex items-center px-2 py-1.5 rounded-md transition-colors",
+                      "flex items-center px-2 py-1.5 rounded-md transition-colors text-sm",
                       location === item.href 
                         ? "text-primary font-medium bg-primary/10" 
                         : "text-neutral-600 hover:text-primary hover:bg-primary/5"
                     )}
+                    onClick={() => setIsMobileExpanded(false)}
                   >
-                    <span className="mr-3">{item.icon}</span>
-                    {item.label}
+                    <span className="mr-2 sm:mr-3 flex-shrink-0">{item.icon}</span>
+                    <span className="truncate">{item.label}</span>
                   </Link>
                 </li>
               ))}
@@ -121,29 +122,33 @@ export default function Sidebar() {
           </nav>
 
           {/* Settings & Logout */}
-          <div className="p-4 border-t border-neutral-200">
+          <div className="p-2 sm:p-4 border-t border-neutral-200">
             <ul>
-              <li className="px-2 py-2">
+              <li className="px-2 py-1 sm:py-2">
                 <Link
                   href="/settings"
                   className={cn(
-                    "flex items-center px-2 py-1.5 rounded-md transition-colors",
+                    "flex items-center px-2 py-1.5 rounded-md transition-colors text-sm",
                     location === "/settings"
                       ? "text-primary font-medium bg-primary/10"
                       : "text-neutral-600 hover:text-primary hover:bg-primary/5"
                   )}
+                  onClick={() => setIsMobileExpanded(false)}
                 >
-                  <Settings size={20} className="mr-3" />
-                  Settings
+                  <Settings size={18} className="mr-2 sm:mr-3 flex-shrink-0" />
+                  <span className="truncate">Settings</span>
                 </Link>
               </li>
-              <li className="px-2 py-2">
+              <li className="px-2 py-1 sm:py-2">
                 <button
-                  onClick={logout}
-                  className="flex items-center px-2 py-1.5 rounded-md transition-colors text-neutral-600 hover:text-primary hover:bg-primary/5 w-full text-left"
+                  onClick={() => {
+                    setIsMobileExpanded(false);
+                    logout();
+                  }}
+                  className="flex items-center px-2 py-1.5 rounded-md transition-colors text-neutral-600 hover:text-primary hover:bg-primary/5 w-full text-left text-sm"
                 >
-                  <LogOut size={20} className="mr-3" />
-                  Logout
+                  <LogOut size={18} className="mr-2 sm:mr-3 flex-shrink-0" />
+                  <span className="truncate">Logout</span>
                 </button>
               </li>
             </ul>
@@ -151,10 +156,11 @@ export default function Sidebar() {
         </div>
       </aside>
       
-      {/* Mobile toggle button (in Header component) */}
+      {/* Mobile toggle button */}
       <button
         className="fixed bottom-4 right-4 md:hidden bg-primary text-white p-3 rounded-full shadow-lg z-50"
         onClick={() => setIsMobileExpanded(!isMobileExpanded)}
+        aria-label={isMobileExpanded ? "Close menu" : "Open menu"}
       >
         {isMobileExpanded ? (
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x">

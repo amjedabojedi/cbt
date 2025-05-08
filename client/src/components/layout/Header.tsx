@@ -35,7 +35,7 @@ export default function Header({ title }: HeaderProps) {
 
   return (
     <header className="bg-white shadow-sm">
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center justify-between px-2 sm:px-4 py-3">
         <div className="flex items-center">
           <button
             id="sidebar-toggle"
@@ -44,19 +44,21 @@ export default function Header({ title }: HeaderProps) {
           >
             <Menu size={24} />
           </button>
-          <h2 className="text-lg font-medium">{displayTitle}</h2>
+          <h2 className="text-lg font-medium truncate max-w-[180px] sm:max-w-xs md:max-w-full">{displayTitle}</h2>
         </div>
-        <div className="flex items-center space-x-4">
-          {/* Role Indicator & Client Selector */}
-          <RoleIndicator onClientChange={handleClientChange} />
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
+          {/* Role Indicator & Client Selector - Hide on smallest screens */}
+          <div className="hidden sm:block">
+            <RoleIndicator onClientChange={handleClientChange} />
+          </div>
 
           {/* Notifications */}
           <div className="relative">
             <NotificationBell />
           </div>
 
-          {/* Language Toggle */}
-          <div>
+          {/* Language Toggle - Hide on smallest screens */}
+          <div className="hidden sm:block">
             <Button
               variant="ghost"
               size="icon"

@@ -48,10 +48,10 @@ export default function AppLayout({ children, title = "Dashboard" }: AppLayoutPr
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      {/* Added ml-2 for spacing and border-l for clear boundary */}
-      <div className="flex-1 flex flex-col overflow-hidden ml-2 border-l border-gray-200">
+      {/* Improved mobile responsiveness with dynamic spacing */}
+      <div className="flex-1 flex flex-col overflow-hidden md:ml-2 border-l border-gray-200">
         <Header title={title} />
-        <main className="flex-1 overflow-y-auto bg-neutral-50 px-4">
+        <main className="flex-1 overflow-y-auto bg-neutral-50 px-2 sm:px-4 pb-16 md:pb-4">
           {children}
         </main>
       </div>
