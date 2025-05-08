@@ -4216,5 +4216,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize WebSocket server for real-time notifications
   initializeWebSocketServer(httpServer);
   
+  // Test endpoint for therapist email (development only)
+  if (process.env.NODE_ENV === "development") {
+    app.get("/api/test/therapist-email", authenticate, isAdmin, async (req, res) => {
+      try {
+        const testEmail = req.query.email?.toString() || "test@example.com";
+        console.log(`Attempting to send test therapist email to: ${testEmail}`);
+        
+        const emailSent = await sendTherapistWelcomeEmail(
+          testEmail,
+          "Test Therapist",
+          "testuser123",
+          "password123",
+          `${req.protocol}://${req.get('host')}/login`
+        );
+        
+        if (emailSent) {
+          console.log(`Test therapist email successfully sent to ${testEmail}`);
+          res.json({ 
+            success: true, 
+            message: `Email sent to ${testEmail}`,
+            details: "Check email inbox or spam folder" 
+          });
+        } else {
+          console.log(`Failed to send test therapist email to ${testEmail}`);
+          res.json({ 
+            success: false, 
+            message: "Email sending failed. Check server logs for details."
+          });
+        }
+      } catch (error) {
+        console.error("Test therapist email error:", error);
+        res.status(500).json({ 
+          error: "Failed to send test therapist email", 
+          details: error.message,
+          stack: process.env.NODE_ENV === "development" ? error.stack : undefined
+        });
+      }
+    });
+  }
+  
   return httpServer;
 }
