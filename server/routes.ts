@@ -8,7 +8,7 @@ import * as bcrypt from "bcrypt";
 import Stripe from "stripe";
 import * as emotionMapping from "./services/emotionMapping";
 import { initializeWebSocketServer, sendNotificationToUser } from "./services/websocket";
-import { sendEmail, sendTherapistWelcomeEmail, sendClientInvitation, sendEmotionTrackingReminder, sendPasswordResetEmail, sendWeeklyProgressDigest } from "./services/email";
+import { sendEmail, sendTherapistWelcomeEmail, sendClientInvitation, sendEmotionTrackingReminder, sendPasswordResetEmail, sendWeeklyProgressDigest, sparkPostClient } from "./services/email";
 import { 
   insertUserSchema, 
   insertEmotionRecordSchema,

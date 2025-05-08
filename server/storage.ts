@@ -18,7 +18,8 @@ import {
   journalComments, type JournalComment, type InsertJournalComment,
   sessions, type Session, type InsertSession,
   subscriptionPlans, type SubscriptionPlan, type InsertSubscriptionPlan,
-  cognitiveDistortions, type CognitiveDistortion, type InsertCognitiveDistortion
+  cognitiveDistortions, type CognitiveDistortion, type InsertCognitiveDistortion,
+  systemLogs, type SystemLog, type InsertSystemLog
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, or, isNull, gte, gt } from "drizzle-orm";

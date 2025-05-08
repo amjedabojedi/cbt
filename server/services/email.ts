@@ -1,7 +1,7 @@
 import SparkPost from 'sparkpost';
 
 // Initialize SparkPost client
-const sparkPostClient = new SparkPost(process.env.SPARKPOST_API_KEY);
+export const sparkPostClient = new SparkPost(process.env.SPARKPOST_API_KEY);
 
 interface EmailParams {
   to: string;
