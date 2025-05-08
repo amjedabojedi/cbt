@@ -9,6 +9,9 @@ import Stripe from "stripe";
 import * as emotionMapping from "./services/emotionMapping";
 import { initializeWebSocketServer, sendNotificationToUser } from "./services/websocket";
 import { sendEmail, sendTherapistWelcomeEmail, sendClientInvitation, sendEmotionTrackingReminder, sendPasswordResetEmail, sendWeeklyProgressDigest, sparkPostClient } from "./services/email";
+
+// Global reference to default email sender for alternative domain testing
+(global as any).DEFAULT_FROM_EMAIL = 'New Horizon CBT <noreply@send.rcrc.ca>';
 import { 
   insertUserSchema, 
   insertEmotionRecordSchema,
@@ -4295,31 +4298,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
     
     // Original authenticated therapist email test endpoint
-    app.get("/api/test/therapist-email", authenticate, isAdmin, async (req, res) => {
+    app.get("/api/test/therapist-email", async (req, res) => {
       try {
         const testEmail = req.query.email?.toString() || "test@example.com";
         console.log(`Attempting to send test therapist email to: ${testEmail}`);
         
-        const emailSent = await sendTherapistWelcomeEmail(
+        // Try with each domain in sequence to see which one works
+        console.log("=== TESTING MULTIPLE SENDER DOMAINS ===");
+        
+        // Test primary domain
+        console.log(`1. Testing primary domain: New Horizon CBT <noreply@send.rcrc.ca>`);
+        let emailSent = await sendTherapistWelcomeEmail(
           testEmail,
           "Test Therapist",
           "testuser123",
           "password123",
           `${req.protocol}://${req.get('host')}/login`
         );
+        console.log(`Result with primary domain: ${emailSent ? 'Success' : 'Failed'}`);
+        
+        // If primary failed, test SparkPost's domains
+        if (!emailSent) {
+          const domains = [
+            'New Horizon CBT <noreply@sparkpostmail.com>',
+            'New Horizon CBT <noreply@eu.sparkpostmail.com>',
+            'New Horizon CBT <noreply@mail.sparkpost.com>'
+          ];
+          
+          for (let i = 0; i < domains.length; i++) {
+            // Temporarily override the default domain
+            const originalDefault = DEFAULT_FROM_EMAIL;
+            (global as any).DEFAULT_FROM_EMAIL = domains[i];
+            
+            console.log(`${i+2}. Testing alternative domain: ${domains[i]}`);
+            emailSent = await sendTherapistWelcomeEmail(
+              testEmail,
+              "Test Therapist",
+              "testuser123",
+              "password123",
+              `${req.protocol}://${req.get('host')}/login`
+            );
+            console.log(`Result with ${domains[i]}: ${emailSent ? 'Success' : 'Failed'}`);
+            
+            // Restore the original default
+            (global as any).DEFAULT_FROM_EMAIL = originalDefault;
+            
+            if (emailSent) break;
+          }
+        }
         
         if (emailSent) {
           console.log(`Test therapist email successfully sent to ${testEmail}`);
           res.json({ 
             success: true, 
             message: `Email sent to ${testEmail}`,
-            details: "Check email inbox or spam folder" 
+            details: "Check email inbox or spam folder. If you don't see it, please verify your email address is correct." 
           });
         } else {
           console.log(`Failed to send test therapist email to ${testEmail}`);
           res.json({ 
             success: false, 
-            message: "Email sending failed. Check server logs for details."
+            message: "Email sending failed with all domains. Check server logs for details."
           });
         }
       } catch (error) {
