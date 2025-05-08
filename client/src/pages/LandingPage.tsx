@@ -235,12 +235,12 @@ export default function LandingPage() {
               <Link href="/auth" className="text-muted-foreground hover:text-primary transition-colors">
                 Register
               </Link>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link href="/privacy-policy" className="text-muted-foreground hover:text-primary transition-colors">
                 Privacy Policy
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              </Link>
+              <Link href="/terms-of-service" className="text-muted-foreground hover:text-primary transition-colors">
                 Terms of Service
-              </a>
+              </Link>
             </div>
           </div>
           <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">

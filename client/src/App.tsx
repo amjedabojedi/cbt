@@ -16,6 +16,8 @@ const Login = lazy(() => import("@/pages/Login"));
 const Register = lazy(() => import("@/pages/Register"));
 const AuthPage = lazy(() => import("@/pages/auth-page"));
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
+const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
 const EmotionTracking = lazy(() => import("@/pages/EmotionTracking"));
 const EmotionMapping = lazy(() => import("@/pages/EmotionMapping"));
 const ThoughtRecords = lazy(() => import("@/pages/ThoughtRecords"));
@@ -63,6 +65,8 @@ function Router() {
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/auth" component={AuthPage} />
+        <Route path="/privacy-policy" component={PrivacyPolicy} />
+        <Route path="/terms-of-service" component={TermsOfService} />
         
         {/* Protected routes - require authentication */}
         <ProtectedRoute path="/dashboard" component={RoleDashboard} />
