@@ -756,6 +756,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Register user by admin (for creating therapists and admins)
+  app.post("/api/users/register-by-admin", authenticate, isAdmin, async (req, res) => {
+    try {
+      const { name, email, username, password, role } = req.body;
+      
+      // Validate input
+      if (!name || !email || !username || !password || !role) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+      
+      // Ensure role is valid
+      if (role !== "therapist" && role !== "admin") {
+        return res.status(400).json({ message: "Invalid role. Must be therapist or admin" });
+      }
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(409).json({ message: "Username already exists" });
+      }
+      
+      // Check if email already exists
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(409).json({ message: "Email already exists" });
+      }
+      
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      
+      // Create the user
+      const user = await storage.createUser({
+        name,
+        email,
+        username,
+        password: hashedPassword,
+        role,
+        status: "active"
+      });
+      
+      // Remove the password from the response
+      const { password: _, ...userWithoutPassword } = user;
+      
+      // Create notification for the new user
+      await storage.createNotification({
+        userId: user.id,
+        title: "Welcome to New Horizon-CBT",
+        body: `You have been added as a ${role} by ${req.user?.name || 'an administrator'}. Please log in and update your profile.`,
+        type: "system",
+        isRead: false
+      });
+      
+      res.status(201).json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+  
   // Get admin statistics (admin only)
   app.get("/api/admin/stats", authenticate, isAdmin, async (req, res) => {
     try {
