@@ -35,7 +35,7 @@ export function RecommendationItem({
   const [isExpanded, setIsExpanded] = useState(false);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
-  const [therapistNote, setTherapistNote] = useState(recommendation.therapistNote || "");
+  const [therapistNote, setTherapistNote] = useState(recommendation.therapistNotes || "");
   const [rejectionFeedback, setRejectionFeedback] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -71,7 +71,7 @@ export function RecommendationItem({
     setIsSubmitting(true);
     try {
       await apiRequest("PUT", `/api/recommendations/${recommendation.id}/approve`, {
-        therapistNote
+        therapistNotes: therapistNote
       });
       
       toast({
@@ -99,7 +99,7 @@ export function RecommendationItem({
     setIsSubmitting(true);
     try {
       await apiRequest("PUT", `/api/recommendations/${recommendation.id}/reject`, {
-        feedback: rejectionFeedback
+        rejectionFeedback: rejectionFeedback
       });
       
       toast({
@@ -159,7 +159,7 @@ export function RecommendationItem({
             <div className="flex flex-wrap gap-2 mt-2">
               {getStatusBadge()}
               <Badge variant="outline" className="bg-gray-50 border-gray-200">
-                {recommendation.category || "General"}
+                {recommendation.type.replace('_', ' ').charAt(0).toUpperCase() + recommendation.type.replace('_', ' ').slice(1)}
               </Badge>
             </div>
           </div>
@@ -174,17 +174,17 @@ export function RecommendationItem({
           <p>{recommendation.content}</p>
         </div>
         
-        {recommendation.therapistNote && recommendation.status !== "rejected" && (
+        {recommendation.therapistNotes && recommendation.status !== "rejected" && (
           <div className="mt-3 p-3 bg-blue-50 rounded-md border border-blue-100">
             <h4 className="text-sm font-medium text-blue-800 mb-1">Note from your therapist:</h4>
-            <p className="text-sm text-blue-700">{recommendation.therapistNote}</p>
+            <p className="text-sm text-blue-700">{recommendation.therapistNotes}</p>
           </div>
         )}
         
-        {recommendation.feedback && recommendation.status === "rejected" && isTherapistView && (
+        {recommendation.rejectionFeedback && recommendation.status === "rejected" && isTherapistView && (
           <div className="mt-3 p-3 bg-red-50 rounded-md border border-red-100">
             <h4 className="text-sm font-medium text-red-800 mb-1">Rejection feedback:</h4>
-            <p className="text-sm text-red-700">{recommendation.feedback}</p>
+            <p className="text-sm text-red-700">{recommendation.rejectionFeedback}</p>
           </div>
         )}
         

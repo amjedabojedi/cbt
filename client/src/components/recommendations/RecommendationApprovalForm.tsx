@@ -132,8 +132,8 @@ export function RecommendationApprovalForm({
         </div>
         
         <div className="mb-4">
-          <h4 className="text-sm font-medium mb-1">Category</h4>
-          <p className="text-sm text-muted-foreground">{recommendation.category || "General"}</p>
+          <h4 className="text-sm font-medium mb-1">Type</h4>
+          <p className="text-sm text-muted-foreground">{recommendation.type.replace('_', ' ').charAt(0).toUpperCase() + recommendation.type.replace('_', ' ').slice(1)}</p>
         </div>
         
         {recommendation.aiReasoning && (
