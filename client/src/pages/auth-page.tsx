@@ -110,11 +110,18 @@ export default function AuthPage() {
   const onLoginSubmit = async (data: LoginFormValues) => {
     setLoginSubmitting(true);
     try {
-      await loginMutation.mutateAsync({
+      const result = await loginMutation.mutateAsync({
         username: data.username,
         password: data.password
       });
-      // Login is handled by the auth hook which will redirect on success
+      
+      console.log("Login successful, redirecting to dashboard");
+      
+      // Manual redirect after successful login
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 500);
+      
     } catch (error) {
       console.error(error);
       toast({
@@ -151,7 +158,13 @@ export default function AuthPage() {
       
       const result = await registerMutation.mutateAsync(registrationData);
       
-      // Registration is handled by the auth hook which will redirect on success
+      console.log("Registration successful, redirecting to dashboard");
+      
+      // Manual redirect after successful registration
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 500);
+      
       if (isInvitation) {
         // If it's an invitation registration, make another API call to update the status to active
         try {

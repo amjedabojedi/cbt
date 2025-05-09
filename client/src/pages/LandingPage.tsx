@@ -34,10 +34,12 @@ export default function LandingPage() {
         </div>
         <div className="flex flex-col gap-6 max-w-md mx-auto">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="gap-2">
-              <Link href="/auth">
-                Therapist Login <ArrowRight size={18} />
-              </Link>
+            <Button 
+              size="lg" 
+              className="gap-2"
+              onClick={() => window.location.href = "/auth"}
+            >
+              Therapist Login <ArrowRight size={18} />
             </Button>
           </div>
           <p className="text-sm text-muted-foreground text-center">
@@ -263,10 +265,12 @@ export default function LandingPage() {
           Are you a therapist looking to enhance your practice with digital CBT tools? Join New Horizon CBT to provide your clients with powerful therapeutic resources.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild size="lg" className="gap-2">
-            <Link href="/auth">
-              Therapist Login <ArrowRight size={18} />
-            </Link>
+          <Button 
+            size="lg" 
+            className="gap-2"
+            onClick={() => window.location.href = "/auth"}
+          >
+            Therapist Login <ArrowRight size={18} />
           </Button>
         </div>
       </section>
@@ -280,9 +284,16 @@ export default function LandingPage() {
               <p className="text-muted-foreground mt-2">Mental health support tools for therapists and clients</p>
             </div>
             <div className="flex flex-col md:flex-row gap-6 md:gap-12">
-              <Link href="/auth" className="text-muted-foreground hover:text-primary transition-colors">
+              <a 
+                href="#" 
+                className="text-muted-foreground hover:text-primary transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = "/auth";
+                }}
+              >
                 Therapist Portal
-              </Link>
+              </a>
               <Link href="/privacy-policy" className="text-muted-foreground hover:text-primary transition-colors">
                 Privacy Policy
               </Link>
