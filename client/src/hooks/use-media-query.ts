@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 
 /**
  * Custom hook for responsive design that detects if a media query matches
@@ -6,29 +6,39 @@ import { useState, useEffect } from 'react';
  * @returns boolean indicating if the media query matches
  */
 export function useMediaQuery(query: string): boolean {
-  // Initialize with a default value to avoid hydration mismatch
-  const [matches, setMatches] = useState(false);
-  
+  // Initialize with the current match state if window exists (client-side)
+  const [matches, setMatches] = useState<boolean>(() => {
+    // Check if window is defined (client-side rendering)
+    if (typeof window !== "undefined") {
+      return window.matchMedia(query).matches;
+    }
+    // Default to false for server-side rendering
+    return false;
+  });
+
   useEffect(() => {
-    // Create a media query list
-    const mediaQuery = window.matchMedia(query);
+    // Only run on client-side
+    if (typeof window === "undefined") return;
+
+    // Create media query list
+    const mediaQueryList = window.matchMedia(query);
     
-    // Set the initial value based on the media query match
-    setMatches(mediaQuery.matches);
-    
-    // Create a handler function to update state when the match changes
+    // Set initial value
+    setMatches(mediaQueryList.matches);
+
+    // Define handler for changes
     const handler = (event: MediaQueryListEvent) => {
       setMatches(event.matches);
     };
+
+    // Add event listener for changes
+    mediaQueryList.addEventListener("change", handler);
     
-    // Add the listener for changes
-    mediaQuery.addEventListener('change', handler);
-    
-    // Clean up the listener when the component unmounts
+    // Clean up event listener on unmount
     return () => {
-      mediaQuery.removeEventListener('change', handler);
+      mediaQueryList.removeEventListener("change", handler);
     };
-  }, [query]); // Only re-run if the query changes
-  
+  }, [query]); // Re-run if query changes
+
   return matches;
 }

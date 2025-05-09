@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { useMediaQuery } from "../../hooks/use-media-query";
 import EmotionWheel from "./EmotionWheel";
 import EmotionWheelMobile from "./EmotionWheelMobile";
 
