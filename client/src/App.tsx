@@ -27,6 +27,7 @@ const Journal = lazy(() => import("@/pages/Journal"));
 const Reports = lazy(() => import("@/pages/Reports"));
 const Clients = lazy(() => import("@/pages/Clients"));
 const Settings = lazy(() => import("@/pages/Settings"));
+const ExportPage = lazy(() => import("@/pages/ExportPage"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
@@ -105,6 +106,7 @@ function Router() {
         
         {/* General routes */}
         <ProtectedRoute path="/settings" component={Settings} />
+        <ProtectedRoute path="/export" component={ExportPage} />
         <Route path="/:rest*" component={NotFound} />
       </Switch>
     </Suspense>
