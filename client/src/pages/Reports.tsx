@@ -51,6 +51,7 @@ import {
   TrendingUp,
   Lightbulb,
   Heart,
+  AlertCircle,
 } from "lucide-react";
 
 // Define time range options
