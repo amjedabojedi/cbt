@@ -3,6 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Brain, Heart, Shield, Target, Book, MessageCircle, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/hooks/auth';
+import { LoginButton } from '@/components/ui/LoginButton';
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -34,13 +35,7 @@ export default function LandingPage() {
         </div>
         <div className="flex flex-col gap-6 max-w-md mx-auto">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="gap-2"
-              onClick={() => window.location.href = "/auth"}
-            >
-              Therapist Login <ArrowRight size={18} />
-            </Button>
+            <LoginButton size="lg" />
           </div>
           <p className="text-sm text-muted-foreground text-center">
             Clients need an invitation from their therapist to access the platform.
@@ -265,13 +260,7 @@ export default function LandingPage() {
           Are you a therapist looking to enhance your practice with digital CBT tools? Join New Horizon CBT to provide your clients with powerful therapeutic resources.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button 
-            size="lg" 
-            className="gap-2"
-            onClick={() => window.location.href = "/auth"}
-          >
-            Therapist Login <ArrowRight size={18} />
-          </Button>
+          <LoginButton size="lg" />
         </div>
       </section>
 
@@ -289,7 +278,7 @@ export default function LandingPage() {
                 className="text-muted-foreground hover:text-primary transition-colors"
                 onClick={(e) => {
                   e.preventDefault();
-                  window.location.href = "/auth";
+                  window.location.href = "/login";
                 }}
               >
                 Therapist Portal
