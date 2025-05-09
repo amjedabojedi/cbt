@@ -5391,5 +5391,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   });
+
+  // AI Recommendations API endpoints
+  
+  // Get AI recommendations for a specific user
+  app.get("/api/users/:userId/recommendations", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // For clients, only return approved recommendations
+      if (req.user?.role === 'client') {
+        const recommendations = await storage.getAiRecommendationsByUser(userId);
+        // Filter to only show approved recommendations to clients
+        const approvedRecommendations = recommendations.filter(rec => rec.status === 'approved');
+        return res.status(200).json(approvedRecommendations);
+      }
+      
+      // For therapists and admins, return all recommendations
+      const recommendations = await storage.getAiRecommendationsByUser(userId);
+      res.status(200).json(recommendations);
+    } catch (error) {
+      console.error("Error fetching AI recommendations:", error);
+      res.status(500).json({ message: "Failed to fetch AI recommendations" });
+    }
+  });
+  
+  // Get pending AI recommendations for a therapist
+  app.get("/api/therapist/recommendations/pending", authenticate, isTherapist, async (req, res) => {
+    try {
+      const pendingRecommendations = await storage.getPendingAiRecommendationsByTherapist(req.user!.id);
+      res.status(200).json(pendingRecommendations);
+    } catch (error) {
+      console.error("Error fetching pending AI recommendations:", error);
+      res.status(500).json({ message: "Failed to fetch pending AI recommendations" });
+    }
+  });
+  
+  // Create a new AI recommendation
+  app.post("/api/users/:userId/recommendations", authenticate, ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Only allow recommendations for clients who have a therapist
+      if (user.role !== 'client' || !user.therapistId) {
+        return res.status(400).json({ 
+          message: "Recommendations can only be created for clients with an assigned therapist" 
+        });
+      }
+      
+      // Validate the recommendation data
+      const validatedData = insertAiRecommendationSchema.parse({
+        ...req.body,
+        userId,
+        therapistId: user.therapistId,
+        status: 'pending'
+      });
+      
+      const newRecommendation = await storage.createAiRecommendation(validatedData);
+      
+      // Send notification to therapist about the new recommendation
+      await sendNotificationToUser(user.therapistId, {
+        title: "New AI Recommendation",
+        content: `There is a new AI recommendation for ${user.name} that requires your review.`,
+        type: "ai_recommendation",
+        link: `/therapist/recommendations`
+      });
+      
+      res.status(201).json(newRecommendation);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Error creating AI recommendation:", error);
+      res.status(500).json({ message: "Failed to create AI recommendation" });
+    }
+  });
+  
+  // Update recommendation status (approve/reject)
+  app.patch("/api/recommendations/:id/status", authenticate, isTherapist, async (req, res) => {
+    try {
+      const recommendationId = parseInt(req.params.id);
+      const { status, therapistNotes } = req.body;
+      
+      if (!status || !['approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ message: "Valid status (approved or rejected) is required" });
+      }
+      
+      const recommendation = await storage.getAiRecommendationById(recommendationId);
+      
+      if (!recommendation) {
+        return res.status(404).json({ message: "Recommendation not found" });
+      }
+      
+      // Ensure therapist can only manage recommendations for their clients
+      if (recommendation.therapistId !== req.user!.id) {
+        return res.status(403).json({ 
+          message: "You can only manage recommendations for your clients" 
+        });
+      }
+      
+      const updatedRecommendation = await storage.updateAiRecommendationStatus(
+        recommendationId, 
+        status, 
+        therapistNotes
+      );
+      
+      // Send notification to client if recommendation was approved
+      if (status === 'approved') {
+        await sendNotificationToUser(recommendation.userId, {
+          title: "New Recommendation Available",
+          content: "Your therapist has approved a new recommendation for you.",
+          type: "recommendation",
+          link: `/recommendations`
+        });
+      }
+      
+      res.status(200).json(updatedRecommendation);
+    } catch (error) {
+      console.error("Error updating recommendation status:", error);
+      res.status(500).json({ message: "Failed to update recommendation status" });
+    }
+  });
+  
+  // Mark recommendation as implemented
+  app.post("/api/recommendations/:id/implement", authenticate, ensureAuthenticated, async (req, res) => {
+    try {
+      const recommendationId = parseInt(req.params.id);
+      const recommendation = await storage.getAiRecommendationById(recommendationId);
+      
+      if (!recommendation) {
+        return res.status(404).json({ message: "Recommendation not found" });
+      }
+      
+      // Only allow the client to mark their own recommendations as implemented
+      if (recommendation.userId !== req.user!.id) {
+        return res.status(403).json({ 
+          message: "You can only implement your own recommendations" 
+        });
+      }
+      
+      // Only approved recommendations can be implemented
+      if (recommendation.status !== 'approved') {
+        return res.status(400).json({ 
+          message: "Only approved recommendations can be marked as implemented" 
+        });
+      }
+      
+      const updatedRecommendation = await storage.updateAiRecommendationStatus(
+        recommendationId, 
+        'implemented'
+      );
+      
+      // Notify therapist that client has implemented the recommendation
+      await sendNotificationToUser(recommendation.therapistId, {
+        title: "Recommendation Implemented",
+        content: `Your client has implemented the recommendation: ${recommendation.title}`,
+        type: "recommendation_implemented",
+        link: `/therapist/clients/${recommendation.userId}/recommendations`
+      });
+      
+      res.status(200).json(updatedRecommendation);
+    } catch (error) {
+      console.error("Error implementing recommendation:", error);
+      res.status(500).json({ message: "Failed to implement recommendation" });
+    }
+  });
+  
   return httpServer;
 }
