@@ -144,7 +144,7 @@ export default function EmotionWheelMobile({
       >
         <h3 className="text-center text-lg font-medium mb-4">Select a Core Emotion</h3>
         <div className="grid grid-cols-2 gap-3">
-          {emotionGroups.map((group, index) => (
+          {emotionGroups.map((group: any, index: number) => (
             <motion.button
               key={group.core}
               className={cn(
@@ -194,7 +194,7 @@ export default function EmotionWheelMobile({
         </div>
         
         <div className="grid grid-cols-2 gap-3">
-          {coreGroup.primary.map((primaryEmotion, primaryIndex) => (
+          {coreGroup.primary.map((primaryEmotion: string, primaryIndex: number) => (
             <motion.button
               key={primaryEmotion}
               className={cn(
@@ -247,7 +247,7 @@ export default function EmotionWheelMobile({
         </div>
         
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {tertiaryEmotions.map((tertiaryEmotion, tertiaryIndex) => (
+          {tertiaryEmotions.map((tertiaryEmotion: string, tertiaryIndex: number) => (
             <motion.button
               key={tertiaryEmotion}
               className={cn(
