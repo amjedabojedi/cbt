@@ -31,10 +31,10 @@ export function ProtectedRoute({
     // If not authenticated, redirect to landing page
     if (!user) {
       // Use setTimeout to avoid immediate redirect which can cause React rendering issues
-      setTimeout(() => navigate("/"), 0);
+      setTimeout(() => navigate("/auth"), 0);
       return (
         <div className="flex items-center justify-center min-h-screen">
-          <p className="text-sm text-muted-foreground">Redirecting...</p>
+          <p className="text-sm text-muted-foreground">Redirecting to login...</p>
         </div>
       );
     }

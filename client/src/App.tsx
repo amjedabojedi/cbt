@@ -62,6 +62,7 @@ function Router() {
       <Switch>
         {/* Public routes */}
         <Route path="/" component={LandingPage} />
+        <Route path="/landing" component={LandingPage} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/auth" component={AuthPage} />
