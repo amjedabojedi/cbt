@@ -133,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await apiRequest("POST", "/api/auth/logout", {});
       setUser(null);
-      navigate("/login");
+      navigate("/"); // Navigate to landing page instead of login
     } catch (err) {
       console.error("Logout error:", err);
       setError(err as Error);
@@ -216,7 +216,7 @@ export function useAuth(): AuthContextType {
       try {
         await apiRequest("POST", "/api/auth/logout", {});
         setUser(null);
-        navigate("/login");
+        navigate("/"); // Navigate to landing page instead of login
       } finally {
         setLoading(false);
       }
