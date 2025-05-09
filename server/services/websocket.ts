@@ -42,6 +42,15 @@ export function initializeWebSocketServer(httpServer: Server) {
           
           console.log(`WebSocket client authenticated for user ${userId}`);
         }
+        
+        // Handle client ping messages (heartbeat)
+        else if (data.type === 'ping') {
+          ws.isAlive = true;
+          // Optionally send a pong response if needed
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'pong' }));
+          }
+        }
       } catch (error) {
         console.error('WebSocket message error:', error);
       }
