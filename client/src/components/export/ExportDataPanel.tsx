@@ -22,6 +22,7 @@ import {
   DownloadCloud,
   FileSpreadsheet,
   FileJson,
+  FileText,
   Info
 } from 'lucide-react';
 import { 
@@ -59,6 +60,8 @@ export function ExportDataPanel() {
       let url = `${apiBaseUrl}/export`;
       if (exportFormat === 'csv') {
         url = `${apiBaseUrl}/export/csv`;
+      } else if (exportFormat === 'pdf') {
+        url = `${apiBaseUrl}/export/pdf`;
       }
 
       // Add query parameters
@@ -163,7 +166,7 @@ export function ExportDataPanel() {
                   <Info size={16} className="ml-1 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>JSON format contains complete data in a developer-friendly format. CSV is better for viewing in spreadsheets like Excel. Both formats support exporting all data types.</p>
+                  <p>JSON contains complete data for technical use. CSV works with spreadsheets like Excel. PDF creates a nicely formatted document you can print or share.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -186,6 +189,12 @@ export function ExportDataPanel() {
                 <div className="flex items-center">
                   <FileSpreadsheet className="mr-2" size={16} />
                   CSV (Spreadsheet)
+                </div>
+              </SelectItem>
+              <SelectItem value="pdf">
+                <div className="flex items-center">
+                  <FileText className="mr-2" size={16} />
+                  PDF (Document)
                 </div>
               </SelectItem>
             </SelectContent>
