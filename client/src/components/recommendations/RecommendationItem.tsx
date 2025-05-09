@@ -70,7 +70,8 @@ export function RecommendationItem({
     
     setIsSubmitting(true);
     try {
-      await apiRequest("PUT", `/api/recommendations/${recommendation.id}/approve`, {
+      await apiRequest("PATCH", `/api/recommendations/${recommendation.id}/status`, {
+        status: "approved",
         therapistNotes: therapistNote
       });
       
@@ -98,8 +99,9 @@ export function RecommendationItem({
     
     setIsSubmitting(true);
     try {
-      await apiRequest("PUT", `/api/recommendations/${recommendation.id}/reject`, {
-        rejectionFeedback: rejectionFeedback
+      await apiRequest("PATCH", `/api/recommendations/${recommendation.id}/status`, {
+        status: "rejected",
+        therapistNotes: rejectionFeedback
       });
       
       toast({
@@ -126,7 +128,7 @@ export function RecommendationItem({
     
     setIsSubmitting(true);
     try {
-      await apiRequest("PUT", `/api/recommendations/${recommendation.id}/implement`);
+      await apiRequest("POST", `/api/recommendations/${recommendation.id}/implement`);
       
       toast({
         title: "Recommendation implemented",
@@ -181,10 +183,10 @@ export function RecommendationItem({
           </div>
         )}
         
-        {recommendation.rejectionFeedback && recommendation.status === "rejected" && isTherapistView && (
+        {recommendation.therapistNotes && recommendation.status === "rejected" && isTherapistView && (
           <div className="mt-3 p-3 bg-red-50 rounded-md border border-red-100">
             <h4 className="text-sm font-medium text-red-800 mb-1">Rejection feedback:</h4>
-            <p className="text-sm text-red-700">{recommendation.rejectionFeedback}</p>
+            <p className="text-sm text-red-700">{recommendation.therapistNotes}</p>
           </div>
         )}
         
