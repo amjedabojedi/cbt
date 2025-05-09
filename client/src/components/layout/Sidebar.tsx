@@ -35,7 +35,6 @@ export default function Sidebar() {
       { href: "/subscriptions", label: "Subscription Plans", icon: <Award size={20} /> },
       { href: "/emotion-mapping", label: "Emotion Mapping", icon: <Heart size={20} /> },
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
-      { href: "/therapist/recommendations", label: "Review Recommendations", icon: <Lightbulb size={20} /> },
     ];
   } 
   // Therapist navigation
@@ -44,7 +43,6 @@ export default function Sidebar() {
       { href: "/", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
       { href: "/clients", label: "My Clients", icon: <Users size={20} /> },
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
-      { href: "/therapist/recommendations", label: "Review Recommendations", icon: <Lightbulb size={20} /> },
     ];
   }
   // Client navigation
@@ -57,7 +55,6 @@ export default function Sidebar() {
       { href: "/goals", label: "SMART Goals", icon: <Flag size={20} /> },
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
       { href: "/reports", label: "My Progress", icon: <BarChart size={20} /> },
-      { href: "/recommendations", label: "My Recommendations", icon: <Lightbulb size={20} /> },
     ];
     
     // Debug log to help troubleshoot

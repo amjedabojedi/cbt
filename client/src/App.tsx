@@ -106,13 +106,16 @@ function Router() {
           allowedRoles={["admin"]} 
         />
         
-        {/* AI Recommendations routes */}
+        {/* AI Recommendations routes - temporarily disabled */}
+        {/* These routes are disabled until the ai_recommendations table is created */}
+        {/* 
         <ProtectedRoute path="/recommendations" component={Recommendations} />
         <ProtectedRoute 
           path="/therapist/recommendations" 
           component={PendingRecommendations} 
           allowedRoles={["therapist", "admin"]} 
-        />
+        /> 
+        */}
         
         {/* General routes */}
         <ProtectedRoute path="/settings" component={Settings} />
