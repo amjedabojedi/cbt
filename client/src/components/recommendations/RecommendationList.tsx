@@ -94,10 +94,6 @@ export function RecommendationList({
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>
           Failed to load recommendations. This feature is currently being set up for your account.
-          <p className="mt-1 text-xs text-neutral-500">
-            Note: Custom recommendations will appear here once you've added more data by using the emotion tracking, 
-            thought records, and journaling tools.
-          </p>
         </AlertDescription>
       </Alert>
     );
