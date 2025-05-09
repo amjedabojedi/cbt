@@ -30,7 +30,20 @@ export async function exportPDF(
       fs.mkdirSync(tempDir, { recursive: true });
     }
     
-    const doc = new PDFDocument({ margin: 50, bufferPages: true });
+    const doc = new PDFDocument({
+      margin: 50,
+      bufferPages: true,
+      info: {
+        Title: `New Horizon CBT Export - ${type.toUpperCase()}`,
+        Author: 'New Horizon CBT Platform',
+        Subject: 'CBT Data Export',
+        Keywords: 'cbt,emotions,reports,data',
+        Producer: 'New Horizon CBT Platform',
+        Creator: 'New Horizon CBT Platform PDF Export Service'
+      },
+      // Disable features that might trigger antivirus
+      compress: false
+    });
     
     // Create write stream to temp file
     const writeStream = fs.createWriteStream(tempFilePath);
@@ -80,10 +93,14 @@ export async function exportPDF(
         }
       });
       
-      // Set response headers for PDF file
-      const filename = `${type}-export-${targetUserId}-${Date.now()}.pdf`;
+      // Set response headers for PDF file with additional security headers
+      const filename = `NewHorizon-${type}-export-${Date.now()}.pdf`;
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Cache-Control', 'no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       
       // Pipe the file to the response
       readStream.pipe(res);
