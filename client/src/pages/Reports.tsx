@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
 import { format, subDays, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { RecommendationList } from "@/components/recommendations/RecommendationList";
 
 import {
   Card,
@@ -48,6 +49,8 @@ import {
   BarChart2,
   PieChart as PieChartIcon,
   TrendingUp,
+  Lightbulb,
+  Heart,
 } from "lucide-react";
 
 // Define time range options
@@ -405,6 +408,7 @@ export default function Reports() {
             <TabsTrigger value="emotions">Emotions</TabsTrigger>
             <TabsTrigger value="thoughts">Thoughts</TabsTrigger>
             <TabsTrigger value="goals">Goals</TabsTrigger>
+            <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
           </TabsList>
           
           {/* Emotions Tab */}
@@ -600,6 +604,30 @@ export default function Reports() {
                     </ResponsiveContainer>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Recommendations Tab */}
+          <TabsContent value="recommendations" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Lightbulb className="h-5 w-5 mr-2 text-primary" />
+                  Personalized Recommendations
+                </CardTitle>
+                <CardDescription>
+                  AI-powered suggestions based on your therapy journey
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <p className="text-sm text-neutral-700">
+                    Below are personalized recommendations based on your therapy activities. 
+                    Each recommendation has been reviewed by your therapist to ensure it's appropriate for your specific needs.
+                  </p>
+                </div>
+                <RecommendationList />
               </CardContent>
             </Card>
           </TabsContent>
