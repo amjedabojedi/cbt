@@ -621,11 +621,21 @@ export default function Reports() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="mb-4">
+                <div className="mb-4 space-y-3">
                   <p className="text-sm text-neutral-700">
                     Below are personalized recommendations based on your therapy activities. 
                     Each recommendation has been reviewed by your therapist to ensure it's appropriate for your specific needs.
                   </p>
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                    <p className="text-sm text-amber-800 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span>
+                        <strong>Important note:</strong> These recommendations are AI-generated to provide helpful insights, 
+                        but always prioritize guidance from your professional therapist. The primary focus should be on 
+                        following your personalized treatment plan.
+                      </span>
+                    </p>
+                  </div>
                 </div>
                 <RecommendationList />
               </CardContent>
@@ -637,22 +647,4 @@ export default function Reports() {
   );
 }
 
-// Heart icon component
-function Heart(props: any) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-    </svg>
-  );
-}
+// Note: Removed duplicate Heart icon component as it's already defined elsewhere in the file
