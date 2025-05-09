@@ -4972,6 +4972,184 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
   }
+
+  // Batch export functionality - JSON format
+  app.get("/api/export", authenticate, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { type, clientId } = req.query;
+      
+      // If the user is a therapist and clientId is provided, check access
+      let targetUserId = userId;
+      if (req.user.role === "therapist" && clientId) {
+        // Verify this client belongs to the therapist
+        const isClient = await isClientOfTherapist(Number(clientId), userId);
+        if (!isClient) {
+          return res.status(403).json({ message: "You don't have access to this client's data" });
+        }
+        targetUserId = Number(clientId);
+      } else if (req.user.role === "admin" && clientId) {
+        // Admins can access any client's data
+        targetUserId = Number(clientId);
+      }
+
+      // Prepare the export data based on the requested type
+      let exportData;
+      let filename;
+
+      switch (type) {
+        case "emotions":
+          exportData = await storage.getEmotionRecordsByUser(targetUserId);
+          filename = `emotion-records-${targetUserId}-${Date.now()}.json`;
+          break;
+        case "thoughts":
+          exportData = await storage.getThoughtRecordsByUser(targetUserId);
+          filename = `thought-records-${targetUserId}-${Date.now()}.json`;
+          break;
+        case "journals":
+          exportData = await storage.getJournalEntriesByUser(targetUserId);
+          filename = `journal-entries-${targetUserId}-${Date.now()}.json`;
+          break;
+        case "goals":
+          exportData = await storage.getGoalsByUser(targetUserId);
+          filename = `goals-${targetUserId}-${Date.now()}.json`;
+          break;
+        case "all":
+          // Get all data for the user
+          const emotions = await storage.getEmotionRecordsByUser(targetUserId);
+          const thoughts = await storage.getThoughtRecordsByUser(targetUserId);
+          const journals = await storage.getJournalEntriesByUser(targetUserId);
+          const goals = await storage.getGoalsByUser(targetUserId);
+          
+          exportData = {
+            emotions,
+            thoughts,
+            journals,
+            goals
+          };
+          filename = `full-export-${targetUserId}-${Date.now()}.json`;
+          break;
+        default:
+          return res.status(400).json({ message: "Invalid export type" });
+      }
+
+      // Set the appropriate headers for file download
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+      
+      // Send the data as a downloadable file
+      return res.json(exportData);
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      return res.status(500).json({ message: "Failed to export data" });
+    }
+  });
+
+  // CSV export endpoint for more friendly spreadsheet data
+  app.get("/api/export/csv", authenticate, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { type, clientId } = req.query;
+      
+      // If the user is a therapist and clientId is provided, check access
+      let targetUserId = userId;
+      if (req.user.role === "therapist" && clientId) {
+        // Verify this client belongs to the therapist
+        const isClient = await isClientOfTherapist(Number(clientId), userId);
+        if (!isClient) {
+          return res.status(403).json({ message: "You don't have access to this client's data" });
+        }
+        targetUserId = Number(clientId);
+      } else if (req.user.role === "admin" && clientId) {
+        // Admins can access any client's data
+        targetUserId = Number(clientId);
+      }
+
+      // Prepare the export data based on the requested type
+      let csvData = "";
+      let filename;
+
+      switch (type) {
+        case "emotions":
+          const emotions = await storage.getEmotionRecordsByUser(targetUserId);
+          if (emotions && emotions.length > 0) {
+            // Create CSV header
+            csvData = "ID,Date,Core Emotion,Primary Emotion,Tertiary Emotion,Intensity,Situation,Location,Company\n";
+            
+            // Add data rows
+            emotions.forEach(record => {
+              const date = new Date(record.timestamp).toLocaleString();
+              csvData += `${record.id},${date},"${record.coreEmotion}","${record.primaryEmotion || ''}","${record.tertiaryEmotion || ''}",${record.intensity},"${record.situation?.replace(/"/g, '""') || ''}","${record.location?.replace(/"/g, '""') || ''}","${record.company?.replace(/"/g, '""') || ''}"\n`;
+            });
+          }
+          filename = `emotion-records-${targetUserId}-${Date.now()}.csv`;
+          break;
+          
+        case "thoughts":
+          const thoughts = await storage.getThoughtRecordsByUser(targetUserId);
+          if (thoughts && thoughts.length > 0) {
+            // Create CSV header
+            csvData = "ID,Date,Automatic Thoughts,Evidence For,Evidence Against,Alternative Perspective,Insights Gained,Reflection Rating\n";
+            
+            // Add data rows
+            thoughts.forEach(record => {
+              const date = new Date(record.createdAt).toLocaleString();
+              csvData += `${record.id},${date},"${record.automaticThoughts?.replace(/"/g, '""') || ''}","${record.evidenceFor?.replace(/"/g, '""') || ''}","${record.evidenceAgainst?.replace(/"/g, '""') || ''}","${record.alternativePerspective?.replace(/"/g, '""') || ''}","${record.insightsGained?.replace(/"/g, '""') || ''}",${record.reflectionRating || ''}\n`;
+            });
+          }
+          filename = `thought-records-${targetUserId}-${Date.now()}.csv`;
+          break;
+          
+        case "journals":
+          const journals = await storage.getJournalEntriesByUser(targetUserId);
+          if (journals && journals.length > 0) {
+            // Create CSV header
+            csvData = "ID,Date,Title,Content,Mood,Selected Tags,Emotions\n";
+            
+            // Add data rows
+            journals.forEach(record => {
+              const date = new Date(record.createdAt).toLocaleString();
+              const selectedTags = record.selectedTags ? JSON.stringify(record.selectedTags).replace(/"/g, '""') : '';
+              const emotions = record.emotions ? JSON.stringify(record.emotions).replace(/"/g, '""') : '';
+              
+              csvData += `${record.id},${date},"${record.title?.replace(/"/g, '""') || ''}","${record.content?.replace(/"/g, '""') || ''}",${record.mood || ''},"${selectedTags}","${emotions}"\n`;
+            });
+          }
+          filename = `journal-entries-${targetUserId}-${Date.now()}.csv`;
+          break;
+          
+        case "goals":
+          const goals = await storage.getGoalsByUser(targetUserId);
+          if (goals && goals.length > 0) {
+            // Create CSV header
+            csvData = "ID,Date,Title,Specific,Measurable,Achievable,Relevant,Timebound,Deadline,Status\n";
+            
+            // Add data rows
+            goals.forEach(record => {
+              const date = new Date(record.createdAt).toLocaleString();
+              const deadline = record.deadline ? new Date(record.deadline).toLocaleString() : '';
+              
+              csvData += `${record.id},${date},"${record.title?.replace(/"/g, '""') || ''}","${record.specific?.replace(/"/g, '""') || ''}","${record.measurable?.replace(/"/g, '""') || ''}","${record.achievable?.replace(/"/g, '""') || ''}","${record.relevant?.replace(/"/g, '""') || ''}","${record.timebound?.replace(/"/g, '""') || ''}","${deadline}","${record.status || ''}"\n`;
+            });
+          }
+          filename = `goals-${targetUserId}-${Date.now()}.csv`;
+          break;
+          
+        default:
+          return res.status(400).json({ message: "Invalid export type for CSV format" });
+      }
+
+      // Set the appropriate headers for CSV file download
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+      
+      // Send the CSV data
+      return res.send(csvData);
+    } catch (error) {
+      console.error("Error exporting CSV data:", error);
+      return res.status(500).json({ message: "Failed to export CSV data" });
+    }
+  });
   
   return httpServer;
 }
