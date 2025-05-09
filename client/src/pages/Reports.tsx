@@ -3,6 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
 import { format, subDays, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 import {
   Card,
@@ -265,6 +266,8 @@ export default function Reports() {
   }));
   
   const isLoading = emotionsLoading || thoughtsLoading || goalsLoading;
+  const { toast } = useToast();
+  const [isExporting, setIsExporting] = useState(false);
   
   return (
     <AppLayout title="Reports">
@@ -293,9 +296,60 @@ export default function Reports() {
               </SelectContent>
             </Select>
             
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export Report
+            <Button 
+              variant="outline"
+              disabled={isExporting}
+              onClick={() => {
+                setIsExporting(true);
+                try {
+                  // Show a toast notification that export is starting
+                  toast({
+                    title: "Starting export...",
+                    description: "Your PDF report is being generated."
+                  });
+                  
+                  // Create URL for the PDF export
+                  const url = `/api/export/pdf?type=all`;
+                  
+                  // Create a hidden anchor element to trigger the download
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.setAttribute('download', ''); // The filename will be provided by the server
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  
+                  // Show success toast after a short delay to simulate completion
+                  setTimeout(() => {
+                    toast({
+                      title: "Export complete",
+                      description: "Your PDF report has been downloaded.",
+                      variant: "success"
+                    });
+                    setIsExporting(false);
+                  }, 2000);
+                } catch (error) {
+                  console.error('Export error:', error);
+                  toast({
+                    title: "Export failed",
+                    description: "There was a problem generating your PDF report. Please try again later.",
+                    variant: "destructive"
+                  });
+                  setIsExporting(false);
+                }
+              }}
+            >
+              {isExporting ? (
+                <>
+                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Report
+                </>
+              )}
             </Button>
           </div>
         </div>
