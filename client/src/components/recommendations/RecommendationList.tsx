@@ -91,9 +91,12 @@ export function RecommendationList({
     return (
       <Alert variant="destructive">
         <AlertTriangle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
+        <AlertTitle>Feature Coming Soon</AlertTitle>
         <AlertDescription>
-          Failed to load recommendations. This feature is currently being set up for your account.
+          The AI recommendations feature is currently being set up in the system.
+          <p className="mt-2 text-sm">
+            This feature will be available in a future update. We'll notify you when AI recommendations are ready to use.
+          </p>
         </AlertDescription>
       </Alert>
     );
