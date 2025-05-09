@@ -23,6 +23,7 @@ import {
   FileSpreadsheet,
   FileJson,
   FileText,
+  Printer,
   Info
 } from 'lucide-react';
 import { 
@@ -47,6 +48,7 @@ export function ExportDataPanel() {
   const [exportType, setExportType] = useState<string>("all");
   const [exportFormat, setExportFormat] = useState<string>("json");
   const [isExporting, setIsExporting] = useState(false);
+  const [isPDFExporting, setIsPDFExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
   // Check if we're a therapist viewing a client's data
@@ -72,12 +74,6 @@ export function ExportDataPanel() {
         url += `&clientId=${viewingClientId}`;
       }
 
-      // We now support 'all' data type in CSV format directly on the server side
-      // No need for special handling here anymore
-
-      // We'll directly access the export endpoints without preflight checking
-      // since HEAD requests aren't properly handled by our export endpoints
-
       // Create a hidden anchor element to trigger the download
       const link = document.createElement('a');
       link.href = url;
@@ -90,6 +86,82 @@ export function ExportDataPanel() {
       setExportError('Failed to export data. Please try again later.');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  // HTML to PDF alternative approach
+  const handlePrintablePDF = async () => {
+    try {
+      setIsPDFExporting(true);
+      setExportError(null);
+
+      // Determine the URL to fetch HTML data
+      let url = `${apiBaseUrl}/export/html`;
+      
+      // Add query parameters
+      url += `?type=${exportType}`;
+      
+      // If the user is a therapist/admin and a client is selected, include the clientId
+      if (isTherapistWithClient && viewingClientId) {
+        url += `&clientId=${viewingClientId}`;
+      }
+
+      // Fetch the HTML content
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch printable data');
+      }
+      
+      const htmlContent = await response.text();
+      
+      // Create a new window with the HTML content
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        throw new Error('Pop-up blocked. Please allow pop-ups and try again.');
+      }
+      
+      // Write the HTML content to the new window
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>CBT Export - ${exportType}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 40px; }
+              h1, h2 { color: #333; }
+              table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+              th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+              th { background-color: #f2f2f2; }
+              .print-only { display: none; }
+              @media print {
+                .no-print { display: none; }
+                .print-only { display: block; }
+                body { margin: 0; padding: 20px; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="no-print" style="background: #f2f2f2; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+              <h3>Print Instructions</h3>
+              <p>To save as PDF: Use your browser's Print feature (Ctrl+P or Cmd+P) and select "Save as PDF" as the destination.</p>
+              <p>This method avoids antivirus concerns with downloaded PDF files.</p>
+              <button onclick="window.print();" style="background: #4F46E5; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+                Print / Save as PDF
+              </button>
+            </div>
+            ${htmlContent}
+          </body>
+        </html>
+      `);
+      
+      // Close the document writing
+      printWindow.document.close();
+      
+    } catch (error) {
+      console.error('Printable PDF error:', error);
+      setExportError('Failed to generate printable view. Please try again or use CSV export.');
+    } finally {
+      setIsPDFExporting(false);
     }
   };
 
@@ -208,7 +280,7 @@ export function ExportDataPanel() {
           )}
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-col space-y-2">
         <Button
           onClick={handleExport}
           disabled={isExporting}
@@ -226,6 +298,28 @@ export function ExportDataPanel() {
             </>
           )}
         </Button>
+        
+        {/* Add a special Print-friendly PDF button that avoids antivirus issues */}
+        <div className="w-full text-center mt-2">
+          <Button
+            onClick={handlePrintablePDF}
+            disabled={isPDFExporting}
+            variant="outline"
+            className="w-full"
+          >
+            {isPDFExporting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Preparing Print View...
+              </>
+            ) : (
+              <>
+                <Printer className="mr-2 h-4 w-4" />
+                Print-friendly PDF (Avoids Antivirus Issues)
+              </>
+            )}
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );
