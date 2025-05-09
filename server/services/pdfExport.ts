@@ -4,6 +4,9 @@ import * as path from 'path';
 import PDFDocument from 'pdfkit';
 import { IStorage } from '../storage';
 
+// Define a type for the PDFDocument to resolve namespace issues
+type PDFDocumentType = PDFDocument;
+
 export interface PDFExportOptions {
   type: string;
   targetUserId: number;
@@ -148,7 +151,7 @@ async function generatePDFContent(
   type: string,
   targetUserId: number,
   storage: IStorage,
-  doc: PDFKit.PDFDocument
+  doc: PDFDocumentType
 ): Promise<void> {
   switch (type) {
     case "emotions":
@@ -179,7 +182,7 @@ async function generatePDFContent(
 async function generateEmotionsContent(
   targetUserId: number,
   storage: IStorage,
-  doc: PDFKit.PDFDocument
+  doc: PDFDocumentType
 ): Promise<void> {
   const emotions = await storage.getEmotionRecordsByUser(targetUserId);
   
@@ -267,7 +270,7 @@ async function generateEmotionsContent(
 async function generateThoughtsContent(
   targetUserId: number,
   storage: IStorage,
-  doc: PDFKit.PDFDocument
+  doc: PDFDocumentType
 ): Promise<void> {
   const thoughts = await storage.getThoughtRecordsByUser(targetUserId);
   
@@ -348,7 +351,7 @@ async function generateThoughtsContent(
 async function generateJournalsContent(
   targetUserId: number,
   storage: IStorage,
-  doc: PDFKit.PDFDocument
+  doc: PDFDocumentType
 ): Promise<void> {
   const journals = await storage.getJournalEntriesByUser(targetUserId);
   
@@ -413,7 +416,7 @@ async function generateJournalsContent(
 async function generateGoalsContent(
   targetUserId: number,
   storage: IStorage,
-  doc: PDFKit.PDFDocument
+  doc: PDFDocumentType
 ): Promise<void> {
   const goals = await storage.getGoalsByUser(targetUserId);
   
@@ -483,7 +486,7 @@ async function generateGoalsContent(
 async function generateAllContent(
   targetUserId: number,
   storage: IStorage,
-  doc: PDFKit.PDFDocument
+  doc: PDFDocumentType
 ): Promise<void> {
   // First section - Emotions
   doc.fontSize(16)

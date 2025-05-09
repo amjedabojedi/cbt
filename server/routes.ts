@@ -5238,10 +5238,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Import the PDF export service
       const { exportPDF } = await import('./services/pdfExport');
-      const path = require('path');
+      const { join } = await import('path');
       
       // Create temp directory path
-      const tempDir = path.join(__dirname, '..', 'temp_pdf');
+      const tempDir = join(__dirname, '..', 'temp_pdf');
       
       // Call the PDF export service
       await exportPDF(
