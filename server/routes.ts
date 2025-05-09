@@ -5135,6 +5135,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           filename = `goals-${targetUserId}-${Date.now()}.csv`;
           break;
           
+        case "all":
+          // For "all" export type, we'll create a ZIP file with multiple CSV files
+          // But for simplicity in this implementation, we'll just redirect to individual exports
+          return res.status(400).json({ 
+            message: "For 'all' data export in CSV format, please export each data type individually",
+            types: ["emotions", "thoughts", "journals", "goals"]
+          });
+          
         default:
           return res.status(400).json({ message: "Invalid export type for CSV format" });
       }
