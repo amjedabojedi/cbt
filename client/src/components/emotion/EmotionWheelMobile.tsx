@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { emotionGroups, getEmotionColor } from "../../lib/emotions";
+import { emotionGroups } from "@/lib/emotions";
 import { CheckIcon, HelpCircle } from "lucide-react";
 import {
   Tooltip,
@@ -96,7 +96,23 @@ export default function EmotionWheelMobile({
     }
   };
   
-  // Use imported getEmotionColor function from lib/emotions.ts
+  // Color mapping for emotion groups
+  const getEmotionColor = (emotion: string | null): string => {
+    if (!emotion) return "bg-gray-200 text-gray-600";
+    
+    const lowerEmotion = emotion.toLowerCase();
+    
+    // Core emotions color mapping
+    if (lowerEmotion.includes("anger")) return "bg-red-100 text-red-700";
+    if (lowerEmotion.includes("sad")) return "bg-blue-100 text-blue-700";
+    if (lowerEmotion.includes("fear")) return "bg-green-100 text-green-700";
+    if (lowerEmotion.includes("joy") || lowerEmotion.includes("happy")) return "bg-yellow-100 text-yellow-700";
+    if (lowerEmotion.includes("love")) return "bg-pink-100 text-pink-700";
+    if (lowerEmotion.includes("surprise")) return "bg-purple-100 text-purple-700";
+    
+    // Default color if no match
+    return "bg-gray-100 text-gray-700";
+  };
   
   // Finding currently selected emotions
   const getSelectedEmotions = () => {

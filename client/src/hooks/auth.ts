@@ -22,11 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
   // Fetch the current user data
-  const { 
-    data: user, 
-    error, 
-    isLoading 
-  } = useQuery<User | null, Error>({
+  const { data: user, error, isLoading } = useQuery<User | null, Error>({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
       try {
@@ -123,17 +119,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const contextValue: AuthContextType = {
-    user: user || null,
-    isLoading,
-    error,
-    loginMutation,
-    logoutMutation,
-    registerMutation
-  };
-
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider
+      value={{
+        user: user || null,
+        isLoading,
+        error,
+        loginMutation,
+        logoutMutation,
+        registerMutation,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

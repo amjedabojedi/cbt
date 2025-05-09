@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from 'react';
 
 /**
  * Custom hook for responsive design that detects if a media query matches
@@ -6,39 +6,29 @@ import { useEffect, useState } from "react";
  * @returns boolean indicating if the media query matches
  */
 export function useMediaQuery(query: string): boolean {
-  // Initialize with the current match state if window exists (client-side)
-  const [matches, setMatches] = useState<boolean>(() => {
-    // Check if window is defined (client-side rendering)
-    if (typeof window !== "undefined") {
-      return window.matchMedia(query).matches;
-    }
-    // Default to false for server-side rendering
-    return false;
-  });
-
+  // Initialize with a default value to avoid hydration mismatch
+  const [matches, setMatches] = useState(false);
+  
   useEffect(() => {
-    // Only run on client-side
-    if (typeof window === "undefined") return;
-
-    // Create media query list
-    const mediaQueryList = window.matchMedia(query);
+    // Create a media query list
+    const mediaQuery = window.matchMedia(query);
     
-    // Set initial value
-    setMatches(mediaQueryList.matches);
-
-    // Define handler for changes
+    // Set the initial value based on the media query match
+    setMatches(mediaQuery.matches);
+    
+    // Create a handler function to update state when the match changes
     const handler = (event: MediaQueryListEvent) => {
       setMatches(event.matches);
     };
-
-    // Add event listener for changes
-    mediaQueryList.addEventListener("change", handler);
     
-    // Clean up event listener on unmount
+    // Add the listener for changes
+    mediaQuery.addEventListener('change', handler);
+    
+    // Clean up the listener when the component unmounts
     return () => {
-      mediaQueryList.removeEventListener("change", handler);
+      mediaQuery.removeEventListener('change', handler);
     };
-  }, [query]); // Re-run if query changes
-
+  }, [query]); // Only re-run if the query changes
+  
   return matches;
 }

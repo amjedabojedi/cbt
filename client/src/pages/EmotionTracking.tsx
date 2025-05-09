@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/auth";
+import { useAuth } from "@/lib/auth";
 import AppLayout from "@/components/layout/AppLayout";
 import EmotionTrackingForm from "@/components/emotion/EmotionTrackingForm";
 import EmotionHistory from "@/components/dashboard/EmotionHistory";

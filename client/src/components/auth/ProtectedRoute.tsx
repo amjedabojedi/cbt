@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { useAuth } from "@/hooks/auth";
+import { useAuth } from "@/lib/auth";
 import { Route, useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 
@@ -14,13 +14,13 @@ export function ProtectedRoute({
   component: Component, 
   allowedRoles = [] 
 }: ProtectedRouteProps) {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
   const [, navigate] = useLocation();
 
   // Function to render content based on auth state
   const renderContent = () => {
     // If still loading, show spinner
-    if (isLoading) {
+    if (loading) {
       return (
         <div className="flex items-center justify-center min-h-screen">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -28,10 +28,10 @@ export function ProtectedRoute({
       );
     }
 
-    // If not authenticated, redirect to login page
+    // If not authenticated, redirect to landing page
     if (!user) {
-      // Use direct window navigation for more reliable redirect
-      setTimeout(() => window.location.href = "/login", 0);
+      // Use setTimeout to avoid immediate redirect which can cause React rendering issues
+      setTimeout(() => navigate("/auth"), 0);
       return (
         <div className="flex items-center justify-center min-h-screen">
           <p className="text-sm text-muted-foreground">Redirecting to login...</p>
@@ -41,8 +41,7 @@ export function ProtectedRoute({
 
     // If roles specified and user doesn't have the required role
     if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-      // Use direct window navigation for more reliable redirect
-      setTimeout(() => window.location.href = "/dashboard", 0);
+      setTimeout(() => navigate("/dashboard"), 0);
       return (
         <div className="flex items-center justify-center min-h-screen">
           <p className="text-sm text-muted-foreground">Unauthorized. Redirecting...</p>

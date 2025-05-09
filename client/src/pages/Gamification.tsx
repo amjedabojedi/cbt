@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppLayout from "@/components/layout/AppLayout";
 import AchievementsList from "@/components/gamification/AchievementsList";
 import ProgressTracker from "@/components/gamification/ProgressTracker";
-import { useAuth } from "../hooks/auth.tsx";
+import { useAuth } from "@/hooks/auth";
 import { Loader2 } from "lucide-react";
 
 export default function Gamification() {

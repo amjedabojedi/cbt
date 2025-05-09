@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, Route } from "wouter";
-import { useAuth } from "@/hooks/auth";
+import { useAuth } from "@/lib/auth";
 import { 
   Card,
   CardContent,
@@ -49,7 +49,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, login, register: registerUser } = useAuth();
   const [location, navigate] = useLocation();
   const { toast } = useToast();
   const [isInvitation, setIsInvitation] = useState(false);
@@ -110,18 +110,8 @@ export default function AuthPage() {
   const onLoginSubmit = async (data: LoginFormValues) => {
     setLoginSubmitting(true);
     try {
-      const result = await loginMutation.mutateAsync({
-        username: data.username,
-        password: data.password
-      });
-      
-      console.log("Login successful, redirecting to dashboard");
-      
-      // Manual redirect after successful login
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 500);
-      
+      await login(data.username, data.password);
+      // Login is handled by the auth hook which will redirect on success
     } catch (error) {
       console.error(error);
       toast({
@@ -156,15 +146,9 @@ export default function AuthPage() {
         registrationData.isInvitation = true;
       }
       
-      const result = await registerMutation.mutateAsync(registrationData);
+      const result = await registerUser(registrationData);
       
-      console.log("Registration successful, redirecting to dashboard");
-      
-      // Manual redirect after successful registration
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 500);
-      
+      // Registration is handled by the auth hook which will redirect on success
       if (isInvitation) {
         // If it's an invitation registration, make another API call to update the status to active
         try {
