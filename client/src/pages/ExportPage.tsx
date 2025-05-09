@@ -1,6 +1,6 @@
 import React from 'react';
 import { PageHeader } from '@/components/ui/page-header';
-import { AppLayout } from '@/components/layout/AppLayout';
+import AppLayout from '@/components/layout/AppLayout';
 import { ExportDataPanel } from '@/components/export/ExportDataPanel';
 import { CloudDownload } from 'lucide-react';
 

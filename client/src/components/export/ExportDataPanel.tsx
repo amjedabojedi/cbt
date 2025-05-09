@@ -42,15 +42,14 @@ import {
 export function ExportDataPanel() {
   const apiBaseUrl = '/api'; // API base URL is just the /api route
   const { user } = useAuth();
-  const { selectedClient } = useClientContext();
+  const { viewingClientId, viewingClientName, isViewingClient } = useClientContext();
   const [exportType, setExportType] = useState<string>("all");
   const [exportFormat, setExportFormat] = useState<string>("json");
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
-  // Determine if we're exporting for the current user or a client
-  const targetUser = (user?.role === 'therapist' && selectedClient) ? selectedClient : user;
-  const isTherapistWithClient = user?.role === 'therapist' && selectedClient;
+  // Check if we're a therapist viewing a client's data
+  const isTherapistWithClient = (user?.role === 'therapist' || user?.role === 'admin') && isViewingClient;
 
   const handleExport = async () => {
     try {
@@ -65,9 +64,9 @@ export function ExportDataPanel() {
       // Add query parameters
       url += `?type=${exportType}`;
       
-      // If the user is a therapist and a client is selected, include the clientId
-      if (isTherapistWithClient) {
-        url += `&clientId=${selectedClient.id}`;
+      // If the user is a therapist/admin and a client is selected, include the clientId
+      if (isTherapistWithClient && viewingClientId) {
+        url += `&clientId=${viewingClientId}`;
       }
 
       // Create a hidden anchor element to trigger the download
@@ -105,8 +104,8 @@ export function ExportDataPanel() {
         </CardTitle>
         <CardDescription>
           Download your data in your preferred format
-          {isTherapistWithClient && (
-            <span className="font-medium text-primary"> for client: {selectedClient.name}</span>
+          {isTherapistWithClient && viewingClientName && (
+            <span className="font-medium text-primary"> for client: {viewingClientName}</span>
           )}
         </CardDescription>
       </CardHeader>
