@@ -624,13 +624,13 @@ export default function Reports() {
               <CardContent>
                 <div className="mb-4 space-y-3">
                   <p className="text-sm text-neutral-700">
-                    Below are personalized recommendations based on your therapy activities. 
+                    Below are personalized recommendations based on your interaction with App tools. 
                     Each recommendation has been reviewed by your therapist to ensure it's appropriate for your specific needs.
                   </p>
                   <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                     <p className="text-sm text-blue-800">
                       <span className="font-medium block mb-1">How This Works:</span>
-                      Your therapy activities adapt over time based on your interactions and the data you provide. As you track emotions, 
+                      Your App tools adapt over time based on your interactions and the data you provide. As you track emotions, 
                       record thoughts, write journal entries, and work on goals, the system learns your patterns and needs. 
                       This allows us to generate more personalized and relevant recommendations for your journey.
                     </p>

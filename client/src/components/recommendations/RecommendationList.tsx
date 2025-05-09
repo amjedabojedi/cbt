@@ -93,7 +93,11 @@ export function RecommendationList({
         <AlertTriangle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>
-          Failed to load recommendations. Please try refreshing the page.
+          Failed to load recommendations. This feature is currently being set up for your account.
+          <p className="mt-1 text-xs text-neutral-500">
+            Note: Custom recommendations will appear here once you've added more data by using the emotion tracking, 
+            thought records, and journaling tools.
+          </p>
         </AlertDescription>
       </Alert>
     );
@@ -107,7 +111,7 @@ export function RecommendationList({
         description={
           pendingOnly
             ? "There are currently no recommendations waiting for your review."
-            : "Recommendations will appear here as they are generated based on client progress and activities."
+            : "Recommendations will appear here as they are generated based on client progress and interaction with App tools."
         }
         icon="lightbulb"
       />
