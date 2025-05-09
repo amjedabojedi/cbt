@@ -29,12 +29,12 @@ export function RecommendationList({
   const targetUserId = userId || (isTherapistView ? viewingClientId : user?.id) || 0;
   
   // Build the correct API endpoint based on the props
-  let queryEndpoint = `/api/recommendations/user/${targetUserId}`;
+  let queryEndpoint = `/api/users/${targetUserId}/recommendations`;
   
   // If it's a therapist view and we're looking for pending recommendations
   if (isTherapistView && pendingOnly && user?.role === "therapist") {
     // Therapists only see recommendations pending approval for their clients
-    queryEndpoint = `/api/recommendations/therapist/pending`;
+    queryEndpoint = `/api/therapist/recommendations/pending`;
   } else if (pendingOnly) {
     // Admin sees all pending recommendations
     queryEndpoint = `/api/recommendations/pending`;
@@ -42,6 +42,9 @@ export function RecommendationList({
     // Admin sees all recommendations
     queryEndpoint = "/api/recommendations";
   }
+  
+  // Debug to help identify API endpoint issues
+  console.log("Using API endpoint:", queryEndpoint);
   
   // Fetch recommendations
   const {
