@@ -1679,12 +1679,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Client invitation management endpoints
   
   // Get all invitations for a therapist
-  app.get("/api/invitations", authenticate, isTherapist, async (req, res) => {
+  app.get("/api/invitations", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
-      
+      // No need to check if user is authenticated as ensureAuthenticated already did that
       const invitations = await storage.getClientInvitationsByTherapist(req.user.id);
       res.json(invitations);
     } catch (error) {
@@ -1694,11 +1691,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get specific invitation
-  app.get("/api/invitations/:id", authenticate, isTherapist, async (req, res) => {
+  app.get("/api/invitations/:id", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
+      // No need to check if user is authenticated as ensureAuthenticated already did that
       
       const invitationId = parseInt(req.params.id);
       const invitation = await storage.getClientInvitationById(invitationId);
@@ -1720,11 +1715,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Resend invitation (creates a new notification even if email fails)
-  app.post("/api/invitations/:id/resend", authenticate, isTherapist, async (req, res) => {
+  app.post("/api/invitations/:id/resend", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
+      // No need to check if user is authenticated as ensureAuthenticated already did that
       
       const invitationId = parseInt(req.params.id);
       const invitation = await storage.getClientInvitationById(invitationId);
@@ -1781,11 +1774,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Delete/cancel an invitation
-  app.delete("/api/invitations/:id", authenticate, isTherapist, async (req, res) => {
+  app.delete("/api/invitations/:id", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
+      // No need to check if user is authenticated as ensureAuthenticated already did that
       
       const invitationId = parseInt(req.params.id);
       const invitation = await storage.getClientInvitationById(invitationId);

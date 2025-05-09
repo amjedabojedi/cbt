@@ -427,6 +427,44 @@ export const insertSystemLogSchema = createInsertSchema(systemLogs).omit({
 export type SystemLog = typeof systemLogs.$inferSelect;
 export type InsertSystemLog = z.infer<typeof insertSystemLogSchema>;
 
+// AI Recommendations table for therapist-approved AI suggestions
+export const aiRecommendations = pgTable("ai_recommendations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id), // The client who will receive the recommendation
+  therapistId: integer("therapist_id").notNull().references(() => users.id), // The therapist who needs to approve
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  type: text("type", { 
+    enum: ["coping_strategy", "resource", "activity", "reflection", "goal"] 
+  }).notNull(),
+  status: text("status", { 
+    enum: ["pending", "approved", "rejected", "implemented"] 
+  }).notNull().default("pending"),
+  therapistNotes: text("therapist_notes"),
+  aiReasoning: text("ai_reasoning").notNull(), // Why the AI recommended this
+  relatedDataType: text("related_data_type", {
+    enum: ["emotion", "thought", "journal", "goal", "none"]
+  }).notNull().default("none"),
+  relatedDataId: integer("related_data_id"), // ID of the related record that prompted this recommendation
+  suggestedResources: jsonb("suggested_resources").$type<number[]>(), // Resource IDs if applicable
+  implementationSteps: jsonb("implementation_steps").$type<string[]>(), // Steps to implement the recommendation
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  approvedAt: timestamp("approved_at"),
+  rejectedAt: timestamp("rejected_at"),
+  implementedAt: timestamp("implemented_at"),
+});
+
+export const insertAiRecommendationSchema = createInsertSchema(aiRecommendations).omit({
+  id: true,
+  createdAt: true,
+  approvedAt: true,
+  rejectedAt: true,
+  implementedAt: true
+});
+
+export type AiRecommendation = typeof aiRecommendations.$inferSelect;
+export type InsertAiRecommendation = z.infer<typeof insertAiRecommendationSchema>;
+
 // Client invitations table for tracking invitations sent to potential clients
 export const clientInvitations = pgTable("client_invitations", {
   id: serial("id").primaryKey(),
