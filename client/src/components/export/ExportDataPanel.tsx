@@ -72,23 +72,8 @@ export function ExportDataPanel() {
       // We now support 'all' data type in CSV format directly on the server side
       // No need for special handling here anymore
 
-      // First check if the endpoint will return an error
-      const checkResponse = await fetch(url, { method: 'HEAD' });
-      if (!checkResponse.ok) {
-        if (checkResponse.status === 400) {
-          // Try to parse the error message
-          const errorText = await checkResponse.text();
-          try {
-            const errorObj = JSON.parse(errorText);
-            setExportError(errorObj.message || 'Invalid export request');
-          } catch {
-            setExportError('The server could not process your export request.');
-          }
-        } else {
-          setExportError('Failed to export data. Please try again later.');
-        }
-        return;
-      }
+      // We'll directly access the export endpoints without preflight checking
+      // since HEAD requests aren't properly handled by our export endpoints
 
       // Create a hidden anchor element to trigger the download
       const link = document.createElement('a');
