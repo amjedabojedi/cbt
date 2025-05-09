@@ -69,6 +69,27 @@ export function ExportDataPanel() {
         url += `&clientId=${viewingClientId}`;
       }
 
+      // We now support 'all' data type in CSV format directly on the server side
+      // No need for special handling here anymore
+
+      // First check if the endpoint will return an error
+      const checkResponse = await fetch(url, { method: 'HEAD' });
+      if (!checkResponse.ok) {
+        if (checkResponse.status === 400) {
+          // Try to parse the error message
+          const errorText = await checkResponse.text();
+          try {
+            const errorObj = JSON.parse(errorText);
+            setExportError(errorObj.message || 'Invalid export request');
+          } catch {
+            setExportError('The server could not process your export request.');
+          }
+        } else {
+          setExportError('Failed to export data. Please try again later.');
+        }
+        return;
+      }
+
       // Create a hidden anchor element to trigger the download
       const link = document.createElement('a');
       link.href = url;
@@ -157,7 +178,7 @@ export function ExportDataPanel() {
                   <Info size={16} className="ml-1 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>JSON format contains all data. CSV is better for spreadsheets but might not include all fields.</p>
+                  <p>JSON format contains complete data in a developer-friendly format. CSV is better for viewing in spreadsheets like Excel. Both formats support exporting all data types.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

@@ -5136,12 +5136,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
           break;
           
         case "all":
-          // For "all" export type, we'll create a ZIP file with multiple CSV files
-          // But for simplicity in this implementation, we'll just redirect to individual exports
-          return res.status(400).json({ 
-            message: "For 'all' data export in CSV format, please export each data type individually",
-            types: ["emotions", "thoughts", "journals", "goals"]
-          });
+          // For "all" export type, create a combined CSV with sections
+          const emotionsData = await storage.getEmotionRecordsByUser(targetUserId);
+          const thoughtsData = await storage.getThoughtRecordsByUser(targetUserId);
+          const journalsData = await storage.getJournalEntriesByUser(targetUserId);
+          const goalsData = await storage.getGoalsByUser(targetUserId);
+          
+          // Build a combined CSV with section headers
+          csvData = "# EMOTION RECORDS\n";
+          if (emotionsData && emotionsData.length > 0) {
+            csvData += "ID,Date,Core Emotion,Primary Emotion,Tertiary Emotion,Intensity,Situation,Location,Company\n";
+            emotionsData.forEach(record => {
+              const date = new Date(record.timestamp).toLocaleString();
+              csvData += `${record.id},${date},"${record.coreEmotion}","${record.primaryEmotion || ''}","${record.tertiaryEmotion || ''}",${record.intensity},"${record.situation?.replace(/"/g, '""') || ''}","${record.location?.replace(/"/g, '""') || ''}","${record.company?.replace(/"/g, '""') || ''}"\n`;
+            });
+          } else {
+            csvData += "No emotion records found.\n";
+          }
+          
+          csvData += "\n# THOUGHT RECORDS\n";
+          if (thoughtsData && thoughtsData.length > 0) {
+            csvData += "ID,Date,Automatic Thoughts,Evidence For,Evidence Against,Alternative Perspective,Insights Gained,Reflection Rating\n";
+            thoughtsData.forEach(record => {
+              const date = new Date(record.createdAt).toLocaleString();
+              csvData += `${record.id},${date},"${record.automaticThoughts?.replace(/"/g, '""') || ''}","${record.evidenceFor?.replace(/"/g, '""') || ''}","${record.evidenceAgainst?.replace(/"/g, '""') || ''}","${record.alternativePerspective?.replace(/"/g, '""') || ''}","${record.insightsGained?.replace(/"/g, '""') || ''}",${record.reflectionRating || ''}\n`;
+            });
+          } else {
+            csvData += "No thought records found.\n";
+          }
+          
+          csvData += "\n# JOURNAL ENTRIES\n";
+          if (journalsData && journalsData.length > 0) {
+            csvData += "ID,Date,Title,Content,Mood,Selected Tags,Emotions\n";
+            journalsData.forEach(record => {
+              const date = new Date(record.createdAt).toLocaleString();
+              const selectedTags = record.selectedTags ? JSON.stringify(record.selectedTags).replace(/"/g, '""') : '';
+              const emotions = record.emotions ? JSON.stringify(record.emotions).replace(/"/g, '""') : '';
+              csvData += `${record.id},${date},"${record.title?.replace(/"/g, '""') || ''}","${record.content?.replace(/"/g, '""') || ''}",${record.mood || ''},"${selectedTags}","${emotions}"\n`;
+            });
+          } else {
+            csvData += "No journal entries found.\n";
+          }
+          
+          csvData += "\n# GOALS\n";
+          if (goalsData && goalsData.length > 0) {
+            csvData += "ID,Date,Title,Specific,Measurable,Achievable,Relevant,Timebound,Deadline,Status\n";
+            goalsData.forEach(record => {
+              const date = new Date(record.createdAt).toLocaleString();
+              const deadline = record.deadline ? new Date(record.deadline).toLocaleString() : '';
+              csvData += `${record.id},${date},"${record.title?.replace(/"/g, '""') || ''}","${record.specific?.replace(/"/g, '""') || ''}","${record.measurable?.replace(/"/g, '""') || ''}","${record.achievable?.replace(/"/g, '""') || ''}","${record.relevant?.replace(/"/g, '""') || ''}","${record.timebound?.replace(/"/g, '""') || ''}","${deadline}","${record.status || ''}"\n`;
+            });
+          } else {
+            csvData += "No goals found.\n";
+          }
+          
+          filename = `complete-export-${targetUserId}-${Date.now()}.csv`;
+          break;
           
         default:
           return res.status(400).json({ message: "Invalid export type for CSV format" });
