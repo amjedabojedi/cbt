@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
-import { useClient } from "@/context/ClientContext";
+import { useClientContext } from "@/context/ClientContext";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { Recommendation } from "@shared/schema";
+import { AiRecommendation } from "@shared/schema";
 import { RecommendationItem } from "@/components/recommendations/RecommendationItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -20,7 +20,7 @@ export function RecommendationList({
   pendingOnly = false
 }: RecommendationListProps) {
   const { user } = useAuth();
-  const { selectedClient } = useClient();
+  const { viewingClientId } = useClientContext();
   
   // If no userId is provided, use the current user's ID (for client view)
   // or the selectedClient's ID (for therapist view)
@@ -47,7 +47,7 @@ export function RecommendationList({
     isLoading,
     isError,
     refetch
-  } = useQuery<Recommendation[]>({
+  } = useQuery<AiRecommendation[]>({
     queryKey: [queryEndpoint],
     enabled: !!targetUserId || isTherapistView, // Only fetch if we have a user ID or it's a therapist view
   });

@@ -59,7 +59,10 @@ export function RecommendationApprovalForm({
     
     setIsSubmitting(true);
     try {
-      await apiRequest("PUT", `/api/recommendations/${recommendation.id}/approve`, data);
+      await apiRequest("PATCH", `/api/recommendations/${recommendation.id}/status`, {
+        status: "approved",
+        therapistNotes: data.therapistNote
+      });
       
       toast({
         title: "Recommendation approved",
@@ -87,7 +90,10 @@ export function RecommendationApprovalForm({
     
     setIsSubmitting(true);
     try {
-      await apiRequest("PUT", `/api/recommendations/${recommendation.id}/reject`, data);
+      await apiRequest("PATCH", `/api/recommendations/${recommendation.id}/status`, {
+        status: "rejected",
+        therapistNotes: data.feedback
+      });
       
       toast({
         title: "Recommendation rejected",
