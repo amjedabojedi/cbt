@@ -53,7 +53,7 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import EmotionWheel from "./EmotionWheel";
+import EmotionWheelResponsive from "./EmotionWheelResponsive";
 import ReflectionWizard from "../reflection/ReflectionWizard";
 
 // Define schema for the form

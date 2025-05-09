@@ -1,34 +1,34 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
+/**
+ * Custom hook for responsive design that detects if a media query matches
+ * @param query - CSS media query string to check
+ * @returns boolean indicating if the media query matches
+ */
 export function useMediaQuery(query: string): boolean {
+  // Initialize with a default value to avoid hydration mismatch
   const [matches, setMatches] = useState(false);
   
   useEffect(() => {
-    // Check if we're in a browser environment
-    if (typeof window === "undefined") {
-      return;
-    }
+    // Create a media query list
+    const mediaQuery = window.matchMedia(query);
     
-    const media = window.matchMedia(query);
+    // Set the initial value based on the media query match
+    setMatches(mediaQuery.matches);
     
-    // Initial check
-    setMatches(media.matches);
-    
-    // Update state when query changes
-    const listener = (event: MediaQueryListEvent) => {
+    // Create a handler function to update state when the match changes
+    const handler = (event: MediaQueryListEvent) => {
       setMatches(event.matches);
     };
     
-    // Add event listener (using the newer addEventListener if available)
-    if (media.addEventListener) {
-      media.addEventListener("change", listener);
-      return () => media.removeEventListener("change", listener);
-    } else {
-      // Fallback for older browsers
-      media.addListener(listener);
-      return () => media.removeListener(listener);
-    }
-  }, [query]);
+    // Add the listener for changes
+    mediaQuery.addEventListener('change', handler);
+    
+    // Clean up the listener when the component unmounts
+    return () => {
+      mediaQuery.removeEventListener('change', handler);
+    };
+  }, [query]); // Only re-run if the query changes
   
   return matches;
 }
