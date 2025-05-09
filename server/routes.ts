@@ -5213,7 +5213,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/export/pdf", authenticate, async (req, res) => {
     try {
       const userId = req.user.id;
-      const { type, clientId } = req.query;
+      const { type = 'all', clientId } = req.query;
+      
+      console.log("PDF Export request:", { userId, type, clientId });
       
       // If the user is a therapist and clientId is provided, check access
       let targetUserId = userId;
@@ -5228,9 +5230,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Admins can access any client's data
         targetUserId = Number(clientId);
       }
+      
+      // Error handler function
+      const handleError = (error) => {
+        console.error("PDF Generation Error:", error);
+        
+        // Only send error response if headers haven't been sent yet
+        if (!res.headersSent) {
+          res.status(500).json({ message: "Failed to generate PDF", error: error.message });
+        } else {
+          // If headers are already sent, we need to end the response
+          try {
+            res.end();
+          } catch (endError) {
+            console.error("Error ending response:", endError);
+          }
+        }
+      };
 
       const PDFDocument = require('pdfkit');
-      const doc = new PDFDocument({ margin: 50 });
+      const doc = new PDFDocument({ margin: 50, bufferPages: true });
+      
+      // Handle stream errors
+      doc.on('error', handleError);
       
       // Set response headers for PDF file
       const filename = `${type}-export-${targetUserId}-${Date.now()}.pdf`;
@@ -5238,11 +5260,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
       
       // Pipe the PDF document to the response
-      doc.pipe(res);
-      
-      // Get user info for header
-      const user = await storage.getUser(targetUserId);
-      const userName = user ? user.name : `User ${targetUserId}`;
+      const stream = doc.pipe(res);
+      stream.on('error', handleError);
+        
+        // Get user info for header
+        const user = await storage.getUser(targetUserId);
+        const userName = user ? user.name : `User ${targetUserId}`;
       
       // Set up the PDF document with a header
       doc.font('Helvetica-Bold')
@@ -5876,7 +5899,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
     } catch (error) {
       console.error("Error exporting PDF data:", error);
-      return res.status(500).json({ message: "Failed to generate PDF" });
+      if (!res.headersSent) {
+        return res.status(500).json({ message: "Failed to generate PDF", error: error.message || 'Unknown error' });
+      }
     }
   });
   
