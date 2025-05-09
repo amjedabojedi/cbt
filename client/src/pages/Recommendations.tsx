@@ -1,5 +1,5 @@
 import { useAuth } from "@/lib/auth";
-import { useClient } from "@/context/ClientContext";
+import { useClientContext } from "@/context/ClientContext";
 import { RecommendationList } from "@/components/recommendations/RecommendationList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,11 +7,11 @@ import { Lightbulb } from "lucide-react";
 
 export default function Recommendations() {
   const { user } = useAuth();
-  const { selectedClient } = useClient();
+  const { viewingClientId, viewingClientName } = useClientContext();
   
   // For therapists viewing client's recommendations
-  const userId = selectedClient?.id || user?.id || 0;
-  const isTherapist = user?.role === "therapist" && selectedClient !== null;
+  const userId = viewingClientId || user?.id || 0;
+  const isTherapist = user?.role === "therapist" && viewingClientId !== null;
   
   // For admin users, we'll show both views
   const isAdmin = user?.role === "admin";
@@ -23,7 +23,7 @@ export default function Recommendations() {
           <h1 className="text-3xl font-bold tracking-tight">AI Recommendations</h1>
           <p className="text-muted-foreground">
             {isTherapist 
-              ? `View and approve personalized recommendations for ${selectedClient?.name}`
+              ? `View and approve personalized recommendations for ${viewingClientName}`
               : "Personalized suggestions based on your therapy journey"}
           </p>
         </div>

@@ -23,8 +23,8 @@ export function RecommendationList({
   const { viewingClientId } = useClientContext();
   
   // If no userId is provided, use the current user's ID (for client view)
-  // or the selectedClient's ID (for therapist view)
-  const targetUserId = userId || (isTherapistView ? selectedClient?.id : user?.id) || 0;
+  // or the viewingClientId (for therapist view)
+  const targetUserId = userId || (isTherapistView ? viewingClientId : user?.id) || 0;
   
   // Build the correct API endpoint based on the props
   let queryEndpoint = `/api/recommendations/user/${targetUserId}`;
