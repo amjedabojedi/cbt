@@ -244,14 +244,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stripe Subscription Routes
   
   // Get current subscription info of authenticated user
-  app.get("/api/subscription", authenticate, async (req, res) => {
+  app.get("/api/subscription", authenticate, ensureAuthenticated, async (req, res) => {
     try {
       const user = req.user;
-      
-      // Make sure user is defined
-      if (!user) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
+      // No need to check if user is defined since ensureAuthenticated already did that
       
       // Get subscription plan if user has one
       let plan = null;
@@ -516,7 +512,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Cancel a subscription
-  app.post("/api/subscription/cancel", authenticate, async (req, res) => {
+  app.post("/api/subscription/cancel", authenticate, ensureAuthenticated, async (req, res) => {
     try {
       const user = req.user;
       
@@ -782,7 +778,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get("/api/auth/me", authenticate, (req, res) => {
+  app.get("/api/auth/me", authenticate, ensureAuthenticated, (req, res) => {
     const { password, ...userWithoutPassword } = req.user;
     res.status(200).json(userWithoutPassword);
   });
