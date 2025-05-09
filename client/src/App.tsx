@@ -28,6 +28,8 @@ const Reports = lazy(() => import("@/pages/Reports"));
 const Clients = lazy(() => import("@/pages/Clients"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const ExportPage = lazy(() => import("@/pages/ExportPage"));
+const Recommendations = lazy(() => import("@/pages/Recommendations"));
+const PendingRecommendations = lazy(() => import("@/pages/PendingRecommendations"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
@@ -102,6 +104,14 @@ function Router() {
           path="/emotion-mapping" 
           component={EmotionMapping} 
           allowedRoles={["admin"]} 
+        />
+        
+        {/* AI Recommendations routes */}
+        <ProtectedRoute path="/recommendations" component={Recommendations} />
+        <ProtectedRoute 
+          path="/therapist/recommendations" 
+          component={PendingRecommendations} 
+          allowedRoles={["therapist", "admin"]} 
         />
         
         {/* General routes */}
