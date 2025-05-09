@@ -5265,5 +5265,705 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   });
+        
+        const PDFDocument = require('pdfkit');
+        const doc = new PDFDocument({ margin: 50, bufferPages: true });
+        
+        // Create write stream to temp file
+        const writeStream = fs.createWriteStream(tempFilePath);
+        
+        // Handle stream errors for both writeStream and doc
+        writeStream.on('error', (err) => {
+          console.error(`[${requestId}] Write stream error:`, err);
+          if (!res.headersSent) {
+            res.status(500).json({ message: "Failed to generate PDF", error: err.message });
+          }
+        });
+        
+        doc.on('error', (err) => {
+          console.error(`[${requestId}] PDF document error:`, err);
+          if (!res.headersSent) {
+            res.status(500).json({ message: "Failed to generate PDF", error: err.message });
+          }
+        });
+        
+        // Pipe document to write stream
+        doc.pipe(writeStream);
+        
+        // When the PDF is successfully written to disk, send it to the client
+        writeStream.on('finish', () => {
+          console.log(`[${requestId}] PDF written to temp file: ${tempFilePath}`);
+          
+          // Now read the file and send it as a response
+          const readStream = fs.createReadStream(tempFilePath);
+          
+          readStream.on('error', (err) => {
+            console.error(`[${requestId}] Read stream error:`, err);
+            if (!res.headersSent) {
+              res.status(500).json({ message: "Failed to read PDF file", error: err.message });
+            }
+          });
+          
+          // Set response headers for PDF file
+          const filename = `${type}-export-${targetUserId}-${Date.now()}.pdf`;
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+          
+          // Pipe the file to the response
+          readStream.pipe(res);
+          
+          // Clean up the temp file after sending
+          readStream.on('end', () => {
+            try {
+              fs.unlinkSync(tempFilePath);
+              console.log(`[${requestId}] Temp file cleaned up: ${tempFilePath}`);
+            } catch (unlinkErr) {
+              console.error(`[${requestId}] Failed to clean up temp file:`, unlinkErr);
+            }
+          });
+        });
+        
+        // Get user info for header
+        const user = await storage.getUser(targetUserId);
+        const userName = user ? user.name : `User ${targetUserId}`;
+      
+        // Set up the PDF document with a header
+      doc.font('Helvetica-Bold')
+         .fontSize(20)
+         .text('CBT Data Export', { align: 'center' })
+         .moveDown(0.5);
+      
+      doc.fontSize(14)
+         .text(`User: ${userName}`, { align: 'center' })
+         .text(`Date: ${new Date().toLocaleDateString()}`, { align: 'center' })
+         .moveDown(1);
+      
+      doc.fontSize(12)
+         .text(`Export Type: ${type.charAt(0).toUpperCase() + type.slice(1)}`, { align: 'center' })
+         .moveDown(1.5);
+      
+      // Horizontal line
+      doc.moveTo(50, doc.y)
+         .lineTo(doc.page.width - 50, doc.y)
+         .stroke()
+         .moveDown(1);
+      
+      // Prepare and add data based on the export type
+      switch (type) {
+        case "emotions":
+          const emotions = await storage.getEmotionRecordsByUser(targetUserId);
+          
+          // Title
+          doc.fontSize(16)
+             .font('Helvetica-Bold')
+             .text('Emotion Records', { align: 'center' })
+             .moveDown(1);
+          
+          if (emotions && emotions.length > 0) {
+            // Table headers
+            doc.fontSize(10)
+               .font('Helvetica-Bold')
+               .text('Date', 50, doc.y, { width: 100 })
+               .text('Core Emotion', 150, doc.y - 10, { width: 100 })
+               .text('Primary Emotion', 250, doc.y - 10, { width: 100 })
+               .text('Tertiary Emotion', 350, doc.y - 10, { width: 100 })
+               .text('Intensity', 450, doc.y - 10, { width: 50 })
+               .moveDown(0.5);
+            
+            // Horizontal line
+            doc.moveTo(50, doc.y)
+               .lineTo(doc.page.width - 50, doc.y)
+               .stroke()
+               .moveDown(0.5);
+            
+            // Table rows
+            emotions.forEach((record, index) => {
+              // Add page break if needed
+              if (doc.y > doc.page.height - 100) {
+                doc.addPage();
+                
+                // Repeat headers on new page
+                doc.fontSize(10)
+                   .font('Helvetica-Bold')
+                   .text('Date', 50, 70, { width: 100 })
+                   .text('Core Emotion', 150, 70, { width: 100 })
+                   .text('Primary Emotion', 250, 70, { width: 100 })
+                   .text('Tertiary Emotion', 350, 70, { width: 100 })
+                   .text('Intensity', 450, 70, { width: 50 })
+                   .moveDown(0.5);
+                
+                // Horizontal line
+                doc.moveTo(50, doc.y)
+                   .lineTo(doc.page.width - 50, doc.y)
+                   .stroke()
+                   .moveDown(0.5);
+              }
+              
+              const date = new Date(record.timestamp).toLocaleDateString();
+              
+              doc.fontSize(10)
+                 .font('Helvetica')
+                 .text(date, 50, doc.y, { width: 100 })
+                 .text(record.coreEmotion || '', 150, doc.y - 10, { width: 100 })
+                 .text(record.primaryEmotion || '', 250, doc.y - 10, { width: 100 })
+                 .text(record.tertiaryEmotion || '', 350, doc.y - 10, { width: 100 })
+                 .text(record.intensity?.toString() || '', 450, doc.y - 10, { width: 50 })
+                 .moveDown(0.5);
+              
+              // Add situation on a new line if it exists
+              if (record.situation) {
+                doc.fontSize(9)
+                   .font('Helvetica-Oblique')
+                   .text(`Situation: ${record.situation}`, 70, doc.y, { width: 450 })
+                   .moveDown(0.5);
+              }
+              
+              // Add a separator line between records
+              if (index < emotions.length - 1) {
+                doc.moveTo(50, doc.y)
+                   .lineTo(doc.page.width - 50, doc.y)
+                   .stroke({ dash: [3, 3] })
+                   .moveDown(0.5);
+              }
+            });
+          } else {
+            doc.fontSize(12)
+               .font('Helvetica-Italic')
+               .text('No emotion records found.', { align: 'center' })
+               .moveDown(1);
+          }
+          break;
+          
+        case "thoughts":
+          const thoughts = await storage.getThoughtRecordsByUser(targetUserId);
+          
+          // Title
+          doc.fontSize(16)
+             .font('Helvetica-Bold')
+             .text('Thought Records', { align: 'center' })
+             .moveDown(1);
+          
+          if (thoughts && thoughts.length > 0) {
+            thoughts.forEach((record, index) => {
+              // Add page break if getting close to the bottom
+              if (doc.y > doc.page.height - 200) {
+                doc.addPage();
+              }
+              
+              const date = new Date(record.createdAt).toLocaleDateString();
+              
+              doc.fontSize(12)
+                 .font('Helvetica-Bold')
+                 .text(`Record #${record.id} - ${date}`, { underline: true })
+                 .moveDown(0.5);
+              
+              doc.fontSize(10)
+                 .font('Helvetica-Bold')
+                 .text('Situation:')
+                 .font('Helvetica')
+                 .text(record.situation || 'None recorded', { indent: 20 })
+                 .moveDown(0.5);
+              
+              doc.font('Helvetica-Bold')
+                 .text('Automatic Thoughts:')
+                 .font('Helvetica')
+                 .text(record.automaticThoughts || 'None recorded', { indent: 20 })
+                 .moveDown(0.5);
+              
+              doc.font('Helvetica-Bold')
+                 .text('Emotions:')
+                 .font('Helvetica')
+                 .text(record.emotions || 'None recorded', { indent: 20 })
+                 .moveDown(0.5);
+              
+              doc.font('Helvetica-Bold')
+                 .text('Distortions:')
+                 .font('Helvetica')
+                 .text(record.distortions?.join(', ') || 'None identified', { indent: 20 })
+                 .moveDown(0.5);
+              
+              doc.font('Helvetica-Bold')
+                 .text('Rational Response:')
+                 .font('Helvetica')
+                 .text(record.rationalResponse || 'None recorded', { indent: 20 })
+                 .moveDown(0.5);
+              
+              if (record.behavioralPlan) {
+                doc.font('Helvetica-Bold')
+                   .text('Behavioral Plan:')
+                   .font('Helvetica')
+                   .text(record.behavioralPlan, { indent: 20 })
+                   .moveDown(0.5);
+              }
+              
+              // Add a separator between records
+              if (index < thoughts.length - 1) {
+                doc.moveDown(0.5)
+                   .moveTo(50, doc.y)
+                   .lineTo(doc.page.width - 50, doc.y)
+                   .stroke({ dash: [3, 3] })
+                   .moveDown(1);
+              }
+            });
+          } else {
+            doc.fontSize(12)
+               .font('Helvetica-Italic')
+               .text('No thought records found.', { align: 'center' })
+               .moveDown(1);
+          }
+          break;
+          
+        case "journals":
+          const journals = await storage.getJournalEntriesByUser(targetUserId);
+          
+          // Title
+          doc.fontSize(16)
+             .font('Helvetica-Bold')
+             .text('Journal Entries', { align: 'center' })
+             .moveDown(1);
+          
+          if (journals && journals.length > 0) {
+            journals.forEach((entry, index) => {
+              // Add page break if getting close to the bottom
+              if (doc.y > doc.page.height - 200) {
+                doc.addPage();
+              }
+              
+              const date = new Date(entry.createdAt).toLocaleDateString();
+              
+              doc.fontSize(12)
+                 .font('Helvetica-Bold')
+                 .text(`${entry.title || 'Untitled Entry'} - ${date}`, { underline: true })
+                 .moveDown(0.5);
+              
+              doc.fontSize(10)
+                 .font('Helvetica')
+                 .text(entry.content || 'No content', { indent: 20 })
+                 .moveDown(1);
+              
+              if (entry.mood) {
+                doc.font('Helvetica-Bold')
+                   .text('Mood:')
+                   .font('Helvetica')
+                   .text(entry.mood.toString(), { indent: 20 })
+                   .moveDown(0.5);
+              }
+              
+              if (entry.selectedTags && entry.selectedTags.length > 0) {
+                doc.font('Helvetica-Bold')
+                   .text('Tags:')
+                   .font('Helvetica')
+                   .text(entry.selectedTags.join(', '), { indent: 20 })
+                   .moveDown(0.5);
+              }
+              
+              if (entry.emotions) {
+                const emotionsList = typeof entry.emotions === 'string' 
+                  ? entry.emotions 
+                  : JSON.stringify(entry.emotions);
+                
+                doc.font('Helvetica-Bold')
+                   .text('Emotions:')
+                   .font('Helvetica')
+                   .text(emotionsList, { indent: 20 })
+                   .moveDown(0.5);
+              }
+              
+              // Add a separator between entries
+              if (index < journals.length - 1) {
+                doc.moveDown(0.5)
+                   .moveTo(50, doc.y)
+                   .lineTo(doc.page.width - 50, doc.y)
+                   .stroke({ dash: [3, 3] })
+                   .moveDown(1);
+              }
+            });
+          } else {
+            doc.fontSize(12)
+               .font('Helvetica-Italic')
+               .text('No journal entries found.', { align: 'center' })
+               .moveDown(1);
+          }
+          break;
+          
+        case "goals":
+          const goals = await storage.getGoalsByUser(targetUserId);
+          
+          // Title
+          doc.fontSize(16)
+             .font('Helvetica-Bold')
+             .text('Goals', { align: 'center' })
+             .moveDown(1);
+          
+          if (goals && goals.length > 0) {
+            goals.forEach((goal, index) => {
+              // Add page break if getting close to the bottom
+              if (doc.y > doc.page.height - 200) {
+                doc.addPage();
+              }
+              
+              const date = new Date(goal.createdAt).toLocaleDateString();
+              const deadline = goal.deadline ? new Date(goal.deadline).toLocaleDateString() : 'No deadline';
+              
+              doc.fontSize(12)
+                 .font('Helvetica-Bold')
+                 .text(`Goal: ${goal.title}`, { underline: true })
+                 .moveDown(0.5);
+              
+              doc.fontSize(10)
+                 .font('Helvetica-Bold')
+                 .text('Created:')
+                 .font('Helvetica')
+                 .text(date, { indent: 20 })
+                 .moveDown(0.25);
+              
+              doc.font('Helvetica-Bold')
+                 .text('Deadline:')
+                 .font('Helvetica')
+                 .text(deadline, { indent: 20 })
+                 .moveDown(0.25);
+              
+              doc.font('Helvetica-Bold')
+                 .text('Status:')
+                 .font('Helvetica')
+                 .text(goal.status || 'Not set', { indent: 20 })
+                 .moveDown(0.5);
+              
+              // SMART criteria
+              doc.font('Helvetica-Bold')
+                 .text('Specific:')
+                 .font('Helvetica')
+                 .text(goal.specific || 'Not specified', { indent: 20 })
+                 .moveDown(0.25);
+              
+              doc.font('Helvetica-Bold')
+                 .text('Measurable:')
+                 .font('Helvetica')
+                 .text(goal.measurable || 'Not specified', { indent: 20 })
+                 .moveDown(0.25);
+              
+              doc.font('Helvetica-Bold')
+                 .text('Achievable:')
+                 .font('Helvetica')
+                 .text(goal.achievable || 'Not specified', { indent: 20 })
+                 .moveDown(0.25);
+              
+              doc.font('Helvetica-Bold')
+                 .text('Relevant:')
+                 .font('Helvetica')
+                 .text(goal.relevant || 'Not specified', { indent: 20 })
+                 .moveDown(0.25);
+              
+              doc.font('Helvetica-Bold')
+                 .text('Time-bound:')
+                 .font('Helvetica')
+                 .text(goal.timebound || 'Not specified', { indent: 20 })
+                 .moveDown(0.5);
+              
+              // Add a separator between goals
+              if (index < goals.length - 1) {
+                doc.moveDown(0.5)
+                   .moveTo(50, doc.y)
+                   .lineTo(doc.page.width - 50, doc.y)
+                   .stroke({ dash: [3, 3] })
+                   .moveDown(1);
+              }
+            });
+          } else {
+            doc.fontSize(12)
+               .font('Helvetica-Italic')
+               .text('No goals found.', { align: 'center' })
+               .moveDown(1);
+          }
+          break;
+          
+        case "all":
+          // Title page for all data
+          doc.fontSize(18)
+             .font('Helvetica-Bold')
+             .text('Complete Data Export', { align: 'center' })
+             .moveDown(0.5);
+          
+          doc.fontSize(12)
+             .font('Helvetica')
+             .text(`This document contains all data for ${userName}`, { align: 'center' })
+             .moveDown(0.5);
+          
+          doc.fontSize(10)
+             .text(`Generated on ${new Date().toLocaleString()}`, { align: 'center' })
+             .moveDown(2);
+          
+          // Table of contents
+          doc.fontSize(14)
+             .font('Helvetica-Bold')
+             .text('Table of Contents', { underline: true })
+             .moveDown(0.5);
+          
+          doc.fontSize(12)
+             .text('1. Emotion Records')
+             .moveDown(0.25);
+          
+          doc.text('2. Thought Records')
+             .moveDown(0.25);
+          
+          doc.text('3. Journal Entries')
+             .moveDown(0.25);
+          
+          doc.text('4. Goals')
+             .moveDown(2);
+          
+          // Start with emotions section
+          doc.addPage();
+          
+          // Emotions Section
+          const allEmotions = await storage.getEmotionRecordsByUser(targetUserId);
+          
+          doc.fontSize(16)
+             .font('Helvetica-Bold')
+             .text('1. Emotion Records', { align: 'center' })
+             .moveDown(1);
+          
+          if (allEmotions && allEmotions.length > 0) {
+            // Table headers
+            doc.fontSize(10)
+               .font('Helvetica-Bold')
+               .text('Date', 50, doc.y, { width: 100 })
+               .text('Core Emotion', 150, doc.y - 10, { width: 100 })
+               .text('Primary Emotion', 250, doc.y - 10, { width: 100 })
+               .text('Intensity', 350, doc.y - 10, { width: 50 })
+               .moveDown(0.5);
+            
+            // Horizontal line
+            doc.moveTo(50, doc.y)
+               .lineTo(doc.page.width - 50, doc.y)
+               .stroke()
+               .moveDown(0.5);
+            
+            // Table rows
+            allEmotions.forEach((record, index) => {
+              // Add page break if needed
+              if (doc.y > doc.page.height - 100) {
+                doc.addPage();
+                
+                // Repeat headers on new page
+                doc.fontSize(10)
+                   .font('Helvetica-Bold')
+                   .text('Date', 50, 70, { width: 100 })
+                   .text('Core Emotion', 150, 70, { width: 100 })
+                   .text('Primary Emotion', 250, 70, { width: 100 })
+                   .text('Intensity', 350, 70, { width: 50 })
+                   .moveDown(0.5);
+                
+                // Horizontal line
+                doc.moveTo(50, doc.y)
+                   .lineTo(doc.page.width - 50, doc.y)
+                   .stroke()
+                   .moveDown(0.5);
+              }
+              
+              const date = new Date(record.timestamp).toLocaleDateString();
+              
+              doc.fontSize(10)
+                 .font('Helvetica')
+                 .text(date, 50, doc.y, { width: 100 })
+                 .text(record.coreEmotion || '', 150, doc.y - 10, { width: 100 })
+                 .text(record.primaryEmotion || '', 250, doc.y - 10, { width: 100 })
+                 .text(record.intensity?.toString() || '', 350, doc.y - 10, { width: 50 })
+                 .moveDown(0.5);
+              
+              // Add a thin separator line between records
+              if (index < allEmotions.length - 1) {
+                doc.moveTo(50, doc.y)
+                   .lineTo(doc.page.width - 50, doc.y)
+                   .stroke({ dash: [2, 2] })
+                   .moveDown(0.5);
+              }
+            });
+          } else {
+            doc.fontSize(12)
+               .font('Helvetica-Italic')
+               .text('No emotion records found.', { align: 'center' })
+               .moveDown(1);
+          }
+          
+          // Thought Records Section
+          doc.addPage();
+          const allThoughts = await storage.getThoughtRecordsByUser(targetUserId);
+          
+          doc.fontSize(16)
+             .font('Helvetica-Bold')
+             .text('2. Thought Records', { align: 'center' })
+             .moveDown(1);
+          
+          if (allThoughts && allThoughts.length > 0) {
+            allThoughts.forEach((record, index) => {
+              const date = new Date(record.createdAt).toLocaleDateString();
+              
+              doc.fontSize(12)
+                 .font('Helvetica-Bold')
+                 .text(`Record #${record.id} - ${date}`, { underline: true })
+                 .moveDown(0.5);
+              
+              doc.fontSize(10)
+                 .font('Helvetica-Bold')
+                 .text('Situation:')
+                 .font('Helvetica')
+                 .text(record.situation || 'None recorded', { indent: 20 })
+                 .moveDown(0.5);
+              
+              doc.font('Helvetica-Bold')
+                 .text('Automatic Thoughts:')
+                 .font('Helvetica')
+                 .text(record.automaticThoughts || 'None recorded', { indent: 20 })
+                 .moveDown(0.5);
+              
+              // Add a separator between thoughts
+              if (index < allThoughts.length - 1) {
+                doc.moveDown(0.5)
+                   .moveTo(50, doc.y)
+                   .lineTo(doc.page.width - 50, doc.y)
+                   .stroke({ dash: [3, 3] })
+                   .moveDown(1);
+              }
+              
+              // Add page break if needed
+              if (doc.y > doc.page.height - 200 && index < allThoughts.length - 1) {
+                doc.addPage();
+              }
+            });
+          } else {
+            doc.fontSize(12)
+               .font('Helvetica-Italic')
+               .text('No thought records found.', { align: 'center' })
+               .moveDown(1);
+          }
+          
+          // Journal Entries Section
+          doc.addPage();
+          const allJournals = await storage.getJournalEntriesByUser(targetUserId);
+          
+          doc.fontSize(16)
+             .font('Helvetica-Bold')
+             .text('3. Journal Entries', { align: 'center' })
+             .moveDown(1);
+          
+          if (allJournals && allJournals.length > 0) {
+            allJournals.forEach((entry, index) => {
+              const date = new Date(entry.createdAt).toLocaleDateString();
+              
+              doc.fontSize(12)
+                 .font('Helvetica-Bold')
+                 .text(`${entry.title || 'Untitled Entry'} - ${date}`, { underline: true })
+                 .moveDown(0.5);
+              
+              doc.fontSize(10)
+                 .font('Helvetica')
+                 .text(entry.content || 'No content', { indent: 20 })
+                 .moveDown(0.5);
+              
+              // Add a separator between entries
+              if (index < allJournals.length - 1) {
+                doc.moveDown(0.5)
+                   .moveTo(50, doc.y)
+                   .lineTo(doc.page.width - 50, doc.y)
+                   .stroke({ dash: [3, 3] })
+                   .moveDown(1);
+              }
+              
+              // Add page break if needed
+              if (doc.y > doc.page.height - 200 && index < allJournals.length - 1) {
+                doc.addPage();
+              }
+            });
+          } else {
+            doc.fontSize(12)
+               .font('Helvetica-Italic')
+               .text('No journal entries found.', { align: 'center' })
+               .moveDown(1);
+          }
+          
+          // Goals Section
+          doc.addPage();
+          const allGoals = await storage.getGoalsByUser(targetUserId);
+          
+          doc.fontSize(16)
+             .font('Helvetica-Bold')
+             .text('4. Goals', { align: 'center' })
+             .moveDown(1);
+          
+          if (allGoals && allGoals.length > 0) {
+            allGoals.forEach((goal, index) => {
+              doc.fontSize(12)
+                 .font('Helvetica-Bold')
+                 .text(`Goal: ${goal.title}`, { underline: true })
+                 .moveDown(0.5);
+              
+              doc.fontSize(10)
+                 .font('Helvetica-Bold')
+                 .text('Status:')
+                 .font('Helvetica')
+                 .text(goal.status || 'Not set', { indent: 20 })
+                 .moveDown(0.5);
+              
+              // SMART criteria
+              doc.font('Helvetica-Bold')
+                 .text('Specific:')
+                 .font('Helvetica')
+                 .text(goal.specific || 'Not specified', { indent: 20 })
+                 .moveDown(0.25);
+              
+              doc.font('Helvetica-Bold')
+                 .text('Measurable:')
+                 .font('Helvetica')
+                 .text(goal.measurable || 'Not specified', { indent: 20 })
+                 .moveDown(0.25);
+              
+              // Add a separator between goals
+              if (index < allGoals.length - 1) {
+                doc.moveDown(0.5)
+                   .moveTo(50, doc.y)
+                   .lineTo(doc.page.width - 50, doc.y)
+                   .stroke({ dash: [3, 3] })
+                   .moveDown(1);
+              }
+              
+              // Add page break if needed
+              if (doc.y > doc.page.height - 200 && index < allGoals.length - 1) {
+                doc.addPage();
+              }
+            });
+          } else {
+            doc.fontSize(12)
+               .font('Helvetica-Italic')
+               .text('No goals found.', { align: 'center' })
+               .moveDown(1);
+          }
+          break;
+          
+        default:
+          return res.status(400).json({ message: "Invalid export type for PDF format" });
+      }
+      
+      // Add footer
+      doc.fontSize(8)
+         .font('Helvetica-Italic')
+         .text(
+           'Generated by New Horizon CBT - ' + new Date().toLocaleString(),
+           50,
+           doc.page.height - 50,
+           { align: 'center' }
+         );
+      
+      // Finalize the PDF and end the stream
+      doc.end();
+      
+    } catch (error) {
+      console.error("Error exporting PDF data:", error);
+      if (!res.headersSent) {
+        return res.status(500).json({ message: "Failed to generate PDF", error: error.message || 'Unknown error' });
+      }
+    }
+  });
+  
   return httpServer;
 }

@@ -324,7 +324,7 @@ export default function Reports() {
                     toast({
                       title: "Export complete",
                       description: "Your PDF report has been downloaded.",
-                      variant: "success"
+                      variant: "default"
                     });
                     setIsExporting(false);
                   }, 2000);
