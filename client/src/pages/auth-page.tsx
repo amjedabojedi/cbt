@@ -49,7 +49,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
-  const { user, login, register: registerUser } = useAuth();
+  const { user, loginMutation, registerMutation } = useAuth();
   const [location, navigate] = useLocation();
   const { toast } = useToast();
   const [isInvitation, setIsInvitation] = useState(false);
@@ -110,7 +110,10 @@ export default function AuthPage() {
   const onLoginSubmit = async (data: LoginFormValues) => {
     setLoginSubmitting(true);
     try {
-      await login(data.username, data.password);
+      await loginMutation.mutateAsync({
+        username: data.username,
+        password: data.password
+      });
       // Login is handled by the auth hook which will redirect on success
     } catch (error) {
       console.error(error);
@@ -146,7 +149,7 @@ export default function AuthPage() {
         registrationData.isInvitation = true;
       }
       
-      const result = await registerUser(registrationData);
+      const result = await registerMutation.mutateAsync(registrationData);
       
       // Registration is handled by the auth hook which will redirect on success
       if (isInvitation) {
