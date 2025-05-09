@@ -66,7 +66,11 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
  * Check if the user is a therapist or admin
  */
 export function isTherapist(req: Request, res: Response, next: NextFunction) {
-  if (req.user?.role !== 'therapist' && req.user?.role !== 'admin') {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
+  if (req.user.role !== 'therapist' && req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Access denied. Therapist role required.' });
   }
   
@@ -77,7 +81,11 @@ export function isTherapist(req: Request, res: Response, next: NextFunction) {
  * Check if the user is an admin
  */
 export function isAdmin(req: Request, res: Response, next: NextFunction) {
-  if (req.user?.role !== 'admin') {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
+  if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Access denied. Admin role required.' });
   }
   
@@ -88,14 +96,18 @@ export function isAdmin(req: Request, res: Response, next: NextFunction) {
  * Check if the user is a client or admin
  */
 export function isClientOrAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
   // If user is admin, always allow
-  if (req.user?.role === 'admin') {
+  if (req.user.role === 'admin') {
     console.log('Admin access for client resource - ALLOWED');
     return next();
   }
   
   // If user is therapist (but not admin), deny access
-  if (req.user?.role === 'therapist') {
+  if (req.user.role === 'therapist') {
     return res.status(403).json({ message: 'Therapists cannot create emotion or thought records. Only clients can record emotions and thoughts.' });
   }
   
@@ -107,29 +119,33 @@ export function isClientOrAdmin(req: Request, res: Response, next: NextFunction)
  * Check if the user has permission to create a resource for the specified user
  */
 export function checkResourceCreationPermission(req: Request, res: Response, next: NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
   const requestedUserId = parseInt(req.params.userId);
   
   // If user is creating a resource for themselves - always allow
-  if (req.user?.id === requestedUserId) {
+  if (req.user.id === requestedUserId) {
     console.log('User creating resource for themselves - ALLOWED');
     return next();
   }
   
   // Admin can create resources for anyone - check this FIRST
-  if (req.user?.role === 'admin') {
+  if (req.user.role === 'admin') {
     console.log('Admin creating resource for user', requestedUserId, '- ALWAYS ALLOWED');
     return next();
   }
   
   // If therapist is creating a resource for their client - allow
-  if (req.user?.role === 'therapist') {
+  if (req.user.role === 'therapist') {
     console.log('Therapist creating resource for client - checking relationship');
     
     // Verify the requested user is their client
     (async () => {
       try {
         const client = await storage.getUser(requestedUserId);
-        if (client && client.therapistId === req.user!.id) {
+        if (client && client.therapistId === req.user.id) {
           console.log('This client belongs to the therapist - ALLOWED');
           return next();
         }
@@ -149,32 +165,45 @@ export function checkResourceCreationPermission(req: Request, res: Response, nex
 }
 
 /**
- * Check if the user has permission to access the specified user's data
+ * Middleware to ensure req.user is defined
+ * This helps eliminate many TypeScript warnings about req.user possibly being undefined
  */
+export function ensureAuthenticated(req: Request, res: Response, next: NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+  next();
+}
+
 export function checkUserAccess(req: Request, res: Response, next: NextFunction) {
+  // First ensure user is authenticated (eliminates TypeScript warnings)
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+  
   const requestedUserId = parseInt(req.params.userId);
   
   // Debug info
-  console.log(`User Access Check - User ${req.user?.id} (${req.user?.username}, role: ${req.user?.role}) is accessing user ${requestedUserId} data`);
+  console.log(`User Access Check - User ${req.user.id} (${req.user.username}, role: ${req.user.role}) is accessing user ${requestedUserId} data`);
   
   // FIRST check: If user is an admin, always allow
   console.log('**CHECKING IF USER IS ADMIN**', 
-              'User role:', req.user?.role, 
-              'Is admin?', req.user?.role === 'admin');
+              'User role:', req.user.role, 
+              'Is admin?', req.user.role === 'admin');
               
-  if (req.user?.role === 'admin') {
+  if (req.user.role === 'admin') {
     console.log('*** ADMIN ACCESS GRANTED *** User is an admin, access ALWAYS ALLOWED for all users');
     return next();
   }
   
   // SECOND check: If user is accessing their own data, allow
-  if (req.user?.id === requestedUserId) {
+  if (req.user.id === requestedUserId) {
     console.log('User is accessing their own data - ALLOWED');
     return next();
   }
   
   // THIRD check: If user is a therapist accessing a client's data
-  if (req.user?.role === 'therapist') {
+  if (req.user.role === 'therapist') {
     console.log('User is a therapist, checking if they are accessing their client');
     
     // Use async/await instead of promise chains for clarity
@@ -183,7 +212,7 @@ export function checkUserAccess(req: Request, res: Response, next: NextFunction)
         const client = await storage.getUser(requestedUserId);
         console.log(`Client ${requestedUserId} lookup result:`, client ? `Found: therapistId = ${client.therapistId}` : 'Not found');
         
-        if (client && client.therapistId === req.user!.id) {
+        if (client && client.therapistId === req.user.id) {
           console.log('This client belongs to the therapist - ALLOWED');
           return next();
         }

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { pool, db } from "./db";
-import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission } from "./middleware/auth";
+import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission, ensureAuthenticated } from "./middleware/auth";
 import { z } from "zod";
 import * as bcrypt from "bcrypt";
 import Stripe from "stripe";
@@ -288,7 +288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Create or update a subscription
-  app.post("/api/subscription", authenticate, async (req, res) => {
+  app.post("/api/subscription", authenticate, ensureAuthenticated, async (req, res) => {
     try {
       const { planId } = req.body;
       
@@ -5210,12 +5210,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // HTML export endpoint for print-friendly PDF alternative
-  app.get("/api/export/html", authenticate, async (req, res) => {
+  app.get("/api/export/html", authenticate, ensureAuthenticated, async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
-      
+      // No need to check req.user since ensureAuthenticated already did it
       const userId = req.user.id;
       const { type = 'all', clientId } = req.query;
       
@@ -5345,12 +5342,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // PDF export endpoint
-  app.get("/api/export/pdf", authenticate, async (req, res) => {
+  app.get("/api/export/pdf", authenticate, ensureAuthenticated, async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
-      
       // Add additional security headers to help prevent antivirus flagging
       res.setHeader('X-Content-Type-Options', 'nosniff');
       res.setHeader('Content-Security-Policy', "default-src 'self'");
