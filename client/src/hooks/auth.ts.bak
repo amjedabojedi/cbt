@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const contextValue: AuthContextType = {
+  return {
     user: user || null,
     isLoading,
     error,
@@ -131,12 +131,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logoutMutation,
     registerMutation
   };
-
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
 }
 
 // Hook to use the auth context

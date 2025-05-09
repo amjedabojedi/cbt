@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth } from '@/lib/auth';
+import { useAuth } from '@/hooks/auth';
 
 /**
  * Custom hook for WebSocket connections
