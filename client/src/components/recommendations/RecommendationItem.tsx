@@ -214,19 +214,10 @@ export function RecommendationItem({
             size="sm"
             className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700"
             onClick={handleImplement}
-            disabled={isSubmitting || recommendation.status === "implemented"}
+            disabled={isSubmitting}
           >
-            {recommendation.status === "implemented" ? (
-              <>
-                <CheckCircle2 size={16} className="mr-1" />
-                Implemented
-              </>
-            ) : (
-              <>
-                <ThumbsUp size={16} className="mr-1" />
-                Mark as Implemented
-              </>
-            )}
+            <ThumbsUp size={16} className="mr-1" />
+            Mark as Implemented
           </Button>
         )}
         
@@ -343,7 +334,7 @@ export function RecommendationItem({
         
         {/* Category tag on right side */}
         <div className="text-sm text-muted-foreground">
-          Source: {recommendation.source || "AI Analysis"}
+          Source: AI Analysis
         </div>
       </CardFooter>
     </Card>
