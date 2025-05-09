@@ -56,6 +56,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (user: User) => {
       // Update user data in cache
       queryClient.setQueryData(["/api/auth/me"], user);
+      
+      // Force a redirect to dashboard
+      window.location.href = "/dashboard";
+      
       toast({
         title: "Login Successful",
         description: `Welcome back, ${user.name || user.username}!`,
@@ -83,6 +87,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (user: User) => {
       // Update user data in cache
       queryClient.setQueryData(["/api/auth/me"], user);
+      
+      // Force a redirect to dashboard
+      window.location.href = "/dashboard";
+      
       toast({
         title: "Registration Successful",
         description: `Welcome to the platform, ${user.name || user.username}!`,
@@ -109,6 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       // Clear user data from cache
       queryClient.setQueryData(["/api/auth/me"], null);
+      
+      // Force a redirect to landing page
+      window.location.href = "/";
+      
       toast({
         title: "Logout Successful",
         description: "You have been logged out successfully",
