@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { useClientContext } from "@/context/ClientContext";
 import { EmptyState } from "@/components/shared/EmptyState";
+// If the above import fails, add a console log to help identify the issue
+console.log("Loading recommendation list component");
 import { AiRecommendation } from "@shared/schema";
 import { RecommendationItem } from "@/components/recommendations/RecommendationItem";
 import { Skeleton } from "@/components/ui/skeleton";

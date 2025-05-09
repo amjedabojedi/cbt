@@ -59,6 +59,9 @@ export default function Sidebar() {
       { href: "/reports", label: "My Progress", icon: <BarChart size={20} /> },
       { href: "/recommendations", label: "My Recommendations", icon: <Lightbulb size={20} /> },
     ];
+    
+    // Debug log to help troubleshoot
+    console.log("Loaded client navigation items:", navItems);
   }
 
   return (
