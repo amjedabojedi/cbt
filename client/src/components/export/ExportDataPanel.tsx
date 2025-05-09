@@ -199,6 +199,13 @@ export function ExportDataPanel() {
               </SelectItem>
             </SelectContent>
           </Select>
+          
+          {exportFormat === 'pdf' && (
+            <div className="text-xs text-amber-600 mt-1 flex items-center">
+              <Info size={12} className="mr-1" />
+              Note: If your antivirus blocks PDF downloads, please use CSV format instead.
+            </div>
+          )}
         </div>
       </CardContent>
       <CardFooter>

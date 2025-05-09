@@ -5216,6 +5216,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Authentication required" });
       }
       
+      // Add additional security headers to help prevent antivirus flagging
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Content-Security-Policy', "default-src 'self'");
+      res.setHeader('X-Frame-Options', 'DENY');
+      
       const userId = req.user.id;
       const { type = 'all', clientId } = req.query;
       const requestId = Date.now().toString();
