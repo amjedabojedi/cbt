@@ -2,9 +2,8 @@ import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
-import { format, subDays, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { format, subDays, subMonths } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { RecommendationList } from "@/components/recommendations/RecommendationList";
 
 import {
   Card,
@@ -49,9 +48,7 @@ import {
   BarChart2,
   PieChart as PieChartIcon,
   TrendingUp,
-  Lightbulb,
   Heart,
-  AlertCircle,
 } from "lucide-react";
 
 // Define time range options
@@ -409,7 +406,6 @@ export default function Reports() {
             <TabsTrigger value="emotions">Emotions</TabsTrigger>
             <TabsTrigger value="thoughts">Thoughts</TabsTrigger>
             <TabsTrigger value="goals">Goals</TabsTrigger>
-            <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
           </TabsList>
           
           {/* Emotions Tab */}
@@ -609,47 +605,7 @@ export default function Reports() {
             </Card>
           </TabsContent>
           
-          {/* Recommendations Tab */}
-          <TabsContent value="recommendations" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Lightbulb className="h-5 w-5 mr-2 text-primary" />
-                  Personalized Recommendations
-                </CardTitle>
-                <CardDescription>
-                  AI-powered suggestions based on your therapy journey
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 space-y-3">
-                  <p className="text-sm text-neutral-700">
-                    Below are personalized recommendations based on your interaction with App tools. 
-                    Each recommendation has been reviewed by your therapist to ensure it's appropriate for your specific needs.
-                  </p>
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                    <p className="text-sm text-blue-800">
-                      <span className="font-medium block mb-1">How This Works:</span>
-                      Your App tools adapt over time based on your interactions and the data you provide. As you track emotions, 
-                      record thoughts, write journal entries, and work on goals, the system learns your patterns and needs. 
-                      This allows us to generate more personalized and relevant recommendations for your journey.
-                    </p>
-                  </div>
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
-                    <p className="text-sm text-amber-800 flex items-center">
-                      <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-                      <span>
-                        <strong>Important note:</strong> These recommendations are AI-generated to provide helpful insights, 
-                        but always prioritize guidance from your professional therapist. The primary focus should be on 
-                        following your personalized treatment plan.
-                      </span>
-                    </p>
-                  </div>
-                </div>
-                <RecommendationList />
-              </CardContent>
-            </Card>
-          </TabsContent>
+
         </Tabs>
       </div>
     </AppLayout>
