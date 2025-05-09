@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, Route } from "wouter";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/hooks/auth";
 import { 
   Card,
   CardContent,

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, Link } from "wouter";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/hooks/auth";
 import AuthForm from "@/components/auth/AuthForm";
 import { Button } from "@/components/ui/button";
 
