@@ -28,8 +28,7 @@ const Reports = lazy(() => import("@/pages/Reports"));
 const Clients = lazy(() => import("@/pages/Clients"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const ExportPage = lazy(() => import("@/pages/ExportPage"));
-const Recommendations = lazy(() => import("@/pages/Recommendations"));
-const PendingRecommendations = lazy(() => import("@/pages/PendingRecommendations"));
+// Recommendations pages removed - will be added back when feature is ready
 
 // Admin pages
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
@@ -106,16 +105,8 @@ function Router() {
           allowedRoles={["admin"]} 
         />
         
-        {/* AI Recommendations routes - temporarily disabled */}
-        {/* These routes are disabled until the ai_recommendations table is created */}
-        {/* 
-        <ProtectedRoute path="/recommendations" component={Recommendations} />
-        <ProtectedRoute 
-          path="/therapist/recommendations" 
-          component={PendingRecommendations} 
-          allowedRoles={["therapist", "admin"]} 
-        /> 
-        */}
+        {/* AI Recommendations routes - completely removed 
+           Routes will be added back when the ai_recommendations table is created */}
         
         {/* General routes */}
         <ProtectedRoute path="/settings" component={Settings} />
