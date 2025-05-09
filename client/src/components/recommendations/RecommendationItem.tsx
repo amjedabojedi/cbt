@@ -17,10 +17,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Recommendation } from "@shared/schema";
+import { AiRecommendation } from "@shared/schema";
 
 interface RecommendationItemProps {
-  recommendation: Recommendation;
+  recommendation: AiRecommendation;
   isTherapistView?: boolean;
   onStatusChange?: () => void;
 }

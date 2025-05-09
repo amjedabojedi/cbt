@@ -1,170 +1,135 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { AiRecommendation } from "@shared/schema";
-import { RecommendationItem } from "./RecommendationItem";
-import { RecommendationApprovalForm } from "./RecommendationApprovalForm";
-import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
-import { Loader2 } from "lucide-react";
+import { useClient } from "@/context/ClientContext";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { Recommendation } from "@shared/schema";
+import { RecommendationItem } from "@/components/recommendations/RecommendationItem";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 interface RecommendationListProps {
-  userId: number;
+  userId?: number;
   isTherapistView?: boolean;
   pendingOnly?: boolean;
 }
 
-export function RecommendationList({ 
-  userId, 
+export function RecommendationList({
+  userId,
   isTherapistView = false,
   pendingOnly = false
 }: RecommendationListProps) {
-  const { toast } = useToast();
   const { user } = useAuth();
-  const [selectedRecommendation, setSelectedRecommendation] = useState<AiRecommendation | null>(null);
+  const { selectedClient } = useClient();
   
-  // Query to fetch recommendations
-  const { data: recommendations = [], isLoading } = useQuery({
-    queryKey: [pendingOnly ? '/api/therapist/recommendations/pending' : `/api/users/${userId}/recommendations`],
-    queryFn: () => {
-      const url = pendingOnly 
-        ? '/api/therapist/recommendations/pending'
-        : `/api/users/${userId}/recommendations`;
-      return apiRequest('GET', url)
-        .then(res => res.json());
-    }
+  // If no userId is provided, use the current user's ID (for client view)
+  // or the selectedClient's ID (for therapist view)
+  const targetUserId = userId || (isTherapistView ? selectedClient?.id : user?.id) || 0;
+  
+  // Build the correct API endpoint based on the props
+  let queryEndpoint = `/api/recommendations/user/${targetUserId}`;
+  
+  // If it's a therapist view and we're looking for pending recommendations
+  if (isTherapistView && pendingOnly && user?.role === "therapist") {
+    // Therapists only see recommendations pending approval for their clients
+    queryEndpoint = `/api/recommendations/therapist/pending`;
+  } else if (pendingOnly) {
+    // Admin sees all pending recommendations
+    queryEndpoint = `/api/recommendations/pending`;
+  } else if (isTherapistView && user?.role === "admin") {
+    // Admin sees all recommendations
+    queryEndpoint = "/api/recommendations";
+  }
+  
+  // Fetch recommendations
+  const {
+    data: recommendations,
+    isLoading,
+    isError,
+    refetch
+  } = useQuery<Recommendation[]>({
+    queryKey: [queryEndpoint],
+    enabled: !!targetUserId || isTherapistView, // Only fetch if we have a user ID or it's a therapist view
   });
   
-  // Mutation to update recommendation status
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ 
-      id, 
-      status, 
-      notes 
-    }: { 
-      id: number, 
-      status: 'approved' | 'rejected', 
-      notes: string 
-    }) => {
-      const res = await apiRequest('PATCH', `/api/recommendations/${id}/status`, {
-        status,
-        therapistNotes: notes
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      // Invalidate relevant queries to refresh the data
-      if (pendingOnly) {
-        queryClient.invalidateQueries({ queryKey: ['/api/therapist/recommendations/pending'] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/recommendations`] });
-      }
-      
-      toast({
-        title: "Recommendation updated",
-        description: "The recommendation status has been updated successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to update recommendation",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive",
-      });
-    }
-  });
-  
-  // Mutation to mark recommendation as implemented
-  const implementMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await apiRequest('POST', `/api/recommendations/${id}/implement`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/recommendations`] });
-      toast({
-        title: "Recommendation implemented",
-        description: "Great job! Your progress has been recorded.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to mark as implemented",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive",
-      });
-    }
-  });
-  
-  const handleApprove = (id: number) => {
-    const recommendation = recommendations.find(r => r.id === id);
-    if (recommendation) {
-      setSelectedRecommendation(recommendation);
-    }
+  // Handle status change (approve/reject/implement) to refetch data
+  const handleStatusChange = () => {
+    refetch();
   };
   
-  const handleReject = (id: number) => {
-    const recommendation = recommendations.find(r => r.id === id);
-    if (recommendation) {
-      setSelectedRecommendation(recommendation);
-    }
-  };
-  
-  const handleImplement = (id: number) => {
-    implementMutation.mutate(id);
-  };
-  
-  const handleApproveConfirm = (id: number, notes: string) => {
-    updateStatusMutation.mutate({ id, status: 'approved', notes });
-  };
-  
-  const handleRejectConfirm = (id: number, notes: string) => {
-    updateStatusMutation.mutate({ id, status: 'rejected', notes });
-  };
-  
+  // Render loading state
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-10">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="border rounded-lg p-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <Skeleton className="h-5 w-48 mb-2" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-4 w-20" />
+            </div>
+            <div className="mt-4 space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
   
-  if (!recommendations.length) {
+  // Render error state
+  if (isError) {
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Failed to load recommendations. Please try refreshing the page.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  
+  // Render empty state
+  if (!recommendations || recommendations.length === 0) {
     return (
       <EmptyState
         title={pendingOnly ? "No pending recommendations" : "No recommendations yet"}
-        description={pendingOnly 
-          ? "There are no recommendations waiting for your review at this time." 
-          : "Recommendations based on your activity will appear here."}
-        icon="clipboard-list"
+        description={
+          pendingOnly
+            ? "There are currently no recommendations waiting for your review."
+            : "Recommendations will appear here as they are generated based on client progress and activities."
+        }
+        icon="lightbulb"
       />
     );
   }
   
+  // Sort recommendations - newest first but put implemented ones at the end
+  const sortedRecommendations = [...recommendations].sort((a, b) => {
+    // First sort by status - put implemented at the bottom
+    if (a.status === "implemented" && b.status !== "implemented") return 1;
+    if (a.status !== "implemented" && b.status === "implemented") return -1;
+    
+    // Then sort by date - newest first
+    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+  });
+  
+  // Render recommendations list
   return (
-    <div>
-      {recommendations.map((recommendation) => (
+    <div className="space-y-4">
+      {sortedRecommendations.map((recommendation) => (
         <RecommendationItem
           key={recommendation.id}
           recommendation={recommendation}
-          isTherapist={isTherapistView}
-          onApprove={handleApprove}
-          onReject={handleReject}
-          onImplement={handleImplement}
+          isTherapistView={isTherapistView}
+          onStatusChange={handleStatusChange}
         />
       ))}
-      
-      {selectedRecommendation && (
-        <RecommendationApprovalForm
-          recommendation={selectedRecommendation}
-          isOpen={!!selectedRecommendation}
-          onClose={() => setSelectedRecommendation(null)}
-          onApprove={handleApproveConfirm}
-          onReject={handleRejectConfirm}
-        />
-      )}
     </div>
   );
 }
