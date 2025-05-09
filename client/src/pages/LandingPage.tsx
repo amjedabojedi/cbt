@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Brain, Heart, Shield, Target, Book, MessageCircle, BarChart3 } from 'lucide-react';
-import { useAuth } from '@/lib/auth';
+import { useAuth } from '@/hooks/auth';
 
 export default function LandingPage() {
   const { user } = useAuth();
