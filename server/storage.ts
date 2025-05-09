@@ -20,7 +20,8 @@ import {
   subscriptionPlans, type SubscriptionPlan, type InsertSubscriptionPlan,
   cognitiveDistortions, type CognitiveDistortion, type InsertCognitiveDistortion,
   systemLogs, type SystemLog, type InsertSystemLog,
-  clientInvitations, type ClientInvitation, type InsertClientInvitation
+  clientInvitations, type ClientInvitation, type InsertClientInvitation,
+  aiRecommendations, type AiRecommendation, type InsertAiRecommendation
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, or, isNull, gte, gt } from "drizzle-orm";
@@ -188,6 +189,14 @@ export interface IStorage {
   getClientInvitationsByTherapist(therapistId: number): Promise<ClientInvitation[]>;
   updateClientInvitationStatus(id: number, status: string): Promise<ClientInvitation>;
   deleteClientInvitation(id: number): Promise<boolean>;
+  
+  // AI Recommendations
+  createAiRecommendation(recommendation: InsertAiRecommendation): Promise<AiRecommendation>;
+  getAiRecommendationById(id: number): Promise<AiRecommendation | undefined>;
+  getAiRecommendationsByUser(userId: number): Promise<AiRecommendation[]>;
+  getPendingAiRecommendationsByTherapist(therapistId: number): Promise<AiRecommendation[]>;
+  updateAiRecommendationStatus(id: number, status: string, therapistNotes?: string): Promise<AiRecommendation>;
+  deleteAiRecommendation(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1675,6 +1684,79 @@ export class DatabaseStorage implements IStorage {
       console.error("Error deleting client invitation:", error);
       return false;
     }
+  }
+
+  // AI Recommendations implementation
+  async createAiRecommendation(recommendation: InsertAiRecommendation): Promise<AiRecommendation> {
+    console.log("Creating AI recommendation:", recommendation);
+    const [newRecommendation] = await db
+      .insert(aiRecommendations)
+      .values(recommendation)
+      .returning();
+    
+    return newRecommendation;
+  }
+  
+  async getAiRecommendationById(id: number): Promise<AiRecommendation | undefined> {
+    const [recommendation] = await db
+      .select()
+      .from(aiRecommendations)
+      .where(eq(aiRecommendations.id, id));
+    
+    return recommendation;
+  }
+  
+  async getAiRecommendationsByUser(userId: number): Promise<AiRecommendation[]> {
+    return db
+      .select()
+      .from(aiRecommendations)
+      .where(eq(aiRecommendations.userId, userId))
+      .orderBy(desc(aiRecommendations.createdAt));
+  }
+  
+  async getPendingAiRecommendationsByTherapist(therapistId: number): Promise<AiRecommendation[]> {
+    return db
+      .select()
+      .from(aiRecommendations)
+      .where(
+        and(
+          eq(aiRecommendations.therapistId, therapistId),
+          eq(aiRecommendations.status, "pending")
+        )
+      )
+      .orderBy(desc(aiRecommendations.createdAt));
+  }
+  
+  async updateAiRecommendationStatus(id: number, status: string, therapistNotes?: string): Promise<AiRecommendation> {
+    const updateData: any = { status };
+    
+    // Add appropriate timestamp based on status
+    if (status === "approved") {
+      updateData.approvedAt = new Date();
+    } else if (status === "rejected") {
+      updateData.rejectedAt = new Date();
+    } else if (status === "implemented") {
+      updateData.implementedAt = new Date();
+    }
+    
+    // Add therapist notes if provided
+    if (therapistNotes) {
+      updateData.therapistNotes = therapistNotes;
+    }
+    
+    const [updatedRecommendation] = await db
+      .update(aiRecommendations)
+      .set(updateData)
+      .where(eq(aiRecommendations.id, id))
+      .returning();
+    
+    return updatedRecommendation;
+  }
+  
+  async deleteAiRecommendation(id: number): Promise<void> {
+    await db
+      .delete(aiRecommendations)
+      .where(eq(aiRecommendations.id, id));
   }
 }
 
