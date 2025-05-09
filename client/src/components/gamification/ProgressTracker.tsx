@@ -8,7 +8,7 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Fire, Calendar, Trophy, AlertTriangle, Gift, Star } from "lucide-react";
+import { Flame, Calendar, Trophy, AlertTriangle, Gift, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -130,7 +130,7 @@ export default function ProgressTracker() {
             <div className="bg-blue-50 rounded-lg p-3">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-medium text-blue-700">Streak</div>
-                <Fire className="h-4 w-4 text-blue-500" />
+                <Flame className="h-4 w-4 text-blue-500" />
               </div>
               <div className="mt-1 text-2xl font-bold text-blue-700">
                 {sampleUserStats.currentStreak} <span className="text-xs font-normal text-blue-500">days</span>

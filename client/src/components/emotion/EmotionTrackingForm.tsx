@@ -426,7 +426,7 @@ export default function EmotionTrackingForm({
               </div>
             </div>
 
-            <EmotionWheel 
+            <EmotionWheelResponsive 
               language={language} 
               direction={direction} 
               onEmotionSelect={handleEmotionSelect} 

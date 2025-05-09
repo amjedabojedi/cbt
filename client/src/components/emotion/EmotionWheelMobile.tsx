@@ -1,13 +1,13 @@
-import { useRef, useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { emotionData } from "@/data/emotions";
-import { InfoIcon } from "lucide-react";
-import { 
+import { emotionGroups } from "@/lib/emotions";
+import { CheckIcon, HelpCircle } from "lucide-react";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger 
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
 
 interface EmotionWheelMobileProps {
@@ -25,558 +25,322 @@ export default function EmotionWheelMobile({
   direction = "ltr",
   onEmotionSelect,
 }: EmotionWheelMobileProps) {
-  const [selectedCore, setSelectedCore] = useState<string | null>(null);
-  const [selectedPrimary, setSelectedPrimary] = useState<string | null>(null);
-  const [selectedTertiary, setSelectedTertiary] = useState<string | null>(null);
-  const [hoveredEmotion, setHoveredEmotion] = useState<string | null>(null);
-  const [wheelSize, setWheelSize] = useState<number>(320);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  // State for tracking selected emotions
+  const [selectedCoreGroup, setSelectedCoreGroup] = useState<number | null>(null);
+  const [selectedPrimaryGroup, setSelectedPrimaryGroup] = useState<number | null>(null);
+  const [selectedTertiaryEmotion, setSelectedTertiaryEmotion] = useState<string | null>(null);
   
-  // Handle touch events
-  const [touchStartPoint, setTouchStartPoint] = useState({ x: 0, y: 0 });
-  const [touchEndPoint, setTouchEndPoint] = useState({ x: 0, y: 0 });
-  const [pinchStartDistance, setPinchStartDistance] = useState<number | null>(null);
-  const [isPinching, setIsPinching] = useState(false);
+  // Reference to the wheel container for touch events
+  const wheelContainerRef = useRef<HTMLDivElement>(null);
   
-  // Effect to handle language direction
-  useEffect(() => {
-    const svg = svgRef.current;
-    if (svg) {
-      if (direction === "rtl") {
-        svg.setAttribute("dir", "rtl");
-      } else {
-        svg.removeAttribute("dir");
-      }
-    }
-  }, [direction]);
+  // State for tracking touch/drag interactions
+  const [touchActive, setTouchActive] = useState(false);
+  const [viewMode, setViewMode] = useState<"core" | "primary" | "tertiary">("core");
   
-  // Effect to handle container size
-  useEffect(() => {
-    const updateWheelSize = () => {
-      if (containerRef.current) {
-        const width = containerRef.current.clientWidth;
-        setWheelSize(Math.min(width - 20, 400)); // Maximum size 400px, with 10px padding on each side
-      }
-    };
-    
-    updateWheelSize();
-    window.addEventListener('resize', updateWheelSize);
-    
-    return () => window.removeEventListener('resize', updateWheelSize);
-  }, []);
+  // Motion values for smooth animations
+  const scale = useMotionValue(1);
+  const opacity = useTransform(scale, [0.95, 1], [0.5, 1]);
   
-  // Simple translation function
-  const translate = (text: string | null) => {
-    if (!text) return "";
-    // In the future, implement full localization
-    return text;
-  };
-  
-  // Calculate the center of the wheel
-  const centerX = wheelSize / 2;
-  const centerY = wheelSize / 2;
-  
-  // Calculate the radii for each ring
-  const outerRadius = wheelSize / 2;
-  const middleRadius = outerRadius * 0.7;
-  const innerRadius = outerRadius * 0.4;
-  
-  // Handle touch events
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 1) {
-      // Single touch for selection
-      setTouchStartPoint({
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY
-      });
-    } else if (e.touches.length === 2) {
-      // Pinch to zoom
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-      const distance = Math.hypot(
-        touch2.clientX - touch1.clientX,
-        touch2.clientY - touch1.clientY
-      );
-      setPinchStartDistance(distance);
-      setIsPinching(true);
-    }
-  };
-  
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (isPinching && e.touches.length === 2 && pinchStartDistance && containerRef.current) {
-      // Handle pinch zoom
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-      const currentDistance = Math.hypot(
-        touch2.clientX - touch1.clientX,
-        touch2.clientY - touch1.clientY
-      );
-      
-      const scale = currentDistance / pinchStartDistance;
-      const containerWidth = containerRef.current.clientWidth;
-      
-      // Adjust wheel size based on pinch, keeping within limits
-      let newSize = wheelSize * scale;
-      newSize = Math.max(containerWidth * 0.7, Math.min(newSize, containerWidth * 1.5));
-      
-      setWheelSize(newSize);
-    } else if (e.touches.length === 1) {
-      // Single touch - prepare for selection on end
-      setTouchEndPoint({
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY
-      });
-    }
-  };
-  
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (isPinching) {
-      setIsPinching(false);
-      setPinchStartDistance(null);
-      return;
-    }
-    
-    // Provide haptic feedback if available
+  // Function to provide haptic feedback on selection when available
+  const triggerHapticFeedback = () => {
     if (navigator.vibrate) {
-      navigator.vibrate(20); // 20ms vibration for tactile feedback
-    }
-    
-    // Process touch for emotion selection
-    const targetElement = e.target as Element;
-    if (targetElement.tagName === 'path' && targetElement.hasAttribute('data-emotion')) {
-      const emotion = targetElement.getAttribute('data-emotion') || '';
-      const emotionLayer = targetElement.getAttribute('data-layer') || '';
-      
-      handleEmotionSelect(emotion, emotionLayer);
+      navigator.vibrate(50); // 50ms vibration
     }
   };
   
-  // Handle emotion selection
-  const handleEmotionSelect = (emotion: string, layer: string) => {
-    if (layer === "core") {
-      setSelectedCore(emotion);
-      setSelectedPrimary(null);
-      setSelectedTertiary(null);
-    } else if (layer === "primary") {
-      // Find the core emotion for this primary emotion
-      const coreEmotion = Object.keys(emotionData).find(core => 
-        emotionData[core].some(group => group.name === emotion)
-      ) || null;
+  // Function to handle core emotion selection
+  const handleCoreSelect = (groupIndex: number) => {
+    triggerHapticFeedback();
+    setSelectedCoreGroup(groupIndex);
+    setSelectedPrimaryGroup(null);
+    setSelectedTertiaryEmotion(null);
+    setViewMode("primary");
+  };
+  
+  // Function to handle primary emotion selection
+  const handlePrimarySelect = (primaryGroup: number, primaryIndex: number) => {
+    triggerHapticFeedback();
+    setSelectedPrimaryGroup(primaryIndex);
+    setSelectedTertiaryEmotion(null);
+    setViewMode("tertiary");
+  };
+  
+  // Function to handle tertiary emotion selection
+  const handleTertiarySelect = (tertiaryEmotion: string) => {
+    triggerHapticFeedback();
+    setSelectedTertiaryEmotion(tertiaryEmotion);
+    
+    if (selectedCoreGroup !== null && selectedPrimaryGroup !== null) {
+      const coreEmotion = emotionGroups[selectedCoreGroup].core;
+      const primaryEmotion = emotionGroups[selectedCoreGroup].primary[selectedPrimaryGroup];
       
-      setSelectedCore(coreEmotion);
-      setSelectedPrimary(emotion);
-      setSelectedTertiary(null);
-    } else if (layer === "tertiary") {
-      // Find the primary group that contains this tertiary emotion
-      let foundCore = null;
-      let foundPrimary = null;
-      
-      for (const core in emotionData) {
-        for (const group of emotionData[core]) {
-          if (group.tertiaries && group.tertiaries.includes(emotion)) {
-            foundCore = core;
-            foundPrimary = group.name;
-            break;
-          }
-        }
-        if (foundCore) break;
+      if (onEmotionSelect) {
+        onEmotionSelect({
+          coreEmotion,
+          primaryEmotion,
+          tertiaryEmotion,
+        });
       }
-      
-      setSelectedCore(foundCore);
-      setSelectedPrimary(foundPrimary);
-      setSelectedTertiary(emotion);
-    }
-    
-    // Call the provided callback with the selection
-    if (onEmotionSelect) {
-      onEmotionSelect({
-        coreEmotion: layer === "core" ? emotion : (
-          layer === "primary" ? 
-            Object.keys(emotionData).find(core => 
-              emotionData[core].some(group => group.name === emotion)
-            ) || "" : 
-            (foundCore || "")
-        ),
-        primaryEmotion: layer === "primary" ? emotion : (
-          layer === "tertiary" ? foundPrimary || "" : ""
-        ),
-        tertiaryEmotion: layer === "tertiary" ? emotion : "",
-      });
     }
   };
   
-  // Create the segments for the core emotions (inner ring)
-  const coreSegments = Object.keys(emotionData).map((emotion, index) => {
-    const totalEmotions = Object.keys(emotionData).length;
-    const anglePerEmotion = (Math.PI * 2) / totalEmotions;
-    const startAngle = index * anglePerEmotion;
-    const endAngle = (index + 1) * anglePerEmotion;
+  // Function to go back to previous selection level
+  const handleBack = () => {
+    triggerHapticFeedback();
+    if (viewMode === "tertiary") {
+      setViewMode("primary");
+      setSelectedTertiaryEmotion(null);
+    } else if (viewMode === "primary") {
+      setViewMode("core");
+      setSelectedCoreGroup(null);
+    }
+  };
+  
+  // Color mapping for emotion groups
+  const getEmotionColor = (emotion: string | null): string => {
+    if (!emotion) return "bg-gray-200 text-gray-600";
     
-    const x1 = centerX + innerRadius * Math.cos(startAngle);
-    const y1 = centerY + innerRadius * Math.sin(startAngle);
-    const x2 = centerX + innerRadius * Math.cos(endAngle);
-    const y2 = centerY + innerRadius * Math.sin(endAngle);
+    const lowerEmotion = emotion.toLowerCase();
     
-    // Large arc flag is 0 for angles less than 180 degrees, 1 for angles greater than 180
-    const largeArcFlag = endAngle - startAngle <= Math.PI ? 0 : 1;
+    // Core emotions color mapping
+    if (lowerEmotion.includes("anger")) return "bg-red-100 text-red-700";
+    if (lowerEmotion.includes("sad")) return "bg-blue-100 text-blue-700";
+    if (lowerEmotion.includes("fear")) return "bg-green-100 text-green-700";
+    if (lowerEmotion.includes("joy") || lowerEmotion.includes("happy")) return "bg-yellow-100 text-yellow-700";
+    if (lowerEmotion.includes("love")) return "bg-pink-100 text-pink-700";
+    if (lowerEmotion.includes("surprise")) return "bg-purple-100 text-purple-700";
     
-    // Calculate a point mid-way along the arc for placing text
-    const midAngle = (startAngle + endAngle) / 2;
-    const textX = centerX + (innerRadius / 2) * Math.cos(midAngle);
-    const textY = centerY + (innerRadius / 2) * Math.sin(midAngle);
+    // Default color if no match
+    return "bg-gray-100 text-gray-700";
+  };
+  
+  // Finding currently selected emotions
+  const getSelectedEmotions = () => {
+    let core = null;
+    let primary = null;
+    let tertiary = selectedTertiaryEmotion;
     
-    // Determine text anchor position based on the angle
-    const textAnchor = midAngle > Math.PI / 2 && midAngle < Math.PI * 3 / 2 ? "end" : "start";
+    if (selectedCoreGroup !== null) {
+      core = emotionGroups[selectedCoreGroup].core;
+      
+      if (selectedPrimaryGroup !== null) {
+        primary = emotionGroups[selectedCoreGroup].primary[selectedPrimaryGroup];
+      }
+    }
     
-    // Simple coloring based on emotion
-    const colorMap: {[key: string]: string} = {
-      "Joy": "fill-yellow-200 stroke-yellow-400 hover:fill-yellow-300",
-      "Sadness": "fill-blue-200 stroke-blue-400 hover:fill-blue-300",
-      "Fear": "fill-purple-200 stroke-purple-400 hover:fill-purple-300",
-      "Disgust": "fill-green-200 stroke-green-400 hover:fill-green-300",
-      "Anger": "fill-red-200 stroke-red-400 hover:fill-red-300",
-      "Surprise": "fill-orange-200 stroke-orange-400 hover:fill-orange-300",
-    };
+    return { core, primary, tertiary };
+  };
+  
+  const { core: selectedCore, primary: selectedPrimary } = getSelectedEmotions();
+  
+  // Render the core emotions wheel
+  const renderCoreWheel = () => {
+    return (
+      <motion.div 
+        className="p-4 rounded-xl bg-white shadow-sm"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <h3 className="text-center text-lg font-medium mb-4">Select a Core Emotion</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {emotionGroups.map((group, index) => (
+            <motion.button
+              key={group.core}
+              className={cn(
+                "p-4 rounded-lg text-center font-medium transition-colors",
+                getEmotionColor(group.core),
+                selectedCoreGroup === index ? "ring-2 ring-offset-2 ring-blue-500" : ""
+              )}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleCoreSelect(index)}
+            >
+              {group.core}
+            </motion.button>
+          ))}
+        </div>
+        <div className="text-center mt-4 text-sm text-gray-500">
+          Tap a core emotion to continue
+        </div>
+      </motion.div>
+    );
+  };
+  
+  // Render the primary emotions wheel based on selected core emotion
+  const renderPrimaryWheel = () => {
+    if (selectedCoreGroup === null) return null;
     
-    const classes = colorMap[emotion] || "fill-gray-200 stroke-gray-400 hover:fill-gray-300";
-    const isSelected = selectedCore === emotion;
+    const coreGroup = emotionGroups[selectedCoreGroup];
     
     return (
-      <g key={`core-${emotion}`} className="cursor-pointer touch-manipulation">
-        <path
-          d={`M ${centerX} ${centerY} L ${x1} ${y1} A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`}
-          className={cn(
-            classes,
-            "transition-colors duration-200",
-            isSelected ? "stroke-2 filter drop-shadow(0 0 3px rgba(0,0,0,0.3))" : "stroke-1",
-            hoveredEmotion === emotion ? "opacity-90" : "opacity-80"
-          )}
-          onMouseEnter={() => setHoveredEmotion(emotion)}
-          onMouseLeave={() => setHoveredEmotion(null)}
-          onClick={() => handleEmotionSelect(emotion, "core")}
-          data-emotion={emotion}
-          data-layer="core"
-        />
-        <text
-          x={textX}
-          y={textY}
-          className={cn(
-            "text-xs sm:text-sm font-medium pointer-events-none text-shadow-sm",
-            isSelected ? "font-bold" : ""
-          )}
-          textAnchor={textAnchor}
-          dominantBaseline="middle"
-        >
-          {translate(emotion)}
-        </text>
-      </g>
-    );
-  });
-
-  // Create the segments for the primary emotions (middle ring)
-  const primarySegments = Object.keys(emotionData).flatMap((coreEmotion, coreIndex) => {
-    const totalCoreEmotions = Object.keys(emotionData).length;
-    const anglePerCoreEmotion = (Math.PI * 2) / totalCoreEmotions;
-    const coreStartAngle = coreIndex * anglePerCoreEmotion;
-    const coreEndAngle = (coreIndex + 1) * anglePerCoreEmotion;
-    
-    const primaryEmotions = emotionData[coreEmotion];
-    
-    return primaryEmotions.map((primaryGroup, primaryIndex) => {
-      const totalPrimaryEmotions = primaryEmotions.length;
-      const anglePerPrimaryEmotion = (coreEndAngle - coreStartAngle) / totalPrimaryEmotions;
-      const primaryStartAngle = coreStartAngle + primaryIndex * anglePerPrimaryEmotion;
-      const primaryEndAngle = primaryStartAngle + anglePerPrimaryEmotion;
-      
-      const x1 = centerX + innerRadius * Math.cos(primaryStartAngle);
-      const y1 = centerY + innerRadius * Math.sin(primaryStartAngle);
-      const x2 = centerX + innerRadius * Math.cos(primaryEndAngle);
-      const y2 = centerY + innerRadius * Math.sin(primaryEndAngle);
-      
-      const x3 = centerX + middleRadius * Math.cos(primaryEndAngle);
-      const y3 = centerY + middleRadius * Math.sin(primaryEndAngle);
-      const x4 = centerX + middleRadius * Math.cos(primaryStartAngle);
-      const y4 = centerY + middleRadius * Math.sin(primaryStartAngle);
-      
-      // Calculate a point mid-way along the arc for placing text
-      const midAngle = (primaryStartAngle + primaryEndAngle) / 2;
-      const textRadius = (innerRadius + middleRadius) / 2;
-      const textX = centerX + textRadius * Math.cos(midAngle);
-      const textY = centerY + textRadius * Math.sin(midAngle);
-      
-      // Determine text anchor and rotation based on the angle
-      const textAnchor = "middle";
-      const textRotation = (midAngle * 180 / Math.PI) + (midAngle > Math.PI / 2 && midAngle < Math.PI * 3 / 2 ? 180 : 0);
-      
-      // Inherit color from core emotion but make it slightly different
-      const colorMap: {[key: string]: string} = {
-        "Joy": "fill-yellow-100 stroke-yellow-300 hover:fill-yellow-200",
-        "Sadness": "fill-blue-100 stroke-blue-300 hover:fill-blue-200",
-        "Fear": "fill-purple-100 stroke-purple-300 hover:fill-purple-200",
-        "Disgust": "fill-green-100 stroke-green-300 hover:fill-green-200",
-        "Anger": "fill-red-100 stroke-red-300 hover:fill-red-200",
-        "Surprise": "fill-orange-100 stroke-orange-300 hover:fill-orange-200",
-      };
-      
-      const classes = colorMap[coreEmotion] || "fill-gray-100 stroke-gray-300 hover:fill-gray-200";
-      const isSelected = selectedPrimary === primaryGroup.name;
-      const isParentSelected = selectedCore === coreEmotion;
-      
-      return (
-        <g key={`primary-${primaryGroup.name}`} className="cursor-pointer touch-manipulation">
-          <path
-            d={`M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} L ${x4} ${y4} Z`}
-            className={cn(
-              classes,
-              "transition-colors duration-200",
-              isSelected ? "stroke-2 filter drop-shadow(0 0 3px rgba(0,0,0,0.3))" : "stroke-1",
-              isParentSelected && !isSelected ? "opacity-90" : "opacity-80",
-              hoveredEmotion === primaryGroup.name ? "opacity-90" : ""
-            )}
-            onMouseEnter={() => setHoveredEmotion(primaryGroup.name)}
-            onMouseLeave={() => setHoveredEmotion(null)}
-            onClick={() => handleEmotionSelect(primaryGroup.name, "primary")}
-            data-emotion={primaryGroup.name}
-            data-layer="primary"
-          />
-          <text
-            x={textX}
-            y={textY}
-            transform={`rotate(${textRotation}, ${textX}, ${textY})`}
-            className={cn(
-              "text-xs sm:text-sm font-medium pointer-events-none text-shadow-sm",
-              isSelected ? "font-bold" : ""
-            )}
-            textAnchor={textAnchor}
-            dominantBaseline="middle"
+      <motion.div 
+        className="p-4 rounded-xl bg-white shadow-sm"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <button 
+            onClick={handleBack}
+            className="text-blue-600 text-sm flex items-center"
           >
-            {translate(primaryGroup.name)}
-          </text>
-        </g>
-      );
-    });
-  });
-
-  // Create the segments for the tertiary emotions (outer ring)
-  const tertiarySegments = Object.keys(emotionData).flatMap((coreEmotion, coreIndex) => {
-    const totalCoreEmotions = Object.keys(emotionData).length;
-    const anglePerCoreEmotion = (Math.PI * 2) / totalCoreEmotions;
-    const coreStartAngle = coreIndex * anglePerCoreEmotion;
-    const coreEndAngle = (coreIndex + 1) * anglePerCoreEmotion;
-    
-    return emotionData[coreEmotion].flatMap((primaryGroup, primaryIndex) => {
-      const totalPrimaryEmotions = emotionData[coreEmotion].length;
-      const anglePerPrimaryEmotion = (coreEndAngle - coreStartAngle) / totalPrimaryEmotions;
-      const primaryStartAngle = coreStartAngle + primaryIndex * anglePerPrimaryEmotion;
-      const primaryEndAngle = primaryStartAngle + anglePerPrimaryEmotion;
-      
-      if (!primaryGroup.tertiaries || primaryGroup.tertiaries.length === 0) {
-        return [];
-      }
-      
-      return primaryGroup.tertiaries.map((tertiaryEmotion, tertiaryIndex) => {
-        const totalTertiaryEmotions = primaryGroup.tertiaries?.length || 1;
-        const anglePerTertiaryEmotion = (primaryEndAngle - primaryStartAngle) / totalTertiaryEmotions;
-        const tertiaryStartAngle = primaryStartAngle + tertiaryIndex * anglePerTertiaryEmotion;
-        const tertiaryEndAngle = tertiaryStartAngle + anglePerTertiaryEmotion;
-        
-        const x1 = centerX + middleRadius * Math.cos(tertiaryStartAngle);
-        const y1 = centerY + middleRadius * Math.sin(tertiaryStartAngle);
-        const x2 = centerX + middleRadius * Math.cos(tertiaryEndAngle);
-        const y2 = centerY + middleRadius * Math.sin(tertiaryEndAngle);
-        
-        const x3 = centerX + outerRadius * Math.cos(tertiaryEndAngle);
-        const y3 = centerY + outerRadius * Math.sin(tertiaryEndAngle);
-        const x4 = centerX + outerRadius * Math.cos(tertiaryStartAngle);
-        const y4 = centerY + outerRadius * Math.sin(tertiaryStartAngle);
-        
-        // Calculate a point mid-way along the arc for placing text
-        const midAngle = (tertiaryStartAngle + tertiaryEndAngle) / 2;
-        const textRadius = (middleRadius + outerRadius) / 2;
-        const textX = centerX + textRadius * Math.cos(midAngle);
-        const textY = centerY + textRadius * Math.sin(midAngle);
-        
-        // Determine text anchor and rotation based on the angle
-        const textAnchor = "middle";
-        const textRotation = (midAngle * 180 / Math.PI) + (midAngle > Math.PI / 2 && midAngle < Math.PI * 3 / 2 ? 180 : 0);
-        
-        // Inherit color from primary emotion but make it lighter
-        const colorMap: {[key: string]: string} = {
-          "Joy": "fill-yellow-50 stroke-yellow-200 hover:fill-yellow-100",
-          "Sadness": "fill-blue-50 stroke-blue-200 hover:fill-blue-100",
-          "Fear": "fill-purple-50 stroke-purple-200 hover:fill-purple-100",
-          "Disgust": "fill-green-50 stroke-green-200 hover:fill-green-100",
-          "Anger": "fill-red-50 stroke-red-200 hover:fill-red-100",
-          "Surprise": "fill-orange-50 stroke-orange-200 hover:fill-orange-100",
-        };
-        
-        const classes = colorMap[coreEmotion] || "fill-gray-50 stroke-gray-200 hover:fill-gray-100";
-        const isSelected = selectedTertiary === tertiaryEmotion;
-        const isParentSelected = selectedPrimary === primaryGroup.name;
-        const isGrandparentSelected = selectedCore === coreEmotion;
-        
-        return (
-          <g key={`tertiary-${tertiaryEmotion}`} className="cursor-pointer touch-manipulation">
-            <path
-              d={`M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} L ${x4} ${y4} Z`}
-              className={cn(
-                classes,
-                "transition-colors duration-200",
-                isSelected ? "stroke-2 filter drop-shadow(0 0 3px rgba(0,0,0,0.3))" : "stroke-1",
-                isParentSelected && !isSelected ? "opacity-90" : "opacity-80",
-                isGrandparentSelected && !isParentSelected && !isSelected ? "opacity-85" : "",
-                hoveredEmotion === tertiaryEmotion ? "opacity-90" : ""
-              )}
-              onMouseEnter={() => setHoveredEmotion(tertiaryEmotion)}
-              onMouseLeave={() => setHoveredEmotion(null)}
-              onClick={() => handleEmotionSelect(tertiaryEmotion, "tertiary")}
-              data-emotion={tertiaryEmotion}
-              data-layer="tertiary"
-            />
-            <text
-              x={textX}
-              y={textY}
-              transform={`rotate(${textRotation}, ${textX}, ${textY})`}
-              className={cn(
-                "text-[10px] sm:text-xs font-medium pointer-events-none text-shadow-sm",
-                isSelected ? "font-bold" : ""
-              )}
-              textAnchor={textAnchor}
-              dominantBaseline="middle"
-            >
-              {translate(tertiaryEmotion)}
-            </text>
-          </g>
-        );
-      });
-    });
-  });
-
-  return (
-    <div className="flex flex-col items-center space-y-4">
-      {/* Selection Display */}
-      <div className="flex flex-col items-center">
-        <div className="text-center px-4 py-2 bg-white rounded-full shadow-md">
-          {selectedTertiary ? (
-            <motion.span 
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-1 font-medium px-2"
-            >
-              <span className="font-medium text-gray-900">{translate(selectedTertiary)}</span>
-              <button 
-                className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none" 
-                onClick={() => setSelectedTertiary(null)}
-              >
-                ✕
-              </button>
-            </motion.span>
-          ) : selectedPrimary ? (
-            <motion.span 
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-1 font-medium px-2"
-            >
-              <span className="font-medium text-gray-900">{translate(selectedPrimary)}</span>
-              <button 
-                className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none" 
-                onClick={() => setSelectedPrimary(null)}
-              >
-                ✕
-              </button>
-            </motion.span>
-          ) : selectedCore ? (
-            <motion.span 
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-1 font-medium px-2"
-            >
-              <span className="font-medium text-gray-900">{translate(selectedCore)}</span>
-              <button 
-                className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none" 
-                onClick={() => setSelectedCore(null)}
-              >
-                ✕
-              </button>
-            </motion.span>
-          ) : (
-            <span className="text-sm text-gray-500 italic">
-              {translate("Select an emotion from the wheel below")}
+            ← Back
+          </button>
+          <h3 className="text-center text-lg font-medium">
+            Variations of <span className={cn("px-2 py-1 rounded", getEmotionColor(coreGroup.core))}>
+              {coreGroup.core}
             </span>
+          </h3>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          {coreGroup.primary.map((primaryEmotion, primaryIndex) => (
+            <motion.button
+              key={primaryEmotion}
+              className={cn(
+                "p-3 rounded-lg text-center transition-colors",
+                getEmotionColor(coreGroup.core),
+                selectedPrimaryGroup === primaryIndex ? "ring-2 ring-offset-2 ring-blue-500" : ""
+              )}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handlePrimarySelect(selectedCoreGroup, primaryIndex)}
+            >
+              {primaryEmotion}
+            </motion.button>
+          ))}
+        </div>
+        
+        <div className="text-center mt-4 text-sm text-gray-500">
+          Tap to select a more specific emotion
+        </div>
+      </motion.div>
+    );
+  };
+  
+  // Render the tertiary emotions list based on selected primary emotion
+  const renderTertiaryWheel = () => {
+    if (selectedCoreGroup === null || selectedPrimaryGroup === null) return null;
+    
+    const coreGroup = emotionGroups[selectedCoreGroup];
+    const primaryEmotion = coreGroup.primary[selectedPrimaryGroup];
+    const tertiaryEmotions = coreGroup.tertiary[selectedPrimaryGroup];
+    
+    return (
+      <motion.div 
+        className="p-4 rounded-xl bg-white shadow-sm"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <button 
+            onClick={handleBack}
+            className="text-blue-600 text-sm flex items-center"
+          >
+            ← Back
+          </button>
+          <h3 className="text-center text-lg font-medium">
+            Specific forms of <span className={cn("px-2 py-1 rounded", getEmotionColor(primaryEmotion))}>
+              {primaryEmotion}
+            </span>
+          </h3>
+        </div>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {tertiaryEmotions.map((tertiaryEmotion, tertiaryIndex) => (
+            <motion.button
+              key={tertiaryEmotion}
+              className={cn(
+                "p-2 rounded-lg text-center text-sm transition-colors",
+                getEmotionColor(coreGroup.core),
+                selectedTertiaryEmotion === tertiaryEmotion ? "ring-2 ring-offset-2 ring-blue-500 font-medium" : ""
+              )}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleTertiarySelect(tertiaryEmotion)}
+            >
+              {tertiaryEmotion}
+              {selectedTertiaryEmotion === tertiaryEmotion && (
+                <CheckIcon className="inline ml-1 h-4 w-4" />
+              )}
+            </motion.button>
+          ))}
+        </div>
+        
+        <div className="text-center mt-4 text-sm text-gray-500">
+          Tap to make your final selection
+        </div>
+      </motion.div>
+    );
+  };
+  
+  // Render the final selection preview
+  const renderSelectionPreview = () => {
+    const { core, primary, tertiary } = getSelectedEmotions();
+    
+    if (!core) return null;
+    
+    return (
+      <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="text-sm font-medium text-gray-600 mb-2">Your selection:</div>
+        <div className="flex flex-wrap gap-2 items-center">
+          {core && (
+            <span className={cn("px-2 py-1 rounded text-sm", getEmotionColor(core))}>
+              {core}
+            </span>
+          )}
+          
+          {primary && (
+            <>
+              <span className="text-gray-400">→</span>
+              <span className={cn("px-2 py-1 rounded text-sm", getEmotionColor(core))}>
+                {primary}
+              </span>
+            </>
+          )}
+          
+          {tertiary && (
+            <>
+              <span className="text-gray-400">→</span>
+              <span className={cn("px-2 py-1 rounded text-sm font-medium", getEmotionColor(core))}>
+                {tertiary}
+              </span>
+            </>
           )}
         </div>
       </div>
-
-      {/* Touch instructions */}
-      <div className="flex items-center justify-center text-xs text-gray-500 mb-2">
-        <InfoIcon className="h-3 w-3 mr-1" />
-        Pinch to zoom, tap to select
-      </div>
-
-      {/* The SVG wheel with touch support */}
-      <motion.div
-        ref={containerRef}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        id="emotional-wheel-mobile"
-        className="wheel-container relative rounded-full p-4 overflow-hidden touch-manipulation"
-        style={{ 
-          background: "linear-gradient(135deg, #f5f7ff 0%, #e0e7ff 100%)",
-          boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.1), 0 8px 10px -6px rgba(99, 102, 241, 0.05)",
-          width: '100%',
-          maxWidth: '100%'
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div className="absolute inset-0 rounded-full bg-white/50 backdrop-blur-sm" 
-          style={{ boxShadow: "inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)" }}></div>
-        
-        <svg
-          ref={svgRef}
-          width="100%"
-          height="100%"
-          viewBox={`0 0 ${wheelSize} ${wheelSize}`}
-          className={cn("emotion-wheel relative z-10", direction === "rtl" ? "transform scale-x-[-1]" : "")}
-        >
-          {/* Core emotions (inner ring) */}
-          {coreSegments}
-          
-          {/* Primary emotions (middle ring) */}
-          {primarySegments}
-          
-          {/* Tertiary emotions (outer ring) */}
-          {tertiarySegments}
-          
-          {/* Center circle */}
-          <circle
-            cx={centerX}
-            cy={centerY}
-            r={innerRadius * 0.2}
-            className="fill-white stroke-gray-200"
-          />
-        </svg>
-      </motion.div>
-      
-      {/* Helper text at bottom */}
+    );
+  };
+  
+  // Render the main component
+  return (
+    <div 
+      className="relative overflow-hidden rounded-xl bg-gray-50 py-4"
+      ref={wheelContainerRef}
+    >
       <TooltipProvider>
-        <div className="text-center px-4 py-2 text-xs text-gray-500 mt-2">
+        <div className="absolute top-2 right-2 z-10">
           <Tooltip>
-            <TooltipTrigger>
-              <span className="underline">Need help?</span>
+            <TooltipTrigger asChild>
+              <button className="text-gray-400 hover:text-gray-600">
+                <HelpCircle className="h-5 w-5" />
+              </button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p className="max-w-xs text-center">
-                The emotion wheel helps you identify emotions with precision. The inner ring shows core emotions, 
-                the middle ring shows primary emotions, and the outer ring shows more specific tertiary emotions.
-              </p>
+            <TooltipContent className="max-w-xs">
+              <p>This emotion wheel helps you identify your feelings with increasing specificity. Start with a core emotion, then narrow it down.</p>
             </TooltipContent>
           </Tooltip>
         </div>
       </TooltipProvider>
+      
+      <div className="px-4">
+        {/* Show the appropriate wheel based on selection state */}
+        {viewMode === "core" && renderCoreWheel()}
+        {viewMode === "primary" && renderPrimaryWheel()}
+        {viewMode === "tertiary" && renderTertiaryWheel()}
+        
+        {/* Show selection preview if any emotion is selected */}
+        {selectedCore && renderSelectionPreview()}
+      </div>
     </div>
   );
 }
