@@ -18,12 +18,12 @@ export function useWebSocket() {
       // Determine protocol based on page protocol (ws for http, wss for https)
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       
-      // Use the current hostname and port from the browser
-      const hostname = window.location.hostname;
-      const port = window.location.port || (protocol === 'wss:' ? '443' : '80');
+      // Use the current host which includes hostname and port
+      const host = window.location.host;
       
-      // Construct a safe WebSocket URL with explicit port
-      const wsUrl = `${protocol}//${hostname}:${port}/ws`;
+      // Construct a safe WebSocket URL without explicitly specifying port
+      // This prevents issues with proxy configurations
+      const wsUrl = `${protocol}//${host}/ws`;
       console.log('Connecting to WebSocket URL:', wsUrl);
       
       // Create WebSocket connection
@@ -88,6 +88,21 @@ export function useWebSocket() {
     }
   }, []);
   
+  // Set up heartbeat to keep connection alive
+  useEffect(() => {
+    // Only set heartbeat when connected
+    if (!isConnected || !socketRef.current) return;
+    
+    // Send a ping every 25 seconds (server timeout is 30 seconds)
+    const heartbeatInterval = setInterval(() => {
+      if (socketRef.current?.readyState === WebSocket.OPEN) {
+        socketRef.current.send(JSON.stringify({ type: 'ping' }));
+      }
+    }, 25000);
+    
+    return () => clearInterval(heartbeatInterval);
+  }, [isConnected]);
+
   // Connect on mount, reconnect when user changes
   useEffect(() => {
     if (user) {
