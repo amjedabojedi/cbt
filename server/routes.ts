@@ -18,6 +18,7 @@ import {
   insertThoughtRecordSchema,
   insertProtectiveFactorSchema,
   insertProtectiveFactorUsageSchema,
+  insertAiRecommendationSchema,
   insertCopingStrategySchema,
   insertCopingStrategyUsageSchema,
   insertGoalSchema,
