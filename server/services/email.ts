@@ -239,7 +239,7 @@ export async function sendEmotionTrackingReminder(
       <p>Hello ${userName},</p>
       <p>This is a friendly reminder to track your emotions today. Regular tracking helps build awareness and identify patterns.</p>
       <div style="margin: 30px 0;">
-        <a href="https://new-horizon-cbt.replit.app/emotion-tracking" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+        <a href="https://resilience-cbt.replit.app/emotion-tracking" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
           Track Now
         </a>
       </div>
@@ -292,7 +292,7 @@ export async function sendWeeklyProgressDigest(
       </div>
       
       <div style="margin: 30px 0;">
-        <a href="https://new-horizon-cbt.replit.app/reports" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+        <a href="https://resilience-cbt.replit.app/reports" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
           View Full Report
         </a>
       </div>
@@ -326,7 +326,7 @@ export async function sendPasswordResetEmail(
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h1 style="color: #4A6FA5;">Password Reset Request</h1>
       <p>Hello,</p>
-      <p>We received a request to reset your password for New Horizon CBT. If you didn't make this request, you can safely ignore this email.</p>
+      <p>We received a request to reset your password for Resilience CBT. If you didn't make this request, you can safely ignore this email.</p>
       <div style="margin: 30px 0;">
         <a href="${resetLink}" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
           Reset Password
@@ -334,7 +334,7 @@ export async function sendPasswordResetEmail(
       </div>
       <p>This password reset link will expire in 1 hour.</p>
       <p>If you have any issues, please contact support.</p>
-      <p>Best regards,<br>The New Horizon CBT Team</p>
+      <p>Best regards,<br>The Resilience CBT Team</p>
     </div>
   `;
   
@@ -360,15 +360,15 @@ export async function sendTherapistWelcomeEmail(
   therapistName: string,
   username: string,
   password: string,
-  loginLink: string = "https://new-horizon-cbt.replit.app/login"
+  loginLink: string = "https://resilience-cbt.replit.app/login"
 ): Promise<boolean> {
-  const subject = 'Welcome to New Horizon CBT - Your Account Details';
+  const subject = 'Welcome to Resilience CBT - Your Account Details';
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h1 style="color: #4A6FA5;">Welcome to New Horizon CBT</h1>
+      <h1 style="color: #4A6FA5;">Welcome to Resilience CBT</h1>
       <p>Hello ${therapistName},</p>
-      <p>An administrator has created a therapist account for you on the New Horizon CBT platform. This platform will help you manage your clients' therapy journeys with tools for emotion tracking, thought records, journaling, and goal setting.</p>
+      <p>An administrator has created a therapist account for you on the Resilience CBT platform. This platform will help you manage your clients' therapy journeys with tools for emotion tracking, thought records, journaling, and goal setting.</p>
       
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4A6FA5;">
         <h2 style="color: #4A6FA5; margin-top: 0; font-size: 18px;">Your Account Details:</h2>
@@ -392,7 +392,7 @@ export async function sendTherapistWelcomeEmail(
       </ol>
       
       <p>If you have any questions or need assistance, please contact the administrator who created your account.</p>
-      <p>Best regards,<br>The New Horizon CBT Team</p>
+      <p>Best regards,<br>The Resilience CBT Team</p>
     </div>
   `;
   
