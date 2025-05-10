@@ -123,7 +123,7 @@ export default function LandingPage() {
       {/* Research Section */}
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-8">Research-Based Tracking Tools</h2>
-        <p className="text-center text-neutral-600 dark:text-neutral-300 max-w-3xl mx-auto mb-12">
+        <p className="text-center text-neutral-600 max-w-3xl mx-auto mb-12">
           Our tracking tools are designed based on scientific research that shows how systematically recording emotions, thoughts, and behaviors helps individuals better understand their patterns.
         </p>
         
