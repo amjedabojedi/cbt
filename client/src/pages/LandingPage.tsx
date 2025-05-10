@@ -272,6 +272,9 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Advanced CBT Tools Section */}
+      <CbtToolsSection />
+
       {/* Footer */}
       <footer className="bg-blue-50 py-12">
         <div className="container mx-auto px-4">
