@@ -17,7 +17,7 @@ export default function Dashboard() {
   const { activeUserId, isViewingClientData } = useActiveUser();
   const { viewingClientName } = useClientContext();
   
-  const isProfessional = user?.role === "therapist"; // DB role still "therapist"
+  const isTherapist = user?.role === "therapist"; // DB role still "therapist"
   const isClient = user?.role === "client";
   
   // Determine whose name to display
@@ -29,7 +29,7 @@ export default function Dashboard() {
   let welcomeMessage = `Welcome back, ${displayName}`;
   let subMessage = "Track your emotions, thoughts, and progress on your journey to clarity.";
   
-  if (isProfessional && !isViewingClientData) {
+  if (isTherapist && !isViewingClientData) {
     welcomeMessage = `Welcome back, ${displayName}`;
     subMessage = "Manage your practice and view insights about your clients.";
   } else if (isViewingClientData) {
@@ -53,32 +53,32 @@ export default function Dashboard() {
           </p>
         </div>
         
-        {/* Professional-specific view */}
-        {isProfessional && !isViewingClientData && (
+        {/* Therapist-specific view */}
+        {isTherapist && !isViewingClientData && (
           <div className="mb-6">
-            <ProfessionalStats />
+            <TherapistStats />
           </div>
         )}
         
         {/* Getting Started Checklist - only for client's own dashboard */}
         {isClient && !isViewingClientData && <GettingStarted />}
         
-        {/* Quick Actions - for clients and when a professional is viewing client data */}
-        {((isClient && !isProfessional) || (isProfessional && isViewingClientData)) && (
+        {/* Quick Actions - for clients and when a therapist is viewing client data */}
+        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
           <div className="mb-6">
             <QuickActions />
           </div>
         )}
         
-        {/* Recent Emotion History - for clients and when a professional is viewing client data */}
-        {((isClient && !isProfessional) || (isProfessional && isViewingClientData)) && (
+        {/* Recent Emotion History - for clients and when a therapist is viewing client data */}
+        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
           <div className="mb-6">
             <EmotionHistory limit={3} />
           </div>
         )}
         
-        {/* Mood Trends and Reflection Trends Charts - for clients and when a professional is viewing client data */}
-        {((isClient && !isProfessional) || (isProfessional && isViewingClientData)) && (
+        {/* Mood Trends and Reflection Trends Charts - for clients and when a therapist is viewing client data */}
+        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <div>
               <MoodTrends />
