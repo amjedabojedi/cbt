@@ -21,7 +21,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <header className="container mx-auto px-4 pt-24 pb-16 text-center">
         <h1 className="text-4xl md:text-6xl font-bold text-primary mb-6">
-          Resilience
+          ResilienceHub
         </h1>
         <p className="text-xl md:text-2xl text-neutral-700 max-w-3xl mx-auto mb-4">
           A platform providing interactive CBT tools for tracking emotions, thoughts, and behaviors
@@ -280,7 +280,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
-              <h3 className="text-xl font-bold text-neutral-800">Resilience</h3>
+              <h3 className="text-xl font-bold text-neutral-800">ResilienceHub</h3>
               <p className="text-neutral-600 mt-2">Structured tools for tracking emotions, thoughts, and behaviors</p>
             </div>
             <div className="flex flex-col md:flex-row gap-6 md:gap-12">

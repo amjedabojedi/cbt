@@ -20,7 +20,7 @@ interface EmailParams {
 // Make sure this is a verified sending domain in SparkPost
 // Use proper format that SparkPost accepts
 const DEFAULT_FROM_EMAIL = {
-  name: "Resilience Counseling",
+  name: "ResilienceHub",
   email: "noreply@send.rcrc.ca" // Using verified sending domain
 };
 
@@ -28,11 +28,11 @@ const DEFAULT_FROM_EMAIL = {
 // These are in proper SparkPost object format with name and email separated
 const ALTERNATIVE_DOMAINS = [
   {
-    name: "Resilience Counseling Support",
+    name: "ResilienceHub Support",
     email: "noreply@send.rcrc.ca" // Same verified domain with different display name
   },
   {
-    name: "Resilience Counseling Notifications",
+    name: "ResilienceHub Notifications",
     email: "noreply@send.rcrc.ca" // Same verified domain with different display name
   }
 ];
@@ -172,14 +172,14 @@ export async function sendClientInvitation(
   therapistName: string,
   inviteLink: string
 ): Promise<boolean> {
-  const subject = `${therapistName} has invited you to Resilience`;
+  const subject = `${therapistName} has invited you to ResilienceHub`;
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h1 style="color: #4A6FA5;">Resilience Invitation</h1>
+      <h1 style="color: #4A6FA5;">ResilienceHub Invitation</h1>
       <p>Hello,</p>
-      <p><strong>${therapistName}</strong> has invited you to join Resilience, a platform for cognitive behavioral tools and tracking.</p>
-      <p>Resilience will help you track emotions, manage thoughts, set goals, and monitor your progress with structured CBT tools.</p>
+      <p><strong>${therapistName}</strong> has invited you to join ResilienceHub, a platform for cognitive behavioral tools and tracking.</p>
+      <p>ResilienceHub will help you track emotions, manage thoughts, set goals, and monitor your progress with structured CBT tools.</p>
       
       <h2 style="color: #4A6FA5; margin-top: 25px; font-size: 18px;">Your Next Steps:</h2>
       <ol style="margin-bottom: 25px;">
@@ -320,13 +320,13 @@ export async function sendPasswordResetEmail(
   userEmail: string,
   resetLink: string
 ): Promise<boolean> {
-  const subject = 'Reset Your Resilience Password';
+  const subject = 'Reset Your ResilienceHub Password';
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h1 style="color: #4A6FA5;">Password Reset Request</h1>
       <p>Hello,</p>
-      <p>We received a request to reset your password for Resilience. If you didn't make this request, you can safely ignore this email.</p>
+      <p>We received a request to reset your password for ResilienceHub. If you didn't make this request, you can safely ignore this email.</p>
       <div style="margin: 30px 0;">
         <a href="${resetLink}" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
           Reset Password
@@ -360,15 +360,15 @@ export async function sendTherapistWelcomeEmail(
   therapistName: string,
   username: string,
   password: string,
-  loginLink: string = "https://resilience.replit.app/login"
+  loginLink: string = "https://resiliencehub.replit.app/login"
 ): Promise<boolean> {
-  const subject = 'Welcome to Resilience - Your Account Details';
+  const subject = 'Welcome to ResilienceHub - Your Account Details';
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h1 style="color: #4A6FA5;">Welcome to Resilience</h1>
+      <h1 style="color: #4A6FA5;">Welcome to ResilienceHub</h1>
       <p>Hello ${therapistName},</p>
-      <p>An administrator has created a professional account for you on the Resilience platform. This platform will help you manage your clients' journeys with tools for emotion tracking, thought records, journaling, and goal setting.</p>
+      <p>An administrator has created a professional account for you on the ResilienceHub platform. This platform will help you manage your clients' journeys with tools for emotion tracking, thought records, journaling, and goal setting.</p>
       
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4A6FA5;">
         <h2 style="color: #4A6FA5; margin-top: 0; font-size: 18px;">Your Account Details:</h2>
