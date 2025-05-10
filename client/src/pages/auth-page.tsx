@@ -239,15 +239,15 @@ export default function AuthPage() {
                         control={loginForm.control}
                         name="username"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-item">
                             <FormLabel>Username or Email</FormLabel>
                             <FormControl>
                               <Input placeholder="johndoe or john@example.com" {...field} />
                             </FormControl>
-                            <FormDescription>
+                            <FormDescription className="form-description">
                               You can log in with either your username or email address
                             </FormDescription>
-                            <FormMessage />
+                            <FormMessage className="form-message" />
                           </FormItem>
                         )}
                       />
@@ -256,12 +256,12 @@ export default function AuthPage() {
                         control={loginForm.control}
                         name="password"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-item">
                             <FormLabel>Password</FormLabel>
                             <FormControl>
                               <Input type="password" placeholder="••••••••" {...field} />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="form-message" />
                           </FormItem>
                         )}
                       />
@@ -306,12 +306,12 @@ export default function AuthPage() {
                         control={registerForm.control}
                         name="name"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-item">
                             <FormLabel>Full Name</FormLabel>
                             <FormControl>
                               <Input placeholder="John Doe" {...field} />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="form-message" />
                           </FormItem>
                         )}
                       />
@@ -320,15 +320,15 @@ export default function AuthPage() {
                         control={registerForm.control}
                         name="username"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-item">
                             <FormLabel>Username</FormLabel>
                             <FormControl>
                               <Input placeholder="johndoe" {...field} />
                             </FormControl>
-                            <FormDescription>
+                            <FormDescription className="form-description">
                               This will be used to log in to your account
                             </FormDescription>
-                            <FormMessage />
+                            <FormMessage className="form-message" />
                           </FormItem>
                         )}
                       />
@@ -337,7 +337,7 @@ export default function AuthPage() {
                         control={registerForm.control}
                         name="email"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-item">
                             <FormLabel>Email</FormLabel>
                             <FormControl>
                               <Input 
@@ -347,7 +347,7 @@ export default function AuthPage() {
                                 disabled={isInvitation && !!emailParam}
                               />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="form-message" />
                           </FormItem>
                         )}
                       />
@@ -401,7 +401,7 @@ export default function AuthPage() {
                       {/* Hidden role field for invited clients */}
                       {isInvitation && <input type="hidden" {...registerForm.register("role")} value="client" />}
                       
-                      <Button type="submit" className="w-full" disabled={registerSubmitting}>
+                      <Button type="submit" className="w-full auth-button" disabled={registerSubmitting}>
                         {registerSubmitting ? (
                           <div className="flex items-center justify-center">
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

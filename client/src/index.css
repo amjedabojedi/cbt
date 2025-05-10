@@ -214,6 +214,7 @@
   @apply bg-white !important;
   @apply text-neutral-800 !important;
   @apply border border-gray-200 !important;
+  @apply shadow-sm !important;
 }
 
 .auth-card h2, 
@@ -224,14 +225,24 @@
 
 .auth-card p,
 .auth-card label,
-.auth-card .card-description {
+.auth-card .card-description,
+.auth-card .form-description,
+.auth-card .form-message {
   @apply text-neutral-600 !important;
 }
 
-.auth-card input {
+.auth-card input,
+.auth-card select,
+.auth-card textarea,
+.auth-card .select-trigger {
   @apply bg-white !important;
   @apply text-neutral-800 !important;
   @apply border-gray-300 !important;
+  @apply placeholder-gray-400 !important;
+}
+
+.auth-card .form-item {
+  @apply text-neutral-800 !important;
 }
 
 /* Force light mode on auth page tabs */
@@ -250,10 +261,34 @@
   @apply bg-white !important;
 }
 
+.auth-container h1,
+.auth-container h2,
+.auth-container h3,
+.auth-container p {
+  @apply text-neutral-800 !important;
+}
+
+.auth-container p.text-muted {
+  @apply text-neutral-500 !important;
+}
+
 /* Force light mode on button in auth page */
 .auth-button {
   @apply bg-primary !important;
   @apply hover:bg-primary/90 !important;
   @apply text-white !important;
+}
+
+/* Make sure select content is also light */
+.select-content {
+  @apply bg-white !important;
+  @apply text-neutral-800 !important;
+  @apply border-gray-200 !important;
+}
+
+.select-item {
+  @apply text-neutral-800 !important;
+  @apply data-[highlighted]:bg-primary/10 !important;
+  @apply data-[highlighted]:text-neutral-900 !important;
 }
 
