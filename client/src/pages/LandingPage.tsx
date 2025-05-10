@@ -23,12 +23,12 @@ export default function LandingPage() {
           Resilience CBT
         </h1>
         <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-4">
-          A platform for tracking emotions, thoughts, and behaviors that connects 
-          therapists with clients for personalized mental health support.
+          A platform providing interactive CBT tools for tracking emotions, thoughts, and behaviors
+          that connects therapists with clients for personalized mental health support.
         </p>
         <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-4 max-w-3xl mx-auto mb-8">
           <p className="text-sm text-yellow-800">
-            <strong>Important:</strong> This app provides tools for tracking emotions, thoughts, and behaviors. 
+            <strong>Important:</strong> This app provides interactive CBT tools for tracking emotions, thoughts, and behaviors. 
             It is not a replacement for professional mental health guidance. These tools work best when used with a qualified therapist.
           </p>
         </div>
@@ -49,7 +49,7 @@ export default function LandingPage() {
 
       {/* Features Section */}
       <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">CBT Tools for Better Mental Health</h2>
+        <h2 className="text-3xl font-bold text-center mb-12">Interactive CBT Tools for Better Mental Health</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Feature 1 */}
           <div className="bg-card rounded-lg p-6 shadow-sm border">
@@ -67,9 +67,9 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <Heart className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Therapeutic Interventions</h3>
+            <h3 className="text-xl font-semibold mb-2">Interactive CBT Tools</h3>
             <p className="text-muted-foreground">
-              Access structured thought records, coping strategies, and protective factors to manage difficult emotions.
+              Access structured thought records, coping strategies, and interactive tools to manage difficult emotions and behaviors.
             </p>
           </div>
 
@@ -121,9 +121,9 @@ export default function LandingPage() {
 
       {/* Research Section */}
       <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-8">Research-Based Tools</h2>
+        <h2 className="text-3xl font-bold text-center mb-8">Research-Based Interactive CBT Tools</h2>
         <p className="text-center text-muted-foreground max-w-3xl mx-auto mb-12">
-          Our CBT tools are designed based on scientific research that shows how specific mental health exercises improve wellbeing.
+          Our interactive CBT tools are designed based on scientific research that shows how tracking emotions, thoughts, and behaviors improves wellbeing.
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -277,7 +277,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
               <h3 className="text-xl font-bold">Resilience CBT</h3>
-              <p className="text-muted-foreground mt-2">Mental health support tools for therapists and clients</p>
+              <p className="text-muted-foreground mt-2">Interactive CBT tools for tracking emotions, thoughts, and behaviors</p>
             </div>
             <div className="flex flex-col md:flex-row gap-6 md:gap-12">
               <Link href="/auth" className="text-muted-foreground hover:text-primary transition-colors">
