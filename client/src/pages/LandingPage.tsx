@@ -19,15 +19,15 @@ export default function LandingPage() {
     <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
       {/* Hero Section */}
       <header className="container mx-auto px-4 pt-24 pb-16 text-center">
-        <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 mb-6">
+        <h1 className="text-4xl md:text-6xl font-bold text-primary mb-6">
           Resilience CBT
         </h1>
-        <p className="text-xl md:text-2xl text-neutral-600 dark:text-neutral-300 max-w-3xl mx-auto mb-4">
+        <p className="text-xl md:text-2xl text-neutral-700 max-w-3xl mx-auto mb-4">
           A platform providing interactive CBT tools for tracking emotions, thoughts, and behaviors
           that connects therapists with clients for personalized mental health tracking.
         </p>
-        <div className="bg-yellow-50 dark:bg-amber-900/20 border border-yellow-100 dark:border-amber-700/30 rounded-lg p-4 max-w-3xl mx-auto mb-8">
-          <p className="text-sm text-yellow-800 dark:text-amber-200">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-3xl mx-auto mb-8">
+          <p className="text-sm text-yellow-800">
             <strong>Important:</strong> This app provides interactive CBT tools for tracking emotions, thoughts, and behaviors. 
             It is not a replacement for professional mental health guidance. These tools work best when used with a qualified therapist.
           </p>
@@ -40,7 +40,7 @@ export default function LandingPage() {
               </Link>
             </Button>
           </div>
-          <p className="text-sm text-neutral-600 dark:text-neutral-300 text-center">
+          <p className="text-sm text-neutral-700 text-center">
             Clients need an invitation from their therapist to access the platform.
             If you've received an invitation, check your email for the registration link.
           </p>
