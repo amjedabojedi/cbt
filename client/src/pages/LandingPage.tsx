@@ -49,7 +49,7 @@ export default function LandingPage() {
 
       {/* Features Section */}
       <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">Interactive CBT Tools for Better Mental Health</h2>
+        <h2 className="text-3xl font-bold text-center mb-12">Interactive CBT Tools for Emotion and Behavior Tracking</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Feature 1 */}
           <div className="bg-card rounded-lg p-6 shadow-sm border">
@@ -58,7 +58,7 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-semibold mb-2">Advanced Emotion Tracking</h3>
             <p className="text-muted-foreground">
-              Track and visualize emotions using our detailed emotion wheel with interactive mapping and intensity tracking.
+              Record and visualize emotions between sessions using our detailed emotion wheel with intensity tracking and pattern identification.
             </p>
           </div>
 
@@ -69,7 +69,7 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-semibold mb-2">Interactive CBT Tools</h3>
             <p className="text-muted-foreground">
-              Access structured thought records, coping strategies, and interactive tools to manage difficult emotions and behaviors.
+              Complete structured thought records between sessions to document thinking patterns. Track and record coping strategies that work for you.
             </p>
           </div>
 
@@ -121,9 +121,9 @@ export default function LandingPage() {
 
       {/* Research Section */}
       <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-8">Research-Based Interactive CBT Tools</h2>
+        <h2 className="text-3xl font-bold text-center mb-8">Research-Based Tracking Tools</h2>
         <p className="text-center text-muted-foreground max-w-3xl mx-auto mb-12">
-          Our interactive CBT tools are designed based on scientific research that shows how tracking emotions, thoughts, and behaviors improves wellbeing.
+          Our tracking tools are designed based on scientific research that shows how systematically recording emotions, thoughts, and behaviors helps individuals better understand their patterns.
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -260,7 +260,7 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-20 text-center">
         <h2 className="text-3xl font-bold mb-6">For Mental Health Professionals</h2>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-          Are you a therapist looking to enhance your practice with interactive CBT tools? Join Resilience CBT to provide your clients with effective tools for tracking emotions, thoughts, and behaviors.
+          Are you a therapist looking to enhance your client tracking capabilities? Join Resilience CBT to provide your clients with structured tools for tracking emotions, thoughts, and behaviors between sessions.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild size="lg" className="gap-2">
@@ -277,7 +277,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
               <h3 className="text-xl font-bold">Resilience CBT</h3>
-              <p className="text-muted-foreground mt-2">Interactive CBT tools for tracking emotions, thoughts, and behaviors</p>
+              <p className="text-muted-foreground mt-2">Structured tools for tracking emotions, thoughts, and behaviors</p>
             </div>
             <div className="flex flex-col md:flex-row gap-6 md:gap-12">
               <Link href="/auth" className="text-muted-foreground hover:text-primary transition-colors">
