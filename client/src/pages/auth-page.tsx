@@ -288,7 +288,7 @@ export default function AuthPage() {
                   <CardDescription>
                     {isInvitation 
                       ? "Fill out the form below to finalize your account creation" 
-                      : "Join New Horizon CBT to begin your therapeutic journey"}
+                      : "Join Resilience CBT to begin your therapeutic journey"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -401,8 +401,8 @@ export default function AuthPage() {
           </h2>
           <p className="text-lg mb-6 text-neutral-700">
             {isInvitation 
-              ? "Your therapist has invited you to join New Horizon CBT, where you'll have access to personalized therapeutic tools and resources."
-              : "New Horizon CBT provides a comprehensive suite of mental health support tools designed around evidence-based therapeutic approaches."}
+              ? "Your therapist has invited you to join Resilience CBT, where you'll have access to personalized therapeutic tools and resources."
+              : "Resilience CBT provides a comprehensive suite of mental health support tools designed around evidence-based therapeutic approaches."}
           </p>
           
           <div className="space-y-4">

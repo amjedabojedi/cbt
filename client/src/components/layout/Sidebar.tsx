@@ -85,7 +85,7 @@ export default function Sidebar() {
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded bg-primary/20 flex items-center justify-center text-primary">
                 <Brain size={20} className="sm:w-6 sm:h-6" />
               </div>
-              <h1 className="text-lg sm:text-xl font-bold text-primary truncate">New Horizon-CBT</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-primary truncate">Resilience CBT</h1>
             </div>
           </div>
 

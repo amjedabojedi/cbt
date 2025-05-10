@@ -20,7 +20,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <header className="container mx-auto px-4 pt-24 pb-16 text-center">
         <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 mb-6">
-          New Horizon CBT
+          Resilience CBT
         </h1>
         <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-4">
           A cognitive behavioral therapy platform connecting therapists with clients
