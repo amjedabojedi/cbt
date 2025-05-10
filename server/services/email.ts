@@ -28,11 +28,11 @@ const DEFAULT_FROM_EMAIL = {
 // These are in proper SparkPost object format with name and email separated
 const ALTERNATIVE_DOMAINS = [
   {
-    name: "New Horizon CBT Support",
+    name: "Resilience CBT Support",
     email: "noreply@send.rcrc.ca" // Same verified domain with different display name
   },
   {
-    name: "New Horizon Notifications",
+    name: "Resilience CBT Notifications",
     email: "noreply@send.rcrc.ca" // Same verified domain with different display name
   }
 ];
@@ -172,14 +172,14 @@ export async function sendClientInvitation(
   therapistName: string,
   inviteLink: string
 ): Promise<boolean> {
-  const subject = `${therapistName} has invited you to New Horizon CBT`;
+  const subject = `${therapistName} has invited you to Resilience CBT`;
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h1 style="color: #4A6FA5;">New Horizon CBT Invitation</h1>
+      <h1 style="color: #4A6FA5;">Resilience CBT Invitation</h1>
       <p>Hello,</p>
-      <p><strong>${therapistName}</strong> has invited you to join New Horizon CBT, a platform for cognitive behavioral therapy support.</p>
-      <p>New Horizon CBT will help you track emotions, manage thoughts, set goals, and monitor your progress with structured CBT tools.</p>
+      <p><strong>${therapistName}</strong> has invited you to join Resilience CBT, a platform for cognitive behavioral therapy support.</p>
+      <p>Resilience CBT will help you track emotions, manage thoughts, set goals, and monitor your progress with structured CBT tools.</p>
       
       <h2 style="color: #4A6FA5; margin-top: 25px; font-size: 18px;">Your Next Steps:</h2>
       <ol style="margin-bottom: 25px;">
@@ -209,7 +209,7 @@ export async function sendClientInvitation(
       
       <p>This invitation link will expire in 7 days.</p>
       <p>If you have any questions, please contact your therapist directly.</p>
-      <p>Best regards,<br>The New Horizon CBT Team</p>
+      <p>Best regards,<br>The Resilience CBT Team</p>
     </div>
   `;
   
@@ -244,7 +244,7 @@ export async function sendEmotionTrackingReminder(
         </a>
       </div>
       <p>Consistency is key to getting the most out of cognitive behavioral therapy.</p>
-      <p>Best regards,<br>The New Horizon CBT Team</p>
+      <p>Best regards,<br>The Resilience CBT Team</p>
     </div>
   `;
   
@@ -298,7 +298,7 @@ export async function sendWeeklyProgressDigest(
       </div>
       
       <p>Keep up the great work! Consistent practice is key to progress in CBT.</p>
-      <p>Best regards,<br>The New Horizon CBT Team</p>
+      <p>Best regards,<br>The Resilience CBT Team</p>
     </div>
   `;
   
@@ -320,7 +320,7 @@ export async function sendPasswordResetEmail(
   userEmail: string,
   resetLink: string
 ): Promise<boolean> {
-  const subject = 'Reset Your New Horizon CBT Password';
+  const subject = 'Reset Your Resilience CBT Password';
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
