@@ -94,16 +94,7 @@ export default function AuthPage() {
   
   // Check for invitation parameter and set registration tab active
   useEffect(() => {
-    // If there's no invitation parameter and user wants to register, redirect to login
-    if (invitationParam !== "true" && activeTab === "register") {
-      setActiveTab("login");
-      toast({
-        title: "Registration Restricted",
-        description: "Clients need an invitation from a mental health professional to register. Please check your email for an invitation link.",
-        variant: "destructive"
-      });
-    }
-    
+    // If invitation parameter is present, set up for client registration
     if (invitationParam === "true") {
       setIsInvitation(true);
       setActiveTab("register");
@@ -114,7 +105,10 @@ export default function AuthPage() {
         description: "A mental health professional has invited you to create an account. Please register to access interactive CBT tools.",
       });
     }
-  }, [invitationParam, toast, activeTab]);
+    
+    // Note: We no longer redirect away from the register tab for non-invitation users
+    // This allows professionals to register directly
+  }, [invitationParam, toast]);
   
   // Redirect to dashboard if already logged in
   useEffect(() => {
@@ -225,8 +219,12 @@ export default function AuthPage() {
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="login">Login</TabsTrigger>
+              <TabsTrigger value="register">Register</TabsTrigger>
+            </TabsList>
             
-            <TabsContent value="login" className="mt-6">
+            <TabsContent value="login">
               <Card>
                 <CardHeader>
                   <CardTitle>Welcome Back</CardTitle>
