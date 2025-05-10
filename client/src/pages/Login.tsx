@@ -74,6 +74,10 @@ export default function Login() {
     }
   };
   
+  const resetLoginError = () => {
+    setLoginError(null);
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <div className="w-full max-w-md">
@@ -88,6 +92,19 @@ export default function Login() {
             </Link>
           </Button>
         </div>
+        
+        {/* Display error message when authentication fails */}
+        {loginError && (
+          <div className="mb-6">
+            <ConnectionErrorFallback 
+              error={loginError}
+              resetError={resetLoginError}
+              title="Authentication Error"
+              description="There was a problem with your login attempt"
+            />
+          </div>
+        )}
+        
         <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Log In</CardTitle>
@@ -124,6 +141,13 @@ export default function Login() {
                 required
               />
             </div>
+            
+            <Alert className="my-3 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/30">
+              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <AlertDescription className="text-xs">
+                Important: Use the provided admin credentials (username: <span className="font-mono font-semibold">admin</span>, password: <span className="font-mono font-semibold">123456</span>)
+              </AlertDescription>
+            </Alert>
             
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Logging in..." : "Log In"}
