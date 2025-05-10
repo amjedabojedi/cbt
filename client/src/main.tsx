@@ -1,5 +1,4 @@
-// Import the Vite HMR fix first to ensure it runs before any other code
-import "./utils/vite-hmr-fix";
+// We now handle WebSocket errors directly in index.html
 
 import { createRoot } from "react-dom/client";
 import App from "./App";
