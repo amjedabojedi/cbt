@@ -3,6 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Brain, Heart, Shield, Target, Book, MessageCircle, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import CbtToolsSection from '@/components/landing/CbtToolsSection';
 
 export default function LandingPage() {
   const { user } = useAuth();

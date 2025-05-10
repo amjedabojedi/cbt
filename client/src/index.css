@@ -292,3 +292,35 @@
   @apply data-[highlighted]:text-neutral-900 !important;
 }
 
+/* Force light mode on dark background sections */
+.cbt-tools-section {
+  @apply bg-white !important;
+  @apply text-neutral-800 !important;
+}
+
+.cbt-tools-section h1,
+.cbt-tools-section h2,
+.cbt-tools-section h3,
+.cbt-tools-section h4 {
+  @apply text-primary !important;
+}
+
+.cbt-tools-section p {
+  @apply text-neutral-600 !important;
+}
+
+.cbt-tools-card {
+  @apply bg-white !important;
+  @apply border border-gray-200 !important;
+  @apply shadow-sm !important;
+  @apply text-neutral-800 !important;
+}
+
+.cbt-tools-card h3 {
+  @apply text-neutral-800 !important;
+}
+
+.cbt-tools-card p {
+  @apply text-neutral-600 !important;
+}
+
