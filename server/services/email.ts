@@ -20,7 +20,7 @@ interface EmailParams {
 // Make sure this is a verified sending domain in SparkPost
 // Use proper format that SparkPost accepts
 const DEFAULT_FROM_EMAIL = {
-  name: "Resilience CBT",
+  name: "Resilience Counseling",
   email: "noreply@send.rcrc.ca" // Using verified sending domain
 };
 
@@ -28,11 +28,11 @@ const DEFAULT_FROM_EMAIL = {
 // These are in proper SparkPost object format with name and email separated
 const ALTERNATIVE_DOMAINS = [
   {
-    name: "Resilience CBT Support",
+    name: "Resilience Counseling Support",
     email: "noreply@send.rcrc.ca" // Same verified domain with different display name
   },
   {
-    name: "Resilience CBT Notifications",
+    name: "Resilience Counseling Notifications",
     email: "noreply@send.rcrc.ca" // Same verified domain with different display name
   }
 ];
@@ -172,14 +172,14 @@ export async function sendClientInvitation(
   therapistName: string,
   inviteLink: string
 ): Promise<boolean> {
-  const subject = `${therapistName} has invited you to Resilience CBT`;
+  const subject = `${therapistName} has invited you to Resilience`;
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h1 style="color: #4A6FA5;">Resilience CBT Invitation</h1>
+      <h1 style="color: #4A6FA5;">Resilience Invitation</h1>
       <p>Hello,</p>
-      <p><strong>${therapistName}</strong> has invited you to join Resilience CBT, a platform for cognitive behavioral therapy support.</p>
-      <p>Resilience CBT will help you track emotions, manage thoughts, set goals, and monitor your progress with structured CBT tools.</p>
+      <p><strong>${therapistName}</strong> has invited you to join Resilience, a platform for cognitive behavioral tools and tracking.</p>
+      <p>Resilience will help you track emotions, manage thoughts, set goals, and monitor your progress with structured CBT tools.</p>
       
       <h2 style="color: #4A6FA5; margin-top: 25px; font-size: 18px;">Your Next Steps:</h2>
       <ol style="margin-bottom: 25px;">
@@ -208,8 +208,8 @@ export async function sendClientInvitation(
       </p>
       
       <p>This invitation link will expire in 7 days.</p>
-      <p>If you have any questions, please contact your therapist directly.</p>
-      <p>Best regards,<br>The Resilience CBT Team</p>
+      <p>If you have any questions, please contact your mental health professional directly.</p>
+      <p>Best regards,<br>The Resilience Counseling Research and Consultation Team</p>
     </div>
   `;
   
@@ -243,8 +243,8 @@ export async function sendEmotionTrackingReminder(
           Track Now
         </a>
       </div>
-      <p>Consistency is key to getting the most out of cognitive behavioral therapy.</p>
-      <p>Best regards,<br>The Resilience CBT Team</p>
+      <p>Consistency is key to getting the most out of cognitive behavioral tools.</p>
+      <p>Best regards,<br>The Resilience Counseling Research and Consultation Team</p>
     </div>
   `;
   
@@ -297,8 +297,8 @@ export async function sendWeeklyProgressDigest(
         </a>
       </div>
       
-      <p>Keep up the great work! Consistent practice is key to progress in CBT.</p>
-      <p>Best regards,<br>The Resilience CBT Team</p>
+      <p>Keep up the great work! Consistent practice is key to progress with these tools.</p>
+      <p>Best regards,<br>The Resilience Counseling Research and Consultation Team</p>
     </div>
   `;
   
@@ -320,13 +320,13 @@ export async function sendPasswordResetEmail(
   userEmail: string,
   resetLink: string
 ): Promise<boolean> {
-  const subject = 'Reset Your Resilience CBT Password';
+  const subject = 'Reset Your Resilience Password';
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h1 style="color: #4A6FA5;">Password Reset Request</h1>
       <p>Hello,</p>
-      <p>We received a request to reset your password for Resilience CBT. If you didn't make this request, you can safely ignore this email.</p>
+      <p>We received a request to reset your password for Resilience. If you didn't make this request, you can safely ignore this email.</p>
       <div style="margin: 30px 0;">
         <a href="${resetLink}" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
           Reset Password
@@ -334,7 +334,7 @@ export async function sendPasswordResetEmail(
       </div>
       <p>This password reset link will expire in 1 hour.</p>
       <p>If you have any issues, please contact support.</p>
-      <p>Best regards,<br>The Resilience CBT Team</p>
+      <p>Best regards,<br>The Resilience Counseling Research and Consultation Team</p>
     </div>
   `;
   
