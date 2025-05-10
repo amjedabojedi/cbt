@@ -46,7 +46,7 @@ const registerSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   name: z.string().min(2, "Name must be at least 2 characters"),
-  role: z.string().default("client"),
+  role: z.string().default("therapist"), // Default to therapist as clients need invitations
   therapistId: z.number().optional(),
   status: z.string().optional(),
   isInvitation: z.boolean().optional(),
@@ -110,8 +110,8 @@ export default function AuthPage() {
       
       // Display invitation toast
       toast({
-        title: "Therapist Invitation",
-        description: "Your therapist has invited you to create an account. Please register to access interactive CBT tools.",
+        title: "Professional Invitation",
+        description: "A mental health professional has invited you to create an account. Please register to access interactive CBT tools.",
       });
     }
   }, [invitationParam, toast, activeTab]);
@@ -440,7 +440,7 @@ export default function AuthPage() {
           </h2>
           <p className="text-lg mb-6 text-neutral-700">
             {isInvitation 
-              ? "Your therapist has invited you to join Resilience CBT, where you'll have access to personalized interactive CBT tools and resources."
+              ? "A mental health professional has invited you to join Resilience CBT, where you'll have access to personalized interactive CBT tools for tracking."
               : "Resilience CBT provides a comprehensive suite of tools for tracking emotions, thoughts, and behaviors designed around evidence-based approaches."}
           </p>
           
@@ -453,8 +453,8 @@ export default function AuthPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-lg font-medium text-primary mb-1">Therapist-Client Connection</h3>
-                <p className="text-neutral-600">Share progress and insights with your therapist through secure communication.</p>
+                <h3 className="text-lg font-medium text-primary mb-1">Professional-Client Connection</h3>
+                <p className="text-neutral-600">Share your tracking data securely with your mental health professional.</p>
               </div>
             </div>
             
