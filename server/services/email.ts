@@ -355,9 +355,9 @@ export async function sendPasswordResetEmail(
  * @param loginLink Link to the login page
  * @returns Promise resolving to a boolean indicating success
  */
-export async function sendTherapistWelcomeEmail(
-  therapistEmail: string,
-  therapistName: string,
+export async function sendProfessionalWelcomeEmail(
+  professionalEmail: string,
+  professionalName: string,
   username: string,
   password: string,
   loginLink: string = "https://resiliencehub.replit.app/login"
@@ -367,7 +367,7 @@ export async function sendTherapistWelcomeEmail(
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h1 style="color: #4A6FA5;">Welcome to ResilienceHub</h1>
-      <p>Hello ${therapistName},</p>
+      <p>Hello ${professionalName},</p>
       <p>An administrator has created a professional account for you on the ResilienceHub platform. This platform will help you manage your clients' journeys with tools for emotion tracking, thought records, journaling, and goal setting.</p>
       
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4A6FA5;">
@@ -397,7 +397,7 @@ export async function sendTherapistWelcomeEmail(
   `;
   
   return sendEmail({
-    to: therapistEmail,
+    to: professionalEmail,
     subject,
     html,
   });

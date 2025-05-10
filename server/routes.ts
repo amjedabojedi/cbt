@@ -8,7 +8,7 @@ import * as bcrypt from "bcrypt";
 import Stripe from "stripe";
 import * as emotionMapping from "./services/emotionMapping";
 import { initializeWebSocketServer, sendNotificationToUser } from "./services/websocket";
-import { sendEmail, sendTherapistWelcomeEmail, sendClientInvitation, sendEmotionTrackingReminder, sendPasswordResetEmail, sendWeeklyProgressDigest, sparkPostClient } from "./services/email";
+import { sendEmail, sendProfessionalWelcomeEmail, sendClientInvitation, sendEmotionTrackingReminder, sendPasswordResetEmail, sendWeeklyProgressDigest, sparkPostClient } from "./services/email";
 
 // Global reference to default email sender for alternative domain testing
 (global as any).DEFAULT_FROM_EMAIL = 'Resilience CBT <noreply@send.rcrc.ca>';
