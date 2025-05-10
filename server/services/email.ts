@@ -163,7 +163,7 @@ async function trySendWithDomain(params: EmailParams, fromDomain: any): Promise<
  * Send a client invitation email
  * 
  * @param clientEmail The client's email address
- * @param therapistName The name of the inviting therapist
+ * @param therapistName The name of the inviting mental health professional
  * @param inviteLink Link to accept the invitation
  * @returns Promise resolving to a boolean indicating success
  */
@@ -185,7 +185,7 @@ export async function sendClientInvitation(
       <ol style="margin-bottom: 25px;">
         <li><strong>Register Your Account</strong>: Click the button below to create your account (your email address will be pre-filled)</li>
         <li><strong>Complete Registration</strong>: Create a username and password of your choice</li>
-        <li><strong>Start Using the Platform</strong>: Once registered, you'll be automatically connected with your therapist</li>
+        <li><strong>Start Using the Platform</strong>: Once registered, you'll be automatically connected with your mental health professional</li>
       </ol>
       
       <div style="margin: 30px 0;">
@@ -346,11 +346,11 @@ export async function sendPasswordResetEmail(
 }
 
 /**
- * Send a therapist account creation email
+ * Send a professional account creation email
  * 
- * @param therapistEmail Therapist's email address
- * @param therapistName Therapist's name
- * @param username The username created for the therapist
+ * @param therapistEmail Mental health professional's email address
+ * @param therapistName Mental health professional's name
+ * @param username The username created for the mental health professional
  * @param password The temporary password
  * @param loginLink Link to the login page
  * @returns Promise resolving to a boolean indicating success
