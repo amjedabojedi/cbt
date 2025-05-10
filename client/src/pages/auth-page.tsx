@@ -218,10 +218,6 @@ export default function AuthPage() {
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className={`grid w-full grid-cols-1`}>
-              {!isInvitation && <TabsTrigger value="login">Login</TabsTrigger>}
-              {isInvitation && <TabsTrigger value="register">Complete Registration</TabsTrigger>}
-            </TabsList>
             
             <TabsContent value="login" className="mt-6">
               <Card>
