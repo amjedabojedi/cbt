@@ -48,22 +48,22 @@ export default function TermsOfService() {
             
             <h2>5. Medical Disclaimer</h2>
             <p>
-              The platform is not intended to diagnose, treat, cure, or prevent any mental health condition. It is a tool to support cognitive behavioral therapy and should be used under the guidance of a qualified mental health professional.
+              The platform is not intended to diagnose, treat, cure, or prevent any mental health condition. It is a tool to support cognitive behavioral exercises and should be used under the guidance of a qualified mental health professional.
             </p>
             
             <h2>6. Limitations</h2>
             <p>
-              In no event shall Resilience CBT or its suppliers be liable for any damages arising out of the use or inability to use the platform, even if Resilience CBT has been notified of the possibility of such damages.
+              In no event shall Resilience Counseling Research and Consultation or its suppliers be liable for any damages arising out of the use or inability to use the platform, even if Resilience Counseling Research and Consultation has been notified of the possibility of such damages.
             </p>
             
             <h2>7. Accuracy of Materials</h2>
             <p>
-              The materials on the Resilience CBT platform are provided on an 'as is' basis. We make no warranties, expressed or implied, and hereby disclaim and negate all other warranties including, without limitation, implied warranties of merchantability or fitness for a particular purpose.
+              The materials on the Resilience Counseling Research and Consultation platform are provided on an 'as is' basis. We make no warranties, expressed or implied, and hereby disclaim and negate all other warranties including, without limitation, implied warranties of merchantability or fitness for a particular purpose.
             </p>
             
             <h2>8. Privacy</h2>
             <p>
-              Your use of the Resilience CBT platform is also governed by our Privacy Policy, which is incorporated by reference into these Terms of Service.
+              Your use of the Resilience Counseling Research and Consultation platform is also governed by our Privacy Policy, which is incorporated by reference into these Terms of Service.
             </p>
             
             <h2>9. Termination</h2>
@@ -83,7 +83,7 @@ export default function TermsOfService() {
             
             <h2>12. Contact Us</h2>
             <p>
-              If you have any questions about these Terms, please contact us at mail@resiliencec.com.
+              If you have any questions about these Terms, please contact us at mail@rcrccanada.com.
             </p>
           </div>
         </div>
