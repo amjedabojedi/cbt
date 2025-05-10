@@ -37,7 +37,7 @@ export default function PrivacyPolicy() {
             <ul>
               <li>Provide and maintain our therapy services</li>
               <li>Personalize your experience</li>
-              <li>Facilitate communication between therapists and clients</li>
+              <li>Facilitate communication between mental health professionals and clients</li>
               <li>Analyze usage patterns to improve our platform</li>
               <li>Ensure the security of our services</li>
             </ul>
@@ -45,7 +45,7 @@ export default function PrivacyPolicy() {
             <h2>4. Information Sharing</h2>
             <p>We share information with:</p>
             <ul>
-              <li><strong>Your Therapist:</strong> If you are a client, your therapist will have access to your therapy-related information.</li>
+              <li><strong>Your Mental Health Professional:</strong> If you are a client, your mental health professional will have access to your CBT interactive tools information.</li>
               <li><strong>Service Providers:</strong> We may share information with third-party vendors who perform services on our behalf.</li>
               <li><strong>Legal Requirements:</strong> We may disclose information if required to do so by law or in response to valid requests by public authorities.</li>
             </ul>

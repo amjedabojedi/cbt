@@ -25,12 +25,12 @@ export default function LandingPage() {
         </h1>
         <p className="text-xl md:text-2xl text-neutral-700 max-w-3xl mx-auto mb-4">
           A platform providing interactive CBT tools for tracking emotions, thoughts, and behaviors
-          that connects therapists with clients for personalized mental health tracking.
+          that connects mental health professionals with clients for personalized mental health tracking.
         </p>
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-3xl mx-auto mb-8">
           <p className="text-sm text-yellow-800">
             <strong>Important:</strong> This app provides interactive CBT tools for tracking emotions, thoughts, and behaviors. 
-            It is not a replacement for professional mental health guidance. These tools work best when used with a qualified therapist.
+            It is not a replacement for professional mental health guidance. These tools work best when used with a qualified mental health professional.
           </p>
         </div>
         <div className="flex flex-col gap-6 max-w-md mx-auto">
@@ -42,7 +42,7 @@ export default function LandingPage() {
             </Button>
           </div>
           <p className="text-sm text-neutral-700 text-center">
-            Clients need an invitation from their therapist to access the platform.
+            Clients need an invitation from their mental health professional to access the platform.
             If you've received an invitation, check your email for the registration link.
           </p>
         </div>
