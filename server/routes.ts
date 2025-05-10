@@ -584,8 +584,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Set the session cookie
           res.cookie("sessionId", session.id, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            secure: true, // Always use secure cookies
+            sameSite: "none", // Use 'none' to support cross-site usage on mobile
+            path: "/", // Ensure cookie is available on all paths
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
           });
           
@@ -627,8 +628,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set the session cookie
       res.cookie("sessionId", session.id, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax", // Changed from strict to lax to allow cross-site navigation when clicking links
+        secure: true, // Always use secure cookies
+        sameSite: "none", // Use 'none' to support cross-site usage on mobile
+        path: "/", // Ensure cookie is available on all paths
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
       
@@ -789,8 +791,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set the session cookie
       res.cookie("sessionId", session.id, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        secure: true, // Always use secure cookies
+        sameSite: "none", // Use 'none' to support cross-site usage on mobile
+        path: "/", // Ensure cookie is available on all paths
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
       
