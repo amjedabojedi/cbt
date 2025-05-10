@@ -357,7 +357,7 @@ export default function UserManagement() {
   };
 
   return (
-    <Layout title="User Management">
+    <Layout title="Therapist Management">
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
