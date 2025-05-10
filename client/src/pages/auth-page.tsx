@@ -356,15 +356,15 @@ export default function AuthPage() {
                         control={registerForm.control}
                         name="password"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="form-item">
                             <FormLabel>Password</FormLabel>
                             <FormControl>
                               <Input type="password" placeholder="••••••••" {...field} />
                             </FormControl>
-                            <FormDescription>
+                            <FormDescription className="form-description">
                               Must be at least 6 characters
                             </FormDescription>
-                            <FormMessage />
+                            <FormMessage className="form-message" />
                           </FormItem>
                         )}
                       />
@@ -374,25 +374,25 @@ export default function AuthPage() {
                           control={registerForm.control}
                           name="role"
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="form-item">
                               <FormLabel>Account Type</FormLabel>
                               <Select
                                 onValueChange={field.onChange}
                                 defaultValue={field.value}
                               >
                                 <FormControl>
-                                  <SelectTrigger>
+                                  <SelectTrigger className="select-trigger">
                                     <SelectValue placeholder="Select account type" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="therapist">Mental Health Professional</SelectItem>
+                                <SelectContent className="select-content">
+                                  <SelectItem value="therapist" className="select-item">Mental Health Professional</SelectItem>
                                 </SelectContent>
                               </Select>
-                              <FormDescription>
+                              <FormDescription className="form-description">
                                 As a mental health professional, you'll be enrolled in the Free trial plan automatically
                               </FormDescription>
-                              <FormMessage />
+                              <FormMessage className="form-message" />
                             </FormItem>
                           )}
                         />
