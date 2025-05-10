@@ -63,15 +63,15 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 }
 
 /**
- * Check if the user is a therapist or admin
+ * Check if the user is a mental health professional or admin
  */
-export function isTherapist(req: Request, res: Response, next: NextFunction) {
+export function isProfessional(req: Request, res: Response, next: NextFunction) {
   if (!req.user) {
     return res.status(401).json({ message: 'Authentication required' });
   }
 
   if (req.user.role !== 'therapist' && req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'Access denied. Therapist role required.' });
+    return res.status(403).json({ message: 'Access denied. Mental health professional role required.' });
   }
   
   next();
