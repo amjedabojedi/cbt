@@ -197,14 +197,14 @@ export async function sendClientInvitation(
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #4A6FA5;">
         <p style="margin: 0; font-weight: bold;">What to Expect After Registration:</p>
         <ul style="margin-top: 10px; padding-left: 20px;">
-          <li>Immediate access to all therapy tools</li>
-          <li>Automatic connection to your therapist's practice</li>
-          <li>Access to resources shared by your therapist</li>
+          <li>Immediate access to all cognitive behavioral tools</li>
+          <li>Automatic connection to your mental health professional's practice</li>
+          <li>Access to resources shared by your mental health professional</li>
         </ul>
       </div>
       
       <p style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #4A6FA5;">
-        <strong>Important:</strong> This link contains information connecting you to your therapist. Please click the button above rather than copying the URL.
+        <strong>Important:</strong> This link contains information connecting you to your mental health professional. Please click the button above rather than copying the URL.
       </p>
       
       <p>This invitation link will expire in 7 days.</p>
@@ -239,7 +239,7 @@ export async function sendEmotionTrackingReminder(
       <p>Hello ${userName},</p>
       <p>This is a friendly reminder to track your emotions today. Regular tracking helps build awareness and identify patterns.</p>
       <div style="margin: 30px 0;">
-        <a href="https://resilience-cbt.replit.app/emotion-tracking" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+        <a href="https://resilience.replit.app/emotion-tracking" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
           Track Now
         </a>
       </div>
@@ -274,7 +274,7 @@ export async function sendWeeklyProgressDigest(
   emotionEntries: number,
   thoughtRecords: number
 ): Promise<boolean> {
-  const subject = 'Your Weekly CBT Progress Report';
+  const subject = 'Your Weekly Progress Report';
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -292,7 +292,7 @@ export async function sendWeeklyProgressDigest(
       </div>
       
       <div style="margin: 30px 0;">
-        <a href="https://resilience-cbt.replit.app/reports" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+        <a href="https://resilience.replit.app/reports" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
           View Full Report
         </a>
       </div>
@@ -360,15 +360,15 @@ export async function sendTherapistWelcomeEmail(
   therapistName: string,
   username: string,
   password: string,
-  loginLink: string = "https://resilience-cbt.replit.app/login"
+  loginLink: string = "https://resilience.replit.app/login"
 ): Promise<boolean> {
-  const subject = 'Welcome to Resilience CBT - Your Account Details';
+  const subject = 'Welcome to Resilience - Your Account Details';
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h1 style="color: #4A6FA5;">Welcome to Resilience CBT</h1>
+      <h1 style="color: #4A6FA5;">Welcome to Resilience</h1>
       <p>Hello ${therapistName},</p>
-      <p>An administrator has created a therapist account for you on the Resilience CBT platform. This platform will help you manage your clients' therapy journeys with tools for emotion tracking, thought records, journaling, and goal setting.</p>
+      <p>An administrator has created a professional account for you on the Resilience platform. This platform will help you manage your clients' journeys with tools for emotion tracking, thought records, journaling, and goal setting.</p>
       
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4A6FA5;">
         <h2 style="color: #4A6FA5; margin-top: 0; font-size: 18px;">Your Account Details:</h2>
@@ -392,7 +392,7 @@ export async function sendTherapistWelcomeEmail(
       </ol>
       
       <p>If you have any questions or need assistance, please contact the administrator who created your account.</p>
-      <p>Best regards,<br>The Resilience CBT Team</p>
+      <p>Best regards,<br>The Resilience Counseling Research and Consultation Team</p>
     </div>
   `;
   
