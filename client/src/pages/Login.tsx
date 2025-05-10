@@ -145,13 +145,75 @@ export default function Login() {
             <Alert className="my-3 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/30">
               <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               <AlertDescription className="text-xs">
-                Important: Use the provided admin credentials (username: <span className="font-mono font-semibold">admin</span>, password: <span className="font-mono font-semibold">123456</span>)
+                <div className="font-semibold">IMPORTANT: Use EXACTLY these credentials:</div>
+                <div className="mt-1 p-2 bg-amber-100 dark:bg-amber-900/40 rounded border border-amber-200 dark:border-amber-800/30">
+                  <div className="flex items-center justify-between">
+                    <div>Admin: username: <span className="font-mono font-bold">admin</span>, password: <span className="font-mono font-bold">123456</span></div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-[10px] py-0 px-2 hover:bg-amber-200/50" 
+                      onClick={() => {
+                        setUsername('admin');
+                        setPassword('123456');
+                      }}
+                    >
+                      Auto-fill
+                    </Button>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between">
+                    <div>Therapist: username: <span className="font-mono font-bold">lcanady</span>, password: <span className="font-mono font-bold">123456</span></div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-[10px] py-0 px-2 hover:bg-amber-200/50" 
+                      onClick={() => {
+                        setUsername('lcanady');
+                        setPassword('123456');
+                      }}
+                    >
+                      Auto-fill
+                    </Button>
+                  </div>
+                </div>
+                <div className="mt-2 text-[10px]">Note: Make sure password is exactly 6 digits (123456), not 7 digits (1234567)</div>
               </AlertDescription>
             </Alert>
             
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logging in..." : "Log In"}
-            </Button>
+            <div className="space-y-3">
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Logging in..." : "Log In"}
+              </Button>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-muted"></span>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or
+                  </span>
+                </div>
+              </div>
+              
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                disabled={loading}
+                onClick={() => {
+                  setUsername('admin');
+                  setPassword('123456');
+                  
+                  // Short delay to ensure state is updated before submitting
+                  setTimeout(() => {
+                    handleLogin({ preventDefault: () => {} } as React.FormEvent);
+                  }, 50);
+                }}
+              >
+                Login as Admin
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
