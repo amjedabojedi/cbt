@@ -21,12 +21,12 @@ export default function TermsOfService() {
             
             <h2>1. Agreement to Terms</h2>
             <p>
-              By accessing or using the Resilience CBT platform, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this platform.
+              By accessing or using the Resilience Counseling Research and Consultation platform, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this platform.
             </p>
             
             <h2>2. Use License</h2>
             <p>
-              Permission is granted to temporarily use the Resilience CBT platform for personal, non-commercial therapeutic purposes only. This is the grant of a license, not a transfer of title, and under this license you may not:
+              Permission is granted to temporarily use the Resilience Counseling Research and Consultation platform for personal, non-commercial therapeutic purposes only. This is the grant of a license, not a transfer of title, and under this license you may not:
             </p>
             <ul>
               <li>Modify or copy the materials</li>
@@ -43,7 +43,7 @@ export default function TermsOfService() {
             
             <h2>4. Therapist-Client Relationship</h2>
             <p>
-              The Resilience CBT platform facilitates the therapist-client relationship but does not replace professional therapy. The platform should be used in conjunction with, not in place of, professional mental health services.
+              The Resilience Counseling Research and Consultation platform facilitates the professional-client relationship but does not replace professional therapy. The platform should be used in conjunction with, not in place of, professional mental health services.
             </p>
             
             <h2>5. Medical Disclaimer</h2>

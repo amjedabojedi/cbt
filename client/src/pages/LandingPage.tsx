@@ -296,7 +296,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-border mt-8 pt-8 text-center text-neutral-600">
-            <p>© {new Date().getFullYear()} Resilience CBT. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Resilience Counseling Research and Consultation. All rights reserved.</p>
           </div>
         </div>
       </footer>
