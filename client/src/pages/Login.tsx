@@ -28,15 +28,11 @@ export default function Login() {
     
     try {
       // Use apiRequest from queryClient which handles headers and credentials
+      // Our enhanced apiRequest now properly handles error responses
       const response = await apiRequest("POST", "/api/auth/login", { 
         username, 
         password 
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Login failed");
-      }
       
       // Get the user data
       const userData = await response.json();
