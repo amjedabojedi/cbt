@@ -21,12 +21,12 @@ export default function TermsOfService() {
             
             <h2>1. Agreement to Terms</h2>
             <p>
-              By accessing or using the New Horizon CBT platform, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this platform.
+              By accessing or using the Resilience CBT platform, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this platform.
             </p>
             
             <h2>2. Use License</h2>
             <p>
-              Permission is granted to temporarily use the New Horizon CBT platform for personal, non-commercial therapeutic purposes only. This is the grant of a license, not a transfer of title, and under this license you may not:
+              Permission is granted to temporarily use the Resilience CBT platform for personal, non-commercial therapeutic purposes only. This is the grant of a license, not a transfer of title, and under this license you may not:
             </p>
             <ul>
               <li>Modify or copy the materials</li>
@@ -43,7 +43,7 @@ export default function TermsOfService() {
             
             <h2>4. Therapist-Client Relationship</h2>
             <p>
-              The New Horizon CBT platform facilitates the therapist-client relationship but does not replace professional therapy. The platform should be used in conjunction with, not in place of, professional mental health services.
+              The Resilience CBT platform facilitates the therapist-client relationship but does not replace professional therapy. The platform should be used in conjunction with, not in place of, professional mental health services.
             </p>
             
             <h2>5. Medical Disclaimer</h2>
@@ -53,12 +53,12 @@ export default function TermsOfService() {
             
             <h2>6. Limitations</h2>
             <p>
-              In no event shall New Horizon CBT or its suppliers be liable for any damages arising out of the use or inability to use the platform, even if New Horizon CBT has been notified of the possibility of such damages.
+              In no event shall Resilience CBT or its suppliers be liable for any damages arising out of the use or inability to use the platform, even if Resilience CBT has been notified of the possibility of such damages.
             </p>
             
             <h2>7. Accuracy of Materials</h2>
             <p>
-              The materials on the New Horizon CBT platform are provided on an 'as is' basis. We make no warranties, expressed or implied, and hereby disclaim and negate all other warranties including, without limitation, implied warranties of merchantability or fitness for a particular purpose.
+              The materials on the Resilience CBT platform are provided on an 'as is' basis. We make no warranties, expressed or implied, and hereby disclaim and negate all other warranties including, without limitation, implied warranties of merchantability or fitness for a particular purpose.
             </p>
             
             <h2>8. Privacy</h2>

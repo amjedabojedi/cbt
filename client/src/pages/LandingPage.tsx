@@ -260,7 +260,7 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-20 text-center">
         <h2 className="text-3xl font-bold mb-6">For Mental Health Professionals</h2>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-          Are you a therapist looking to enhance your practice with digital CBT tools? Join New Horizon CBT to provide your clients with powerful therapeutic resources.
+          Are you a therapist looking to enhance your practice with digital CBT tools? Join Resilience CBT to provide your clients with powerful therapeutic resources.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild size="lg" className="gap-2">
@@ -276,7 +276,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
-              <h3 className="text-xl font-bold">New Horizon CBT</h3>
+              <h3 className="text-xl font-bold">Resilience CBT</h3>
               <p className="text-muted-foreground mt-2">Mental health support tools for therapists and clients</p>
             </div>
             <div className="flex flex-col md:flex-row gap-6 md:gap-12">
@@ -292,7 +292,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
-            <p>© {new Date().getFullYear()} New Horizon CBT. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Resilience CBT. All rights reserved.</p>
           </div>
         </div>
       </footer>
