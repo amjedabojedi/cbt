@@ -196,3 +196,16 @@
   @apply absolute w-2 h-2 bg-primary rounded-full -right-1 -top-1;
 }
 
+/* Landing page feature box styles - force light mode */
+.landing-feature-box {
+  @apply bg-white text-neutral-800 border border-gray-200 shadow-sm !important;
+}
+
+.landing-feature-box h3 {
+  @apply text-neutral-800 !important;
+}
+
+.landing-feature-box p {
+  @apply text-neutral-600 !important;
+}
+

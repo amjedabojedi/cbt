@@ -52,67 +52,67 @@ export default function LandingPage() {
         <h2 className="text-3xl font-bold text-center mb-12">Interactive CBT Tools for Emotion and Behavior Tracking</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Feature 1 */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="landing-feature-box rounded-lg p-6 shadow-sm">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Brain className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2 text-neutral-800">Advanced Emotion Tracking</h3>
-            <p className="text-neutral-600">
+            <h3 className="text-xl font-semibold mb-2">Advanced Emotion Tracking</h3>
+            <p>
               Record and visualize emotions between sessions using our detailed emotion wheel with intensity tracking and pattern identification.
             </p>
           </div>
 
           {/* Feature 2 */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="landing-feature-box rounded-lg p-6 shadow-sm">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Heart className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2 text-neutral-800">Interactive CBT Tools</h3>
-            <p className="text-neutral-600">
+            <h3 className="text-xl font-semibold mb-2">Interactive CBT Tools</h3>
+            <p>
               Complete structured thought records between sessions to document thinking patterns. Track and record coping strategies that work for you.
             </p>
           </div>
 
           {/* Feature 3 */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="landing-feature-box rounded-lg p-6 shadow-sm">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Target className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2 text-neutral-800">Goal Setting & Tracking</h3>
-            <p className="text-neutral-600">
+            <h3 className="text-xl font-semibold mb-2">Goal Setting & Tracking</h3>
+            <p>
               Document specific, measurable goals and track your progress between sessions. Break down larger goals into manageable steps.
             </p>
           </div>
 
           {/* Feature 4 */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="landing-feature-box rounded-lg p-6 shadow-sm">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Book className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2 text-neutral-800">AI-Powered Journaling</h3>
-            <p className="text-neutral-600">
+            <h3 className="text-xl font-semibold mb-2">AI-Powered Journaling</h3>
+            <p>
               Record thoughts in journal entries between sessions. AI analysis helps identify recurring patterns and themes in your writing.
             </p>
           </div>
 
           {/* Feature 5 */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="landing-feature-box rounded-lg p-6 shadow-sm">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <BarChart3 className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2 text-neutral-800">Integrated Insights</h3>
-            <p className="text-neutral-600">
+            <h3 className="text-xl font-semibold mb-2">Integrated Insights</h3>
+            <p>
               Visualize connections between your recorded emotions, thoughts, and journal entries. Track patterns and changes over time between sessions.
             </p>
           </div>
 
           {/* Feature 6 */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="landing-feature-box rounded-lg p-6 shadow-sm">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <MessageCircle className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2 text-neutral-800">Professional-Client Connection</h3>
-            <p className="text-neutral-600">
+            <h3 className="text-xl font-semibold mb-2">Professional-Client Connection</h3>
+            <p>
               Share your tracking data securely with your therapist. Receive feedback on your progress and recording activities between sessions.
             </p>
           </div>
@@ -167,11 +167,11 @@ export default function LandingPage() {
           <h2 className="text-3xl font-bold text-center mb-12">Tailored for Everyone</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Client Role */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-neutral-800">
+            <div className="landing-feature-box rounded-lg p-6 shadow-sm">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                 <Heart className="h-5 w-5 text-rose-500" /> For Clients
               </h3>
-              <ul className="space-y-2 text-neutral-600">
+              <ul className="space-y-2">
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
                   Create personal emotion records and track patterns
@@ -196,11 +196,11 @@ export default function LandingPage() {
             </div>
 
             {/* Therapist Role */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-neutral-800">
+            <div className="landing-feature-box rounded-lg p-6 shadow-sm">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                 <Brain className="h-5 w-5 text-blue-500" /> For Therapists
               </h3>
-              <ul className="space-y-2 text-neutral-600">
+              <ul className="space-y-2">
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
                   View and provide feedback on client records
@@ -225,11 +225,11 @@ export default function LandingPage() {
             </div>
 
             {/* Admin Role */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-neutral-800">
+            <div className="landing-feature-box rounded-lg p-6 shadow-sm">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                 <Shield className="h-5 w-5 text-purple-500" /> For Administrators
               </h3>
-              <ul className="space-y-2 text-neutral-600">
+              <ul className="space-y-2">
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
                   Manage therapist accounts and permissions
