@@ -64,6 +64,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 
 /**
  * Check if the user is a mental health professional or admin
+ * Note: DB role is still 'therapist' but displayed as 'professional'
  */
 export function isProfessional(req: Request, res: Response, next: NextFunction) {
   if (!req.user) {
@@ -106,9 +107,9 @@ export function isClientOrAdmin(req: Request, res: Response, next: NextFunction)
     return next();
   }
   
-  // If user is therapist (but not admin), deny access
+  // If user is professional (but not admin), deny access
   if (req.user.role === 'therapist') {
-    return res.status(403).json({ message: 'Therapists cannot create emotion or thought records. Only clients can record emotions and thoughts.' });
+    return res.status(403).json({ message: 'Mental health professionals cannot create emotion or thought records. Only clients can record emotions and thoughts.' });
   }
   
   // Otherwise, assume client role and allow
@@ -137,19 +138,19 @@ export function checkResourceCreationPermission(req: Request, res: Response, nex
     return next();
   }
   
-  // If therapist is creating a resource for their client - allow
+  // If professional is creating a resource for their client - allow
   if (req.user.role === 'therapist') {
-    console.log('Therapist creating resource for client - checking relationship');
+    console.log('Professional creating resource for client - checking relationship');
     
     // Verify the requested user is their client
     (async () => {
       try {
         const client = await storage.getUser(requestedUserId);
         if (client && client.therapistId === req.user.id) {
-          console.log('This client belongs to the therapist - ALLOWED');
+          console.log('This client belongs to the professional - ALLOWED');
           return next();
         }
-        console.log('This client does not belong to the therapist - DENIED');
+        console.log('This client does not belong to the professional - DENIED');
         res.status(403).json({ message: 'Access denied. You can only create resources for your own clients.' });
       } catch (error) {
         console.error('Resource creation permission check error:', error);
@@ -202,9 +203,9 @@ export function checkUserAccess(req: Request, res: Response, next: NextFunction)
     return next();
   }
   
-  // THIRD check: If user is a therapist accessing a client's data
+  // THIRD check: If user is a professional accessing a client's data
   if (req.user.role === 'therapist') {
-    console.log('User is a therapist, checking if they are accessing their client');
+    console.log('User is a mental health professional, checking if they are accessing their client');
     
     // Use async/await instead of promise chains for clarity
     (async () => {
@@ -213,11 +214,11 @@ export function checkUserAccess(req: Request, res: Response, next: NextFunction)
         console.log(`Client ${requestedUserId} lookup result:`, client ? `Found: therapistId = ${client.therapistId}` : 'Not found');
         
         if (client && client.therapistId === req.user.id) {
-          console.log('This client belongs to the therapist - ALLOWED');
+          console.log('This client belongs to the professional - ALLOWED');
           return next();
         }
         
-        console.log('This client does not belong to the therapist - DENIED');
+        console.log('This client does not belong to the professional - DENIED');
         res.status(403).json({ message: 'Access denied. Not your client.' });
       } catch (error) {
         console.error('Check user access error:', error);

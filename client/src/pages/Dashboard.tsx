@@ -7,7 +7,7 @@ import MoodTrends from "@/components/dashboard/MoodTrends";
 import ReflectionTrends from "@/components/dashboard/ReflectionTrends";
 import ReflectionInsights from "@/components/dashboard/ReflectionInsights";
 import CrossComponentInsights from "@/components/dashboard/CrossComponentInsights";
-import TherapistStats from "@/components/dashboard/TherapistStats"; // TODO: Rename component to ProfessionalStats
+import ProfessionalStats from "@/components/dashboard/ProfessionalStats";
 import useActiveUser from "@/hooks/use-active-user";
 import { useClientContext } from "@/context/ClientContext";
 import { ClientDebug } from "@/components/debug/ClientDebug";
@@ -56,7 +56,7 @@ export default function Dashboard() {
         {/* Professional-specific view */}
         {isProfessional && !isViewingClientData && (
           <div className="mb-6">
-            <TherapistStats />
+            <ProfessionalStats />
           </div>
         )}
         
