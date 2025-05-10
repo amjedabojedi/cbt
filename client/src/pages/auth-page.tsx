@@ -295,7 +295,7 @@ export default function AuthPage() {
                   <CardDescription>
                     {isInvitation 
                       ? "Fill out the form below to finalize your account creation" 
-                      : "Join Resilience CBT to begin your therapeutic journey"}
+                      : "Join Resilience CBT to access interactive CBT tools"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -403,13 +403,13 @@ export default function AuthPage() {
         <div className="max-w-lg">
           <h2 className="text-3xl font-bold text-primary mb-4">
             {isInvitation 
-              ? "Welcome to Your Therapeutic Journey" 
-              : "Advanced Cognitive Behavioral Therapy Tools"}
+              ? "Welcome to Resilience CBT" 
+              : "Advanced Interactive CBT Tools"}
           </h2>
           <p className="text-lg mb-6 text-neutral-700">
             {isInvitation 
-              ? "Your therapist has invited you to join Resilience CBT, where you'll have access to personalized therapeutic tools and resources."
-              : "Resilience CBT provides a comprehensive suite of mental health support tools designed around evidence-based therapeutic approaches."}
+              ? "Your therapist has invited you to join Resilience CBT, where you'll have access to personalized interactive CBT tools and resources."
+              : "Resilience CBT provides a comprehensive suite of tools for tracking emotions, thoughts, and behaviors designed around evidence-based approaches."}
           </p>
           
           <div className="space-y-4">
@@ -449,7 +449,7 @@ export default function AuthPage() {
               </div>
               <div>
                 <h3 className="text-lg font-medium text-primary mb-1">Personal Progress Insights</h3>
-                <p className="text-neutral-600">Track your therapeutic journey with detailed analytics and visualizations.</p>
+                <p className="text-neutral-600">Track your progress with detailed analytics and visualizations.</p>
               </div>
             </div>
           </div>
