@@ -4525,7 +4525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const emailSent = await sendEmail({
           to: testEmail,
           subject: "Email System Test",
-          html: "<h1>Test Email</h1><p>This is a test email sent from New Horizon CBT application.</p>"
+          html: "<h1>Test Email</h1><p>This is a test email sent from Resilience CBT application.</p>"
         });
         
         if (emailSent) {
@@ -4613,7 +4613,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const notification = await storage.createNotification({
             userId: 1, // Admin user
             title: "Test Client Invitation",
-            body: `This is a test notification for inviting ${email} to New Horizon-CBT. This demonstrates the new invitation notification type.`,
+            body: `This is a test notification for inviting ${email} to Resilience CBT. This demonstrates the new invitation notification type.`,
             type: "invitation",
             isRead: false,
             linkPath: "/clients",
@@ -4754,7 +4754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("=== TESTING MULTIPLE SENDER DOMAINS ===");
         
         // Test primary domain
-        console.log(`1. Testing primary domain: New Horizon CBT <noreply@send.rcrc.ca>`);
+        console.log(`1. Testing primary domain: Resilience CBT <noreply@send.rcrc.ca>`);
         let emailSent = await sendTherapistWelcomeEmail(
           testEmail,
           "Test Therapist",
@@ -4767,9 +4767,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If primary failed, test SparkPost's domains
         if (!emailSent) {
           const domains = [
-            'New Horizon CBT <noreply@sparkpostmail.com>',
-            'New Horizon CBT <noreply@eu.sparkpostmail.com>',
-            'New Horizon CBT <noreply@mail.sparkpost.com>'
+            'Resilience CBT <noreply@sparkpostmail.com>',
+            'Resilience CBT <noreply@eu.sparkpostmail.com>',
+            'Resilience CBT <noreply@mail.sparkpost.com>'
           ];
           
           for (let i = 0; i < domains.length; i++) {
@@ -4835,7 +4835,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const result = await sparkPostClient.transmissions.send({
           content: {
             from: {
-              name: "New Horizon CBT",
+              name: "Resilience CBT",
               email: "support@sparkpostbox.com"  // Using SparkPost's sandbox domain which is always enabled
             },
             subject: "Direct Test Email",
@@ -4878,7 +4878,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Target email: ${testEmail}`);
         console.log(`SparkPost API Key configured: ${process.env.SPARKPOST_API_KEY ? 'Yes' : 'No'}`);
         console.log(`SparkPost API Key length: ${process.env.SPARKPOST_API_KEY?.length || 0}`);
-        console.log(`Sender email: New Horizon CBT <noreply@send.rcrc.ca>`);
+        console.log(`Sender email: Resilience CBT <noreply@send.rcrc.ca>`);
         
         // Check SparkPost API directly
         let sparkPostApiStatus = 'Unknown';
@@ -4964,7 +4964,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sparkPostConfigured: process.env.SPARKPOST_API_KEY ? true : false,
             sparkPostApiStatus,
             sparkPostApiDetails,
-            senderEmail: "New Horizon CBT <noreply@send.rcrc.ca>",
+            senderEmail: "Resilience CBT <noreply@send.rcrc.ca>",
             plainTextEmailSent: plainTextResult,
             htmlEmailSent: htmlResult,
             welcomeEmailSent: welcomeResult,
