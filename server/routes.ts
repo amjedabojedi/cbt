@@ -11,7 +11,7 @@ import { initializeWebSocketServer, sendNotificationToUser } from "./services/we
 import { sendEmail, sendProfessionalWelcomeEmail, sendClientInvitation, sendEmotionTrackingReminder, sendPasswordResetEmail, sendWeeklyProgressDigest, sparkPostClient } from "./services/email";
 
 // Global reference to default email sender for alternative domain testing
-(global as any).DEFAULT_FROM_EMAIL = 'Resilience CBT <noreply@send.rcrc.ca>';
+(global as any).DEFAULT_FROM_EMAIL = 'ResilienceHub <noreply@send.rcrc.ca>';
 import { 
   insertUserSchema, 
   insertEmotionRecordSchema,
@@ -4635,13 +4635,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
     
-    // Test sending a therapist welcome email without authentication
+    // Test sending a professional welcome email without authentication
     app.get("/api/test/welcome-email", async (req, res) => {
       try {
         const testEmail = req.query.email?.toString() || "test@example.com";
-        console.log(`Attempting to send therapist welcome email to: ${testEmail}`);
+        console.log(`Attempting to send professional welcome email to: ${testEmail}`);
         
-        const emailSent = await sendTherapistWelcomeEmail(
+        const emailSent = await sendProfessionalWelcomeEmail(
           testEmail,
           "Test Therapist",
           "testuser123",
@@ -4650,23 +4650,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         
         if (emailSent) {
-          console.log(`Therapist welcome email successfully sent to ${testEmail}`);
+          console.log(`Professional welcome email successfully sent to ${testEmail}`);
           res.json({ 
             success: true, 
-            message: `Therapist welcome email sent to ${testEmail}`,
+            message: `Professional welcome email sent to ${testEmail}`,
             details: "Check email inbox or spam folder" 
           });
         } else {
-          console.log(`Failed to send therapist welcome email to ${testEmail}`);
+          console.log(`Failed to send professional welcome email to ${testEmail}`);
           res.json({ 
             success: false, 
             message: "Email sending failed. Check server logs for details."
           });
         }
       } catch (error) {
-        console.error("Therapist welcome email error:", error);
+        console.error("Professional welcome email error:", error);
         res.status(500).json({ 
-          error: "Failed to send therapist welcome email", 
+          error: "Failed to send professional welcome email", 
           details: error.message,
           stack: process.env.NODE_ENV === "development" ? error.stack : undefined
         });
@@ -4840,9 +4840,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Test primary domain
         console.log(`1. Testing primary domain: Resilience CBT <noreply@send.rcrc.ca>`);
-        let emailSent = await sendTherapistWelcomeEmail(
+        let emailSent = await sendProfessionalWelcomeEmail(
           testEmail,
-          "Test Therapist",
+          "Test Professional",
           "testuser123",
           "password123",
           `${req.protocol}://${req.get('host')}/login`
@@ -4863,9 +4863,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             (global as any).DEFAULT_FROM_EMAIL = domains[i];
             
             console.log(`${i+2}. Testing alternative domain: ${domains[i]}`);
-            emailSent = await sendTherapistWelcomeEmail(
+            emailSent = await sendProfessionalWelcomeEmail(
               testEmail,
-              "Test Therapist",
+              "Test Professional",
               "testuser123",
               "password123",
               `${req.protocol}://${req.get('host')}/login`
@@ -5030,10 +5030,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`HTML email result: ${htmlResult ? 'Success' : 'Failed'}`);
         
         // Test welcome email
-        console.log("\n3. Testing therapist welcome email...");
-        const welcomeResult = await sendTherapistWelcomeEmail(
+        console.log("\n3. Testing professional welcome email...");
+        const welcomeResult = await sendProfessionalWelcomeEmail(
           testEmail,
-          "Test Therapist",
+          "Test Professional",
           "testuser123",
           "password123",
           `${req.protocol}://${req.get('host')}/login`
