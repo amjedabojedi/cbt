@@ -16,20 +16,20 @@ export default function LandingPage() {
   }, [user, setLocation]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
       {/* Hero Section */}
       <header className="container mx-auto px-4 pt-24 pb-16 text-center">
         <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 mb-6">
           Resilience CBT
         </h1>
         <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-4">
-          A cognitive behavioral therapy platform connecting therapists with clients
-          for personalized mental health support.
+          A platform for tracking emotions, thoughts, and behaviors that connects 
+          therapists with clients for personalized mental health support.
         </p>
         <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-4 max-w-3xl mx-auto mb-8">
           <p className="text-sm text-yellow-800">
-            <strong>Important:</strong> This app is a self-awareness tool meant to be used alongside therapy. 
-            It is not therapy itself. Always use these tools under the guidance of a qualified therapist.
+            <strong>Important:</strong> This app provides tools for tracking emotions, thoughts, and behaviors. 
+            It is not a replacement for professional mental health guidance. These tools work best when used with a qualified therapist.
           </p>
         </div>
         <div className="flex flex-col gap-6 max-w-md mx-auto">
@@ -162,7 +162,7 @@ export default function LandingPage() {
       </section>
 
       {/* User Roles Section */}
-      <section className="bg-muted/30 py-16">
+      <section className="bg-blue-50/70 py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Tailored for Everyone</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -272,7 +272,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-muted py-12">
+      <footer className="bg-blue-50 py-12">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
