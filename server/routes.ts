@@ -1615,13 +1615,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Therapist dashboard statistics
+  // Professional dashboard statistics
   app.get("/api/professional/stats/journal", authenticate, isProfessional, async (req, res) => {
     try {
-      const therapistId = req.user.id;
+      const professionalId = req.user.id;
       
-      // Get all clients of this therapist
-      const clients = await storage.getClients(therapistId);
+      // Get all clients of this professional
+      const clients = await storage.getClients(professionalId);
       const clientIds = clients.map(client => client.id);
       
       // If no clients, return 0 count
@@ -1645,10 +1645,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/professional/stats/thoughts", authenticate, isProfessional, async (req, res) => {
     try {
-      const therapistId = req.user.id;
+      const professionalId = req.user.id;
       
-      // Get all clients of this therapist
-      const clients = await storage.getClients(therapistId);
+      // Get all clients of this professional
+      const clients = await storage.getClients(professionalId);
       const clientIds = clients.map(client => client.id);
       
       // If no clients, return 0 count
@@ -1672,10 +1672,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/professional/stats/goals", authenticate, isProfessional, async (req, res) => {
     try {
-      const therapistId = req.user.id;
+      const professionalId = req.user.id;
       
-      // Get all clients of this therapist
-      const clients = await storage.getClients(therapistId);
+      // Get all clients of this professional
+      const clients = await storage.getClients(professionalId);
       const clientIds = clients.map(client => client.id);
       
       // If no clients, return 0 count
@@ -5524,7 +5524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get pending AI recommendations for a therapist
+  // Get pending AI recommendations for a professional
   app.get("/api/professional/recommendations/pending", authenticate, isProfessional, async (req, res) => {
     try {
       const pendingRecommendations = await storage.getPendingAiRecommendationsByTherapist(req.user!.id);
