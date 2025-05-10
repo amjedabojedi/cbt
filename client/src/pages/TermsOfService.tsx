@@ -41,9 +41,9 @@ export default function TermsOfService() {
               When you create an account with us, you must provide accurate, complete, and up-to-date information. You are responsible for safeguarding the password you use to access the platform and for any activities or actions under your password.
             </p>
             
-            <h2>4. Therapist-Client Relationship</h2>
+            <h2>4. Professional-Client Relationship</h2>
             <p>
-              The Resilience Counseling Research and Consultation platform facilitates the professional-client relationship but does not replace professional therapy. The platform should be used in conjunction with, not in place of, professional mental health services.
+              The ResilienceHub platform facilitates the professional-client relationship but does not replace professional mental health services. The platform should be used in conjunction with, not in place of, professional mental health services.
             </p>
             
             <h2>5. Medical Disclaimer</h2>

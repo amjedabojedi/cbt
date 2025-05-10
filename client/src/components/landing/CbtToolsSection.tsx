@@ -6,7 +6,7 @@ export default function CbtToolsSection() {
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-8">Advanced Interactive CBT Tools</h2>
         <p className="text-center text-lg max-w-3xl mx-auto mb-12">
-          Resilience CBT provides a comprehensive suite of tools for
+          ResilienceHub provides a comprehensive suite of tools for
           tracking emotions, thoughts, and behaviors designed around
           evidence-based approaches.
         </p>
