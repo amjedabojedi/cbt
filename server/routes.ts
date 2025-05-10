@@ -968,19 +968,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
       const loginLink = `${baseUrl}/login`;
       
-      // Send welcome email to therapist with their credentials
+      // Send welcome email to mental health professional with their credentials
       if (role === "therapist") {
         try {
-          await sendTherapistWelcomeEmail(
+          await sendProfessionalWelcomeEmail(
             email,
             name,
             username,
             unhashedPassword,
             loginLink
           );
-          console.log(`Welcome email sent to therapist: ${email}`);
+          console.log(`Welcome email sent to professional: ${email}`);
         } catch (emailError) {
-          console.error("Error sending therapist welcome email:", emailError);
+          console.error("Error sending professional welcome email:", emailError);
           // Continue with the response even if email fails
         }
       }
