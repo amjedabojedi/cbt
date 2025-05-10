@@ -87,6 +87,16 @@ export default function AuthPage() {
   
   // Check for invitation parameter and set registration tab active
   useEffect(() => {
+    // If there's no invitation parameter and user wants to register, redirect to login
+    if (invitationParam !== "true" && activeTab === "register") {
+      setActiveTab("login");
+      toast({
+        title: "Registration Restricted",
+        description: "Clients need an invitation from a therapist to register. Please check your email for an invitation link.",
+        variant: "destructive"
+      });
+    }
+    
     if (invitationParam === "true") {
       setIsInvitation(true);
       setActiveTab("register");
@@ -97,7 +107,7 @@ export default function AuthPage() {
         description: "Your therapist has invited you to create an account. Please register to access your therapeutic tools.",
       });
     }
-  }, [invitationParam, toast]);
+  }, [invitationParam, toast, activeTab]);
   
   // Redirect to dashboard if already logged in
   useEffect(() => {
@@ -208,9 +218,9 @@ export default function AuthPage() {
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className={`grid w-full ${isInvitation ? 'grid-cols-2' : 'grid-cols-1'}`}>
               <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
+              {isInvitation && <TabsTrigger value="register">Complete Registration</TabsTrigger>}
             </TabsList>
             
             <TabsContent value="login" className="mt-6">
@@ -270,10 +280,7 @@ export default function AuthPage() {
                 </CardContent>
                 <CardFooter className="flex justify-center">
                   <p className="text-sm text-muted-foreground">
-                    Don't have an account?{" "}
-                    <Button variant="link" className="p-0" onClick={() => setActiveTab("register")}>
-                      Sign up
-                    </Button>
+                    Clients need an invitation from a therapist to register.
                   </p>
                 </CardFooter>
               </Card>
