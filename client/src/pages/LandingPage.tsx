@@ -24,7 +24,7 @@ export default function LandingPage() {
         </h1>
         <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-4">
           A platform providing interactive CBT tools for tracking emotions, thoughts, and behaviors
-          that connects therapists with clients for personalized mental health support.
+          that connects therapists with clients for personalized mental health tracking.
         </p>
         <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-4 max-w-3xl mx-auto mb-8">
           <p className="text-sm text-yellow-800">
