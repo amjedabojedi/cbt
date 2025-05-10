@@ -46,11 +46,21 @@ export default function Login() {
       window.location.href = "/dashboard";
     } catch (error) {
       console.error("Login error:", error);
-      toast({
-        title: "Login Error",
-        description: error instanceof Error ? error.message : "Failed to log in",
-        variant: "destructive",
-      });
+      
+      // Show a more helpful error message if credentials are invalid
+      if (error instanceof Error && error.message === 'Invalid credentials') {
+        toast({
+          title: "Invalid Credentials",
+          description: "The username or password you entered is incorrect. Please check your credentials and try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login Error",
+          description: error instanceof Error ? error.message : "Failed to log in. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -74,6 +84,10 @@ export default function Login() {
         <CardHeader>
           <CardTitle>Log In</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
+          <div className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded-md">
+            <span className="font-semibold">Admin Account:</span> username: admin, password: 123456<br/>
+            <span className="font-semibold">Therapist:</span> username: lcanady, password: 123456
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
