@@ -22,25 +22,25 @@ export default function LandingPage() {
         <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 mb-6">
           Resilience CBT
         </h1>
-        <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-4">
+        <p className="text-xl md:text-2xl text-neutral-600 dark:text-neutral-300 max-w-3xl mx-auto mb-4">
           A platform providing interactive CBT tools for tracking emotions, thoughts, and behaviors
           that connects therapists with clients for personalized mental health tracking.
         </p>
-        <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-4 max-w-3xl mx-auto mb-8">
-          <p className="text-sm text-yellow-800">
+        <div className="bg-yellow-50 dark:bg-amber-900/20 border border-yellow-100 dark:border-amber-700/30 rounded-lg p-4 max-w-3xl mx-auto mb-8">
+          <p className="text-sm text-yellow-800 dark:text-amber-200">
             <strong>Important:</strong> This app provides interactive CBT tools for tracking emotions, thoughts, and behaviors. 
             It is not a replacement for professional mental health guidance. These tools work best when used with a qualified therapist.
           </p>
         </div>
         <div className="flex flex-col gap-6 max-w-md mx-auto">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="gap-2">
+            <Button asChild size="lg" className="gap-2 bg-primary hover:bg-primary/90">
               <Link href="/auth">
                 Therapist Login <ArrowRight size={18} />
               </Link>
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground text-center">
+          <p className="text-sm text-neutral-600 dark:text-neutral-300 text-center">
             Clients need an invitation from their therapist to access the platform.
             If you've received an invitation, check your email for the registration link.
           </p>
@@ -52,67 +52,67 @@ export default function LandingPage() {
         <h2 className="text-3xl font-bold text-center mb-12">Interactive CBT Tools for Emotion and Behavior Tracking</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Feature 1 */}
-          <div className="bg-card rounded-lg p-6 shadow-sm border">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Brain className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Advanced Emotion Tracking</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-xl font-semibold mb-2 text-neutral-800 dark:text-neutral-100">Advanced Emotion Tracking</h3>
+            <p className="text-neutral-600 dark:text-neutral-300">
               Record and visualize emotions between sessions using our detailed emotion wheel with intensity tracking and pattern identification.
             </p>
           </div>
 
           {/* Feature 2 */}
-          <div className="bg-card rounded-lg p-6 shadow-sm border">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Heart className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Interactive CBT Tools</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-xl font-semibold mb-2 text-neutral-800 dark:text-neutral-100">Interactive CBT Tools</h3>
+            <p className="text-neutral-600 dark:text-neutral-300">
               Complete structured thought records between sessions to document thinking patterns. Track and record coping strategies that work for you.
             </p>
           </div>
 
           {/* Feature 3 */}
-          <div className="bg-card rounded-lg p-6 shadow-sm border">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Target className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Goal Setting & Tracking</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-xl font-semibold mb-2 text-neutral-800 dark:text-neutral-100">Goal Setting & Tracking</h3>
+            <p className="text-neutral-600 dark:text-neutral-300">
               Document specific, measurable goals and track your progress between sessions. Break down larger goals into manageable steps.
             </p>
           </div>
 
           {/* Feature 4 */}
-          <div className="bg-card rounded-lg p-6 shadow-sm border">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Book className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">AI-Powered Journaling</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-xl font-semibold mb-2 text-neutral-800 dark:text-neutral-100">AI-Powered Journaling</h3>
+            <p className="text-neutral-600 dark:text-neutral-300">
               Record thoughts in journal entries between sessions. AI analysis helps identify recurring patterns and themes in your writing.
             </p>
           </div>
 
           {/* Feature 5 */}
-          <div className="bg-card rounded-lg p-6 shadow-sm border">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <BarChart3 className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Integrated Insights</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-xl font-semibold mb-2 text-neutral-800 dark:text-neutral-100">Integrated Insights</h3>
+            <p className="text-neutral-600 dark:text-neutral-300">
               Visualize connections between your recorded emotions, thoughts, and journal entries. Track patterns and changes over time between sessions.
             </p>
           </div>
 
           {/* Feature 6 */}
-          <div className="bg-card rounded-lg p-6 shadow-sm border">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <MessageCircle className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Professional-Client Connection</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-xl font-semibold mb-2 text-neutral-800 dark:text-neutral-100">Professional-Client Connection</h3>
+            <p className="text-neutral-600 dark:text-neutral-300">
               Share your tracking data securely with your therapist. Receive feedback on your progress and recording activities between sessions.
             </p>
           </div>
@@ -122,38 +122,38 @@ export default function LandingPage() {
       {/* Research Section */}
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-8">Research-Based Tracking Tools</h2>
-        <p className="text-center text-muted-foreground max-w-3xl mx-auto mb-12">
+        <p className="text-center text-neutral-600 dark:text-neutral-300 max-w-3xl mx-auto mb-12">
           Our tracking tools are designed based on scientific research that shows how systematically recording emotions, thoughts, and behaviors helps individuals better understand their patterns.
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <div className="bg-card rounded-lg p-6 shadow-sm border">
-            <h3 className="text-lg font-semibold mb-2">Better Emotion Recognition</h3>
-            <p className="text-muted-foreground text-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border">
+            <h3 className="text-lg font-semibold mb-2 text-neutral-800 dark:text-neutral-100">Better Emotion Recognition</h3>
+            <p className="text-neutral-600 dark:text-neutral-300 text-sm">
               Research shows that people who can identify specific emotions react less impulsively and manage stress better. Our emotion wheel helps build this important skill.
               <span className="block mt-2 text-xs italic">Based on research by Kashdan, Barrett, & McKnight (2015)</span>
             </p>
           </div>
           
-          <div className="bg-card rounded-lg p-6 shadow-sm border">
-            <h3 className="text-lg font-semibold mb-2">Effective Homework</h3>
-            <p className="text-muted-foreground text-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border">
+            <h3 className="text-lg font-semibold mb-2 text-neutral-800 dark:text-neutral-100">Effective Homework</h3>
+            <p className="text-neutral-600 dark:text-neutral-300 text-sm">
               Studies prove that completing thought records between therapy sessions leads to better outcomes for depression and anxiety. Our digital tools make this easier.
               <span className="block mt-2 text-xs italic">Based on research by Rees, McEvoy, & Nathan (2005)</span>
             </p>
           </div>
           
-          <div className="bg-card rounded-lg p-6 shadow-sm border">
-            <h3 className="text-lg font-semibold mb-2">Clear Goals Work Better</h3>
-            <p className="text-muted-foreground text-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border">
+            <h3 className="text-lg font-semibold mb-2 text-neutral-800 dark:text-neutral-100">Clear Goals Work Better</h3>
+            <p className="text-neutral-600 dark:text-neutral-300 text-sm">
               Setting specific, measurable goals improves motivation and success rates. Our SMART goal system helps break down big changes into achievable steps.
               <span className="block mt-2 text-xs italic">Based on research by Locke & Latham (2002)</span>
             </p>
           </div>
           
-          <div className="bg-card rounded-lg p-6 shadow-sm border">
-            <h3 className="text-lg font-semibold mb-2">Building Resilience</h3>
-            <p className="text-muted-foreground text-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border">
+            <h3 className="text-lg font-semibold mb-2 text-neutral-800 dark:text-neutral-100">Building Resilience</h3>
+            <p className="text-neutral-600 dark:text-neutral-300 text-sm">
               Tracking what helps you cope during difficult times builds lasting resilience. Our tools help identify your personal protective factors and coping strategies.
               <span className="block mt-2 text-xs italic">Based on research by Werner (1995)</span>
             </p>
@@ -167,11 +167,11 @@ export default function LandingPage() {
           <h2 className="text-3xl font-bold text-center mb-12">Tailored for Everyone</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Client Role */}
-            <div className="bg-card rounded-lg p-6 shadow-sm border">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-neutral-800 dark:text-neutral-100">
                 <Heart className="h-5 w-5 text-rose-500" /> For Clients
               </h3>
-              <ul className="space-y-2 text-muted-foreground">
+              <ul className="space-y-2 text-neutral-600 dark:text-neutral-300">
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
                   Create personal emotion records and track patterns
@@ -196,11 +196,11 @@ export default function LandingPage() {
             </div>
 
             {/* Therapist Role */}
-            <div className="bg-card rounded-lg p-6 shadow-sm border">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-neutral-800 dark:text-neutral-100">
                 <Brain className="h-5 w-5 text-blue-500" /> For Therapists
               </h3>
-              <ul className="space-y-2 text-muted-foreground">
+              <ul className="space-y-2 text-neutral-600 dark:text-neutral-300">
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
                   View and provide feedback on client records
@@ -225,11 +225,11 @@ export default function LandingPage() {
             </div>
 
             {/* Admin Role */}
-            <div className="bg-card rounded-lg p-6 shadow-sm border">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-neutral-800 dark:text-neutral-100">
                 <Shield className="h-5 w-5 text-purple-500" /> For Administrators
               </h3>
-              <ul className="space-y-2 text-muted-foreground">
+              <ul className="space-y-2 text-neutral-600 dark:text-neutral-300">
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
                   Manage therapist accounts and permissions
@@ -258,12 +258,12 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20 text-center">
-        <h2 className="text-3xl font-bold mb-6">For Mental Health Professionals</h2>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+        <h2 className="text-3xl font-bold mb-6 text-neutral-800 dark:text-neutral-100">For Mental Health Professionals</h2>
+        <p className="text-xl text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto mb-8">
           Are you a therapist looking to enhance your client tracking capabilities? Join Resilience CBT to provide your clients with structured tools for tracking emotions, thoughts, and behaviors between sessions.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild size="lg" className="gap-2">
+          <Button asChild size="lg" className="gap-2 bg-primary hover:bg-primary/90">
             <Link href="/auth">
               Therapist Login <ArrowRight size={18} />
             </Link>
@@ -276,22 +276,22 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
-              <h3 className="text-xl font-bold">Resilience CBT</h3>
-              <p className="text-muted-foreground mt-2">Structured tools for tracking emotions, thoughts, and behaviors</p>
+              <h3 className="text-xl font-bold text-neutral-800 dark:text-neutral-100">Resilience CBT</h3>
+              <p className="text-neutral-600 dark:text-neutral-300 mt-2">Structured tools for tracking emotions, thoughts, and behaviors</p>
             </div>
             <div className="flex flex-col md:flex-row gap-6 md:gap-12">
-              <Link href="/auth" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link href="/auth" className="text-neutral-600 dark:text-neutral-300 hover:text-primary transition-colors">
                 Therapist Portal
               </Link>
-              <Link href="/privacy-policy" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link href="/privacy-policy" className="text-neutral-600 dark:text-neutral-300 hover:text-primary transition-colors">
                 Privacy Policy
               </Link>
-              <Link href="/terms-of-service" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link href="/terms-of-service" className="text-neutral-600 dark:text-neutral-300 hover:text-primary transition-colors">
                 Terms of Service
               </Link>
             </div>
           </div>
-          <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
+          <div className="border-t border-border mt-8 pt-8 text-center text-neutral-600 dark:text-neutral-300">
             <p>© {new Date().getFullYear()} Resilience CBT. All rights reserved.</p>
           </div>
         </div>
