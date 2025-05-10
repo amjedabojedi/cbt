@@ -182,7 +182,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
-                  Set and track personal therapy goals
+                  Set and track personal goals
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
@@ -211,7 +211,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
-                  Share therapy resources and educational content
+                  Share interactive CBT tools and educational content
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
@@ -244,7 +244,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
-                  Manage global resource library content
+                  Manage interactive CBT tools library content
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
@@ -260,7 +260,7 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-20 text-center">
         <h2 className="text-3xl font-bold mb-6">For Mental Health Professionals</h2>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-          Are you a therapist looking to enhance your practice with digital CBT tools? Join Resilience CBT to provide your clients with powerful therapeutic resources.
+          Are you a therapist looking to enhance your practice with interactive CBT tools? Join Resilience CBT to provide your clients with effective tools for tracking emotions, thoughts, and behaviors.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild size="lg" className="gap-2">
