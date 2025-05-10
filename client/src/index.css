@@ -213,6 +213,7 @@
 .auth-card {
   @apply bg-white !important;
   @apply text-neutral-800 !important;
+  @apply border border-gray-200 !important;
 }
 
 .auth-card h2, 
@@ -227,6 +228,12 @@
   @apply text-neutral-600 !important;
 }
 
+.auth-card input {
+  @apply bg-white !important;
+  @apply text-neutral-800 !important;
+  @apply border-gray-300 !important;
+}
+
 /* Force light mode on auth page tabs */
 .auth-tabs .tabs-list {
   @apply bg-white !important;
@@ -236,5 +243,17 @@
 .auth-tabs .tabs-trigger {
   @apply text-neutral-800 !important;
   @apply data-[state=active]:bg-primary/10 !important;
+}
+
+/* Force light mode on auth page container */
+.auth-container {
+  @apply bg-white !important;
+}
+
+/* Force light mode on button in auth page */
+.auth-button {
+  @apply bg-primary !important;
+  @apply hover:bg-primary/90 !important;
+  @apply text-white !important;
 }
 

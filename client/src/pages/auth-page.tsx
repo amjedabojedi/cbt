@@ -196,7 +196,7 @@ export default function AuthPage() {
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       {/* Auth Form Column */}
-      <div className="flex flex-col items-center justify-center w-full md:w-1/2 p-8 bg-white">
+      <div className="flex flex-col items-center justify-center w-full md:w-1/2 p-8 auth-container">
         <div className="w-full max-w-md">
           <div className="flex flex-col items-center mb-8">
             <div className="flex justify-center w-full mb-4">
@@ -266,7 +266,7 @@ export default function AuthPage() {
                         )}
                       />
                       
-                      <Button type="submit" className="w-full" disabled={loginSubmitting}>
+                      <Button type="submit" className="w-full auth-button" disabled={loginSubmitting}>
                         {loginSubmitting ? (
                           <div className="flex items-center justify-center">
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
