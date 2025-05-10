@@ -11,7 +11,7 @@ import { initializeWebSocketServer, sendNotificationToUser } from "./services/we
 import { sendEmail, sendTherapistWelcomeEmail, sendClientInvitation, sendEmotionTrackingReminder, sendPasswordResetEmail, sendWeeklyProgressDigest, sparkPostClient } from "./services/email";
 
 // Global reference to default email sender for alternative domain testing
-(global as any).DEFAULT_FROM_EMAIL = 'New Horizon CBT <noreply@send.rcrc.ca>';
+(global as any).DEFAULT_FROM_EMAIL = 'Resilience CBT <noreply@send.rcrc.ca>';
 import { 
   insertUserSchema, 
   insertEmotionRecordSchema,
@@ -635,7 +635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a welcome notification for the new user
       await storage.createNotification({
         userId: user.id,
-        title: "Welcome to New Horizon CBT",
+        title: "Welcome to Resilience CBT",
         body: "Thank you for joining. Start your journey by tracking your emotions or setting your first goal.",
         type: "system",
         isRead: false
@@ -873,7 +873,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create notification for the new user
       await storage.createNotification({
         userId: user.id,
-        title: "Welcome to New Horizon-CBT",
+        title: "Welcome to Resilience CBT",
         body: `You have been added as a ${role} by ${req.user?.name || 'an administrator'}. Please log in and update your profile.`,
         type: "system",
         isRead: false
@@ -1463,8 +1463,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a welcome notification for the new client
       await storage.createNotification({
         userId: newUser.id,
-        title: "Welcome to New Horizon-CBT",
-        body: `Welcome to New Horizon-CBT! You have been registered by ${req.user.name || req.user.username}. Your temporary username is ${username} and password is ${tempPassword}. Please change your password after logging in.`,
+        title: "Welcome to Resilience CBT",
+        body: `Welcome to Resilience CBT! You have been registered by ${req.user.name || req.user.username}. Your temporary username is ${username} and password is ${tempPassword}. Please change your password after logging in.`,
         type: "system",
         isRead: false
       });
