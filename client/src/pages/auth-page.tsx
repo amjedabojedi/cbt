@@ -12,6 +12,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
   Form,
@@ -78,7 +85,7 @@ export default function AuthPage() {
       email: emailParam || "",
       password: "",
       name: "",
-      role: "client",
+      role: isInvitation ? "client" : "therapist", // Default to therapist for direct registration, client for invitations
       therapistId: therapistIdParam ? parseInt(therapistIdParam) : undefined,
       status: isInvitation ? "active" : undefined,
       isInvitation: isInvitation || false,
@@ -92,7 +99,7 @@ export default function AuthPage() {
       setActiveTab("login");
       toast({
         title: "Registration Restricted",
-        description: "Clients need an invitation from a therapist to register. Please check your email for an invitation link.",
+        description: "Clients need an invitation from a mental health professional to register. Please check your email for an invitation link.",
         variant: "destructive"
       });
     }
@@ -276,7 +283,7 @@ export default function AuthPage() {
                 </CardContent>
                 <CardFooter className="flex justify-center">
                   <p className="text-sm text-muted-foreground">
-                    Clients need an invitation from a therapist to register.
+                    Clients need an invitation from a mental health professional to register. If you're a professional, please select 'Register' to create an account.
                   </p>
                 </CardFooter>
               </Card>
@@ -364,8 +371,37 @@ export default function AuthPage() {
                         )}
                       />
                       
-                      {/* Hidden role field defaults to client */}
-                      <input type="hidden" {...registerForm.register("role")} value="client" />
+                      {!isInvitation && (
+                        <FormField
+                          control={registerForm.control}
+                          name="role"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Account Type</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select account type" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="therapist">Mental Health Professional</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Clients can only register with an invitation from a professional
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                      
+                      {/* Hidden role field for invited clients */}
+                      {isInvitation && <input type="hidden" {...registerForm.register("role")} value="client" />}
                       
                       <Button type="submit" className="w-full" disabled={registerSubmitting}>
                         {registerSubmitting ? (
