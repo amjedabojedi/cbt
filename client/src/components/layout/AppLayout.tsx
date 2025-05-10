@@ -35,7 +35,7 @@ export default function AppLayout({ children, title = "Dashboard" }: AppLayoutPr
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
         <div className="w-full max-w-md px-4">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-primary">Resilience CBT</h1>
+            <h1 className="text-4xl font-bold text-primary">ResilienceHub</h1>
             <p className="mt-2 text-gray-600">Navigate Your Emotional Journey</p>
           </div>
           {children}

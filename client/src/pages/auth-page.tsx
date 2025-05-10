@@ -210,7 +210,7 @@ export default function AuthPage() {
                 </Link>
               </Button>
             </div>
-            <h1 className="text-3xl font-bold text-neutral-800">Resilience CBT</h1>
+            <h1 className="text-3xl font-bold text-neutral-800">ResilienceHub</h1>
             <p className="text-neutral-500 mt-2">
               {isInvitation 
                 ? "Complete your registration to connect with your mental health professional" 
@@ -433,13 +433,13 @@ export default function AuthPage() {
         <div className="max-w-lg">
           <h2 className="text-3xl font-bold text-primary mb-4">
             {isInvitation 
-              ? "Welcome to Resilience CBT" 
+              ? "Welcome to ResilienceHub" 
               : "Advanced Interactive CBT Tools"}
           </h2>
           <p className="text-lg mb-6 text-neutral-700">
             {isInvitation 
-              ? "A mental health professional has invited you to join Resilience CBT, where you'll have access to personalized interactive CBT tools for tracking."
-              : "Resilience CBT provides a comprehensive suite of tools for tracking emotions, thoughts, and behaviors designed around evidence-based approaches."}
+              ? "A mental health professional has invited you to join ResilienceHub, where you'll have access to personalized interactive CBT tools for tracking."
+              : "ResilienceHub provides a comprehensive suite of tools for tracking emotions, thoughts, and behaviors designed around evidence-based approaches."}
           </p>
           
           <div className="space-y-4">

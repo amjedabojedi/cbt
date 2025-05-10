@@ -37,7 +37,7 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="gap-2 bg-primary hover:bg-primary/90">
               <Link href="/auth">
-                Therapist Login <ArrowRight size={18} />
+                Professional Login <ArrowRight size={18} />
               </Link>
             </Button>
           </div>
@@ -261,12 +261,12 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-20 text-center">
         <h2 className="text-3xl font-bold mb-6 text-neutral-800">For Mental Health Professionals</h2>
         <p className="text-xl text-neutral-600 max-w-2xl mx-auto mb-8">
-          Are you a therapist looking to enhance your client tracking capabilities? Join Resilience CBT to provide your clients with structured tools for tracking emotions, thoughts, and behaviors between sessions.
+          Are you a mental health professional looking to enhance your client tracking capabilities? Join ResilienceHub to provide your clients with structured tools for tracking emotions, thoughts, and behaviors between sessions.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild size="lg" className="gap-2 bg-primary hover:bg-primary/90">
             <Link href="/auth">
-              Therapist Login <ArrowRight size={18} />
+              Professional Login <ArrowRight size={18} />
             </Link>
           </Button>
         </div>
