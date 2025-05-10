@@ -196,10 +196,10 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            {/* Therapist Role */}
+            {/* Professional Role */}
             <div className="landing-feature-box rounded-lg p-6 shadow-sm">
               <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Brain className="h-5 w-5 text-blue-500" /> For Therapists
+                <Brain className="h-5 w-5 text-blue-500" /> For Mental Health Professionals
               </h3>
               <ul className="space-y-2">
                 <li className="flex items-start">

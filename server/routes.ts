@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { pool, db } from "./db";
-import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission, ensureAuthenticated } from "./middleware/auth";
+import { authenticate, isProfessional, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission, ensureAuthenticated } from "./middleware/auth";
 import { z } from "zod";
 import * as bcrypt from "bcrypt";
 import Stripe from "stripe";

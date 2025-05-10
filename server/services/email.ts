@@ -348,8 +348,8 @@ export async function sendPasswordResetEmail(
 /**
  * Send a professional account creation email
  * 
- * @param therapistEmail Mental health professional's email address
- * @param therapistName Mental health professional's name
+ * @param professionalEmail Mental health professional's email address
+ * @param professionalName Mental health professional's name
  * @param username The username created for the mental health professional
  * @param password The temporary password
  * @param loginLink Link to the login page
