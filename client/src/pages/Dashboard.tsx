@@ -7,7 +7,7 @@ import MoodTrends from "@/components/dashboard/MoodTrends";
 import ReflectionTrends from "@/components/dashboard/ReflectionTrends";
 import ReflectionInsights from "@/components/dashboard/ReflectionInsights";
 import CrossComponentInsights from "@/components/dashboard/CrossComponentInsights";
-import TherapistStats from "@/components/dashboard/TherapistStats";
+import TherapistStats from "@/components/dashboard/TherapistStats"; // TODO: Rename component to ProfessionalStats
 import useActiveUser from "@/hooks/use-active-user";
 import { useClientContext } from "@/context/ClientContext";
 import { ClientDebug } from "@/components/debug/ClientDebug";
@@ -17,7 +17,7 @@ export default function Dashboard() {
   const { activeUserId, isViewingClientData } = useActiveUser();
   const { viewingClientName } = useClientContext();
   
-  const isTherapist = user?.role === "therapist";
+  const isProfessional = user?.role === "therapist"; // DB role still "therapist"
   const isClient = user?.role === "client";
   
   // Determine whose name to display
@@ -29,7 +29,7 @@ export default function Dashboard() {
   let welcomeMessage = `Welcome back, ${displayName}`;
   let subMessage = "Track your emotions, thoughts, and progress on your journey to clarity.";
   
-  if (isTherapist && !isViewingClientData) {
+  if (isProfessional && !isViewingClientData) {
     welcomeMessage = `Welcome back, ${displayName}`;
     subMessage = "Manage your practice and view insights about your clients.";
   } else if (isViewingClientData) {
@@ -53,8 +53,8 @@ export default function Dashboard() {
           </p>
         </div>
         
-        {/* Therapist-specific view */}
-        {isTherapist && !isViewingClientData && (
+        {/* Professional-specific view */}
+        {isProfessional && !isViewingClientData && (
           <div className="mb-6">
             <TherapistStats />
           </div>
@@ -63,8 +63,8 @@ export default function Dashboard() {
         {/* Getting Started Checklist - only for client's own dashboard */}
         {isClient && !isViewingClientData && <GettingStarted />}
         
-        {/* Quick Actions - for clients and when a therapist is viewing client data */}
-        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
+        {/* Quick Actions - for clients and when a professional is viewing client data */}
+        {((isClient && !isProfessional) || (isProfessional && isViewingClientData)) && (
           <div className="mb-6">
             <QuickActions />
           </div>
