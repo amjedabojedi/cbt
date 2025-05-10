@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import ConnectionErrorFallback from "@/components/error/ConnectionErrorFallback";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Login() {
   const { user } = useAuth();
@@ -13,6 +16,7 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState<Error | null>(null);
   const { toast } = useToast();
   
   // Redirect to dashboard if already logged in
@@ -27,6 +31,9 @@ export default function Login() {
     setLoading(true);
     
     try {
+      // Reset any previous errors
+      setLoginError(null);
+      
       // Use apiRequest from queryClient which handles headers and credentials
       // Our enhanced apiRequest now properly handles error responses
       const response = await apiRequest("POST", "/api/auth/login", { 
@@ -43,8 +50,13 @@ export default function Login() {
     } catch (error) {
       console.error("Login error:", error);
       
+      // Save the error for displaying a more detailed error UI
+      setLoginError(error instanceof Error ? error : new Error("Failed to log in"));
+      
       // Show a more helpful error message if credentials are invalid
-      if (error instanceof Error && error.message === 'Invalid credentials') {
+      if (error instanceof Error && 
+          (error.message.includes('Invalid credentials') || 
+           error.message.includes('401'))) {
         toast({
           title: "Invalid Credentials",
           description: "The username or password you entered is incorrect. Please check your credentials and try again.",
