@@ -218,17 +218,17 @@ export default function AuthPage() {
             </p>
           </div>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6 landing-feature-box">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full auth-tabs">
+            <TabsList className="grid w-full grid-cols-2 mb-6 tabs-list">
+              <TabsTrigger value="login" className="tabs-trigger">Login</TabsTrigger>
+              <TabsTrigger value="register" className="tabs-trigger">Register</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login">
-              <Card className="landing-feature-box">
+              <Card className="auth-card">
                 <CardHeader>
-                  <CardTitle>Welcome Back</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="card-title">Welcome Back</CardTitle>
+                  <CardDescription className="card-description">
                     Enter your credentials to access your account
                   </CardDescription>
                 </CardHeader>
@@ -288,12 +288,12 @@ export default function AuthPage() {
             </TabsContent>
             
             <TabsContent value="register" className="mt-6">
-              <Card className="landing-feature-box">
+              <Card className="auth-card">
                 <CardHeader>
-                  <CardTitle>
+                  <CardTitle className="card-title">
                     {isInvitation ? "Complete Your Registration" : "Create Account"}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="card-description">
                     {isInvitation 
                       ? "Fill out the form below to finalize your account creation" 
                       : "Join Resilience CBT to access interactive CBT tools"}

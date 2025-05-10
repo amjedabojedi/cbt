@@ -209,3 +209,32 @@
   @apply text-neutral-600 !important;
 }
 
+/* Force light mode on auth cards and forms */
+.auth-card {
+  @apply bg-white !important;
+  @apply text-neutral-800 !important;
+}
+
+.auth-card h2, 
+.auth-card h3, 
+.auth-card .card-title {
+  @apply text-neutral-800 !important;
+}
+
+.auth-card p,
+.auth-card label,
+.auth-card .card-description {
+  @apply text-neutral-600 !important;
+}
+
+/* Force light mode on auth page tabs */
+.auth-tabs .tabs-list {
+  @apply bg-white !important;
+  @apply border-gray-200 !important;
+}
+
+.auth-tabs .tabs-trigger {
+  @apply text-neutral-800 !important;
+  @apply data-[state=active]:bg-primary/10 !important;
+}
+
