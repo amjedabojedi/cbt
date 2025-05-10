@@ -70,15 +70,15 @@ export default function Dashboard() {
           </div>
         )}
         
-        {/* Recent Emotion History - for clients and when a therapist is viewing client data */}
-        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
+        {/* Recent Emotion History - for clients and when a professional is viewing client data */}
+        {((isClient && !isProfessional) || (isProfessional && isViewingClientData)) && (
           <div className="mb-6">
             <EmotionHistory limit={3} />
           </div>
         )}
         
-        {/* Mood Trends and Reflection Trends Charts - for clients and when a therapist is viewing client data */}
-        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
+        {/* Mood Trends and Reflection Trends Charts - for clients and when a professional is viewing client data */}
+        {((isClient && !isProfessional) || (isProfessional && isViewingClientData)) && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <div>
               <MoodTrends />
@@ -89,15 +89,15 @@ export default function Dashboard() {
           </div>
         )}
         
-        {/* Reflection Insights - for clients and when a therapist is viewing client data */}
-        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
+        {/* Reflection Insights - for clients and when a professional is viewing client data */}
+        {((isClient && !isProfessional) || (isProfessional && isViewingClientData)) && (
           <div className="mb-6">
             <ReflectionInsights />
           </div>
         )}
         
-        {/* Cross-Component Insights - for clients and when a therapist is viewing client data */}
-        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
+        {/* Cross-Component Insights - for clients and when a professional is viewing client data */}
+        {((isClient && !isProfessional) || (isProfessional && isViewingClientData)) && (
           <div className="mb-6">
             <CrossComponentInsights />
           </div>
