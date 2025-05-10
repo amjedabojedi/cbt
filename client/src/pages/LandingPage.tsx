@@ -80,7 +80,7 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-semibold mb-2">Goal Setting & Tracking</h3>
             <p className="text-muted-foreground">
-              Create and track SMART goals with milestone tracking and progress visualization.
+              Document specific, measurable goals and track your progress between sessions. Break down larger goals into manageable steps.
             </p>
           </div>
 
@@ -91,7 +91,7 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-semibold mb-2">AI-Powered Journaling</h3>
             <p className="text-muted-foreground">
-              Write journal entries with AI analysis that automatically identifies emotions, themes, and cognitive patterns.
+              Record thoughts in journal entries between sessions. AI analysis helps identify recurring patterns and themes in your writing.
             </p>
           </div>
 
@@ -102,7 +102,7 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-semibold mb-2">Integrated Insights</h3>
             <p className="text-muted-foreground">
-              View cross-component insights that connect your emotions, thoughts, journal entries, and progress over time.
+              Visualize connections between your recorded emotions, thoughts, and journal entries. Track patterns and changes over time between sessions.
             </p>
           </div>
 
@@ -111,9 +111,9 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <MessageCircle className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Therapist-Client Connection</h3>
+            <h3 className="text-xl font-semibold mb-2">Professional-Client Connection</h3>
             <p className="text-muted-foreground">
-              Secure communication and sharing between therapists and clients with real-time notifications.
+              Share your tracking data securely with your therapist. Receive feedback on your progress and recording activities between sessions.
             </p>
           </div>
         </div>
