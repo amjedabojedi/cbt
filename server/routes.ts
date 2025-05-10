@@ -1616,7 +1616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Therapist dashboard statistics
-  app.get("/api/therapist/stats/journal", authenticate, isProfessional, async (req, res) => {
+  app.get("/api/professional/stats/journal", authenticate, isProfessional, async (req, res) => {
     try {
       const therapistId = req.user.id;
       
@@ -1643,7 +1643,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get("/api/therapist/stats/thoughts", authenticate, isProfessional, async (req, res) => {
+  app.get("/api/professional/stats/thoughts", authenticate, isProfessional, async (req, res) => {
     try {
       const therapistId = req.user.id;
       
@@ -1670,7 +1670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get("/api/therapist/stats/goals", authenticate, isProfessional, async (req, res) => {
+  app.get("/api/professional/stats/goals", authenticate, isProfessional, async (req, res) => {
     try {
       const therapistId = req.user.id;
       
@@ -3424,8 +3424,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get assignments created by a therapist
-  app.get("/api/therapist/assignments", authenticate, isProfessional, async (req, res) => {
+  // Get assignments created by a professional
+  app.get("/api/professional/assignments", authenticate, isProfessional, async (req, res) => {
     try {
       const assignments = await storage.getAssignmentsByTherapist(req.user.id);
       
@@ -5525,7 +5525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get pending AI recommendations for a therapist
-  app.get("/api/therapist/recommendations/pending", authenticate, isProfessional, async (req, res) => {
+  app.get("/api/professional/recommendations/pending", authenticate, isProfessional, async (req, res) => {
     try {
       const pendingRecommendations = await storage.getPendingAiRecommendationsByTherapist(req.user!.id);
       res.status(200).json(pendingRecommendations);

@@ -19,21 +19,21 @@ export default function ProfessionalStats() {
 
   // Fetch professional's client journal entries stats
   const { data: journalStats, isLoading: isLoadingJournalStats } = useQuery<{ totalCount: number }>({
-    queryKey: [`/api/therapist/stats/journal`],
+    queryKey: [`/api/professional/stats/journal`],
     enabled: !!user && user.role === "therapist", // DB role still "therapist"
     placeholderData: { totalCount: 0 }
   });
 
   // Fetch professional's client thought records stats
   const { data: thoughtStats, isLoading: isLoadingThoughtStats } = useQuery<{ totalCount: number }>({
-    queryKey: [`/api/therapist/stats/thoughts`],
+    queryKey: [`/api/professional/stats/thoughts`],
     enabled: !!user && user.role === "therapist", // DB role still "therapist"
     placeholderData: { totalCount: 0 }
   });
 
   // Fetch professional's client goals stats
   const { data: goalStats, isLoading: isLoadingGoalStats } = useQuery<{ totalCount: number }>({
-    queryKey: [`/api/therapist/stats/goals`],
+    queryKey: [`/api/professional/stats/goals`],
     enabled: !!user && user.role === "therapist", // DB role still "therapist"
     placeholderData: { totalCount: 0 }
   });
