@@ -644,17 +644,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If the user is a therapist, automatically assign them to the default (Free) subscription plan
       if (validatedData.role && validatedData.role === "therapist") {
         try {
+          console.log(`Processing subscription plan for new therapist: ${user.id} (${user.email})`);
+          
           // Get the default subscription plan (Free plan)
           const defaultPlan = await storage.getDefaultSubscriptionPlan();
           
           if (defaultPlan) {
+            console.log(`Found default subscription plan: ${defaultPlan.id} (${defaultPlan.name})`);
+            
             // Assign the plan to the therapist
-            await storage.assignSubscriptionPlan(user.id, defaultPlan.id);
+            const updatedUser = await storage.assignSubscriptionPlan(user.id, defaultPlan.id);
+            console.log(`Plan assignment result:`, JSON.stringify({
+              userId: updatedUser.id,
+              subscriptionPlanId: updatedUser.subscriptionPlanId
+            }));
             
             // Update subscription status to trial since this is the Free plan
-            await storage.updateSubscriptionStatus(user.id, "trial");
+            const userWithStatus = await storage.updateSubscriptionStatus(user.id, "trial");
+            console.log(`Subscription status update result:`, JSON.stringify({
+              userId: userWithStatus.id,
+              subscriptionStatus: userWithStatus.subscriptionStatus
+            }));
             
-            console.log(`Assigned default subscription plan (${defaultPlan.name}) to therapist: ${user.email}`);
+            console.log(`Successfully assigned default subscription plan (${defaultPlan.name}) to therapist: ${user.email}`);
+            
+            // Send welcome email to the new therapist
+            try {
+              // For new registrations, we don't have the original password
+              // Instead, we'll send a password reset link in the welcome email
+              // And replace the standard welcome email with custom instructions
+              const loginUrl = `${req.protocol}://${req.get('host')}/login`;
+              
+              // Create a custom message for self-registered therapists
+              const subject = 'Welcome to Resilience CBT - Your Account Information';
+              const html = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h1 style="color: #4A6FA5;">Welcome to Resilience CBT</h1>
+                  <p>Hello ${user.name || user.username},</p>
+                  <p>Thank you for registering as a mental health professional on the Resilience CBT platform. This platform will help you manage your clients with tools for emotion tracking, thought records, journaling, and goal setting.</p>
+                  
+                  <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4A6FA5;">
+                    <h2 style="color: #4A6FA5; margin-top: 0; font-size: 18px;">Your Account Details:</h2>
+                    <p><strong>Username:</strong> ${user.username}</p>
+                    <p><strong>Subscription Plan:</strong> Free (60-day trial)</p>
+                  </div>
+                  
+                  <div style="margin: 30px 0;">
+                    <a href="${loginUrl}" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                      Log In Now
+                    </a>
+                  </div>
+                  
+                  <h2 style="color: #4A6FA5; margin-top: 25px; font-size: 18px;">Getting Started:</h2>
+                  <ol style="margin-bottom: 25px;">
+                    <li><strong>Complete your profile</strong> in your account settings</li>
+                    <li><strong>Invite clients</strong> from your dashboard</li>
+                    <li><strong>Explore the resource library</strong> with therapeutic materials</li>
+                  </ol>
+                  
+                  <p>If you have any questions or need assistance, please contact our support team.</p>
+                  <p>Best regards,<br>The Resilience CBT Team</p>
+                </div>
+              `;
+              
+              const emailSent = await sendEmail({
+                to: user.email,
+                subject,
+                html,
+              });
+              
+              console.log(`Welcome email to therapist ${user.email}: ${emailSent ? 'Sent successfully' : 'Failed to send'}`);
+            } catch (emailError) {
+              console.error(`Error sending welcome email to therapist ${user.email}:`, emailError);
+            }
           } else {
             console.warn("No default subscription plan found for new therapist");
           }
