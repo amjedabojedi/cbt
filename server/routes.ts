@@ -3427,7 +3427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get assignments created by a professional
   app.get("/api/professional/assignments", authenticate, isProfessional, async (req, res) => {
     try {
-      const assignments = await storage.getAssignmentsByTherapist(req.user.id);
+      const assignments = await storage.getAssignmentsByProfessional(req.user.id);
       
       // Fetch resources and clients for each assignment
       const assignmentsWithDetails = await Promise.all(
@@ -5527,7 +5527,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get pending AI recommendations for a professional
   app.get("/api/professional/recommendations/pending", authenticate, isProfessional, async (req, res) => {
     try {
-      const pendingRecommendations = await storage.getPendingAiRecommendationsByTherapist(req.user!.id);
+      const pendingRecommendations = await storage.getPendingAiRecommendationsByProfessional(req.user!.id);
       res.status(200).json(pendingRecommendations);
     } catch (error) {
       console.error("Error fetching pending AI recommendations:", error);

@@ -319,11 +319,11 @@ export class DatabaseStorage implements IStorage {
     return updatedUser;
   }
   
-  async countTherapistClients(therapistId: number): Promise<number> {
+  async countProfessionalClients(professionalId: number): Promise<number> {
     const result = await db
       .select({ count: sql`count(*)` })
       .from(users)
-      .where(eq(users.therapistId, therapistId));
+      .where(eq(users.therapistId, professionalId));
     
     return parseInt(result[0].count as string);
   }
@@ -1187,11 +1187,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(resourceAssignments.assignedAt));
   }
   
-  async getAssignmentsByTherapist(therapistId: number): Promise<ResourceAssignment[]> {
+  async getAssignmentsByProfessional(professionalId: number): Promise<ResourceAssignment[]> {
     return db
       .select()
       .from(resourceAssignments)
-      .where(eq(resourceAssignments.assignedBy, therapistId))
+      .where(eq(resourceAssignments.assignedBy, professionalId))
       .orderBy(desc(resourceAssignments.assignedAt));
   }
   
@@ -1647,11 +1647,11 @@ export class DatabaseStorage implements IStorage {
     return invitation;
   }
   
-  async getClientInvitationsByTherapist(therapistId: number): Promise<ClientInvitation[]> {
+  async getClientInvitationsByProfessional(professionalId: number): Promise<ClientInvitation[]> {
     return db
       .select()
       .from(clientInvitations)
-      .where(eq(clientInvitations.therapistId, therapistId))
+      .where(eq(clientInvitations.therapistId, professionalId))
       .orderBy(desc(clientInvitations.createdAt));
   }
   
@@ -1714,13 +1714,13 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(aiRecommendations.createdAt));
   }
   
-  async getPendingAiRecommendationsByTherapist(therapistId: number): Promise<AiRecommendation[]> {
+  async getPendingAiRecommendationsByProfessional(professionalId: number): Promise<AiRecommendation[]> {
     return db
       .select()
       .from(aiRecommendations)
       .where(
         and(
-          eq(aiRecommendations.therapistId, therapistId),
+          eq(aiRecommendations.therapistId, professionalId),
           eq(aiRecommendations.status, "pending")
         )
       )
