@@ -219,13 +219,13 @@ export default function AuthPage() {
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsList className="grid w-full grid-cols-2 mb-6 landing-feature-box">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login">
-              <Card>
+              <Card className="landing-feature-box">
                 <CardHeader>
                   <CardTitle>Welcome Back</CardTitle>
                   <CardDescription>
@@ -288,7 +288,7 @@ export default function AuthPage() {
             </TabsContent>
             
             <TabsContent value="register" className="mt-6">
-              <Card>
+              <Card className="landing-feature-box">
                 <CardHeader>
                   <CardTitle>
                     {isInvitation ? "Complete Your Registration" : "Create Account"}
