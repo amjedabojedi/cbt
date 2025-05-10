@@ -641,6 +641,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isRead: false
       });
       
+      // If the user is a therapist, automatically assign them to the default (Free) subscription plan
+      if (validatedData.role && validatedData.role === "therapist") {
+        try {
+          // Get the default subscription plan (Free plan)
+          const defaultPlan = await storage.getDefaultSubscriptionPlan();
+          
+          if (defaultPlan) {
+            // Assign the plan to the therapist
+            await storage.assignSubscriptionPlan(user.id, defaultPlan.id);
+            
+            // Update subscription status to trial since this is the Free plan
+            await storage.updateSubscriptionStatus(user.id, "trial");
+            
+            console.log(`Assigned default subscription plan (${defaultPlan.name}) to therapist: ${user.email}`);
+          } else {
+            console.warn("No default subscription plan found for new therapist");
+          }
+        } catch (planError) {
+          console.error("Error assigning default subscription plan:", planError);
+          // Continue with the response even if plan assignment fails
+        }
+      }
+      
       // Return the user (without password)
       const { password, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);

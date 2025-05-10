@@ -390,7 +390,7 @@ export default function AuthPage() {
                                 </SelectContent>
                               </Select>
                               <FormDescription>
-                                Clients can only register with an invitation from a professional
+                                As a mental health professional, you'll be enrolled in the Free trial plan automatically
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
