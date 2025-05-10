@@ -104,7 +104,7 @@ export default function AuthPage() {
       // Display invitation toast
       toast({
         title: "Therapist Invitation",
-        description: "Your therapist has invited you to create an account. Please register to access your therapeutic tools.",
+        description: "Your therapist has invited you to create an account. Please register to access interactive CBT tools.",
       });
     }
   }, [invitationParam, toast, activeTab]);
@@ -213,13 +213,13 @@ export default function AuthPage() {
             <p className="text-neutral-500 mt-2">
               {isInvitation 
                 ? "Complete your registration to connect with your therapist" 
-                : "Your comprehensive therapy companion"}
+                : "Your interactive CBT tools for better mental health"}
             </p>
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className={`grid w-full ${isInvitation ? 'grid-cols-2' : 'grid-cols-1'}`}>
-              <TabsTrigger value="login">Login</TabsTrigger>
+            <TabsList className={`grid w-full grid-cols-1`}>
+              {!isInvitation && <TabsTrigger value="login">Login</TabsTrigger>}
               {isInvitation && <TabsTrigger value="register">Complete Registration</TabsTrigger>}
             </TabsList>
             
@@ -422,7 +422,7 @@ export default function AuthPage() {
               </div>
               <div>
                 <h3 className="text-lg font-medium text-primary mb-1">Therapist-Client Connection</h3>
-                <p className="text-neutral-600">Maintain a continuous connection with your therapist between sessions.</p>
+                <p className="text-neutral-600">Share progress and insights with your therapist through secure communication.</p>
               </div>
             </div>
             
