@@ -89,15 +89,15 @@ export default function Dashboard() {
           </div>
         )}
         
-        {/* Reflection Insights - for clients and when a professional is viewing client data */}
-        {((isClient && !isProfessional) || (isProfessional && isViewingClientData)) && (
+        {/* Reflection Insights - for clients and when a therapist is viewing client data */}
+        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
           <div className="mb-6">
             <ReflectionInsights />
           </div>
         )}
         
-        {/* Cross-Component Insights - for clients and when a professional is viewing client data */}
-        {((isClient && !isProfessional) || (isProfessional && isViewingClientData)) && (
+        {/* Cross-Component Insights - for clients and when a therapist is viewing client data */}
+        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
           <div className="mb-6">
             <CrossComponentInsights />
           </div>

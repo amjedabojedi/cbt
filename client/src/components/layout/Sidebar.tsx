@@ -37,10 +37,10 @@ export default function Sidebar() {
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
     ];
   } 
-  // Professional navigation
-  else if (user?.role === "therapist") {  // Note: DB role still "therapist" but displayed as "professional"
+  // Therapist navigation
+  else if (user?.role === "therapist") {  // Note: DB role still "therapist" but displayed as "therapist"
     navItems = [
-      { href: "/", label: "Professional Dashboard", icon: <LayoutDashboard size={20} /> },
+      { href: "/", label: "Therapist Dashboard", icon: <LayoutDashboard size={20} /> },
       { href: "/clients", label: "My Clients", icon: <Users size={20} /> },
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
     ];
@@ -98,7 +98,7 @@ export default function Sidebar() {
               <div className="ml-2 sm:ml-3">
                 <p className="font-medium text-xs sm:text-sm truncate max-w-[130px]">{user?.name}</p>
                 <p className="text-xs text-neutral-500 capitalize">
-                  {user?.role === "therapist" ? "professional" : user?.role}
+                  {user?.role === "therapist" ? "therapist" : user?.role}
                 </p>
               </div>
             </div>
