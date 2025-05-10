@@ -20,7 +20,7 @@ interface EmailParams {
 // Make sure this is a verified sending domain in SparkPost
 // Use proper format that SparkPost accepts
 const DEFAULT_FROM_EMAIL = {
-  name: "New Horizon CBT",
+  name: "Resilience CBT",
   email: "noreply@send.rcrc.ca" // Using verified sending domain
 };
 

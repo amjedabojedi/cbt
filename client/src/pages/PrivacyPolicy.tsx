@@ -21,7 +21,7 @@ export default function PrivacyPolicy() {
             
             <h2>1. Introduction</h2>
             <p>
-              New Horizon CBT ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our cognitive behavioral therapy platform.
+              Resilience CBT ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our cognitive behavioral therapy platform.
             </p>
             
             <h2>2. Information We Collect</h2>

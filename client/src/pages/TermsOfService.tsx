@@ -63,7 +63,7 @@ export default function TermsOfService() {
             
             <h2>8. Privacy</h2>
             <p>
-              Your use of the New Horizon CBT platform is also governed by our Privacy Policy, which is incorporated by reference into these Terms of Service.
+              Your use of the Resilience CBT platform is also governed by our Privacy Policy, which is incorporated by reference into these Terms of Service.
             </p>
             
             <h2>9. Termination</h2>
