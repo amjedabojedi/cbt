@@ -5249,7 +5249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Start generating HTML content
       let htmlContent = `
-        <h1>New Horizon CBT - Data Export</h1>
+        <h1>Resilience CBT - Data Export</h1>
         <p><strong>User:</strong> ${user.name} (${user.email})</p>
         <p><strong>Export Date:</strong> ${new Date().toLocaleString()}</p>
         <p><strong>Export Type:</strong> ${type}</p>
