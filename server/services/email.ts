@@ -239,7 +239,7 @@ export async function sendEmotionTrackingReminder(
       <p>Hello ${userName},</p>
       <p>This is a friendly reminder to track your emotions today. Regular tracking helps build awareness and identify patterns.</p>
       <div style="margin: 30px 0;">
-        <a href="https://resilience.replit.app/emotion-tracking" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+        <a href="https://resiliencehub.replit.app/emotion-tracking" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
           Track Now
         </a>
       </div>
@@ -292,7 +292,7 @@ export async function sendWeeklyProgressDigest(
       </div>
       
       <div style="margin: 30px 0;">
-        <a href="https://resilience.replit.app/reports" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+        <a href="https://resiliencehub.replit.app/reports" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
           View Full Report
         </a>
       </div>
