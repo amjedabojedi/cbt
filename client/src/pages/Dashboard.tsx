@@ -7,7 +7,7 @@ import MoodTrends from "@/components/dashboard/MoodTrends";
 import ReflectionTrends from "@/components/dashboard/ReflectionTrends";
 import ReflectionInsights from "@/components/dashboard/ReflectionInsights";
 import CrossComponentInsights from "@/components/dashboard/CrossComponentInsights";
-import ProfessionalStats from "@/components/dashboard/ProfessionalStats";
+import TherapistStats from "@/components/dashboard/TherapistStats";
 import useActiveUser from "@/hooks/use-active-user";
 import { useClientContext } from "@/context/ClientContext";
 import { ClientDebug } from "@/components/debug/ClientDebug";

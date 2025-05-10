@@ -7,31 +7,31 @@ import { User, Users, BookText, Goal, Brain, ListChecks, Calendar } from "lucide
 import { useAuth } from "@/lib/auth";
 import { User as UserType } from "@shared/schema";
 
-export default function ProfessionalStats() {
+export default function TherapistStats() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   
-  // Fetch professional's clients
+  // Fetch therapist's clients
   const { data: clients, isLoading: isLoadingClients } = useQuery<UserType[]>({
     queryKey: [`/api/users/clients`],
     enabled: !!user && user.role === "therapist", // DB role still "therapist"
   });
 
-  // Fetch professional's client journal entries stats
+  // Fetch therapist's client journal entries stats
   const { data: journalStats, isLoading: isLoadingJournalStats } = useQuery<{ totalCount: number }>({
     queryKey: [`/api/therapist/stats/journal`],
     enabled: !!user && user.role === "therapist", // DB role still "therapist"
     placeholderData: { totalCount: 0 }
   });
 
-  // Fetch professional's client thought records stats
+  // Fetch therapist's client thought records stats
   const { data: thoughtStats, isLoading: isLoadingThoughtStats } = useQuery<{ totalCount: number }>({
     queryKey: [`/api/therapist/stats/thoughts`],
     enabled: !!user && user.role === "therapist", // DB role still "therapist"
     placeholderData: { totalCount: 0 }
   });
 
-  // Fetch professional's client goals stats
+  // Fetch therapist's client goals stats
   const { data: goalStats, isLoading: isLoadingGoalStats } = useQuery<{ totalCount: number }>({
     queryKey: [`/api/therapist/stats/goals`],
     enabled: !!user && user.role === "therapist", // DB role still "therapist"
