@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
-import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, WifiOff } from 'lucide-react';
 
@@ -30,18 +30,18 @@ const ConnectionErrorFallback = ({ onRetry }: { onRetry: () => void }) => (
   <Alert variant="destructive" className="my-4">
     <WifiOff className="h-4 w-4 mr-2" />
     <AlertTitle>Connection issue</AlertTitle>
-    <p className="text-sm mt-2 mb-2">
+    <AlertDescription className="mt-2">
       Unable to establish a real-time connection. Some features may not work correctly.
-    </p>
-    <Button 
-      variant="outline" 
-      size="sm" 
-      onClick={onRetry}
-      className="mt-2"
-    >
-      <RefreshCw className="mr-2 h-4 w-4" />
-      Reconnect
-    </Button>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={onRetry}
+        className="mt-2"
+      >
+        <RefreshCw className="mr-2 h-4 w-4" />
+        Reconnect
+      </Button>
+    </AlertDescription>
   </Alert>
 );
 
