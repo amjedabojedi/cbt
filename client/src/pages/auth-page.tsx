@@ -219,7 +219,7 @@ export default function AuthPage() {
             <h1 className="text-3xl font-bold text-neutral-800">Resilience CBT</h1>
             <p className="text-neutral-500 mt-2">
               {isInvitation 
-                ? "Complete your registration to connect with your therapist" 
+                ? "Complete your registration to connect with your mental health professional" 
                 : "Your interactive CBT tools for better mental health"}
             </p>
           </div>
