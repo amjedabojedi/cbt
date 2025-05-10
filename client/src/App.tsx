@@ -29,6 +29,7 @@ const Reports = lazy(() => import("@/pages/Reports"));
 const Clients = lazy(() => import("@/pages/Clients"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const ExportPage = lazy(() => import("@/pages/ExportPage"));
+const InvitationLinks = lazy(() => import("@/pages/InvitationLinks"));
 // Recommendations pages removed - will be added back when feature is ready
 
 // Admin pages
@@ -87,6 +88,11 @@ function Router() {
           <ProtectedRoute 
             path="/clients" 
             component={Clients} 
+            allowedRoles={["therapist", "admin"]} 
+          />
+          <ProtectedRoute 
+            path="/invitation-links" 
+            component={InvitationLinks} 
             allowedRoles={["therapist", "admin"]} 
           />
           
