@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { pool, db } from "./db";
-import { authenticate, isProfessional, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission, ensureAuthenticated } from "./middleware/auth";
+import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission, ensureAuthenticated } from "./middleware/auth";
 import { z } from "zod";
 import * as bcrypt from "bcrypt";
 import Stripe from "stripe";
@@ -1364,7 +1364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get clients for a therapist
-  app.get("/api/users/clients", authenticate, isProfessional, async (req, res) => {
+  app.get("/api/users/clients", authenticate, isTherapist, async (req, res) => {
     try {
       const clients = await storage.getClients(req.user.id);
       // Remove passwords
@@ -1380,7 +1380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Delete (remove) client from therapist
-  app.delete("/api/users/clients/:clientId", authenticate, isProfessional, async (req, res) => {
+  app.delete("/api/users/clients/:clientId", authenticate, isTherapist, async (req, res) => {
     try {
       const clientId = parseInt(req.params.clientId);
       if (isNaN(clientId)) {
@@ -1458,7 +1458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Client invitation endpoint
-  app.post("/api/users/invite-client", authenticate, isProfessional, async (req, res) => {
+  app.post("/api/users/invite-client", authenticate, isTherapist, async (req, res) => {
     try {
       const { email, name } = req.body;
       
@@ -1616,7 +1616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Professional dashboard statistics
-  app.get("/api/professional/stats/journal", authenticate, isProfessional, async (req, res) => {
+  app.get("/api/therapist/stats/journal", authenticate, isTherapist, async (req, res) => {
     try {
       const professionalId = req.user.id;
       
@@ -1643,7 +1643,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get("/api/professional/stats/thoughts", authenticate, isProfessional, async (req, res) => {
+  app.get("/api/therapist/stats/thoughts", authenticate, isTherapist, async (req, res) => {
     try {
       const professionalId = req.user.id;
       
@@ -1670,7 +1670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get("/api/professional/stats/goals", authenticate, isProfessional, async (req, res) => {
+  app.get("/api/therapist/stats/goals", authenticate, isTherapist, async (req, res) => {
     try {
       const professionalId = req.user.id;
       
@@ -1788,7 +1788,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Client invitation management endpoints
   
   // Get all invitations for a therapist
-  app.get("/api/invitations", authenticate, ensureAuthenticated, isProfessional, async (req, res) => {
+  app.get("/api/invitations", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
     try {
       // No need to check if user is authenticated as ensureAuthenticated already did that
       const invitations = await storage.getClientInvitationsByTherapist(req.user.id);
@@ -1800,7 +1800,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get specific invitation
-  app.get("/api/invitations/:id", authenticate, ensureAuthenticated, isProfessional, async (req, res) => {
+  app.get("/api/invitations/:id", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
     try {
       // No need to check if user is authenticated as ensureAuthenticated already did that
       
@@ -1824,7 +1824,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Resend invitation (creates a new notification even if email fails)
-  app.post("/api/invitations/:id/resend", authenticate, ensureAuthenticated, isProfessional, async (req, res) => {
+  app.post("/api/invitations/:id/resend", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
     try {
       // No need to check if user is authenticated as ensureAuthenticated already did that
       
@@ -1883,7 +1883,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Delete/cancel an invitation
-  app.delete("/api/invitations/:id", authenticate, ensureAuthenticated, isProfessional, async (req, res) => {
+  app.delete("/api/invitations/:id", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
     try {
       // No need to check if user is authenticated as ensureAuthenticated already did that
       
@@ -3167,7 +3167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Clone a resource (therapists only)
-  app.post("/api/resources/:id/clone", authenticate, isProfessional, async (req, res) => {
+  app.post("/api/resources/:id/clone", authenticate, isTherapist, async (req, res) => {
     try {
       const resourceId = Number(req.params.id);
       if (isNaN(resourceId)) {
@@ -3297,7 +3297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Resource Assignment API Routes
   
   // Assign a resource to a client (therapists only)
-  app.post("/api/resource-assignments", authenticate, isProfessional, async (req, res) => {
+  app.post("/api/resource-assignments", authenticate, isTherapist, async (req, res) => {
     try {
       const { resourceId, assignedTo, notes, isPriority } = req.body;
       
@@ -3342,7 +3342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Alternative endpoint for resource assignment (used by client-side code)
-  app.post("/api/resources/assign", authenticate, isProfessional, async (req, res) => {
+  app.post("/api/resources/assign", authenticate, isTherapist, async (req, res) => {
     try {
       const { resourceId, clientId, notes } = req.body;
       
@@ -3425,7 +3425,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get assignments created by a professional
-  app.get("/api/professional/assignments", authenticate, isProfessional, async (req, res) => {
+  app.get("/api/therapist/assignments", authenticate, isTherapist, async (req, res) => {
     try {
       const assignments = await storage.getAssignmentsByProfessional(req.user.id);
       
@@ -3496,7 +3496,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Delete a resource assignment (therapists only)
-  app.delete("/api/resource-assignments/:id", authenticate, isProfessional, async (req, res) => {
+  app.delete("/api/resource-assignments/:id", authenticate, isTherapist, async (req, res) => {
     try {
       const assignmentId = Number(req.params.id);
       if (isNaN(assignmentId)) {
@@ -5525,7 +5525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get pending AI recommendations for a professional
-  app.get("/api/professional/recommendations/pending", authenticate, isProfessional, async (req, res) => {
+  app.get("/api/therapist/recommendations/pending", authenticate, isTherapist, async (req, res) => {
     try {
       const pendingRecommendations = await storage.getPendingAiRecommendationsByProfessional(req.user!.id);
       res.status(200).json(pendingRecommendations);
@@ -5581,7 +5581,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Update recommendation status (approve/reject)
-  app.patch("/api/recommendations/:id/status", authenticate, isProfessional, async (req, res) => {
+  app.patch("/api/recommendations/:id/status", authenticate, isTherapist, async (req, res) => {
     try {
       const recommendationId = parseInt(req.params.id);
       const { status, therapistNotes } = req.body;
