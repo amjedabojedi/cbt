@@ -361,9 +361,9 @@ export default function UserManagement() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Therapist Management</h1>
+            <h1 className="text-2xl font-bold">Professional Management</h1>
             <p className="text-muted-foreground">
-              Manage therapists and their client assignments
+              Manage mental health professionals and their client assignments
             </p>
           </div>
           <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-2">
@@ -375,7 +375,7 @@ export default function UserManagement() {
               }}
             >
               <UserPlus className="mr-2 h-4 w-4" />
-              Add Therapist
+              Add Professional
             </Button>
             <Button
               onClick={() => {
@@ -525,7 +525,7 @@ export default function UserManagement() {
         </Card>
       </div>
 
-      {/* Therapist Client Management Dialog */}
+      {/* Professional Client Management Dialog */}
       <Dialog 
         open={!!selectedTherapist}
         onOpenChange={(open) => !open && setSelectedTherapist(null)}
@@ -536,7 +536,7 @@ export default function UserManagement() {
               Manage Clients for {selectedTherapist?.name}
             </DialogTitle>
             <DialogDescription>
-              Assign or remove clients from this therapist
+              Assign or remove clients from this professional
             </DialogDescription>
           </DialogHeader>
 
@@ -658,7 +658,7 @@ export default function UserManagement() {
                           size="sm"
                           variant="ghost"
                           onClick={() => {
-                            // Assign client to therapist
+                            // Assign client to professional
                             toast({
                               title: "Client Assigned",
                               description: `${client.name} has been assigned to ${selectedTherapist?.name}`,
@@ -734,7 +734,7 @@ export default function UserManagement() {
                     ))}
                   {users.filter(u => u.role === "client" && u.therapistId === selectedTherapist?.id).length === 0 && (
                     <div className="p-8 text-center text-muted-foreground text-sm">
-                      No clients assigned to this therapist
+                      No clients assigned to this professional
                     </div>
                   )}
                 </div>
