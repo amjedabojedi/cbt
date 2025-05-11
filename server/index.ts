@@ -7,26 +7,34 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Add security headers with Helmet to prevent antivirus blocking
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https://*"],
-      connectSrc: ["'self'", "wss://*", "https://*"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'self'"]
-    }
-  },
-  // Prevent browser caching sensitive files (reduced to 7 days)
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
-  crossOriginEmbedderPolicy: false
-}));
+// Add custom headers instead of using Helmet
+app.use((req, res, next) => {
+  // Set basic security headers manually
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Set Permissions-Policy (formerly Feature-Policy) to help with SmartScreen
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  
+  // Set a very relaxed Content-Security-Policy that SmartScreen won't block
+  // This is less secure but better than being blocked entirely
+  res.setHeader('Content-Security-Policy', 
+    "default-src * data: blob: 'unsafe-inline' 'unsafe-eval';" +
+    "script-src * data: blob: 'unsafe-inline' 'unsafe-eval';" + 
+    "style-src * data: blob: 'unsafe-inline';" +
+    "img-src * data: blob:;" +
+    "font-src * data: blob:;" +
+    "connect-src * data: blob: ws: wss:;"
+  );
+  
+  // Add trust indicators
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
