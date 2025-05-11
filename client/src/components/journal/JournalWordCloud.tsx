@@ -1,5 +1,8 @@
 import React, { useMemo } from 'react';
 
+// Import the getEmotionInfo function to get colors for emotions
+import { getEmotionInfo } from '@/utils/emotionUtils';
+
 interface JournalWordCloudProps {
   words: Record<string, number>;
   height?: number;
@@ -8,8 +11,8 @@ interface JournalWordCloudProps {
 }
 
 /**
- * A simple word cloud component for journal tags.
- * Displays tags with varying sizes based on their frequency.
+ * A simple word cloud component for journal tags and emotions.
+ * Displays words with varying sizes based on their frequency.
  */
 const JournalWordCloud: React.FC<JournalWordCloudProps> = ({ words = {}, height = 300, className = '', maxTags = 30 }) => {
   // Calculate the min and max frequencies
@@ -22,21 +25,30 @@ const JournalWordCloud: React.FC<JournalWordCloudProps> = ({ words = {}, height 
     };
   }, [words]);
 
-  // Generate color based on frequency
-  const getTagColor = (count: number) => {
+  // Generate color based on emotion or frequency
+  const getTagColor = (tag: string, count: number) => {
+    // Try to get emotion color first
+    try {
+      const { color } = getEmotionInfo(tag);
+      if (color) return color.replace('bg-', 'bg-opacity-80 ');
+    } catch (e) {
+      // If not an emotion or error, fall back to frequency-based color
+    }
+    
+    // Fallback to frequency-based coloring
     const { min, max } = frequencies;
-    if (min === max) return 'text-blue-500';
+    if (min === max) return 'bg-blue-100 border-blue-300 text-blue-800';
     
     // Normalize the count to a value between 0 and 1
     const normalizedValue = (count - min) / (max - min);
     
-    // Color palette from blue to red through purple
+    // Color palette based on frequency
     if (normalizedValue < 0.33) {
-      return 'text-blue-500';
+      return 'bg-blue-100 border-blue-300 text-blue-800';
     } else if (normalizedValue < 0.66) {
-      return 'text-purple-500';
+      return 'bg-purple-100 border-purple-300 text-purple-800';
     } else {
-      return 'text-red-500';
+      return 'bg-red-100 border-red-300 text-red-800';
     }
   };
 
@@ -60,12 +72,22 @@ const JournalWordCloud: React.FC<JournalWordCloudProps> = ({ words = {}, height 
       .slice(0, maxTags); // Limit to maxTags
   }, [words, maxTags]);
 
+  // Get tooltip description for a tag
+  const getTooltipDescription = (tag: string, count: number) => {
+    try {
+      const { description } = getEmotionInfo(tag);
+      return `${description} (${count} times)`;
+    } catch (e) {
+      return `${tag}: mentioned ${count} times`;
+    }
+  };
+
   return (
     <div className={`flex flex-wrap justify-center items-center gap-3 p-4 overflow-hidden ${className}`} style={{ height, maxHeight: height }}>
       {sortedTags.map(([tag, count]) => (
         <span
           key={tag}
-          className={`${getTagColor(count as number)} font-medium px-2 py-1 inline-block rounded-md`}
+          className={`${getTagColor(tag, count as number)} font-medium px-2.5 py-1 inline-block rounded-md border`}
           style={{ 
             fontSize: 12 + Math.floor(((count as number - frequencies.min) / (frequencies.max - frequencies.min || 1)) * 20),
             maxWidth: '100%',
@@ -73,13 +95,13 @@ const JournalWordCloud: React.FC<JournalWordCloudProps> = ({ words = {}, height 
             overflow: 'hidden',
             whiteSpace: 'nowrap'
           }}
-          title={`${tag}: mentioned ${count} times`}
+          title={getTooltipDescription(tag, count as number)}
         >
           {tag}
         </span>
       ))}
       {sortedTags.length === 0 && (
-        <div className="text-gray-400 italic text-sm">No tags available</div>
+        <div className="text-gray-400 italic text-sm">No emotions tracked yet</div>
       )}
     </div>
   );
