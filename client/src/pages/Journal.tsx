@@ -183,6 +183,7 @@ export default function Journal() {
   
   const [activeTab, setActiveTab] = useState("list");
   const [showEntryDialog, setShowEntryDialog] = useState(false);
+  const [showTaggingDialog, setShowTaggingDialog] = useState(false);
   const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -256,12 +257,12 @@ export default function Journal() {
       setTitle("");
       setContent("");
       
-      // Immediately load the created entry to view it
-      loadEntryWithRelatedRecords(data);
+      // Instead of just viewing the entry, show the tagging dialog
+      loadEntryWithRelatedRecords(data, true);
       
       toast({
         title: "Journal Entry Created",
-        description: "Your journal entry has been saved."
+        description: "Your journal entry has been saved. Please add emotions and topics to help categorize it."
       });
     },
     onError: (error: Error) => {
@@ -485,11 +486,19 @@ export default function Journal() {
     }
   });
   
-  const loadEntryWithRelatedRecords = async (entry: JournalEntry) => {
+  const loadEntryWithRelatedRecords = async (entry: JournalEntry, showTagging = false) => {
     setCurrentEntry(entry);
-    setActiveTab("view");
-    setSelectedTags(entry.userSelectedTags || []);
-    setSelectedDistortions(entry.userSelectedDistortions || []);
+    
+    // Set the suggested tags from the entry
+    setSelectedTags(entry.userSelectedTags || entry.emotions || []);
+    setSelectedDistortions(entry.userSelectedDistortions || entry.detectedDistortions || []);
+    
+    // If showTagging is true, show the tagging dialog instead of going to view
+    if (showTagging) {
+      setShowTaggingDialog(true);
+    } else {
+      setActiveTab("view");
+    }
     
     // Fetch related thought records if they exist
     if (entry.relatedThoughtRecordIds && entry.relatedThoughtRecordIds.length > 0 && userThoughtRecords.length > 0) {
@@ -556,6 +565,15 @@ export default function Journal() {
   const handleUpdateTags = (e: React.FormEvent) => {
     e.preventDefault();
     updateTagsMutation.mutate();
+  };
+  
+  // Handler for saving or skipping tags from the tagging dialog
+  const handleTaggingComplete = (shouldSaveTags: boolean) => {
+    if (shouldSaveTags && currentEntry) {
+      updateTagsMutation.mutate();
+    }
+    setShowTaggingDialog(false);
+    setActiveTab("view");
   };
   
   const handleUpdateDistortions = (e: React.FormEvent) => {
