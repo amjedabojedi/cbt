@@ -2,6 +2,8 @@ import express, { type Express, type Request, type Response, type NextFunction }
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { pool, db } from "./db";
+import path from "path";
+import fs from "fs";
 import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission, ensureAuthenticated } from "./middleware/auth";
 import { z } from "zod";
 import * as bcrypt from "bcrypt";

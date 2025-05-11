@@ -1,0 +1,7 @@
+# ResilienceHub Security Information
+Contact: mailto:admin@resiliencec.com
+Expires: 2025-01-01T00:00:00.000Z
+Policy: https://workspace.dramjedabojedi.repl.co/security.html
+Preferred-Languages: en
+Canonical: https://workspace.dramjedabojedi.repl.co/.well-known/security.txt
+Encryption: N/A
