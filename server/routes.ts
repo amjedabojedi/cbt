@@ -69,24 +69,7 @@ function getEmotionColor(emotion: string): string {
   return emotionMapping.getEmotionColor(emotion);
 };
 
-// Add Microsoft SmartScreen specific bypass middleware
-const bypassSmartScreen = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  // Add Microsoft SmartScreen specific headers
-  res.header('X-Microsoft-SmartScreen', 'NoBlock');
-  res.header('X-Microsoft-EdgeMobile', 'NoBlock');
-  res.header('X-Microsoft-Browser', 'Allowed');
-  
-  // Add headers that explicitly inform browsers this content is safe
-  res.header('X-Content-Type-Options', 'nosniff');
-  res.header('X-Download-Options', 'noopen');
-  res.header('X-Permitted-Cross-Domain-Policies', 'none');
-  
-  next();
-};
-
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Apply SmartScreen bypass middleware for each route
-  app.all('*', bypassSmartScreen);
   // Use the pool from the imported db
   const { pool } = await import('./db');
   // Parse cookies
