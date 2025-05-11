@@ -1564,6 +1564,202 @@ export default function Journal() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog for tagging journal entries immediately after creation */}
+      <Dialog open={showTaggingDialog} onOpenChange={(open) => {
+        if (!open) {
+          handleTaggingComplete(false);
+        }
+      }}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Add Tags to Your Journal Entry</DialogTitle>
+            <DialogDescription>
+              Tag your entry with emotions and topics to help organize and track your journal.
+              {currentEntry?.aiAnalysis && (
+                <div className="mt-2 p-3 bg-slate-50 rounded-md">
+                  <div className="flex items-center gap-2 text-sm mb-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span className="font-medium">AI-generated insights:</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{currentEntry.aiAnalysis}</p>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="overflow-y-auto flex-1 pr-6 my-3">
+            {currentEntry && (
+              <div className="space-y-6">
+                {/* Journal Content Preview */}
+                <Card>
+                  <CardHeader className="py-3">
+                    <CardTitle className="text-md">{currentEntry.title || "Untitled Entry"}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="py-2">
+                    <p className="line-clamp-3 text-sm text-muted-foreground">
+                      {currentEntry.content}
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Emotions Section */}
+                  <Card>
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-sm flex items-center">
+                        <Heart className="h-4 w-4 mr-2 text-rose-500" />
+                        Emotions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="flex flex-wrap gap-2">
+                        {currentEntry.emotions?.map((emotion, i) => (
+                          <Badge 
+                            key={`${emotion}-${i}`}
+                            variant={selectedTags.includes(emotion) ? "default" : "outline"}
+                            className="cursor-pointer hover:bg-muted transition-colors"
+                            onClick={() => toggleTagSelection(emotion)}
+                          >
+                            {emotion}
+                            {selectedTags.includes(emotion) && (
+                              <CheckCircle className="h-3 w-3 ml-1" />
+                            )}
+                          </Badge>
+                        ))}
+                        {(!currentEntry.emotions || currentEntry.emotions.length === 0) && (
+                          <p className="text-sm text-muted-foreground">No emotions detected. Select emotions from topics or add custom tags below.</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Topics Section */}
+                  <Card>
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-sm flex items-center">
+                        <Tag className="h-4 w-4 mr-2 text-blue-500" />
+                        Topics
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="flex flex-wrap gap-2">
+                        {currentEntry.topics?.map((topic, i) => (
+                          <Badge 
+                            key={`${topic}-${i}`}
+                            variant={selectedTags.includes(topic) ? "default" : "outline"}
+                            className="cursor-pointer hover:bg-muted transition-colors"
+                            onClick={() => toggleTagSelection(topic)}
+                          >
+                            {topic}
+                            {selectedTags.includes(topic) && (
+                              <CheckCircle className="h-3 w-3 ml-1" />
+                            )}
+                          </Badge>
+                        ))}
+                        {(!currentEntry.topics || currentEntry.topics.length === 0) && (
+                          <p className="text-sm text-muted-foreground">No topics detected. You can add custom tags below.</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                {/* Custom Tag Input */}
+                <Card>
+                  <CardHeader className="py-3">
+                    <CardTitle className="text-sm flex items-center">
+                      <Plus className="h-4 w-4 mr-2 text-green-500" />
+                      Add a Custom Tag
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      if (customTag.trim()) {
+                        toggleTagSelection(customTag.trim());
+                        setCustomTag("");
+                      }
+                    }} className="flex gap-2">
+                      <Input 
+                        value={customTag}
+                        onChange={(e) => setCustomTag(e.target.value)}
+                        placeholder="Enter a custom tag"
+                        className="flex-1"
+                      />
+                      <Button 
+                        type="submit" 
+                        disabled={!customTag.trim()}
+                        size="sm"
+                      >
+                        Add
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+                
+                {/* Selected Tags Summary */}
+                <Card>
+                  <CardHeader className="py-3">
+                    <CardTitle className="text-sm flex items-center">
+                      <CheckSquare className="h-4 w-4 mr-2 text-purple-500" />
+                      Selected Tags
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    {selectedTags.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedTags.map((tag, i) => (
+                          <Badge 
+                            key={`selected-${tag}-${i}`}
+                            className="bg-primary/20 text-primary border-primary/30 hover:bg-primary/30 cursor-pointer flex items-center gap-1"
+                            onClick={() => toggleTagSelection(tag)}
+                          >
+                            {tag}
+                            <X className="h-3 w-3" />
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No tags selected yet. Click on emotions or topics above to select them.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => handleTaggingComplete(false)}
+            >
+              Skip
+            </Button>
+            <Button 
+              onClick={() => handleTaggingComplete(true)}
+              disabled={updateTagsMutation.isPending}
+            >
+              {updateTagsMutation.isPending ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Check className="mr-2 h-4 w-4" />
+                  Save Tags
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </div>
       </AppLayout>
   );
