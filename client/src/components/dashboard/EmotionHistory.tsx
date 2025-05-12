@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { EmotionRecord } from "@shared/schema";
 import { format } from "date-fns";
@@ -6,7 +6,18 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
 import { useAuth } from "@/lib/auth";
-import { ArrowRight } from "lucide-react";
+import { 
+  ArrowRight, 
+  Smile, 
+  Frown, 
+  Flame, 
+  AlertCircle, 
+  Sparkles, 
+  ThumbsDown, 
+  Heart,
+  MapPin,
+  MessageSquare 
+} from "lucide-react";
 
 import {
   Table,
@@ -68,18 +79,19 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   // Fetch emotion records for the active user (could be a client viewed by a therapist)
   const { data: emotions = [], isLoading, error } = useQuery<EmotionRecord[]>({
     queryKey: activeUserId ? [`/api/users/${activeUserId}/emotions`] : [],
-    enabled: !!activeUserId,
-    onSuccess: (data) => {
-      // If we have an emotion ID in the URL, find and select that emotion
-      if (emotionIdParam && data) {
-        const emotionId = parseInt(emotionIdParam, 10);
-        const foundEmotion = data.find(e => e.id === emotionId);
-        if (foundEmotion) {
-          setSelectedEmotion(foundEmotion);
-        }
+    enabled: !!activeUserId
+  });
+  
+  // When emotion data changes, check for URL parameter to auto-select
+  useEffect(() => {
+    if (emotionIdParam && emotions.length > 0) {
+      const emotionId = parseInt(emotionIdParam, 10);
+      const foundEmotion = emotions.find((e: EmotionRecord) => e.id === emotionId);
+      if (foundEmotion) {
+        setSelectedEmotion(foundEmotion);
       }
     }
-  });
+  }, [emotions, emotionIdParam]);
   
   // Delete emotion mutation - only allowed for own records
   const deleteEmotionMutation = useMutation({
@@ -325,39 +337,107 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
       {/* Emotion Details Dialog */}
       {selectedEmotion && (
         <Dialog open={!!selectedEmotion && !showReflectionWizard} onOpenChange={() => setSelectedEmotion(null)}>
-          <DialogContent>
+          <DialogContent className="max-w-3xl">
             <DialogHeader>
-              <DialogTitle>Emotion Details</DialogTitle>
+              <DialogTitle className="flex items-center gap-2 text-lg">
+                <div className={`p-2 rounded-full ${getEmotionBadgeColor(selectedEmotion.coreEmotion).replace('text-', 'text-').replace('bg-', 'bg-')}`}>
+                  {selectedEmotion.coreEmotion === 'Joy' && <Smile className="h-5 w-5" />}
+                  {selectedEmotion.coreEmotion === 'Sadness' && <Frown className="h-5 w-5" />}
+                  {selectedEmotion.coreEmotion === 'Anger' && <Flame className="h-5 w-5" />}
+                  {selectedEmotion.coreEmotion === 'Fear' && <AlertCircle className="h-5 w-5" />}
+                  {selectedEmotion.coreEmotion === 'Surprise' && <Sparkles className="h-5 w-5" />}
+                  {selectedEmotion.coreEmotion === 'Disgust' && <ThumbsDown className="h-5 w-5" />}
+                  {!['Joy', 'Sadness', 'Anger', 'Fear', 'Surprise', 'Disgust'].includes(selectedEmotion.coreEmotion) && <Heart className="h-5 w-5" />}
+                </div>
+                Emotion Details
+              </DialogTitle>
+              <DialogDescription>
+                Recorded on {format(new Date(selectedEmotion.timestamp), "MMMM d, yyyy 'at' h:mm a")}
+              </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-neutral-500">Date & Time</h4>
-                  <p>{formatDate(selectedEmotion.timestamp)}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-neutral-500">Emotion</h4>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(selectedEmotion.tertiaryEmotion || selectedEmotion.primaryEmotion || selectedEmotion.coreEmotion)}`}>
-                      {selectedEmotion.tertiaryEmotion || selectedEmotion.primaryEmotion || selectedEmotion.coreEmotion}
-                    </span>
-                    <span className="text-sm text-neutral-500">
-                      ({selectedEmotion.intensity}/10)
-                    </span>
+            
+            <div className="space-y-6">
+              {/* Emotion visualization card */}
+              <Card className="border-l-4 overflow-hidden" style={{
+                borderLeftColor: selectedEmotion.coreEmotion === 'Joy' ? '#FFC107' : 
+                                 selectedEmotion.coreEmotion === 'Sadness' ? '#2196F3' : 
+                                 selectedEmotion.coreEmotion === 'Anger' ? '#F44336' : 
+                                 selectedEmotion.coreEmotion === 'Fear' ? '#4CAF50' : 
+                                 selectedEmotion.coreEmotion === 'Surprise' ? '#9C27B0' : 
+                                 selectedEmotion.coreEmotion === 'Disgust' ? '#795548' : '#9E9E9E'
+              }}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="rounded-full w-16 h-16 flex items-center justify-center"
+                      style={{
+                        background: `conic-gradient(${selectedEmotion.coreEmotion === 'Joy' ? '#FFC107' : 
+                                 selectedEmotion.coreEmotion === 'Sadness' ? '#2196F3' : 
+                                 selectedEmotion.coreEmotion === 'Anger' ? '#F44336' : 
+                                 selectedEmotion.coreEmotion === 'Fear' ? '#4CAF50' : 
+                                 selectedEmotion.coreEmotion === 'Surprise' ? '#9C27B0' : 
+                                 selectedEmotion.coreEmotion === 'Disgust' ? '#795548' : '#9E9E9E'} ${selectedEmotion.intensity * 10}%, #f1f5f9 0)`
+                      }}>
+                      <div className="bg-white rounded-full w-10 h-10 flex items-center justify-center text-sm font-semibold">
+                        {selectedEmotion.intensity}/10
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-muted-foreground">Core Emotion</span>
+                        <span className="font-medium">{selectedEmotion.coreEmotion}</span>
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        {selectedEmotion.primaryEmotion && (
+                          <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(selectedEmotion.primaryEmotion)}`}>
+                            {selectedEmotion.primaryEmotion}
+                          </span>
+                        )}
+                        {selectedEmotion.tertiaryEmotion && (
+                          <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(selectedEmotion.tertiaryEmotion)}`}>
+                            {selectedEmotion.tertiaryEmotion}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="col-span-2">
-                  <h4 className="text-sm font-medium text-neutral-500">Situation</h4>
-                  <p className="text-sm">{selectedEmotion.situation}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-neutral-500">Location</h4>
-                  <p className="text-sm capitalize">{selectedEmotion.location || "Not specified"}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-neutral-500">Company</h4>
-                  <p className="text-sm capitalize">{selectedEmotion.company || "Not specified"}</p>
-                </div>
+                </CardContent>
+              </Card>
+            
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-slate-500" />
+                      Context Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Location</div>
+                        <div className="text-sm font-medium capitalize">{selectedEmotion.location || "Not specified"}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Company</div>
+                        <div className="text-sm font-medium capitalize">{selectedEmotion.company || "Not specified"}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-slate-500" />
+                      Situation
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="text-sm">
+                      {selectedEmotion.situation || "No situation description provided"}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
               
               <div className="flex flex-wrap justify-between gap-2 pt-4">
