@@ -354,27 +354,16 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                 </div>
                 
                 <div className="flex gap-2">
-                  {/* Add Thought Record button - always show for all users */}
-                  <Button 
-                    variant="default"
-                    onClick={() => {
-                      // Use the correct route for thought records with the emotion ID as a parameter
-                      window.location.href = `/thoughts/new?emotionId=${selectedEmotion.id}`;
-                    }}
-                  >
-                    <ArrowRight className="mr-1 h-4 w-4" />
-                    Add Thought Record
-                  </Button>
-
-                  {/* Only show Add Reflection button if this is the user's own data (not a therapist viewing client data) */}
+                  {/* Only show Add Thought Record button if this is the user's own data (not a therapist viewing client data) */}
                   {!isViewingClientData && (
                     <Button 
-                      variant="outline"
+                      variant="default"
                       onClick={() => {
                         setShowReflectionWizard(true);
                       }}
                     >
-                      Add Guided Reflection
+                      <ArrowRight className="mr-1 h-4 w-4" />
+                      Add Thought Record
                     </Button>
                   )}
                 </div>
