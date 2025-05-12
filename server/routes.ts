@@ -4144,6 +4144,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const total = totalPositive + totalNegative + totalNeutral;
         
         if (total > 0) {
+          // Calculate percentages - don't multiply by 100 since the client
+          // already expects these values to be percentages (0-100)
           stats.sentimentPatterns = {
             positive: Math.round((totalPositive / total) * 100),
             negative: Math.round((totalNegative / total) * 100),
@@ -4180,78 +4182,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
-        // ONLY process user-selected tags, not AI-suggested tags
+        // Process user-selected tags for frequency counting
         if (entry.userSelectedTags && Array.isArray(entry.userSelectedTags)) {
           entry.userSelectedTags.forEach(tag => {
             // Count all user-selected tags
             stats.tagsFrequency[tag] = (stats.tagsFrequency[tag] || 0) + 1;
-            
-            // Common emotion words - expanded list with more terms
-            const emotionWords = [
-              // Basic emotions
-              'happy', 'sad', 'angry', 'anxious', 'worried', 'excited', 'calm', 'stressed',
-              'peaceful', 'nervous', 'joyful', 'depressed', 'content', 'upset', 'frustrated',
-              'positive', 'negative', 'neutral', 'balanced', 'overwhelmed', 'hopeful',
-              'relieved', 'grateful', 'afraid', 'confused', 'proud', 'ashamed', 'confident',
-              'fearful', 'relaxed', 'annoyed', 'disappointed', 'satisfied', 'lonely', 'loved',
-              
-              // Core emotions and common variations
-              'fear', 'anxiety', 'scared', 'terror', 'horror', 'dread', 'panic',
-              'joy', 'happiness', 'delight', 'elation', 'ecstasy', 'thrill',
-              'disgust', 'repulsion', 'revulsion', 'distaste', 'aversion',
-              'surprise', 'astonishment', 'amazement', 'shock', 'wonder',
-              'trust', 'anticipation', 'acceptance', 'admiration', 'adoration',
-              
-              // Cognitive emotion terms
-              'incompetence', 'hopelessness', 'frustration', 'despair', 'grief',
-              'remorse', 'guilt', 'shame', 'regret', 'embarrassment',
-              'pride', 'triumph', 'satisfaction', 'contentment',
-              'rage', 'fury', 'resentment', 'irritation', 'annoyance', 'aggression',
-              'jealousy', 'envy', 'bitterness', 'disappointment',
-              
-              // Common emotional states
-              'stressed', 'tense', 'overwhelmed', 'burnout', 'exhausted',
-              'lonely', 'isolated', 'abandoned', 'rejected', 'betrayed',
-              'vulnerable', 'insecure', 'uncertain', 'helpless', 'powerless',
-              'hurt', 'pain', 'suffering', 'agony', 'torment',
-              
-              // Specific emotion patterns
-              'catastrophizing'
-            ];
-            
-            const tagLower = tag.toLowerCase().trim();
-            
-            // Special case: directly check for exact matches with our most common emotions
-            if (
-              tagLower === 'fear' || 
-              tagLower === 'anxiety' || 
-              tagLower === 'joy' || 
-              tagLower === 'anger' || 
-              tagLower === 'sadness' || 
-              tagLower === 'disgust' || 
-              tagLower === 'surprise' || 
-              tagLower === 'trust' || 
-              tagLower === 'anticipation' || 
-              tagLower === 'worry'
-            ) {
-              stats.emotions[tag] = (stats.emotions[tag] || 0) + 1;
-              return;
-            }
-            
-            // For other terms, check if they contain emotion words
-            const isLikelyEmotion = emotionWords.some(word => 
-              tagLower === word || // exact match
-              tagLower.startsWith(word + ' ') || // starts with the word
-              tagLower.endsWith(' ' + word) || // ends with the word
-              tagLower.includes(' ' + word + ' ') // contains the word with spaces around it
-            );
-            
-            if (isLikelyEmotion) {
-              stats.emotions[tag] = (stats.emotions[tag] || 0) + 1;
-            } else {
-              // Default to topic if not an emotion
-              stats.topics[tag] = (stats.topics[tag] || 0) + 1;
-            }
+          });
+        }
+        
+        // IMPORTANT: Use the emotions array directly from the journal entry
+        // This preserves the exact emotions as they were recorded with their original case and format
+        if (entry.emotions && Array.isArray(entry.emotions)) {
+          entry.emotions.forEach(emotion => {
+            // Count each emotion exactly as it was saved in the entry
+            stats.emotions[emotion] = (stats.emotions[emotion] || 0) + 1;
+          });
+        }
+        
+        // IMPORTANT: Use the topics array directly from the journal entry
+        // This preserves the exact topics as they were recorded
+        if (entry.topics && Array.isArray(entry.topics)) {
+          entry.topics.forEach(topic => {
+            // Count each topic exactly as it was saved in the entry
+            stats.topics[topic] = (stats.topics[topic] || 0) + 1;
           });
         }
       });
