@@ -701,7 +701,9 @@ export default function EmotionTrackingForm({
                 className="flex items-center justify-center gap-2"
                 onClick={() => {
                   setShowSuccessDialog(false);
-                  setShowReflectionWizard(true);
+                  if (recordedEmotion) {
+                    window.location.href = `/thoughts/new?emotionId=${recordedEmotion.id}`;
+                  }
                 }}
               >
                 <ArrowRight className="h-4 w-4" />

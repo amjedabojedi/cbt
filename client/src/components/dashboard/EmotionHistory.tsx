@@ -358,7 +358,8 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                   <Button 
                     variant="default"
                     onClick={() => {
-                      window.location.href = `/thought-records?emotion=${selectedEmotion.id}`;
+                      // Use the correct route for thought records with the emotion ID as a parameter
+                      window.location.href = `/thoughts/new?emotionId=${selectedEmotion.id}`;
                     }}
                   >
                     <ArrowRight className="mr-1 h-4 w-4" />
