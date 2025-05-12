@@ -1282,7 +1282,7 @@ export default function Journal() {
                           {/* Positive Sentiment */}
                           <div className="flex flex-col items-center">
                             <div className="h-28 w-28 rounded-full border-4 border-green-400 flex items-center justify-center">
-                              <p className="text-2xl font-bold text-green-500">{Math.round(stats.sentimentPatterns.positive * 100)}%</p>
+                              <p className="text-2xl font-bold text-green-500">{stats.sentimentPatterns.positive}%</p>
                             </div>
                             <p className="mt-2 text-sm font-medium">Positive</p>
                           </div>
@@ -1290,7 +1290,7 @@ export default function Journal() {
                           {/* Neutral Sentiment */}
                           <div className="flex flex-col items-center">
                             <div className="h-28 w-28 rounded-full border-4 border-gray-300 flex items-center justify-center">
-                              <p className="text-2xl font-bold text-gray-500">{Math.round(stats.sentimentPatterns.neutral * 100)}%</p>
+                              <p className="text-2xl font-bold text-gray-500">{stats.sentimentPatterns.neutral}%</p>
                             </div>
                             <p className="mt-2 text-sm font-medium">Neutral</p>
                           </div>
@@ -1298,7 +1298,7 @@ export default function Journal() {
                           {/* Negative Sentiment */}
                           <div className="flex flex-col items-center">
                             <div className="h-28 w-28 rounded-full border-4 border-red-400 flex items-center justify-center">
-                              <p className="text-2xl font-bold text-red-500">{Math.round(stats.sentimentPatterns.negative * 100)}%</p>
+                              <p className="text-2xl font-bold text-red-500">{stats.sentimentPatterns.negative}%</p>
                             </div>
                             <p className="mt-2 text-sm font-medium">Negative</p>
                           </div>
