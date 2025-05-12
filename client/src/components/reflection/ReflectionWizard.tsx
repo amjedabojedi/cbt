@@ -1328,7 +1328,7 @@ export default function ReflectionWizard({
               className="w-3 h-3 rounded-full mr-2"
               style={{ backgroundColor: getEmotionColor(emotion.primaryEmotion || emotion.coreEmotion || "") }}
             ></div>
-            Reflect on {emotion.tertiaryEmotion ? 
+            {isEditMode ? "Edit" : "Reflect on"} {emotion.tertiaryEmotion ? 
               `${emotion.primaryEmotion || emotion.coreEmotion || "Emotion"} (${emotion.tertiaryEmotion})` : 
               (emotion.primaryEmotion || emotion.coreEmotion || "Emotion")
             }
@@ -1404,9 +1404,8 @@ export default function ReflectionWizard({
                     <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
                     Submitting...
                   </>
-                ) : (
-                  "Complete Reflection"
-                )}
+                ) : isEditMode ? "Update Reflection" : "Complete Reflection"
+                }
               </Button>
             )}
           </div>
