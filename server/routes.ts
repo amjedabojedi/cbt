@@ -9,7 +9,7 @@ import fs from "fs";
 // This ensures mobile and cross-device compatibility
 function getSessionCookieOptions(): CookieOptions {
   return {
-    httpOnly: false, // False to allow JavaScript access for debugging
+    httpOnly: true, // False to allow JavaScript access for debugging
     secure: true, // Always use secure cookies (needed for mobile)
     sameSite: "none", // Use 'none' to support cross-site usage on mobile
     path: "/", // Ensure cookie is available on all paths
@@ -597,7 +597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Set the session cookie
           res.cookie("sessionId", session.id, {
-            httpOnly: false, // False to allow JavaScript access for debugging
+            httpOnly: true, // False to allow JavaScript access for debugging
             secure: true, // Always use secure cookies (needed for mobile)
             sameSite: "none", // Use 'none' to support cross-site usage on mobile
             path: "/", // Ensure cookie is available on all paths
@@ -641,7 +641,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Set the session cookie
       res.cookie("sessionId", session.id, {
-        httpOnly: false,
+        httpOnly: true,
         secure: true, // Always use secure cookies
         sameSite: "none", // Use 'none' to support cross-site usage on mobile
         path: "/", // Ensure cookie is available on all paths
@@ -804,7 +804,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Set the session cookie
       res.cookie("sessionId", session.id, {
-        httpOnly: false,
+        httpOnly: true,
         secure: true, // Always use secure cookies
         sameSite: "none", // Use 'none' to support cross-site usage on mobile
         path: "/", // Ensure cookie is available on all paths
