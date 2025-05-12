@@ -496,29 +496,16 @@ export default function ReflectionWizard({
     setIsSubmitting(true);
     
     try {
-      // Get form values from the DOM as fallback since we're using native textareas
-      const evidenceForEl = document.querySelector('textarea[placeholder="List facts that support this thought..."]') as HTMLTextAreaElement;
-      const evidenceAgainstEl = document.querySelector('textarea[placeholder="List facts that don\'t support this thought..."]') as HTMLTextAreaElement;
-      const alternativePerspectiveEl = document.querySelector('textarea[placeholder="A more realistic way to see this situation might be..."]') as HTMLTextAreaElement;
-      const insightsGainedEl = document.querySelector('textarea[placeholder="What I\'ve learned from this reflection..."]') as HTMLTextAreaElement;
-      
-      console.log("Text values:", {
-        evidenceFor: evidenceForEl?.value,
-        evidenceAgainst: evidenceAgainstEl?.value,
-        alternativePerspective: alternativePerspectiveEl?.value,
-        insightsGained: insightsGainedEl?.value
-      });
-      
-      // Format data for API
+      // Format data for API using form values directly
       const thoughtRecordData = {
         userId: user.id,
         emotionRecordId: isEditMode && existingThoughtRecord ? existingThoughtRecord.emotionRecordId : emotion.id,
         automaticThoughts: data.automaticThoughts,
         cognitiveDistortions: data.cognitiveDistortions || [],
-        evidenceFor: evidenceForEl?.value || data.evidenceFor || "",
-        evidenceAgainst: evidenceAgainstEl?.value || data.evidenceAgainst || "",
-        alternativePerspective: alternativePerspectiveEl?.value || data.alternativePerspective || "",
-        insightsGained: insightsGainedEl?.value || data.insightsGained || "",
+        evidenceFor: data.evidenceFor || "",
+        evidenceAgainst: data.evidenceAgainst || "",
+        alternativePerspective: data.alternativePerspective || "",
+        insightsGained: data.insightsGained || "",
         reflectionRating: data.reflectionRating || 5,
       };
       
