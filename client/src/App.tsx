@@ -22,6 +22,7 @@ const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
 const EmotionTracking = lazy(() => import("@/pages/EmotionTracking"));
 const EmotionMapping = lazy(() => import("@/pages/EmotionMapping"));
 const ThoughtRecords = lazy(() => import("@/pages/ThoughtRecords"));
+const Reflection = lazy(() => import("@/pages/Reflection"));
 const GoalSetting = lazy(() => import("@/pages/GoalSetting"));
 const ResourceLibrary = lazy(() => import("@/pages/ResourceLibrary"));
 const Journal = lazy(() => import("@/pages/Journal"));
@@ -79,6 +80,7 @@ function Router() {
           <ProtectedRoute path="/emotion-tracking" component={EmotionTracking} />
           <ProtectedRoute path="/emotions" component={EmotionTracking} />
           <ProtectedRoute path="/thoughts" component={ThoughtRecords} />
+          <ProtectedRoute path="/reflection" component={Reflection} />
           <ProtectedRoute path="/goals" component={GoalSetting} />
           <ProtectedRoute path="/library" component={ResourceLibrary} />
           <ProtectedRoute path="/journal" component={Journal} />

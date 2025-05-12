@@ -9,7 +9,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BrainCircuit, ChevronLeft, Loader2 } from "lucide-react";
-import ReflectionWizardEdit from "@/components/reflection/ReflectionWizardEdit";
+import ReflectionWizard from "@/components/reflection/ReflectionWizard";
 
 export default function Reflection() {
   const { user } = useAuth();
@@ -39,40 +39,44 @@ export default function Reflection() {
   }, [setLocation, toast]);
   
   // Fetch the specific thought record
-  const { data: thoughtRecords, isLoading: isLoadingThoughts } = useQuery({
+  const { data: thoughtRecords, isLoading: isLoadingThoughts } = useQuery<ThoughtRecord[]>({
     queryKey: activeUserId && thoughtRecordId ? [`/api/users/${activeUserId}/thoughts`] : [],
-    enabled: !!(activeUserId && thoughtRecordId),
-    onSuccess: (data) => {
-      if (data && Array.isArray(data) && thoughtRecordId) {
-        const record = data.find((r: ThoughtRecord) => r.id === thoughtRecordId);
-        if (record) {
-          setThoughtRecord(record);
-        } else {
-          toast({
-            title: "Record not found",
-            description: "The thought record you're trying to edit was not found.",
-            variant: "destructive",
-          });
-          setLocation('/thoughts');
-        }
-      }
-    }
+    enabled: !!(activeUserId && thoughtRecordId)
   });
   
+  // Process thought records when they change
+  useEffect(() => {
+    if (thoughtRecords && Array.isArray(thoughtRecords) && thoughtRecordId) {
+      const record = thoughtRecords.find(r => r.id === thoughtRecordId);
+      if (record) {
+        setThoughtRecord(record);
+      } else {
+        toast({
+          title: "Record not found",
+          description: "The thought record you're trying to edit was not found.",
+          variant: "destructive",
+        });
+        setLocation('/thoughts');
+      }
+    }
+  }, [thoughtRecords, thoughtRecordId, toast, setLocation]);
+  
   // Fetch emotions to find the related emotion
-  const { data: emotions, isLoading: isLoadingEmotions } = useQuery({
+  const { data: emotions, isLoading: isLoadingEmotions } = useQuery<EmotionRecord[]>({
     queryKey: activeUserId ? [`/api/users/${activeUserId}/emotions`] : [],
-    enabled: !!(activeUserId && thoughtRecord),
-    onSuccess: (data) => {
-      if (data && Array.isArray(data) && thoughtRecord && thoughtRecord.emotionRecordId) {
-        const emotion = data.find((e: EmotionRecord) => e.id === thoughtRecord.emotionRecordId);
-        if (emotion) {
-          setRelatedEmotion(emotion);
-        }
+    enabled: !!(activeUserId && thoughtRecord)
+  });
+  
+  // Process emotions when they change
+  useEffect(() => {
+    if (emotions && Array.isArray(emotions) && thoughtRecord && thoughtRecord.emotionRecordId) {
+      const emotion = emotions.find(e => e.id === thoughtRecord.emotionRecordId);
+      if (emotion) {
+        setRelatedEmotion(emotion);
       }
       setLoading(false);
     }
-  });
+  }, [emotions, thoughtRecord]);
   
   // Handle wizard close
   const handleClose = () => {
@@ -155,18 +159,13 @@ export default function Reflection() {
           </CardHeader>
         </Card>
         
-        {/* We need to create a new component for editing thought records */}
-        {/* For now, we'll create a placeholder that will be implemented later */}
-        <div className="text-center py-8">
-          <p className="text-lg">Coming Soon: Edit Thought Record</p>
-          <p className="text-muted-foreground mt-2">This feature is currently under development</p>
-          <Button 
-            className="mt-4" 
-            onClick={() => setLocation('/thoughts')}
-          >
-            Return to Thought Records
-          </Button>
-        </div>
+        {relatedEmotion && (
+          <ReflectionWizard
+            emotion={relatedEmotion}
+            open={true}
+            onClose={handleClose}
+          />
+        )}
       </div>
     </AppLayout>
   );
