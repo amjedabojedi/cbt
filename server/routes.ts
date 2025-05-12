@@ -3257,21 +3257,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Allow deletion by:
-      // 1. The creator 
-      // 2. Admin
-      // 3. Any therapist for global resources
+      // 1. The creator (any role can delete their own resources)
+      // 2. Admin (can delete any resource)
       if (resource.createdBy === req.user.id) {
         // Created by current user, so allow deletion
         console.log(`User ${req.user.id} is deleting their own resource ${resourceId}`);
       } else if (req.user.role === "admin") {
         // Admin can delete any resource
         console.log(`Admin ${req.user.id} is deleting resource ${resourceId}`);
-      } else if (req.user.role === "therapist" && resource.isGlobal) {
-        // Therapists can delete global resources
-        console.log(`Therapist ${req.user.id} is deleting global resource ${resourceId}`);
       } else {
         return res.status(403).json({ 
-          message: "Access denied: You can only delete resources you created or global resources if you're a therapist" 
+          message: "Access denied: You can only delete resources you created" 
         });
       }
       
