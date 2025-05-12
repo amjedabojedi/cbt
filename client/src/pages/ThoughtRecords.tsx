@@ -261,7 +261,7 @@ export default function ThoughtRecords() {
                             className="h-8 text-xs"
                             asChild
                           >
-                            <a href={`/emotion-tracking?id=${selectedThought.emotionRecordId}`}>
+                            <a href={`/emotions?emotion=${selectedThought.emotionRecordId}`}>
                               <HeartPulse size={14} className="mr-1" />
                               View Emotion
                             </a>
