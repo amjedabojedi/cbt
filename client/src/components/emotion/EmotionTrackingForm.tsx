@@ -8,6 +8,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import useActiveUser from "@/hooks/use-active-user";
+import { useLocation } from "wouter";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { InfoIcon, HelpCircle } from "lucide-react";
+import { InfoIcon, HelpCircle, ArrowRight, Check, RefreshCw, Home } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -43,6 +44,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { 
   Card,
@@ -104,7 +106,9 @@ export default function EmotionTrackingForm({
   const queryClient = useQueryClient();
   const { isViewingSelf } = useActiveUser();
   const [showReflectionWizard, setShowReflectionWizard] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [recordedEmotion, setRecordedEmotion] = useState<any>(null);
+  const [, navigate] = useLocation();
   
   // Initialize form with default values
   const form = useForm<FormValues>({
@@ -222,11 +226,8 @@ export default function EmotionTrackingForm({
       // Store the recorded emotion
       setRecordedEmotion(recordedEmotion);
       
-      // Only show reflection wizard if user is viewing their own data
-      // Therapists should not be able to add reflections directly when viewing client data
-      if (isViewingSelf) {
-        setShowReflectionWizard(true);
-      }
+      // Show success dialog instead of immediately going to reflection wizard
+      setShowSuccessDialog(true);
       
       // Notify parent component
       if (onEmotionRecorded) {
@@ -675,6 +676,76 @@ export default function EmotionTrackingForm({
           </div>
         </form>
       </Form>
+      
+      {/* Success Dialog with Options */}
+      <Dialog open={showSuccessDialog && !!recordedEmotion} onOpenChange={(open) => !open && setShowSuccessDialog(false)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Check className="h-6 w-6 text-green-500 mr-2" />
+              Emotion Recorded Successfully
+            </DialogTitle>
+            <DialogDescription>
+              Your emotion has been tracked. What would you like to do next?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            <p className="text-sm text-gray-500">
+              The emotion you recorded has been saved. Remember that you can always connect thoughts to emotions later by visiting your emotion history.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+              <Button 
+                variant="default" 
+                className="flex items-center justify-center gap-2"
+                onClick={() => {
+                  setShowSuccessDialog(false);
+                  setShowReflectionWizard(true);
+                }}
+              >
+                <ArrowRight className="h-4 w-4" />
+                Add Thought Record
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="flex items-center justify-center gap-2"
+                onClick={() => {
+                  setShowSuccessDialog(false);
+                  // Reset form to create a new emotion record
+                  form.reset({
+                    coreEmotion: "",
+                    primaryEmotion: "",
+                    tertiaryEmotion: "",
+                    intensity: 5,
+                    situation: "",
+                    location: "",
+                    company: "",
+                    timestamp: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+                    useCurrentTime: true,
+                  });
+                }}
+              >
+                <RefreshCw className="h-4 w-4" />
+                Record Another
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="flex items-center justify-center gap-2"
+                onClick={() => {
+                  setShowSuccessDialog(false);
+                  navigate("/");
+                }}
+              >
+                <Home className="h-4 w-4" />
+                Go to Dashboard
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       {/* Reflection Wizard Modal */}
       {showReflectionWizard && recordedEmotion && (

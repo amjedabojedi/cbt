@@ -6,6 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
 import { useAuth } from "@/lib/auth";
+import { ArrowRight } from "lucide-react";
 
 import {
   Table,
@@ -345,17 +346,38 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                 </div>
               </div>
               
-              {/* Only show Add Reflection button if this is the user's own data (not a therapist viewing client data) */}
-              {!isViewingClientData && (
-                <div className="flex justify-end pt-4">
-                  <Button onClick={() => {
-                    setShowReflectionWizard(true);
-                    // Keep selectedEmotion set
-                  }}>
-                    Add Reflection
-                  </Button>
+              <div className="flex flex-wrap justify-between gap-2 pt-4">
+                {/* Show linked thought records if they exist */}
+                <div>
+                  <h4 className="text-sm font-medium text-neutral-500 mb-2">Related Records</h4>
+                  {/* We'll add thought record links in a separate update */}
                 </div>
-              )}
+                
+                <div className="flex gap-2">
+                  {/* Add Thought Record button - always show for all users */}
+                  <Button 
+                    variant="default"
+                    onClick={() => {
+                      window.location.href = `/thought-records?emotion=${selectedEmotion.id}`;
+                    }}
+                  >
+                    <ArrowRight className="mr-1 h-4 w-4" />
+                    Add Thought Record
+                  </Button>
+
+                  {/* Only show Add Reflection button if this is the user's own data (not a therapist viewing client data) */}
+                  {!isViewingClientData && (
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        setShowReflectionWizard(true);
+                      }}
+                    >
+                      Add Reflection
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
