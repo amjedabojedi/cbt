@@ -133,6 +133,8 @@ interface ReflectionWizardProps {
   emotion: EmotionRecord;
   open: boolean;
   onClose: () => void;
+  existingThoughtRecord?: ThoughtRecord; // Optional thought record for editing
+  isEditMode?: boolean; // Flag to indicate if we're in edit mode
 }
 
 // Helper function to get color based on emotion
@@ -176,7 +178,13 @@ const getEmotionColor = (emotion?: string): string => {
   return colorMap[emotion] || "#808080"; // Default to gray if emotion not found
 };
 
-export default function ReflectionWizard({ emotion, open, onClose }: ReflectionWizardProps) {
+export default function ReflectionWizard({ 
+  emotion, 
+  open, 
+  onClose, 
+  existingThoughtRecord, 
+  isEditMode = false 
+}: ReflectionWizardProps) {
   const { user } = useAuth();
   const { isViewingSelf } = useActiveUser();
   const { toast } = useToast();
@@ -218,11 +226,19 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
   const totalSteps = 4;
   const progress = (step / totalSteps) * 100;
   
-  // Initialize form with default values
+  // Initialize form with default values or existing record values if in edit mode
   const form = useForm<ThoughtRecordFormValues>({
     resolver: zodResolver(thoughtRecordSchema),
     mode: "onChange",
-    defaultValues: {
+    defaultValues: isEditMode && existingThoughtRecord ? {
+      automaticThoughts: existingThoughtRecord.automaticThoughts,
+      cognitiveDistortions: existingThoughtRecord.cognitiveDistortions || [],
+      evidenceFor: existingThoughtRecord.evidenceFor,
+      evidenceAgainst: existingThoughtRecord.evidenceAgainst,
+      alternativePerspective: existingThoughtRecord.alternativePerspective,
+      insightsGained: existingThoughtRecord.insightsGained,
+      reflectionRating: existingThoughtRecord.reflectionRating,
+    } : {
       automaticThoughts: "",
       cognitiveDistortions: [],
       evidenceFor: "",

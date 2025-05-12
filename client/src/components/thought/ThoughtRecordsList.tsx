@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
+import { useLocation } from "wouter";
 
 import {
   Table,
@@ -121,9 +122,14 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
   };
   
   // Handle edit
+  const [, navigate] = useLocation();
   const handleEditRecord = (record: ThoughtRecord) => {
+    // If onEditRecord prop is provided, use it (backward compatibility)
     if (onEditRecord) {
       onEditRecord(record);
+    } else {
+      // Otherwise, navigate to the new Reflection page with edit parameter
+      navigate(`/reflection?edit=${record.id}`);
     }
   };
   
