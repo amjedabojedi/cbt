@@ -61,10 +61,24 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // Check if there's an emotion ID in the URL to auto-select
+  const urlParams = new URLSearchParams(window.location.search);
+  const emotionIdParam = urlParams.get('id');
+  
   // Fetch emotion records for the active user (could be a client viewed by a therapist)
   const { data: emotions = [], isLoading, error } = useQuery<EmotionRecord[]>({
     queryKey: activeUserId ? [`/api/users/${activeUserId}/emotions`] : [],
     enabled: !!activeUserId,
+    onSuccess: (data) => {
+      // If we have an emotion ID in the URL, find and select that emotion
+      if (emotionIdParam && data) {
+        const emotionId = parseInt(emotionIdParam, 10);
+        const foundEmotion = data.find(e => e.id === emotionId);
+        if (foundEmotion) {
+          setSelectedEmotion(foundEmotion);
+        }
+      }
+    }
   });
   
   // Delete emotion mutation - only allowed for own records
