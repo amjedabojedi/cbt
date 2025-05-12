@@ -159,11 +159,13 @@ export default function Reflection() {
           </CardHeader>
         </Card>
         
-        {relatedEmotion && (
+        {relatedEmotion && thoughtRecord && (
           <ReflectionWizard
             emotion={relatedEmotion}
             open={true}
             onClose={handleClose}
+            existingThoughtRecord={thoughtRecord}
+            isEditMode={true}
           />
         )}
       </div>
