@@ -1268,6 +1268,65 @@ export default function Journal() {
                 </CardContent>
             </Card>
             
+            {/* Sentiment Distribution */}
+            <Card className="lg:col-span-6">
+                <CardHeader>
+                  <CardTitle className="text-lg">Sentiment Distribution</CardTitle>
+                  <CardDescription>Overall emotional tone of your journal entries</CardDescription>
+                </CardHeader>
+                <CardContent className="p-4">
+                  {stats.sentimentPatterns ? (
+                    <div className="space-y-4">
+                      <div className="h-40 flex items-center justify-center">
+                        <div className="grid grid-cols-3 gap-3 w-full max-w-md">
+                          {/* Positive Sentiment */}
+                          <div className="flex flex-col items-center">
+                            <div className="h-28 w-28 rounded-full border-4 border-green-400 flex items-center justify-center">
+                              <p className="text-2xl font-bold text-green-500">{Math.round(stats.sentimentPatterns.positive * 100)}%</p>
+                            </div>
+                            <p className="mt-2 text-sm font-medium">Positive</p>
+                          </div>
+                          
+                          {/* Neutral Sentiment */}
+                          <div className="flex flex-col items-center">
+                            <div className="h-28 w-28 rounded-full border-4 border-gray-300 flex items-center justify-center">
+                              <p className="text-2xl font-bold text-gray-500">{Math.round(stats.sentimentPatterns.neutral * 100)}%</p>
+                            </div>
+                            <p className="mt-2 text-sm font-medium">Neutral</p>
+                          </div>
+                          
+                          {/* Negative Sentiment */}
+                          <div className="flex flex-col items-center">
+                            <div className="h-28 w-28 rounded-full border-4 border-red-400 flex items-center justify-center">
+                              <p className="text-2xl font-bold text-red-500">{Math.round(stats.sentimentPatterns.negative * 100)}%</p>
+                            </div>
+                            <p className="mt-2 text-sm font-medium">Negative</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex justify-center space-x-4">
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 bg-green-400 rounded-sm mr-1"></div>
+                          Positive
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 bg-gray-300 rounded-sm mr-1"></div>
+                          Neutral
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 bg-red-400 rounded-sm mr-1"></div>
+                          Negative
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-sm text-muted-foreground">Not enough data to display sentiment trends yet. Keep journaling!</p>
+                    </div>
+                  )}
+                </CardContent>
+            </Card>
+            
             {/* Topics */}
               <Card className="lg:col-span-6">
                 <CardHeader>
