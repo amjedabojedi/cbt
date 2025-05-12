@@ -30,9 +30,11 @@ const JournalWordCloud: React.FC<JournalWordCloudProps> = ({ words = {}, height 
     // Try to get emotion color first
     try {
       const { color } = getEmotionInfo(tag);
-      if (color) return color.replace('bg-', 'bg-opacity-80 ');
+      // The color format from getEmotionInfo is "bg-yellow-100 border-yellow-300 text-yellow-800"
+      if (color) return color;
     } catch (e) {
       // If not an emotion or error, fall back to frequency-based color
+      console.warn(`No color mapping found for emotion: ${tag}`, e);
     }
     
     // Fallback to frequency-based coloring
@@ -76,9 +78,9 @@ const JournalWordCloud: React.FC<JournalWordCloudProps> = ({ words = {}, height 
   const getTooltipDescription = (tag: string, count: number) => {
     try {
       const { description } = getEmotionInfo(tag);
-      return `${description} (${count} times)`;
+      return `${tag}: ${description} (mentioned ${count} time${count !== 1 ? 's' : ''})`;
     } catch (e) {
-      return `${tag}: mentioned ${count} times`;
+      return `${tag}: mentioned ${count} time${count !== 1 ? 's' : ''}`;
     }
   };
 
