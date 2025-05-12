@@ -329,8 +329,9 @@ export default function Journal() {
   const addCommentMutation = useMutation({
     mutationFn: async ({ entryId, comment }: { entryId: number, comment: string }) => {
       if (!userId) throw new Error("User not authenticated");
-      console.log("Sending comment API request to:", `/api/users/${userId}/journal/${entryId}/comments`);
-      const response = await apiRequest('POST', `/api/users/${userId}/journal/${entryId}/comments`, { comment });
+      console.log("Sending comment API request to:", `/api/journal/${entryId}/comments`);
+      // Use correct endpoint from server routes
+      const response = await apiRequest('POST', `/api/journal/${entryId}/comments`, { comment });
       return response.json();
     },
     onSuccess: (data) => {
@@ -444,7 +445,8 @@ export default function Journal() {
       }
       
       console.log("Linking thought record:", thoughtRecordId, "to journal entry:", currentEntry.id);
-      const response = await apiRequest('POST', `/api/users/${userId}/journal/${currentEntry.id}/link-record`, { thoughtRecordId });
+      // Fix endpoint to match server-side implementation
+      const response = await apiRequest('POST', `/api/users/${userId}/journal/${currentEntry.id}/link-thought`, { thoughtRecordId });
       return response.json();
     },
     onSuccess: (data) => {
@@ -480,7 +482,8 @@ export default function Journal() {
       }
       
       console.log("Unlinking thought record:", thoughtRecordId, "from journal entry:", currentEntry.id);
-      const response = await apiRequest('DELETE', `/api/users/${userId}/journal/${currentEntry.id}/link-record/${thoughtRecordId}`);
+      // Fix endpoint to match server-side implementation
+      const response = await apiRequest('DELETE', `/api/users/${userId}/journal/${currentEntry.id}/link-thought/${thoughtRecordId}`);
       return response.json();
     },
     onSuccess: (data) => {
