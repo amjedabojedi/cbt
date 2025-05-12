@@ -3257,11 +3257,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Allow deletion by:
-      // 1. The creator (any role can delete their own resources)
-      // 2. Admin (can delete any resource)
+      // 1. Therapists who created the resource
+      // 2. Admins (can delete any resource)
+      
+      if (req.user.role !== "therapist" && req.user.role !== "admin") {
+        return res.status(403).json({ 
+          message: "Access denied: Only therapists and admins can delete educational resources" 
+        });
+      }
+      
       if (resource.createdBy === req.user.id) {
-        // Created by current user, so allow deletion
-        console.log(`User ${req.user.id} is deleting their own resource ${resourceId}`);
+        // Created by current user (who must be a therapist or admin), so allow deletion
+        console.log(`${req.user.role} ${req.user.id} is deleting their own resource ${resourceId}`);
       } else if (req.user.role === "admin") {
         // Admin can delete any resource
         console.log(`Admin ${req.user.id} is deleting resource ${resourceId}`);
