@@ -512,7 +512,7 @@ export default function ReflectionWizard({
       // Format data for API
       const thoughtRecordData = {
         userId: user.id,
-        emotionRecordId: emotion.id,
+        emotionRecordId: isEditMode && existingThoughtRecord ? existingThoughtRecord.emotionRecordId : emotion.id,
         automaticThoughts: data.automaticThoughts,
         cognitiveDistortions: data.cognitiveDistortions || [],
         evidenceFor: evidenceForEl?.value || data.evidenceFor || "",
@@ -522,14 +522,35 @@ export default function ReflectionWizard({
         reflectionRating: data.reflectionRating || 5,
       };
       
-      // Submit thought record to API
-      const response = await apiRequest(
-        "POST", 
-        `/api/users/${user.id}/thoughts`, 
-        thoughtRecordData
-      );
+      let thoughtRecord;
       
-      const thoughtRecord = await response.json();
+      if (isEditMode && existingThoughtRecord) {
+        // Update existing thought record
+        const response = await apiRequest(
+          "PATCH",
+          `/api/users/${user.id}/thoughts/${existingThoughtRecord.id}`,
+          thoughtRecordData
+        );
+        thoughtRecord = await response.json();
+        
+        toast({
+          title: "Success",
+          description: "Your thought record has been updated successfully.",
+        });
+      } else {
+        // Create new thought record
+        const response = await apiRequest(
+          "POST", 
+          `/api/users/${user.id}/thoughts`, 
+          thoughtRecordData
+        );
+        thoughtRecord = await response.json();
+        
+        toast({
+          title: "Success",
+          description: "Your thought record has been saved successfully.",
+        });
+      }
       
       // Record protective factor usages
       if (selectedProtectiveFactors.length > 0) {
@@ -588,11 +609,16 @@ export default function ReflectionWizard({
         description: "Your reflection has been recorded successfully.",
       });
       
-      // Redirect to the thought record details view
-      window.location.href = `/thoughts/${thoughtRecord.id}`;
-      
-      // Close the dialog
-      onClose();
+      // Handle navigation after submission
+      if (isEditMode) {
+        // When editing, just close the dialog and let the parent component handle navigation
+        onClose();
+      } else {
+        // For new records, redirect to the thought record details view
+        // Use setLocation instead of direct window.location for proper routing
+        setLocation(`/thoughts/${thoughtRecord.id}`);
+        onClose();
+      }
     } catch (error) {
       console.error("Error recording thought reflection:", error);
       toast({
