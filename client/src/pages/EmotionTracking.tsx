@@ -28,6 +28,11 @@ export default function EmotionTracking() {
   const [direction, setDirection] = useState<"ltr" | "rtl">("ltr");
   const [showLanguageNotice, setShowLanguageNotice] = useState(false);
   
+  // Check URL parameters for tab and emotion ID
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  const emotionId = urlParams.get('id');
+  
   // Handle language toggle
   const handleLanguageToggle = () => {
     const newLanguage = language === "en" ? "ar" : "en";
@@ -52,7 +57,16 @@ export default function EmotionTracking() {
         {/* Debug Information (Development Only) */}
         <ClientDebug />
         
-        <Tabs defaultValue={(isViewingClientData || user?.role === 'therapist') ? "history" : "record"} className="space-y-4">
+        <Tabs 
+          defaultValue={
+            tabParam === 'history' 
+              ? "history" 
+              : (isViewingClientData || user?.role === 'therapist') 
+                ? "history" 
+                : "record"
+          } 
+          className="space-y-4"
+        >
           <TabsList>
             {/* Only show recording tab for clients viewing their own data, and not for therapists */}
             {!isViewingClientData && user?.role !== 'therapist' && (
