@@ -6,6 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
 import { useAuth } from "@/lib/auth";
+import { useLocation } from "wouter";
 import { ArrowRight } from "lucide-react";
 
 import {
@@ -60,6 +61,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   const [emotionToDelete, setEmotionToDelete] = useState<EmotionRecord | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   
   // Fetch emotion records for the active user (could be a client viewed by a therapist)
   const { data: emotions = [], isLoading, error } = useQuery<EmotionRecord[]>({
@@ -358,8 +360,8 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                   <Button 
                     variant="default"
                     onClick={() => {
-                      // Use the correct route for thought records with the emotion ID as a parameter
-                      window.location.href = `/thoughts/new?emotionId=${selectedEmotion.id}`;
+                      // Use the wouter navigate for client-side navigation
+                      navigate(`/thoughts/new?emotionId=${selectedEmotion.id}`);
                     }}
                   >
                     <ArrowRight className="mr-1 h-4 w-4" />
