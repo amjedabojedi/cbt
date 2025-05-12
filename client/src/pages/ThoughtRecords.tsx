@@ -105,9 +105,10 @@ export default function ThoughtRecords() {
     return emotions.find((emotion: any) => emotion.id === emotionRecordId);
   };
   
-  // Handle edit a thought record
+  // Handle editing a thought record
   const handleEditThought = (thought: ThoughtRecord) => {
-    setSelectedThought(thought);
+    // Redirect to reflection wizard with the record ID to edit
+    window.location.href = `/reflection?edit=${thought.id}`;
   };
 
   return (
