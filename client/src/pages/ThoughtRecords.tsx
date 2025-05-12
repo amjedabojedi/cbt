@@ -254,17 +254,30 @@ export default function ThoughtRecords() {
                             Intensity: {findRelatedEmotion(selectedThought.emotionRecordId)?.intensity}/10
                           </span>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-8 text-xs text-blue-600"
-                          asChild
-                        >
-                          <a href={`/emotion-tracking?id=${selectedThought.emotionRecordId}`}>
-                            <ExternalLink size={14} className="mr-1" />
-                            View Record
-                          </a>
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 text-xs text-blue-600"
+                            asChild
+                          >
+                            <a href={`/thoughts?record=${selectedThought.id}`}>
+                              <ExternalLink size={14} className="mr-1" />
+                              View Thought Record
+                            </a>
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-8 text-xs"
+                            asChild
+                          >
+                            <a href={`/emotion-tracking?id=${selectedThought.emotionRecordId}`}>
+                              <HeartPulse size={14} className="mr-1" />
+                              View Emotion
+                            </a>
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
