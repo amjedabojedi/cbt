@@ -40,7 +40,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { Edit, Eye, Trash2, Brain, BrainCircuit, AlertTriangle, Scale, Lightbulb, Sparkles, Calendar, Book, BookText, MessageSquare, Heart } from "lucide-react";
 
 interface ThoughtRecordsListProps {
   limit?: number;
@@ -251,30 +251,65 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                   {displayRecords?.map((record) => (
                     <TableRow key={record.id}>
                       <TableCell className="whitespace-nowrap text-sm">
-                        {formatDate(record.createdAt)}
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 rounded-full bg-slate-100">
+                            <Calendar className="h-3.5 w-3.5 text-slate-500" />
+                          </div>
+                          {formatDate(record.createdAt)}
+                        </div>
                       </TableCell>
                       <TableCell className="max-w-xs truncate text-sm">
-                        {record.automaticThoughts}
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 rounded-full bg-indigo-100">
+                            <BrainCircuit className="h-3.5 w-3.5 text-indigo-500" />
+                          </div>
+                          <div className="truncate">{record.automaticThoughts}</div>
+                        </div>
                       </TableCell>
                       <TableCell className="text-sm">
-                        {record.cognitiveDistortions.slice(0, 2).join(", ")}
-                        {record.cognitiveDistortions.length > 2 && "..."}
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 rounded-full bg-amber-100">
+                            <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                          </div>
+                          <div>
+                            {record.cognitiveDistortions && record.cognitiveDistortions.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {record.cognitiveDistortions.slice(0, 2).map((distortion, idx) => (
+                                  <span key={idx} className="px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded-full text-xs">
+                                    {distortion}
+                                  </span>
+                                ))}
+                                {record.cognitiveDistortions.length > 2 && 
+                                  <span className="text-xs text-muted-foreground">+{record.cognitiveDistortions.length - 2} more</span>
+                                }
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">None identified</span>
+                            )}
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell className="max-w-xs truncate text-sm">
-                        {record.alternativePerspective}
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 rounded-full bg-blue-100">
+                            <Lightbulb className="h-3.5 w-3.5 text-blue-500" />
+                          </div>
+                          <div className="truncate">{record.alternativePerspective}</div>
+                        </div>
                       </TableCell>
                       <TableCell className="text-center">
                         {record.relatedJournalEntryIds && record.relatedJournalEntryIds.length > 0 ? (
                           <div className="flex items-center justify-center">
-                            <span 
-                              className="bg-primary/10 text-primary text-xs px-1.5 py-0.5 rounded-full"
-                              title={`${record.relatedJournalEntryIds.length} linked journal ${record.relatedJournalEntryIds.length === 1 ? 'entry' : 'entries'}`}
-                            >
-                              {record.relatedJournalEntryIds.length}
-                            </span>
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 text-primary rounded-full" 
+                              title={`${record.relatedJournalEntryIds.length} linked journal ${record.relatedJournalEntryIds.length === 1 ? 'entry' : 'entries'}`}>
+                              <BookText className="h-3.5 w-3.5" />
+                              <span className="text-xs font-medium">{record.relatedJournalEntryIds.length}</span>
+                            </div>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground text-xs">—</span>
+                          <div className="p-1.5 rounded-full bg-slate-100 inline-flex">
+                            <BookText className="h-3.5 w-3.5 text-slate-400" />
+                          </div>
                         )}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
@@ -323,46 +358,130 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
       {/* Record Details Dialog */}
       {selectedRecord && (
         <Dialog open={!!selectedRecord} onOpenChange={() => setSelectedRecord(null)}>
-          <DialogContent>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Thought Record Details</DialogTitle>
+              <DialogTitle className="flex items-center gap-2 text-lg">
+                <div className="p-2 rounded-full bg-indigo-100 text-indigo-600">
+                  <BrainCircuit className="h-5 w-5" />
+                </div>
+                Thought Record Details
+              </DialogTitle>
               <DialogDescription>
-                Review the details of this thought record and its cognitive reflections.
+                Created on {format(new Date(selectedRecord.createdAt), "MMMM d, yyyy 'at' h:mm a")}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium text-neutral-500">Date & Time</h4>
-                <p>{formatDate(selectedRecord.createdAt)}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-neutral-500">Automatic Thoughts</h4>
-                <p className="text-sm whitespace-pre-wrap">{selectedRecord.automaticThoughts}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-neutral-500">Cognitive Distortions</h4>
-                <ul className="list-disc list-inside text-sm">
-                  {selectedRecord.cognitiveDistortions.map((distortion, index) => (
-                    <li key={index}>{distortion}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-neutral-500">Evidence For</h4>
-                <p className="text-sm whitespace-pre-wrap">{selectedRecord.evidenceFor}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-neutral-500">Evidence Against</h4>
-                <p className="text-sm whitespace-pre-wrap">{selectedRecord.evidenceAgainst}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-neutral-500">Alternative Perspective</h4>
-                <p className="text-sm whitespace-pre-wrap">{selectedRecord.alternativePerspective}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-neutral-500">Insights Gained</h4>
-                <p className="text-sm whitespace-pre-wrap">{selectedRecord.insightsGained || "No insights added"}</p>
-              </div>
+            
+            <div className="space-y-6 py-2">
+              {/* Main content card */}
+              <Card className="border-l-4 border-l-indigo-500 shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <BrainCircuit className="h-4 w-4 text-indigo-500" />
+                    Automatic Thoughts
+                  </CardTitle>
+                  <CardDescription>
+                    The thoughts that came to mind in the situation
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="p-3 border rounded-md bg-slate-50">
+                    <p className="text-sm whitespace-pre-wrap">{selectedRecord.automaticThoughts}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Cognitive Distortions Card */}
+              {selectedRecord.cognitiveDistortions && selectedRecord.cognitiveDistortions.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-500" />
+                      Cognitive Distortions
+                    </CardTitle>
+                    <CardDescription>
+                      Thinking patterns that may reinforce negative emotions
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedRecord.cognitiveDistortions.map((distortion, index) => (
+                        <span 
+                          key={index} 
+                          className="px-2.5 py-1 text-xs rounded-full bg-amber-50 text-amber-700 border border-amber-200"
+                        >
+                          {distortion}
+                        </span>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Evidence Evaluation Card */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Scale className="h-4 w-4 text-blue-500" />
+                    Evidence Evaluation
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-medium text-blue-600 flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
+                        Evidence For
+                      </h4>
+                      <div className="p-3 border rounded-md bg-slate-50">
+                        <p className="text-sm">{selectedRecord.evidenceFor || "No evidence provided"}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-medium text-red-600 flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-600"></div>
+                        Evidence Against
+                      </h4>
+                      <div className="p-3 border rounded-md bg-slate-50">
+                        <p className="text-sm">{selectedRecord.evidenceAgainst || "No evidence provided"}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Alternative Perspective */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4 text-blue-500" />
+                    Alternative Perspective
+                  </CardTitle>
+                  <CardDescription>
+                    Balanced view based on all the evidence
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="p-3 border rounded-md bg-blue-50 text-blue-800">
+                    <p className="text-sm whitespace-pre-wrap">{selectedRecord.alternativePerspective}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Insights Gained */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-purple-500" />
+                    Insights Gained
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="p-3 border rounded-md bg-slate-50">
+                    <p className="text-sm whitespace-pre-wrap">{selectedRecord.insightsGained || "No insights added"}</p>
+                  </div>
+                </CardContent>
+              </Card>
               
               {/* Show Related Journal Entries if they exist */}
               {selectedRecord.relatedJournalEntryIds && selectedRecord.relatedJournalEntryIds.length > 0 && (
