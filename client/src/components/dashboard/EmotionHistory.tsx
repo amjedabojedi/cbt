@@ -374,7 +374,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                         setShowReflectionWizard(true);
                       }}
                     >
-                      Add Reflection
+                      Add Guided Reflection
                     </Button>
                   )}
                 </div>

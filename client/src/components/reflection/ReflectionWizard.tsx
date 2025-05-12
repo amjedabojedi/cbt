@@ -572,6 +572,9 @@ export default function ReflectionWizard({ emotion, open, onClose }: ReflectionW
         description: "Your reflection has been recorded successfully.",
       });
       
+      // Redirect to the thought record details view
+      window.location.href = `/thoughts/${thoughtRecord.id}`;
+      
       // Close the dialog
       onClose();
     } catch (error) {
