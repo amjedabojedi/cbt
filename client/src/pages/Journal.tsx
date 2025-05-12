@@ -330,8 +330,8 @@ export default function Journal() {
     mutationFn: async ({ entryId, comment }: { entryId: number, comment: string }) => {
       if (!userId) throw new Error("User not authenticated");
       console.log("Sending comment API request to:", `/api/journal/${entryId}/comments`);
-      // Use correct endpoint from server routes
-      const response = await apiRequest('POST', `/api/journal/${entryId}/comments`, { comment });
+      // Use correct endpoint from server routes and parameter name (content instead of comment)
+      const response = await apiRequest('POST', `/api/journal/${entryId}/comments`, { content: comment });
       return response.json();
     },
     onSuccess: (data) => {
