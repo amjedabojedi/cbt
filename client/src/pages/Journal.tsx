@@ -329,13 +329,18 @@ export default function Journal() {
   const addCommentMutation = useMutation({
     mutationFn: async ({ entryId, comment }: { entryId: number, comment: string }) => {
       if (!userId) throw new Error("User not authenticated");
+      console.log("Sending comment API request to:", `/api/users/${userId}/journal/${entryId}/comments`);
       const response = await apiRequest('POST', `/api/users/${userId}/journal/${entryId}/comments`, { comment });
       return response.json();
     },
     onSuccess: (data) => {
+      console.log("Comment added successfully:", data);
       // Update the current entry with the new comment
       if (currentEntry) {
-        const updatedComments = [...(currentEntry.comments || []), data];
+        // Ensure we're properly handling the comments array
+        const currentComments = Array.isArray(currentEntry.comments) ? currentEntry.comments : [];
+        const updatedComments = [...currentComments, data];
+        
         setCurrentEntry({
           ...currentEntry,
           comments: updatedComments
@@ -352,6 +357,7 @@ export default function Journal() {
       }
     },
     onError: (error: Error) => {
+      console.error("Error adding comment:", error);
       toast({
         title: "Error Adding Comment",
         description: error.message,
@@ -432,12 +438,17 @@ export default function Journal() {
   
   const linkThoughtRecordMutation = useMutation({
     mutationFn: async (thoughtRecordId: number) => {
-      if (!currentEntry || !userId) return null;
+      if (!currentEntry || !userId) {
+        console.error("Missing currentEntry or userId", { currentEntry, userId });
+        throw new Error("Missing required data for linking");
+      }
       
-      const response = await apiRequest('POST', `/api/users/${userId}/journal/${currentEntry.id}/link-record/${thoughtRecordId}`);
+      console.log("Linking thought record:", thoughtRecordId, "to journal entry:", currentEntry.id);
+      const response = await apiRequest('POST', `/api/users/${userId}/journal/${currentEntry.id}/link-record`, { thoughtRecordId });
       return response.json();
     },
     onSuccess: (data) => {
+      console.log("Record linked successfully:", data);
       loadEntryWithRelatedRecords(data);
       
       // Invalidate all related queries
@@ -452,6 +463,7 @@ export default function Journal() {
       });
     },
     onError: (error: Error) => {
+      console.error("Error linking thought record:", error);
       toast({
         title: "Error Linking Record",
         description: error.message,
@@ -462,12 +474,17 @@ export default function Journal() {
   
   const unlinkThoughtRecordMutation = useMutation({
     mutationFn: async (thoughtRecordId: number) => {
-      if (!currentEntry || !userId) return null;
+      if (!currentEntry || !userId) {
+        console.error("Missing currentEntry or userId", { currentEntry, userId });
+        throw new Error("Missing required data for unlinking");
+      }
       
+      console.log("Unlinking thought record:", thoughtRecordId, "from journal entry:", currentEntry.id);
       const response = await apiRequest('DELETE', `/api/users/${userId}/journal/${currentEntry.id}/link-record/${thoughtRecordId}`);
       return response.json();
     },
     onSuccess: (data) => {
+      console.log("Record unlinked successfully:", data);
       loadEntryWithRelatedRecords(data);
       
       // Invalidate all related queries
@@ -480,6 +497,7 @@ export default function Journal() {
       });
     },
     onError: (error: Error) => {
+      console.error("Error unlinking thought record:", error);
       toast({
         title: "Error Unlinking Record",
         description: error.message,
@@ -586,6 +604,8 @@ export default function Journal() {
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentContent.trim() || !currentEntry) return;
+    
+    console.log("Adding comment:", commentContent, "to entry:", currentEntry.id);
     
     addCommentMutation.mutate({
       entryId: currentEntry.id,
