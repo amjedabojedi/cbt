@@ -3256,9 +3256,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Resource not found" });
       }
       
-      // Only allow deletion by the creator or admin
-      if (resource.createdBy !== req.user.id && req.user.role !== "admin") {
-        return res.status(403).json({ message: "You can only delete resources you created" });
+      // Allow deletion by:
+      // 1. The creator 
+      // 2. Admin
+      // 3. Any therapist for global resources
+      if (resource.createdBy === req.user.id) {
+        // Created by current user, so allow deletion
+        console.log(`User ${req.user.id} is deleting their own resource ${resourceId}`);
+      } else if (req.user.role === "admin") {
+        // Admin can delete any resource
+        console.log(`Admin ${req.user.id} is deleting resource ${resourceId}`);
+      } else if (req.user.role === "therapist" && resource.isGlobal) {
+        // Therapists can delete global resources
+        console.log(`Therapist ${req.user.id} is deleting global resource ${resourceId}`);
+      } else {
+        return res.status(403).json({ 
+          message: "Access denied: You can only delete resources you created or global resources if you're a therapist" 
+        });
       }
       
       await storage.deleteResource(resourceId);
@@ -3813,9 +3827,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Journal entry not found" });
       }
       
-      // Check if user owns this entry or is admin
-      if (entry.userId !== req.user.id && req.user.role !== 'admin') {
-        return res.status(403).json({ message: "Access denied" });
+      // Check if user owns this entry, is an admin, or is a therapist for the client who owns the entry
+      if (entry.userId === req.user.id) {
+        // User owns this entry, allow deletion
+        console.log(`User ${req.user.id} is deleting their own journal entry ${entryId}`);
+      } else if (req.user.role === 'admin') {
+        // Admin can delete any entry
+        console.log(`Admin ${req.user.id} is deleting journal entry ${entryId} owned by user ${entry.userId}`);
+      } else if (req.user.role === 'therapist') {
+        // Check if this therapist is assigned to the entry owner
+        const client = await storage.getUser(entry.userId);
+        if (client && client.therapistId === req.user.id) {
+          console.log(`Therapist ${req.user.id} is deleting journal entry ${entryId} for their client ${entry.userId}`);
+        } else {
+          return res.status(403).json({ message: "Access denied: You can only delete entries for your clients" });
+        }
+      } else {
+        return res.status(403).json({ message: "Access denied: You can only delete your own entries" });
       }
       
       // Delete the entry
