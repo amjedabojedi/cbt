@@ -256,17 +256,6 @@ export default function ThoughtRecords() {
                         </div>
                         <div className="flex space-x-2">
                           <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 text-xs text-blue-600"
-                            asChild
-                          >
-                            <a href={`/thoughts?record=${selectedThought.id}`}>
-                              <ExternalLink size={14} className="mr-1" />
-                              View Thought Record
-                            </a>
-                          </Button>
-                          <Button 
                             variant="outline" 
                             size="sm" 
                             className="h-8 text-xs"
