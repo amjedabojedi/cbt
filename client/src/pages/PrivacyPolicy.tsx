@@ -21,7 +21,7 @@ export default function PrivacyPolicy() {
             
             <h2>1. Introduction</h2>
             <p>
-              Resilience Counseling Research and Consultation ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our cognitive behavioral therapy platform.
+              ResilienceHub ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform for tracking emotions, thoughts, and behaviors.
             </p>
             
             <h2>2. Information We Collect</h2>
@@ -35,7 +35,7 @@ export default function PrivacyPolicy() {
             <h2>3. How We Use Your Information</h2>
             <p>We use the information we collect to:</p>
             <ul>
-              <li>Provide and maintain our therapy services</li>
+              <li>Provide and maintain our tracking tools (not therapy services)</li>
               <li>Personalize your experience</li>
               <li>Facilitate communication between mental health professionals and clients</li>
               <li>Analyze usage patterns to improve our platform</li>
@@ -45,7 +45,7 @@ export default function PrivacyPolicy() {
             <h2>4. Information Sharing</h2>
             <p>We share information with:</p>
             <ul>
-              <li><strong>Your Mental Health Professional:</strong> If you are a client, your mental health professional will have access to your CBT interactive tools information.</li>
+              <li><strong>Your Mental Health Professional:</strong> If you are a client, your mental health professional will have access to the information you input into our tracking tools to help them gain insights into your progress between sessions.</li>
               <li><strong>Service Providers:</strong> We may share information with third-party vendors who perform services on our behalf.</li>
               <li><strong>Legal Requirements:</strong> We may disclose information if required to do so by law or in response to valid requests by public authorities.</li>
             </ul>

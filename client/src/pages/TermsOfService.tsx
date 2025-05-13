@@ -21,12 +21,12 @@ export default function TermsOfService() {
             
             <h2>1. Agreement to Terms</h2>
             <p>
-              By accessing or using the Resilience Counseling Research and Consultation platform, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this platform.
+              By accessing or using the ResilienceHub platform, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this platform.
             </p>
             
             <h2>2. Use License</h2>
             <p>
-              Permission is granted to temporarily use the Resilience Counseling Research and Consultation platform for personal, non-commercial therapeutic purposes only. This is the grant of a license, not a transfer of title, and under this license you may not:
+              Permission is granted to temporarily use the ResilienceHub platform for personal, non-commercial tracking purposes only. This is the grant of a license, not a transfer of title, and under this license you may not:
             </p>
             <ul>
               <li>Modify or copy the materials</li>
@@ -43,17 +43,17 @@ export default function TermsOfService() {
             
             <h2>4. Professional-Client Relationship</h2>
             <p>
-              The ResilienceHub platform facilitates the professional-client relationship but does not replace professional mental health services. The platform should be used in conjunction with, not in place of, professional mental health services.
+              The ResilienceHub platform is a tool that helps mental health professionals track client progress between sessions. It is NOT a therapy service, does not provide therapy, and does not replace professional mental health services. The platform should be used as a supplementary tool to professional mental health services, not as a replacement.
             </p>
             
             <h2>5. Medical Disclaimer</h2>
             <p>
-              The platform is not intended to diagnose, treat, cure, or prevent any mental health condition. It is a tool to support cognitive behavioral exercises and should be used under the guidance of a qualified mental health professional.
+              The platform is not intended to diagnose, treat, cure, or prevent any mental health condition. It is a tracking tool that helps mental health professionals gain insights into their clients' progress between sessions. ResilienceHub is not a therapy service and should only be used under the guidance of a qualified mental health professional.
             </p>
             
             <h2>6. Limitations</h2>
             <p>
-              In no event shall Resilience Counseling Research and Consultation or its suppliers be liable for any damages arising out of the use or inability to use the platform, even if Resilience Counseling Research and Consultation has been notified of the possibility of such damages.
+              In no event shall ResilienceHub or its suppliers be liable for any damages arising out of the use or inability to use the platform, even if ResilienceHub has been notified of the possibility of such damages.
             </p>
             
             <h2>7. Accuracy of Materials</h2>
