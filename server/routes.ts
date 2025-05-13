@@ -18,14 +18,16 @@ export function getSessionCookieOptions(): CookieOptions {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
   
-  // Set a domain that matches the current host (works on both custom domains and *.replit.app)
-  const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || undefined;
-  if (domain) {
-    cookieOptions.domain = domain;
-  }
+  // Don't set domain for Replit environment to allow cookies to work properly
+  // with both the Replit domain and custom domains
+  // This is now commented out as it can cause issues with cookie setting
+  // const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || undefined;
+  // if (domain) {
+  //   cookieOptions.domain = domain;
+  // }
   
-  // Always use secure cookies in Replit environment (both dev and prod)
-  // This is required for proper cookie handling in Replit's environment
+  // The Replit environment requires secure cookies and sameSite=none
+  // to work properly with their proxying setup
   cookieOptions.secure = true;
   cookieOptions.sameSite = 'none';
   
@@ -961,10 +963,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Endpoint for checking current user's session (used on page loads and app initialization)
-  app.get("/api/auth/me", authenticate, ensureAuthenticated, (req, res) => {
-    console.log("Auth check for user:", req.user.id, req.user.username);
+  app.get("/api/auth/me", (req, res, next) => {
+    // Add detailed logging before authentication
+    console.log("Auth check request received from:", req.headers['user-agent']);
+    console.log("Auth check cookies:", req.cookies);
+    console.log("Auth check headers:", {
+      host: req.headers.host,
+      origin: req.headers.origin,
+      referer: req.headers.referer
+    });
+    next();
+  }, authenticate, ensureAuthenticated, (req, res) => {
+    console.log("Auth check successful for user:", req.user.id, req.user.username);
+    // Omit password from response
     const { password, ...userWithoutPassword } = req.user;
-    console.log("Auth check successful. Returning user data");
+    console.log("Returning user data");
     res.status(200).json(userWithoutPassword);
   });
   

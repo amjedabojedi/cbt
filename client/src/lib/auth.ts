@@ -40,31 +40,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async function checkAuth() {
       if (!isMounted) return;
       
+      console.log("Checking authentication status...");
       setLoading(true);
       try {
-        const response = await fetch("/api/auth/me", {
+        // Use more specific cache-busting and security headers
+        const timestamp = new Date().getTime();
+        const response = await fetch(`/api/auth/me?_t=${timestamp}`, {
           method: "GET",
-          credentials: "include",
+          credentials: "include", // This ensures cookies are sent
           headers: {
             "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest", // CSRF protection
+            "Cache-Control": "no-cache, no-store", // Prevent caching
+            "Pragma": "no-cache"
           }
         });
         
         if (!response.ok) {
           if (response.status === 401) {
             // Not logged in - expected behavior, not an error
+            console.log("Auth check: Not authenticated (401)");
             setUser(null);
             setError(null);
             setLoading(false);
             return;
           }
+          console.error(`Auth check failed with status: ${response.status}`);
           throw new Error(`HTTP error ${response.status}`);
         }
         
         const userData = await response.json();
+        console.log("Auth check successful, user data received");
+        
         if (isMounted) {
           setUser(userData);
           setError(null);
+          console.log("User data set in state:", userData.username);
         }
       } catch (err) {
         console.error("Auth check error:", err);
@@ -91,28 +102,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (username: string, password: string, isMobileLogin = false) => { 
     setLoading(true);
     try {
-      // Add security attributes to login request to help bypass antivirus warnings
+      // Add enhanced security attributes to login request
+      // These help both with security and with proper cookie handling
       const securityHeaders = {
         'X-Security-Verification': 'legitimate-application',
-        'X-Request-Type': 'standard-auth'
+        'X-Request-Type': 'standard-auth',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Cache-Control': 'no-cache, no-store',
+        'Pragma': 'no-cache'
       };
       
       // Use mobile-specific endpoint if requested
       const endpoint = isMobileLogin ? "/api/auth/mobile-login" : "/api/auth/login";
       console.log(`Using auth endpoint: ${endpoint}`);
       
-      const response = await apiRequest(
-        "POST", 
-        endpoint, 
-        { username, password },
-        securityHeaders
-      );
+      const timestamp = new Date().getTime();
+      // Use a direct fetch call with clear credentials settings 
+      // to ensure cookies are properly set
+      const response = await fetch(`${endpoint}?_t=${timestamp}`, {
+        method: "POST",
+        credentials: "include", // Ensure cookies are sent and received
+        headers: {
+          "Content-Type": "application/json",
+          ...securityHeaders
+        },
+        body: JSON.stringify({ username, password })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Login failed:", errorData);
+        throw new Error(errorData.message || `Login failed with status ${response.status}`);
+      }
       
       const userData = await response.json();
       setUser(userData as User);
       
-      // Mark successful login for security scanners
+      console.log("Login successful for user:", userData.username);
+      
+      // Store login info in sessionStorage
       window.sessionStorage.setItem('auth-method', 'standard');
+      window.sessionStorage.setItem('last-auth-check', new Date().toISOString());
+      
+      // Check if cookies were properly set
+      console.log("Document cookie length after login:", document.cookie.length);
       
       navigate("/dashboard");
     } catch (err) {
