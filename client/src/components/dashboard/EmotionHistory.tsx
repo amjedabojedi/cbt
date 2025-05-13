@@ -16,7 +16,11 @@ import {
   ThumbsDown, 
   Heart,
   MapPin,
-  MessageSquare 
+  MessageSquare,
+  Edit,
+  Eye,
+  Trash2,
+  HelpCircle
 } from "lucide-react";
 
 import {
@@ -54,7 +58,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import ReflectionWizard from "../reflection/ReflectionWizard";
 
 interface EmotionHistoryProps {
@@ -603,7 +612,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                             onChange={(e) => {
                               const value = parseInt(e.target.value);
                               if (value >= 1 && value <= 10) {
-                                const circle = e.target.parentElement?.parentElement?.querySelector('.absolute');
+                                const circle = e.target.parentElement?.parentElement?.querySelector('.absolute') as HTMLElement;
                                 if (circle) {
                                   const color = selectedEmotion.coreEmotion === 'Joy' ? '#FFC107' : 
                                               selectedEmotion.coreEmotion === 'Sadness' ? '#2196F3' : 
