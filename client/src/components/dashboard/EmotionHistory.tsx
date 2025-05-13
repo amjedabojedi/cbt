@@ -535,11 +535,22 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
             setShowEditEmotionDialog(false);
           }
         }}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-3xl">
             <DialogHeader>
-              <DialogTitle>Edit Emotion Record</DialogTitle>
+              <DialogTitle className="flex items-center gap-2 text-lg">
+                <div className={`p-2 rounded-full ${getEmotionBadgeColor(selectedEmotion.coreEmotion).replace('text-', 'text-').replace('bg-', 'bg-')}`}>
+                  {selectedEmotion.coreEmotion === 'Joy' && <Smile className="h-5 w-5" />}
+                  {selectedEmotion.coreEmotion === 'Sadness' && <Frown className="h-5 w-5" />}
+                  {selectedEmotion.coreEmotion === 'Anger' && <Flame className="h-5 w-5" />}
+                  {selectedEmotion.coreEmotion === 'Fear' && <AlertCircle className="h-5 w-5" />}
+                  {selectedEmotion.coreEmotion === 'Surprise' && <Sparkles className="h-5 w-5" />}
+                  {selectedEmotion.coreEmotion === 'Disgust' && <ThumbsDown className="h-5 w-5" />}
+                  {!['Joy', 'Sadness', 'Anger', 'Fear', 'Surprise', 'Disgust'].includes(selectedEmotion.coreEmotion) && <Heart className="h-5 w-5" />}
+                </div>
+                Edit Emotion Record
+              </DialogTitle>
               <DialogDescription>
-                Update the details of your recorded emotion.
+                Update the details of your emotion recorded on {format(new Date(selectedEmotion.timestamp), "MMMM d, yyyy 'at' h:mm a")}
               </DialogDescription>
             </DialogHeader>
             
@@ -556,74 +567,148 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               
               updateEmotionMutation.mutate(updatedEmotion);
             }}>
-              <div className="space-y-4 py-2">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-6 py-4">
+                {/* Emotion visualization card */}
+                <Card className="border-l-4 overflow-hidden" style={{
+                  borderLeftColor: selectedEmotion.coreEmotion === 'Joy' ? '#FFC107' : 
+                                   selectedEmotion.coreEmotion === 'Sadness' ? '#2196F3' : 
+                                   selectedEmotion.coreEmotion === 'Anger' ? '#F44336' : 
+                                   selectedEmotion.coreEmotion === 'Fear' ? '#4CAF50' : 
+                                   selectedEmotion.coreEmotion === 'Surprise' ? '#9C27B0' : 
+                                   selectedEmotion.coreEmotion === 'Disgust' ? '#795548' : '#9E9E9E'
+                }}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="rounded-full w-16 h-16 flex items-center justify-center relative">
+                        <div
+                          className="absolute inset-0 rounded-full"
+                          style={{
+                            background: `conic-gradient(${selectedEmotion.coreEmotion === 'Joy' ? '#FFC107' : 
+                                     selectedEmotion.coreEmotion === 'Sadness' ? '#2196F3' : 
+                                     selectedEmotion.coreEmotion === 'Anger' ? '#F44336' : 
+                                     selectedEmotion.coreEmotion === 'Fear' ? '#4CAF50' : 
+                                     selectedEmotion.coreEmotion === 'Surprise' ? '#9C27B0' : 
+                                     selectedEmotion.coreEmotion === 'Disgust' ? '#795548' : '#9E9E9E'} ${selectedEmotion.intensity * 10}%, #f1f5f9 0)`
+                          }}
+                        />
+                        <div className="bg-white rounded-full w-10 h-10 flex items-center justify-center text-sm font-semibold z-10">
+                          <input 
+                            type="number"
+                            id="intensity" 
+                            name="intensity"
+                            min="1" 
+                            max="10"
+                            className="w-7 border-none text-center p-0 bg-transparent"
+                            defaultValue={selectedEmotion.intensity}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value);
+                              if (value >= 1 && value <= 10) {
+                                const circle = e.target.parentElement?.parentElement?.querySelector('.absolute');
+                                if (circle) {
+                                  const color = selectedEmotion.coreEmotion === 'Joy' ? '#FFC107' : 
+                                              selectedEmotion.coreEmotion === 'Sadness' ? '#2196F3' : 
+                                              selectedEmotion.coreEmotion === 'Anger' ? '#F44336' : 
+                                              selectedEmotion.coreEmotion === 'Fear' ? '#4CAF50' : 
+                                              selectedEmotion.coreEmotion === 'Surprise' ? '#9C27B0' : 
+                                              selectedEmotion.coreEmotion === 'Disgust' ? '#795548' : '#9E9E9E';
+                                  circle.style.background = `conic-gradient(${color} ${value * 10}%, #f1f5f9 0)`;
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm text-muted-foreground">Core Emotion</span>
+                          <span className="font-medium">{selectedEmotion.coreEmotion}</span>
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                          {selectedEmotion.primaryEmotion && (
+                            <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(selectedEmotion.primaryEmotion)}`}>
+                              {selectedEmotion.primaryEmotion}
+                            </span>
+                          )}
+                          {selectedEmotion.tertiaryEmotion && (
+                            <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(selectedEmotion.tertiaryEmotion)}`}>
+                              {selectedEmotion.tertiaryEmotion}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <label htmlFor="coreEmotion" className="text-sm font-medium text-muted-foreground">
-                      Core Emotion
+                    <label htmlFor="situation" className="text-sm font-medium flex items-center gap-2">
+                      Situation
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div>Describe what happened when you experienced this emotion</div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </label>
-                    <input 
-                      type="text" 
-                      id="coreEmotion" 
-                      className="w-full px-3 py-2 border rounded-md bg-muted text-muted-foreground" 
-                      value={selectedEmotion.coreEmotion}
-                      disabled
+                    <textarea 
+                      id="situation" 
+                      name="situation"
+                      className="w-full px-3 py-2 border rounded-md min-h-[80px]" 
+                      defaultValue={selectedEmotion.situation}
                     />
                   </div>
                   
-                  <div className="space-y-2">
-                    <label htmlFor="intensity" className="text-sm font-medium">
-                      Intensity (1-10)
-                    </label>
-                    <input 
-                      type="number" 
-                      id="intensity" 
-                      name="intensity"
-                      min="1" 
-                      max="10" 
-                      className="w-full px-3 py-2 border rounded-md" 
-                      defaultValue={selectedEmotion.intensity}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <label htmlFor="situation" className="text-sm font-medium">
-                    Situation
-                  </label>
-                  <textarea 
-                    id="situation" 
-                    name="situation"
-                    className="w-full px-3 py-2 border rounded-md min-h-[80px]" 
-                    defaultValue={selectedEmotion.situation}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="location" className="text-sm font-medium">
-                      Location
-                    </label>
-                    <input 
-                      type="text" 
-                      id="location" 
-                      name="location"
-                      className="w-full px-3 py-2 border rounded-md" 
-                      defaultValue={selectedEmotion.location || ''}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label htmlFor="company" className="text-sm font-medium">
-                      Company
-                    </label>
-                    <input 
-                      type="text" 
-                      id="company" 
-                      name="company"
-                      className="w-full px-3 py-2 border rounded-md" 
-                      defaultValue={selectedEmotion.company || ''}
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label htmlFor="location" className="text-sm font-medium flex items-center gap-2">
+                        Location
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div>Where were you when you felt this emotion?</div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </label>
+                      <input 
+                        type="text" 
+                        id="location" 
+                        name="location"
+                        className="w-full px-3 py-2 border rounded-md" 
+                        defaultValue={selectedEmotion.location || ''}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="company" className="text-sm font-medium flex items-center gap-2">
+                        Company
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div>Who were you with when this happened?</div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </label>
+                      <input 
+                        type="text" 
+                        id="company" 
+                        name="company"
+                        className="w-full px-3 py-2 border rounded-md" 
+                        defaultValue={selectedEmotion.company || ''}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -631,7 +716,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               <DialogFooter className="mt-6">
                 <Button 
                   type="button" 
-                  variant="secondary" 
+                  variant="outline" 
                   onClick={() => setShowEditEmotionDialog(false)}
                 >
                   Cancel
