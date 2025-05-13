@@ -1477,7 +1477,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all clients, including unassigned clients (only for admin)
   app.get("/api/users/all-clients", authenticate, isAdmin, async (req, res) => {
     try {
-      const clients = await storage.getAllClients();
+      // Use the getAllUsers function but filter for clients only
+      const allUsers = await storage.getAllUsers();
+      const clients = allUsers.filter(user => user.role === "client");
+      
       // Remove passwords
       const clientsWithoutPasswords = clients.map(client => {
         const { password, ...clientWithoutPassword } = client;
