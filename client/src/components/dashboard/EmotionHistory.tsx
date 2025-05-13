@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { EmotionRecord } from "@shared/schema";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
@@ -91,6 +92,7 @@ function getEmotionBadgeColor(emotion: string): string {
 export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   const { activeUserId, isViewingClientData } = useActiveUser();
   const { user } = useAuth();
+  const [location, navigate] = useLocation();
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionRecord | null>(null);
   const [showFullHistory, setShowFullHistory] = useState(false);
   const [showReflectionWizard, setShowReflectionWizard] = useState(false);
@@ -211,10 +213,10 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   
   // Handle adding a new thought record for an emotion
   const handleAddThoughtRecord = (emotion: EmotionRecord) => {
-    setSelectedEmotion(emotion);
-    // Only open reflection wizard if not viewing client data (therapist shouldn't add reflections to client records)
+    // Use router navigation instead of directly setting state
     if (!isViewingClientData) {
-      setShowReflectionWizard(true);
+      // Navigate to the ThoughtNew page with the emotion ID
+      navigate(`/thoughts/new?emotionId=${emotion.id}`);
     }
   };
   
