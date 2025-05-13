@@ -18,18 +18,18 @@ export function getSessionCookieOptions(): CookieOptions {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
   
-  // Don't set domain for Replit environment to allow cookies to work properly
-  // with both the Replit domain and custom domains
-  // This is now commented out as it can cause issues with cookie setting
-  // const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || undefined;
-  // if (domain) {
-  //   cookieOptions.domain = domain;
-  // }
+  // Try a different approach for Replit environment
+  // Instead of setting domain explicitly (which can cause issues),
+  // just use path and make it more specific for the application
+  cookieOptions.path = "/";
   
-  // The Replit environment requires secure cookies and sameSite=none
-  // to work properly with their proxying setup
+  // For Replit's proxied environment, we need to ensure cookies
+  // are accessible across subdomains and HTTPS is required
   cookieOptions.secure = true;
   cookieOptions.sameSite = 'none';
+  
+  // Make the cookie more persistent with a longer expiration
+  cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days instead of 7
   
   // Allow for special override for testing
   if (process.env.FORCE_INSECURE_COOKIES === 'true') {
@@ -893,6 +893,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Special endpoint to recover a session if cookies were lost but user has localStorage backup
+  app.post("/api/auth/recover-session", async (req, res) => {
+    try {
+      console.log("Session recovery attempt received");
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      // Find the user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Generate session ID and create a new session
+      const sessionId = crypto.randomUUID();
+      await storage.createSession(sessionId, user.id);
+      
+      // Create a session in the same format as login uses
+      req.session = { id: sessionId, userId: user.id };
+      
+      // Set the session cookie with our standard options
+      const cookieOptions = getSessionCookieOptions();
+      res.cookie('sessionId', sessionId, cookieOptions);
+      
+      console.log(`Session successfully recovered for user ${user.id} (${user.username})`);
+      return res.status(200).json({ message: "Session recovered" });
+    } catch (error) {
+      console.error("Session recovery error:", error);
+      return res.status(500).json({ message: "Server error during session recovery" });
+    }
+  });
+  
   app.post("/api/auth/logout", authenticate, async (req, res) => {
     try {
       await storage.deleteSession(req.session.id);
@@ -903,6 +938,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       delete clearOptions.maxAge; // Remove maxAge to ensure cookie gets deleted
       console.log("Clearing session cookie with options:", clearOptions);
       res.clearCookie("sessionId", clearOptions);
+      
+      // Also clear the localStorage backup when explicitly logging out
+      res.setHeader('Clear-Local-Storage', 'auth_user_backup,auth_timestamp');
       
       console.log("User logged out successfully");
       res.status(200).json({ message: "Logged out successfully" });

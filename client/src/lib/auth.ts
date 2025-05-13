@@ -60,6 +60,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (response.status === 401) {
             // Not logged in - expected behavior, not an error
             console.log("Auth check: Not authenticated (401)");
+            
+            // Check if we have a backup in localStorage that we can use
+            // to restore the session if cookies failed
+            try {
+              const backupData = localStorage.getItem('auth_user_backup');
+              const timestamp = localStorage.getItem('auth_timestamp');
+              const currentTime = new Date().getTime();
+              const backupTime = timestamp ? new Date(timestamp).getTime() : 0;
+              const isBackupRecent = (currentTime - backupTime) < (24 * 60 * 60 * 1000); // 24 hour window
+              
+              if (backupData && isBackupRecent) {
+                console.log("Found recent auth backup in localStorage, attempting session recovery");
+                
+                // Try to restore session using backup data
+                const userData = JSON.parse(backupData);
+                
+                // Make a special session recovery request to the server
+                const recoveryResponse = await fetch('/api/auth/recover-session', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  credentials: 'include',
+                  body: JSON.stringify({ userId: userData.id })
+                });
+                
+                if (recoveryResponse.ok) {
+                  console.log("Session successfully recovered from localStorage backup");
+                  setUser(userData);
+                  setError(null);
+                  setLoading(false);
+                  return;
+                } else {
+                  console.log("Session recovery failed, clearing backup");
+                  localStorage.removeItem('auth_user_backup');
+                  localStorage.removeItem('auth_timestamp');
+                }
+              }
+            } catch (backupErr) {
+              console.error("Error using authentication backup:", backupErr);
+            }
+            
             setUser(null);
             setError(null);
             setLoading(false);
@@ -71,6 +113,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         const userData = await response.json();
         console.log("Auth check successful, user data received");
+        
+        // Update the localStorage backup with the fresh data
+        try {
+          localStorage.setItem('auth_user_backup', JSON.stringify(userData));
+          localStorage.setItem('auth_timestamp', new Date().toISOString());
+        } catch (e) {
+          console.warn("Could not update auth backup:", e);
+        }
         
         if (isMounted) {
           setUser(userData);
@@ -136,6 +186,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       const userData = await response.json();
+      
+      // Store the authentication data in localStorage as a backup
+      // This can help with cookie persistence issues in some browsers/environments
+      try {
+        localStorage.setItem('auth_user_backup', JSON.stringify(userData));
+        localStorage.setItem('auth_timestamp', new Date().toISOString());
+        console.log("Authentication data backed up to localStorage");
+      } catch (e) {
+        console.warn("Could not save auth data to localStorage:", e);
+      }
+      
       setUser(userData as User);
       
       console.log("Login successful for user:", userData.username);
