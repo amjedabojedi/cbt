@@ -52,7 +52,7 @@ export function FormField({
                   <InfoIcon className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
-                  <p>{tooltip}</p>
+                  <div>{tooltip}</div>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

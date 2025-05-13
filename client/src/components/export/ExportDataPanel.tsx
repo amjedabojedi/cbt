@@ -207,7 +207,7 @@ export function ExportDataPanel() {
                   <Info size={16} className="ml-1 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Select what kind of data you want to export</p>
+                  <div>Select what kind of data you want to export</div>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -238,7 +238,7 @@ export function ExportDataPanel() {
                   <Info size={16} className="ml-1 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>JSON contains complete data for technical use. CSV works with spreadsheets like Excel. PDF creates a nicely formatted document you can print or share.</p>
+                  <div>JSON contains complete data for technical use. CSV works with spreadsheets like Excel. PDF creates a nicely formatted document you can print or share.</div>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

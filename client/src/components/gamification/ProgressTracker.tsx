@@ -175,10 +175,10 @@ export default function ProgressTracker() {
                       <AlertTriangle className="h-4 w-4 text-amber-500 cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p className="max-w-xs text-xs">
+                      <div className="max-w-xs text-xs">
                         Your emotion diversity score measures how varied your recorded emotions are. 
                         A higher score indicates you're tracking a wider range of emotions.
-                      </p>
+                      </div>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

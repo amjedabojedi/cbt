@@ -193,7 +193,7 @@ export default function AchievementsList() {
                   <Info className="h-4 w-4 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
-                  <p>Achievements are earned by engaging with different aspects of the app. Unlock more by using the app regularly!</p>
+                  <div>Achievements are earned by engaging with different aspects of the app. Unlock more by using the app regularly!</div>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
