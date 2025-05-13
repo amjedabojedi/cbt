@@ -64,7 +64,7 @@ export default function ThoughtRecords() {
   const { user } = useAuth();
   const { isViewingClientData, activeUserId } = useActiveUser();
   const [selectedThought, setSelectedThought] = useState<ThoughtRecord | null>(null);
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   
   // Fetch related emotion records for the active user (could be a client viewed by a therapist)
   const { data: emotions } = useQuery({
@@ -162,10 +162,10 @@ export default function ThoughtRecords() {
               {/* Only show New Record button if user is viewing their own data AND is not a therapist */}
               {!isViewingClientData && user?.role !== 'therapist' && (
                 <Button asChild>
-                  <a href="/emotions">
+                  <Link href="/emotions">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     New Record
-                  </a>
+                  </Link>
                 </Button>
               )}
             </CardHeader>
@@ -262,10 +262,10 @@ export default function ThoughtRecords() {
                             className="h-8 text-xs"
                             asChild
                           >
-                            <a href={`/emotion-tracking?tab=history&id=${selectedThought.emotionRecordId}`}>
+                            <Link href={`/emotion-tracking?tab=history&id=${selectedThought.emotionRecordId}`}>
                               <HeartPulse size={14} className="mr-1" />
                               View Emotion
-                            </a>
+                            </Link>
                           </Button>
                         </div>
                       </div>
@@ -439,11 +439,11 @@ export default function ThoughtRecords() {
                             className="justify-start text-left h-auto py-2 font-normal"
                             asChild
                           >
-                            <a href={`/journal?entry=${journalId}`}>
+                            <Link href={`/journal?entry=${journalId}`}>
                               <BookText size={14} className="mr-2 text-purple-500" />
                               <span className="truncate">View journal entry</span>
                               <ArrowUpRight size={14} className="ml-auto text-muted-foreground" />
-                            </a>
+                            </Link>
                           </Button>
                         ))}
                       </div>
