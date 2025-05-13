@@ -778,7 +778,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Clear any existing session cookie first to prevent conflicts
-      res.clearCookie("sessionId", { path: "/" });
+      // Use the same cookie options to ensure the clearing works properly
+      const clearOptions = getSessionCookieOptions();
+      delete clearOptions.maxAge; // Remove maxAge to ensure cookie gets deleted
+      console.log("Clearing existing cookies with options:", clearOptions);
+      res.clearCookie("sessionId", clearOptions);
       
       // First try to get the user by username
       console.log("Finding user with username:", username);
@@ -838,7 +842,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Clear any existing session cookie first to prevent conflicts
-      res.clearCookie("sessionId", { path: "/" });
+      // Use the same cookie options to ensure the clearing works properly
+      const clearOptions = getSessionCookieOptions();
+      delete clearOptions.maxAge; // Remove maxAge to ensure cookie gets deleted
+      console.log("[Mobile] Clearing existing cookies with options:", clearOptions);
+      res.clearCookie("sessionId", clearOptions);
       
       // Find user by username or email
       console.log("[Mobile] Finding user:", username);
@@ -864,14 +872,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a session
       const session = await storage.createSession(user.id);
       
-      // For mobile, always use secure cookies with sameSite=none
-      const cookieOptions: CookieOptions = {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        path: "/",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      };
+      // Use our standardized cookie options, but extend the expiry for mobile
+      const cookieOptions = getSessionCookieOptions();
+      // Mobile users typically expect longer sessions
+      cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days for mobile
       
       console.log("[Mobile] Setting cookie with options:", cookieOptions);
       res.cookie("sessionId", session.id, cookieOptions);
@@ -891,15 +895,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.deleteSession(req.session.id);
       
-      // Clear cookie with more specific options matching how it was set
-      // This ensures it works properly across different browsers and environments
-      const isDevelopment = process.env.NODE_ENV === "development";
-      res.clearCookie("sessionId", {
-        path: "/",
-        httpOnly: true,
-        secure: !isDevelopment,
-        sameSite: isDevelopment ? "lax" : "none"
-      });
+      // Clear cookie using the same options as when setting it
+      // This ensures consistent behavior across browsers and environments
+      const clearOptions = getSessionCookieOptions();
+      delete clearOptions.maxAge; // Remove maxAge to ensure cookie gets deleted
+      console.log("Clearing session cookie with options:", clearOptions);
+      res.clearCookie("sessionId", clearOptions);
       
       console.log("User logged out successfully");
       res.status(200).json({ message: "Logged out successfully" });
