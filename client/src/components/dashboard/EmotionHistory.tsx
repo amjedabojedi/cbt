@@ -146,8 +146,14 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
     setSelectedEmotion(emotion);
   };
   
-  // Handle edit/reflection
+  // Handle emotion edit 
   const handleEditEmotion = (emotion: EmotionRecord) => {
+    // For now, we just show the emotion details since we don't have direct emotion editing
+    setSelectedEmotion(emotion);
+  };
+  
+  // Handle adding a new thought record for an emotion
+  const handleAddThoughtRecord = (emotion: EmotionRecord) => {
     setSelectedEmotion(emotion);
     // Only open reflection wizard if not viewing client data (therapist shouldn't add reflections to client records)
     if (!isViewingClientData) {
@@ -292,15 +298,16 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <div className="flex items-center space-x-2">
-                          {/* Only show edit option if viewing own data */}
+                          {/* Only show add thought record option if viewing own data */}
                           {!isViewingClientData && (
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              onClick={() => handleEditEmotion(emotion)}
+                              onClick={() => handleAddThoughtRecord(emotion)}
                               className="text-primary hover:text-primary-dark"
+                              title="Add thought record"
                             >
-                              <Edit className="h-4 w-4" />
+                              <ArrowRight className="h-4 w-4" />
                             </Button>
                           )}
                           {/* Always show view details */}
@@ -457,7 +464,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                       }}
                     >
                       <ArrowRight className="mr-1 h-4 w-4" />
-                      Add Thought Record
+                      Create Thought Record
                     </Button>
                   )}
                 </div>
@@ -523,7 +530,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <div className="flex items-center space-x-2">
-                        {/* Only show edit option if viewing own data */}
+                        {/* Only show add thought record option if viewing own data */}
                         {!isViewingClientData && (
                           <Button 
                             variant="ghost" 
@@ -534,8 +541,9 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                               setShowFullHistory(false);
                             }}
                             className="text-primary hover:text-primary-dark"
+                            title="Add thought record"
                           >
-                            <Edit className="h-4 w-4" />
+                            <ArrowRight className="h-4 w-4" />
                           </Button>
                         )}
                         {/* Always show view details */}
