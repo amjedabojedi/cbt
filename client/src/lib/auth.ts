@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: Error | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string, isMobileLogin?: boolean) => Promise<void>;
   register: (data: {
     username: string;
     email: string;
@@ -87,7 +87,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = async (username: string, password: string) => { 
+  // Login using the specified endpoint - allows for mobile-specific endpoint
+  const login = async (username: string, password: string, isMobileLogin = false) => { 
     setLoading(true);
     try {
       // Add security attributes to login request to help bypass antivirus warnings
@@ -96,9 +97,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         'X-Request-Type': 'standard-auth'
       };
       
+      // Use mobile-specific endpoint if requested
+      const endpoint = isMobileLogin ? "/api/auth/mobile-login" : "/api/auth/login";
+      console.log(`Using auth endpoint: ${endpoint}`);
+      
       const response = await apiRequest(
         "POST", 
-        "/api/auth/login", 
+        endpoint, 
         { username, password },
         securityHeaders
       );
@@ -199,7 +204,7 @@ export function useAuth(): AuthContextType {
     const [error, setError] = useState<Error | null>(null);
     const [, navigate] = useLocation();
 
-    const login = async (username: string, password: string) => { 
+    const login = async (username: string, password: string, isMobileLogin = false) => { 
       setLoading(true);
       try {
         // Add security attributes to login request to help bypass antivirus warnings
@@ -208,9 +213,13 @@ export function useAuth(): AuthContextType {
           'X-Request-Type': 'standard-auth'
         };
         
+        // Use mobile-specific endpoint if requested
+        const endpoint = isMobileLogin ? "/api/auth/mobile-login" : "/api/auth/login";
+        console.log(`Using auth endpoint: ${endpoint}`);
+        
         const response = await apiRequest(
           "POST", 
-          "/api/auth/login", 
+          endpoint, 
           { username, password },
           securityHeaders
         );

@@ -9,14 +9,35 @@ import fs from "fs";
 // This ensures mobile and cross-device compatibility
 function getSessionCookieOptions(): CookieOptions {
   const isDevelopment = process.env.NODE_ENV === "development";
+  const isProduction = !isDevelopment;
   
-  return {
+  // Define the base cookie settings
+  const cookieOptions: CookieOptions = {
     httpOnly: true, // Protect cookie from JS access
-    secure: !isDevelopment, // Secure in production, non-secure in development
-    sameSite: isDevelopment ? "lax" : "none", // Different settings for dev vs prod
     path: "/", // Ensure cookie is available on all paths
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
+  
+  // Adjust for development vs production environment
+  if (isProduction) {
+    // In production, use secure cookies with sameSite=none to work across domains
+    cookieOptions.secure = true; 
+    cookieOptions.sameSite = 'none';
+  } else {
+    // In development, use lax to make testing easier
+    cookieOptions.secure = false;
+    cookieOptions.sameSite = 'lax';
+  }
+  
+  // Allow for special override for mobile testing in dev mode
+  if (process.env.FORCE_SECURE_COOKIES === 'true') {
+    cookieOptions.secure = true;
+    cookieOptions.sameSite = 'none';
+    console.log('Using secure cookies in development for mobile compatibility testing');
+  }
+  
+  console.log(`Cookie options: secure=${cookieOptions.secure}, sameSite=${cookieOptions.sameSite}`);
+  return cookieOptions;
 }
 import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission, ensureAuthenticated } from "./middleware/auth";
 import { z } from "zod";
@@ -801,6 +822,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json(userWithoutPassword);
     } catch (error) {
       console.error("Login error:", error);
+      res.status(500).json({ message: "Internal server error during login" });
+    }
+  });
+  
+  // Special mobile-friendly login endpoint
+  app.post("/api/auth/mobile-login", async (req, res) => {
+    try {
+      console.log("Mobile login attempt:", req.body);
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        console.log("[Mobile] Missing username or password");
+        return res.status(400).json({ message: "Username and password are required" });
+      }
+      
+      // Clear any existing session cookie first to prevent conflicts
+      res.clearCookie("sessionId", { path: "/" });
+      
+      // Find user by username or email
+      console.log("[Mobile] Finding user:", username);
+      let user = await storage.getUserByUsername(username);
+      
+      if (!user) {
+        user = await storage.getUserByEmail(username);
+      }
+      
+      if (!user) {
+        console.log("[Mobile] User not found");
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      // Check password
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      
+      if (!passwordMatch) {
+        console.log("[Mobile] Password does not match");
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      // Create a session
+      const session = await storage.createSession(user.id);
+      
+      // For mobile, always use secure cookies with sameSite=none
+      const cookieOptions: CookieOptions = {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      };
+      
+      console.log("[Mobile] Setting cookie with options:", cookieOptions);
+      res.cookie("sessionId", session.id, cookieOptions);
+      
+      // Return the user (without password)
+      const { password: _, ...userWithoutPassword } = user;
+      
+      console.log("[Mobile] Login successful for user:", user.username);
+      res.status(200).json(userWithoutPassword);
+    } catch (error) {
+      console.error("[Mobile] Login error:", error);
       res.status(500).json({ message: "Internal server error during login" });
     }
   });
