@@ -266,7 +266,7 @@ export default function LandingPage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild size="lg" className="gap-2 bg-primary hover:bg-primary/90">
             <Link href="/auth">
-              Professional Login <ArrowRight size={18} />
+              Log In / Register <ArrowRight size={18} />
             </Link>
           </Button>
         </div>
@@ -285,7 +285,7 @@ export default function LandingPage() {
             </div>
             <div className="flex flex-col md:flex-row gap-6 md:gap-12">
               <Link href="/auth" className="text-neutral-600 hover:text-primary transition-colors">
-                Therapist Portal
+                Log In / Register
               </Link>
               <Link href="/privacy-policy" className="text-neutral-600 hover:text-primary transition-colors">
                 Privacy Policy
@@ -296,7 +296,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-border mt-8 pt-8 text-center text-neutral-600">
-            <p>© {new Date().getFullYear()} Resilience Counseling Research and Consultation. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} ResilienceHub. All rights reserved.</p>
           </div>
         </div>
       </footer>
