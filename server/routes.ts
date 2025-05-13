@@ -8,10 +8,12 @@ import fs from "fs";
 // Helper function to create consistent cookie options for all session cookies
 // This ensures mobile and cross-device compatibility
 function getSessionCookieOptions(): CookieOptions {
+  const isDevelopment = process.env.NODE_ENV === "development";
+  
   return {
     httpOnly: true, // Protect cookie from JS access
-    secure: false, // Disable secure requirement for development testing on mobile devices
-    sameSite: "none", // Use 'none' for cross-site and mobile compatibility
+    secure: !isDevelopment, // Secure in production, non-secure in development
+    sameSite: isDevelopment ? "lax" : "none", // Different settings for dev vs prod
     path: "/", // Ensure cookie is available on all paths
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
@@ -86,8 +88,10 @@ function getEmotionColor(emotion: string): string {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Use the pool from the imported db
   const { pool } = await import('./db');
-  // Parse cookies
-  app.use(cookieParser());
+  // Parse cookies with signed secret
+  // Use a consistent secret key for cookie signing
+  const cookieSecret = process.env.COOKIE_SECRET || 'resilience-hub-cookie-secret';
+  app.use(cookieParser(cookieSecret));
   
   // Register cross-component integration routes
   registerIntegrationRoutes(app);
