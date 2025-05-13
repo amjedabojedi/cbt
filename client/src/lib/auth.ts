@@ -259,7 +259,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     setLoading(true);
     try {
-      await apiRequest("POST", "/api/auth/logout", {});
+      // Using fetch directly to access response headers that apiRequest wouldn't return
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      });
+      
+      // Clear localStorage backup regardless of server response
+      try {
+        console.log("Clearing auth backup from localStorage during logout");
+        localStorage.removeItem('auth_user_backup');
+        localStorage.removeItem('auth_timestamp');
+      } catch (e) {
+        console.warn("Could not clear localStorage during logout:", e);
+      }
+      
       setUser(null);
       navigate("/"); // Navigate to landing page instead of login
     } catch (err) {
