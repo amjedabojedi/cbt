@@ -595,14 +595,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Create a session
           const session = await storage.createSession(updatedUser.id);
           
-          // Set the session cookie
-          res.cookie("sessionId", session.id, {
-            httpOnly: true, // False to allow JavaScript access for debugging
-            secure: true, // Always use secure cookies (needed for mobile)
-            sameSite: "none", // Use 'none' to support cross-site usage on mobile
-            path: "/", // Ensure cookie is available on all paths
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-          });
+          // Set the session cookie using our standardized cookie options
+          res.cookie("sessionId", session.id, getSessionCookieOptions());
           
           // Return the user (without password)
           const { password, ...userWithoutPassword } = updatedUser;
