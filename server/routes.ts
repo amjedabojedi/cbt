@@ -7,7 +7,7 @@ import fs from "fs";
 
 // Helper function to create consistent cookie options for all session cookies
 // This ensures mobile and cross-device compatibility
-function getSessionCookieOptions(): CookieOptions {
+export function getSessionCookieOptions(): CookieOptions {
   const isDevelopment = process.env.NODE_ENV === "development";
   const isProduction = !isDevelopment;
   

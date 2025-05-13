@@ -1,6 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, CookieOptions } from 'express';
 import { storage } from '../storage';
 import { User } from '@shared/schema';
+
+// Import the getSessionCookieOptions function from routes
+// This ensures consistent cookie handling across the application
+import { getSessionCookieOptions } from '../routes';
 
 // Extend Express Request type to include user information
 declare global {
@@ -31,7 +35,10 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     if (!session) {
       console.log("Session not found in database");
       // Clear the invalid cookie to prevent future issues
-      res.clearCookie("sessionId", { path: "/" });
+      const clearOptions = getSessionCookieOptions();
+      delete clearOptions.maxAge; // Remove maxAge to ensure cookie gets deleted
+      console.log("Clearing invalid session cookie with options:", clearOptions);
+      res.clearCookie("sessionId", clearOptions);
       return res.status(401).json({ message: 'Invalid session' });
     }
     
@@ -41,8 +48,11 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     if (new Date(session.expiresAt) < new Date()) {
       console.log("Session expired at:", session.expiresAt);
       await storage.deleteSession(sessionId);
-      // Clear the expired cookie
-      res.clearCookie("sessionId", { path: "/" });
+      // Clear the expired cookie with consistent options
+      const clearOptions = getSessionCookieOptions();
+      delete clearOptions.maxAge; // Remove maxAge to ensure cookie gets deleted
+      console.log("Clearing expired session cookie with options:", clearOptions);
+      res.clearCookie("sessionId", clearOptions);
       return res.status(401).json({ message: 'Session expired' });
     }
     
