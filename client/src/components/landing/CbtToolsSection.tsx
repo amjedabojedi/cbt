@@ -36,9 +36,9 @@ export default function CbtToolsSection() {
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <BarChart3 className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-medium mb-2">Personal Progress Insights</h3>
+            <h3 className="text-xl font-medium mb-2">Simple Progress Charts</h3>
             <p>
-              Track your progress with detailed analytics and visualizations.
+              Track your progress with basic charts and visualizations.
             </p>
           </div>
         </div>

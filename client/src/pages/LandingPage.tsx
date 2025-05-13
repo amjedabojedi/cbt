@@ -24,8 +24,8 @@ export default function LandingPage() {
           ResilienceHub
         </h1>
         <p className="text-xl md:text-2xl text-neutral-700 max-w-3xl mx-auto mb-4">
-          A platform providing interactive CBT tools for tracking emotions, thoughts, and behaviors
-          that connects mental health professionals with clients for personalized mental health tracking.
+          A tool for tracking emotions, thoughts, and behaviors
+          that connects mental health professionals with clients for basic mental health tracking.
         </p>
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-3xl mx-auto mb-8">
           <p className="text-sm text-yellow-800">
@@ -50,7 +50,7 @@ export default function LandingPage() {
 
       {/* Features Section */}
       <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">Interactive CBT Tools for Emotion and Behavior Tracking</h2>
+        <h2 className="text-3xl font-bold text-center mb-12">Tools for Emotion and Behavior Tracking</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Feature 1 */}
           <div className="landing-feature-box rounded-lg p-6 shadow-sm">
@@ -90,9 +90,9 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Book className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">AI-Powered Journaling</h3>
+            <h3 className="text-xl font-semibold mb-2">Simple Journaling</h3>
             <p>
-              Record thoughts in journal entries between sessions. AI analysis helps identify recurring patterns and themes in your writing.
+              Record thoughts in journal entries between sessions. Basic AI assistance helps spot common patterns in your writing.
             </p>
           </div>
 
@@ -101,9 +101,9 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <BarChart3 className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Integrated Insights</h3>
+            <h3 className="text-xl font-semibold mb-2">Basic Progress Tracking</h3>
             <p>
-              Visualize connections between your recorded emotions, thoughts, and journal entries. Track patterns and changes over time between sessions.
+              See simple connections between your recorded emotions, thoughts, and journal entries. View simple charts showing your activity over time.
             </p>
           </div>
 
