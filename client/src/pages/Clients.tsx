@@ -599,7 +599,7 @@ export default function Clients() {
   
   // Fetch clients data
   const { data: clients = [], isLoading } = useQuery<User[]>({
-    queryKey: ["/api/users/clients"],
+    queryKey: [user?.role === "admin" ? "/api/users/all-clients" : "/api/users/clients"],
     enabled: user?.role === "therapist" || user?.role === "admin",
   });
   

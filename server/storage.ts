@@ -37,6 +37,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, data: Partial<User>): Promise<User>;
   getClients(therapistId: number): Promise<User[]>;
+  getAllClients(): Promise<User[]>;
   getAllUsers(): Promise<User[]>;
   updateCurrentViewingClient(userId: number, clientId: number | null): Promise<User>;
   getCurrentViewingClient(userId: number): Promise<number | null>;
@@ -251,6 +252,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(users)
       .where(eq(users.therapistId, therapistId))
+      .orderBy(users.name);
+  }
+  
+  async getAllClients(): Promise<User[]> {
+    return db
+      .select()
+      .from(users)
+      .where(eq(users.role, "client"))
       .orderBy(users.name);
   }
   

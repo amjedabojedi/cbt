@@ -1474,6 +1474,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get all clients, including unassigned clients (only for admin)
+  app.get("/api/users/all-clients", authenticate, isAdmin, async (req, res) => {
+    try {
+      const clients = await storage.getAllClients();
+      // Remove passwords
+      const clientsWithoutPasswords = clients.map(client => {
+        const { password, ...clientWithoutPassword } = client;
+        return clientWithoutPassword;
+      });
+      res.status(200).json(clientsWithoutPasswords);
+    } catch (error) {
+      console.error("Get all clients error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Delete (remove) client from therapist
   app.delete("/api/users/clients/:clientId", authenticate, isTherapist, async (req, res) => {
     try {
