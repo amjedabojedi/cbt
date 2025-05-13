@@ -57,18 +57,21 @@ export default function MobileLogin() {
     return () => clearTimeout(timer);
   }, [user, navigate]);
 
-  // Handle form submission
+  // Handle form submission - using the mobile-specific login endpoint
   async function onSubmit(data: LoginFormValues) {
     setIsSubmitting(true);
     try {
-      await login(data.username, data.password);
+      console.log("Attempting mobile login for user:", data.username);
+      // Pass true as the third parameter to use the mobile-specific endpoint
+      await login(data.username, data.password, true);
+      
       // Login is handled by the auth hook which will redirect on success
       toast({
         title: "Login Successful",
         description: "Redirecting to your dashboard...",
       });
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Mobile login error:", error);
       
       // More user-friendly error message
       let errorMessage = "An error occurred. Please try again.";
@@ -83,6 +86,8 @@ export default function MobileLogin() {
           errorMessage = "Network error. Please check your internet connection and try again.";
         } else if (message.includes("timeout")) {
           errorMessage = "The request timed out. Please try again.";
+        } else if (message.includes("cookie")) {
+          errorMessage = "Cookie error. Please try clearing your browser cookies and try again.";
         } else {
           // Use the original message but limit its length
           errorMessage = message.length > 100 ? message.substring(0, 100) + "..." : message;
@@ -118,9 +123,9 @@ export default function MobileLogin() {
         </div>
 
         {/* Mobile-optimized explanation */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-          <p className="text-sm text-yellow-800">
-            This is a mobile-friendly login page designed to work on all devices without redirection issues.
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <p className="text-sm text-blue-800">
+            Welcome to ResilienceHub - your personal CBT interactive tool for tracking emotional wellbeing and personal development.
           </p>
         </div>
         
@@ -218,6 +223,7 @@ export default function MobileLogin() {
         {/* Support info */}
         <div className="text-center mt-6">
           <p className="text-xs text-neutral-500">
+            ResilienceHub - A tool for tracking progress with CBT techniques<br />
             Need help? Contact support at<br />
             <a href="mailto:mail@resiliencec.com" className="text-primary">
               mail@resiliencec.com
