@@ -37,7 +37,7 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="gap-2 bg-primary hover:bg-primary/90">
               <Link href="/auth">
-                Professional Login <ArrowRight size={18} />
+                Log In / Register <ArrowRight size={18} />
               </Link>
             </Button>
           </div>

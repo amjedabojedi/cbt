@@ -214,15 +214,26 @@ export default function AuthPage() {
             <p className="text-neutral-500 mt-2">
               {isInvitation 
                 ? "Complete your registration to connect with your mental health professional" 
-                : "Your interactive CBT tools for better mental health"}
+                : "Your interactive CBT tools for tracking emotions, thoughts, and behaviors"}
             </p>
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full auth-tabs">
             <TabsList className="grid w-full grid-cols-2 mb-6 tabs-list">
               <TabsTrigger value="login" className="tabs-trigger">Login</TabsTrigger>
-              <TabsTrigger value="register" className="tabs-trigger">Register</TabsTrigger>
+              <TabsTrigger value="register" className="tabs-trigger">Professional Registration</TabsTrigger>
             </TabsList>
+            
+            {!isInvitation && (
+              <div className="mb-4 p-3 rounded bg-blue-50 border border-blue-100 text-blue-700 text-sm">
+                <p className="font-medium mb-1">Note:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Clients need an invitation from their mental health professional</li>
+                  <li>Professionals can register directly using the form</li>
+                  <li>If you received an invitation, check your email for the registration link</li>
+                </ul>
+              </div>
+            )}
             
             <TabsContent value="login">
               <Card className="auth-card">
