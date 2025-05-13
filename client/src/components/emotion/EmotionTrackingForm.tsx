@@ -702,7 +702,7 @@ export default function EmotionTrackingForm({
                 onClick={() => {
                   setShowSuccessDialog(false);
                   if (recordedEmotion) {
-                    window.location.href = `/thoughts/new?emotionId=${recordedEmotion.id}`;
+                    navigate(`/thoughts/new?emotionId=${recordedEmotion.id}`);
                   }
                 }}
               >
