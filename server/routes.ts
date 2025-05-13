@@ -960,8 +960,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint for checking current user's session (used on page loads and app initialization)
   app.get("/api/auth/me", authenticate, ensureAuthenticated, (req, res) => {
+    console.log("Auth check for user:", req.user.id, req.user.username);
     const { password, ...userWithoutPassword } = req.user;
+    console.log("Auth check successful. Returning user data");
     res.status(200).json(userWithoutPassword);
   });
   
