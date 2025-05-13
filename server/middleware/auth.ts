@@ -30,6 +30,8 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     
     if (!session) {
       console.log("Session not found in database");
+      // Clear the invalid cookie to prevent future issues
+      res.clearCookie("sessionId", { path: "/" });
       return res.status(401).json({ message: 'Invalid session' });
     }
     
@@ -39,6 +41,8 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     if (new Date(session.expiresAt) < new Date()) {
       console.log("Session expired at:", session.expiresAt);
       await storage.deleteSession(sessionId);
+      // Clear the expired cookie
+      res.clearCookie("sessionId", { path: "/" });
       return res.status(401).json({ message: 'Session expired' });
     }
     

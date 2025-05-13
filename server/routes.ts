@@ -756,6 +756,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Username and password are required" });
       }
       
+      // Clear any existing session cookie first to prevent conflicts
+      res.clearCookie("sessionId", { path: "/" });
+      
       // First try to get the user by username
       console.log("Finding user with username:", username);
       let user = await storage.getUserByUsername(username);
@@ -764,11 +767,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If user not found by username, try by email
       if (!user) {
         console.log("User not found by username, trying email lookup");
-        // Debug email lookup
-        const allUsers = await storage.getAllUsers();
-        console.log("All user emails:", allUsers.map(u => u.email));
-        console.log("Looking up by email:", username);
-        
         user = await storage.getUserByEmail(username);
         console.log("User lookup by email result:", user ? `Found user ${user.id}` : "Not found");
       }
@@ -777,9 +775,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("User not found by username or email");
         return res.status(401).json({ message: "Invalid credentials" });
       }
-      
-      console.log("Found user:", user.id, user.username);
-      console.log("User password hash:", user.password);
       
       // Check the password
       console.log("Comparing passwords");
@@ -795,21 +790,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const session = await storage.createSession(user.id);
       
       // Set the session cookie using our standardized cookie options
-      res.cookie("sessionId", session.id, getSessionCookieOptions());
+      const cookieOptions = getSessionCookieOptions();
+      console.log("Setting cookie with options:", cookieOptions);
+      res.cookie("sessionId", session.id, cookieOptions);
       
       // Return the user (without password)
       const { password: _, ...userWithoutPassword } = user;
+      
+      console.log("Login successful for user:", user.username);
       res.status(200).json(userWithoutPassword);
     } catch (error) {
       console.error("Login error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Internal server error during login" });
     }
   });
   
   app.post("/api/auth/logout", authenticate, async (req, res) => {
     try {
       await storage.deleteSession(req.session.id);
-      res.clearCookie("sessionId");
+      
+      // Clear cookie with more specific options matching how it was set
+      // This ensures it works properly across different browsers and environments
+      const isDevelopment = process.env.NODE_ENV === "development";
+      res.clearCookie("sessionId", {
+        path: "/",
+        httpOnly: true,
+        secure: !isDevelopment,
+        sameSite: isDevelopment ? "lax" : "none"
+      });
+      
+      console.log("User logged out successfully");
       res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
       console.error("Logout error:", error);
