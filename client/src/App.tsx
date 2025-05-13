@@ -16,6 +16,7 @@ const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Login = lazy(() => import("@/pages/Login"));
 const Register = lazy(() => import("@/pages/Register"));
 const AuthPage = lazy(() => import("@/pages/auth-page"));
+const MobileLogin = lazy(() => import("@/pages/MobileLogin"));
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
@@ -40,6 +41,7 @@ const SubscriptionManagement = lazy(() => import("@/pages/SubscriptionManagement
 
 // Import the ProtectedRoute component
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { MobileRedirector } from "@/components/auth/MobileRedirector";
 import { useAuth } from "@/lib/auth";
 
 function LoadingFallback() {
@@ -72,6 +74,8 @@ function Router() {
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
           <Route path="/auth" component={AuthPage} />
+          <Route path="/m/login" component={MobileLogin} />
+          <Route path="/mobile-login" component={MobileLogin} />
           <Route path="/privacy-policy" component={PrivacyPolicy} />
           <Route path="/terms-of-service" component={TermsOfService} />
           
@@ -136,6 +140,7 @@ function App() {
           <AuthProvider>
             <WebSocketProvider>
               <ClientProvider>
+                <MobileRedirector />
                 <TooltipProvider>
                   <Toaster />
                   <Router />
