@@ -449,7 +449,7 @@ export default function EmotionTrackingForm({
                         <InfoIcon className="h-4 w-4 text-blue-500" />
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs">
-                        <p>You can select emotions from any level - core emotions (inner ring), primary emotions (middle ring), or tertiary emotions (outer ring).</p>
+                        <div>You can select emotions from any level - core emotions (inner ring), primary emotions (middle ring), or tertiary emotions (outer ring).</div>
                       </TooltipContent>
                     </Tooltip>
                   </div>

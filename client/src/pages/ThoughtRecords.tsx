@@ -144,10 +144,10 @@ export default function ThoughtRecords() {
                             <HelpCircle size={16} className="text-muted-foreground cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-[300px] p-4">
-                            <p className="text-xs">
+                            <div className="text-xs">
                               Thought records help identify and challenge unhelpful thought patterns.
                               They're a core CBT tool for improving emotional well-being.
-                            </p>
+                            </div>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>

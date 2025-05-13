@@ -22,8 +22,8 @@ export function ResearchTooltip({ content, research }: ResearchTooltipProps) {
           </button>
         </TooltipTrigger>
         <TooltipContent className="max-w-[280px] text-sm">
-          <p>{content}</p>
-          <p className="mt-1.5 text-xs italic text-muted-foreground">Based on research by {research}</p>
+          <div>{content}</div>
+          <div className="mt-1.5 text-xs italic text-muted-foreground">Based on research by {research}</div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

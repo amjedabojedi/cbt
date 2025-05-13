@@ -326,7 +326,7 @@ export default function EmotionWheelMobile({
               </button>
             </TooltipTrigger>
             <TooltipContent className="max-w-xs">
-              <p>This emotion wheel helps you identify your feelings with increasing specificity. Start with a core emotion, then narrow it down.</p>
+              <div>This emotion wheel helps you identify your feelings with increasing specificity. Start with a core emotion, then narrow it down.</div>
             </TooltipContent>
           </Tooltip>
         </div>
