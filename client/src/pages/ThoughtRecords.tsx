@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { ThoughtRecord as BaseThoughtRecord } from "@shared/schema";
 import useActiveUser from "@/hooks/use-active-user";
 import { ClientDebug } from "@/components/debug/ClientDebug";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
 
 // Use the schema definition directly
@@ -107,8 +107,8 @@ export default function ThoughtRecords() {
   
   // Handle editing a thought record
   const handleEditThought = (thought: ThoughtRecord) => {
-    // Redirect to reflection wizard with the record ID to edit
-    window.location.href = `/reflection?edit=${thought.id}`;
+    // Redirect to reflection wizard with the record ID to edit using router
+    navigate(`/reflection?edit=${thought.id}`);
   };
 
   return (
