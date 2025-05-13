@@ -67,6 +67,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionRecord | null>(null);
   const [showFullHistory, setShowFullHistory] = useState(false);
   const [showReflectionWizard, setShowReflectionWizard] = useState(false);
+  const [showEditEmotionDialog, setShowEditEmotionDialog] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [emotionToDelete, setEmotionToDelete] = useState<EmotionRecord | null>(null);
   const { toast } = useToast();
@@ -93,6 +94,35 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
     }
   }, [emotions, emotionIdParam]);
   
+  // Update emotion mutation - only allowed for own records
+  const updateEmotionMutation = useMutation({
+    mutationFn: async (emotion: Partial<EmotionRecord> & { id: number }) => {
+      if (!activeUserId) throw new Error('User not authenticated');
+      return apiRequest('PATCH', `/api/users/${activeUserId}/emotions/${emotion.id}`, emotion);
+    },
+    onSuccess: () => {
+      // Invalidate and refetch emotions
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/emotions`] });
+      
+      toast({
+        title: "Record updated",
+        description: "The emotion record has been updated successfully.",
+        variant: "default",
+      });
+      
+      setShowEditEmotionDialog(false);
+    },
+    onError: (error: any) => {
+      console.error('Error updating emotion record:', error);
+      
+      toast({
+        title: "Update failed",
+        description: "There was a problem updating the emotion record. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Delete emotion mutation - only allowed for own records
   const deleteEmotionMutation = useMutation({
     mutationFn: async (emotionId: number) => {
@@ -148,8 +178,8 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   
   // Handle emotion edit 
   const handleEditEmotion = (emotion: EmotionRecord) => {
-    // For now, we just show the emotion details since we don't have direct emotion editing
     setSelectedEmotion(emotion);
+    setShowEditEmotionDialog(true);
   };
   
   // Handle adding a new thought record for an emotion
@@ -298,6 +328,18 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <div className="flex items-center space-x-2">
+                          {/* Only show edit button if viewing own data */}
+                          {!isViewingClientData && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => handleEditEmotion(emotion)}
+                              className="text-primary hover:text-primary-dark"
+                              title="Edit emotion"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
                           {/* Only show add thought record option if viewing own data */}
                           {!isViewingClientData && (
                             <Button 
@@ -486,6 +528,131 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
         />
       )}
       
+      {/* Edit Emotion Dialog */}
+      {selectedEmotion && (
+        <Dialog open={showEditEmotionDialog} onOpenChange={(open) => {
+          if (!open) {
+            setShowEditEmotionDialog(false);
+          }
+        }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edit Emotion Record</DialogTitle>
+              <DialogDescription>
+                Update the details of your recorded emotion.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const updatedEmotion = {
+                id: selectedEmotion.id,
+                intensity: parseInt(formData.get('intensity') as string) || selectedEmotion.intensity,
+                situation: formData.get('situation') as string || selectedEmotion.situation,
+                location: formData.get('location') as string || selectedEmotion.location,
+                company: formData.get('company') as string || selectedEmotion.company,
+              };
+              
+              updateEmotionMutation.mutate(updatedEmotion);
+            }}>
+              <div className="space-y-4 py-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="coreEmotion" className="text-sm font-medium text-muted-foreground">
+                      Core Emotion
+                    </label>
+                    <input 
+                      type="text" 
+                      id="coreEmotion" 
+                      className="w-full px-3 py-2 border rounded-md bg-muted text-muted-foreground" 
+                      value={selectedEmotion.coreEmotion}
+                      disabled
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="intensity" className="text-sm font-medium">
+                      Intensity (1-10)
+                    </label>
+                    <input 
+                      type="number" 
+                      id="intensity" 
+                      name="intensity"
+                      min="1" 
+                      max="10" 
+                      className="w-full px-3 py-2 border rounded-md" 
+                      defaultValue={selectedEmotion.intensity}
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="situation" className="text-sm font-medium">
+                    Situation
+                  </label>
+                  <textarea 
+                    id="situation" 
+                    name="situation"
+                    className="w-full px-3 py-2 border rounded-md min-h-[80px]" 
+                    defaultValue={selectedEmotion.situation}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="location" className="text-sm font-medium">
+                      Location
+                    </label>
+                    <input 
+                      type="text" 
+                      id="location" 
+                      name="location"
+                      className="w-full px-3 py-2 border rounded-md" 
+                      defaultValue={selectedEmotion.location || ''}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="company" className="text-sm font-medium">
+                      Company
+                    </label>
+                    <input 
+                      type="text" 
+                      id="company" 
+                      name="company"
+                      className="w-full px-3 py-2 border rounded-md" 
+                      defaultValue={selectedEmotion.company || ''}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <DialogFooter className="mt-6">
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  onClick={() => setShowEditEmotionDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={updateEmotionMutation.isPending}
+                >
+                  {updateEmotionMutation.isPending ? (
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      Saving...
+                    </div>
+                  ) : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+      
       {/* Full History Dialog */}
       <Dialog open={showFullHistory} onOpenChange={setShowFullHistory}>
         <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
@@ -530,6 +697,22 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <div className="flex items-center space-x-2">
+                        {/* Only show edit button if viewing own data */}
+                        {!isViewingClientData && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => {
+                              setSelectedEmotion(emotion);
+                              setShowEditEmotionDialog(true);
+                              setShowFullHistory(false);
+                            }}
+                            className="text-primary hover:text-primary-dark"
+                            title="Edit emotion"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
                         {/* Only show add thought record option if viewing own data */}
                         {!isViewingClientData && (
                           <Button 
