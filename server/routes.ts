@@ -1886,7 +1886,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/invitations", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
     try {
       // No need to check if user is authenticated as ensureAuthenticated already did that
-      const invitations = await storage.getClientInvitationsByTherapist(req.user.id);
+      const invitations = await storage.getClientInvitationsByProfessional(req.user.id);
       res.json(invitations);
     } catch (error) {
       console.error("Error fetching invitations:", error);
