@@ -692,12 +692,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const loginUrl = `${req.protocol}://${req.get('host')}/login`;
               
               // Create a custom message for self-registered therapists
-              const subject = 'Welcome to Resilience CBT - Your Account Information';
+              const subject = 'Welcome to ResilienceHub - Your Account Information';
               const html = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h1 style="color: #4A6FA5;">Welcome to Resilience CBT</h1>
+                  <h1 style="color: #4A6FA5;">Welcome to ResilienceHub</h1>
                   <p>Hello ${user.name || user.username},</p>
-                  <p>Thank you for registering as a mental health professional on the Resilience CBT platform. This platform will help you manage your clients with tools for emotion tracking, thought records, journaling, and goal setting.</p>
+                  <p>Thank you for registering as a mental health professional on the ResilienceHub platform. This platform will help you manage your clients with tools for emotion tracking, thought records, journaling, and goal setting.</p>
                   
                   <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4A6FA5;">
                     <h2 style="color: #4A6FA5; margin-top: 0; font-size: 18px;">Your Account Details:</h2>
@@ -4687,7 +4687,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const emailSent = await sendEmail({
           to: testEmail,
           subject: "Email System Test",
-          html: "<h1>Test Email</h1><p>This is a test email sent from Resilience CBT application.</p>"
+          html: "<h1>Test Email</h1><p>This is a test email sent from ResilienceHub application.</p>"
         });
         
         if (emailSent) {
