@@ -70,6 +70,24 @@ interface EmotionHistoryProps {
   limit?: number;
 }
 
+// Helper to get emotion badge color
+function getEmotionBadgeColor(emotion: string): string {
+  const colorMap: Record<string, string> = {
+    "Anger": "bg-red-100 text-red-800",
+    "Sadness": "bg-blue-100 text-blue-800",
+    "Surprise": "bg-purple-100 text-purple-800",
+    "Joy": "bg-yellow-100 text-yellow-800",
+    "Love": "bg-pink-100 text-pink-800",
+    "Fear": "bg-green-100 text-green-800",
+    "Disgust": "bg-emerald-100 text-emerald-800",
+    
+    // Default fallback
+    "default": "bg-gray-100 text-gray-800"
+  };
+  
+  return colorMap[emotion] || colorMap.default;
+}
+
 export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   const { activeUserId, isViewingClientData } = useActiveUser();
   const { user } = useAuth();
@@ -547,7 +565,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
           <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-lg">
-                <div className={`p-2 rounded-full ${getEmotionBadgeColor(selectedEmotion.coreEmotion).replace('text-', 'text-').replace('bg-', 'bg-')}`}>
+                <div className={`p-2 rounded-full ${getEmotionBadgeColor(selectedEmotion.coreEmotion)}`}>
                   {selectedEmotion.coreEmotion === 'Joy' && <Smile className="h-5 w-5" />}
                   {selectedEmotion.coreEmotion === 'Sadness' && <Frown className="h-5 w-5" />}
                   {selectedEmotion.coreEmotion === 'Anger' && <Flame className="h-5 w-5" />}
@@ -609,21 +627,6 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                             max="10"
                             className="w-7 border-none text-center p-0 bg-transparent"
                             defaultValue={selectedEmotion.intensity}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              if (value >= 1 && value <= 10) {
-                                const circle = e.target.parentElement?.parentElement?.querySelector('.absolute') as HTMLElement;
-                                if (circle) {
-                                  const color = selectedEmotion.coreEmotion === 'Joy' ? '#FFC107' : 
-                                              selectedEmotion.coreEmotion === 'Sadness' ? '#2196F3' : 
-                                              selectedEmotion.coreEmotion === 'Anger' ? '#F44336' : 
-                                              selectedEmotion.coreEmotion === 'Fear' ? '#4CAF50' : 
-                                              selectedEmotion.coreEmotion === 'Surprise' ? '#9C27B0' : 
-                                              selectedEmotion.coreEmotion === 'Disgust' ? '#795548' : '#9E9E9E';
-                                  circle.style.background = `conic-gradient(${color} ${value * 10}%, #f1f5f9 0)`;
-                                }
-                              }
-                            }}
                           />
                         </div>
                       </div>
