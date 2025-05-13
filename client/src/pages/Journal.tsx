@@ -980,7 +980,7 @@ export default function Journal() {
                                 </Badge>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p className="max-w-xs">{getDistortionDescription(distortion)}</p>
+                                <div className="max-w-xs">{getDistortionDescription(distortion)}</div>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
