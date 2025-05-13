@@ -58,12 +58,12 @@ export default function TermsOfService() {
             
             <h2>7. Accuracy of Materials</h2>
             <p>
-              The materials on the Resilience Counseling Research and Consultation platform are provided on an 'as is' basis. We make no warranties, expressed or implied, and hereby disclaim and negate all other warranties including, without limitation, implied warranties of merchantability or fitness for a particular purpose.
+              The materials on the ResilienceHub platform are provided on an 'as is' basis. We make no warranties, expressed or implied, and hereby disclaim and negate all other warranties including, without limitation, implied warranties of merchantability or fitness for a particular purpose.
             </p>
             
             <h2>8. Privacy</h2>
             <p>
-              Your use of the Resilience Counseling Research and Consultation platform is also governed by our Privacy Policy, which is incorporated by reference into these Terms of Service.
+              Your use of the ResilienceHub platform is also governed by our Privacy Policy, which is incorporated by reference into these Terms of Service.
             </p>
             
             <h2>9. Termination</h2>
@@ -83,7 +83,7 @@ export default function TermsOfService() {
             
             <h2>12. Contact Us</h2>
             <p>
-              If you have any questions about these Terms, please contact us at mail@rcrccanada.com.
+              If you have any questions about these Terms, please contact us at mail@resiliencec.com.
             </p>
           </div>
         </div>

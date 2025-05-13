@@ -77,7 +77,7 @@ export default function PrivacyPolicy() {
             
             <h2>9. Contact Us</h2>
             <p>
-              If you have any questions about this Privacy Policy, please contact us at mail@rcrccanada.com.
+              If you have any questions about this Privacy Policy, please contact us at mail@resiliencec.com.
             </p>
           </div>
         </div>
