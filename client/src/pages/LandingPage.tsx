@@ -41,6 +41,19 @@ export default function LandingPage() {
               </Link>
             </Button>
           </div>
+          
+          {/* Mobile-specific login option */}
+          <div className="mt-2 text-center">
+            <p className="text-sm text-neutral-600 mb-2">
+              <strong>Having trouble on mobile?</strong>
+            </p>
+            <Button asChild variant="outline" size="sm" className="gap-1">
+              <Link href="/m/login">
+                Use Mobile Login
+              </Link>
+            </Button>
+          </div>
+          
           <p className="text-sm text-neutral-700 text-center">
             Clients need an invitation from their mental health professional to access the platform.
             If you've received an invitation, check your email for the registration link.
@@ -270,6 +283,16 @@ export default function LandingPage() {
             </Link>
           </Button>
         </div>
+        <div className="mt-4 text-center">
+          <p className="text-sm text-neutral-600 mb-2">
+            <strong>Mobile user?</strong> Use our dedicated mobile login:
+          </p>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/m/login">
+              Mobile Login
+            </Link>
+          </Button>
+        </div>
       </section>
 
       {/* Advanced CBT Tools Section */}
@@ -286,6 +309,9 @@ export default function LandingPage() {
             <div className="flex flex-col md:flex-row gap-6 md:gap-12">
               <Link href="/auth" className="text-neutral-600 hover:text-primary transition-colors">
                 Log In / Register
+              </Link>
+              <Link href="/m/login" className="text-neutral-600 hover:text-primary transition-colors">
+                Mobile Login
               </Link>
               <Link href="/privacy-policy" className="text-neutral-600 hover:text-primary transition-colors">
                 Privacy Policy

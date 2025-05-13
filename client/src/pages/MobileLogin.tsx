@@ -63,11 +63,35 @@ export default function MobileLogin() {
     try {
       await login(data.username, data.password);
       // Login is handled by the auth hook which will redirect on success
+      toast({
+        title: "Login Successful",
+        description: "Redirecting to your dashboard...",
+      });
     } catch (error) {
       console.error("Login error:", error);
+      
+      // More user-friendly error message
+      let errorMessage = "An error occurred. Please try again.";
+      
+      if ((error as Error).message) {
+        // Extract the most useful part of the error message
+        const message = (error as Error).message;
+        
+        if (message.includes("401") || message.includes("unauthorized") || message.includes("invalid credentials")) {
+          errorMessage = "Your username or password is incorrect. Please try again.";
+        } else if (message.includes("network") || message.includes("fetch")) {
+          errorMessage = "Network error. Please check your internet connection and try again.";
+        } else if (message.includes("timeout")) {
+          errorMessage = "The request timed out. Please try again.";
+        } else {
+          // Use the original message but limit its length
+          errorMessage = message.length > 100 ? message.substring(0, 100) + "..." : message;
+        }
+      }
+      
       toast({
         title: "Login Failed",
-        description: (error as Error).message || "An error occurred. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -84,28 +108,36 @@ export default function MobileLogin() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-white">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-white to-blue-50">
       <div className="w-full max-w-md mx-auto space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold text-neutral-800">ResilienceHub</h1>
-          <p className="text-neutral-500">
-            {isMobile ? "Mobile Login" : "Sign in to your account"}
+          <h1 className="text-3xl font-bold text-primary">ResilienceHub</h1>
+          <p className="text-lg text-neutral-700">
+            Mobile-Friendly Login
+          </p>
+        </div>
+
+        {/* Mobile-optimized explanation */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+          <p className="text-sm text-yellow-800">
+            This is a mobile-friendly login page designed to work on all devices without redirection issues.
           </p>
         </div>
         
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <FormField
                 control={form.control}
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username or Email</FormLabel>
+                    <FormLabel className="text-base">Username or Email</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="Enter your username or email" 
                         autoComplete="username"
+                        className="h-11 text-base"
                         {...field} 
                       />
                     </FormControl>
@@ -119,12 +151,13 @@ export default function MobileLogin() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="text-base">Password</FormLabel>
                     <FormControl>
                       <Input 
                         type="password" 
                         placeholder="Enter your password" 
                         autoComplete="current-password"
+                        className="h-11 text-base"
                         {...field} 
                       />
                     </FormControl>
@@ -135,12 +168,12 @@ export default function MobileLogin() {
               
               <Button 
                 type="submit" 
-                className="w-full" 
+                className="w-full h-11 text-base font-medium mt-2" 
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     Signing In...
                   </div>
                 ) : (
@@ -152,21 +185,39 @@ export default function MobileLogin() {
         </div>
         
         <div className="text-center mt-4">
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-neutral-600">
+            Having trouble signing in? Try to:
+          </p>
+          <ul className="text-sm text-neutral-600 mt-2 space-y-1">
+            <li>• Check that your username and password are correct</li>
+            <li>• Clear your browser cookies and try again</li>
+            <li>• Use a different browser if possible</li>
+          </ul>
+        </div>
+
+        <div className="text-center mt-4">
+          <p className="text-sm text-neutral-600">
             Don't have an account?{" "}
             <Button 
               variant="link" 
-              className="p-0" 
+              className="p-0 font-medium" 
               onClick={() => navigate("/auth")}
             >
-              Register
+              Register here
             </Button>
           </p>
         </div>
         
+        {/* Return to main option */}
+        <div className="text-center mt-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+            Return to home page
+          </Button>
+        </div>
+        
         {/* Support info */}
         <div className="text-center mt-6">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-neutral-500">
             Need help? Contact support at<br />
             <a href="mailto:mail@resiliencec.com" className="text-primary">
               mail@resiliencec.com
