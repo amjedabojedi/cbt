@@ -9,9 +9,9 @@ import fs from "fs";
 // This ensures mobile and cross-device compatibility
 function getSessionCookieOptions(): CookieOptions {
   return {
-    httpOnly: true, // False to allow JavaScript access for debugging
-    secure: true, // Always use secure cookies (needed for mobile)
-    sameSite: "none", // Use 'none' to support cross-site usage on mobile
+    httpOnly: true, // Protect cookie from JS access
+    secure: process.env.NODE_ENV === "production", // Only require HTTPS in production
+    sameSite: "lax", // Better compatibility across browsers and devices
     path: "/", // Ensure cookie is available on all paths
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
