@@ -10,8 +10,8 @@ import fs from "fs";
 function getSessionCookieOptions(): CookieOptions {
   return {
     httpOnly: true, // Protect cookie from JS access
-    secure: process.env.NODE_ENV === "production", // Only require HTTPS in production
-    sameSite: "lax", // Better compatibility across browsers and devices
+    secure: false, // Disable secure requirement for development testing on mobile devices
+    sameSite: "none", // Use 'none' for cross-site and mobile compatibility
     path: "/", // Ensure cookie is available on all paths
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
