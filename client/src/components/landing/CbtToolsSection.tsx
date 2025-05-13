@@ -4,10 +4,10 @@ export default function CbtToolsSection() {
   return (
     <section className="cbt-tools-section py-16">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-8">Advanced Interactive CBT Tools</h2>
+        <h2 className="text-3xl font-bold text-center mb-8">Practical Interactive CBT Tools</h2>
         <p className="text-center text-lg max-w-3xl mx-auto mb-12">
-          ResilienceHub provides a comprehensive suite of tools for
-          tracking emotions, thoughts, and behaviors designed around
+          ResilienceHub provides a focused set of tools for
+          tracking emotions, thoughts, and behaviors based on
           evidence-based approaches.
         </p>
         
@@ -26,9 +26,9 @@ export default function CbtToolsSection() {
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Brain className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-medium mb-2">Advanced Emotion Tracking</h3>
+            <h3 className="text-xl font-medium mb-2">Emotion Tracking Tools</h3>
             <p>
-              Identify, record, and understand your emotions with our specialized tools.
+              Identify, record, and understand your emotions with helpful tracking tools.
             </p>
           </div>
           

@@ -57,9 +57,9 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Brain className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Advanced Emotion Tracking</h3>
+            <h3 className="text-xl font-semibold mb-2">Emotion Tracking</h3>
             <p>
-              Record and visualize emotions between sessions using our detailed emotion wheel with intensity tracking and pattern identification.
+              Record and visualize emotions between sessions using our emotion wheel with intensity tracking and pattern identification.
             </p>
           </div>
 
@@ -216,7 +216,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
-                  Track client progress through comprehensive dashboards
+                  Track client progress through practical dashboards
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
