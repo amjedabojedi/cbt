@@ -18,25 +18,25 @@ function getSessionCookieOptions(): CookieOptions {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
   
-  // Adjust for development vs production environment
-  if (isProduction) {
-    // In production, use secure cookies with sameSite=none to work across domains
-    cookieOptions.secure = true; 
-    cookieOptions.sameSite = 'none';
-  } else {
-    // In development, use lax to make testing easier
+  // Set a domain that matches the current host (works on both custom domains and *.replit.app)
+  const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || undefined;
+  if (domain) {
+    cookieOptions.domain = domain;
+  }
+  
+  // Always use secure cookies in Replit environment (both dev and prod)
+  // This is required for proper cookie handling in Replit's environment
+  cookieOptions.secure = true;
+  cookieOptions.sameSite = 'none';
+  
+  // Allow for special override for testing
+  if (process.env.FORCE_INSECURE_COOKIES === 'true') {
     cookieOptions.secure = false;
     cookieOptions.sameSite = 'lax';
+    console.log('Using insecure cookies for local testing (not recommended)');
   }
   
-  // Allow for special override for mobile testing in dev mode
-  if (process.env.FORCE_SECURE_COOKIES === 'true') {
-    cookieOptions.secure = true;
-    cookieOptions.sameSite = 'none';
-    console.log('Using secure cookies in development for mobile compatibility testing');
-  }
-  
-  console.log(`Cookie options: secure=${cookieOptions.secure}, sameSite=${cookieOptions.sameSite}`);
+  console.log(`Cookie options: secure=${cookieOptions.secure}, sameSite=${cookieOptions.sameSite}, domain=${cookieOptions.domain || 'not set'}`);
   return cookieOptions;
 }
 import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission, ensureAuthenticated } from "./middleware/auth";
