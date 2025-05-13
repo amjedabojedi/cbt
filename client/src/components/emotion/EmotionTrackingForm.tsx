@@ -679,26 +679,27 @@ export default function EmotionTrackingForm({
       
       {/* Success Dialog with Options */}
       <Dialog open={showSuccessDialog && !!recordedEmotion} onOpenChange={(open) => !open && setShowSuccessDialog(false)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center">
+            <DialogTitle className="flex items-center text-xl">
               <Check className="h-6 w-6 text-green-500 mr-2" />
               Emotion Recorded Successfully
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-base mt-2">
               Your emotion has been tracked. What would you like to do next?
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-6">
             <p className="text-sm text-gray-500">
               The emotion you recorded has been saved. Remember that you can always connect thoughts to emotions later by visiting your emotion history.
             </p>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+            <div className="flex flex-col gap-4 mt-4">
               <Button 
+                size="lg"
                 variant="default" 
-                className="flex items-center justify-center gap-2"
+                className="flex items-center justify-center gap-2 h-14 text-base"
                 onClick={() => {
                   setShowSuccessDialog(false);
                   if (recordedEmotion) {
@@ -706,13 +707,14 @@ export default function EmotionTrackingForm({
                   }
                 }}
               >
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-5 w-5" />
                 Add Thought Record
               </Button>
               
               <Button 
+                size="lg"
                 variant="outline" 
-                className="flex items-center justify-center gap-2"
+                className="flex items-center justify-center gap-2 h-14 text-base"
                 onClick={() => {
                   setShowSuccessDialog(false);
                   // Reset form to create a new emotion record
@@ -729,19 +731,20 @@ export default function EmotionTrackingForm({
                   });
                 }}
               >
-                <RefreshCw className="h-4 w-4" />
-                Record Another
+                <RefreshCw className="h-5 w-5" />
+                Record Another Emotion
               </Button>
               
               <Button 
+                size="lg"
                 variant="outline" 
-                className="flex items-center justify-center gap-2"
+                className="flex items-center justify-center gap-2 h-14 text-base"
                 onClick={() => {
                   setShowSuccessDialog(false);
                   navigate("/");
                 }}
               >
-                <Home className="h-4 w-4" />
+                <Home className="h-5 w-5" />
                 Go to Dashboard
               </Button>
             </div>
