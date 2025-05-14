@@ -283,11 +283,31 @@ export async function generateReframePracticeScenarios(
   customInstructions?: string
 ): Promise<ReframePracticeSession> {
   try {
+    // Format cognitive distortions for better readability
+    const formattedDistortions = cognitiveDistortions.map(distortion => {
+      // Convert kebab-case to readable format (e.g., "emotional-reasoning" to "Emotional Reasoning")
+      if (!distortion) return "Unknown";
+      
+      // Handle special cases like hyphenated names
+      if (distortion === "emotional-reasoning") return "Emotional Reasoning";
+      if (distortion === "mind-reading") return "Mind Reading";
+      if (distortion === "fortune-telling") return "Fortune Telling";
+      if (distortion === "all-or-nothing") return "All or Nothing Thinking";
+      if (distortion === "unknown") return "Cognitive Distortion";
+      
+      // General case: convert kebab-case or snake_case to Title Case
+      return distortion
+        .replace(/[-_]/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    });
+    
     const prompt = `
     I need to create a cognitive restructuring practice session based on the following automatic thought:
     "${automaticThought}"
 
-    This thought involves these cognitive distortions: ${cognitiveDistortions.join(", ")}
+    This thought involves these cognitive distortions: ${formattedDistortions.join(", ")}
     The primary emotion associated with this thought is: ${emotionCategory}
     ${customInstructions ? `Additional therapist instructions: ${customInstructions}` : ""}
 
@@ -347,6 +367,18 @@ export async function generateReframePracticeScenarios(
     
     try {
       const parsedResponse = JSON.parse(responseContent) as ReframePracticeSession;
+      
+      // Modify the parsed response to ensure cognitive distortions are properly formatted
+      if (parsedResponse.scenarios && Array.isArray(parsedResponse.scenarios)) {
+        parsedResponse.scenarios = parsedResponse.scenarios.map(scenario => {
+          // Replace the cognitive distortion with our properly formatted version
+          return {
+            ...scenario,
+            cognitiveDistortion: formattedDistortions[0] || "Cognitive Distortion"
+          };
+        });
+      }
+      
       return parsedResponse;
     } catch (parseError) {
       console.error("Failed to parse OpenAI response for reframing practice:", parseError);
