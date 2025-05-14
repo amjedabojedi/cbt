@@ -32,6 +32,10 @@ const ReframePracticePage = () => {
   const assignmentId = assignmentIdParam && !isNaN(parseInt(assignmentIdParam)) 
     ? parseInt(assignmentIdParam) 
     : undefined;
+    
+  // IMPORTANT: This determines if we are in quick practice mode (direct from thought record)
+  // or in assignment practice mode (from an assignment)
+  const isQuickPractice = !!thoughtId && !assignmentId;
   
   // Fetch thought record details if we have a thoughtId and userId
   const { data: thoughtRecord, isLoading: isLoadingThought } = useQuery({
@@ -40,16 +44,24 @@ const ReframePracticePage = () => {
   });
 
   // Fetch assignment details if we have an assignmentId
-  const { data: assignment, isLoading: isLoadingAssignment, error: assignmentError, isError } = useQuery({
+  const { data: assignment, isLoading: isLoadingAssignment, error: assignmentError, isError: isAssignmentError } = useQuery({
     queryKey: [`/api/reframe-coach/assignments/${assignmentId || 0}`],
-    enabled: !!assignmentId,
+    enabled: !!assignmentId && !isQuickPractice,
     retry: 1, // Minimize retries to show error quicker
     retryDelay: 1000,
   });
   
+  // For quick practice mode: fetch practice scenarios directly
+  const { data: practiceScenarios, isLoading: isLoadingScenarios, error: scenariosError, isError: isScenariosError } = useQuery({
+    queryKey: [`/api/users/${userId || 0}/thoughts/${thoughtId || 0}/practice-scenarios`],
+    enabled: isQuickPractice && !!thoughtId && !!userId,
+    retry: 1,
+    retryDelay: 1000,
+  });
+  
   // Only show loading state if we're loading and don't have an error
-  const isLoading = (isLoadingThought || isLoadingAssignment) && !isError;
-  const hasError = isError;
+  const isLoading = (isLoadingThought || isLoadingAssignment || isLoadingScenarios) && !(isAssignmentError || isScenariosError);
+  const hasError = (isAssignmentError && !isQuickPractice) || (isScenariosError && isQuickPractice);
   
   // Handle type safety for thought record
   const thoughtRecordData = thoughtRecord as any || {};
@@ -101,15 +113,21 @@ const ReframePracticePage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5 text-red-500" />
-                  Practice Assignment Not Found
+                  {isQuickPractice ? "Failed to Load Practice Scenarios" : "Practice Assignment Not Found"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  We couldn't find practice assignment #{assignmentId}. It may have been deleted or you may not have permission to access it.
+                  {isQuickPractice 
+                    ? `We couldn't generate practice scenarios for thought record #${thoughtId}. Please try again later.`
+                    : `We couldn't find practice assignment #${assignmentId}. It may have been deleted or you may not have permission to access it.`
+                  }
                 </p>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Error: {assignmentError?.message || "Assignment not found"}
+                  Error: {isQuickPractice 
+                    ? (scenariosError?.message || "Failed to generate practice scenarios") 
+                    : (assignmentError?.message || "Assignment not found")
+                  }
                 </p>
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                   <Button
@@ -149,7 +167,9 @@ const ReframePracticePage = () => {
               <ReframePractice 
                 userId={userId} 
                 thoughtRecordId={thoughtId}
-                assignmentId={assignmentId} 
+                assignmentId={assignmentId}
+                practiceScenarios={isQuickPractice ? practiceScenarios : (assignment?.reframeData || undefined)}
+                isQuickPractice={isQuickPractice}
               />
             </>
           )}
