@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 
 /**
  * A component that detects mobile devices and redirects them to the mobile-friendly login page
- * This helps prevent users from seeing the Replit login page on mobile
+ * when they try to access the regular auth page, but allows access to the landing page.
  */
 export function MobileRedirector() {
   const [location, navigate] = useLocation();
@@ -31,14 +31,18 @@ export function MobileRedirector() {
     
     const isMobile = detectMobile();
     const isAuthPage = location === '/auth';
-    const isAlreadyOnMobileLogin = location === '/m/login';
+    const isLoginPage = location === '/login';
+    const isRegisterPage = location === '/register';
+    const isAlreadyOnMobileLogin = location === '/m/login' || location === '/mobile-login';
+    const isLandingPage = location === '/' || location === '/landing';
     
     // Store the detected device type in localStorage for other components to use
     localStorage.setItem('isMobileDevice', isMobile ? 'true' : 'false');
     
-    // If this is a mobile device and we're on the auth page, redirect to mobile login
-    if (isMobile && isAuthPage && !isAlreadyOnMobileLogin) {
-      console.log('Mobile device detected, redirecting to mobile login page');
+    // ONLY redirect if we're on the auth, login or register page - NOT the landing page
+    // This ensures mobile users can see the landing page before logging in
+    if (isMobile && (isAuthPage || isLoginPage || isRegisterPage) && !isAlreadyOnMobileLogin) {
+      console.log('Mobile device detected on auth page, redirecting to mobile login page');
       navigate('/m/login');
     }
     
@@ -47,7 +51,8 @@ export function MobileRedirector() {
       const newIsMobile = detectMobile();
       localStorage.setItem('isMobileDevice', newIsMobile ? 'true' : 'false');
       
-      if (newIsMobile && location === '/auth' && !isAlreadyOnMobileLogin) {
+      // Only redirect if on auth/login/register - not on landing page
+      if (newIsMobile && (isAuthPage || isLoginPage || isRegisterPage) && !isAlreadyOnMobileLogin) {
         navigate('/m/login');
       }
     };

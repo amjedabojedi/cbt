@@ -1,15 +1,20 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Brain, Heart, Shield, Target, Book, MessageCircle, BarChart3 } from 'lucide-react';
+import { ArrowRight, Brain, Heart, Shield, Target, Book, MessageCircle, BarChart3, Smartphone } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import CbtToolsSection from '@/components/landing/CbtToolsSection';
 
 export default function LandingPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-
+  const [isMobile, setIsMobile] = useState(false);
+  
   useEffect(() => {
+    // Check if device is mobile using localStorage value set by MobileRedirector
+    const mobileFlag = localStorage.getItem('isMobileDevice');
+    setIsMobile(mobileFlag === 'true');
+    
     // If user is logged in, redirect to dashboard
     if (user) {
       setLocation('/dashboard');
@@ -33,32 +38,56 @@ export default function LandingPage() {
             It is not a replacement for professional mental health guidance. These tools work best when used with a qualified mental health professional.
           </p>
         </div>
-        <div className="flex flex-col gap-6 max-w-md mx-auto">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        
+        {isMobile ? (
+          /* Mobile-specific header content */
+          <div className="flex flex-col gap-6 max-w-md mx-auto">
             <Button asChild size="lg" className="gap-2 bg-primary hover:bg-primary/90">
-              <Link href="/auth">
-                Log In / Register <ArrowRight size={18} />
-              </Link>
-            </Button>
-          </div>
-          
-          {/* Mobile-specific login option */}
-          <div className="mt-2 text-center">
-            <p className="text-sm text-neutral-600 mb-2">
-              <strong>Having trouble on mobile?</strong>
-            </p>
-            <Button asChild variant="outline" size="sm" className="gap-1">
               <Link href="/m/login">
-                Use Mobile Login
+                Login to App <Smartphone className="ml-2 h-5 w-5" />
               </Link>
             </Button>
+            
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md mt-2 text-left">
+              <p className="text-sm text-blue-800">
+                <strong>Mobile Users:</strong> You can view the app's features below before logging in. Use this special mobile login button when you're ready.
+              </p>
+            </div>
+            
+            <p className="text-sm text-neutral-700 text-center mt-2">
+              Clients need an invitation from their mental health professional to access the platform.
+              If you've received an invitation, check your email for the registration link.
+            </p>
           </div>
-          
-          <p className="text-sm text-neutral-700 text-center">
-            Clients need an invitation from their mental health professional to access the platform.
-            If you've received an invitation, check your email for the registration link.
-          </p>
-        </div>
+        ) : (
+          /* Desktop header content */
+          <div className="flex flex-col gap-6 max-w-md mx-auto">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild size="lg" className="gap-2 bg-primary hover:bg-primary/90">
+                <Link href="/auth">
+                  Log In / Register <ArrowRight size={18} />
+                </Link>
+              </Button>
+            </div>
+            
+            {/* Mobile-specific login option */}
+            <div className="mt-2 text-center">
+              <p className="text-sm text-neutral-600 mb-2">
+                <strong>Having trouble on mobile?</strong>
+              </p>
+              <Button asChild variant="outline" size="sm" className="gap-1">
+                <Link href="/m/login">
+                  Use Mobile Login
+                </Link>
+              </Button>
+            </div>
+            
+            <p className="text-sm text-neutral-700 text-center">
+              Clients need an invitation from their mental health professional to access the platform.
+              If you've received an invitation, check your email for the registration link.
+            </p>
+          </div>
+        )}
       </header>
 
       {/* Features Section */}
