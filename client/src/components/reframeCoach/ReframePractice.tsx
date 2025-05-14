@@ -10,6 +10,38 @@ import { useAuth } from "@/lib/auth";
 import { Loader2, CheckCircle2, AlertCircle, Trophy, Flame, Zap, BarChart3, ChevronRight, ShieldAlert, BadgeCheck } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
+// Helper function to format cognitive distortion names for display
+function formatCognitiveDistortion(distortion: string): string {
+  if (!distortion) return "Unknown";
+  
+  // Handle special cases like hyphenated names
+  if (distortion === "emotional-reasoning") return "Emotional Reasoning";
+  if (distortion === "mind-reading") return "Mind Reading";
+  if (distortion === "fortune-telling") return "Fortune Telling";
+  if (distortion === "all-or-nothing") return "All or Nothing";
+  if (distortion === "unknown") return "Cognitive Distortion";
+  
+  // General case: convert kebab-case or snake_case to Title Case
+  return distortion
+    .replace(/[-_]/g, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+// Helper function to format emotion category names for display
+function formatEmotionCategory(category: string): string {
+  if (!category) return "Unknown";
+  if (category === "unknown") return "Emotion";
+  
+  // Convert to Title Case
+  return category
+    .replace(/[-_]/g, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 // Types for practice scenario data
 interface PracticeOption {
   text: string;
@@ -66,10 +98,10 @@ const PracticeScenario = ({
           </div>
           <div className="flex items-center gap-2">
             <span className="bg-muted px-2 py-1 rounded text-xs font-medium">
-              {scenario.cognitiveDistortion}
+              {formatCognitiveDistortion(scenario.cognitiveDistortion)}
             </span>
             <span className="bg-muted px-2 py-1 rounded text-xs font-medium">
-              {scenario.emotionCategory}
+              {formatEmotionCategory(scenario.emotionCategory)}
             </span>
           </div>
         </div>
