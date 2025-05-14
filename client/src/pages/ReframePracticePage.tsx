@@ -55,9 +55,46 @@ const ReframePracticePage = () => {
   });
   
   // Fetch thought record details if we have a thoughtId and userId
-  const { data: thoughtRecord, isLoading: isLoadingThought } = useQuery({
+  const { data: thoughtRecord, isLoading: isLoadingThought, isError: isErrorThought, error: thoughtError } = useQuery({
     queryKey: [`/api/users/${userId || 0}/thoughts/${thoughtId || 0}`],
     enabled: !!thoughtId && !!userId,
+    queryFn: async ({ queryKey }) => {
+      const url = queryKey[0] as string;
+      console.log("Fetching thought record with URL:", url);
+      
+      try {
+        // Add backup auth headers
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+        };
+        
+        // Add backup auth headers if user is authenticated
+        if (user) {
+          console.log("Adding backup auth headers to thought record query", { userId: user.id });
+          headers['x-auth-user-id'] = String(user.id);
+          headers['x-auth-fallback'] = 'true';
+          headers['x-auth-timestamp'] = String(Date.now());
+        }
+        
+        const response = await fetch(url, { 
+          method: 'GET',
+          headers 
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch thought record: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("Thought record retrieved successfully:", data);
+        return data;
+      } catch (error) {
+        console.error("Error fetching thought record:", error);
+        throw error;
+      }
+    },
+    retry: 2,
+    retryDelay: 1000,
   });
 
   // Fetch assignment details if we have an assignmentId
