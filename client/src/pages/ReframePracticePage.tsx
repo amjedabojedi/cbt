@@ -246,12 +246,31 @@ const ReframePracticePage = () => {
               <Card className="mb-6">
                 <CardHeader>
                   <CardTitle>Cognitive Restructuring Practice</CardTitle>
+                  {isQuickPractice && (
+                    <CardDescription>
+                      Working with your thought: <span className="font-medium">{thoughtRecordData.automaticThoughts.substring(0, 80)}...</span>
+                    </CardDescription>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
                     This interactive exercise will help you practice identifying and challenging unhelpful thinking patterns.
                     You'll be presented with scenarios and asked to select the most helpful reframing option.
                   </p>
+                  
+                  {isQuickPractice && thoughtRecordData.cognitiveDistortions && thoughtRecordData.cognitiveDistortions.length > 0 && (
+                    <div className="mt-3 p-3 rounded-md bg-amber-50 border border-amber-100">
+                      <h4 className="text-sm font-medium text-amber-800 mb-1">Cognitive Distortions Identified:</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {thoughtRecordData.cognitiveDistortions.map((distortion: string, idx: number) => (
+                          <span key={idx} className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800">
+                            {distortion}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
                   <p className="mt-2 text-muted-foreground">
                     Each correct answer earns points, and you can track your progress over time.
                   </p>

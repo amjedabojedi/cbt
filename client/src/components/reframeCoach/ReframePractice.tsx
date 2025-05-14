@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
-import { Loader2, CheckCircle2, AlertCircle, Trophy, Flame, Zap, BarChart3, ChevronRight, ShieldAlert } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, Trophy, Flame, Zap, BarChart3, ChevronRight, ShieldAlert, BadgeCheck } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 // Types for practice scenario data
@@ -363,7 +363,27 @@ const PracticeResults = ({
         </CardContent>
       </Card>
       
-      <GameProfile userId={userId || 0} newAchievements={gameUpdates?.newAchievements || []} />
+      {/* Simplified game profile - no userId required */}
+      {gameUpdates && gameUpdates.newAchievements && gameUpdates.newAchievements.length > 0 && (
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle>New Achievements</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-2">
+              {gameUpdates.newAchievements.map((achievement: any, idx: number) => (
+                <Alert key={idx} className="bg-green-50 border-green-200">
+                  <BadgeCheck className="h-5 w-5 text-green-600" />
+                  <AlertTitle className="text-green-800">Achievement Unlocked!</AlertTitle>
+                  <AlertDescription className="text-green-700">
+                    {achievement.name} - {achievement.description}
+                  </AlertDescription>
+                </Alert>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
