@@ -99,7 +99,18 @@ const ReframePracticePage = () => {
     if (scenariosError) {
       console.error("Failed to load practice scenarios:", scenariosError);
     }
-  }, [practiceScenarios, scenariosError]);
+    // Log the thought record data to debug cognitive distortions
+    if (thoughtRecord) {
+      console.log("Thought record data:", {
+        id: (thoughtRecord as any)?.id,
+        automaticThoughts: (thoughtRecord as any)?.automaticThoughts?.substring(0, 30) + '...',
+        cognitiveDistortions: (thoughtRecord as any)?.cognitiveDistortions,
+        rawType: (thoughtRecord as any)?.cognitiveDistortions ? 
+          typeof (thoughtRecord as any).cognitiveDistortions : 'undefined',
+        isArray: Array.isArray((thoughtRecord as any)?.cognitiveDistortions)
+      });
+    }
+  }, [practiceScenarios, scenariosError, thoughtRecord]);
   
   // Only show loading state if we're loading and don't have an error
   const isLoading = (isLoadingThought || isLoadingAssignment || isLoadingScenarios) && !(isAssignmentError || isScenariosError);
@@ -148,7 +159,8 @@ const ReframePracticePage = () => {
       id: (thoughtRecord as any)?.id || 0,
       userId: (thoughtRecord as any)?.userId || userId || 0,
       automaticThoughts: (thoughtRecord as any)?.automaticThoughts || "No thought content available",
-      cognitiveDistortions: (thoughtRecord as any)?.cognitiveDistortions || ["unknown"],
+      cognitiveDistortions: Array.isArray((thoughtRecord as any)?.cognitiveDistortions) ? 
+        (thoughtRecord as any)?.cognitiveDistortions : ["unknown"],
       alternativePerspective: (thoughtRecord as any)?.alternativePerspective || "Consider a more balanced view of the situation",
       evidenceFor: (thoughtRecord as any)?.evidenceFor || "",
       evidenceAgainst: (thoughtRecord as any)?.evidenceAgainst || "",
@@ -302,7 +314,9 @@ const ReframePracticePage = () => {
                     scenarios: [
                       {
                         scenario: `Practice reframing this thought: "${thoughtRecordData.automaticThoughts}"`,
-                        cognitiveDistortion: thoughtRecordData.cognitiveDistortions?.[0] || "unknown",
+                        cognitiveDistortion: Array.isArray(thoughtRecordData.cognitiveDistortions) && 
+                          thoughtRecordData.cognitiveDistortions.length > 0 ? 
+                          thoughtRecordData.cognitiveDistortions[0] : "unknown",
                         emotionCategory: "unknown",
                         options: [
                           {

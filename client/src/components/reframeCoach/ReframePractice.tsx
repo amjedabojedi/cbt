@@ -454,6 +454,7 @@ const ReframePractice = ({
     propIsQuickPractice: isQuickPractice,
     urlIsQuickPractice: urlQuickPractice,
     hasPropPracticeScenarios: !!propPracticeScenarios,
+    practiceScenarios: propPracticeScenarios,
     queryParamUserId: queryParams.get('userId'),
     queryParamThoughtId: queryParams.get('thoughtId')
   });
