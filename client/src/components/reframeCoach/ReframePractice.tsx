@@ -447,24 +447,36 @@ const ReframePractice = ({
   const currentUserId = userId || user?.id;
 
   // Fetch the practice scenarios, with proper validation for required parameters
+  // Skip API fetch if we already have practice scenarios provided via props
   const { data: session, isLoading, error } = useQuery({
     queryKey: assignmentId 
       ? [`/api/reframe-coach/assignments/${assignmentId}`]
       : [`/api/users/${currentUserId || 0}/thoughts/${thoughtRecordId || 0}/practice-scenarios`],
-    enabled: !!(assignmentId || (currentUserId && thoughtRecordId)),
+    enabled: !propPracticeScenarios && !!(assignmentId || (currentUserId && thoughtRecordId)),
     // Adding a retry to give more time for params to be processed
     retry: 3,
     staleTime: 0
   });
   
-  // Extract the scenarios - handling both assignment and direct generation
+  // Extract the scenarios - handling both assignment, direct generation, and provided scenarios
   // With a more careful check to avoid TypeScript errors
   const sessionData = session as any || {};
   
-  // Use a safe type assertion 
-  const scenarios = assignmentId
-    ? (sessionData.reframeData?.scenarios || []) 
-    : (sessionData.scenarios || []) as PracticeScenario[];
+  // First check if scenarios were provided directly via props
+  // Then fallback to API response data
+  let scenarios: PracticeScenario[] = [];
+  
+  if (propPracticeScenarios) {
+    // Use provided scenarios from props (for quick practice mode)
+    scenarios = propPracticeScenarios.scenarios || [];
+    console.log('Using provided practice scenarios:', scenarios);
+  } else if (assignmentId) {
+    // For assignment-based practice
+    scenarios = (sessionData.reframeData?.scenarios || []);
+  } else {
+    // For direct scenarios generation
+    scenarios = (sessionData.scenarios || []);
+  }
   
   // Function to handle selecting an option
   const handleSelectOption = (optionIndex: number) => {
@@ -576,7 +588,8 @@ const ReframePractice = ({
   
   // First check for missing required parameters - but only after we've loaded
   // This prevents flashing the error message before params are fully processed
-  if (!isLoading && (!currentUserId || (!thoughtRecordId && !assignmentId))) {
+  // Skip this check if we have practice scenarios directly provided via props
+  if (!propPracticeScenarios && !isLoading && (!currentUserId || (!thoughtRecordId && !assignmentId))) {
     return (
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
@@ -591,7 +604,8 @@ const ReframePractice = ({
     );
   }
   
-  if (isLoading) {
+  // Show loading state only if we're waiting on API and don't have scenarios from props
+  if (!propPracticeScenarios && isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
         <div className="text-center">
@@ -602,7 +616,8 @@ const ReframePractice = ({
     );
   }
   
-  if (error) {
+  // Only show API errors if we're not using provided scenarios
+  if (!propPracticeScenarios && error) {
     return (
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
@@ -621,7 +636,10 @@ const ReframePractice = ({
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>No Scenarios Available</AlertTitle>
         <AlertDescription>
-          No practice scenarios available for this thought record.
+          {isQuickPractice 
+            ? "No practice scenarios were generated for this thought record. Please try again later."
+            : "No practice scenarios available for this thought record."
+          }
         </AlertDescription>
         <Button className="mt-4" onClick={() => setLocation(`/users/${currentUserId || user?.id || ''}/thoughts`)}>
           Back to Thought Records
