@@ -305,23 +305,45 @@ export default function LandingPage() {
         <p className="text-xl text-neutral-600 max-w-2xl mx-auto mb-8">
           Are you a mental health professional looking to enhance your client tracking capabilities? Join ResilienceHub to provide your clients with structured tools for tracking emotions, thoughts, and behaviors between sessions.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild size="lg" className="gap-2 bg-primary hover:bg-primary/90">
-            <Link href="/auth">
-              Log In / Register <ArrowRight size={18} />
-            </Link>
-          </Button>
-        </div>
-        <div className="mt-4 text-center">
-          <p className="text-sm text-neutral-600 mb-2">
-            <strong>Mobile user?</strong> Use our dedicated mobile login:
-          </p>
-          <Button asChild variant="outline" size="sm">
-            <Link href="/m/login">
-              Mobile Login
-            </Link>
-          </Button>
-        </div>
+        
+        {isMobile ? (
+          /* Mobile CTA */
+          <div className="flex flex-col gap-4 justify-center">
+            <Button asChild size="lg" className="gap-2 bg-primary hover:bg-primary/90">
+              <Link href="/m/login">
+                Log In / Register <Smartphone className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+            
+            <div className="mt-4 text-center p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-sm text-blue-800">
+                <strong>Mobile Users:</strong> We've optimized the login experience for your device. 
+                Use the mobile login button above for the best experience.
+              </p>
+            </div>
+          </div>
+        ) : (
+          /* Desktop CTA */
+          <>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild size="lg" className="gap-2 bg-primary hover:bg-primary/90">
+                <Link href="/auth">
+                  Log In / Register <ArrowRight size={18} />
+                </Link>
+              </Button>
+            </div>
+            <div className="mt-4 text-center">
+              <p className="text-sm text-neutral-600 mb-2">
+                <strong>Mobile user?</strong> Use our dedicated mobile login:
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/m/login">
+                  Mobile Login
+                </Link>
+              </Button>
+            </div>
+          </>
+        )}
       </section>
 
       {/* Advanced CBT Tools Section */}
