@@ -422,6 +422,22 @@ const ReframePractice = ({
   // Get query parameters
   const queryParams = new URLSearchParams(location.split('?')[1] || '');
   
+  // Check if we're in quick practice mode from URL
+  const urlQuickPractice = queryParams.get('isQuickPractice') === 'true';
+  // Use either the prop value or URL value
+  const effectiveIsQuickPractice = isQuickPractice || urlQuickPractice;
+  
+  // Log the quick practice status
+  console.log("ReframePractice parameters:", {
+    userId: propUserId,
+    isQuickPractice: effectiveIsQuickPractice,
+    propIsQuickPractice: isQuickPractice,
+    urlIsQuickPractice: urlQuickPractice,
+    hasPropPracticeScenarios: !!propPracticeScenarios,
+    queryParamUserId: queryParams.get('userId'),
+    queryParamThoughtId: queryParams.get('thoughtId')
+  });
+  
   // Safely extract userId - priority: props, then params, then query params, then user context
   const userIdParam = propUserId !== undefined 
     ? String(propUserId) 
@@ -458,18 +474,9 @@ const ReframePractice = ({
   const [totalScore, setTotalScore] = useState(0);
   const [gameUpdates, setGameUpdates] = useState<any>(null);
   
-  // Debug logging to see which parameters are being used
-  console.log('ReframePractice parameters:', { 
-    userId, 
-    thoughtRecordId, 
-    assignmentId,
-    isQuickPractice,
-    hasPropPracticeScenarios: !!propPracticeScenarios,
-    paramUserId: params.userId,
-    queryParamUserId: queryParams.get('userId'),
-    paramThoughtId: params.thoughtId,
-    queryParamThoughtId: queryParams.get('thoughtId')
-  });
+  // Fix: We want to use the effectiveIsQuickPractice value we calculated earlier,
+  // not the prop value which might not have been updated
+  const isQuickPracticeMode = effectiveIsQuickPractice;
 
   // Get secure user ID from auth context as fallback if still undefined
   const currentUserId = userId || user?.id;

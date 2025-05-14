@@ -37,7 +37,8 @@ const ReframePracticePage = () => {
   // or in assignment practice mode (from an assignment)
   // Check for explicit isQuickPractice query parameter first
   const isQuickPracticeParam = queryParams.get('isQuickPractice');
-  const isQuickPractice = isQuickPracticeParam === 'true' ? true : (!!thoughtId && !assignmentId);
+  // Explicitly convert string to boolean with strict comparison
+  const isQuickPractice = isQuickPracticeParam === 'true';
   
   // Fetch thought record details if we have a thoughtId and userId
   const { data: thoughtRecord, isLoading: isLoadingThought } = useQuery({
@@ -54,18 +55,22 @@ const ReframePracticePage = () => {
   });
   
   // For quick practice mode: fetch practice scenarios directly
+  // More detailed logging about the query parameters
   console.log("Practice scenarios query params:", { 
     isQuickPractice, 
+    isQuickPracticeParam,
     thoughtId, 
     userId, 
     enabled: isQuickPractice && !!thoughtId && !!userId,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    queryString: location.split('?')[1] || ''
   });
   
   // Enhanced query with more robust error handling and retries
+  // Only enable when in Quick Practice mode and we have the required IDs
   const { data: practiceScenarios, isLoading: isLoadingScenarios, error: scenariosError, isError: isScenariosError } = useQuery({
-    queryKey: [`/api/users/${userId || 0}/thoughts/${thoughtId || 0}/practice-scenarios`],
-    enabled: isQuickPractice && !!thoughtId && !!userId && !!user,
+    queryKey: [`/api/users/${userId || 0}/thoughts/${thoughtId || 0}/practice-scenarios?isQuickPractice=true`], // Add param to queryKey
+    enabled: isQuickPractice === true && !!thoughtId && !!userId && !!user,
     retry: 3,
     retryDelay: 1000,
     refetchOnWindowFocus: false,
