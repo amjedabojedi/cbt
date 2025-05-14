@@ -88,8 +88,12 @@ const ReframePracticePage = () => {
                 </CardContent>
               </Card>
               
-              {/* Reframe Practice Component */}
-              <ReframePractice />
+              {/* Reframe Practice Component with explicitly passed parameters */}
+              <ReframePractice 
+                userId={userId} 
+                thoughtRecordId={thoughtId}
+                assignmentId={assignmentId} 
+              />
             </>
           )}
         </div>

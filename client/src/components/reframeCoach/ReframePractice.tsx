@@ -363,8 +363,19 @@ const PracticeResults = ({
   );
 };
 
+// Props interface for the ReframePractice component
+interface ReframePracticeProps {
+  userId?: number;
+  thoughtRecordId?: number;
+  assignmentId?: number;
+}
+
 // Main component for the reframe practice feature
-const ReframePractice = () => {
+const ReframePractice = ({ 
+  userId: propUserId, 
+  thoughtRecordId: propThoughtRecordId, 
+  assignmentId: propAssignmentId 
+}: ReframePracticeProps = {}) => {
   const params = useParams();
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
@@ -374,20 +385,29 @@ const ReframePractice = () => {
   // Get query parameters
   const queryParams = new URLSearchParams(location.split('?')[1] || '');
   
-  // Safely extract userId
-  const userIdParam = params.userId || queryParams.get('userId');
+  // Safely extract userId - priority: props, then params, then query params, then user context
+  const userIdParam = propUserId !== undefined 
+    ? String(propUserId) 
+    : (params.userId || queryParams.get('userId'));
+    
   const userId = userIdParam && !isNaN(parseInt(userIdParam))
     ? parseInt(userIdParam)
     : user?.id;
     
-  // Safely extract assignmentId
-  const assignmentIdParam = params.assignmentId || queryParams.get('assignmentId');
+  // Safely extract assignmentId - priority: props, then params, then query params
+  const assignmentIdParam = propAssignmentId !== undefined
+    ? String(propAssignmentId)
+    : (params.assignmentId || queryParams.get('assignmentId'));
+    
   const assignmentId = assignmentIdParam && !isNaN(parseInt(assignmentIdParam))
     ? parseInt(assignmentIdParam)
     : undefined;
     
-  // Safely extract thoughtRecordId
-  const thoughtIdParam = params.thoughtId || queryParams.get('thoughtId');
+  // Safely extract thoughtRecordId - priority: props, then params, then query params
+  const thoughtIdParam = propThoughtRecordId !== undefined
+    ? String(propThoughtRecordId)
+    : (params.thoughtId || queryParams.get('thoughtId'));
+    
   const thoughtRecordId = thoughtIdParam && !isNaN(parseInt(thoughtIdParam))
     ? parseInt(thoughtIdParam)
     : undefined;
@@ -416,9 +436,12 @@ const ReframePractice = () => {
   });
   
   // Extract the scenarios - handling both assignment and direct generation
+  // With a more careful check to avoid TypeScript errors
   const scenarios = assignmentId
-    ? session?.reframeData?.scenarios || []
-    : session?.scenarios || [];
+    ? (session && 'reframeData' in session && session.reframeData && 'scenarios' in session.reframeData 
+        ? session.reframeData.scenarios 
+        : [])
+    : (session && 'scenarios' in session ? session.scenarios : []);
   
   // Function to handle selecting an option
   const handleSelectOption = (optionIndex: number) => {
@@ -524,6 +547,22 @@ const ReframePractice = () => {
     // Navigate back to thought records
     setLocation(`/users/${userId}/thoughts`);
   };
+  
+  // First check for missing required parameters
+  if (!userId || (!thoughtRecordId && !assignmentId)) {
+    return (
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Missing Information</AlertTitle>
+        <AlertDescription>
+          Required parameters are missing. Please start from a thought record.
+        </AlertDescription>
+        <Button className="mt-4" onClick={() => setLocation('/thoughts')}>
+          Go to Thoughts
+        </Button>
+      </Alert>
+    );
+  }
   
   if (isLoading) {
     return (
