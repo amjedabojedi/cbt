@@ -60,7 +60,10 @@ const ReframePracticePage = () => {
     queryThoughtId: queryParams.get('thoughtId'),
     pathAssignmentId: params.assignmentId,
     queryAssignmentId: queryParams.get('assignmentId'),
-    user: user?.id
+    user: user?.id,
+    pathname: location.split('?')[0],
+    fullLocation: location,
+    fullParams: params
   });
   
   const title = assignment 
