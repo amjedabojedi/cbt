@@ -58,14 +58,18 @@ const ReframePracticePage = () => {
     isQuickPractice, 
     thoughtId, 
     userId, 
-    enabled: isQuickPractice && !!thoughtId && !!userId 
+    enabled: isQuickPractice && !!thoughtId && !!userId,
+    isAuthenticated: !!user
   });
   
+  // Enhanced query with more robust error handling and retries
   const { data: practiceScenarios, isLoading: isLoadingScenarios, error: scenariosError, isError: isScenariosError } = useQuery({
     queryKey: [`/api/users/${userId || 0}/thoughts/${thoughtId || 0}/practice-scenarios`],
-    enabled: isQuickPractice && !!thoughtId && !!userId,
-    retry: 1,
-    retryDelay: 1000
+    enabled: isQuickPractice && !!thoughtId && !!userId && !!user,
+    retry: 3,
+    retryDelay: 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true
   });
   
   // Log results for debugging

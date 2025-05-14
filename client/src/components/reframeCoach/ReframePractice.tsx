@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
-import { Loader2, CheckCircle2, AlertCircle, Trophy, Flame, Zap, BarChart3, ChevronRight } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, Trophy, Flame, Zap, BarChart3, ChevronRight, ShieldAlert } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 // Types for practice scenario data
@@ -388,8 +388,36 @@ const ReframePractice = ({
   const params = useParams();
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
+  
+  // Check authentication status
+  const [authChecked, setAuthChecked] = useState(false);
+  
+  useEffect(() => {
+    // Check if auth has completed loading
+    if (!authLoading) {
+      setAuthChecked(true);
+      
+      // Log authentication status for debugging
+      console.log("Authentication status:", {
+        isAuthenticated: !!user,
+        userId: user?.id,
+        propUserId,
+        authLoading
+      });
+      
+      // Validate if the user is authenticated
+      if (!user) {
+        console.error("User not authenticated in ReframePractice component");
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to access this feature",
+          variant: "destructive"
+        });
+      }
+    }
+  }, [user, authLoading, propUserId, toast]);
   const queryClient = useQueryClient();
-  const { user } = useAuth();
   
   // Get query parameters
   const queryParams = new URLSearchParams(location.split('?')[1] || '');
