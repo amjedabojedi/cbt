@@ -363,7 +363,7 @@ const PracticeResults = ({
         </CardContent>
       </Card>
       
-      <GameProfile userId={userId} newAchievements={gameUpdates?.newAchievements || []} />
+      <GameProfile userId={userId || 0} newAchievements={gameUpdates?.newAchievements || []} />
     </div>
   );
 };

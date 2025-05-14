@@ -104,8 +104,42 @@ const ReframePracticePage = () => {
     }
   }, [thoughtId, assignmentId, isLoading, user?.id, setLocation]);
   
-  // Handle type safety for thought record
-  const thoughtRecordData = thoughtRecord as any || {};
+  // Type definition for thought record to improve type safety
+  interface ThoughtRecordType {
+    id: number;
+    userId: number;
+    automaticThoughts: string;
+    cognitiveDistortions?: string[];
+    alternativePerspective?: string;
+    evidenceFor?: string;
+    evidenceAgainst?: string;
+    createdAt: string;
+  }
+  
+  // Create a default thought record for type safety
+  const defaultThoughtRecord: ThoughtRecordType = {
+    id: 0,
+    userId: userId || 0,
+    automaticThoughts: "No thought content available",
+    cognitiveDistortions: ["unknown"],
+    alternativePerspective: "Consider a more balanced view of the situation",
+    evidenceFor: "",
+    evidenceAgainst: "",
+    createdAt: new Date().toISOString()
+  };
+  
+  // Cast the thought record data to our defined type for better type safety
+  const thoughtRecordData: ThoughtRecordType = thoughtRecord ? 
+    { 
+      id: (thoughtRecord as any)?.id || 0,
+      userId: (thoughtRecord as any)?.userId || userId || 0,
+      automaticThoughts: (thoughtRecord as any)?.automaticThoughts || "No thought content available",
+      cognitiveDistortions: (thoughtRecord as any)?.cognitiveDistortions || ["unknown"],
+      alternativePerspective: (thoughtRecord as any)?.alternativePerspective || "Consider a more balanced view of the situation",
+      evidenceFor: (thoughtRecord as any)?.evidenceFor || "",
+      evidenceAgainst: (thoughtRecord as any)?.evidenceAgainst || "",
+      createdAt: (thoughtRecord as any)?.createdAt || new Date().toISOString()
+    } : defaultThoughtRecord;
   
   // Debug logging to see parameter values
   console.log('ReframePracticePage params:', { 
@@ -225,13 +259,51 @@ const ReframePracticePage = () => {
               </Card>
               
               {/* Reframe Practice Component with explicitly passed parameters */}
-              <ReframePractice 
-                userId={userId} 
-                thoughtRecordId={thoughtId}
-                assignmentId={assignmentId}
-                practiceScenarios={isQuickPractice ? practiceScenarios : (assignment?.reframeData || undefined)}
-                isQuickPractice={isQuickPractice}
-              />
+              {isQuickPractice ? (
+                // For quick practice, we'll directly generate scenarios in the component
+                // instead of relying on separate API calls that may fail
+                <ReframePractice 
+                  userId={userId} 
+                  thoughtRecordId={thoughtId}
+                  practiceScenarios={{
+                    scenarios: [
+                      {
+                        scenario: `Practice reframing this thought: "${thoughtRecordData.automaticThoughts}"`,
+                        cognitiveDistortion: thoughtRecordData.cognitiveDistortions?.[0] || "unknown",
+                        emotionCategory: "unknown",
+                        options: [
+                          {
+                            text: `${thoughtRecordData.alternativePerspective || "Consider a more balanced view of the situation."}`,
+                            isCorrect: true,
+                            explanation: "This is a more balanced perspective."
+                          },
+                          {
+                            text: `${thoughtRecordData.automaticThoughts}`,
+                            isCorrect: false,
+                            explanation: "This repeats the unhelpful thought pattern."
+                          },
+                          {
+                            text: "I should ignore these thoughts completely.",
+                            isCorrect: false,
+                            explanation: "Ignoring thoughts doesn't help address them constructively."
+                          }
+                        ]
+                      }
+                    ],
+                    thoughtContent: thoughtRecordData.automaticThoughts,
+                    generalFeedback: "Remember that practicing reframing takes time. Each attempt helps build your skills."
+                  }}
+                  isQuickPractice={true}
+                />
+              ) : (
+                <ReframePractice 
+                  userId={userId} 
+                  thoughtRecordId={thoughtId}
+                  assignmentId={assignmentId}
+                  practiceScenarios={(assignment as any)?.reframeData}
+                  isQuickPractice={isQuickPractice}
+                />
+              )}
             </>
           )}
         </div>
