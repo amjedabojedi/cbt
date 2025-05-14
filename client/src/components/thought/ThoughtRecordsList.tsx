@@ -59,7 +59,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
   const [showReframeDialog, setShowReframeDialog] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [_, navigate] = useLocation();
+  const [_, navigate] = useLocation(); // Used for navigation to different pages
   
   // Fetch thought records for the active user (could be a client viewed by a therapist)
   const { data: thoughtRecords, isLoading, error } = useQuery({
@@ -124,8 +124,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
     setSelectedRecord(record);
   };
   
-  // Handle edit
-  const [, navigate] = useLocation();
+  // Handle edit record
   const handleEditRecord = (record: ThoughtRecord) => {
     // If onEditRecord prop is provided, use it (backward compatibility)
     if (onEditRecord) {
