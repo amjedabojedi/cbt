@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { useAuth } from "@/lib/auth";
 const ReframePracticePage = () => {
   const { user } = useAuth();
   const params = useParams();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const queryParams = new URLSearchParams(location.split('?')[1] || '');
   
   // Extract user ID from authenticated user if not in params
@@ -65,6 +65,19 @@ const ReframePracticePage = () => {
   const isLoading = (isLoadingThought || isLoadingAssignment || isLoadingScenarios) && !(isAssignmentError || isScenariosError);
   const hasError = (isAssignmentError && !isQuickPractice) || (isScenariosError && isQuickPractice);
   
+  // Redirect to thought records page if accessed directly without needed parameters
+  const [navigateToThoughts, setNavigateToThoughts] = useState(false);
+  
+  useEffect(() => {
+    // If no parameters are provided and we're not loading, redirect to thoughts
+    if (!thoughtId && !assignmentId && !isLoading) {
+      setNavigateToThoughts(true);
+      setTimeout(() => {
+        setLocation(`/users/${user?.id || ''}/thoughts`);
+      }, 1500);
+    }
+  }, [thoughtId, assignmentId, isLoading, user?.id, setLocation]);
+  
   // Handle type safety for thought record
   const thoughtRecordData = thoughtRecord as any || {};
   
@@ -111,6 +124,25 @@ const ReframePracticePage = () => {
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
+          ) : navigateToThoughts ? (
+            <Card className="bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-amber-500" />
+                  Redirecting to Thought Records
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  The Reframe Coach practice feature must be started from a thought record. You are being redirected to your thought records.
+                </p>
+                <div className="flex justify-center my-4">
+                  <div className="h-2 w-full max-w-sm bg-amber-100 dark:bg-amber-900 rounded-full overflow-hidden">
+                    <div className="h-full bg-amber-500 animate-pulse rounded-full"></div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ) : hasError ? (
             <Card className="bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 mb-6">
               <CardHeader>
