@@ -40,12 +40,15 @@ const ReframePracticePage = () => {
   });
 
   // Fetch assignment details if we have an assignmentId
-  const { data: assignment, isLoading: isLoadingAssignment } = useQuery({
+  const { data: assignment, isLoading: isLoadingAssignment, error: assignmentError } = useQuery({
     queryKey: [`/api/reframe-coach/assignments/${assignmentId || 0}`],
     enabled: !!assignmentId,
+    retry: 2, // Limit retries to avoid too many failed requests
   });
   
   const isLoading = isLoadingThought || isLoadingAssignment;
+  const hasError = assignmentError !== null;
+  
   // Handle type safety for thought record
   const thoughtRecordData = thoughtRecord as any || {};
   
@@ -91,6 +94,28 @@ const ReframePracticePage = () => {
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
+          ) : hasError ? (
+            <Card className="bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-red-500" />
+                  Practice Assignment Not Found
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  We couldn't find the practice assignment you're looking for. It may have been deleted or you may not have permission to access it.
+                </p>
+                <div className="mt-4">
+                  <Button
+                    variant="default"
+                    onClick={() => window.location.href = '/reframe-coach'}
+                  >
+                    Return to Reframe Coach Dashboard
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             <>
               {/* Introduction card */}
