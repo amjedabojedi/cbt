@@ -95,6 +95,7 @@ import cookieParser from "cookie-parser";
 import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
 import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
 import { registerIntegrationRoutes } from "./services/integrationRoutes";
+import { registerReframeCoachRoutes } from "./services/reframeCoach";
 import { eq, or, isNull, desc, and, inArray, sql } from "drizzle-orm";
 
 // Initialize Stripe
@@ -123,6 +124,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register cross-component integration routes
   registerIntegrationRoutes(app);
+  
+  // Register Reframe Coach routes
+  registerReframeCoachRoutes(app);
   
   // Enhanced insights endpoint that uses the improved emotion mapping service
   app.get("/api/users/:userId/enhanced-insights", authenticate, checkUserAccess, async (req, res) => {
