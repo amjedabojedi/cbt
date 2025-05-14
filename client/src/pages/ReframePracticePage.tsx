@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Header from "@/components/layout/Header";
 import { useQuery } from "@tanstack/react-query";
 import ReframePractice from "@/components/reframeCoach/ReframePractice";
@@ -35,10 +35,24 @@ const ReframePracticePage = () => {
     
   // IMPORTANT: This determines if we are in quick practice mode (direct from thought record)
   // or in assignment practice mode (from an assignment)
-  // Check for explicit isQuickPractice query parameter first
+  
+  // NEW APPROACH: Check the URL path first since it's more reliable
+  // If URL contains '/practice/quick/', we're definitely in quick practice mode
+  const isQuickPracticePath = location.includes('/practice/quick/');
+  
+  // Also check for explicit isQuickPractice query parameter as fallback
   const isQuickPracticeParam = queryParams.get('isQuickPractice');
-  // Explicitly convert string to boolean with strict comparison
-  const isQuickPractice = isQuickPracticeParam === 'true';
+  
+  // Combine both methods: either path-based detection or query parameter
+  const isQuickPractice = isQuickPracticePath || isQuickPracticeParam === 'true';
+  
+  // Add detailed logging for debugging
+  console.log('Quick Practice Detection:', {
+    currentPath: location,
+    hasQuickInPath: isQuickPracticePath,
+    queryParam: isQuickPracticeParam,
+    finalIsQuickPractice: isQuickPractice
+  });
   
   // Fetch thought record details if we have a thoughtId and userId
   const { data: thoughtRecord, isLoading: isLoadingThought } = useQuery({
