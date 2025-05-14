@@ -1,17 +1,34 @@
 import React from "react";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/layout/Header";
 import { useQuery } from "@tanstack/react-query";
 import ReframePractice from "@/components/reframeCoach/ReframePractice";
 import { Loader2, ArrowLeft } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 const ReframePracticePage = () => {
+  const { user } = useAuth();
   const params = useParams();
-  const userId = parseInt(params.userId);
-  const thoughtId = params.thoughtId ? parseInt(params.thoughtId) : undefined;
-  const assignmentId = params.assignmentId ? parseInt(params.assignmentId) : undefined;
+  const [location] = useLocation();
+  const queryParams = new URLSearchParams(location.split('?')[1] || '');
+  
+  // Extract user ID from authenticated user if not in params
+  const userId = params.userId ? parseInt(params.userId) : user?.id;
+  
+  // Extract thoughtId and assignmentId from either path params or query params
+  const thoughtId = params.thoughtId 
+    ? parseInt(params.thoughtId) 
+    : queryParams.get('thoughtId') 
+      ? parseInt(queryParams.get('thoughtId') || '0') 
+      : undefined;
+      
+  const assignmentId = params.assignmentId 
+    ? parseInt(params.assignmentId) 
+    : queryParams.get('assignmentId') 
+      ? parseInt(queryParams.get('assignmentId') || '0') 
+      : undefined;
   
   // Fetch thought record details if we have a thoughtId
   const { data: thoughtRecord, isLoading: isLoadingThought } = useQuery({

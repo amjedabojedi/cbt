@@ -142,6 +142,11 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
     setDeleteConfirmOpen(true);
   };
   
+  // Navigate directly to reframe practice
+  const handleStartReframePractice = (assignmentId: number) => {
+    navigate(`/reframe-coach/practice/${assignmentId}`);
+  };
+  
   const confirmDelete = () => {
     if (recordToDelete) {
       deleteThoughtMutation.mutate(recordToDelete.id);
@@ -379,15 +384,26 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                 <span>
                   Created on {format(new Date(selectedRecord.createdAt), "MMMM d, yyyy 'at' h:mm a")}
                 </span>
-                <Button 
-                  onClick={() => setShowReframeDialog(true)}
-                  variant="secondary"
-                  size="sm"
-                  className="ml-4 flex items-center gap-1.5"
-                >
-                  <Dumbbell className="h-4 w-4" />
-                  <span>Practice Reframing</span>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    onClick={() => navigate(`/reframe-coach/practice?thoughtId=${selectedRecord.id}`)}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1.5"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span>Quick Practice</span>
+                  </Button>
+                  <Button 
+                    onClick={() => setShowReframeDialog(true)}
+                    variant="secondary"
+                    size="sm"
+                    className="flex items-center gap-1.5"
+                  >
+                    <Dumbbell className="h-4 w-4" />
+                    <span>Create Assignment</span>
+                  </Button>
+                </div>
               </DialogDescription>
             </DialogHeader>
             
@@ -687,6 +703,16 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Reframe Practice Dialog */}
+      {selectedRecord && (
+        <CreateReframePracticeForm
+          thoughtRecord={selectedRecord}
+          clientId={activeUserId || 0}
+          isOpen={showReframeDialog}
+          onClose={() => setShowReframeDialog(false)}
+        />
+      )}
     </>
   );
 }

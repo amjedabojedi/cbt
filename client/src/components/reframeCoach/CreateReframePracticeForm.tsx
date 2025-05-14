@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 // Schema for the reframe practice form
 const reframePracticeSchema = z.object({
@@ -55,6 +56,7 @@ const CreateReframePracticeForm = ({
 }: CreateReframePracticeFormProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [_, navigate] = useLocation();
   
   // Form setup with default values
   const form = useForm<ReframePracticeFormValues>({
@@ -78,7 +80,7 @@ const CreateReframePracticeForm = ({
       );
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Show success message
       toast({
         title: "Practice assignment created",
@@ -93,6 +95,11 @@ const CreateReframePracticeForm = ({
       // Reset form and close dialog
       form.reset();
       onClose();
+      
+      // If the assignment has an ID, navigate to the practice page
+      if (data && data.id) {
+        navigate(`/reframe-coach/practice/${data.id}`);
+      }
     },
     onError: (error: Error) => {
       toast({
