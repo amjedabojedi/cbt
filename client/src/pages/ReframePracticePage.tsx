@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/layout/Header";
 import { useQuery } from "@tanstack/react-query";
 import ReframePractice from "@/components/reframeCoach/ReframePractice";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 const ReframePracticePage = () => {
@@ -40,14 +40,16 @@ const ReframePracticePage = () => {
   });
 
   // Fetch assignment details if we have an assignmentId
-  const { data: assignment, isLoading: isLoadingAssignment, error: assignmentError } = useQuery({
+  const { data: assignment, isLoading: isLoadingAssignment, error: assignmentError, isError } = useQuery({
     queryKey: [`/api/reframe-coach/assignments/${assignmentId || 0}`],
     enabled: !!assignmentId,
-    retry: 2, // Limit retries to avoid too many failed requests
+    retry: 1, // Minimize retries to show error quicker
+    retryDelay: 1000,
   });
   
-  const isLoading = isLoadingThought || isLoadingAssignment;
-  const hasError = assignmentError !== null;
+  // Only show loading state if we're loading and don't have an error
+  const isLoading = (isLoadingThought || isLoadingAssignment) && !isError;
+  const hasError = isError;
   
   // Handle type safety for thought record
   const thoughtRecordData = thoughtRecord as any || {};
@@ -104,14 +106,23 @@ const ReframePracticePage = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  We couldn't find the practice assignment you're looking for. It may have been deleted or you may not have permission to access it.
+                  We couldn't find practice assignment #{assignmentId}. It may have been deleted or you may not have permission to access it.
                 </p>
-                <div className="mt-4">
+                <p className="text-xs text-muted-foreground mt-2">
+                  Error: {assignmentError?.message || "Assignment not found"}
+                </p>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                   <Button
                     variant="default"
                     onClick={() => window.location.href = '/reframe-coach'}
                   >
-                    Return to Reframe Coach Dashboard
+                    Return to Dashboard
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => window.history.back()}
+                  >
+                    Go Back
                   </Button>
                 </div>
               </CardContent>
