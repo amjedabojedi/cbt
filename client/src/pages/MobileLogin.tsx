@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -122,7 +123,7 @@ export default function MobileLogin() {
           </p>
           <Button asChild variant="outline" size="sm" className="mt-2">
             <Link href="/">
-              View Landing Page First
+              <ArrowLeft className="mr-2 h-4 w-4" /> View Landing Page
             </Link>
           </Button>
         </div>
