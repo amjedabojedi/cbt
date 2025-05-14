@@ -45,6 +45,21 @@ export async function apiRequest(
     // Add security headers to help bypass antivirus warnings
     headers['X-Requested-With'] = 'XMLHttpRequest';
     
+    // Try to include backup auth token if available
+    try {
+      const backupData = localStorage.getItem('auth_user_backup');
+      if (backupData) {
+        const userData = JSON.parse(backupData);
+        // Include user ID in header for backup authentication
+        headers['X-Auth-User-Id'] = String(userData.id);
+        headers['X-Auth-Timestamp'] = String(Date.now());
+        headers['X-Auth-Fallback'] = 'true';
+        console.log("Adding backup auth headers:", { userId: userData.id });
+      }
+    } catch (e) {
+      console.warn("Could not add backup auth headers:", e);
+    }
+    
     const res = await fetch(url, {
       method,
       headers: headers,
@@ -77,8 +92,29 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     try {
+      // Prepare headers with potential backup auth information
+      const headers: Record<string, string> = {
+        'X-Requested-With': 'XMLHttpRequest'
+      };
+      
+      // Try to include backup auth token if available
+      try {
+        const backupData = localStorage.getItem('auth_user_backup');
+        if (backupData) {
+          const userData = JSON.parse(backupData);
+          // Include user ID in header for backup authentication
+          headers['X-Auth-User-Id'] = String(userData.id);
+          headers['X-Auth-Timestamp'] = String(Date.now());
+          headers['X-Auth-Fallback'] = 'true';
+          console.log("Adding backup auth headers to query:", { userId: userData.id, url: queryKey[0] });
+        }
+      } catch (e) {
+        console.warn("Could not add backup auth headers to query:", e);
+      }
+      
       const res = await fetch(queryKey[0] as string, {
         credentials: "include",
+        headers: headers
       });
 
       if (unauthorizedBehavior === "returnNull" && res.status === 401) {

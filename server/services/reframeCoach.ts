@@ -422,15 +422,39 @@ export function registerReframeCoachRoutes(app: Express): void {
   // Generate practice scenarios for a specific thought record (without creating an assignment)
   app.get("/api/users/:userId/thoughts/:thoughtId/practice-scenarios", authenticate, checkUserAccess, async (req: Request, res: Response) => {
     try {
-      console.log("Practice scenarios API called with params:", {
-        userId: req.params.userId,
-        thoughtId: req.params.thoughtId,
+      // Enhanced logging for better debugging
+      console.log("Practice scenarios API called with:", {
+        params: {
+          userId: req.params.userId,
+          thoughtId: req.params.thoughtId
+        },
         query: req.query,
-        isQuickPractice: req.query.isQuickPractice
+        auth: {
+          isAuthenticated: !!req.user,
+          userId: req.user?.id,
+          userRole: req.user?.role,
+          hasSession: !!req.session,
+          headers: {
+            hasAuthUserId: !!req.headers['x-auth-user-id'],
+            hasFallback: !!req.headers['x-auth-fallback'],
+            hasTimestamp: !!req.headers['x-auth-timestamp']
+          }
+        }
       });
+      
+      // Validate parameters with more robust error handling
+      if (!req.params.userId || !req.params.thoughtId) {
+        console.error("Missing required parameters");
+        return res.status(400).json({ message: "Missing required parameters. Both userId and thoughtId are required." });
+      }
       
       const userId = parseInt(req.params.userId);
       const thoughtId = parseInt(req.params.thoughtId);
+      
+      if (isNaN(userId) || isNaN(thoughtId)) {
+        console.error("Invalid parameters - could not parse to integers:", { userId, thoughtId });
+        return res.status(400).json({ message: "Invalid parameters. Both userId and thoughtId must be integers." });
+      }
       
       // Get the thought record
       const [thoughtRecord] = await db
