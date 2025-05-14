@@ -1,0 +1,82 @@
+import React from "react";
+import { useParams } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Header from "@/components/layout/Header";
+import { useQuery } from "@tanstack/react-query";
+import ReframePractice from "@/components/reframeCoach/ReframePractice";
+import { Loader2, ArrowLeft } from "lucide-react";
+
+const ReframePracticePage = () => {
+  const params = useParams();
+  const userId = parseInt(params.userId);
+  const thoughtId = params.thoughtId ? parseInt(params.thoughtId) : undefined;
+  const assignmentId = params.assignmentId ? parseInt(params.assignmentId) : undefined;
+  
+  // Fetch thought record details if we have a thoughtId
+  const { data: thoughtRecord, isLoading: isLoadingThought } = useQuery({
+    queryKey: thoughtId ? [`/api/users/${userId}/thoughts/${thoughtId}`] : null,
+    enabled: !!thoughtId,
+  });
+
+  // Fetch assignment details if we have an assignmentId
+  const { data: assignment, isLoading: isLoadingAssignment } = useQuery({
+    queryKey: assignmentId ? [`/api/reframe-coach/assignments/${assignmentId}`] : null,
+    enabled: !!assignmentId,
+  });
+  
+  const isLoading = isLoadingThought || isLoadingAssignment;
+  const title = assignment 
+    ? "Reframe Practice Assignment" 
+    : thoughtRecord 
+      ? `Practice: ${thoughtRecord.automaticThoughts.slice(0, 50)}${thoughtRecord.automaticThoughts.length > 50 ? '...' : ''}`
+      : "Reframe Practice";
+
+  return (
+    <div>
+      <Header title={title} />
+
+      <div className="container max-w-4xl py-6">
+        <div className="mb-6">
+          <Button
+            variant="outline"
+            className="mb-4"
+            onClick={() => window.history.back()}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+          
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <>
+              {/* Introduction card */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Cognitive Restructuring Practice</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    This interactive exercise will help you practice identifying and challenging unhelpful thinking patterns.
+                    You'll be presented with scenarios and asked to select the most helpful reframing option.
+                  </p>
+                  <p className="mt-2 text-muted-foreground">
+                    Each correct answer earns points, and you can track your progress over time.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              {/* Reframe Practice Component */}
+              <ReframePractice />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ReframePracticePage;
