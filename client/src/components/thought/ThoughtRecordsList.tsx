@@ -41,7 +41,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Edit, Eye, Trash2, Brain, BrainCircuit, AlertTriangle, Scale, Lightbulb, Sparkles, Calendar, Book, BookText, MessageSquare, Heart } from "lucide-react";
+import { Edit, Eye, Trash2, Brain, BrainCircuit, AlertTriangle, Scale, Lightbulb, Sparkles, Calendar, Book, BookText, MessageSquare, Heart, Dumbbell, Plus } from "lucide-react";
+import CreateReframePracticeForm from "@/components/reframeCoach/CreateReframePracticeForm";
 
 interface ThoughtRecordsListProps {
   limit?: number;
@@ -55,8 +56,10 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
   const [showFullHistory, setShowFullHistory] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState<ThoughtRecord | null>(null);
+  const [showReframeDialog, setShowReframeDialog] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [_, navigate] = useLocation();
   
   // Fetch thought records for the active user (could be a client viewed by a therapist)
   const { data: thoughtRecords, isLoading, error } = useQuery({
@@ -372,8 +375,19 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                 </div>
                 Thought Record Details
               </DialogTitle>
-              <DialogDescription>
-                Created on {format(new Date(selectedRecord.createdAt), "MMMM d, yyyy 'at' h:mm a")}
+              <DialogDescription className="flex items-center justify-between">
+                <span>
+                  Created on {format(new Date(selectedRecord.createdAt), "MMMM d, yyyy 'at' h:mm a")}
+                </span>
+                <Button 
+                  onClick={() => setShowReframeDialog(true)}
+                  variant="secondary"
+                  size="sm"
+                  className="ml-4 flex items-center gap-1.5"
+                >
+                  <Dumbbell className="h-4 w-4" />
+                  <span>Practice Reframing</span>
+                </Button>
               </DialogDescription>
             </DialogHeader>
             
