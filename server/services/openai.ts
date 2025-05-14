@@ -4,6 +4,24 @@ import crypto from "crypto";
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// Type definitions for reframe practice scenarios
+export interface ReframeScenario {
+  scenario: string;
+  options: {
+    text: string;
+    isCorrect: boolean;
+    explanation: string;
+  }[];
+  cognitiveDistortion: string;
+  emotionCategory: string;
+}
+
+export interface ReframePracticeSession {
+  scenarios: ReframeScenario[];
+  thoughtContent: string;
+  generalFeedback: string;
+}
+
 // Type definitions for journal analysis results
 export interface JournalAnalysisResult {
   suggestedTags: string[];
@@ -247,6 +265,96 @@ export async function analyzeJournalEntry(
     // For any API error, use fallback analysis - IMPORTANT: Pass the original title and content
     console.log(`Using fallback analysis for title: "${title}" and content starting with: "${content.substring(0, 50)}..."`);
     return generateFallbackAnalysis(title, content);
+  }
+}
+
+/**
+ * Generates reframe practice scenarios based on a thought record
+ * @param automaticThought The automatic thought to create practice scenarios for
+ * @param cognitiveDistortions Array of cognitive distortions identified in the thought
+ * @param emotionCategory The primary emotion category associated with the thought
+ * @param customInstructions Any custom instructions from the therapist
+ * @returns A complete practice session with multiple scenarios
+ */
+export async function generateReframePracticeScenarios(
+  automaticThought: string,
+  cognitiveDistortions: string[],
+  emotionCategory: string,
+  customInstructions?: string
+): Promise<ReframePracticeSession> {
+  try {
+    const prompt = `
+    I need to create a cognitive restructuring practice session based on the following automatic thought:
+    "${automaticThought}"
+
+    This thought involves these cognitive distortions: ${cognitiveDistortions.join(", ")}
+    The primary emotion associated with this thought is: ${emotionCategory}
+    ${customInstructions ? `Additional therapist instructions: ${customInstructions}` : ""}
+
+    Please generate a cognitive restructuring practice session with 3 different scenarios.
+    Each scenario should:
+    1. Present a realistic situation where the same thought pattern might occur
+    2. Provide 4 possible reframing options (1 correct, 3 incorrect)
+    3. For each option, include an explanation of why it's helpful or unhelpful
+    4. Make the scenarios progressively more challenging
+    5. Use gamification elements like scoring, streaks, and mastery levels
+    
+    The correct option should demonstrate effective cognitive restructuring that:
+    - Challenges the distorted thinking pattern
+    - Considers evidence and alternative perspectives
+    - Uses balanced, realistic thinking
+    - Promotes self-compassion
+    
+    The incorrect options should:
+    - Show subtle ways people might maintain unhelpful thought patterns
+    - Include examples of other cognitive distortions
+    - Vary in how obviously incorrect they are
+    - Feel plausible but ultimately unhelpful
+
+    Return the response as a JSON object with this structure:
+    {
+      "scenarios": [
+        {
+          "scenario": "Detailed scenario description",
+          "options": [
+            {
+              "text": "Option text",
+              "isCorrect": true/false,
+              "explanation": "Why this is/isn't helpful"
+            },
+            ... (3 more options)
+          ],
+          "cognitiveDistortion": "Primary distortion targeted",
+          "emotionCategory": "Emotion category targeted"
+        },
+        ... (2 more scenarios)
+      ],
+      "thoughtContent": "The original automatic thought",
+      "generalFeedback": "Overall therapeutic guidance about the thought pattern"
+    }
+    `;
+
+    // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+    });
+
+    // Parse the response
+    const responseContent = response.choices[0]?.message?.content || "";
+    
+    try {
+      const parsedResponse = JSON.parse(responseContent) as ReframePracticeSession;
+      return parsedResponse;
+    } catch (parseError) {
+      console.error("Failed to parse OpenAI response for reframing practice:", parseError);
+      throw new Error("Failed to generate reframing practice scenarios");
+    }
+  } catch (error) {
+    console.error("OpenAI API error during reframing practice generation:", error);
+    throw new Error("Failed to generate reframing practice scenarios due to API error");
   }
 }
 

@@ -204,6 +204,10 @@ export const resourceAssignments = pgTable("resource_assignments", {
   status: text("status", { enum: ["assigned", "viewed", "completed"] }).default("assigned").notNull(),
   assignedAt: timestamp("assigned_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
+  // For Reframe Coach assignments
+  type: text("type", { enum: ["resource", "reframe_practice"] }).default("resource").notNull(),
+  thoughtRecordId: integer("thought_record_id").references(() => thoughtRecords.id), // Only used for reframe practice
+  reframeData: jsonb("reframe_data"), // Scenarios, options, and other practice data
 });
 
 // Resource feedback from clients
@@ -248,6 +252,38 @@ export const journalComments = pgTable("journal_comments", {
   userId: integer("user_id").notNull().references(() => users.id), // User who made the comment (can be therapist or client)
   therapistId: integer("therapist_id").references(() => users.id), // Only populated if commenter is a therapist
   comment: text("comment").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Reframe practice results - for gamification and progress tracking
+export const reframePracticeResults = pgTable("reframe_practice_results", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  assignmentId: integer("assignment_id").references(() => resourceAssignments.id),
+  thoughtRecordId: integer("thought_record_id").references(() => thoughtRecords.id),
+  score: integer("score").notNull(), // Points earned in this practice session
+  correctAnswers: integer("correct_answers").notNull(),
+  totalQuestions: integer("total_questions").notNull(),
+  streakCount: integer("streak_count").default(0), // Number of correct answers in a row
+  timeSpent: integer("time_spent_seconds"), // Time spent on the exercise
+  scenarioData: jsonb("scenario_data"), // Store the scenarios presented
+  userChoices: jsonb("user_choices"), // Store the user's selected options
+  feedback: text("feedback"), // Therapist feedback on results
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User gamification profile - for tracking achievements, levels, etc.
+export const userGameProfile = pgTable("user_game_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id).unique(),
+  totalScore: integer("total_score").default(0).notNull(), // Accumulative score
+  level: integer("level").default(1).notNull(), // User's current level
+  practiceStreak: integer("practice_streak").default(0), // Consecutive days of practice
+  lastPracticeDate: timestamp("last_practice_date"), // For streak calculations
+  achievements: jsonb("achievements").$type<string[]>().default([]), // Array of earned achievement IDs
+  badges: jsonb("badges").$type<string[]>().default([]), // Array of earned badge IDs
+  reframeMastery: jsonb("reframe_mastery"), // Object mapping distortion types to mastery levels
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -303,6 +339,8 @@ export const insertResourceAssignmentSchema = createInsertSchema(resourceAssignm
 export const insertResourceFeedbackSchema = createInsertSchema(resourceFeedback).omit({ id: true, createdAt: true });
 export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertJournalCommentSchema = createInsertSchema(journalComments).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertReframePracticeResultSchema = createInsertSchema(reframePracticeResults).omit({ id: true, createdAt: true });
+export const insertUserGameProfileSchema = createInsertSchema(userGameProfile).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertSessionSchema = createInsertSchema(sessions);
 
 // Define all the types
@@ -356,6 +394,12 @@ export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
 
 export type JournalComment = typeof journalComments.$inferSelect;
 export type InsertJournalComment = z.infer<typeof insertJournalCommentSchema>;
+
+export type ReframePracticeResult = typeof reframePracticeResults.$inferSelect;
+export type InsertReframePracticeResult = z.infer<typeof insertReframePracticeResultSchema>;
+
+export type UserGameProfile = typeof userGameProfile.$inferSelect;
+export type InsertUserGameProfile = z.infer<typeof insertUserGameProfileSchema>;
 
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = z.infer<typeof insertSessionSchema>;
