@@ -16,8 +16,9 @@ const ReframePracticePage = () => {
   
   // Extract user ID from authenticated user if not in params
   // Use default null check to avoid NaN
-  const userId = params.userId && !isNaN(parseInt(params.userId)) 
-    ? parseInt(params.userId) 
+  const userIdParam = params.userId || queryParams.get('userId');
+  const userId = userIdParam && !isNaN(parseInt(userIdParam)) 
+    ? parseInt(userIdParam) 
     : user?.id;
   
   // Extract thoughtId and assignmentId from either path params or query params
