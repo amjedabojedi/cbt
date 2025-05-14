@@ -437,25 +437,17 @@ const ReframePractice = ({
     queryKey: assignmentId 
       ? [`/api/reframe-coach/assignments/${assignmentId}`]
       : [`/api/users/${userId || 0}/thoughts/${thoughtRecordId || 0}/practice-scenarios`],
-    enabled: !!(assignmentId || (userId && thoughtRecordId)),
-    onSuccess: (data) => {
-      // Log received data
-      console.log('Practice scenarios loaded:', data);
-      // Reset the timer when scenarios are loaded
-      setStartTime(Date.now());
-    },
-    onError: (err) => {
-      console.error('Error loading practice scenarios:', err);
-    }
+    enabled: !!(assignmentId || (userId && thoughtRecordId))
   });
   
   // Extract the scenarios - handling both assignment and direct generation
   // With a more careful check to avoid TypeScript errors
+  const sessionData = session as any || {};
+  
+  // Use a safe type assertion 
   const scenarios = assignmentId
-    ? (session && 'reframeData' in session && session.reframeData && 'scenarios' in session.reframeData 
-        ? session.reframeData.scenarios 
-        : [])
-    : (session && 'scenarios' in session ? session.scenarios : []);
+    ? (sessionData.reframeData?.scenarios || []) 
+    : (sessionData.scenarios || []) as PracticeScenario[];
   
   // Function to handle selecting an option
   const handleSelectOption = (optionIndex: number) => {
@@ -543,8 +535,9 @@ const ReframePractice = ({
       const correctAnswers = userChoices.filter(choice => choice.isCorrect).length;
       
       recordResultsMutation.mutate({
-        assignmentId,
-        thoughtRecordId,
+        assignmentId: assignmentId || null,
+        thoughtRecordId: thoughtRecordId || null,
+        userId: userId || null,
         score: totalScore,
         correctAnswers,
         totalQuestions: scenarios.length,
@@ -631,8 +624,9 @@ const ReframePractice = ({
     );
   }
   
-  // Calculate progress
-  const progress = ((currentScenarioIndex + (showFeedback ? 0.5 : 0)) / scenarios.length) * 100;
+  // Calculate progress (with safety check for division by zero)
+  const scenariosCount = scenarios.length || 1; // Avoid division by zero
+  const progress = ((currentScenarioIndex + (showFeedback ? 0.5 : 0)) / scenariosCount) * 100;
   
   return (
     <div className="space-y-4">
@@ -657,13 +651,13 @@ const ReframePractice = ({
       />
       
       {/* Original thought display */}
-      {session?.thoughtContent && (
+      {sessionData.thoughtContent && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-sm">Original Thought</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm italic">{session.thoughtContent}</p>
+            <p className="text-sm italic">{sessionData.thoughtContent}</p>
           </CardContent>
         </Card>
       )}

@@ -46,10 +46,13 @@ const ReframePracticePage = () => {
   });
   
   const isLoading = isLoadingThought || isLoadingAssignment;
+  // Handle type safety for thought record
+  const thoughtRecordData = thoughtRecord as any || {};
+  
   const title = assignment 
     ? "Reframe Practice Assignment" 
-    : thoughtRecord 
-      ? `Practice: ${thoughtRecord.automaticThoughts.slice(0, 50)}${thoughtRecord.automaticThoughts.length > 50 ? '...' : ''}`
+    : thoughtRecordData.automaticThoughts 
+      ? `Practice: ${thoughtRecordData.automaticThoughts.slice(0, 50)}${thoughtRecordData.automaticThoughts.length > 50 ? '...' : ''}`
       : "Reframe Practice";
 
   return (
