@@ -15,6 +15,28 @@ export default function LandingPage() {
     const mobileFlag = localStorage.getItem('isMobileDevice');
     setIsMobile(mobileFlag === 'true');
     
+    // Make sure we detect mobile even if MobileRedirector hasn't run yet
+    if (mobileFlag === null) {
+      const detectMobile = () => {
+        const userAgentCheck = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const screenWidthCheck = window.innerWidth < 768;
+        const touchCheck = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        
+        let mobileSignals = 0;
+        if (userAgentCheck) mobileSignals++;
+        if (screenWidthCheck) mobileSignals++;
+        if (touchCheck) mobileSignals++;
+        
+        return mobileSignals >= 2;
+      };
+      
+      const isMobile = detectMobile();
+      localStorage.setItem('isMobileDevice', isMobile ? 'true' : 'false');
+      setIsMobile(isMobile);
+      
+      console.log('Landing page detected mobile status:', isMobile);
+    }
+    
     // If user is logged in, redirect to dashboard
     if (user) {
       setLocation('/dashboard');

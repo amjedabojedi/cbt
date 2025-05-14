@@ -142,6 +142,7 @@ function App() {
           <AuthProvider>
             <WebSocketProvider>
               <ClientProvider>
+                {/* Ensure mobile redirection happens after landing page loads */}
                 <MobileRedirector />
                 <TooltipProvider>
                   <Toaster />
