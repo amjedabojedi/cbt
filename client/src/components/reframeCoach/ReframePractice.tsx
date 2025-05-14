@@ -272,7 +272,7 @@ const GameProfile = ({
             </div>
             <div className="flex flex-col">
               <span className="text-muted-foreground text-xs">Best At</span>
-              <span className="font-semibold">{strongestDistortion || "N/A"}</span>
+              <span className="font-semibold">{strongestDistortion ? formatCognitiveDistortion(strongestDistortion) : "N/A"}</span>
             </div>
           </div>
         </div>
