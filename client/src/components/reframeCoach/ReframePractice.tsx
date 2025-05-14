@@ -294,11 +294,11 @@ const PracticeResults = ({
   userChoices: UserChoice[];
   scenarios: PracticeScenario[];
   totalScore: number;
-  userId: number;
+  userId: number | undefined;
   gameUpdates: any;
   onStartNew: () => void;
   assignmentId?: number;
-  thoughtRecordId: number;
+  thoughtRecordId?: number;
 }) => {
   const correctAnswers = userChoices.filter(choice => choice.isCorrect).length;
   
@@ -437,12 +437,15 @@ const ReframePractice = ({
     queryParamThoughtId: queryParams.get('thoughtId')
   });
 
+  // Get secure user ID from auth context as fallback if still undefined
+  const currentUserId = userId || user?.id;
+
   // Fetch the practice scenarios, with proper validation for required parameters
   const { data: session, isLoading, error } = useQuery({
     queryKey: assignmentId 
       ? [`/api/reframe-coach/assignments/${assignmentId}`]
-      : [`/api/users/${userId || 0}/thoughts/${thoughtRecordId || 0}/practice-scenarios`],
-    enabled: !!(assignmentId || (userId && thoughtRecordId)),
+      : [`/api/users/${currentUserId || 0}/thoughts/${thoughtRecordId || 0}/practice-scenarios`],
+    enabled: !!(assignmentId || (currentUserId && thoughtRecordId)),
     // Adding a retry to give more time for params to be processed
     retry: 3,
     staleTime: 0
@@ -518,14 +521,16 @@ const ReframePractice = ({
       setGameUpdates(data.gameUpdates);
       
       // Invalidate relevant queries to refresh data
-      queryClient.invalidateQueries({ 
-        queryKey: [`/api/users/${userId}/reframe-coach/profile`] 
-      });
-      
-      if (assignmentId) {
+      if (currentUserId) {
         queryClient.invalidateQueries({ 
-          queryKey: [`/api/users/${userId}/reframe-coach/assignments`] 
+          queryKey: [`/api/users/${currentUserId}/reframe-coach/profile`] 
         });
+        
+        if (assignmentId) {
+          queryClient.invalidateQueries({ 
+            queryKey: [`/api/users/${currentUserId}/reframe-coach/assignments`] 
+          });
+        }
       }
     },
     onError: (error: Error) => {
@@ -545,7 +550,7 @@ const ReframePractice = ({
       recordResultsMutation.mutate({
         assignmentId: assignmentId || null,
         thoughtRecordId: thoughtRecordId || null,
-        userId: userId || null,
+        userId: currentUserId || null,
         score: totalScore,
         correctAnswers,
         totalQuestions: scenarios.length,
@@ -560,12 +565,12 @@ const ReframePractice = ({
   // Function to start a new practice session
   const handleStartNew = () => {
     // Navigate back to thought records
-    setLocation(`/users/${userId}/thoughts`);
+    setLocation(`/users/${currentUserId || user?.id || ''}/thoughts`);
   };
   
   // First check for missing required parameters - but only after we've loaded
   // This prevents flashing the error message before params are fully processed
-  if (!isLoading && (!userId || (!thoughtRecordId && !assignmentId))) {
+  if (!isLoading && (!currentUserId || (!thoughtRecordId && !assignmentId))) {
     return (
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
@@ -603,7 +608,8 @@ const ReframePractice = ({
     );
   }
   
-  if (scenarios.length === 0) {
+  // Safety check for scenarios - might be undefined at first
+  if (!scenarios || scenarios.length === 0) {
     return (
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
@@ -611,7 +617,7 @@ const ReframePractice = ({
         <AlertDescription>
           No practice scenarios available for this thought record.
         </AlertDescription>
-        <Button className="mt-4" onClick={() => setLocation(`/users/${userId}/thoughts`)}>
+        <Button className="mt-4" onClick={() => setLocation(`/users/${currentUserId || user?.id || ''}/thoughts`)}>
           Back to Thought Records
         </Button>
       </Alert>
