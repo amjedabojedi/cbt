@@ -49,6 +49,20 @@ const ReframePracticePage = () => {
   // Handle type safety for thought record
   const thoughtRecordData = thoughtRecord as any || {};
   
+  // Debug logging to see parameter values
+  console.log('ReframePracticePage params:', { 
+    userId, 
+    thoughtId, 
+    assignmentId,
+    pathUserId: params.userId,
+    queryUserId: queryParams.get('userId'),
+    pathThoughtId: params.thoughtId,
+    queryThoughtId: queryParams.get('thoughtId'),
+    pathAssignmentId: params.assignmentId,
+    queryAssignmentId: queryParams.get('assignmentId'),
+    user: user?.id
+  });
+  
   const title = assignment 
     ? "Reframe Practice Assignment" 
     : thoughtRecordData.automaticThoughts 
