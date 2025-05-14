@@ -35,6 +35,10 @@ const ExportPage = lazy(() => import("@/pages/ExportPage"));
 const InvitationLinks = lazy(() => import("@/pages/InvitationLinks"));
 // Recommendations pages removed - will be added back when feature is ready
 
+// Reframe Coach pages
+const ReframeCoachDashboard = lazy(() => import("@/pages/ReframeCoachPage"));
+const ReframePracticePage = lazy(() => import("@/pages/ReframePracticePage"));
+
 // Admin pages
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const UserManagement = lazy(() => import("@/pages/UserManagement"));
@@ -91,6 +95,12 @@ function Router() {
           <ProtectedRoute path="/library" component={ResourceLibrary} />
           <ProtectedRoute path="/journal" component={Journal} />
           <ProtectedRoute path="/reports" component={Reports} />
+          
+          {/* Reframe Coach routes */}
+          <ProtectedRoute path="/reframe-coach" component={ReframeCoachDashboard} />
+          <ProtectedRoute path="/reframe-coach/practice" component={ReframePracticePage} />
+          <ProtectedRoute path="/reframe-coach/practice/:assignmentId" component={ReframePracticePage} />
+          <ProtectedRoute path="/users/:userId/reframe-coach/practice/:thoughtId" component={ReframePracticePage} />
           
           {/* Role-restricted routes */}
           <ProtectedRoute 
