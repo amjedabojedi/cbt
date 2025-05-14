@@ -103,6 +103,8 @@ function Router() {
           <ProtectedRoute path="/users/:userId/reframe-coach/practice/:thoughtId" component={ReframePracticePage} />
           {/* Additional path for query parameters version */}
           <ProtectedRoute path="/reframe-coach/practice/thought/:thoughtId" component={ReframePracticePage} />
+          {/* Explicit quick practice route to ensure the flag is properly set */}
+          <ProtectedRoute path="/reframe-coach/practice/quick/:thoughtId" component={ReframePracticePage} />
           
           {/* Role-restricted routes */}
           <ProtectedRoute 

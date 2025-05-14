@@ -391,7 +391,9 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                         userId: activeUserId,
                         recordData: selectedRecord
                       });
-                      navigate(`/reframe-coach/practice?thoughtId=${selectedRecord.id}&userId=${activeUserId}&isQuickPractice=true`);
+                      // Add isQuickPractice as part of the pathname instead of a query parameter
+                      // This ensures it's correctly recognized as a route parameter
+                      window.location.href = `/reframe-coach/practice/quick/${selectedRecord.id}?userId=${activeUserId}`;
                     }}
                     variant="outline"
                     size="sm"
