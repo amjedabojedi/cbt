@@ -160,13 +160,18 @@ const GameProfile = ({
   
   if (!profile) return null;
   
-  const { totalScore, level, practiceStreak, achievements = [] } = profile.profile;
+  // Use safe type assertion to handle potential missing properties
+  const profileData = profile as any || {};
+  const profileInfo = profileData.profile || {};
+  const statsInfo = profileData.stats || {};
+  
+  const { totalScore, level, practiceStreak, achievements = [] } = profileInfo;
   const { 
     totalPractices, 
     avgScore, 
     accuracyRate, 
     strongestDistortion 
-  } = profile.stats;
+  } = statsInfo;
   
   const achievementLabels: Record<string, string> = {
     "streak_3": "3-Day Streak",
@@ -618,8 +623,8 @@ const ReframePractice = ({
         userId={userId}
         gameUpdates={gameUpdates}
         onStartNew={handleStartNew}
-        assignmentId={assignmentId}
-        thoughtRecordId={thoughtRecordId}
+        assignmentId={assignmentId || undefined}
+        thoughtRecordId={thoughtRecordId || undefined}
       />
     );
   }
