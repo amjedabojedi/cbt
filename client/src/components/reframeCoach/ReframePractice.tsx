@@ -373,14 +373,18 @@ interface ReframePracticeProps {
   userId?: number;
   thoughtRecordId?: number;
   assignmentId?: number;
+  practiceScenarios?: any;
+  isQuickPractice?: boolean;
 }
 
 // Main component for the reframe practice feature
 const ReframePractice = ({ 
   userId: propUserId, 
   thoughtRecordId: propThoughtRecordId, 
-  assignmentId: propAssignmentId 
-}: ReframePracticeProps = {}) => {
+  assignmentId: propAssignmentId,
+  practiceScenarios: propPracticeScenarios,
+  isQuickPractice = false
+}: ReframePracticeProps) => {
   const params = useParams();
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
@@ -431,6 +435,8 @@ const ReframePractice = ({
     userId, 
     thoughtRecordId, 
     assignmentId,
+    isQuickPractice,
+    hasPropPracticeScenarios: !!propPracticeScenarios,
     paramUserId: params.userId,
     queryParamUserId: queryParams.get('userId'),
     paramThoughtId: params.thoughtId,
