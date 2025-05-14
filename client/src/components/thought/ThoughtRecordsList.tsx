@@ -385,7 +385,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                 </span>
                 <div className="flex items-center gap-2">
                   <Button 
-                    onClick={() => navigate(`/reframe-coach/practice?thoughtId=${selectedRecord.id}&userId=${activeUserId}`)}
+                    onClick={() => navigate(`/reframe-coach/practice?thoughtId=${selectedRecord.id}&userId=${activeUserId}&isQuickPractice=true`)}
                     variant="outline"
                     size="sm"
                     className="flex items-center gap-1.5"

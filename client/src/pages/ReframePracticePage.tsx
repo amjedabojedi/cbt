@@ -35,7 +35,9 @@ const ReframePracticePage = () => {
     
   // IMPORTANT: This determines if we are in quick practice mode (direct from thought record)
   // or in assignment practice mode (from an assignment)
-  const isQuickPractice = !!thoughtId && !assignmentId;
+  // Check for explicit isQuickPractice query parameter first
+  const isQuickPracticeParam = queryParams.get('isQuickPractice');
+  const isQuickPractice = isQuickPracticeParam === 'true' ? true : (!!thoughtId && !assignmentId);
   
   // Fetch thought record details if we have a thoughtId and userId
   const { data: thoughtRecord, isLoading: isLoadingThought } = useQuery({
@@ -71,6 +73,8 @@ const ReframePracticePage = () => {
     userId, 
     thoughtId, 
     assignmentId,
+    isQuickPractice,
+    isQuickPracticeParam,
     pathUserId: params.userId,
     queryUserId: queryParams.get('userId'),
     pathThoughtId: params.thoughtId,
@@ -79,8 +83,7 @@ const ReframePracticePage = () => {
     queryAssignmentId: queryParams.get('assignmentId'),
     user: user?.id,
     pathname: location.split('?')[0],
-    fullLocation: location,
-    fullParams: params
+    fullLocation: location
   });
   
   const title = assignment 
