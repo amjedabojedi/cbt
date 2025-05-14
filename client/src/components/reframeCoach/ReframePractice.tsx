@@ -442,7 +442,10 @@ const ReframePractice = ({
     queryKey: assignmentId 
       ? [`/api/reframe-coach/assignments/${assignmentId}`]
       : [`/api/users/${userId || 0}/thoughts/${thoughtRecordId || 0}/practice-scenarios`],
-    enabled: !!(assignmentId || (userId && thoughtRecordId))
+    enabled: !!(assignmentId || (userId && thoughtRecordId)),
+    // Adding a retry to give more time for params to be processed
+    retry: 3,
+    staleTime: 0
   });
   
   // Extract the scenarios - handling both assignment and direct generation
@@ -560,8 +563,9 @@ const ReframePractice = ({
     setLocation(`/users/${userId}/thoughts`);
   };
   
-  // First check for missing required parameters
-  if (!userId || (!thoughtRecordId && !assignmentId)) {
+  // First check for missing required parameters - but only after we've loaded
+  // This prevents flashing the error message before params are fully processed
+  if (!isLoading && (!userId || (!thoughtRecordId && !assignmentId))) {
     return (
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
@@ -569,7 +573,7 @@ const ReframePractice = ({
         <AlertDescription>
           Required parameters are missing. Please start from a thought record.
         </AlertDescription>
-        <Button className="mt-4" onClick={() => setLocation('/thoughts')}>
+        <Button className="mt-4" onClick={() => setLocation(`/users/${user?.id || ''}/thoughts`)}>
           Go to Thoughts
         </Button>
       </Alert>
@@ -620,11 +624,11 @@ const ReframePractice = ({
         userChoices={userChoices}
         scenarios={scenarios}
         totalScore={totalScore}
-        userId={userId}
+        userId={userId || 0}
         gameUpdates={gameUpdates}
         onStartNew={handleStartNew}
-        assignmentId={assignmentId || undefined}
-        thoughtRecordId={thoughtRecordId || undefined}
+        assignmentId={assignmentId}
+        thoughtRecordId={thoughtRecordId}
       />
     );
   }
