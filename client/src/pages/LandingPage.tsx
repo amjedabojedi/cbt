@@ -11,6 +11,9 @@ export default function LandingPage() {
   const [isMobile, setIsMobile] = useState(false);
   
   useEffect(() => {
+    // Flag that we've seen the landing page first (prevents unwanted redirects)
+    sessionStorage.setItem('landing_page_first', 'true');
+    
     // Check if device is mobile using localStorage value set by MobileRedirector
     const mobileFlag = localStorage.getItem('isMobileDevice');
     setIsMobile(mobileFlag === 'true');

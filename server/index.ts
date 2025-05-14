@@ -20,8 +20,28 @@ app.use((req, res, next) => {
   // Special header to bypass Microsoft Defender SmartScreen
   res.header('X-Microsoft-Edge-Secure', 'verified');
   
-  // Explicitly allow all common web behaviors
-  res.header('Access-Control-Allow-Origin', '*');
+  // Handle CORS headers properly for all environments
+  // Instead of setting '*', use the actual origin if present
+  const allowedOrigins = [
+    'https://workspace.dramjedabojedi.repl.co',
+    'https://resiliencehub.net',
+    // Add any other domains you use
+  ];
+  
+  // Get origin from request headers or default to '*'
+  const origin = req.headers.origin;
+  
+  // Check if the request origin is allowed
+  if (origin && allowedOrigins.includes(origin)) {
+    // Use the specific origin when it's one we recognize
+    res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    // For all other origins (or no origin), use wildcard
+    // This helps during development and testing
+    res.header('Access-Control-Allow-Origin', '*');
+  }
+  
+  // Complete the CORS setup
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', '*');
   res.header('Access-Control-Allow-Credentials', 'true');

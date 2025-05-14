@@ -31,8 +31,13 @@ export function getSessionCookieOptions(): CookieOptions {
   // Make the cookie more persistent with a longer expiration
   cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days instead of 7
   
-  // Allow for special override for testing
-  if (process.env.FORCE_INSECURE_COOKIES === 'true') {
+  // Handle special override for different environments
+  // For Replit environment, ensure cookies work with their domain configuration
+  if (process.env.REPLIT_DOMAINS) {
+    cookieOptions.secure = true;
+    cookieOptions.sameSite = 'none';
+    console.log('Using Replit-compatible cookie settings');
+  } else if (process.env.FORCE_INSECURE_COOKIES === 'true') {
     cookieOptions.secure = false;
     cookieOptions.sameSite = 'lax';
     console.log('Using insecure cookies for local testing (not recommended)');

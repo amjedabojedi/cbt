@@ -9,10 +9,18 @@ export function MobileRedirector() {
   const [location, navigate] = useLocation();
   
   useEffect(() => {
-    // Skip detection and redirection on initial page load or landing page
-    if (location === '/' || location === '/landing') {
+    // Check if this is the first visit to the landing page
+    const isFirstLandingVisit = sessionStorage.getItem('landing_page_first') === 'true';
+    
+    // If this is the landing page or initial visit, don't redirect
+    if (location === '/' || location === '/landing' || isFirstLandingVisit) {
       // Still detect mobile for other components to use, but don't redirect
-      handleMobileDetection();
+      handleMobileDetection(false); // false = don't redirect
+      
+      // Clear the first visit flag if we're not on the landing page anymore
+      if (location !== '/' && location !== '/landing' && isFirstLandingVisit) {
+        sessionStorage.removeItem('landing_page_first');
+      }
       return;
     }
     
@@ -23,18 +31,18 @@ export function MobileRedirector() {
     }
     
     // Handle the mobile detection and redirection logic
-    handleMobileDetection();
+    handleMobileDetection(true); // true = can redirect if needed
     
     // Add a resize listener to handle orientation changes or window resizing
-    window.addEventListener('resize', handleMobileDetection);
+    window.addEventListener('resize', () => handleMobileDetection(true));
     
     return () => {
-      window.removeEventListener('resize', handleMobileDetection);
+      window.removeEventListener('resize', () => handleMobileDetection(true));
     };
   }, [location, navigate]);
   
   // Extracted function to handle mobile detection logic
-  const handleMobileDetection = () => {
+  const handleMobileDetection = (canRedirect: boolean) => {
     // More gentle mobile detection (require 2 out of 3 signals)
     const userAgentCheck = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const screenWidthCheck = window.innerWidth < 768;
@@ -49,6 +57,9 @@ export function MobileRedirector() {
     
     // Store the detected device type in localStorage for other components to use
     localStorage.setItem('isMobileDevice', isMobile ? 'true' : 'false');
+    
+    // If we can't redirect (e.g., on landing page), just store the detection result and exit
+    if (!canRedirect) return;
     
     // Define which pages to check for redirection
     const isAuthPage = location === '/auth';
