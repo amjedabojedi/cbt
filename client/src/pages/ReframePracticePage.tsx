@@ -15,25 +15,27 @@ const ReframePracticePage = () => {
   const queryParams = new URLSearchParams(location.split('?')[1] || '');
   
   // Extract user ID from authenticated user if not in params
-  const userId = params.userId ? parseInt(params.userId) : user?.id;
+  // Use default null check to avoid NaN
+  const userId = params.userId && !isNaN(parseInt(params.userId)) 
+    ? parseInt(params.userId) 
+    : user?.id;
   
   // Extract thoughtId and assignmentId from either path params or query params
-  const thoughtId = params.thoughtId 
-    ? parseInt(params.thoughtId) 
-    : queryParams.get('thoughtId') 
-      ? parseInt(queryParams.get('thoughtId') || '0') 
-      : undefined;
+  // with proper null checks to avoid NaN
+  const thoughtIdParam = params.thoughtId || queryParams.get('thoughtId');
+  const thoughtId = thoughtIdParam && !isNaN(parseInt(thoughtIdParam)) 
+    ? parseInt(thoughtIdParam) 
+    : undefined;
       
-  const assignmentId = params.assignmentId 
-    ? parseInt(params.assignmentId) 
-    : queryParams.get('assignmentId') 
-      ? parseInt(queryParams.get('assignmentId') || '0') 
-      : undefined;
+  const assignmentIdParam = params.assignmentId || queryParams.get('assignmentId');
+  const assignmentId = assignmentIdParam && !isNaN(parseInt(assignmentIdParam)) 
+    ? parseInt(assignmentIdParam) 
+    : undefined;
   
-  // Fetch thought record details if we have a thoughtId
+  // Fetch thought record details if we have a thoughtId and userId
   const { data: thoughtRecord, isLoading: isLoadingThought } = useQuery({
-    queryKey: thoughtId ? [`/api/users/${userId}/thoughts/${thoughtId}`] : null,
-    enabled: !!thoughtId,
+    queryKey: thoughtId && userId ? [`/api/users/${userId}/thoughts/${thoughtId}`] : null,
+    enabled: !!thoughtId && !!userId,
   });
 
   // Fetch assignment details if we have an assignmentId

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
 import { Loader2, CheckCircle2, AlertCircle, Trophy, Flame, Zap, BarChart3, ChevronRight } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -365,13 +366,31 @@ const PracticeResults = ({
 // Main component for the reframe practice feature
 const ReframePractice = () => {
   const params = useParams();
-  const [_, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
-  const userId = parseInt(params.userId);
-  const assignmentId = params.assignmentId ? parseInt(params.assignmentId) : undefined;
-  const thoughtRecordId = params.thoughtId ? parseInt(params.thoughtId) : 0;
+  // Get query parameters
+  const queryParams = new URLSearchParams(location.split('?')[1] || '');
+  
+  // Safely extract userId
+  const userIdParam = params.userId || queryParams.get('userId');
+  const userId = userIdParam && !isNaN(parseInt(userIdParam))
+    ? parseInt(userIdParam)
+    : user?.id;
+    
+  // Safely extract assignmentId
+  const assignmentIdParam = params.assignmentId || queryParams.get('assignmentId');
+  const assignmentId = assignmentIdParam && !isNaN(parseInt(assignmentIdParam))
+    ? parseInt(assignmentIdParam)
+    : undefined;
+    
+  // Safely extract thoughtRecordId
+  const thoughtIdParam = params.thoughtId || queryParams.get('thoughtId');
+  const thoughtRecordId = thoughtIdParam && !isNaN(parseInt(thoughtIdParam))
+    ? parseInt(thoughtIdParam)
+    : undefined;
   
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
@@ -382,11 +401,14 @@ const ReframePractice = () => {
   const [totalScore, setTotalScore] = useState(0);
   const [gameUpdates, setGameUpdates] = useState<any>(null);
   
-  // Fetch the practice scenarios
+  // Fetch the practice scenarios, with proper validation for required parameters
   const { data: session, isLoading, error } = useQuery({
     queryKey: assignmentId 
       ? [`/api/reframe-coach/assignments/${assignmentId}`]
-      : [`/api/users/${userId}/thoughts/${thoughtRecordId}/practice-scenarios`],
+      : (userId && thoughtRecordId)
+        ? [`/api/users/${userId}/thoughts/${thoughtRecordId}/practice-scenarios`]
+        : null,
+    enabled: !!(assignmentId || (userId && thoughtRecordId)),
     onSuccess: () => {
       // Reset the timer when scenarios are loaded
       setStartTime(Date.now());
