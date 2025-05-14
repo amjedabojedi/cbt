@@ -35,13 +35,13 @@ const ReframePracticePage = () => {
   
   // Fetch thought record details if we have a thoughtId and userId
   const { data: thoughtRecord, isLoading: isLoadingThought } = useQuery({
-    queryKey: thoughtId && userId ? [`/api/users/${userId}/thoughts/${thoughtId}`] : null,
+    queryKey: [`/api/users/${userId || 0}/thoughts/${thoughtId || 0}`],
     enabled: !!thoughtId && !!userId,
   });
 
   // Fetch assignment details if we have an assignmentId
   const { data: assignment, isLoading: isLoadingAssignment } = useQuery({
-    queryKey: assignmentId ? [`/api/reframe-coach/assignments/${assignmentId}`] : null,
+    queryKey: [`/api/reframe-coach/assignments/${assignmentId || 0}`],
     enabled: !!assignmentId,
   });
   

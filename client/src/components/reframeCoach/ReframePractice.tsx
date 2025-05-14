@@ -421,17 +421,31 @@ const ReframePractice = ({
   const [totalScore, setTotalScore] = useState(0);
   const [gameUpdates, setGameUpdates] = useState<any>(null);
   
+  // Debug logging to see which parameters are being used
+  console.log('ReframePractice parameters:', { 
+    userId, 
+    thoughtRecordId, 
+    assignmentId,
+    paramUserId: params.userId,
+    queryParamUserId: queryParams.get('userId'),
+    paramThoughtId: params.thoughtId,
+    queryParamThoughtId: queryParams.get('thoughtId')
+  });
+
   // Fetch the practice scenarios, with proper validation for required parameters
   const { data: session, isLoading, error } = useQuery({
     queryKey: assignmentId 
       ? [`/api/reframe-coach/assignments/${assignmentId}`]
-      : (userId && thoughtRecordId)
-        ? [`/api/users/${userId}/thoughts/${thoughtRecordId}/practice-scenarios`]
-        : null,
+      : [`/api/users/${userId || 0}/thoughts/${thoughtRecordId || 0}/practice-scenarios`],
     enabled: !!(assignmentId || (userId && thoughtRecordId)),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Log received data
+      console.log('Practice scenarios loaded:', data);
       // Reset the timer when scenarios are loaded
       setStartTime(Date.now());
+    },
+    onError: (err) => {
+      console.error('Error loading practice scenarios:', err);
     }
   });
   
