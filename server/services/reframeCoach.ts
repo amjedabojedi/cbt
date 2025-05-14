@@ -484,10 +484,27 @@ export function registerReframeCoachRoutes(app: Express): void {
         }
       }
       
+      // Log cognitive distortions for debugging
+      console.log("Thought record cognitive distortions:", {
+        distortions: thoughtRecord.cognitiveDistortions,
+        type: typeof thoughtRecord.cognitiveDistortions,
+        isArray: Array.isArray(thoughtRecord.cognitiveDistortions),
+        rawValue: JSON.stringify(thoughtRecord.cognitiveDistortions),
+      });
+      
+      // Ensure cognitive distortions is always an array
+      const normalizedDistortions = Array.isArray(thoughtRecord.cognitiveDistortions) 
+        ? thoughtRecord.cognitiveDistortions 
+        : typeof thoughtRecord.cognitiveDistortions === 'string'
+          ? [thoughtRecord.cognitiveDistortions] 
+          : ["unknown"];
+      
+      console.log("Normalized distortions:", normalizedDistortions);
+          
       // Generate practice scenarios
       const practiceSession = await generateReframePracticeScenarios(
         thoughtRecord.automaticThoughts,
-        thoughtRecord.cognitiveDistortions,
+        normalizedDistortions,
         emotionCategory
       );
       
