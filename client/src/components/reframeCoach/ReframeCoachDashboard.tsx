@@ -99,12 +99,12 @@ const AssignmentsList = ({ userId }: { userId: number }) => {
                 <Button variant="outline" className="w-full" onClick={() => navigate(`/users/${userId}/reframe-coach/history/${assignment.id}`)}>
                   View Results
                 </Button>
-                <Button variant="default" className="w-full" onClick={() => navigate(`/users/${userId}/reframe-coach/practice/assignments/${assignment.id}`)}>
+                <Button variant="default" className="w-full" onClick={() => navigate(`/reframe-coach/practice/${assignment.id}`)}>
                   Practice Again
                 </Button>
               </div>
             ) : (
-              <Button className="w-full" onClick={() => navigate(`/users/${userId}/reframe-coach/practice/assignments/${assignment.id}`)}>
+              <Button className="w-full" onClick={() => navigate(`/reframe-coach/practice/${assignment.id}`)}>
                 Start Practice
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
