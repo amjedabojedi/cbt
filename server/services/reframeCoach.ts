@@ -422,6 +422,13 @@ export function registerReframeCoachRoutes(app: Express): void {
   // Generate practice scenarios for a specific thought record (without creating an assignment)
   app.get("/api/users/:userId/thoughts/:thoughtId/practice-scenarios", authenticate, checkUserAccess, async (req: Request, res: Response) => {
     try {
+      console.log("Practice scenarios API called with params:", {
+        userId: req.params.userId,
+        thoughtId: req.params.thoughtId,
+        query: req.query,
+        isQuickPractice: req.query.isQuickPractice
+      });
+      
       const userId = parseInt(req.params.userId);
       const thoughtId = parseInt(req.params.thoughtId);
       

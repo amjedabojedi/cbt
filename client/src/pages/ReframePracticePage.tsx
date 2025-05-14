@@ -54,12 +54,29 @@ const ReframePracticePage = () => {
   });
   
   // For quick practice mode: fetch practice scenarios directly
+  console.log("Practice scenarios query params:", { 
+    isQuickPractice, 
+    thoughtId, 
+    userId, 
+    enabled: isQuickPractice && !!thoughtId && !!userId 
+  });
+  
   const { data: practiceScenarios, isLoading: isLoadingScenarios, error: scenariosError, isError: isScenariosError } = useQuery({
     queryKey: [`/api/users/${userId || 0}/thoughts/${thoughtId || 0}/practice-scenarios`],
     enabled: isQuickPractice && !!thoughtId && !!userId,
     retry: 1,
-    retryDelay: 1000,
+    retryDelay: 1000
   });
+  
+  // Log results for debugging
+  useEffect(() => {
+    if (practiceScenarios) {
+      console.log("Practice scenarios loaded successfully:", practiceScenarios);
+    }
+    if (scenariosError) {
+      console.error("Failed to load practice scenarios:", scenariosError);
+    }
+  }, [practiceScenarios, scenariosError]);
   
   // Only show loading state if we're loading and don't have an error
   const isLoading = (isLoadingThought || isLoadingAssignment || isLoadingScenarios) && !(isAssignmentError || isScenariosError);

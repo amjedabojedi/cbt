@@ -385,7 +385,14 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                 </span>
                 <div className="flex items-center gap-2">
                   <Button 
-                    onClick={() => navigate(`/reframe-coach/practice?thoughtId=${selectedRecord.id}&userId=${activeUserId}&isQuickPractice=true`)}
+                    onClick={() => {
+                      console.log("Quick Practice clicked with params:", {
+                        thoughtId: selectedRecord.id,
+                        userId: activeUserId,
+                        recordData: selectedRecord
+                      });
+                      navigate(`/reframe-coach/practice?thoughtId=${selectedRecord.id}&userId=${activeUserId}&isQuickPractice=true`);
+                    }}
                     variant="outline"
                     size="sm"
                     className="flex items-center gap-1.5"
