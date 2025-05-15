@@ -1,120 +1,266 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, BarChart3, Database } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminLayout } from "@/components/layout/AdminLayout";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { Loader2, Activity, BarChart3, Clock } from "lucide-react";
+import { format } from "date-fns";
+
+// Type for an individual practice result
+interface PracticeResult {
+  id: number;
+  userId: number;
+  username: string;
+  email: string;
+  assignmentId?: number;
+  thoughtRecordId?: number;
+  correctCount: number;
+  totalCount: number;
+  timeSpent: number;
+  completed: boolean;
+  createdAt: string;
+}
 
 export default function ReframeAnalyticsPage() {
-  // Fetch debug data for reframe coach results
+  // Fetch practice results data
   const { data, isLoading, error } = useQuery({
     queryKey: ["/api/admin/debug/reframe-coach/results"],
   });
 
-  return (
-    <AdminLayout>
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-8">Reframe Coach Analytics</h1>
-        
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : error ? (
-          <Card className="bg-red-50 border-red-200">
-            <CardContent className="pt-6">
-              <p className="text-red-800">Error loading analytics data: {String(error)}</p>
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AdminLayout>
+        <div className="p-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-destructive">Error Loading Data</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Failed to load Reframe Coach analytics data. Please try again later.</p>
+              <pre className="mt-4 p-4 bg-muted rounded-md text-sm overflow-auto">
+                {(error as Error).message}
+              </pre>
             </CardContent>
           </Card>
-        ) : (
-          <div className="space-y-6">
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  // Calculate usage statistics
+  const totalCount = data?.totalCount || 0;
+  const completionRate = totalCount ? Math.round((data?.completedCount || 0) / totalCount * 100) : 0;
+  
+  // Calculate recent results (last 7 days)
+  const recentResultsCount = data?.recentResultsCount || 0;
+  
+  // Calculate average scores
+  const averageScorePercentage = totalCount ? 
+    Math.round(data?.recentResults?.reduce((acc, result) => 
+      acc + (result.correctCount / result.totalCount) * 100, 0
+    ) / data?.recentResults?.length) : 0;
+  
+  // Format data for charts
+  const dailyActivityData = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateStr = format(date, "MM/dd");
+    const count = data?.recentResults?.filter(result => 
+      new Date(result.createdAt).toDateString() === date.toDateString()
+    ).length || 0;
+    
+    return { date: dateStr, count };
+  }).reverse();
+
+  // Calculate distortion distribution for pie chart
+  const distortionData = data?.distortionStats || [];
+
+  // Colors for pie chart
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
+  return (
+    <AdminLayout>
+      <div className="p-6">
+        <h1 className="text-3xl font-bold mb-6">Reframe Coach Analytics</h1>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          {/* Key stats cards */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center">
+                <Activity className="mr-2 h-4 w-4" />
+                Total Practice Sessions
+              </CardTitle>
+              <CardDescription>All time</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">{totalCount}</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Completion Rate
+              </CardTitle>
+              <CardDescription>Percentage of completed sessions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">{completionRate}%</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center">
+                <Clock className="mr-2 h-4 w-4" />
+                Average Score
+              </CardTitle>
+              <CardDescription>Average correct answers</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">{averageScorePercentage}%</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="activity">
+          <TabsList className="mb-6">
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="distortions">Cognitive Distortions</TabsTrigger>
+            <TabsTrigger value="details">Detailed Results</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="activity">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2" />
-                  Reframe Practice Results Overview
-                </CardTitle>
+                <CardTitle>Daily Practice Activity (Last 7 Days)</CardTitle>
                 <CardDescription>
-                  Overview of practice results from all users
+                  Number of practice sessions completed per day
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-secondary/20 p-4 rounded-md">
-                    <h3 className="text-sm font-medium text-muted-foreground">Total Practice Sessions</h3>
-                    <p className="text-3xl font-bold">{data?.totalCount || 0}</p>
-                  </div>
-                  <div className="bg-secondary/20 p-4 rounded-md">
-                    <h3 className="text-sm font-medium text-muted-foreground">Recent Sessions</h3>
-                    <p className="text-3xl font-bold">{data?.recentResultsCount || 0}</p>
-                  </div>
-                  <div className="bg-secondary/20 p-4 rounded-md">
-                    <h3 className="text-sm font-medium text-muted-foreground">Avg. Score</h3>
-                    <p className="text-3xl font-bold">
-                      {data?.recentResults?.length > 0 
-                        ? Math.round(data.recentResults.reduce((acc, result) => acc + result.score, 0) / data.recentResults.length) 
-                        : 'N/A'}
-                    </p>
-                  </div>
-                </div>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dailyActivityData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#8884d8" name="Sessions" />
+                  </BarChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
-            
+          </TabsContent>
+          
+          <TabsContent value="distortions">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Database className="h-5 w-5 mr-2" />
-                  Recent Practice Results
-                </CardTitle>
+                <CardTitle>Cognitive Distortion Distribution</CardTitle>
                 <CardDescription>
-                  Most recent practice sessions from all users
+                  Most common cognitive distortions in practice scenarios
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                {data?.recentResults?.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-muted/50">
-                          <th className="px-4 py-2 text-left">ID</th>
-                          <th className="px-4 py-2 text-left">User ID</th>
-                          <th className="px-4 py-2 text-left">Score</th>
-                          <th className="px-4 py-2 text-left">Correct/Total</th>
-                          <th className="px-4 py-2 text-left">Time Spent (sec)</th>
-                          <th className="px-4 py-2 text-left">Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {data.recentResults.map((result) => (
-                          <tr key={result.id} className="border-b border-muted hover:bg-muted/30">
-                            <td className="px-4 py-2">{result.id}</td>
-                            <td className="px-4 py-2">{result.userId}</td>
-                            <td className="px-4 py-2">{result.score}</td>
-                            <td className="px-4 py-2">
-                              {result.correctAnswers}/{result.totalQuestions}
-                              <span className="ml-2 text-xs">
-                                ({Math.round((result.correctAnswers / result.totalQuestions) * 100)}%)
-                              </span>
-                            </td>
-                            <td className="px-4 py-2">
-                              {Math.round(result.timeSpent / 1000) || 'N/A'}
-                            </td>
-                            <td className="px-4 py-2">
-                              {new Date(result.createdAt).toLocaleString()}
-                            </td>
-                          </tr>
+              <CardContent className="h-80">
+                {distortionData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={distortionData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={true}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="count"
+                        nameKey="distortion"
+                        label={({ distortion }) => distortion}
+                      >
+                        {distortionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
                 ) : (
-                  <p className="text-muted-foreground text-center py-8">
-                    No practice results found
-                  </p>
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-muted-foreground">No distortion data available</p>
+                  </div>
                 )}
               </CardContent>
             </Card>
-          </div>
-        )}
+          </TabsContent>
+          
+          <TabsContent value="details">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Practice Results</CardTitle>
+                <CardDescription>
+                  Showing the last {data?.recentResults?.length || 0} practice results
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="px-4 py-2 text-left">User</th>
+                        <th className="px-4 py-2 text-left">Date</th>
+                        <th className="px-4 py-2 text-right">Score</th>
+                        <th className="px-4 py-2 text-right">Time Spent</th>
+                        <th className="px-4 py-2 text-center">Completed</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data?.recentResults?.map((result) => (
+                        <tr key={result.id} className="border-b hover:bg-muted/50">
+                          <td className="px-4 py-2">{result.username || result.email}</td>
+                          <td className="px-4 py-2">
+                            {format(new Date(result.createdAt), "MMM d, yyyy HH:mm")}
+                          </td>
+                          <td className="px-4 py-2 text-right">
+                            {result.correctCount}/{result.totalCount} 
+                            ({Math.round((result.correctCount / result.totalCount) * 100)}%)
+                          </td>
+                          <td className="px-4 py-2 text-right">
+                            {Math.round(result.timeSpent / 1000)} seconds
+                          </td>
+                          <td className="px-4 py-2 text-center">
+                            {result.completed ? (
+                              <span className="text-green-600">✓</span>
+                            ) : (
+                              <span className="text-red-600">✗</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                      {(!data?.recentResults || data.recentResults.length === 0) && (
+                        <tr>
+                          <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                            No recent practice results found
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </AdminLayout>
   );

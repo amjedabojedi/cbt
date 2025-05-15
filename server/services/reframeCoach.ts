@@ -12,14 +12,15 @@ import { Request, Response } from "express";
 import { Express } from "express";
 import { db } from "../db";
 import { authenticate, checkUserAccess } from "../middleware/auth";
-import { sql, count } from "drizzle-orm";
+import { sql, count, eq, and, desc, isNull, inArray, gte } from "drizzle-orm";
 import { 
   thoughtRecords, 
   resourceAssignments,
   reframePracticeResults,
   userGameProfile,
   cognitiveDistortions,
-  emotionRecords
+  emotionRecords,
+  users
 } from "@shared/schema";
 import { 
   insertResourceAssignmentSchema, 
@@ -27,8 +28,29 @@ import {
   insertUserGameProfileSchema 
 } from "@shared/schema";
 import { generateReframePracticeScenarios, ReframePracticeSession } from "./openai";
-import { eq, and, desc, isNull, sql, inArray } from "drizzle-orm";
 import { z } from "zod";
+
+// Helper function to format cognitive distortion names for display
+function formatCognitiveDistortion(distortion: string): string {
+  if (!distortion) return "Unknown";
+  
+  // Handle special cases like hyphenated names
+  if (distortion === "emotional-reasoning") return "Emotional Reasoning";
+  if (distortion === "mind-reading") return "Mind Reading";
+  if (distortion === "fortune-telling") return "Fortune Telling";
+  
+  // Convert "camelCase" to "Camel Case"
+  const withSpaces = distortion.replace(/([A-Z])/g, ' $1').trim();
+  
+  // Convert "kebab-case" to "Kebab Case"
+  const withoutHyphens = withSpaces.replace(/-/g, ' ');
+  
+  // Capitalize each word
+  return withoutHyphens
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
 
 // Zod schema for reframe practice creation requests
 const createReframePracticeSchema = z.object({
@@ -608,18 +630,80 @@ export function registerReframeCoachRoutes(app: Express): void {
       );
       const totalCount = countResult.rows[0]?.total || 0;
       
-      // Get most recent results
+      // Get count of completed practices
+      const completedCountResult = await db.execute(
+        sql`SELECT COUNT(*) as completed FROM reframe_practice_results WHERE score >= 0.7`
+      );
+      const completedCount = completedCountResult.rows[0]?.completed || 0;
+      
+      // Get most recent results with user information
       const results = await db
+        .select({
+          id: reframePracticeResults.id,
+          userId: reframePracticeResults.userId,
+          username: users.username,
+          email: users.email,
+          assignmentId: reframePracticeResults.assignmentId,
+          thoughtRecordId: reframePracticeResults.thoughtRecordId,
+          correctCount: reframePracticeResults.correctAnswers,
+          totalCount: reframePracticeResults.totalQuestions,
+          timeSpent: reframePracticeResults.timeSpent,
+          completed: sql`CASE WHEN ${reframePracticeResults.score} >= 0.7 THEN true ELSE false END`,
+          createdAt: reframePracticeResults.createdAt
+        })
+        .from(reframePracticeResults)
+        .leftJoin(users, eq(reframePracticeResults.userId, users.id))
+        .orderBy(desc(reframePracticeResults.createdAt))
+        .limit(20);
+      
+      // Get recent results (last 7 days)
+      const lastWeekResults = await db
         .select()
         .from(reframePracticeResults)
-        .orderBy(desc(reframePracticeResults.createdAt))
-        .limit(10);
+        .where(
+          gte(
+            reframePracticeResults.createdAt, 
+            new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+          )
+        )
+        .orderBy(desc(reframePracticeResults.createdAt));
+      
+      // Get distribution of cognitive distortions
+      const distortionStatsResult = await db.execute(
+        sql`
+          WITH distortion_data AS (
+            SELECT 
+              jsonb_array_elements(scenario_data) as scenario
+            FROM 
+              reframe_practice_results
+          )
+          SELECT 
+            scenario->>'cognitiveDistortion' as distortion, 
+            COUNT(*) as count
+          FROM 
+            distortion_data
+          GROUP BY 
+            distortion
+          ORDER BY 
+            count DESC
+          LIMIT 10
+        `
+      );
+      
+      // Format distortion stats
+      const distortionStats = distortionStatsResult.rows.map(row => ({
+        distortion: formatCognitiveDistortion(row.distortion || ''),
+        count: parseInt(row.count)
+      }));
       
       res.status(200).json({
-        message: "Practice results retrieved for debugging",
-        totalCount: totalCount,
+        totalCount,
+        completedCount,
+        completionRate: totalCount ? (completedCount / totalCount) * 100 : 0,
         recentResultsCount: results.length,
-        recentResults: results
+        recentResults: results,
+        recentWeekCount: lastWeekResults.length,
+        distortionStats
       });
     } catch (error) {
       console.error("Error retrieving debug practice results:", error);
