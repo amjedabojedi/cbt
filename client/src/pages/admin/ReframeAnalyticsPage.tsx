@@ -22,9 +22,26 @@ interface PracticeResult {
   createdAt: string;
 }
 
+// Type for cognitive distortion statistics
+interface DistortionStat {
+  distortion: string;
+  count: number;
+}
+
+// Type for the analytics response data
+interface AnalyticsData {
+  totalCount: number;
+  completedCount: number;
+  completionRate: number;
+  recentResultsCount: number;
+  recentResults: PracticeResult[];
+  recentWeekCount: number;
+  distortionStats: DistortionStat[];
+}
+
 export default function ReframeAnalyticsPage() {
   // Fetch practice results data
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<AnalyticsData>({
     queryKey: ["/api/admin/debug/reframe-coach/results"],
   });
 
@@ -66,19 +83,22 @@ export default function ReframeAnalyticsPage() {
   const recentResultsCount = data?.recentResultsCount || 0;
   
   // Calculate average scores
-  const averageScorePercentage = totalCount ? 
-    Math.round(data?.recentResults?.reduce((acc, result) => 
-      acc + (result.correctCount / result.totalCount) * 100, 0
-    ) / data?.recentResults?.length) : 0;
+  const averageScorePercentage = data?.recentResults && data.recentResults.length > 0 
+    ? Math.round(data.recentResults.reduce((acc: number, result) => 
+        acc + (result.correctCount / result.totalCount) * 100, 0
+      ) / data.recentResults.length) 
+    : 0;
   
   // Format data for charts
   const dailyActivityData = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
     date.setDate(date.getDate() - i);
     const dateStr = format(date, "MM/dd");
-    const count = data?.recentResults?.filter(result => 
-      new Date(result.createdAt).toDateString() === date.toDateString()
-    ).length || 0;
+    const count = data?.recentResults 
+      ? data.recentResults.filter(result => 
+          new Date(result.createdAt).toDateString() === date.toDateString()
+        ).length 
+      : 0;
     
     return { date: dateStr, count };
   }).reverse();

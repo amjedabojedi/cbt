@@ -692,14 +692,19 @@ export function registerReframeCoachRoutes(app: Express): void {
       
       // Format distortion stats
       const distortionStats = distortionStatsResult.rows.map(row => ({
-        distortion: formatCognitiveDistortion(row.distortion || ''),
-        count: parseInt(row.count)
+        distortion: formatCognitiveDistortion(row.distortion ? String(row.distortion) : ''),
+        count: parseInt(String(row.count))
       }));
+      
+      // Calculate completion rate as a number
+      const numTotalCount = Number(totalCount);
+      const completionRateValue = numTotalCount > 0 ? 
+        (Number(completedCount) / numTotalCount) * 100 : 0;
       
       res.status(200).json({
         totalCount,
         completedCount,
-        completionRate: totalCount ? (completedCount / totalCount) * 100 : 0,
+        completionRate: completionRateValue,
         recentResultsCount: results.length,
         recentResults: results,
         recentWeekCount: lastWeekResults.length,
