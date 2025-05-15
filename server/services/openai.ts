@@ -174,6 +174,9 @@ class AnalysisCache {
   }
 }
 
+// Create an instance of the AnalysisCache class
+const analysisCache = new AnalysisCache();
+
 /**
  * Analyzes a journal entry to extract emotions, topics, and suggested tags
  * @param title Journal entry title
@@ -411,6 +414,13 @@ export async function generateReframePracticeScenarios(
           };
         });
       }
+      
+      // Save the successful response to cache before returning
+      practiceScenarioCache.set(cacheKey, {
+        data: parsedResponse,
+        timestamp: Date.now()
+      });
+      console.log("Saved new practice scenarios to cache with key:", cacheKey);
       
       return parsedResponse;
     } catch (parseError) {
