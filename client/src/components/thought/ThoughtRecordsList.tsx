@@ -257,7 +257,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                     <TableHead>Cognitive Distortions</TableHead>
                     <TableHead>Alternative Perspective</TableHead>
                     <TableHead>Connected</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -325,8 +325,8 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
+                      <TableCell className="whitespace-nowrap text-right">
+                        <div className="flex items-center space-x-2 justify-end">
                           {/* Only show edit and delete options if viewing own data */}
                           {!isViewingClientData && (
                             <>
@@ -335,6 +335,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                                 size="icon" 
                                 onClick={() => handleEditRecord(record)}
                                 className="text-primary hover:text-primary-dark"
+                                title="Edit"
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -343,6 +344,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                                 size="icon"
                                 onClick={() => handleDeleteClick(record)}
                                 className="text-destructive hover:text-destructive/80"
+                                title="Delete"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -354,8 +356,22 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                             size="icon"
                             onClick={() => handleViewDetails(record)}
                             className="text-primary hover:text-primary-dark"
+                            title="View Details"
                           >
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          {/* Add Quick Practice button directly in the table row */}
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => {
+                              // Navigate to quick practice with this thought record
+                              window.location.href = `/reframe-coach/practice/quick/${record.id}?userId=${activeUserId}`;
+                            }}
+                            className="text-amber-600 hover:text-amber-700"
+                            title="Practice Reframing"
+                          >
+                            <Sparkles className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
