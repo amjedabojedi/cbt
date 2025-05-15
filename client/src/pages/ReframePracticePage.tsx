@@ -355,20 +355,31 @@ const ReframePracticePage = () => {
                     <div className="mt-3 p-3 rounded-md bg-amber-50 border border-amber-100">
                       <h4 className="text-sm font-medium text-amber-800 mb-1">Cognitive Distortions Identified:</h4>
                       <div className="flex flex-wrap gap-1">
-                        {(practiceScenarios as any).scenarios.map((scenario: any, scenarioIdx: number) => (
-                          scenario.cognitiveDistortion && (
-                            <span key={scenarioIdx} className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800">
-                              {formatCognitiveDistortion(scenario.cognitiveDistortion)}
-                            </span>
-                          )
-                        ))}
-                        {thoughtRecordData.cognitiveDistortions && thoughtRecordData.cognitiveDistortions.length > 0 && 
-                          thoughtRecordData.cognitiveDistortions.map((distortion: string, idx: number) => (
-                            <span key={`td-${idx}`} className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800">
+                        {(() => {
+                          // Create a set of unique distortions
+                          const uniqueDistortions = new Set<string>();
+                          
+                          // Add distortions from scenarios
+                          (practiceScenarios as any).scenarios.forEach((scenario: any) => {
+                            if (scenario.cognitiveDistortion) {
+                              uniqueDistortions.add(formatCognitiveDistortion(scenario.cognitiveDistortion));
+                            }
+                          });
+                          
+                          // Add distortions from thought record
+                          if (thoughtRecordData.cognitiveDistortions && thoughtRecordData.cognitiveDistortions.length > 0) {
+                            thoughtRecordData.cognitiveDistortions.forEach((distortion: string) => {
+                              uniqueDistortions.add(formatCognitiveDistortion(distortion));
+                            });
+                          }
+                          
+                          // Return array of JSX elements with unique distortions
+                          return Array.from(uniqueDistortions).map((distortion, idx) => (
+                            <span key={`distortion-${idx}`} className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800">
                               {distortion}
                             </span>
-                          ))
-                        }
+                          ));
+                        })()}
                       </div>
                     </div>
                   )}

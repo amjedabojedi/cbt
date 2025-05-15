@@ -266,7 +266,7 @@ export const reframePracticeResults = pgTable("reframe_practice_results", {
   correctAnswers: integer("correct_answers").notNull(),
   totalQuestions: integer("total_questions").notNull(),
   streakCount: integer("streak_count").default(0), // Number of correct answers in a row
-  timeSpent: integer("time_spent_seconds"), // Time spent on the exercise
+  timeSpent: integer("time_spent"), // Time spent on the exercise
   scenarioData: jsonb("scenario_data"), // Store the scenarios presented
   userChoices: jsonb("user_choices"), // Store the user's selected options
   feedback: text("feedback"), // Therapist feedback on results

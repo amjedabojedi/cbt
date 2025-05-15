@@ -309,13 +309,13 @@ export function registerReframeCoachRoutes(app: Express): void {
         .values({
           userId,
           ...(validatedData.assignmentId ? { assignmentId: validatedData.assignmentId } : {}),
-          thoughtRecordId: validatedData.thoughtRecordId,
+          ...(validatedData.thoughtRecordId ? { thoughtRecordId: validatedData.thoughtRecordId } : {}),
           score: validatedData.score,
           correctAnswers: validatedData.correctAnswers,
           totalQuestions: validatedData.totalQuestions,
           streakCount: validatedData.streakCount || 0,
-          // The field is named time_spent_seconds in the database but timeSpent in the schema
-          time_spent_seconds: validatedData.timeSpent,
+          // The field is named timeSpent in the database
+          timeSpent: validatedData.timeSpent,
           scenarioData: validatedData.scenarioData,
           userChoices: validatedData.userChoices
         })
