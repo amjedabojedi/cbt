@@ -12,6 +12,7 @@ import { Request, Response } from "express";
 import { Express } from "express";
 import { db } from "../db";
 import { authenticate, checkUserAccess } from "../middleware/auth";
+import { sql, count } from "drizzle-orm";
 import { 
   thoughtRecords, 
   resourceAssignments,
@@ -601,10 +602,11 @@ export function registerReframeCoachRoutes(app: Express): void {
         return res.status(403).json({ message: "Admin access required" });
       }
       
-      // Get total count
-      const [{ count }] = await db
-        .select({ count: count() })
-        .from(reframePracticeResults);
+      // Get total count using SQL
+      const countResult = await db.execute(
+        sql`SELECT COUNT(*) as total FROM reframe_practice_results`
+      );
+      const totalCount = countResult.rows[0]?.total || 0;
       
       // Get most recent results
       const results = await db
@@ -615,7 +617,8 @@ export function registerReframeCoachRoutes(app: Express): void {
       
       res.status(200).json({
         message: "Practice results retrieved for debugging",
-        totalCount: count,
+        totalCount: totalCount,
+        recentResultsCount: results.length,
         recentResults: results
       });
     } catch (error) {
