@@ -72,7 +72,8 @@ const recordPracticeResultSchema = z.object({
   streakCount: z.number().optional().default(0),
   timeSpent: z.number().optional().default(0),
   scenarioData: z.any().optional(),
-  userChoices: z.any().optional()
+  userChoices: z.any().optional(),
+  feedback: z.string().nullable().optional() // Add feedback to match the database schema
 });
 
 /**
@@ -364,7 +365,8 @@ export function registerReframeCoachRoutes(app: Express): void {
           streakCount: validatedData.streakCount || 0,
           timeSpent: validatedData.timeSpent || 0,
           scenarioData: validatedData.scenarioData || [],
-          userChoices: validatedData.userChoices || []
+          userChoices: validatedData.userChoices || [],
+          feedback: null // Add null value for the feedback column
         })
         .returning();
       
