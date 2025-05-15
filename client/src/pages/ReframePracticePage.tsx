@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import ReframePractice from "@/components/reframeCoach/ReframePractice";
 import { Loader2, ArrowLeft, AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import AppLayout from "@/components/layout/AppLayout";
 
 // Helper function to format cognitive distortion names for display
 function formatCognitiveDistortion(distortion: string): string {
@@ -249,9 +250,7 @@ const ReframePracticePage = () => {
       : "Reframe Practice";
 
   return (
-    <div>
-      <Header title={title} />
-
+    <AppLayout title={title}>
       <div className="container max-w-4xl py-6">
         <div className="mb-6">
           <Button
