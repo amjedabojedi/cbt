@@ -62,7 +62,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
   const [_, navigate] = useLocation(); // Used for navigation to different pages
   
   // Fetch thought records for the active user (could be a client viewed by a therapist)
-  const { data: thoughtRecords, isLoading, error } = useQuery({
+  const { data: thoughtRecords, isLoading, error } = useQuery<ThoughtRecord[]>({
     queryKey: activeUserId ? [`/api/users/${activeUserId}/thoughts`] : [],
     enabled: !!activeUserId,
   });
@@ -287,7 +287,7 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
                           <div>
                             {record.cognitiveDistortions && record.cognitiveDistortions.length > 0 ? (
                               <div className="flex flex-wrap gap-1">
-                                {record.cognitiveDistortions.slice(0, 2).map((distortion, idx) => (
+                                {record.cognitiveDistortions.slice(0, 2).map((distortion: string, idx: number) => (
                                   <span key={idx} className="px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded-full text-xs">
                                     {distortion}
                                   </span>

@@ -96,8 +96,7 @@ function Router() {
           <ProtectedRoute path="/journal" component={Journal} />
           <ProtectedRoute path="/reports" component={Reports} />
           
-          {/* Reframe Coach routes */}
-          <ProtectedRoute path="/reframe-coach" component={ReframeCoachDashboard} />
+          {/* Reframe Coach routes - accessible only via direct links */}
           <ProtectedRoute path="/reframe-coach/practice" component={ReframePracticePage} />
           <ProtectedRoute path="/reframe-coach/practice/:assignmentId" component={ReframePracticePage} />
           <ProtectedRoute path="/users/:userId/reframe-coach/practice/:thoughtId" component={ReframePracticePage} />
