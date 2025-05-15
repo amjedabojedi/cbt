@@ -1,103 +1,119 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/lib/auth";
 import { 
-  Users, Settings, LayoutDashboard, 
-  ClipboardList, BarChart3 
+  Users, 
+  Settings, 
+  Shield, 
+  FileText, 
+  BarChart2, 
+  Book, 
+  MessageSquare,
+  Brain
 } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
-export function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const [location] = useLocation();
-  
-  // Only admin users should access this layout
-  if (!user || user.role !== 'admin') {
+interface AdminLayoutProps {
+  children: React.ReactNode;
+}
+
+export function AdminLayout({ children }: AdminLayoutProps) {
+  const { user, loading } = useAuth();
+  const [currentPath] = useLocation();
+
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p className="mb-4">You don't have permission to access this page.</p>
-          <Link href="/">
-            <a className="text-primary hover:underline">Return to Home</a>
-          </Link>
-        </div>
+      <div className="flex justify-center items-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
-  
+
+  // If the user is not an admin, show access denied
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <Shield className="h-16 w-16 text-destructive mb-4" />
+        <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
+        <p className="text-muted-foreground mb-4 text-center">
+          You don't have permission to access the admin section.
+        </p>
+        <Button asChild>
+          <Link href="/">Return to Dashboard</Link>
+        </Button>
+      </div>
+    );
+  }
+
   const navItems = [
-    {
-      title: "Dashboard",
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      href: "/admin",
-      active: location === "/admin"
-    },
-    {
-      title: "Users",
-      icon: <Users className="h-5 w-5" />,
-      href: "/admin/users",
-      active: location === "/admin/users"
-    },
-    {
-      title: "Reframe Analytics",
-      icon: <BarChart3 className="h-5 w-5" />,
-      href: "/admin/reframe-analytics",
-      active: location === "/admin/reframe-analytics"
-    },
-    {
-      title: "Resources",
-      icon: <ClipboardList className="h-5 w-5" />,
-      href: "/admin/resources",
-      active: location === "/admin/resources"
-    },
-    {
-      title: "Settings",
-      icon: <Settings className="h-5 w-5" />,
-      href: "/admin/settings",
-      active: location === "/admin/settings"
-    }
+    { href: "/admin", icon: <BarChart2 className="h-5 w-5" />, label: "Dashboard" },
+    { href: "/admin/users", icon: <Users className="h-5 w-5" />, label: "User Management" },
+    { href: "/admin/resources", icon: <Book className="h-5 w-5" />, label: "Resources" },
+    { href: "/admin/reframe-analytics", icon: <Brain className="h-5 w-5" />, label: "Reframe Analytics" },
+    { href: "/admin/logs", icon: <FileText className="h-5 w-5" />, label: "Logs" },
+    { href: "/admin/notifications", icon: <MessageSquare className="h-5 w-5" />, label: "Notifications" },
+    { href: "/admin/settings", icon: <Settings className="h-5 w-5" />, label: "Settings" },
   ];
-  
+
   return (
-    <div className="flex min-h-screen bg-muted/20">
-      {/* Admin Sidebar */}
-      <div className="w-64 bg-card shadow-md hidden md:block">
-        <div className="p-4 border-b">
-          <h1 className="text-xl font-bold">Admin Portal</h1>
+    <div className="flex h-screen bg-background">
+      {/* Sidebar */}
+      <div className="w-64 bg-muted/30 border-r border-border hidden md:block overflow-y-auto">
+        <div className="p-4 border-b border-border">
+          <Link href="/admin">
+            <div className="flex items-center space-x-2 cursor-pointer">
+              <Shield className="h-6 w-6 text-primary" />
+              <span className="font-bold text-lg">Admin Panel</span>
+            </div>
+          </Link>
         </div>
         <nav className="p-4">
           <ul className="space-y-2">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href}>
-                  <a className={`flex items-center p-2 rounded-md transition-colors ${
-                    item.active 
-                      ? "bg-primary text-primary-foreground" 
-                      : "hover:bg-muted"
-                  }`}>
-                    {item.icon}
-                    <span className="ml-3">{item.title}</span>
-                  </a>
-                </Link>
-              </li>
-            ))}
+            {navItems.map((item) => {
+              const isActive = currentPath === item.href;
+              return (
+                <li key={item.href}>
+                  <Link href={item.href}>
+                    <div
+                      className={`flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
+                        isActive 
+                          ? "bg-primary text-primary-foreground" 
+                          : "text-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
       </div>
-      
-      {/* Mobile header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-background border-b z-10 p-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold">Admin Portal</h1>
-          <div>
-            {/* Mobile menu button would go here */}
-          </div>
-        </div>
-      </div>
-      
+
       {/* Main content */}
-      <div className="flex-1 md:ml-0 pt-16 md:pt-0">
-        {children}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile header */}
+        <header className="bg-background border-b border-border p-4 md:hidden">
+          <div className="flex justify-between items-center">
+            <Link href="/admin">
+              <div className="flex items-center space-x-2 cursor-pointer">
+                <Shield className="h-6 w-6 text-primary" />
+                <span className="font-bold text-lg">Admin Panel</span>
+              </div>
+            </Link>
+            <Button variant="outline" size="sm">
+              Menu
+            </Button>
+          </div>
+        </header>
+
+        {/* Content area */}
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
       </div>
     </div>
   );
