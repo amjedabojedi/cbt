@@ -148,10 +148,22 @@ const ReframePracticePage = () => {
     refetchOnMount: true
   });
   
+  // Extended type to include fromCache flag
+  type ExtendedPracticeSession = {
+    scenarios: any[];
+    thoughtContent: string;
+    generalFeedback: string;
+    fromCache?: boolean;
+  };
+  
+  // Check if the results are coming from cache
+  const isFromCache = (practiceScenarios as ExtendedPracticeSession | undefined)?.fromCache === true;
+  
   // Log results for debugging
   useEffect(() => {
     if (practiceScenarios) {
-      console.log("Practice scenarios loaded successfully:", practiceScenarios);
+      const scenariosWithCache = practiceScenarios as ExtendedPracticeSession;
+      console.log(`Practice scenarios loaded successfully (${scenariosWithCache.fromCache ? 'from cache' : 'new generation'})`, scenariosWithCache);
     }
     if (scenariosError) {
       console.error("Failed to load practice scenarios:", scenariosError);
@@ -266,13 +278,21 @@ const ReframePracticePage = () => {
             <div className="flex flex-col justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
               <p className="text-muted-foreground text-center">
-                {isLoadingScenarios ? 
-                  "Generating practice scenarios based on your thought record. This may take up to 30 seconds..." : 
-                  "Loading..."}
+                {isLoadingScenarios ? (
+                  isFromCache ? 
+                    "Retrieving practice scenarios from cache..." : 
+                    "Generating practice scenarios based on your thought record. This may take up to 30 seconds..."
+                ) : "Loading..."}
               </p>
-              {isLoadingScenarios && (
+              {isLoadingScenarios && !isFromCache && (
                 <div className="max-w-md mt-6 w-full bg-muted rounded-full h-2.5 dark:bg-gray-700 overflow-hidden">
                   <div className="bg-primary h-2.5 rounded-full animate-progress"></div>
+                </div>
+              )}
+              {isLoadingScenarios && isFromCache && (
+                <div className="max-w-md mt-2 flex items-center gap-2 justify-center">
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  <span className="text-sm text-green-600 dark:text-green-400">Using cached results for faster loading</span>
                 </div>
               )}
             </div>

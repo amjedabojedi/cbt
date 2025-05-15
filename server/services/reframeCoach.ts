@@ -593,6 +593,10 @@ export function registerReframeCoachRoutes(app: Express): void {
          Alternative perspective: ${thoughtRecord.alternativePerspective || "Not specified"}`
       );
       
+      // Log whether we're serving from cache or not for monitoring
+      console.log(`Serving practice scenarios ${practiceSession.fromCache ? 'from cache' : 'from new API request'}`);
+      
+      // Return the complete response including the cache status
       res.json(practiceSession);
     } catch (error) {
       console.error("Error generating practice scenarios:", error);

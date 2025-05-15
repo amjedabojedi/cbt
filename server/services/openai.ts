@@ -309,7 +309,11 @@ export async function generateReframePracticeScenarios(
     // If we have a valid cache entry that hasn't expired
     if (cachedResult && (Date.now() - cachedResult.timestamp < SCENARIO_CACHE_TTL)) {
       console.log("CACHE HIT! Using cached practice scenarios");
-      return cachedResult.data as ReframePracticeSession;
+      // Return cached data with fromCache flag set to true
+      return {
+        ...cachedResult.data,
+        fromCache: true
+      };
     }
     
     // If not in cache, proceed with generating new scenarios
@@ -415,14 +419,22 @@ export async function generateReframePracticeScenarios(
         });
       }
       
-      // Save the successful response to cache before returning
+      // Create a version of the response without the fromCache flag for caching
+      const responseForCache = { ...parsedResponse };
+      delete (responseForCache as any).fromCache;
+      
+      // Save the clean response to cache
       practiceScenarioCache.set(cacheKey, {
-        data: parsedResponse,
+        data: responseForCache,
         timestamp: Date.now()
       });
       console.log("Saved new practice scenarios to cache with key:", cacheKey);
       
-      return parsedResponse;
+      // Return the original response with fromCache set to false explicitly
+      return {
+        ...parsedResponse,
+        fromCache: false
+      };
     } catch (parseError) {
       console.error("Failed to parse OpenAI response for reframing practice:", parseError);
       throw new Error("Failed to generate reframing practice scenarios");
