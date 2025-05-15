@@ -300,26 +300,51 @@ export function registerReframeCoachRoutes(app: Express): void {
   // Record the results of a practice session
   app.post("/api/reframe-coach/results", authenticate, async (req: Request, res: Response) => {
     try {
+      // Log request details for debugging
+      console.log("Received practice results submission:", {
+        userId: req.user?.id,
+        hasThoughtRecordId: !!req.body.thoughtRecordId,
+        hasAssignmentId: !!req.body.assignmentId,
+        score: req.body.score,
+        scenarioCount: req.body.totalQuestions
+      });
+      
+      // Check user authentication
+      if (!req.user || !req.user.id) {
+        console.error("User not authenticated properly:", req.user);
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const validatedData = recordPracticeResultSchema.parse(req.body);
       const userId = req.user.id;
       
-      // Create practice result record
+      // Create practice result record with more explicit values
+      console.log("Validated data:", {
+        userId,
+        thoughtRecordId: validatedData.thoughtRecordId || null,
+        assignmentId: validatedData.assignmentId || null,
+        score: validatedData.score,
+        correctAnswers: validatedData.correctAnswers,
+        totalQuestions: validatedData.totalQuestions
+      });
+      
       const [result] = await db
         .insert(reframePracticeResults)
         .values({
           userId,
-          ...(validatedData.assignmentId ? { assignmentId: validatedData.assignmentId } : {}),
-          ...(validatedData.thoughtRecordId ? { thoughtRecordId: validatedData.thoughtRecordId } : {}),
+          assignmentId: validatedData.assignmentId || null,
+          thoughtRecordId: validatedData.thoughtRecordId || null,
           score: validatedData.score,
           correctAnswers: validatedData.correctAnswers,
           totalQuestions: validatedData.totalQuestions,
           streakCount: validatedData.streakCount || 0,
-          // The field is named timeSpent in the database
-          timeSpent: validatedData.timeSpent,
-          scenarioData: validatedData.scenarioData,
-          userChoices: validatedData.userChoices
+          timeSpent: validatedData.timeSpent || 0,
+          scenarioData: validatedData.scenarioData || [],
+          userChoices: validatedData.userChoices || []
         })
         .returning();
+      
+      console.log("Practice results saved successfully:", result);
         
       // If this is from an assignment, update the assignment status
       if (validatedData.assignmentId) {
@@ -330,6 +355,8 @@ export function registerReframeCoachRoutes(app: Express): void {
             completedAt: new Date()
           })
           .where(eq(resourceAssignments.id, validatedData.assignmentId));
+          
+        console.log("Assignment marked as completed:", validatedData.assignmentId);
       }
       
       // Calculate and update achievements/gamification data
@@ -340,12 +367,29 @@ export function registerReframeCoachRoutes(app: Express): void {
         result,
         gameUpdates
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error recording practice results:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      
+      // Log more detailed error information
+      if (error.stack) {
+        console.error("Error stack:", error.stack);
       }
-      res.status(500).json({ message: "Failed to record practice results" });
+      
+      // Check for specific error types
+      if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
+        return res.status(400).json({ 
+          message: "Invalid request data", 
+          errors: error.errors 
+        });
+      }
+      
+      // Send a more detailed error message to the client
+      res.status(500).json({ 
+        message: "Failed to record practice results", 
+        error: error.message || "Unknown error",
+        errorType: error.name || "Error"
+      });
     }
   });
   

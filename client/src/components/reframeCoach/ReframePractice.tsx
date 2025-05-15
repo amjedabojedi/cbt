@@ -621,14 +621,54 @@ const ReframePractice = ({
   // Mutation to record practice results
   const recordResultsMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest(
-        "POST",
-        "/api/reframe-coach/results",
-        data
-      );
-      return await res.json();
+      console.log("Submitting practice results:", {
+        thoughtRecordId: data.thoughtRecordId,
+        userId: data.userId,
+        assignmentId: data.assignmentId,
+        score: data.score,
+        totalQuestions: data.totalQuestions,
+        correctAnswers: data.correctAnswers,
+      });
+      
+      try {
+        // Add authentication headers as backup
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+        };
+        
+        // Add backup auth headers if user is authenticated 
+        if (user?.id) {
+          console.log("Adding backup auth headers to results submission", { userId: user.id });
+          headers['x-auth-user-id'] = String(user.id);
+          headers['x-auth-fallback'] = 'true';
+          headers['x-auth-timestamp'] = String(Date.now());
+        }
+        
+        const res = await fetch('/api/reframe-coach/results', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(data)
+        });
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("Error saving results:", {
+            status: res.status,
+            statusText: res.statusText,
+            errorResponse: errorText
+          });
+          
+          throw new Error(`Failed to save results: ${res.status} ${res.statusText}`);
+        }
+        
+        return await res.json();
+      } catch (error) {
+        console.error("Exception saving results:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
+      console.log("Practice results saved successfully:", data);
       setGameUpdates(data.gameUpdates);
       
       // Invalidate relevant queries to refresh data
@@ -643,11 +683,19 @@ const ReframePractice = ({
           });
         }
       }
+      
+      // Show confirmation toast
+      toast({
+        title: "Practice Complete",
+        description: "Your results have been saved successfully!",
+        variant: "default"
+      });
     },
     onError: (error: Error) => {
+      console.error("Mutation error saving results:", error);
       toast({
         title: "Error saving results",
-        description: error.message,
+        description: error.message || "Unknown error occurred",
         variant: "destructive"
       });
     }
@@ -686,15 +734,47 @@ const ReframePractice = ({
     // Make sure we have a valid user ID to navigate with
     const validUserId = currentUserId || user?.id || 0;
     
-    // Track where we're going for debugging
-    const destination = isQuickPractice 
-      ? `/users/${validUserId}/thoughts`
-      : `/users/${validUserId}/reframe-coach`;
-    
-    console.log(`Navigating to: ${destination}`);
-    
-    // First force a page reload to clear any stale state
-    window.location.href = destination;
+    // First, try to use wouter's setLocation for navigation (preferred method)
+    try {
+      // Track where we're going for debugging
+      const destination = isQuickPractice 
+        ? `/users/${validUserId}/thoughts`
+        : `/users/${validUserId}/reframe-coach`;
+      
+      console.log(`Navigating to: ${destination}`);
+      
+      // Start navigation with wouter
+      setLocation(destination);
+      
+      // Set a fallback in case the navigation doesn't trigger properly
+      // This is a safety net that will redirect after a short delay
+      setTimeout(() => {
+        // If we're still on the same page after 500ms, use direct navigation
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('/practice') || currentPath.includes('/quick')) {
+          console.log("Fallback navigation required, using window.location.href");
+          window.location.href = destination;
+        }
+      }, 500);
+    } catch (error) {
+      console.error("Navigation error:", error);
+      
+      // Final fallback: direct navigation
+      try {
+        // Determine the base path, fallback to the root if all else fails
+        const basePath = `/users/${validUserId}`;
+        const destination = isQuickPractice 
+          ? `${basePath}/thoughts`
+          : `${basePath}/reframe-coach`;
+        
+        // Use direct navigation as fallback
+        window.location.href = destination;
+      } catch (finalError) {
+        console.error("Final navigation fallback error:", finalError);
+        // Ultimate fallback - just go to the home page
+        window.location.href = "/";
+      }
+    }
   };
   
   // First check for missing required parameters - but only after we've loaded
