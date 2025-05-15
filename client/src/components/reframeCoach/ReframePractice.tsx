@@ -706,7 +706,25 @@ const ReframePractice = ({
     if (practiceComplete && !recordResultsMutation.isPending && !gameUpdates) {
       const correctAnswers = userChoices.filter(choice => choice.isCorrect).length;
       
-      recordResultsMutation.mutate({
+      console.log("Preparing to save practice results:", {
+        userChoices,
+        thoughtRecordId,
+        assignmentId,
+        userChoicesCount: userChoices.length,
+        scenariosCount: scenarios.length,
+        correctAnswers
+      });
+      
+      // Create a simplified version of userChoices for debugging
+      const userChoicesForSubmission = userChoices.map((choice) => ({
+        scenarioIndex: choice.scenarioIndex,
+        selectedOptionIndex: choice.selectedOptionIndex,
+        isCorrect: choice.isCorrect,
+        timeSpent: choice.timeSpent || 0
+      }));
+      
+      // Create submission payload
+      const submissionData = {
         ...(assignmentId ? { assignmentId } : {}),
         thoughtRecordId: thoughtRecordId || null,
         userId: currentUserId || null,
@@ -714,10 +732,14 @@ const ReframePractice = ({
         correctAnswers,
         totalQuestions: scenarios.length,
         streakCount: 1, // This will be calculated on the server based on previous results
-        timeSpent: userChoices.reduce((total, choice) => total + choice.timeSpent, 0),
-        scenarioData: scenarios,
-        userChoices
-      });
+        timeSpent: userChoicesForSubmission.reduce((total, choice) => total + (choice.timeSpent || 0), 0),
+        scenarioData: scenarios || [],
+        userChoices: userChoicesForSubmission || [],
+      };
+      
+      console.log("Submitting practice results:", submissionData);
+      
+      recordResultsMutation.mutate(submissionData);
     }
   }, [practiceComplete, recordResultsMutation.isPending, gameUpdates]);
   

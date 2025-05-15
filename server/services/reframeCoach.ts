@@ -591,4 +591,30 @@ export function registerReframeCoachRoutes(app: Express): void {
       res.status(500).json({ message: "Failed to fetch practice results" });
     }
   });
+  
+  // DEBUG ENDPOINT: Get all practice results for diagnostic purposes
+  app.get("/api/debug/reframe-coach/results", authenticate, async (req: Request, res: Response) => {
+    try {
+      // Only allow admin access
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      // Query all practice results, limit to 20 most recent
+      const results = await db
+        .select()
+        .from(reframePracticeResults)
+        .orderBy(desc(reframePracticeResults.createdAt))
+        .limit(20);
+      
+      res.status(200).json({
+        message: "Practice results retrieved for debugging",
+        count: results.length,
+        results
+      });
+    } catch (error) {
+      console.error("Error retrieving debug practice results:", error);
+      res.status(500).json({ message: "Failed to retrieve practice results for debugging" });
+    }
+  });
 }
