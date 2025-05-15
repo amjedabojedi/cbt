@@ -389,10 +389,13 @@ const PracticeResults = ({
             </Alert>
           )}
           
-          <div className="flex justify-center">
-            <Button onClick={onStartNew} className="mt-4">
-              {isQuickPractice ? "Return to Thought Records" : "Back to Reframe Coach"}
+          <div className="flex justify-center flex-col items-center">
+            <Button onClick={onStartNew} className="mt-4 px-6 py-2 text-base">
+              {isQuickPractice ? "Return to Thought Records" : "Back to Reframe Coach Dashboard"}
             </Button>
+            <p className="text-sm text-muted-foreground mt-2">
+              Your practice results have been saved
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -675,19 +678,23 @@ const ReframePractice = ({
     // Navigate back to thought records or reframe coach dashboard
     console.log("Starting new practice - navigating back", {
       currentUserId,
-      userId: user?.id
+      userId: user?.id,
+      isQuickPractice,
+      thoughtRecordId
     });
     
     // Make sure we have a valid user ID to navigate with
     const validUserId = currentUserId || user?.id || 0;
     
-    if (isQuickPractice && thoughtRecordId) {
-      // If this was a quick practice from a thought record, go back to thought records
-      setLocation(`/users/${validUserId}/thoughts`);
-    } else {
-      // Otherwise, navigate to reframe coach dashboard
-      setLocation(`/users/${validUserId}/reframe-coach`);
-    }
+    // Track where we're going for debugging
+    const destination = isQuickPractice 
+      ? `/users/${validUserId}/thoughts`
+      : `/users/${validUserId}/reframe-coach`;
+    
+    console.log(`Navigating to: ${destination}`);
+    
+    // First force a page reload to clear any stale state
+    window.location.href = destination;
   };
   
   // First check for missing required parameters - but only after we've loaded
