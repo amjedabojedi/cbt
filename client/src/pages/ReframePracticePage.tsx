@@ -8,6 +8,26 @@ import ReframePractice from "@/components/reframeCoach/ReframePractice";
 import { Loader2, ArrowLeft, AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
+// Helper function to format cognitive distortion names for display
+function formatCognitiveDistortion(distortion: string): string {
+  if (!distortion) return "Unknown";
+  
+  // Handle special cases like hyphenated names
+  if (distortion === "emotional-reasoning") return "Emotional Reasoning";
+  if (distortion === "mind-reading") return "Mind Reading";
+  if (distortion === "fortune-telling") return "Fortune Telling";
+  if (distortion === "all-or-nothing") return "All or Nothing";
+  if (distortion === "should-statements") return "Should Statements";
+  if (distortion === "unknown") return "Cognitive Distortion";
+  
+  // General case: convert kebab-case or snake_case to Title Case
+  return distortion
+    .replace(/[-_]/g, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 const ReframePracticePage = () => {
   const { user } = useAuth();
   const params = useParams();
@@ -195,9 +215,9 @@ const ReframePracticePage = () => {
     { 
       id: (thoughtRecord as any)?.id || 0,
       userId: (thoughtRecord as any)?.userId || userId || 0,
-      automaticThoughts: (thoughtRecord as any)?.automaticThoughts || "No thought content available",
+      automaticThoughts: (thoughtRecord as any)?.automaticThoughts || "",
       cognitiveDistortions: Array.isArray((thoughtRecord as any)?.cognitiveDistortions) ? 
-        (thoughtRecord as any)?.cognitiveDistortions : ["unknown"],
+        (thoughtRecord as any)?.cognitiveDistortions : [],
       alternativePerspective: (thoughtRecord as any)?.alternativePerspective || "Consider a more balanced view of the situation",
       evidenceFor: (thoughtRecord as any)?.evidenceFor || "",
       evidenceAgainst: (thoughtRecord as any)?.evidenceAgainst || "",
@@ -315,9 +335,13 @@ const ReframePracticePage = () => {
               <Card className="mb-6">
                 <CardHeader>
                   <CardTitle>Cognitive Restructuring Practice</CardTitle>
-                  {isQuickPractice && (
+                  {isQuickPractice && thoughtRecord && (
                     <CardDescription>
-                      Working with your thought: <span className="font-medium">{thoughtRecordData.automaticThoughts.substring(0, 80)}...</span>
+                      Working with your thought: <span className="font-medium">
+                        {(thoughtRecord as any)?.automaticThoughts?.length > 0 
+                          ? `${(thoughtRecord as any).automaticThoughts.substring(0, 80)}${(thoughtRecord as any).automaticThoughts.length > 80 ? '...' : ''}` 
+                          : 'Loading thought content...'}
+                      </span>
                     </CardDescription>
                   )}
                 </CardHeader>
@@ -327,15 +351,24 @@ const ReframePracticePage = () => {
                     You'll be presented with scenarios and asked to select the most helpful reframing option.
                   </p>
                   
-                  {isQuickPractice && thoughtRecordData.cognitiveDistortions && thoughtRecordData.cognitiveDistortions.length > 0 && (
+                  {isQuickPractice && practiceScenarios && Array.isArray((practiceScenarios as any)?.scenarios) && (practiceScenarios as any).scenarios.length > 0 && (
                     <div className="mt-3 p-3 rounded-md bg-amber-50 border border-amber-100">
                       <h4 className="text-sm font-medium text-amber-800 mb-1">Cognitive Distortions Identified:</h4>
                       <div className="flex flex-wrap gap-1">
-                        {thoughtRecordData.cognitiveDistortions.map((distortion: string, idx: number) => (
-                          <span key={idx} className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800">
-                            {distortion}
-                          </span>
+                        {(practiceScenarios as any).scenarios.map((scenario: any, scenarioIdx: number) => (
+                          scenario.cognitiveDistortion && (
+                            <span key={scenarioIdx} className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800">
+                              {formatCognitiveDistortion(scenario.cognitiveDistortion)}
+                            </span>
+                          )
                         ))}
+                        {thoughtRecordData.cognitiveDistortions && thoughtRecordData.cognitiveDistortions.length > 0 && 
+                          thoughtRecordData.cognitiveDistortions.map((distortion: string, idx: number) => (
+                            <span key={`td-${idx}`} className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800">
+                              {distortion}
+                            </span>
+                          ))
+                        }
                       </div>
                     </div>
                   )}
