@@ -390,12 +390,17 @@ const PracticeResults = ({
           )}
           
           <div className="flex justify-center flex-col items-center">
-            <Button onClick={onStartNew} className="mt-4 px-6 py-2 text-base">
+            <Alert className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 mb-4">
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <AlertTitle>Results Saved</AlertTitle>
+              <AlertDescription>
+                Your practice results have been saved successfully. Your progress is being tracked!
+              </AlertDescription>
+            </Alert>
+            
+            <Button onClick={onStartNew} className="mt-2 px-6 py-2 text-base">
               {isQuickPractice ? "Return to Thought Records" : "Back to Reframe Coach Dashboard"}
             </Button>
-            <p className="text-sm text-muted-foreground mt-2">
-              Your practice results have been saved
-            </p>
           </div>
         </CardContent>
       </Card>
@@ -684,11 +689,12 @@ const ReframePractice = ({
         }
       }
       
-      // Show confirmation toast
+      // Show confirmation toast with more detailed information
       toast({
         title: "Practice Complete",
-        description: "Your results have been saved successfully!",
-        variant: "default"
+        description: "Your results have been saved successfully! Your progress is being tracked in your profile.",
+        variant: "default", // Using default instead of success as it's in the allowed variants
+        duration: 5000 // Show for 5 seconds to ensure user sees it
       });
     },
     onError: (error: Error) => {
