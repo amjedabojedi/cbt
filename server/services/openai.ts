@@ -4,6 +4,16 @@ import crypto from "crypto";
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// Simple cache for reframing practice scenarios
+const practiceScenarioCache = new Map<string, { data: any, timestamp: number }>();
+const SCENARIO_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+// Helper function to create a cache key
+function createScenarioCacheKey(thought: string, distortions: string[], emotion: string, instructions?: string): string {
+  const data = JSON.stringify({ thought, distortions, emotion, instructions });
+  return crypto.createHash('md5').update(data).digest('hex');
+}
+
 // Type definitions for reframe practice scenarios
 export interface ReframeScenario {
   scenario: string;
@@ -289,6 +299,19 @@ export async function generateReframePracticeScenarios(
   customInstructions?: string
 ): Promise<ReframePracticeSession> {
   try {
+    // Check if we have a cached result
+    const cacheKey = createScenarioCacheKey(automaticThought, cognitiveDistortions, emotionCategory, customInstructions);
+    const cachedResult = practiceScenarioCache.get(cacheKey);
+    
+    // If we have a valid cache entry that hasn't expired
+    if (cachedResult && (Date.now() - cachedResult.timestamp < SCENARIO_CACHE_TTL)) {
+      console.log("CACHE HIT! Using cached practice scenarios");
+      return cachedResult.data as ReframePracticeSession;
+    }
+    
+    // If not in cache, proceed with generating new scenarios
+    console.log("No cache hit. Generating new practice scenarios via OpenAI...");
+    
     // Format cognitive distortions for better readability
     const formattedDistortions = cognitiveDistortions.map(distortion => {
       // Convert kebab-case to readable format (e.g., "emotional-reasoning" to "Emotional Reasoning")
