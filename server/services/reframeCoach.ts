@@ -41,14 +41,15 @@ const createReframePracticeSchema = z.object({
 // Zod schema for recording practice results
 const recordPracticeResultSchema = z.object({
   assignmentId: z.number().optional(),
-  thoughtRecordId: z.number(),
+  thoughtRecordId: z.number().nullable().optional(), // Make thoughtRecordId optional to match our usage
+  userId: z.number().optional(), // Add userId field which is passed from the client
   score: z.number(),
   correctAnswers: z.number(),
   totalQuestions: z.number(),
-  streakCount: z.number().optional(),
-  timeSpent: z.number().optional(),
-  scenarioData: z.any(),
-  userChoices: z.any()
+  streakCount: z.number().optional().default(0),
+  timeSpent: z.number().optional().default(0),
+  scenarioData: z.any().optional(),
+  userChoices: z.any().optional()
 });
 
 /**
@@ -592,29 +593,36 @@ export function registerReframeCoachRoutes(app: Express): void {
     }
   });
   
-  // DEBUG ENDPOINT: Get all practice results for diagnostic purposes
-  app.get("/api/debug/reframe-coach/results", authenticate, async (req: Request, res: Response) => {
+  // ADMIN DEBUG ENDPOINT: Get all practice results for diagnosis
+  app.get("/api/admin/debug/reframe-coach/results", authenticate, async (req: Request, res: Response) => {
     try {
       // Only allow admin access
-      if (req.user.role !== 'admin') {
+      if (req.user?.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
       
-      // Query all practice results, limit to 20 most recent
+      // Get total count
+      const [{ count }] = await db
+        .select({ count: count() })
+        .from(reframePracticeResults);
+      
+      // Get most recent results
       const results = await db
         .select()
         .from(reframePracticeResults)
         .orderBy(desc(reframePracticeResults.createdAt))
-        .limit(20);
+        .limit(10);
       
       res.status(200).json({
         message: "Practice results retrieved for debugging",
-        count: results.length,
-        results
+        totalCount: count,
+        recentResults: results
       });
     } catch (error) {
       console.error("Error retrieving debug practice results:", error);
       res.status(500).json({ message: "Failed to retrieve practice results for debugging" });
     }
   });
+  
+
 }
