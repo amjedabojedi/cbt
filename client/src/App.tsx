@@ -43,6 +43,7 @@ const ReframePracticePage = lazy(() => import("@/pages/ReframePracticePage"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const UserManagement = lazy(() => import("@/pages/UserManagement"));
 const SubscriptionManagement = lazy(() => import("@/pages/SubscriptionManagement"));
+const ReframeAnalytics = lazy(() => import("@/pages/admin/ReframeAnalyticsPage"));
 
 // Import the ProtectedRoute component
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -132,6 +133,11 @@ function Router() {
           <ProtectedRoute 
             path="/emotion-mapping" 
             component={EmotionMapping} 
+            allowedRoles={["admin"]} 
+          />
+          <ProtectedRoute 
+            path="/admin/reframe-analytics" 
+            component={ReframeAnalytics} 
             allowedRoles={["admin"]} 
           />
           
