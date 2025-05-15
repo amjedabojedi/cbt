@@ -36,7 +36,7 @@ const InvitationLinks = lazy(() => import("@/pages/InvitationLinks"));
 // Recommendations pages removed - will be added back when feature is ready
 
 // Reframe Coach pages
-// Removed ReframeCoachDashboard import as we now access practice directly from thought records
+const ReframeCoachDashboard = lazy(() => import("@/pages/ReframeCoachPage"));
 const ReframePracticePage = lazy(() => import("@/pages/ReframePracticePage"));
 
 // Admin pages
@@ -96,7 +96,8 @@ function Router() {
           <ProtectedRoute path="/journal" component={Journal} />
           <ProtectedRoute path="/reports" component={Reports} />
           
-          {/* Reframe Coach routes - accessible only via direct links */}
+          {/* Reframe Coach routes */}
+          <ProtectedRoute path="/reframe-coach" component={ReframeCoachDashboard} />
           <ProtectedRoute path="/reframe-coach/practice" component={ReframePracticePage} />
           <ProtectedRoute path="/reframe-coach/practice/:assignmentId" component={ReframePracticePage} />
           <ProtectedRoute path="/users/:userId/reframe-coach/practice/:thoughtId" component={ReframePracticePage} />

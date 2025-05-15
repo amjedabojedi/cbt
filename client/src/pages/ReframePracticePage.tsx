@@ -290,6 +290,12 @@ const ReframePracticePage = () => {
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                   <Button
                     variant="default"
+                    onClick={() => window.location.href = '/reframe-coach'}
+                  >
+                    Return to Reframe Coach
+                  </Button>
+                  <Button
+                    variant="outline"
                     onClick={() => window.location.href = '/thoughts'}
                   >
                     Return to Thought Records

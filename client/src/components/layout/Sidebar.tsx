@@ -53,6 +53,7 @@ export default function Sidebar() {
       { href: "/thoughts", label: "Thought Records", icon: <Brain size={20} /> },
       { href: "/journal", label: "Journal", icon: <BookMarked size={20} /> },
       { href: "/goals", label: "SMART Goals", icon: <Flag size={20} /> },
+      { href: "/reframe-coach", label: "Reframe Coach", icon: <Lightbulb size={20} /> },
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
       { href: "/reports", label: "My Progress", icon: <BarChart size={20} /> },
     ];
