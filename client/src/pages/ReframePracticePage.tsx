@@ -262,9 +262,19 @@ const ReframePracticePage = () => {
             Back
           </Button>
           
-          {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          {isLoading || isLoadingScenarios ? (
+            <div className="flex flex-col justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+              <p className="text-muted-foreground text-center">
+                {isLoadingScenarios ? 
+                  "Generating practice scenarios based on your thought record. This may take up to 30 seconds..." : 
+                  "Loading..."}
+              </p>
+              {isLoadingScenarios && (
+                <div className="max-w-md mt-6 w-full bg-muted rounded-full h-2.5 dark:bg-gray-700 overflow-hidden">
+                  <div className="bg-primary h-2.5 rounded-full animate-progress"></div>
+                </div>
+              )}
             </div>
           ) : navigateToThoughts ? (
             <Card className="bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 mb-6">
