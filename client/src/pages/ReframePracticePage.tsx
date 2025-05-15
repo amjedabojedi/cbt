@@ -348,44 +348,24 @@ const ReframePracticePage = () => {
               
               {/* Reframe Practice Component with explicitly passed parameters */}
               {isQuickPractice ? (
-                // For quick practice, we'll directly generate scenarios in the component
-                // instead of relying on separate API calls that may fail
-                <ReframePractice 
-                  userId={userId} 
-                  thoughtRecordId={thoughtId}
-                  practiceScenarios={{
-                    scenarios: [
-                      {
-                        scenario: `Practice reframing this thought: "${thoughtRecordData.automaticThoughts}"`,
-                        cognitiveDistortion: Array.isArray(thoughtRecordData.cognitiveDistortions) && 
-                          thoughtRecordData.cognitiveDistortions.length > 0 ? 
-                          thoughtRecordData.cognitiveDistortions[0] : "unknown",
-                        emotionCategory: "unknown",
-                        options: [
-                          {
-                            text: `${thoughtRecordData.alternativePerspective || "Consider a more balanced view of the situation."}`,
-                            isCorrect: true,
-                            explanation: "This is a more balanced perspective."
-                          },
-                          {
-                            text: `${thoughtRecordData.automaticThoughts}`,
-                            isCorrect: false,
-                            explanation: "This repeats the unhelpful thought pattern."
-                          },
-                          {
-                            text: "I should ignore these thoughts completely.",
-                            isCorrect: false,
-                            explanation: "Ignoring thoughts doesn't help address them constructively."
-                          }
-                        ]
-                      }
-                    ],
-                    thoughtContent: thoughtRecordData.automaticThoughts,
-                    generalFeedback: "Remember that practicing reframing takes time. Each attempt helps build your skills."
-                  }}
-                  isQuickPractice={true}
-                />
+                // For quick practice, we'll use the API-generated scenarios from the server
+                // This ensures we get content relevant to the actual thought record
+                practiceScenarios ? (
+                  <ReframePractice 
+                    userId={userId} 
+                    thoughtRecordId={thoughtId}
+                    isQuickPractice={true}
+                    practiceScenarios={practiceScenarios}
+                  />
+                ) : (
+                  // Show loading state while waiting for scenarios to be generated
+                  <div className="flex justify-center items-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <span className="ml-3 text-muted-foreground">Generating relevant practice scenarios...</span>
+                  </div>
+                )
               ) : (
+                // For assignment-based practice
                 <ReframePractice 
                   userId={userId} 
                   thoughtRecordId={thoughtId}

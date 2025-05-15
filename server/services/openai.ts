@@ -309,26 +309,30 @@ export async function generateReframePracticeScenarios(
 
     This thought involves these cognitive distortions: ${formattedDistortions.join(", ")}
     The primary emotion associated with this thought is: ${emotionCategory}
-    ${customInstructions ? `Additional therapist instructions: ${customInstructions}` : ""}
+    ${customInstructions ? `Additional context and instructions: ${customInstructions}` : ""}
 
     Please generate a cognitive restructuring practice session with 3 different scenarios.
     Each scenario should:
-    1. Present a realistic situation where the same thought pattern might occur
-    2. Provide 4 possible reframing options (1 correct, 3 incorrect)
-    3. For each option, include an explanation of why it's helpful or unhelpful
-    4. Make the scenarios progressively more challenging
-    5. Use gamification elements like scoring, streaks, and mastery levels
+    1. Present a realistic situation that directly relates to the original thought and distortions
+    2. Ensure the scenarios feel personally relevant to the user's specific situation
+    3. Provide 4 possible reframing options (1 correct, 3 incorrect)
+    4. For each option, include an explanation of why it's helpful or unhelpful
+    5. Make the scenarios progressively more challenging
+    6. Use examples that clearly demonstrate the specific cognitive distortions mentioned
+    
+    IMPORTANT: The scenarios MUST be closely connected to the themes, situations, and content of the original thought.
+    Do NOT create generic scenarios - make them highly specific to the user's thought content.
     
     The correct option should demonstrate effective cognitive restructuring that:
-    - Challenges the distorted thinking pattern
-    - Considers evidence and alternative perspectives
-    - Uses balanced, realistic thinking
-    - Promotes self-compassion
+    - Directly challenges the specific distorted thinking pattern(s) in the original thought
+    - Considers the evidence for and against the thought
+    - Uses balanced, realistic thinking based on the alternative perspective provided
+    - Promotes self-compassion and growth
     
     The incorrect options should:
-    - Show subtle ways people might maintain unhelpful thought patterns
-    - Include examples of other cognitive distortions
-    - Vary in how obviously incorrect they are
+    - Show subtle ways people might maintain the exact same distortions present in the original thought
+    - Include examples that feel realistic but reinforce unhelpful patterns
+    - Vary in how obviously incorrect they are, with some being subtle traps
     - Feel plausible but ultimately unhelpful
 
     Return the response as a JSON object with this structure:

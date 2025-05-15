@@ -500,12 +500,26 @@ export function registerReframeCoachRoutes(app: Express): void {
           : ["unknown"];
       
       console.log("Normalized distortions:", normalizedDistortions);
+      
+      // Add more detailed logging to debug thought content
+      console.log("Thought record content being sent to OpenAI:", {
+        automaticThoughts: thoughtRecord.automaticThoughts,
+        cognitiveDistortions: normalizedDistortions,
+        emotionCategory: emotionCategory,
+        alternativePerspective: thoughtRecord.alternativePerspective,
+        evidenceFor: thoughtRecord.evidenceFor,
+        evidenceAgainst: thoughtRecord.evidenceAgainst
+      });
           
-      // Generate practice scenarios
+      // Generate practice scenarios with enhanced instructions for more relevant scenarios
       const practiceSession = await generateReframePracticeScenarios(
-        thoughtRecord.automaticThoughts,
+        thoughtRecord.automaticThoughts || "No thought content available",
         normalizedDistortions,
-        emotionCategory
+        emotionCategory,
+        `Make the scenarios closely related to the following situation and evidence: 
+         Evidence for the thought: ${thoughtRecord.evidenceFor || "Not specified"}
+         Evidence against the thought: ${thoughtRecord.evidenceAgainst || "Not specified"}
+         Alternative perspective: ${thoughtRecord.alternativePerspective || "Not specified"}`
       );
       
       res.json(practiceSession);
