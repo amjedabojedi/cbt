@@ -415,24 +415,26 @@ export default function ThoughtRecordsList({
                   Created on {format(new Date(selectedRecord.createdAt), "MMMM d, yyyy 'at' h:mm a")}
                 </span>
                 <div className="flex items-center gap-2">
-                  <Button 
-                    onClick={() => {
-                      console.log("Quick Practice clicked with params:", {
-                        thoughtId: selectedRecord.id,
-                        userId: activeUserId,
-                        recordData: selectedRecord
-                      });
-                      // Add isQuickPractice as part of the pathname instead of a query parameter
-                      // This ensures it's correctly recognized as a route parameter
-                      window.location.href = `/reframe-coach/practice/quick/${selectedRecord.id}?userId=${activeUserId}`;
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-1.5"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    <span>Quick Practice</span>
-                  </Button>
+                  {showPracticeButton && (
+                    <Button 
+                      onClick={() => {
+                        console.log("Quick Practice clicked with params:", {
+                          thoughtId: selectedRecord.id,
+                          userId: targetUserId,
+                          recordData: selectedRecord
+                        });
+                        // Add isQuickPractice as part of the pathname instead of a query parameter
+                        // This ensures it's correctly recognized as a route parameter
+                        window.location.href = `/reframe-coach/practice/quick/${selectedRecord.id}?userId=${targetUserId}`;
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1.5"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span>Quick Practice</span>
+                    </Button>
+                  )}
                   <Button 
                     onClick={() => setShowReframeDialog(true)}
                     variant="secondary"
