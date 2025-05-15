@@ -149,12 +149,12 @@ const ReframePracticePage = () => {
   });
   
   // Extended type to include fromCache flag
-  type ExtendedPracticeSession = {
+  interface ExtendedPracticeSession {
     scenarios: any[];
     thoughtContent: string;
     generalFeedback: string;
     fromCache?: boolean;
-  };
+  }
   
   // Check if the results are coming from cache
   const isFromCache = (practiceScenarios as ExtendedPracticeSession | undefined)?.fromCache === true;
