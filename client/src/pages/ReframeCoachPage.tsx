@@ -5,13 +5,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import ThoughtRecordsList from "@/components/thought/ThoughtRecordsList";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ThoughtRecord } from "@shared/schema";
 
 const ReframeCoachPage = () => {
   const { user } = useAuth();
   const userId = user?.id;
 
   // Fetch thought records for the user
-  const { data: thoughtRecords, isLoading } = useQuery({
+  const { data: thoughtRecords, isLoading } = useQuery<ThoughtRecord[]>({
     queryKey: [`/api/users/${userId}/thoughts`],
     enabled: !!userId,
   });
@@ -36,7 +37,7 @@ const ReframeCoachPage = () => {
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : thoughtRecords?.length > 0 ? (
+        ) : (thoughtRecords && thoughtRecords.length > 0) ? (
           <ThoughtRecordsList 
             thoughtRecords={thoughtRecords} 
             userId={userId}
