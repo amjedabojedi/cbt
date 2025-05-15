@@ -36,7 +36,7 @@ const InvitationLinks = lazy(() => import("@/pages/InvitationLinks"));
 // Recommendations pages removed - will be added back when feature is ready
 
 // Reframe Coach pages
-const ReframeCoachDashboard = lazy(() => import("@/pages/ReframeCoachPage"));
+// Removed ReframeCoachDashboard import as we now access practice directly from thought records
 const ReframePracticePage = lazy(() => import("@/pages/ReframePracticePage"));
 
 // Admin pages
