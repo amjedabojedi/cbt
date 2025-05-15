@@ -335,13 +335,13 @@ const ReframePracticePage = () => {
               <Card className="mb-6">
                 <CardHeader>
                   <CardTitle>Cognitive Restructuring Practice</CardTitle>
-                  {isQuickPractice && thoughtRecord && (
+                  {isQuickPractice && (
                     <CardDescription>
                       Working with your thought: <span className="font-medium">
-                        {thoughtRecord && (thoughtRecord as any).automaticThoughts 
+                        {thoughtRecord && (thoughtRecord as any).automaticThoughts && (thoughtRecord as any).automaticThoughts !== "No thought content available"
                           ? `${(thoughtRecord as any).automaticThoughts.substring(0, 80)}${(thoughtRecord as any).automaticThoughts.length > 80 ? '...' : ''}` 
-                          : thoughtRecordData && thoughtRecordData.automaticThoughts
-                            ? `${thoughtRecordData.automaticThoughts.substring(0, 80)}${thoughtRecordData.automaticThoughts.length > 80 ? '...' : ''}` 
+                          : practiceScenarios && Array.isArray((practiceScenarios as any)?.scenarios) && (practiceScenarios as any).scenarios.length > 0
+                            ? "Practice scenarios based on cognitive distortions found in your thought record" 
                             : 'Please select a thought record'}
                       </span>
                     </CardDescription>
