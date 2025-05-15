@@ -300,7 +300,7 @@ export async function generateReframePracticeScenarios(
   cognitiveDistortions: string[],
   emotionCategory: string,
   customInstructions?: string
-): Promise<ReframePracticeSession> {
+): Promise<ReframePracticeSession & { fromCache?: boolean }> {
   try {
     // Check if we have a cached result
     const cacheKey = createScenarioCacheKey(automaticThought, cognitiveDistortions, emotionCategory, customInstructions);
