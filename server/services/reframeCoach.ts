@@ -314,7 +314,8 @@ export function registerReframeCoachRoutes(app: Express): void {
           correctAnswers: validatedData.correctAnswers,
           totalQuestions: validatedData.totalQuestions,
           streakCount: validatedData.streakCount || 0,
-          timeSpent: validatedData.timeSpent,
+          // The field is named time_spent_seconds in the database but timeSpent in the schema
+          time_spent_seconds: validatedData.timeSpent,
           scenarioData: validatedData.scenarioData,
           userChoices: validatedData.userChoices
         })
