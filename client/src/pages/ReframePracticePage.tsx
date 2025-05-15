@@ -202,7 +202,7 @@ const ReframePracticePage = () => {
   const defaultThoughtRecord: ThoughtRecordType = {
     id: 0,
     userId: userId || 0,
-    automaticThoughts: "No thought content available",
+    automaticThoughts: "",
     cognitiveDistortions: ["unknown"],
     alternativePerspective: "Consider a more balanced view of the situation",
     evidenceFor: "",
@@ -242,11 +242,12 @@ const ReframePracticePage = () => {
     fullLocation: location
   });
   
+  // Make sure we never display "No thought content available" in the title
   const title = assignment 
     ? "Reframe Practice Assignment" 
-    : thoughtRecordData.automaticThoughts 
+    : (thoughtRecordData.automaticThoughts && thoughtRecordData.automaticThoughts !== "No thought content available")
       ? `Practice: ${thoughtRecordData.automaticThoughts.slice(0, 50)}${thoughtRecordData.automaticThoughts.length > 50 ? '...' : ''}`
-      : "Reframe Practice";
+      : "Cognitive Restructuring Practice";
 
   return (
     <AppLayout title={title}>
@@ -295,7 +296,7 @@ const ReframePracticePage = () => {
               <CardContent>
                 <p className="text-muted-foreground">
                   {isQuickPractice 
-                    ? `We couldn't generate practice scenarios for thought record #${thoughtId}. Please try again later.`
+                    ? `We couldn't generate practice scenarios for this thought record. It may have insufficient content or no cognitive distortions identified. Try selecting a different thought record with clearer cognitive distortions.`
                     : `We couldn't find practice assignment #${assignmentId}. It may have been deleted or you may not have permission to access it.`
                   }
                 </p>
