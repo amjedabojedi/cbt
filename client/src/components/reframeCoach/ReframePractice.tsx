@@ -654,7 +654,7 @@ const ReframePractice = ({
       const correctAnswers = userChoices.filter(choice => choice.isCorrect).length;
       
       recordResultsMutation.mutate({
-        assignmentId: assignmentId || null,
+        ...(assignmentId ? { assignmentId } : {}),
         thoughtRecordId: thoughtRecordId || null,
         userId: currentUserId || null,
         score: totalScore,

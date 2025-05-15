@@ -308,7 +308,7 @@ export function registerReframeCoachRoutes(app: Express): void {
         .insert(reframePracticeResults)
         .values({
           userId,
-          assignmentId: validatedData.assignmentId,
+          ...(validatedData.assignmentId ? { assignmentId: validatedData.assignmentId } : {}),
           thoughtRecordId: validatedData.thoughtRecordId,
           score: validatedData.score,
           correctAnswers: validatedData.correctAnswers,
