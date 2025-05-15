@@ -2,10 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import Header from "@/components/layout/Header";
 import { useQuery } from "@tanstack/react-query";
 import ReframePractice from "@/components/reframeCoach/ReframePractice";
-import { Loader2, ArrowLeft, AlertCircle } from "lucide-react";
+import { Loader2, ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import AppLayout from "@/components/layout/AppLayout";
 
@@ -423,7 +422,7 @@ const ReframePracticePage = () => {
           )}
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
