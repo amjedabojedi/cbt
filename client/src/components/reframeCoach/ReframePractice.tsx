@@ -670,8 +670,22 @@ const ReframePractice = ({
   
   // Function to start a new practice session
   const handleStartNew = () => {
-    // Navigate back to thought records
-    setLocation(`/users/${currentUserId || user?.id || ''}/thoughts`);
+    // Navigate back to thought records or reframe coach dashboard
+    console.log("Starting new practice - navigating back", {
+      currentUserId,
+      userId: user?.id
+    });
+    
+    // Make sure we have a valid user ID to navigate with
+    const validUserId = currentUserId || user?.id || 0;
+    
+    if (isQuickPractice && thoughtRecordId) {
+      // If this was a quick practice from a thought record, go back to thought records
+      setLocation(`/users/${validUserId}/thoughts`);
+    } else {
+      // Otherwise, navigate to reframe coach dashboard
+      setLocation(`/users/${validUserId}/reframe-coach`);
+    }
   };
   
   // First check for missing required parameters - but only after we've loaded
