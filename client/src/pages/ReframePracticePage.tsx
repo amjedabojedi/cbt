@@ -338,9 +338,11 @@ const ReframePracticePage = () => {
                   {isQuickPractice && thoughtRecord && (
                     <CardDescription>
                       Working with your thought: <span className="font-medium">
-                        {(thoughtRecord as any)?.automaticThoughts?.length > 0 
+                        {thoughtRecord && (thoughtRecord as any).automaticThoughts 
                           ? `${(thoughtRecord as any).automaticThoughts.substring(0, 80)}${(thoughtRecord as any).automaticThoughts.length > 80 ? '...' : ''}` 
-                          : 'Loading thought content...'}
+                          : thoughtRecordData && thoughtRecordData.automaticThoughts
+                            ? `${thoughtRecordData.automaticThoughts.substring(0, 80)}${thoughtRecordData.automaticThoughts.length > 80 ? '...' : ''}` 
+                            : 'Please select a thought record'}
                       </span>
                     </CardDescription>
                   )}
@@ -351,7 +353,7 @@ const ReframePracticePage = () => {
                     You'll be presented with scenarios and asked to select the most helpful reframing option.
                   </p>
                   
-                  {isQuickPractice && practiceScenarios && Array.isArray((practiceScenarios as any)?.scenarios) && (practiceScenarios as any).scenarios.length > 0 && (
+                  {isQuickPractice && practiceScenarios && Array.isArray((practiceScenarios as any)?.scenarios) && (practiceScenarios as any).scenarios.length > 0 ? (
                     <div className="mt-3 p-3 rounded-md bg-amber-50 border border-amber-100">
                       <h4 className="text-sm font-medium text-amber-800 mb-1">Cognitive Distortions Identified:</h4>
                       <div className="flex flex-wrap gap-1">
@@ -382,7 +384,7 @@ const ReframePracticePage = () => {
                         })()}
                       </div>
                     </div>
-                  )}
+                  ) : null}
                   
                   <p className="mt-2 text-muted-foreground">
                     Each correct answer earns points, and you can track your progress over time.

@@ -170,7 +170,7 @@ export function registerReframeCoachRoutes(app: Express): void {
       
       // Ensure user is a therapist or admin
       const user = req.user;
-      if (user.role !== 'therapist' && user.role !== 'admin') {
+      if (!user || (user.role !== 'therapist' && user.role !== 'admin')) {
         return res.status(403).json({ message: "Only mental health professionals can create practice assignments" });
       }
       
@@ -286,7 +286,7 @@ export function registerReframeCoachRoutes(app: Express): void {
       }
       
       // Check if user has access (either assigned to them or assigned by them)
-      if (assignment.assignedTo !== req.user.id && assignment.assignedBy !== req.user.id) {
+      if (!req.user || (assignment.assignedTo !== req.user.id && assignment.assignedBy !== req.user.id)) {
         return res.status(403).json({ message: "You don't have permission to access this assignment" });
       }
       
