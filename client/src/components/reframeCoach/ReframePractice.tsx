@@ -321,7 +321,8 @@ const PracticeResults = ({
   gameUpdates,
   onStartNew,
   assignmentId,
-  thoughtRecordId
+  thoughtRecordId,
+  isQuickPractice
 }: { 
   userChoices: UserChoice[];
   scenarios: PracticeScenario[];
@@ -331,6 +332,7 @@ const PracticeResults = ({
   onStartNew: () => void;
   assignmentId?: number;
   thoughtRecordId?: number;
+  isQuickPractice?: boolean;
 }) => {
   const correctAnswers = userChoices.filter(choice => choice.isCorrect).length;
   
@@ -389,7 +391,7 @@ const PracticeResults = ({
           
           <div className="flex justify-center">
             <Button onClick={onStartNew} className="mt-4">
-              Start New Practice
+              {isQuickPractice ? "Return to Thought Records" : "Back to Reframe Coach"}
             </Button>
           </div>
         </CardContent>
@@ -761,6 +763,7 @@ const ReframePractice = ({
         onStartNew={handleStartNew}
         assignmentId={assignmentId}
         thoughtRecordId={thoughtRecordId}
+        isQuickPractice={isQuickPractice}
       />
     );
   }
