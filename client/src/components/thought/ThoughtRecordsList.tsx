@@ -47,9 +47,18 @@ import CreateReframePracticeForm from "@/components/reframeCoach/CreateReframePr
 interface ThoughtRecordsListProps {
   limit?: number;
   onEditRecord?: (record: ThoughtRecord) => void;
+  userId?: number;
+  thoughtRecords?: ThoughtRecord[];
+  showPracticeButton?: boolean;
 }
 
-export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecordsListProps) {
+export default function ThoughtRecordsList({ 
+  limit, 
+  onEditRecord, 
+  userId,
+  thoughtRecords: providedRecords,
+  showPracticeButton = true
+}: ThoughtRecordsListProps) {
   const { user } = useAuth();
   const { activeUserId, isViewingClientData } = useActiveUser();
   const [selectedRecord, setSelectedRecord] = useState<ThoughtRecord | null>(null);
@@ -61,11 +70,15 @@ export default function ThoughtRecordsList({ limit, onEditRecord }: ThoughtRecor
   const queryClient = useQueryClient();
   const [_, navigate] = useLocation(); // Used for navigation to different pages
   
-  // Fetch thought records for the active user (could be a client viewed by a therapist)
-  const { data: thoughtRecords, isLoading, error } = useQuery<ThoughtRecord[]>({
-    queryKey: activeUserId ? [`/api/users/${activeUserId}/thoughts`] : [],
-    enabled: !!activeUserId,
+  // Fetch thought records for the active user (could be a client viewed by a therapist) if not provided
+  const targetUserId = userId || activeUserId;
+  const { data: fetchedRecords, isLoading, error } = useQuery<ThoughtRecord[]>({
+    queryKey: targetUserId ? [`/api/users/${targetUserId}/thoughts`] : [],
+    enabled: !!targetUserId && !providedRecords,
   });
+  
+  // Use provided records if they exist, otherwise use fetched records
+  const thoughtRecords = providedRecords || fetchedRecords;
   
   // Delete thought record mutation - only allowed for own records
   const deleteThoughtMutation = useMutation({
