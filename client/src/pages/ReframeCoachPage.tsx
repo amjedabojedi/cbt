@@ -1,9 +1,10 @@
 import React from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, BarChart3 } from "lucide-react";
 import ThoughtRecordsList from "@/components/thought/ThoughtRecordsList";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ThoughtRecord } from "@shared/schema";
 import AppLayout from "@/components/layout/AppLayout";
 
@@ -20,7 +21,16 @@ const ReframeCoachPage = () => {
   return (
     <AppLayout title="Reframe Coach">
       <div className="container max-w-4xl py-6">
-        <h2 className="text-2xl font-bold tracking-tight mb-6">Reframe Coach</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold tracking-tight">Reframe Coach</h2>
+          <Button 
+            onClick={() => window.location.href = `/users/${userId}/reframe-history`}
+            className="flex items-center"
+          >
+            <BarChart3 className="mr-2 h-4 w-4" />
+            View Practice Results
+          </Button>
+        </div>
         
         <Card className="mb-6">
           <CardHeader>
