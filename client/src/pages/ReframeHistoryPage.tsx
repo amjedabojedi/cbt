@@ -51,8 +51,8 @@ const ReframeHistoryPage = () => {
     if (isViewingOwnResults) {
       navigate("/reframe-coach");
     } else if (isTherapist) {
-      // If therapist is viewing a client's results, go back to client details
-      navigate(`/clients/${parsedUserId}`);
+      // If therapist is viewing a client's results, go back to clients page
+      navigate("/clients");
     } else {
       navigate("/");
     }
