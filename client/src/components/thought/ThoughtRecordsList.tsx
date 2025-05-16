@@ -373,8 +373,8 @@ export default function ThoughtRecordsList({
                         </Button>
                       )}
                       
-                      {/* Practice Button - If enabled */}
-                      {showPracticeButton && (
+                      {/* Practice Button for clients only - If enabled */}
+                      {showPracticeButton && !isViewingClientData && (
                         <Button 
                           size="sm"
                           onClick={() => {
@@ -385,6 +385,20 @@ export default function ThoughtRecordsList({
                         >
                           <Sparkles className="h-4 w-4 mr-1" />
                           Practice
+                        </Button>
+                      )}
+                      
+                      {/* View Practice History Button for therapists */}
+                      {isViewingClientData && (
+                        <Button 
+                          size="sm"
+                          onClick={() => {
+                            window.location.href = `/users/${targetUserId}/reframe-history`;
+                          }}
+                          className="bg-blue-500 hover:bg-blue-600 text-white"
+                        >
+                          <BookText className="h-4 w-4 mr-1" />
+                          History
                         </Button>
                       )}
                       
