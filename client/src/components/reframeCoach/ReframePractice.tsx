@@ -408,7 +408,7 @@ const PracticeResults = ({
               </Button>
               
               <Button 
-                onClick={() => window.location.href = `/users/${userId}/reframe-coach`} 
+                onClick={() => window.location.href = `/users/${userId}/reframe-history`} 
                 className="mt-2 px-6 py-2 text-base"
               >
                 View Practice History
