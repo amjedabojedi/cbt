@@ -54,10 +54,25 @@ const ReframeCoachPage = () => {
           />
         ) : (
           <Card>
-            <CardContent className="pt-6">
-              <p className="text-center text-muted-foreground">
+            <CardContent className="pt-6 text-center">
+              <p className="text-muted-foreground mb-4">
                 You don't have any thought records yet. Create a thought record first to begin practicing reframing.
               </p>
+              <div className="flex flex-col items-center">
+                <div className="mb-4 px-6 py-3 bg-muted/20 rounded-md max-w-md">
+                  <ol className="list-decimal text-left text-sm text-muted-foreground space-y-2 ml-4">
+                    <li>Create a thought record to capture your automatic thoughts</li>
+                    <li>Practice reframing those thoughts with cognitive restructuring exercises</li>
+                    <li>Track your progress and build skills over time</li>
+                  </ol>
+                </div>
+                <Button 
+                  onClick={() => window.location.href = `/users/${userId}/thoughts/new`}
+                  className="mt-2"
+                >
+                  Create Your First Thought Record
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}

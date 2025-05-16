@@ -105,26 +105,45 @@ const ReframeHistoryPage = () => {
                   ? "You haven't completed any practice sessions yet." 
                   : "This client hasn't completed any practice sessions yet."}
               </p>
-              <p className="text-sm text-muted-foreground">
-                {isViewingOwnResults 
-                  ? "Complete practice exercises to see your results and track progress." 
-                  : "You can assign practice exercises to help clients practice cognitive restructuring."}
-              </p>
-              {isViewingOwnResults && (
-                <Button 
-                  className="mt-6" 
-                  onClick={() => navigate(`/users/${parsedUserId}/thoughts`)}
-                >
-                  Start Practice
-                </Button>
-              )}
-              {!isViewingOwnResults && isTherapist && (
-                <Button 
-                  className="mt-6" 
-                  onClick={() => navigate(`/clients/${parsedUserId}/thoughts`)}
-                >
-                  View Client Thoughts
-                </Button>
+              
+              {isViewingOwnResults ? (
+                <div className="flex flex-col items-center">
+                  <div className="my-4 px-6 py-3 bg-muted/20 rounded-md max-w-md">
+                    <h4 className="font-medium text-sm mb-2">How to get started:</h4>
+                    <ol className="list-decimal text-left text-sm text-muted-foreground space-y-2 ml-4">
+                      <li>First, create a thought record to document your thoughts</li>
+                      <li>Then practice reframing those thoughts with exercises</li>
+                      <li>Your practice results will appear here to track progress</li>
+                    </ol>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button 
+                      onClick={() => navigate(`/users/${parsedUserId}/thoughts/new`)}
+                      className="sm:order-1"
+                    >
+                      Create a Thought Record
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => navigate(`/users/${parsedUserId}/thoughts`)}
+                      className="sm:order-2"
+                    >
+                      View My Thought Records
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    You can assign practice exercises to help clients practice cognitive restructuring.
+                  </p>
+                  <Button 
+                    className="mt-2" 
+                    onClick={() => navigate(`/clients/${parsedUserId}/thoughts`)}
+                  >
+                    View Client Thoughts
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>
