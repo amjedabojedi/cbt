@@ -799,8 +799,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if ((username === "lcanady" || username === "lcanady@resiliencec.com") && password === "123456") {
         console.log("Using emergency login for testing due to database issues");
         
-        // Create a manual session
-        const sessionId = crypto.randomBytes(16).toString('hex');
+        // Create a simpler session ID 
+        const sessionId = "emergency-session-" + Math.floor(Math.random() * 1000);
         
         // Store the session manually in memory
         sessions.set(sessionId, {
