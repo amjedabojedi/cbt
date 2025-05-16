@@ -99,6 +99,7 @@ function Router() {
           
           {/* Reframe Coach routes */}
           <ProtectedRoute path="/reframe-coach" component={ReframeCoachDashboard} />
+          <ProtectedRoute path="/users/:userId/reframe-coach" component={ReframeCoachDashboard} />
           <ProtectedRoute path="/reframe-coach/practice" component={ReframePracticePage} />
           <ProtectedRoute path="/reframe-coach/practice/:assignmentId" component={ReframePracticePage} />
           <ProtectedRoute path="/users/:userId/reframe-coach/practice/:thoughtId" component={ReframePracticePage} />
