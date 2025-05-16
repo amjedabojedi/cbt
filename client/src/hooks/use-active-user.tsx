@@ -9,24 +9,10 @@ import { useAuth } from "@/lib/auth";
  * 
  * Prioritizes the ClientContext (which is loaded from the database)
  * but falls back to localStorage for backward compatibility.
- * Also handles cases where ClientContext may not be available.
  */
 export default function useActiveUser() {
   const { user } = useAuth();
-  
-  // Make the ClientContext usage optional to prevent crashing
-  // This helps during emergency login scenarios when the database is down
-  let viewingClientId = null;
-  try {
-    const clientContext = useClientContext();
-    viewingClientId = clientContext.viewingClientId;
-  } catch (error) {
-    console.log("ClientContext not available in useActiveUser, using localStorage fallback");
-    const storedClientId = localStorage.getItem('viewingClientId');
-    if (storedClientId) {
-      viewingClientId = parseInt(storedClientId);
-    }
-  }
+  const { viewingClientId } = useClientContext();
   
   // Determine the active user ID to use for API calls
   function determineActiveUserId(): number | undefined {

@@ -162,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         'Pragma': 'no-cache'
       };
       
-      // Use the normal login endpoint which has emergency fallback
+      // Use mobile-specific endpoint if requested
       const endpoint = isMobileLogin ? "/api/auth/mobile-login" : "/api/auth/login";
       console.log(`Using auth endpoint: ${endpoint}`);
       

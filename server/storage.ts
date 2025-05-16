@@ -207,30 +207,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    try {
-      // First try email as username
-      const [userByEmail] = await db.select().from(users).where(eq(users.email, username));
-      if (userByEmail) return userByEmail;
-      
-      // Then try username
-      const [user] = await db.select().from(users).where(eq(users.username, username));
-      return user;
-    } catch (error) {
-      console.error("Database error in getUserByUsername:", error);
-      // If we're experiencing rate limits, wait briefly and retry once
-      if (error.message && (error.message.includes("rate limit") || error.message.includes("Control plane request failed"))) {
-        console.log("Retrying database query after brief delay...");
-        await new Promise(resolve => setTimeout(resolve, 500));
-        try {
-          const [userRetry] = await db.select().from(users).where(eq(users.username, username));
-          return userRetry;
-        } catch (retryError) {
-          console.error("Retry failed:", retryError);
-          return undefined;
-        }
-      }
-      return undefined;
-    }
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
