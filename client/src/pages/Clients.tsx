@@ -515,6 +515,13 @@ export default function Clients() {
     navigate("/dashboard");
   };
   
+  // Helper function to view a client's Reframe Coach practice history
+  const handleViewPracticeHistory = (client: User) => {
+    console.log("View Practice History clicked for client:", client);
+    // Navigate to the client's reframe coach practice history page
+    navigate(`/users/${client.id}/reframe-history`);
+  };
+  
   // Invite client mutation
   const inviteMutation = useMutation({
     mutationFn: async (data: InviteClientFormValues) => {
@@ -1130,6 +1137,15 @@ export default function Clients() {
                         >
                           <Flag className="mr-2 h-4 w-4" />
                           View Goals
+                        </Button>
+                        
+                        <Button 
+                          onClick={() => handleViewPracticeHistory(selectedClient)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <BrainCircuit className="mr-2 h-4 w-4" />
+                          View Practice Results
                         </Button>
                       </div>
                     )}
