@@ -87,7 +87,9 @@ const ReframeHistoryPage = () => {
                     </div>
                   </div>
                   <CardDescription>
-                    {result.thoughtRecordId ? `From thought record #${result.thoughtRecordId}` : 'Quick practice session'}
+                    {result.thoughtRecordId 
+                      ? `Practice based on your recorded thought on ${format(new Date(result.createdAt), 'MMM d, yyyy')}` 
+                      : 'Quick practice session'}
                   </CardDescription>
                 </CardHeader>
                 
