@@ -635,42 +635,87 @@ const ReframePractice = ({
         correctAnswers: data.correctAnswers,
       });
       
-      try {
-        // Add authentication headers as backup
-        const headers: HeadersInit = {
-          'Content-Type': 'application/json',
-        };
-        
-        // Add backup auth headers if user is authenticated 
-        if (user?.id) {
-          console.log("Adding backup auth headers to results submission", { userId: user.id });
-          headers['x-auth-user-id'] = String(user.id);
-          headers['x-auth-fallback'] = 'true';
-          headers['x-auth-timestamp'] = String(Date.now());
-        }
-        
-        const res = await fetch('/api/reframe-coach/results', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(data)
-        });
-        
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error("Error saving results:", {
-            status: res.status,
-            statusText: res.statusText,
-            errorResponse: errorText
+      // Implement retry logic for better reliability
+      const maxRetries = 3;
+      let retryCount = 0;
+      let lastError: any = null;
+      
+      while (retryCount < maxRetries) {
+        try {
+          // Add authentication headers as backup
+          const headers: HeadersInit = {
+            'Content-Type': 'application/json',
+          };
+          
+          // Add backup auth headers if user is authenticated 
+          if (user?.id) {
+            console.log(`Attempt ${retryCount + 1}: Adding backup auth headers to results submission`, { userId: user.id });
+            headers['x-auth-user-id'] = String(user.id);
+            headers['x-auth-fallback'] = 'true';
+            headers['x-auth-timestamp'] = String(Date.now());
+          }
+          
+          // Back up the results in localStorage before making the request
+          try {
+            localStorage.setItem('pendingPracticeResults', JSON.stringify({
+              timestamp: Date.now(),
+              userId: data.userId,
+              score: data.score,
+              correctAnswers: data.correctAnswers,
+              totalQuestions: data.totalQuestions,
+              thoughtRecordId: data.thoughtRecordId || null,
+              assignmentId: data.assignmentId || null
+            }));
+          } catch (e) {
+            console.warn("Could not backup practice results to localStorage", e);
+          }
+          
+          console.log(`Attempt ${retryCount + 1} of ${maxRetries} to save practice results...`);
+          const res = await fetch('/api/reframe-coach/results', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(data)
           });
           
-          throw new Error(`Failed to save results: ${res.status} ${res.statusText}`);
+          if (!res.ok) {
+            const errorText = await res.text();
+            console.error(`Attempt ${retryCount + 1}: Error saving results:`, {
+              status: res.status,
+              statusText: res.statusText,
+              errorResponse: errorText
+            });
+            
+            throw new Error(`Failed to save results: ${res.status} ${res.statusText}`);
+          }
+          
+          // On success, clear the backup
+          localStorage.removeItem('pendingPracticeResults');
+          console.log("Results saved successfully on attempt", retryCount + 1);
+          return await res.json();
+          
+        } catch (error) {
+          lastError = error;
+          retryCount++;
+          console.warn(`Failed to save results (attempt ${retryCount} of ${maxRetries})`, error);
+          
+          // Only show toast on first error to avoid multiple notifications
+          if (retryCount === 1) {
+            toast({
+              title: "Connection issue detected",
+              description: "We'll try again to save your results...",
+              variant: "warning"
+            });
+          }
+          
+          // Wait before retrying (exponential backoff)
+          if (retryCount < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount - 1)));
+          }
         }
-        
-        return await res.json();
-      } catch (error) {
-        console.error("Exception saving results:", error);
-        throw error;
       }
+      
+      console.error("All attempts to save results failed");
+      throw lastError || new Error("Failed to save practice results after multiple attempts");
     },
     onSuccess: (data) => {
       console.log("Practice results saved successfully:", data);
