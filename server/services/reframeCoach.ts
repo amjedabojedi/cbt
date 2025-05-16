@@ -255,6 +255,7 @@ export function registerReframeCoachRoutes(app: Express): void {
         console.log("Using existing Reframe Coach resource:", resourceId);
       } else {
         // Create a special resource for reframe coach practice
+        console.log("Creating new Reframe Coach resource");
         const [newResource] = await db
           .insert(resources)
           .values({
