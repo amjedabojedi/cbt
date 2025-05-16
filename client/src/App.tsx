@@ -17,6 +17,7 @@ const Login = lazy(() => import("@/pages/Login"));
 const Register = lazy(() => import("@/pages/Register"));
 const AuthPage = lazy(() => import("@/pages/auth-page"));
 const MobileLogin = lazy(() => import("@/pages/MobileLogin"));
+const EmergencyLoginPage = lazy(() => import("@/pages/EmergencyLoginPage"));
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
