@@ -117,6 +117,11 @@ function Router() {
             allowedRoles={["therapist", "admin"]} 
           />
           <ProtectedRoute 
+            path="/clients/:clientId" 
+            component={Clients} 
+            allowedRoles={["therapist", "admin"]} 
+          />
+          <ProtectedRoute 
             path="/invitation-links" 
             component={InvitationLinks} 
             allowedRoles={["therapist", "admin"]} 

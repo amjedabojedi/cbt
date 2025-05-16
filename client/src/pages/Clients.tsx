@@ -455,6 +455,8 @@ export default function Clients() {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [_, navigate] = useLocation();
+  const params = useParams();
+  const clientIdFromUrl = params.clientId ? parseInt(params.clientId) : null;
   
   // Invite client form - always initialize regardless of role to avoid hook issues
   const inviteForm = useForm<InviteClientFormValues>({

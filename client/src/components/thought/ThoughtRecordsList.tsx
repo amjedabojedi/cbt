@@ -393,7 +393,7 @@ export default function ThoughtRecordsList({
                         <Button 
                           size="sm"
                           onClick={() => {
-                            // Direct approach with full-page navigation
+                            // Redirect using proper route
                             const url = `/users/${targetUserId}/reframe-history`;
                             console.log("Navigating to practice history:", url);
                             window.location.href = url;
