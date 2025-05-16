@@ -188,7 +188,9 @@ const ReframeHistoryPage = () => {
                     <div className="text-center p-4 bg-muted/20 rounded-md">
                       <p className="text-muted-foreground text-sm">Time Spent</p>
                       <p className="text-2xl font-bold">
-                        {result.timeSpent ? `${result.timeSpent} min` : "N/A"}
+                        {result.timeSpent !== undefined && result.timeSpent !== null ? 
+                          (result.timeSpent === 0 ? "< 1 min" : `${result.timeSpent} min`) 
+                          : "N/A"}
                       </p>
                     </div>
                   </div>
