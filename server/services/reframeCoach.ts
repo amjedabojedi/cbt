@@ -18,6 +18,7 @@ import {
   resourceAssignments,
   reframePracticeResults,
   userGameProfile,
+  notifications,
   cognitiveDistortions,
   emotionRecords,
   users,
@@ -300,6 +301,62 @@ export function registerReframeCoachRoutes(app: Express): void {
           reframeData: practiceSession
         })
         .returning();
+      
+      // Create notification for the client about the new assignment
+      try {
+        // Get therapist name for the notification
+        const [therapist] = await db
+          .select({
+            name: users.name,
+            username: users.username
+          })
+          .from(users)
+          .where(eq(users.id, user.id));
+        
+        const therapistName = therapist?.name || therapist?.username || "Your health professional";
+        
+        // Create notification in the database
+        await db.insert(notifications).values({
+          userId: validatedData.assignedTo,
+          title: "New Reframe Coach Practice",
+          body: `${therapistName} has assigned you a new cognitive restructuring practice exercise based on your thought record.`,
+          type: "therapist_message",
+          link: null,
+          linkPath: "/reframe-coach",
+          metadata: {
+            assignmentId: assignment.id,
+            thoughtRecordId: validatedData.thoughtRecordId
+          }
+        });
+        
+        // Try to send a real-time notification via WebSocket if available
+        try {
+          // Dynamic import to avoid circular dependencies
+          const websocketModule = await import('../services/websocket');
+          if (typeof websocketModule.sendNotificationToUser === 'function') {
+            websocketModule.sendNotificationToUser(validatedData.assignedTo, {
+              id: 0, // Will be replaced by the WebSocket service
+              userId: validatedData.assignedTo,
+              title: "New Reframe Coach Practice",
+              body: `${therapistName} has assigned you a new cognitive restructuring practice exercise based on your thought record.`,
+              type: "therapist_message", 
+              isRead: false,
+              createdAt: new Date().toISOString(),
+              link: null,
+              linkPath: "/reframe-coach",
+              metadata: {
+                assignmentId: assignment.id
+              }
+            });
+          }
+        } catch (wsError) {
+          console.error("WebSocket notification failed:", wsError);
+          // Continue even if real-time notification fails
+        }
+      } catch (notificationError) {
+        console.error("Failed to create notification, but assignment was created:", notificationError);
+        // Continue with the response even if notification creation fails
+      }
         
       res.status(201).json({ 
         message: "Reframe practice assignment created successfully",
