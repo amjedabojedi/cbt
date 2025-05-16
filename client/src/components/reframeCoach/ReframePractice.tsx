@@ -703,7 +703,7 @@ const ReframePractice = ({
             toast({
               title: "Connection issue detected",
               description: "We'll try again to save your results...",
-              variant: "warning"
+              variant: "destructive"
             });
           }
           

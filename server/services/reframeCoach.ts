@@ -20,7 +20,8 @@ import {
   userGameProfile,
   cognitiveDistortions,
   emotionRecords,
-  users
+  users,
+  resources
 } from "@shared/schema";
 import { 
   insertResourceAssignmentSchema, 
@@ -235,12 +236,49 @@ export function registerReframeCoachRoutes(app: Express): void {
         validatedData.customInstructions
       );
       
-      // Create a resource assignment
+      // First, check if a reframe coach resource exists, and create one if not
+      let resourceId: number;
+      
+      // Try to find an existing reframe coach resource
+      const [existingResource] = await db
+        .select()
+        .from(resources)
+        .where(
+          and(
+            eq(resources.title, "Reframe Coach Practice"),
+            eq(resources.type, "exercise")
+          )
+        );
+        
+      if (existingResource) {
+        resourceId = existingResource.id;
+        console.log("Using existing Reframe Coach resource:", resourceId);
+      } else {
+        // Create a special resource for reframe coach practice
+        const [newResource] = await db
+          .insert(resources)
+          .values({
+            title: "Reframe Coach Practice",
+            description: "Interactive cognitive restructuring practice",
+            content: "This resource provides guided practice for cognitive restructuring.",
+            type: "exercise",
+            category: "cognitive_restructuring",
+            tags: ["reframe", "practice", "cognitive_distortions"],
+            createdBy: user.id,
+            isPublished: true
+          })
+          .returning();
+          
+        resourceId = newResource.id;
+        console.log("Created new Reframe Coach resource:", resourceId);
+      }
+      
+      // Create a resource assignment with the valid resource ID
       const [assignment] = await db
         .insert(resourceAssignments)
         .values({
           // Required for all assignments
-          resourceId: 0, // Set to 0 for reframe practice
+          resourceId: resourceId, // Use the actual resource ID we found/created
           assignedBy: user.id,
           assignedTo: validatedData.assignedTo,
           isPriority: validatedData.isPriority || false,
