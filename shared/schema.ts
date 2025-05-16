@@ -269,7 +269,7 @@ export const reframePracticeResults = pgTable("reframe_practice_results", {
   timeSpent: integer("time_spent"), // Time spent on the exercise
   scenarioData: jsonb("scenario_data"), // Store the scenarios presented
   userChoices: jsonb("user_choices"), // Store the user's selected options
-  feedback: text("feedback"), // Therapist feedback on results
+  // Note: feedback column was removed from database
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
