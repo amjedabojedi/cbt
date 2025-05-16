@@ -392,8 +392,11 @@ export default function ThoughtRecordsList({
                       {isViewingClientData && (
                         <Button 
                           size="sm"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.preventDefault();
+                            // Using navigate() would be better, but for consistency with other buttons
                             window.location.href = `/users/${targetUserId}/reframe-history`;
+                            console.log("Navigating to reframe history:", `/users/${targetUserId}/reframe-history`);
                           }}
                           className="bg-blue-500 hover:bg-blue-600 text-white"
                         >
@@ -630,7 +633,9 @@ export default function ThoughtRecordsList({
               )}
               {isViewingClientData && (
                 <Button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log("Navigating to practice history:", `/users/${targetUserId}/reframe-history`);
                     window.location.href = `/users/${targetUserId}/reframe-history`;
                   }}
                   className="bg-blue-500 hover:bg-blue-600 text-white"
