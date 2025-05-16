@@ -94,7 +94,7 @@ const ReframeHistoryPage = () => {
                 </CardHeader>
                 
                 <CardContent>
-                  <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="grid grid-cols-4 gap-4 mb-4">
                     <div className="text-center p-4 bg-muted/20 rounded-md">
                       <p className="text-muted-foreground text-sm">Score</p>
                       <p className="text-2xl font-bold">{result.score}</p>
@@ -107,6 +107,16 @@ const ReframeHistoryPage = () => {
                       <p className="text-muted-foreground text-sm">Accuracy</p>
                       <p className="text-2xl font-bold">
                         {Math.round((result.correctAnswers / result.totalQuestions) * 100)}%
+                      </p>
+                    </div>
+                    <div className="text-center p-4 bg-muted/20 rounded-md">
+                      <p className="text-muted-foreground text-sm">Practice Focus</p>
+                      <p className="text-lg font-bold">
+                        {result.scenarioData && result.scenarioData[0]?.cognitiveDistortion ? (
+                          <span className="capitalize">{result.scenarioData[0].cognitiveDistortion.replace(/-/g, ' ')}</span>
+                        ) : (
+                          "Cognitive Restructuring"
+                        )}
                       </p>
                     </div>
                   </div>
