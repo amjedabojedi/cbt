@@ -398,9 +398,22 @@ const PracticeResults = ({
               </AlertDescription>
             </Alert>
             
-            <Button onClick={onStartNew} className="mt-2 px-6 py-2 text-base">
-              {isQuickPractice ? "Return to Thought Records" : "Back to Reframe Coach Dashboard"}
-            </Button>
+            <div className="flex gap-4">
+              <Button 
+                onClick={() => window.location.href = `/users/${userId}/thoughts`} 
+                variant="outline" 
+                className="mt-2 px-6 py-2 text-base"
+              >
+                Return to Thought Records
+              </Button>
+              
+              <Button 
+                onClick={() => window.location.href = `/users/${userId}/reframe-coach`} 
+                className="mt-2 px-6 py-2 text-base"
+              >
+                View Practice History
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
