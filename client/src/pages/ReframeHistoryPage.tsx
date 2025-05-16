@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { 
   Card, 
@@ -10,18 +10,53 @@ import {
   CardFooter
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, BarChart3, Clock, CheckCircle, ThumbsUp } from "lucide-react";
+import { 
+  Loader2, 
+  BarChart3, 
+  Clock, 
+  CheckCircle, 
+  ThumbsUp, 
+  UserCircle, 
+  BrainCircuit, 
+  ArrowLeft 
+} from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import AppLayout from "@/components/layout/AppLayout";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/lib/auth";
 
 const ReframeHistoryPage = () => {
   const { userId } = useParams();
-  const parsedUserId = userId ? parseInt(userId) : undefined;
+  const [_, navigate] = useLocation();
+  const { user } = useAuth();
+  const parsedUserId = userId ? parseInt(userId) : user?.id;
+  
+  // Determine if the current user is viewing their own results or someone else's (as a therapist)
+  const isViewingOwnResults = user?.id === parsedUserId;
+  const isTherapist = user?.role === "therapist";
   
   const { data: results, isLoading } = useQuery({
     queryKey: [`/api/users/${parsedUserId}/reframe-coach/results`],
     enabled: !!parsedUserId,
   });
+  
+  // Get the client's name if a therapist is viewing their client's results
+  const { data: clientData } = useQuery({
+    queryKey: [`/api/users/${parsedUserId}`],
+    enabled: !isViewingOwnResults && isTherapist && !!parsedUserId,
+  });
+  
+  // Determine the proper back button link
+  const handleBackClick = () => {
+    if (isViewingOwnResults) {
+      navigate("/reframe-coach");
+    } else if (isTherapist) {
+      // If therapist is viewing a client's results, go back to client details
+      navigate(`/clients/${parsedUserId}`);
+    } else {
+      navigate("/");
+    }
+  };
   
   if (isLoading) {
     return (
@@ -35,21 +70,29 @@ const ReframeHistoryPage = () => {
     );
   }
 
+  // Create a title based on who is viewing the page
+  const pageTitle = isViewingOwnResults 
+    ? "Your Practice History" 
+    : `${clientData?.name || 'Client'}'s Practice History`;
+
   return (
     <AppLayout title="Practice History">
       <div className="container max-w-4xl py-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold tracking-tight">Practice History</h2>
-          <Button onClick={() => window.location.href = `/reframe-coach`}>
-            Back to Reframe Coach
+          <h2 className="text-2xl font-bold tracking-tight">{pageTitle}</h2>
+          <Button onClick={handleBackClick}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {isViewingOwnResults ? "Back to Reframe Coach" : "Back"}
           </Button>
         </div>
         
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Your Reframe Practice Results</CardTitle>
+            <CardTitle>Reframe Practice Results</CardTitle>
             <CardDescription>
-              Review your past practice sessions and track your progress over time
+              {isViewingOwnResults 
+                ? "Review your past practice sessions and track your progress over time" 
+                : "Review this client's practice sessions and track their progress over time"}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -58,17 +101,31 @@ const ReframeHistoryPage = () => {
           <Card className="border-dashed border-muted">
             <CardContent className="py-6 text-center">
               <p className="text-muted-foreground mb-4">
-                No practice results yet.
+                {isViewingOwnResults 
+                  ? "You haven't completed any practice sessions yet." 
+                  : "This client hasn't completed any practice sessions yet."}
               </p>
               <p className="text-sm text-muted-foreground">
-                Complete practice exercises to see your results and track progress.
+                {isViewingOwnResults 
+                  ? "Complete practice exercises to see your results and track progress." 
+                  : "You can assign practice exercises to help clients practice cognitive restructuring."}
               </p>
-              <Button 
-                className="mt-6" 
-                onClick={() => window.location.href = `/users/${parsedUserId}/thoughts`}
-              >
-                Start Practice
-              </Button>
+              {isViewingOwnResults && (
+                <Button 
+                  className="mt-6" 
+                  onClick={() => navigate(`/users/${parsedUserId}/thoughts`)}
+                >
+                  Start Practice
+                </Button>
+              )}
+              {!isViewingOwnResults && isTherapist && (
+                <Button 
+                  className="mt-6" 
+                  onClick={() => navigate(`/clients/${parsedUserId}/thoughts`)}
+                >
+                  View Client Thoughts
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -83,18 +140,18 @@ const ReframeHistoryPage = () => {
                     </CardTitle>
                     <div className="text-sm font-medium flex items-center">
                       <Clock className="mr-1 h-3 w-3" />
-                      {new Date(result.createdAt).toLocaleDateString()} at {format(new Date(result.createdAt), 'h:mm a')}
+                      {result.formattedDate || format(new Date(result.createdAt), 'MMM d, yyyy h:mm a')}
                     </div>
                   </div>
                   <CardDescription>
                     {result.thoughtRecordId 
-                      ? `Practice based on your recorded thought on ${format(new Date(result.createdAt), 'MMM d, yyyy')}` 
+                      ? `Practice based on thought record from ${format(new Date(result.createdAt), 'MMM d, yyyy')}` 
                       : 'Quick practice session'}
                   </CardDescription>
                 </CardHeader>
                 
                 <CardContent>
-                  <div className="grid grid-cols-4 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div className="text-center p-4 bg-muted/20 rounded-md">
                       <p className="text-muted-foreground text-sm">Score</p>
                       <p className="text-2xl font-bold">{result.score}</p>
@@ -106,25 +163,57 @@ const ReframeHistoryPage = () => {
                     <div className="text-center p-4 bg-muted/20 rounded-md">
                       <p className="text-muted-foreground text-sm">Accuracy</p>
                       <p className="text-2xl font-bold">
-                        {Math.round((result.correctAnswers / result.totalQuestions) * 100)}%
+                        {result.successRate || Math.round((result.correctAnswers / result.totalQuestions) * 100)}%
                       </p>
                     </div>
                     <div className="text-center p-4 bg-muted/20 rounded-md">
-                      <p className="text-muted-foreground text-sm">Practice Focus</p>
-                      <p className="text-lg font-bold">
-                        {result.scenarioData && result.scenarioData[0]?.cognitiveDistortion ? (
-                          <span className="capitalize">{result.scenarioData[0].cognitiveDistortion.replace(/-/g, ' ')}</span>
-                        ) : (
-                          "Cognitive Restructuring"
-                        )}
+                      <p className="text-muted-foreground text-sm">Time Spent</p>
+                      <p className="text-2xl font-bold">
+                        {result.timeSpent ? `${Math.round(result.timeSpent / 60)} min` : "N/A"}
                       </p>
                     </div>
                   </div>
                   
+                  {/* Display cognitive distortions practiced */}
+                  <div className="mt-4">
+                    <p className="text-sm font-medium mb-2">Cognitive Distortions Practiced:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {result.formattedDistortions && result.formattedDistortions.length > 0 ? (
+                        result.formattedDistortions.map((distortion: string, index: number) => (
+                          <Badge key={index} variant="outline" className="bg-primary/10">
+                            <BrainCircuit className="mr-1 h-3 w-3" />
+                            {distortion}
+                          </Badge>
+                        ))
+                      ) : (
+                        result.scenarioData && Array.isArray(result.scenarioData) ? (
+                          Array.from(new Set(result.scenarioData
+                            .map((scenario: any) => scenario.cognitiveDistortion)
+                            .filter(Boolean)
+                            .map((distortion: string) => {
+                              return distortion
+                                .replace(/-/g, ' ')
+                                .split(' ')
+                                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(' ');
+                            })
+                          )).map((distortion: string, index: number) => (
+                            <Badge key={index} variant="outline" className="bg-primary/10">
+                              <BrainCircuit className="mr-1 h-3 w-3" />
+                              {distortion}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Badge variant="outline">Cognitive Restructuring</Badge>
+                        )
+                      )}
+                    </div>
+                  </div>
+                  
                   {result.streakCount > 1 && (
-                    <div className="flex items-center text-sm text-primary-foreground mt-2 bg-primary/10 p-2 rounded">
+                    <div className="flex items-center text-sm text-primary-foreground mt-4 bg-primary/10 p-2 rounded">
                       <ThumbsUp className="h-4 w-4 mr-2" />
-                      <span>Streak: {result.streakCount} correct in a row!</span>
+                      <span>Streak: {result.streakCount} correct answers in a row!</span>
                     </div>
                   )}
                 </CardContent>

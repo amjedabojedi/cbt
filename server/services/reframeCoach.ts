@@ -709,17 +709,72 @@ export function registerReframeCoachRoutes(app: Express): void {
   });
   
   // Get all practice results for a user (history)
-  app.get("/api/users/:userId/reframe-coach/results", authenticate, checkUserAccess, async (req: Request, res: Response) => {
+  // This endpoint is accessible by the user themselves or their therapist
+  app.get("/api/users/:userId/reframe-coach/results", authenticate, async (req: Request, res: Response) => {
     try {
       const userId = parseInt(req.params.userId);
       
+      // Check if the requesting user has access to this user's data
+      // Allow access if:
+      // 1. The user is accessing their own data
+      // 2. The user is a therapist accessing their client's data
+      // 3. The user is an admin
+      if (req.user.id !== userId && req.user.role !== 'admin') {
+        // If therapist, check if they're accessing their client's data
+        if (req.user.role === 'therapist') {
+          // Get the client to check if they're assigned to this therapist
+          const [client] = await db
+            .select()
+            .from(users)
+            .where(
+              and(
+                eq(users.id, userId),
+                eq(users.therapistId, req.user.id)
+              )
+            );
+            
+          if (!client) {
+            return res.status(403).json({ message: "Access denied: This client is not assigned to you" });
+          }
+          
+          // Log that a therapist is viewing their client's practice results
+          console.log(`Therapist ${req.user.id} is viewing practice results for client ${userId}`);
+        } else {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      // Fetch practice results with additional data about cognitive distortions
       const results = await db
         .select()
         .from(reframePracticeResults)
         .where(eq(reframePracticeResults.userId, userId))
         .orderBy(desc(reframePracticeResults.createdAt));
+      
+      // Enhance the results with more readable information
+      const enhancedResults = results.map(result => {
+        // Extract cognitive distortions from the scenario data if available
+        const cognitiveDistortions = new Set<string>();
+        if (result.scenarioData && Array.isArray(result.scenarioData)) {
+          result.scenarioData.forEach((scenario: any) => {
+            if (scenario.cognitiveDistortion) {
+              cognitiveDistortions.add(formatCognitiveDistortion(scenario.cognitiveDistortion));
+            }
+          });
+        }
         
-      res.json(results);
+        return {
+          ...result,
+          // Add a formatted field for UI display
+          formattedDistortions: Array.from(cognitiveDistortions),
+          formattedDate: new Date(result.createdAt).toLocaleString(),
+          successRate: result.totalQuestions > 0 
+            ? Math.round((result.correctAnswers / result.totalQuestions) * 100) 
+            : 0
+        };
+      });
+        
+      res.json(enhancedResults);
     } catch (error) {
       console.error("Error fetching practice results:", error);
       res.status(500).json({ message: "Failed to fetch practice results" });
