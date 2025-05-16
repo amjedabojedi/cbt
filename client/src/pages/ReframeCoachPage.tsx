@@ -1,11 +1,11 @@
 import React from "react";
 import { useAuth } from "@/lib/auth";
-import Header from "@/components/layout/Header";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import ThoughtRecordsList from "@/components/thought/ThoughtRecordsList";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThoughtRecord } from "@shared/schema";
+import AppLayout from "@/components/layout/AppLayout";
 
 const ReframeCoachPage = () => {
   const { user } = useAuth();
@@ -18,8 +18,7 @@ const ReframeCoachPage = () => {
   });
 
   return (
-    <div>
-      <Header title="Reframe Coach" />
+    <AppLayout title="Reframe Coach">
       <div className="container max-w-4xl py-6">
         <h2 className="text-2xl font-bold tracking-tight mb-6">Reframe Coach</h2>
         
@@ -53,7 +52,7 @@ const ReframeCoachPage = () => {
           </Card>
         )}
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
