@@ -15,7 +15,17 @@ import { ClientDebug } from "@/components/debug/ClientDebug";
 export default function Dashboard() {
   const { user } = useAuth();
   const { activeUserId, isViewingClientData } = useActiveUser();
-  const { viewingClientName } = useClientContext();
+  
+  // Make the ClientContext usage optional to prevent crashing
+  let viewingClientName = null;
+  try {
+    const clientContext = useClientContext();
+    viewingClientName = clientContext.viewingClientName;
+  } catch (error) {
+    console.log("ClientContext not available, using fallback");
+    // Fallback to localStorage for emergency login scenario
+    viewingClientName = localStorage.getItem('viewingClientName');
+  }
   
   const isTherapist = user?.role === "therapist"; // DB role still "therapist"
   const isClient = user?.role === "client";
