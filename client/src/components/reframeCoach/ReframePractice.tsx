@@ -807,47 +807,15 @@ const ReframePractice = ({
     // Make sure we have a valid user ID to navigate with
     const validUserId = currentUserId || user?.id || 0;
     
-    // First, try to use wouter's setLocation for navigation (preferred method)
-    try {
-      // Track where we're going for debugging
-      const destination = isQuickPractice 
-        ? `/users/${validUserId}/thoughts`
-        : `/users/${validUserId}/reframe-coach`;
-      
-      console.log(`Navigating to: ${destination}`);
-      
-      // Start navigation with wouter
-      setLocation(destination);
-      
-      // Set a fallback in case the navigation doesn't trigger properly
-      // This is a safety net that will redirect after a short delay
-      setTimeout(() => {
-        // If we're still on the same page after 500ms, use direct navigation
-        const currentPath = window.location.pathname;
-        if (currentPath.includes('/practice') || currentPath.includes('/quick')) {
-          console.log("Fallback navigation required, using window.location.href");
-          window.location.href = destination;
-        }
-      }, 500);
-    } catch (error) {
-      console.error("Navigation error:", error);
-      
-      // Final fallback: direct navigation
-      try {
-        // Determine the base path, fallback to the root if all else fails
-        const basePath = `/users/${validUserId}`;
-        const destination = isQuickPractice 
-          ? `${basePath}/thoughts`
-          : `${basePath}/reframe-coach`;
-        
-        // Use direct navigation as fallback
-        window.location.href = destination;
-      } catch (finalError) {
-        console.error("Final navigation fallback error:", finalError);
-        // Ultimate fallback - just go to the home page
-        window.location.href = "/";
-      }
-    }
+    // Determine the destination based on practice type
+    const destination = isQuickPractice 
+      ? `/users/${validUserId}/thoughts`
+      : `/users/${validUserId}/reframe-coach`;
+    
+    console.log(`Navigating to: ${destination}`);
+    
+    // Use direct window location navigation for reliability
+    window.location.href = destination;
   };
   
   // First check for missing required parameters - but only after we've loaded
