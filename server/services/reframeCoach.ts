@@ -258,7 +258,7 @@ export function registerReframeCoachRoutes(app: Express): void {
           
           const insertResult = await db.execute(sql`
             INSERT INTO resources 
-            (title, description, content, type, category, created_by, "isPublished") 
+            (title, description, content, type, category, created_by, is_published) 
             VALUES 
             ('Reframe Coach Practice', 
              'Interactive cognitive restructuring practice', 
