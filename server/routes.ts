@@ -5,6 +5,9 @@ import { pool, db } from "./db";
 import path from "path";
 import fs from "fs";
 
+// In-memory session storage for emergency login 
+const sessions = new Map();
+
 // Helper function to create consistent cookie options for all session cookies
 // This ensures mobile and cross-device compatibility
 export function getSessionCookieOptions(): CookieOptions {
@@ -775,6 +778,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Registration error:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Emergency direct login endpoint for testing - bypasses database issues
+  app.post("/api/auth/emergency-login", (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      // Hardcoded therapist account login
+      if ((username === "lcanady" || username === "lcanady@resiliencec.com") && password === "123456") {
+        // Create session manually
+        const sessionId = "emergency-" + Math.floor(Math.random() * 10000);
+        
+        // Store in memory
+        sessions.set(sessionId, {
+          userId: 20,
+          username: "lcanady",
+          role: "therapist",
+          expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000
+        });
+        
+        // Set cookie
+        const cookieOptions = getSessionCookieOptions();
+        res.cookie("sessionId", sessionId, cookieOptions);
+        
+        // Return user data
+        return res.status(200).json({
+          id: 20,
+          username: "lcanady",
+          email: "lcanady@resiliencec.com",
+          name: "Linda Canady",
+          role: "therapist",
+          createdAt: new Date()
+        });
+      }
+      
+      return res.status(401).json({ message: "Invalid credentials" });
+    } catch (error) {
+      console.error("Emergency login error:", error);
+      return res.status(500).json({ message: "Login error" });
     }
   });
   
