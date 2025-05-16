@@ -41,7 +41,7 @@ const ReframeHistoryPage = () => {
   });
   
   // Get the client's name if a therapist is viewing their client's results
-  const { data: clientData } = useQuery({
+  const { data: clientData, isError: clientDataError } = useQuery({
     queryKey: [`/api/users/${parsedUserId}`],
     enabled: !isViewingOwnResults && isTherapist && !!parsedUserId,
   });
@@ -71,9 +71,12 @@ const ReframeHistoryPage = () => {
   }
 
   // Create a title based on who is viewing the page
-  const pageTitle = isViewingOwnResults 
-    ? "Your Practice History" 
-    : `${clientData?.name || 'Client'}'s Practice History`;
+  let pageTitle = isViewingOwnResults ? "Your Practice History" : "Client's Practice History";
+  
+  // Only try to use the client name if we successfully loaded the client data
+  if (!isViewingOwnResults && clientData && typeof clientData === 'object' && 'name' in clientData && clientData.name) {
+    pageTitle = `${clientData.name}'s Practice History`;
+  }
 
   return (
     <AppLayout title="Practice History">
@@ -97,7 +100,7 @@ const ReframeHistoryPage = () => {
           </CardHeader>
         </Card>
         
-        {!results || results.length === 0 ? (
+        {!results || !Array.isArray(results) || results.length === 0 ? (
           <Card className="border-dashed border-muted">
             <CardContent className="py-6 text-center">
               <p className="text-muted-foreground mb-4">
@@ -149,7 +152,7 @@ const ReframeHistoryPage = () => {
           </Card>
         ) : (
           <div className="space-y-4">
-            {results.map((result: any) => (
+            {Array.isArray(results) && results.map((result: any) => (
               <Card key={result.id}>
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-center">
