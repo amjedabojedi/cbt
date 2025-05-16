@@ -239,39 +239,48 @@ export function registerReframeCoachRoutes(app: Express): void {
       // First, check if a reframe coach resource exists, and create one if not
       let resourceId: number;
       
-      // Try to find an existing reframe coach resource
-      const [existingResource] = await db
-        .select()
-        .from(resources)
-        .where(
-          and(
-            eq(resources.title, "Reframe Coach Practice"),
-            eq(resources.type, "exercise")
-          )
-        );
+      try {
+        // First try to find the default Reframe Coach resource
+        console.log("Searching for existing Reframe Coach resource");
+        const searchResult = await db.execute(sql`
+          SELECT id FROM resources 
+          WHERE title = 'Reframe Coach Practice' AND type = 'exercise'
+          LIMIT 1
+        `);
         
-      if (existingResource) {
-        resourceId = existingResource.id;
-        console.log("Using existing Reframe Coach resource:", resourceId);
-      } else {
-        // Create a special resource for reframe coach practice
-        console.log("Creating new Reframe Coach resource");
-        const [newResource] = await db
-          .insert(resources)
-          .values({
-            title: "Reframe Coach Practice",
-            description: "Interactive cognitive restructuring practice",
-            content: "This resource provides guided practice for cognitive restructuring.",
-            type: "exercise",
-            category: "cognitive_restructuring",
-            tags: ["reframe", "practice", "cognitive_distortions"],
-            createdBy: user.id,
-            isPublished: true
-          })
-          .returning();
+        // Check if we found an existing resource
+        if (searchResult.rows && searchResult.rows.length > 0) {
+          resourceId = Number(searchResult.rows[0].id);
+          console.log("Found existing Reframe Coach resource:", resourceId);
+        } else {
+          // Create a special resource for Reframe Coach practice
+          console.log("No existing resource found, creating new Reframe Coach resource");
           
-        resourceId = newResource.id;
-        console.log("Created new Reframe Coach resource:", resourceId);
+          const insertResult = await db.execute(sql`
+            INSERT INTO resources 
+            (title, description, content, type, category, "createdBy", visibility, "isPublished") 
+            VALUES 
+            ('Reframe Coach Practice', 
+             'Interactive cognitive restructuring practice', 
+             'This resource provides guided practice for cognitive restructuring.', 
+             'exercise', 
+             'cognitive_restructuring', 
+             ${user.id}, 
+             'shared', 
+             true) 
+            RETURNING id
+          `);
+          
+          if (!insertResult.rows || insertResult.rows.length === 0) {
+            throw new Error("Failed to create Reframe Coach resource");
+          }
+          
+          resourceId = Number(insertResult.rows[0].id);
+          console.log("Created new Reframe Coach resource with ID:", resourceId);
+        }
+      } catch (error) {
+        console.error("Error with Reframe Coach resource:", error);
+        return res.status(500).json({ message: "Failed to manage resource for assignment" });
       }
       
       // Create a resource assignment with the valid resource ID
