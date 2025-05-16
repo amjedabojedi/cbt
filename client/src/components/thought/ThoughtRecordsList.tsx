@@ -603,7 +603,7 @@ export default function ThoughtRecordsList({
                   Edit Record
                 </Button>
               )}
-              {showPracticeButton && (
+              {showPracticeButton && !isViewingClientData && (
                 <Button 
                   onClick={() => {
                     window.location.href = `/reframe-coach/practice/quick/${selectedRecord.id}?userId=${targetUserId}`;
@@ -612,6 +612,17 @@ export default function ThoughtRecordsList({
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
                   Practice Reframing
+                </Button>
+              )}
+              {isViewingClientData && (
+                <Button
+                  onClick={() => {
+                    window.location.href = `/users/${targetUserId}/reframe-history`;
+                  }}
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  <BookText className="h-4 w-4 mr-2" />
+                  View Practice History
                 </Button>
               )}
             </div>
