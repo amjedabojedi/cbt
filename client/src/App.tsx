@@ -84,6 +84,7 @@ function Router() {
           <Route path="/auth" component={AuthPage} />
           <Route path="/m/login" component={MobileLogin} />
           <Route path="/mobile-login" component={MobileLogin} />
+          <Route path="/emergency" component={EmergencyLoginPage} />
           <Route path="/privacy-policy" component={PrivacyPolicy} />
           <Route path="/terms-of-service" component={TermsOfService} />
           
