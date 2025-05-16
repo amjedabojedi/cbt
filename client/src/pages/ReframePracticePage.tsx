@@ -277,7 +277,7 @@ const ReframePracticePage = () => {
           {isLoading || isLoadingScenarios ? (
             <div className="flex flex-col justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground text-center">
+              <p className="text-muted-foreground text-center font-medium">
                 {isLoadingScenarios ? (
                   isFromCache ? 
                     "Retrieving practice scenarios from cache..." : 
@@ -285,15 +285,20 @@ const ReframePracticePage = () => {
                 ) : "Loading..."}
               </p>
               {isLoadingScenarios && !isFromCache && (
-                <div className="max-w-md mt-6 w-full bg-muted rounded-full h-2.5 dark:bg-gray-700 overflow-hidden">
-                  <div className="bg-primary h-2.5 rounded-full animate-progress"></div>
+                <div className="max-w-md mt-6 w-full bg-muted rounded-full h-3 dark:bg-gray-700 overflow-hidden">
+                  <div className="bg-primary h-3 rounded-full animate-progress"></div>
                 </div>
               )}
               {isLoadingScenarios && isFromCache && (
-                <div className="max-w-md mt-2 flex items-center gap-2 justify-center">
-                  <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  <span className="text-sm text-green-600 dark:text-green-400">Using cached results for faster loading</span>
-                </div>
+                <>
+                  <div className="max-w-md mt-4 w-full bg-emerald-100 dark:bg-emerald-900/30 rounded-full h-3 overflow-hidden">
+                    <div className="bg-emerald-500 h-3 rounded-full animate-quick-progress"></div>
+                  </div>
+                  <div className="max-w-md mt-2 flex items-center gap-2 justify-center animate-pulse-slow">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                    <span className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Using cached results for faster loading</span>
+                  </div>
+                </>
               )}
             </div>
           ) : navigateToThoughts ? (
@@ -322,39 +327,53 @@ const ReframePracticePage = () => {
                   <AlertCircle className="h-5 w-5 text-red-500" />
                   {isQuickPractice ? "Failed to Load Practice Scenarios" : "Practice Assignment Not Found"}
                 </CardTitle>
+                <CardDescription className="text-red-700 dark:text-red-400">
+                  Error encountered at {new Date().toLocaleTimeString()}
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  {isQuickPractice 
-                    ? `We couldn't generate practice scenarios for this thought record. It may have insufficient content or no cognitive distortions identified. Try selecting a different thought record with clearer cognitive distortions.`
-                    : `We couldn't find practice assignment #${assignmentId}. It may have been deleted or you may not have permission to access it.`
-                  }
-                </p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Error: {isQuickPractice 
-                    ? (scenariosError?.message || "Failed to generate practice scenarios") 
-                    : (assignmentError?.message || "Assignment not found")
-                  }
-                </p>
-                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                  <Button
-                    variant="default"
-                    onClick={() => window.location.href = '/reframe-coach'}
-                  >
-                    Return to Reframe Coach
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => window.location.href = '/thoughts'}
-                  >
-                    Return to Thought Records
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => window.history.back()}
-                  >
-                    Go Back
-                  </Button>
+                <div className="space-y-4">
+                  <p className="text-muted-foreground">
+                    {isQuickPractice 
+                      ? `We couldn't generate practice scenarios for this thought record. It may have insufficient content or no cognitive distortions identified. Try selecting a different thought record with clearer cognitive distortions.`
+                      : `We couldn't find practice assignment #${assignmentId}. It may have been deleted or you may not have permission to access it.`
+                    }
+                  </p>
+                  
+                  <div className="bg-red-100 dark:bg-red-900/30 p-3 rounded-md border border-red-200 dark:border-red-800">
+                    <p className="text-sm font-medium text-red-800 dark:text-red-300">Error Details:</p>
+                    <pre className="text-xs mt-1 bg-white/50 dark:bg-black/20 p-2 rounded overflow-auto max-h-24">
+                      {isQuickPractice 
+                        ? (scenariosError?.message || "Failed to generate practice scenarios") 
+                        : (assignmentError?.message || "Assignment not found")
+                      }
+                    </pre>
+                  </div>
+                  
+                  <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                    <Button
+                      variant="outline"
+                      onClick={() => window.location.reload()}
+                      className="flex items-center"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Try Again
+                    </Button>
+                    <Button
+                      variant="default"
+                      onClick={() => window.location.href = isQuickPractice ? `/users/${userId}/thoughts` : '/reframe-coach'}
+                    >
+                      Return to {isQuickPractice ? "Thought Records" : "Reframe Coach"}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => window.history.back()}
+                    >
+                      Go Back
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

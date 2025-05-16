@@ -32,6 +32,29 @@
   animation: progress 30s ease-out forwards;
 }
 
+/* Cache loading animation */
+@keyframes quickProgress {
+  0% { width: 0%; }
+  20% { width: 30%; }
+  40% { width: 60%; }
+  60% { width: 90%; }
+  100% { width: 100%; }
+}
+
+.animate-quick-progress {
+  animation: quickProgress 1.5s ease-out forwards;
+}
+
+/* Pulse animation for cache indicator */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s ease-in-out infinite;
+}
+
 :root {
   /* Base theme colors */
   --background: 0 0% 100%;
