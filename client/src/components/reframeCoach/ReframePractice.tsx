@@ -597,7 +597,9 @@ const ReframePractice = ({
     setShowFeedback(true);
     
     // Calculate time spent on this scenario
-    const timeSpent = Date.now() - startTime;
+    const timeSpentMs = Date.now() - startTime;
+    // Convert to minutes right at the source
+    const timeSpentMinutes = Math.round((timeSpentMs / 1000) / 60);
     
     // Record user's choice
     const scenario = scenarios[currentScenarioIndex];
@@ -606,19 +608,19 @@ const ReframePractice = ({
     // Calculate score for this answer
     // Base score is 100 points, with bonus for answering quickly
     const baseScore = isCorrect ? 100 : 0;
-    const timeBonus = isCorrect ? Math.max(0, 50 - Math.floor(timeSpent / 1000)) : 0;
+    const timeBonus = isCorrect ? Math.max(0, 50 - Math.floor(timeSpentMs / 1000)) : 0;
     const scenarioScore = baseScore + timeBonus;
     
     setTotalScore(prev => prev + scenarioScore);
     
-    // Save the choice
+    // Save the choice with time already in minutes
     setUserChoices(prev => [
       ...prev,
       {
         scenarioIndex: currentScenarioIndex,
         selectedOptionIndex: optionIndex,
         isCorrect,
-        timeSpent
+        timeSpent: timeSpentMinutes
       }
     ]);
   };
