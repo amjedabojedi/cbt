@@ -30,7 +30,37 @@ interface ClientSelectorProps {
 export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { viewingClientId, viewingClientName, setViewingClient } = useClientContext();
+  
+  // Make ClientContext usage optional to handle database outages
+  let viewingClientId = null;
+  let viewingClientName = null;
+  let setViewingClient = (id: number | null, name: string | null) => {
+    // Fallback implementation that uses localStorage
+    console.log("Using fallback client selector during database outage");
+    if (id !== null && name !== null) {
+      localStorage.setItem('viewingClientId', id.toString());
+      localStorage.setItem('viewingClientName', name);
+    } else {
+      localStorage.removeItem('viewingClientId');
+      localStorage.removeItem('viewingClientName');
+    }
+  };
+  
+  try {
+    const clientContext = useClientContext();
+    viewingClientId = clientContext.viewingClientId;
+    viewingClientName = clientContext.viewingClientName;
+    setViewingClient = clientContext.setViewingClient;
+  } catch (error) {
+    console.log("ClientContext not available in RoleIndicator, using localStorage fallback");
+    // Fallback to localStorage for emergency login scenario
+    const storedClientId = localStorage.getItem('viewingClientId');
+    const storedClientName = localStorage.getItem('viewingClientName');
+    if (storedClientId) {
+      viewingClientId = parseInt(storedClientId);
+      viewingClientName = storedClientName;
+    }
+  }
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
 
