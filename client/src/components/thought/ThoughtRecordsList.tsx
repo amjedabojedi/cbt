@@ -392,11 +392,11 @@ export default function ThoughtRecordsList({
                       {isViewingClientData && (
                         <Button 
                           size="sm"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            // Using navigate() would be better, but for consistency with other buttons
-                            window.location.href = `/users/${targetUserId}/reframe-history`;
-                            console.log("Navigating to reframe history:", `/users/${targetUserId}/reframe-history`);
+                          onClick={() => {
+                            // Direct approach with full-page navigation
+                            const url = `/users/${targetUserId}/reframe-history`;
+                            console.log("Navigating to practice history:", url);
+                            window.location.href = url;
                           }}
                           className="bg-blue-500 hover:bg-blue-600 text-white"
                         >
@@ -633,10 +633,11 @@ export default function ThoughtRecordsList({
               )}
               {isViewingClientData && (
                 <Button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    console.log("Navigating to practice history:", `/users/${targetUserId}/reframe-history`);
-                    window.location.href = `/users/${targetUserId}/reframe-history`;
+                  onClick={() => {
+                    // Direct approach with full-page navigation
+                    const url = `/users/${targetUserId}/reframe-history`;
+                    console.log("Navigating to practice history:", url);
+                    window.location.href = url;
                   }}
                   className="bg-blue-500 hover:bg-blue-600 text-white"
                 >
