@@ -74,8 +74,8 @@ const recordPracticeResultSchema = z.object({
   streakCount: z.number().optional().default(0),
   timeSpent: z.number().optional().default(0),
   scenarioData: z.any().optional(),
-  userChoices: z.any().optional(),
-  feedback: z.string().nullable().optional() // Add feedback to match the database schema
+  userChoices: z.any().optional()
+  // Remove feedback field since it doesn't exist in the database
 });
 
 /**
