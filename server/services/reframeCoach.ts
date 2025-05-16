@@ -469,8 +469,8 @@ export function registerReframeCoachRoutes(app: Express): void {
           streakCount: validatedData.streakCount || 0,
           timeSpent: validatedData.timeSpent || 0,
           scenarioData: validatedData.scenarioData || [],
-          userChoices: validatedData.userChoices || [],
-          feedback: null // Add null value for the feedback column
+          userChoices: validatedData.userChoices || []
+          // Remove the feedback field since it doesn't exist in the database
         })
         .returning();
       
