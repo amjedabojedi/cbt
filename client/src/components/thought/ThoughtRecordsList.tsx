@@ -69,6 +69,12 @@ export default function ThoughtRecordsList({
     enabled: !!targetUserId && !providedRecords,
   });
   
+  // Fetch emotion records for displaying in thought record details
+  const { data: emotions } = useQuery({
+    queryKey: targetUserId ? [`/api/users/${targetUserId}/emotions`] : [],
+    enabled: !!targetUserId,
+  });
+  
   // Use provided records if they exist, otherwise use fetched records
   const thoughtRecords = providedRecords || fetchedRecords;
   
@@ -437,11 +443,32 @@ export default function ThoughtRecordsList({
                   Emotions
                 </h3>
                 <div className="pl-7 flex flex-wrap gap-1">
-                  {selectedRecord.emotions?.map((emotion, idx) => (
-                    <span key={idx} className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">
-                      {emotion}
-                    </span>
-                  ))}
+                  {selectedRecord.emotionRecordId && emotions ? (
+                    (() => {
+                      const linkedEmotion = emotions.find(e => e.id === selectedRecord.emotionRecordId);
+                      return (
+                        <div className="flex flex-wrap gap-1">
+                          {linkedEmotion?.coreEmotion && (
+                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">
+                              {linkedEmotion.coreEmotion}
+                            </span>
+                          )}
+                          {linkedEmotion?.primaryEmotion && (
+                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">
+                              {linkedEmotion.primaryEmotion}
+                            </span>
+                          )}
+                          {linkedEmotion?.tertiaryEmotion && (
+                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">
+                              {linkedEmotion.tertiaryEmotion}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <span className="text-muted-foreground text-xs">No emotions linked</span>
+                  )}
                 </div>
               </div>
               
