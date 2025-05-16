@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { User } from "@shared/schema";
 import { useClientContext } from "@/context/ClientContext";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { 
   HeartPulse, 
@@ -604,6 +604,17 @@ export default function Clients() {
     queryKey: [user?.role === "admin" ? "/api/users/all-clients" : "/api/users/clients"],
     enabled: user?.role === "therapist" || user?.role === "admin",
   });
+  
+  // If there's a client ID in the URL, find that client in the list and show their details
+  useEffect(() => {
+    if (clientIdFromUrl && clients.length > 0) {
+      const client = clients.find(c => c.id === clientIdFromUrl);
+      if (client) {
+        setSelectedClient(client);
+        console.log("Selected client from URL:", client);
+      }
+    }
+  }, [clientIdFromUrl, clients]);
   
   console.log("Client data from API:", clients);
   
