@@ -375,18 +375,37 @@ export default function ThoughtRecordsList({
                           </Button>
                           {/* Add Quick Practice button directly in the table row if showPracticeButton is true */}
                           {showPracticeButton && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => {
-                                // Navigate to quick practice with this thought record
-                                window.location.href = `/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`;
-                              }}
-                              className="text-amber-600 hover:text-amber-700"
-                              title="Practice Reframing"
-                            >
-                              <Sparkles className="h-4 w-4" />
-                            </Button>
+                            <>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => {
+                                  // Navigate to quick practice with this thought record
+                                  window.location.href = `/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`;
+                                }}
+                                className="text-amber-600 hover:text-amber-700"
+                                title="Practice Reframing"
+                              >
+                                <Sparkles className="h-4 w-4" />
+                              </Button>
+                              
+                              {/* Add Assign Practice button for therapists viewing client data */}
+                              {user?.role === 'therapist' && isViewingClientData && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={() => {
+                                    // Set selected record and show assignment dialog
+                                    setSelectedRecord(record);
+                                    setShowReframeDialog(true);
+                                  }}
+                                  className="text-blue-600 hover:text-blue-700"
+                                  title="Assign Practice to Client"
+                                >
+                                  <Book className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </>
                           )}
                         </div>
                       </TableCell>
