@@ -125,7 +125,7 @@ const CreateReframePracticeForm = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[525px]">
+      <DialogContent className="sm:max-w-[525px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Reframe Practice Assignment</DialogTitle>
           <DialogDescription>
@@ -136,12 +136,17 @@ const CreateReframePracticeForm = ({
         <div className="py-2">
           <div className="rounded-md bg-muted p-3 mb-4 text-sm">
             <h4 className="font-medium">Thought Record Details</h4>
-            <p className="mt-1 text-muted-foreground">
+            <p className="mt-1 text-muted-foreground line-clamp-3 hover:line-clamp-none">
               <strong>Thought:</strong> {thoughtRecord?.automaticThoughts}
             </p>
             <p className="mt-1 text-muted-foreground">
               <strong>Cognitive Distortions:</strong> {getDistortionsString()}
             </p>
+            {thoughtRecord?.alternativePerspective && (
+              <p className="mt-1 text-muted-foreground line-clamp-2 hover:line-clamp-none">
+                <strong>Alternative Perspective:</strong> {thoughtRecord.alternativePerspective}
+              </p>
+            )}
           </div>
           
           <Form {...form}>
@@ -222,6 +227,7 @@ const CreateReframePracticeForm = ({
                 <Button 
                   type="submit"
                   disabled={createPracticeMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
                   {createPracticeMutation.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
