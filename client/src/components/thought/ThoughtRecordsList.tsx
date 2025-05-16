@@ -253,9 +253,9 @@ export default function ThoughtRecordsList({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {displayRecords?.map((record) => (
-                <Card key={record.id} className="overflow-hidden border-slate-200 hover:shadow-md transition-shadow duration-200">
+                <Card key={record.id} className="overflow-hidden border-slate-200 hover:shadow-md transition-shadow duration-200 h-full flex flex-col">
                   <div className="bg-muted/20 px-4 py-3 flex items-center justify-between border-b">
                     <div className="flex items-center gap-2">
                       <div className="p-1.5 rounded-full bg-slate-100">
@@ -274,7 +274,7 @@ export default function ThoughtRecordsList({
                     )}
                   </div>
                   
-                  <CardContent className="p-4">
+                  <CardContent className="p-4 flex-1">
                     {/* Automatic Thoughts Section */}
                     <div className="mb-3">
                       <div className="flex items-center gap-2 mb-1">
@@ -326,7 +326,7 @@ export default function ThoughtRecordsList({
                   </CardContent>
                   
                   {/* Actions Footer */}
-                  <div className="flex items-center justify-between px-4 py-3 bg-muted/10 border-t">
+                  <div className="flex items-center justify-between px-4 py-3 bg-muted/10 border-t mt-auto">
                     <div className="flex items-center space-x-2">
                       {/* View Details Button - Always visible */}
                       <Button 
