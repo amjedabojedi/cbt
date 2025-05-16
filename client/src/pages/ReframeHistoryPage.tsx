@@ -40,8 +40,8 @@ const ReframeHistoryPage = () => {
       <div className="container max-w-4xl py-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold tracking-tight">Practice History</h2>
-          <Button onClick={() => window.history.back()}>
-            Back
+          <Button onClick={() => window.location.href = `/reframe-coach`}>
+            Back to Reframe Coach
           </Button>
         </div>
         
