@@ -283,7 +283,7 @@ export const userGameProfile = pgTable("user_game_profiles", {
   lastPracticeDate: timestamp("last_practice_date"), // For streak calculations
   achievements: jsonb("achievements").$type<string[]>().default([]), // Array of earned achievement IDs
   badges: jsonb("badges").$type<string[]>().default([]), // Array of earned badge IDs
-  reframeMastery: jsonb("reframe_mastery"), // Object mapping distortion types to mastery levels
+  // Note: reframeMastery column was removed as it doesn't exist in the database
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
