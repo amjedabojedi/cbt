@@ -169,7 +169,7 @@ const ReframeHistoryPage = () => {
                     <div className="text-center p-4 bg-muted/20 rounded-md">
                       <p className="text-muted-foreground text-sm">Time Spent</p>
                       <p className="text-2xl font-bold">
-                        {result.timeSpent ? `${Math.round(result.timeSpent / 60)} min` : "N/A"}
+                        {result.timeSpent ? `${Math.round((result.timeSpent / 1000) / 60)} min` : "N/A"}
                       </p>
                     </div>
                   </div>
