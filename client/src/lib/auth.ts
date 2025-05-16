@@ -162,9 +162,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         'Pragma': 'no-cache'
       };
       
-      // Use emergency login endpoint to bypass database issues
-      // This is a temporary solution for testing only
-      const endpoint = "/api/auth/emergency-login";
+      // Use the normal login endpoint which has emergency fallback
+      const endpoint = isMobileLogin ? "/api/auth/mobile-login" : "/api/auth/login";
       console.log(`Using auth endpoint: ${endpoint}`);
       
       const timestamp = new Date().getTime();
