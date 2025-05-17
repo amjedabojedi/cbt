@@ -2163,13 +2163,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } 
       // Try to get userId from cookie session
       else if (req.headers.cookie && req.headers.cookie.includes('sessionId')) {
-        const sessionId = req.headers.cookie.split('sessionId=')[1]?.split(';')[0]?.trim();
-        
-        if (sessionId) {
-          const session = await storage.getSession(sessionId);
-          if (session && session.userId) {
-            userId = session.userId;
+        try {
+          const sessionId = req.headers.cookie.split('sessionId=')[1]?.split(';')[0]?.trim();
+          
+          if (sessionId) {
+            const session = await storage.getSession(sessionId);
+            if (session && session.userId) {
+              userId = session.userId;
+            }
           }
+        } catch (cookieError) {
+          console.error("Error parsing cookie:", cookieError);
+          // Continue to next method if cookie parsing fails
         }
       }
       
@@ -2202,16 +2207,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(200).json({ viewingClient: null });
       }
       
-      // Get the client details
-      const client = await storage.getClient(user.currentViewingClientId);
-      
-      if (!client) {
-        console.log(`Client ID ${user.currentViewingClientId} not found`);
+      try {
+        // Get the client details
+        const client = await storage.getClient(user.currentViewingClientId);
+        
+        if (!client) {
+          console.log(`Client ID ${user.currentViewingClientId} not found`);
+          return res.status(200).json({ viewingClient: null });
+        }
+        
+        console.log(`Found current viewing client: ${client.name} for user ${userId}`);
+        return res.status(200).json({ viewingClient: client });
+      } catch (clientError) {
+        console.error(`Error fetching client ${user.currentViewingClientId}:`, clientError);
         return res.status(200).json({ viewingClient: null });
       }
-      
-      console.log(`Found current viewing client: ${client.name} for user ${userId}`);
-      return res.status(200).json({ viewingClient: client });
       
     } catch (error) {
       console.error("Error in current viewing client endpoint:", error);
