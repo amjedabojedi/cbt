@@ -448,25 +448,25 @@ export default function Clients() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  // ClientContext error fallback
-  const clientContext = React.useMemo(() => {
-    try {
-      return useClientContext();
-    } catch (error) {
-      console.error("Failed to use ClientContext:", error);
-      // Return a mock implementation that doesn't crash
-      return {
-        viewingClientId: null,
-        viewingClientName: null,
-        setViewingClient: (id: number | null, name: string | null) => {
-          localStorage.setItem('viewingClientId', id?.toString() || '');
-          localStorage.setItem('viewingClientName', name || '');
-        },
-        isViewingClient: false,
-        loading: false
-      };
-    }
-  }, []);
+  
+  // Use client context directly at the top level
+  let clientContext;
+  try {
+    clientContext = useClientContext();
+  } catch (error) {
+    console.error("Error fetching current viewing client:", error);
+    // Create a fallback context
+    clientContext = {
+      viewingClientId: null,
+      viewingClientName: null,
+      setViewingClient: (id: number | null, name: string | null) => {
+        localStorage.setItem('viewingClientId', id?.toString() || '');
+        localStorage.setItem('viewingClientName', name || '');
+      },
+      isViewingClient: false,
+      loading: false
+    };
+  }
   
   const { viewingClientId, setViewingClient } = clientContext;
   
