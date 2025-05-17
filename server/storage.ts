@@ -38,6 +38,7 @@ export interface IStorage {
   updateUser(id: number, data: Partial<User>): Promise<User>;
   getClients(therapistId: number): Promise<User[]>;
   getAllUsers(): Promise<User[]>;
+  getClientByIdAndTherapist(clientId: number, therapistId: number): Promise<User | undefined>;
   updateCurrentViewingClient(userId: number, clientId: number | null): Promise<User>;
   getCurrentViewingClient(userId: number): Promise<number | null>;
   updateUserStripeInfo(userId: number, stripeInfo: { stripeCustomerId: string, stripeSubscriptionId: string }): Promise<User>;
