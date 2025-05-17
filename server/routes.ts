@@ -2152,23 +2152,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get current viewing client with direct database access
+  // Get current viewing client with direct database access - NO AUTHENTICATION REQUIRED
+  // This endpoint MUST always return a 200 response with { viewingClient: null } if no data
   app.get("/api/users/current-viewing-client", async (req, res) => {
+    // Default response structure - always return 200 with this minimum
+    const response = { viewingClient: null, success: true };
+    
     try {
-      // Always return a valid response, never an error
-      let response = { viewingClient: null, success: true };
-      
       let userId = null;
       
-      // Try to get userId from authentication data
+      // Try to get userId from authentication data first
       if (req.user && typeof req.user.id === 'number') {
         userId = req.user.id;
       } 
-      // Try to get userId from cookie session
+      // If no authenticated user, try to get from backup header
+      else if (req.headers['x-user-id']) {
+        const parsedId = parseInt(req.headers['x-user-id'] as string);
+        if (!isNaN(parsedId)) {
+          userId = parsedId;
+        }
+      }
+      // Try from cookie as last resort
       else if (req.headers.cookie && req.headers.cookie.includes('sessionId')) {
         try {
           const sessionId = req.headers.cookie.split('sessionId=')[1]?.split(';')[0]?.trim();
-          
           if (sessionId) {
             const session = await storage.getSession(sessionId);
             if (session && session.userId) {
@@ -2176,20 +2183,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         } catch (cookieError) {
-          console.error("Error parsing cookie:", cookieError);
-          // Continue to next method if cookie parsing fails
+          console.log("Error parsing cookie, continuing with null viewingClient");
         }
       }
       
-      // Try fallback auth header if no session
-      if (!userId && req.headers['x-user-id']) {
-        const parsedId = parseInt(req.headers['x-user-id'] as string);
-        if (!isNaN(parsedId)) {
-          userId = parsedId;
-        }
-      }
-      
-      // Use a graceful fallback if no valid userId is found
+      // If we couldn't identify the user from any method, return the default response
       if (!userId) {
         console.log("Current viewing client: No valid user ID found");
         return res.status(200).json(response);
@@ -2197,22 +2195,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Getting current viewing client for user ID: ${userId}`);
       
+      // Check the user record
       try {
-        // Get the user and their current viewing client
         const user = await storage.getUser(userId);
         
-        if (!user) {
-          console.log(`User ${userId} not found`);
+        // If no user found or no viewing client set, return default response
+        if (!user || !user.currentViewingClientId) {
+          const reason = !user 
+            ? `User ${userId} not found` 
+            : `User ${userId} has no current viewing client set`;
+          console.log(reason);
           return res.status(200).json(response);
         }
         
-        if (!user.currentViewingClientId) {
-          console.log(`User ${userId} has no current viewing client set`);
-          return res.status(200).json(response);
-        }
-        
+        // Try to get the client details
         try {
-          // Get the client details
           const client = await storage.getClient(user.currentViewingClientId);
           
           if (!client) {
@@ -2228,22 +2225,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             name: client.name || "Unknown Client",
             username: client.username || "",
             email: client.email || "",
-            // Include any other needed fields but keep it minimal
           };
           
-          return res.status(200).json(response);
         } catch (clientError) {
-          console.error(`Error fetching client ${user.currentViewingClientId}:`, clientError);
-          return res.status(200).json(response);
+          console.log(`Error fetching client ${user.currentViewingClientId} - returning null`);
         }
       } catch (userError) {
-        console.error(`Error fetching user ${userId}:`, userError);
-        return res.status(200).json(response);
+        console.log(`Error fetching user ${userId} - returning null`);
       }
+      
+      // Always return 200 with the response object
+      return res.status(200).json(response);
+      
     } catch (error) {
-      console.error("Error in current viewing client endpoint:", error);
-      // Return null instead of error for better user experience
-      return res.status(200).json({ viewingClient: null, success: true });
+      console.error("Error in current viewing client endpoint - returning null");
+      return res.status(200).json(response);
     }
   });
   
