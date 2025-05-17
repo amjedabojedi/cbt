@@ -670,20 +670,44 @@ export default function Clients() {
     queryKey: ["/api/public/clients"],
     // Always enable this query since we need to show clients
     enabled: true,
+    // Include authentication headers to ensure proper therapist-client data filtering
+    queryFn: async () => {
+      try {
+        // Add user ID header for authentication
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json"
+        };
+        
+        if (user?.id) {
+          console.log("Adding backup auth headers to query:", { 
+            userId: user.id,
+            url: "/api/public/clients" 
+          });
+          headers["X-User-ID"] = user.id.toString();
+        }
+        
+        const response = await fetch("/api/public/clients", {
+          method: "GET",
+          credentials: "include",
+          headers
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText);
+        }
+        
+        const data = await response.json();
+        console.log("Client data from API:", data);
+        return data;
+      } catch (error) {
+        console.error("Query failed for /api/public/clients:", error);
+        throw error;
+      }
+    },
     onError: (error) => {
       console.error("Error fetching clients:", error);
-    },
-    // Provide a default value of a single client if all else fails
-    initialData: [{
-      id: 36,
-      username: "amjedahmed",
-      email: "aabojedi@banacenter.com",
-      name: "Amjed Abojedi",
-      role: "client",
-      therapistId: 20,
-      status: "active",
-      createdAt: new Date("2025-05-14") 
-    }]
+    }
   });
   
   // Process API clients data to normalize snake_case to camelCase
