@@ -1611,6 +1611,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get a therapist's clients
+  app.get("/api/users/clients", authenticate, async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // Validate that the user is a therapist or admin
+      if (req.user.role !== "therapist" && req.user.role !== "admin") {
+        return res.status(403).json({ message: "Permission denied" });
+      }
+      
+      // Check if the userId parameter is valid
+      const userId = req.user.id;
+      if (isNaN(Number(userId))) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Get the therapist's clients from the database
+      const clients = await storage.getClients(userId);
+      
+      // Remove passwords from the client objects
+      const clientsWithoutPasswords = clients.map(client => {
+        const { password, ...clientWithoutPassword } = client;
+        return clientWithoutPassword;
+      });
+      
+      res.status(200).json(clientsWithoutPasswords);
+    } catch (error) {
+      console.error("Get clients error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Get all clients, including unassigned clients (only for admin)
   app.get("/api/users/all-clients", authenticate, isAdmin, async (req, res) => {
     try {
