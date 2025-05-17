@@ -48,6 +48,11 @@ export interface IStorage {
   deleteUser(userId: number, adminId?: number): Promise<void>;
   updateUserTherapist(userId: number, therapistId: number): Promise<User>;
   
+  // Additional methods needed for our fixes
+  getClientsByTherapistId(therapistId: number): Promise<User[]>;
+  getClient(clientId: number): Promise<User | undefined>;
+  getSession(sessionId: string): Promise<{ userId: number } | null>;
+  
   // System logs
   createSystemLog(log: InsertSystemLog): Promise<SystemLog>;
   
@@ -284,6 +289,70 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error in getClients:", error);
       return [];
+    }
+  }
+  
+  // Add the new methods needed for client display fixes
+  
+  async getClientsByTherapistId(therapistId: number): Promise<User[]> {
+    console.log(`Getting clients for therapist ID: ${therapistId} in new method`);
+    
+    try {
+      const clientsList = await db
+        .select()
+        .from(users)
+        .where(eq(users.therapistId, therapistId))
+        .orderBy(users.name);
+        
+      console.log(`Found ${clientsList.length} clients for therapist ${therapistId}`);
+      return clientsList;
+    } catch (error) {
+      console.error("Error in getClientsByTherapistId:", error);
+      return [];
+    }
+  }
+  
+  async getClient(clientId: number): Promise<User | undefined> {
+    console.log(`Getting client by ID: ${clientId}`);
+    
+    try {
+      const [client] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, clientId));
+        
+      if (client) {
+        console.log(`Found client: ${client.name} with ID ${clientId}`);
+      } else {
+        console.log(`No client found with ID ${clientId}`);
+      }
+      
+      return client;
+    } catch (error) {
+      console.error(`Error in getClient for ID ${clientId}:`, error);
+      return undefined;
+    }
+  }
+  
+  async getSession(sessionId: string): Promise<{ userId: number } | null> {
+    console.log(`Looking up session ID: ${sessionId}`);
+    
+    try {
+      const [session] = await db
+        .select()
+        .from(sessions)
+        .where(eq(sessions.id, sessionId));
+        
+      if (session) {
+        console.log(`Found session: ${sessionId} for user: ${session.userId}`);
+        return { userId: session.userId };
+      } else {
+        console.log(`No session found with ID ${sessionId}`);
+        return null;
+      }
+    } catch (error) {
+      console.error(`Error in getSession for ID ${sessionId}:`, error);
+      return null;
     }
   }
   
