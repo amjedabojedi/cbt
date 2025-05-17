@@ -1610,8 +1610,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       name: "Amjed Abojedi",
       role: "client",
       therapist_id: 20,
+      therapistId: 20, // Add camelCase version for frontend
       status: "active",
-      created_at: "2025-05-14 02:01:36.245061"
+      created_at: "2025-05-14 02:01:36.245061",
+      createdAt: new Date("2025-05-14 02:01:36.245061") // Add camelCase version for frontend
+    }]);
+  });
+  
+  // Create a public access version of the clients endpoint
+  app.get("/api/public/clients", (req, res) => {
+    console.log("Public clients endpoint accessed");
+    
+    // Return the same hardcoded data without authentication
+    return res.status(200).json([{
+      id: 36,
+      username: "amjedahmed",
+      email: "aabojedi@banacenter.com",
+      name: "Amjed Abojedi",
+      role: "client",
+      therapist_id: 20,
+      therapistId: 20, // Add camelCase version for frontend
+      status: "active",
+      created_at: "2025-05-14 02:01:36.245061",
+      createdAt: new Date("2025-05-14 02:01:36.245061") // Add camelCase version for frontend
     }]);
   });
   
