@@ -67,6 +67,12 @@ export function ClientProvider({ children }: { children: ReactNode }) {
           } catch (e) {
             // If JSON parsing fails, create empty response
             data = { viewingClient: null };
+            console.error("Error fetching current viewing client:", e);
+          }
+          
+          // If there's an error message, log it
+          if (data.message) {
+            console.log("Request issue for GET /api/users/current-viewing-client:", data.message);
           }
           
           if (isMounted) {
