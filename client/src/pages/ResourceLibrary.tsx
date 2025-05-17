@@ -474,16 +474,27 @@ export default function ResourceLibrary() {
         null
       );
       
+      // If the resource was not found (404), consider it a success since it's already gone
+      if (response.status === 404) {
+        return { success: true };
+      }
+      
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ message: "Failed to delete resource" }));
         throw new Error(errorData.message || "Failed to delete resource");
       }
       
-      return response.json();
+      // For 204 No Content responses
+      if (response.status === 204) {
+        return { success: true };
+      }
+      
+      return response.json().catch(() => ({ success: true }));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
       setCurrentResource(null);
+      setIsDeleteResourceDialogOpen(false);
       toast({
         title: "Resource Deleted",
         description: "The educational resource has been removed from the library.",
@@ -491,6 +502,19 @@ export default function ResourceLibrary() {
     },
     onError: (error) => {
       console.error("Error deleting resource:", error);
+      
+      // Don't show error toast if the resource is already gone
+      if (error.message === "Resource not found") {
+        queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
+        setCurrentResource(null);
+        setIsDeleteResourceDialogOpen(false);
+        toast({
+          title: "Resource Deleted",
+          description: "The educational resource has been removed from the library.",
+        });
+        return;
+      }
+      
       toast({
         title: "Error",
         description: "Failed to delete resource. Please try again.",
