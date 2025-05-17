@@ -281,13 +281,13 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`Querying database for clients with therapist_id = ${therapistId}`);
       
-      // Use Drizzle ORM instead of raw SQL queries
+      // Use Drizzle ORM with correct column name
       const clientsList = await db
         .select()
         .from(users)
         .where(and(
           eq(users.role, 'client'),
-          eq(users.therapist_id, therapistId)
+          eq(users.therapistId, therapistId)
         ))
         .orderBy(users.name);
       

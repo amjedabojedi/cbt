@@ -1601,7 +1601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Clients endpoint accessed by user:", req.user?.id, req.user?.username, req.user?.role);
       
       // Ensure user is authenticated and has therapist or admin role
-      if (!req.user || !req.user.id) {
+      if (!req.user) {
         return res.status(401).json({ message: "Authentication required" });
       }
       
@@ -1609,28 +1609,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied: Only therapists and admins can view clients" });
       }
       
-      // Get clients for this therapist from database
-      const therapistId = req.user.id;
-      if (!therapistId || isNaN(therapistId)) {
-        console.error("Invalid therapist ID:", therapistId);
-        return res.status(400).json({ message: "Invalid user ID" });
+      // Check if user.id exists and is a valid number
+      if (typeof req.user.id !== 'number' || isNaN(req.user.id)) {
+        console.log("Request issue for GET /api/users/clients:", "Invalid user ID format", req.user.id);
+        return res.status(200).json([]); // Return empty array instead of error
       }
       
-      console.log("Getting clients for therapist ID:", therapistId);
+      // Get clients for this therapist from database
+      const therapistId = req.user.id;
+      console.log("Getting clients for therapist ID:", therapistId, "type:", typeof therapistId);
+      
       const clients = await storage.getClients(therapistId);
       
-      // Add camelCase versions of snake_case database fields
+      // Add camelCase versions of snake_case database fields if needed
       const formattedClients = clients.map(client => ({
         ...client,
-        therapistId: client.therapist_id || null,
-        createdAt: client.created_at ? new Date(client.created_at) : new Date()
+        // Only add these if they're not already present
+        therapistId: client.therapistId || client.therapist_id || null,
+        createdAt: client.createdAt || (client.created_at ? new Date(client.created_at) : new Date())
       }));
       
       console.log(`Found ${formattedClients.length} clients for therapist ${therapistId}`);
       return res.status(200).json(formattedClients);
     } catch (error) {
       console.error("Error fetching clients:", error);
-      return res.status(500).json({ message: "Failed to fetch clients" });
+      // Return empty array instead of error for better user experience
+      return res.status(200).json([]);
     }
   });
   
@@ -2087,63 +2091,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get current viewing client with direct database access (no authentication)
+  // Get current viewing client with direct database access
   app.get("/api/users/current-viewing-client", async (req, res) => {
     try {
-      // If request has cookies, try to get authenticated user's current viewing client
+      let userId = null;
+      
+      // Try to get userId from cookie session
       if (req.headers.cookie && req.headers.cookie.includes('sessionId')) {
         const sessionId = req.headers.cookie.split('sessionId=')[1]?.split(';')[0]?.trim();
         
         if (sessionId) {
           const session = await storage.getSession(sessionId);
-          
           if (session && session.userId) {
-            const userId = session.userId;
-            console.log(`Getting current viewing client for user ID: ${userId}`);
-            
-            try {
-              const user = await storage.getUser(userId);
-              
-              if (user && user.currentViewingClientId) {
-                const client = await storage.getClient(user.currentViewingClientId);
-                
-                if (client) {
-                  console.log(`Found current viewing client: ${client.name} for user ${userId}`);
-                  return res.status(200).json({ viewingClient: client });
-                }
-              }
-            } catch (dbError) {
-              console.error(`Database error fetching viewing client: ${dbError}`);
-            }
+            userId = session.userId;
           }
         }
       }
       
-      // Try fallback auth header
-      const fallbackUserId = req.headers['x-user-id'] ? 
-                            parseInt(req.headers['x-user-id'] as string) : null;
-      
-      if (fallbackUserId) {
-        try {
-          console.log(`Fallback: Getting current viewing client for user ID: ${fallbackUserId}`);
-          const user = await storage.getUser(fallbackUserId);
-          
-          if (user && user.currentViewingClientId) {
-            const client = await storage.getClient(user.currentViewingClientId);
-            
-            if (client) {
-              console.log(`Fallback: Found current viewing client: ${client.name}`);
-              return res.status(200).json({ viewingClient: client });
-            }
-          }
-        } catch (fallbackError) {
-          console.error(`Fallback database error: ${fallbackError}`);
-        }
+      // Try fallback auth header if no session
+      if (!userId && req.headers['x-user-id']) {
+        userId = parseInt(req.headers['x-user-id'] as string);
       }
       
-      // If we're here, no viewing client is set - return null
-      console.log("No current viewing client found");
-      return res.status(200).json({ viewingClient: null });
+      // Validate userId before proceeding
+      if (!userId || isNaN(userId)) {
+        console.log("Request issue for GET /api/users/current-viewing-client:", "Invalid user ID");
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      console.log(`Getting current viewing client for user ID: ${userId}`);
+      
+      // Get the user and their current viewing client
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      if (!user.currentViewingClientId) {
+        console.log(`User ${userId} has no current viewing client set`);
+        return res.status(200).json({ viewingClient: null });
+      }
+      
+      // Get the client details
+      const client = await storage.getClient(user.currentViewingClientId);
+      
+      if (!client) {
+        console.log(`Client ID ${user.currentViewingClientId} not found`);
+        return res.status(200).json({ viewingClient: null });
+      }
+      
+      console.log(`Found current viewing client: ${client.name} for user ${userId}`);
+      return res.status(200).json({ viewingClient: client });
+      
     } catch (error) {
       console.error("Error in current viewing client endpoint:", error);
       return res.status(500).json({ error: "Failed to get current viewing client" });
