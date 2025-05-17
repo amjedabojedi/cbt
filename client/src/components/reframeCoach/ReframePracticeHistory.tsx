@@ -5,7 +5,7 @@ import {
   CardContent, 
   CardHeader, 
   CardTitle,
-  CardDescription,
+  CardDescription 
 } from "@/components/ui/card";
 import { Loader2, BarChart3, Clock, BrainCircuit, ThumbsUp } from "lucide-react";
 import { format } from "date-fns";
@@ -116,13 +116,16 @@ const ReframePracticeHistory: React.FC<ReframePracticeHistoryProps> = ({
               <div className="mt-2">
                 <div className="flex flex-wrap gap-1">
                   {result.scenarioData && Array.isArray(result.scenarioData) ? (
-                    (Array.from(new Set(result.scenarioData
-                      .map((scenario: any) => scenario.cognitiveDistortion)
-                      .filter(Boolean)
-                    )) as string[]).map((distortion: string, index: number) => (
+                    Array.from(
+                      new Set(
+                        result.scenarioData
+                          .map((scenario: any) => scenario.cognitiveDistortion)
+                          .filter(Boolean)
+                      )
+                    ).map((distortion: any, index: number) => (
                       <Badge key={index} variant="outline" className="bg-primary/10 text-xs">
                         <BrainCircuit className="mr-1 h-3 w-3" />
-                        {distortion}
+                        {String(distortion)}
                       </Badge>
                     ))
                   ) : (
