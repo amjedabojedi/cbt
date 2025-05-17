@@ -1345,6 +1345,38 @@ export default function ResourceLibrary() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            
+            {/* Delete Resource Confirmation Dialog */}
+            <Dialog open={isDeleteResourceDialogOpen} onOpenChange={setIsDeleteResourceDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Educational Resource</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete this educational resource? This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsDeleteResourceDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="destructive"
+                    onClick={() => {
+                      if (currentResource) {
+                        deleteResourceMutation.mutate(currentResource.id);
+                        setIsDeleteResourceDialogOpen(false);
+                      }
+                    }}
+                    disabled={deleteResourceMutation.isPending}
+                  >
+                    {deleteResourceMutation.isPending ? "Deleting..." : "Delete Resource"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
           
           {/* Educational Resources Tab */}
