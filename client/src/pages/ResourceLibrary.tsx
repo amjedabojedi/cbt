@@ -101,6 +101,7 @@ export default function ResourceLibrary() {
   const [isViewingResource, setIsViewingResource] = useState(false);
   const [resourceCategory, setResourceCategory] = useState<string>("all");
   const [isAssigningResource, setIsAssigningResource] = useState(false);
+  const [isDeleteResourceDialogOpen, setIsDeleteResourceDialogOpen] = useState(false);
   const [selectedClients, setSelectedClients] = useState<number[]>([]);
   const [assignmentNotes, setAssignmentNotes] = useState('');
   const [currentResource, setCurrentResource] = useState<{
@@ -1424,15 +1425,30 @@ export default function ResourceLibrary() {
                     <CardHeader className="bg-neutral-50 pb-2">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg font-medium">{resource.title}</CardTitle>
-                        {resource.createdBy === user?.id && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8"
-                            onClick={() => setCurrentResource({...resource, isEditing: true})}
-                          >
-                            <Edit className="h-4 w-4 text-neutral-500" />
-                          </Button>
+                        {(resource.createdBy === user?.id || user?.role === "admin") && (
+                          <div className="flex gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8"
+                              onClick={() => setCurrentResource({...resource, isEditing: true})}
+                            >
+                              <Edit className="h-4 w-4 text-neutral-500" />
+                            </Button>
+                            {user?.role === "admin" && resource.createdBy !== user?.id && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => {
+                                  setCurrentResource(resource);
+                                  setIsDeleteResourceDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
                         )}
                       </div>
                       <CardDescription className="flex items-center gap-2 mt-1">
