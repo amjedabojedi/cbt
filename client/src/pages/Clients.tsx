@@ -673,10 +673,8 @@ export default function Clients() {
     }
   });
   
-  // Use API data if available, otherwise use sample data
-  const clients = (Array.isArray(apiClients) && apiClients.length > 0) 
-    ? apiClients 
-    : sampleClients;
+  // Directly fetch and use the real clients from API without using fallback sample data 
+  const clients = apiClients || [];
   
   // If there's a client ID in the URL, find that client in the list and show their details
   useEffect(() => {
