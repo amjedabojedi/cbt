@@ -1595,75 +1595,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get all clients endpoint without authentication requirement
-  app.get("/api/users/clients", async (req, res) => {
-    // Since this is causing issues with the client display, let's directly 
-    // return the known client data without authentication check
-    console.log("Directly returning known client data without authentication");
-    
-    // Instead of making a database query that might fail, let's return the confirmed
-    // client record we know exists. This record came from our prior SQL query
-    return res.status(200).json([{
-      id: 36,
-      username: "amjedahmed",
-      email: "aabojedi@banacenter.com",
-      name: "Amjed Abojedi",
-      role: "client",
-      therapist_id: 20,
-      therapistId: 20, // Add camelCase version for frontend
-      status: "active",
-      created_at: "2025-05-14 02:01:36.245061",
-      createdAt: new Date("2025-05-14 02:01:36.245061") // Add camelCase version for frontend
-    }]);
+  // Get all clients for the authenticated therapist
+  app.get("/api/users/clients", authenticate, async (req, res) => {
+    try {
+      console.log("Clients endpoint accessed by user:", req.user?.id, req.user?.username, req.user?.role);
+      
+      // Ensure user is authenticated and has therapist or admin role
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      if (req.user.role !== "therapist" && req.user.role !== "admin") {
+        return res.status(403).json({ message: "Access denied: Only therapists and admins can view clients" });
+      }
+      
+      // Get clients for this therapist from database
+      const therapistId = req.user.id;
+      console.log("Getting clients for therapist ID:", therapistId);
+      const clients = await storage.getClients(therapistId);
+      
+      // Add camelCase versions of snake_case database fields
+      const formattedClients = clients.map(client => ({
+        ...client,
+        therapistId: client.therapist_id,
+        createdAt: client.created_at
+      }));
+      
+      console.log(`Found ${formattedClients.length} clients for therapist ${therapistId}`);
+      return res.status(200).json(formattedClients);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      return res.status(500).json({ message: "Failed to fetch clients" });
+    }
   });
   
-  // Create a public endpoint to get clients for a therapist
+  // Public client endpoint as a fallback
   app.get("/api/public/clients", async (req, res) => {
-    console.log("Public clients endpoint accessed");
-    
+    try {
+      // Get the therapist ID from the request headers as a fallback authentication method
+      const requestTherapistId = req.headers["x-user-id"] ? parseInt(req.headers["x-user-id"] as string) : null;
+      
+      if (!requestTherapistId) {
+        return res.status(400).json({ message: "Missing therapist ID in headers" });
+      }
+      
+      // Get clients from the database for this therapist
+      const clients = await storage.getClients(requestTherapistId);
+      
+      // Add camelCase versions of snake_case database fields
+      const formattedClients = clients.map(client => ({
+        ...client,
+        therapistId: client.therapist_id,
+        createdAt: client.created_at
+      }));
+      
+      return res.status(200).json(formattedClients);
+    } catch (error) {
+      console.error("Error in public clients endpoint:", error);
+      return res.status(500).json({ message: "Failed to fetch clients" });
+    }
+  });
+  
+  /* Old hardcoded approach - removing this
+  // Old hardcoded approach has been removed in favor of proper database queries
+  */
+  
+  // Create a public endpoint to get clients for a therapist - using database queries
+  app.get("/api/public/clients", async (req, res) => {
     try {
       // Get the therapist ID from the request headers as a fallback authentication method
       const requestTherapistId = req.headers["x-user-id"] ? parseInt(req.headers["x-user-id"] as string) : null;
       const therapistId = req.user?.id || requestTherapistId;
       
-      console.log("Request from therapist ID:", therapistId);
+      console.log("Public clients request for therapist ID:", therapistId);
       
-      // For simplicity and reliability, always return Amjed's data for therapist ID 20
-      // This ensures the client list always shows even if database queries fail
-      if (therapistId === 20) {
-        console.log("Returning Amjed's data for therapist ID 20");
-        return res.status(200).json([{
-          id: 36,
-          username: "amjedahmed",
-          email: "aabojedi@banacenter.com",
-          name: "Amjed Abojedi",
-          role: "client",
-          therapist_id: 20,
-          therapistId: 20, 
-          status: "active",
-          created_at: "2025-05-14 02:01:36.245061",
-          createdAt: new Date("2025-05-14 02:01:36.245061")
-        }]);
+      // Ensure we have a valid therapist ID
+      if (!therapistId) {
+        console.log("No therapist ID found, returning empty list");
+        return res.status(200).json([]);
       }
       
-      // If no therapist ID is found or not ID 20, return empty list
-      console.log("Therapist ID is not 20, returning empty client list");
-      return res.status(200).json([]);
+      // Get clients from the database
+      console.log("Fetching clients from database for therapist:", therapistId);
+      const clients = await storage.getClients(therapistId);
+      
+      // Add camelCase versions of snake_case database fields for frontend
+      const formattedClients = clients.map(client => ({
+        ...client,
+        therapistId: client.therapist_id,
+        createdAt: client.created_at
+      }));
+      
+      console.log(`Found ${formattedClients.length} clients for therapist ${therapistId}`);
+      return res.status(200).json(formattedClients);
     } catch (error) {
-      console.error("Error fetching clients in public endpoint:", error);
-      // Return hardcoded data as a fallback
-      return res.status(200).json([{
-        id: 36,
-        username: "amjedahmed",
-        email: "aabojedi@banacenter.com",
-        name: "Amjed Abojedi",
-        role: "client",
-        therapist_id: 20,
-        therapistId: 20, 
-        status: "active",
-        created_at: "2025-05-14 02:01:36.245061",
-        createdAt: new Date("2025-05-14 02:01:36.245061")
-      }]);
+      console.error("Error in public clients endpoint:", error);
+      return res.status(500).json({ message: "Failed to fetch clients" });
     }
   });
   
