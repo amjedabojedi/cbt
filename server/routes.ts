@@ -1045,6 +1045,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get user by ID (therapists can access their clients, admins can access anyone)
+  app.get("/api/users/:userId", authenticate, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Admin can access any user
+      if (req.user.role === "admin") {
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        // Remove password from response
+        const { password, ...userWithoutPassword } = user;
+        return res.status(200).json(userWithoutPassword);
+      }
+      
+      // Therapists can only access their clients
+      if (req.user.role === "therapist") {
+        console.log("Therapist", req.user.id, "attempting to access user", userId);
+        
+        // Check if this is one of the therapist's clients
+        const client = await storage.getClientByIdAndTherapist(userId, req.user.id);
+        if (!client) {
+          console.log("Client lookup result: Not found or not belonging to this therapist");
+          return res.status(403).json({ message: "Access denied" });
+        }
+        
+        console.log("Client", userId, "lookup result: Found: therapistId =", client.therapistId);
+        console.log("This client belongs to the professional - ALLOWED");
+        
+        // Remove password from response
+        const { password, ...clientWithoutPassword } = client;
+        return res.status(200).json(clientWithoutPassword);
+      }
+      
+      // Regular users can only access their own data
+      if (req.user.id !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+      return res.status(200).json(userWithoutPassword);
+    } catch (error) {
+      console.error("Get user by ID error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Register user by admin (for creating therapists and admins)
   app.post("/api/users/register-by-admin", authenticate, isAdmin, async (req, res) => {
     try {
