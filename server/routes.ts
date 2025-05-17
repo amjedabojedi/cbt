@@ -1623,28 +1623,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Permission denied" });
       }
       
-      // Get the user ID, ensuring it's a number
-      const userId = parseInt(String(req.user.id), 10);
+      // Get the user ID from the authenticated user
+      const therapistId = req.user.id;
       
-      if (isNaN(userId)) {
-        console.error("Invalid user ID in req.user:", req.user.id);
-        return res.status(400).json({ message: "Invalid user ID" });
+      // Debug logging
+      console.log(`Retrieving clients for therapist ID=${therapistId}, type=${typeof therapistId}`);
+      console.log(`Full user object:`, JSON.stringify(req.user));
+      
+      // Ensure therapistId is a number
+      const therapistIdNumber = Number(therapistId);
+      
+      if (isNaN(therapistIdNumber)) {
+        console.error(`Invalid therapist ID: ${therapistId}, cannot convert to number`);
+        return res.status(400).json({ message: "Invalid therapist ID format" });
       }
       
-      console.log(`Getting clients for therapist ID ${userId}`);
-      
       // Get the therapist's clients from the database
-      const clients = await storage.getClients(userId);
+      const clients = await storage.getClients(therapistIdNumber);
       
-      // Remove passwords from the client objects
-      const clientsWithoutPasswords = clients.map(client => {
-        const { password, ...clientWithoutPassword } = client;
-        return clientWithoutPassword;
+      console.log(`Found ${clients.length} clients for therapist ID ${therapistIdNumber}`);
+      
+      // Remove sensitive data from the client objects
+      const clientsWithoutSensitiveData = clients.map(client => {
+        // Using destructuring to remove password and keep all other fields
+        const { password, ...clientData } = client;
+        return clientData;
       });
       
-      res.status(200).json(clientsWithoutPasswords);
+      res.status(200).json(clientsWithoutSensitiveData);
     } catch (error) {
-      console.error("Get clients error:", error);
+      console.error("Error retrieving clients:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

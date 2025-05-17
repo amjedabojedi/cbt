@@ -203,8 +203,25 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   // User management
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    if (id === undefined || id === null) {
+      console.error("getUser called with null/undefined id");
+      return undefined;
+    }
+    
+    // Ensure we have a proper number
+    const userId = Number(id);
+    if (isNaN(userId)) {
+      console.error(`Invalid user ID: ${id}, cannot convert to number`);
+      return undefined;
+    }
+    
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      return user;
+    } catch (error) {
+      console.error(`Error retrieving user with ID ${userId}:`, error);
+      return undefined;
+    }
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -312,11 +329,32 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getCurrentViewingClient(userId: number): Promise<number | null> {
-    const user = await this.getUser(userId);
+    console.log(`Getting current viewing client for user ID: ${userId}, type: ${typeof userId}`);
     
-    console.log(`Retrieved current viewing client for user ${userId}:`, user?.currentViewingClientId);
+    if (userId === undefined || userId === null) {
+      console.error("getCurrentViewingClient called with null/undefined userId");
+      return null;
+    }
     
-    return user?.currentViewingClientId || null;
+    const userIdNumber = Number(userId);
+    if (isNaN(userIdNumber)) {
+      console.error(`Invalid userId: ${userId}, cannot convert to number`);
+      return null;
+    }
+    
+    try {
+      const user = await this.getUser(userIdNumber);
+      if (!user) {
+        console.log(`User with ID ${userIdNumber} not found`);
+        return null;
+      }
+      
+      console.log(`User ${userIdNumber} is currently viewing client ID: ${user.currentViewingClientId}`);
+      return user.currentViewingClientId;
+    } catch (error) {
+      console.error("Error in getCurrentViewingClient:", error);
+      return null;
+    }
   }
   
   async updateUserStripeInfo(userId: number, stripeInfo: { stripeCustomerId: string, stripeSubscriptionId: string }): Promise<User> {
