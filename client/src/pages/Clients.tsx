@@ -673,8 +673,26 @@ export default function Clients() {
     }
   });
   
-  // Directly fetch and use the real clients from API without using fallback sample data 
-  const clients = apiClients || [];
+  // Process API clients data to normalize snake_case to camelCase
+  const clients = React.useMemo(() => {
+    if (!apiClients || !Array.isArray(apiClients)) return [];
+    
+    // Map the data to normalize field names between snake_case DB and camelCase UI
+    return apiClients.map(client => ({
+      id: client.id,
+      username: client.username,
+      email: client.email,
+      name: client.name,
+      role: client.role,
+      // Handle both camelCase and snake_case field names
+      therapistId: client.therapistId || client.therapist_id,
+      status: client.status,
+      // Handle created_at (DB) vs createdAt (UI)
+      createdAt: client.createdAt || client.created_at,
+      // Add any other fields needed by components
+      currentViewingClientId: client.currentViewingClientId || client.current_viewing_client_id
+    }));
+  }, [apiClients]);
   
   // If there's a client ID in the URL, find that client in the list and show their details
   useEffect(() => {
@@ -689,11 +707,15 @@ export default function Clients() {
   
   console.log("Client data from API:", clients);
   
-  // Filter clients based on active tab
+  // Filter clients based on active tab, ensuring we handle both camelCase and snake_case DB fields
   const filteredClients = clients.filter((client) => {
     if (activeTab === "all") return true;
-    if (activeTab === "active") return client.status === "active";
-    if (activeTab === "pending") return client.status === "pending";
+    
+    // Check if property exists in either format (camelCase or snake_case)
+    const status = client.status || client.status;
+    
+    if (activeTab === "active") return status === "active";
+    if (activeTab === "pending") return status === "pending";
     return true;
   });
   
