@@ -1048,10 +1048,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user by ID (therapists can access their clients, admins can access anyone)
   app.get("/api/users/:userId", authenticate, async (req, res) => {
     try {
-      const userId = parseInt(req.params.userId);
+      // Validate userId is a number before continuing
+      const userIdParam = req.params.userId;
+      if (!userIdParam || isNaN(Number(userIdParam))) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const userId = parseInt(userIdParam);
       
       // Admin can access any user
-      if (req.user.role === "admin") {
+      if (req.user?.role === "admin") {
         const user = await storage.getUser(userId);
         if (!user) {
           return res.status(404).json({ message: "User not found" });
@@ -1063,8 +1069,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Therapists can only access their clients
-      if (req.user.role === "therapist") {
+      if (req.user?.role === "therapist") {
         console.log("Therapist", req.user.id, "attempting to access user", userId);
+        
+        // Special case: if this is the user's own profile, allow access
+        if (req.user.id === userId) {
+          const user = await storage.getUser(userId);
+          if (!user) {
+            return res.status(404).json({ message: "User not found" });
+          }
+          
+          // Remove password from response
+          const { password, ...userWithoutPassword } = user;
+          return res.status(200).json(userWithoutPassword);
+        }
         
         // Check if this is one of the therapist's clients
         const client = await storage.getClientByIdAndTherapist(userId, req.user.id);
@@ -1082,7 +1100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Regular users can only access their own data
-      if (req.user.id !== userId) {
+      if (req.user?.id !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -1984,6 +2002,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get the currently viewing client for a therapist or admin
   app.get("/api/users/current-viewing-client", authenticate, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
       console.log(`Getting current viewing client for user ${req.user.id} (${req.user.role})`);
       
       // Only therapists and admins can view other users' data
@@ -1997,10 +2019,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ viewingClient: null });
       }
       
+      // Validate clientId is a valid number
+      if (isNaN(Number(clientId))) {
+        console.log("Invalid client ID format:", clientId);
+        return res.json({ viewingClient: null });
+      }
+      
       // Get the client details
       const client = await storage.getUser(clientId);
       
       if (!client) {
+        console.log(`Client with ID ${clientId} not found`);
         return res.json({ viewingClient: null });
       }
       
