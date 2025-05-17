@@ -1578,8 +1578,9 @@ export default function ResourceLibrary() {
                   </div>
                   
                   <DialogFooter className="border-t mt-6 pt-4 flex justify-between">
-                    {currentResource.createdBy === user?.id && (
-                      <>
+                    <div className="flex gap-2">
+                      {/* Delete button for resource creators or admins */}
+                      {(currentResource.createdBy === user?.id || user?.role === "admin") && (
                         <Button 
                           variant="destructive" 
                           onClick={() => {
@@ -1589,25 +1590,32 @@ export default function ResourceLibrary() {
                         >
                           {deleteResourceMutation.isPending ? "Deleting..." : "Delete Resource"}
                         </Button>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      {/* Edit button for resource creators or admins */}
+                      {(currentResource.createdBy === user?.id || user?.role === "admin") && (
                         <Button 
                           onClick={() => setCurrentResource({...currentResource, isEditing: true})}
                         >
                           Edit Resource
                         </Button>
-                      </>
-                    )}
-                    
-                    {user?.role === "therapist" && currentResource.createdBy !== user?.id && (
-                      <Button 
-                        onClick={() => {
-                          cloneResourceMutation.mutate(currentResource.id);
-                          setCurrentResource(null);
-                        }}
-                        disabled={cloneResourceMutation.isPending}
-                      >
-                        {cloneResourceMutation.isPending ? "Cloning..." : "Clone to My Resources"}
-                      </Button>
-                    )}
+                      )}
+                      
+                      {/* Clone button for therapists who didn't create the resource */}
+                      {user?.role === "therapist" && currentResource.createdBy !== user?.id && (
+                        <Button 
+                          onClick={() => {
+                            cloneResourceMutation.mutate(currentResource.id);
+                            setCurrentResource(null);
+                          }}
+                          disabled={cloneResourceMutation.isPending}
+                        >
+                          {cloneResourceMutation.isPending ? "Cloning..." : "Clone to My Resources"}
+                        </Button>
+                      )}
+                    </div>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
