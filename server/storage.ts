@@ -255,6 +255,21 @@ export class DatabaseStorage implements IStorage {
       .orderBy(users.name);
   }
   
+  async getClientByIdAndTherapist(clientId: number, therapistId: number): Promise<User | undefined> {
+    const [client] = await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.id, clientId),
+          eq(users.therapistId, therapistId),
+          eq(users.role, "client")
+        )
+      );
+    
+    return client;
+  }
+  
   async getAllUsers(): Promise<User[]> {
     return db
       .select()
