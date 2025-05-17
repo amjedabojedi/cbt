@@ -248,11 +248,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getClients(therapistId: number): Promise<User[]> {
-    return db
-      .select()
-      .from(users)
-      .where(eq(users.therapistId, therapistId))
-      .orderBy(users.name);
+    console.log(`Getting clients for therapist ID: ${therapistId}, type: ${typeof therapistId}`);
+    
+    // Debug: print more info about the input parameter
+    if (therapistId === undefined || therapistId === null) {
+      console.error("getClients called with null/undefined therapistId");
+      return [];
+    }
+    
+    const therapistIdNumber = Number(therapistId);
+    if (isNaN(therapistIdNumber)) {
+      console.error(`Invalid therapistId: ${therapistId}, cannot convert to number`);
+      return [];
+    }
+    
+    try {
+      const clientsList = await db
+        .select()
+        .from(users)
+        .where(eq(users.therapistId, therapistIdNumber))
+        .orderBy(users.name);
+        
+      console.log(`Found ${clientsList.length} clients for therapist ${therapistIdNumber}`);
+      return clientsList;
+    } catch (error) {
+      console.error("Error in getClients:", error);
+      return [];
+    }
   }
   
   async getClientByIdAndTherapist(clientId: number, therapistId: number): Promise<User | undefined> {

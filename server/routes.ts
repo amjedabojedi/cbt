@@ -1623,11 +1623,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Permission denied" });
       }
       
-      // Check if the userId parameter is valid
-      const userId = req.user.id;
-      if (isNaN(Number(userId))) {
+      // Get the user ID, ensuring it's a number
+      const userId = parseInt(String(req.user.id), 10);
+      
+      if (isNaN(userId)) {
+        console.error("Invalid user ID in req.user:", req.user.id);
         return res.status(400).json({ message: "Invalid user ID" });
       }
+      
+      console.log(`Getting clients for therapist ID ${userId}`);
       
       // Get the therapist's clients from the database
       const clients = await storage.getClients(userId);
@@ -2040,30 +2044,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Unauthorized" });
       }
       
-      console.log(`Getting current viewing client for user ${req.user.id} (${req.user.role})`);
+      // Get the user ID, ensuring it's a number
+      const userId = parseInt(String(req.user.id), 10);
+      
+      if (isNaN(userId)) {
+        console.error("Invalid user ID in req.user:", req.user.id);
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      console.log(`Getting current viewing client for user ${userId} (${req.user.role})`);
       
       // Only therapists and admins can view other users' data
       if (req.user.role !== "therapist" && req.user.role !== "admin") {
         return res.status(403).json({ error: "Permission denied" });
       }
       
-      const clientId = await storage.getCurrentViewingClient(req.user.id);
+      // Get current viewing client ID
+      const clientId = await storage.getCurrentViewingClient(userId);
       
       if (!clientId) {
         return res.json({ viewingClient: null });
       }
       
-      // Validate clientId is a valid number
-      if (isNaN(Number(clientId))) {
+      // Parse clientId as a number to ensure it's valid
+      const clientIdNumber = parseInt(String(clientId), 10);
+      
+      if (isNaN(clientIdNumber)) {
         console.log("Invalid client ID format:", clientId);
         return res.json({ viewingClient: null });
       }
       
       // Get the client details
-      const client = await storage.getUser(clientId);
+      const client = await storage.getUser(clientIdNumber);
       
       if (!client) {
-        console.log(`Client with ID ${clientId} not found`);
+        console.log(`Client with ID ${clientIdNumber} not found`);
         return res.json({ viewingClient: null });
       }
       
