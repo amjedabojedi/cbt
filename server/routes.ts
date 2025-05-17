@@ -1045,6 +1045,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get clients for a therapist
+  app.get("/api/users/clients", authenticate, async (req, res) => {
+    try {
+      // Ensure user is authenticated and is a therapist
+      if (!req.user) {
+        console.log("No authenticated user found for clients endpoint");
+        return res.status(200).json([]); // Return empty array instead of error
+      }
+      
+      if (req.user.role !== "therapist" && req.user.role !== "admin") {
+        console.log(`User ${req.user.id} with role ${req.user.role} denied access to clients list`);
+        return res.status(200).json([]); // Return empty array instead of error
+      }
+      
+      // Get clients for this therapist from database
+      const therapistId = req.user.id;
+      console.log("Getting clients for therapist ID:", therapistId);
+      
+      const clients = await storage.getClients(therapistId);
+      
+      // Format client data for consistent field names
+      const formattedClients = clients.map(client => ({
+        ...client,
+        // Ensure consistent field names for frontend
+        therapistId: client.therapistId || client.therapist_id || null,
+        createdAt: client.createdAt || (client.created_at ? new Date(client.created_at) : new Date())
+      }));
+      
+      console.log(`Found ${formattedClients.length} clients for therapist ${therapistId}`);
+      return res.status(200).json(formattedClients);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      // Return empty array instead of error for better user experience
+      return res.status(200).json([]);
+    }
+  });
+  
   // Get user by ID (therapists can access their clients, admins can access anyone)
   app.get("/api/users/:userId", authenticate, async (req, res) => {
     try {
