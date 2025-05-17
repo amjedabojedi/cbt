@@ -1611,14 +1611,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get clients for this therapist from database
       const therapistId = req.user.id;
+      if (!therapistId || isNaN(therapistId)) {
+        console.error("Invalid therapist ID:", therapistId);
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
       console.log("Getting clients for therapist ID:", therapistId);
       const clients = await storage.getClients(therapistId);
       
       // Add camelCase versions of snake_case database fields
       const formattedClients = clients.map(client => ({
         ...client,
-        therapistId: client.therapist_id,
-        createdAt: client.created_at
+        therapistId: client.therapist_id || null,
+        createdAt: client.created_at ? new Date(client.created_at) : new Date()
       }));
       
       console.log(`Found ${formattedClients.length} clients for therapist ${therapistId}`);
@@ -1628,37 +1633,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: "Failed to fetch clients" });
     }
   });
-  
-  // Public client endpoint as a fallback
-  app.get("/api/public/clients", async (req, res) => {
-    try {
-      // Get the therapist ID from the request headers as a fallback authentication method
-      const requestTherapistId = req.headers["x-user-id"] ? parseInt(req.headers["x-user-id"] as string) : null;
-      
-      if (!requestTherapistId) {
-        return res.status(400).json({ message: "Missing therapist ID in headers" });
-      }
-      
-      // Get clients from the database for this therapist
-      const clients = await storage.getClients(requestTherapistId);
-      
-      // Add camelCase versions of snake_case database fields
-      const formattedClients = clients.map(client => ({
-        ...client,
-        therapistId: client.therapist_id,
-        createdAt: client.created_at
-      }));
-      
-      return res.status(200).json(formattedClients);
-    } catch (error) {
-      console.error("Error in public clients endpoint:", error);
-      return res.status(500).json({ message: "Failed to fetch clients" });
-    }
-  });
-  
-  /* Old hardcoded approach - removing this
-  // Old hardcoded approach has been removed in favor of proper database queries
-  */
   
   // Create a public endpoint to get clients for a therapist - using database queries
   app.get("/api/public/clients", async (req, res) => {
