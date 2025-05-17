@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import ReframePractice from "@/components/reframeCoach/ReframePractice";
+import ReframePracticeHistory from "@/components/reframeCoach/ReframePracticeHistory";
 import { Loader2, ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import AppLayout from "@/components/layout/AppLayout";
@@ -273,6 +274,16 @@ const ReframePracticePage = () => {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
+          
+          {/* Practice History Component - Shows practice history for this thought record */}
+          {thoughtId && userId && !isLoadingScenarios && !isLoadingThought && (
+            <div className="mb-6">
+              <ReframePracticeHistory 
+                userId={userId} 
+                thoughtId={thoughtId} 
+              />
+            </div>
+          )}
           
           {isLoading || isLoadingScenarios ? (
             <div className="flex flex-col justify-center items-center py-12">
