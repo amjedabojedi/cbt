@@ -272,19 +272,16 @@ export class DatabaseStorage implements IStorage {
   async getClients(therapistId: number): Promise<User[]> {
     console.log(`Getting clients for therapist ID: ${therapistId}, type: ${typeof therapistId}`);
     
-    // For emergency fix to unblock testing, hardcode the therapist ID to 20
-    const fixedTherapistId = 20;
-    
     try {
-      console.log(`Querying database for clients with therapistId = ${fixedTherapistId}`);
+      console.log(`Querying database for clients with therapist_id = ${therapistId}`);
       
       const clientsList = await db
         .select()
         .from(users)
-        .where(eq(users.therapistId, fixedTherapistId))
+        .where(eq(users.therapist_id, therapistId))
         .orderBy(users.name);
         
-      console.log(`Found ${clientsList.length} clients for therapist ${fixedTherapistId}`);
+      console.log(`Found ${clientsList.length} clients for therapist ${therapistId}`);
       return clientsList;
     } catch (error) {
       console.error("Error in getClients:", error);
@@ -298,10 +295,11 @@ export class DatabaseStorage implements IStorage {
     console.log(`Getting clients for therapist ID: ${therapistId} in new method`);
     
     try {
+      // Using therapist_id (snake_case) column name instead of therapistId (camelCase)
       const clientsList = await db
         .select()
         .from(users)
-        .where(eq(users.therapistId, therapistId))
+        .where(eq(users.therapist_id, therapistId))
         .orderBy(users.name);
         
       console.log(`Found ${clientsList.length} clients for therapist ${therapistId}`);

@@ -1595,72 +1595,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Client list endpoint with proper database access and fallback mechanism
+  // Get all clients for the currently authenticated therapist
   app.get("/api/users/clients", async (req, res) => {
+    // Check if user is authenticated
+    if (!req.isAuthenticated() && !req.headers['x-user-id']) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
     try {
-      // First try to get authenticated client data
-      if (req.headers.cookie && req.headers.cookie.includes('sessionId')) {
-        const sessionId = req.headers.cookie.split('sessionId=')[1]?.split(';')[0]?.trim();
-        
-        if (sessionId) {
-          const session = await storage.getSession(sessionId);
-          
-          if (session && session.userId) {
-            const therapistId = session.userId;
-            console.log(`Getting clients for therapist ID: ${therapistId}, type: ${typeof therapistId}`);
-            
-            try {
-              const clients = await storage.getClientsByTherapistId(therapistId);
-              console.log(`Found ${clients.length} clients for therapist ${therapistId}`);
-              
-              if (clients && clients.length > 0) {
-                // Return actual client data from database
-                return res.status(200).json(clients);
-              }
-            } catch (dbError) {
-              console.error(`Database error fetching clients: ${dbError}`);
-            }
-          }
-        }
-      }
+      // Get therapist ID from authenticated user or header
+      const therapistId = req.user?.id || 
+                         (req.headers['x-user-id'] ? parseInt(req.headers['x-user-id'] as string) : 20);
+                         
+      console.log(`Getting clients for therapist ID: ${therapistId}`);
       
-      // If fallback is needed, check header auth 
-      const fallbackUserId = req.headers['x-user-id'] ? 
-                            parseInt(req.headers['x-user-id'] as string) : null;
+      // Execute SQL query to find all clients with the given therapist_id
+      const [result] = await db.execute(
+        `SELECT * FROM users WHERE role = 'client' AND therapist_id = ${therapistId}`
+      );
       
-      if (fallbackUserId) {
-        try {
-          console.log(`Fallback: Getting clients for therapist ID: ${fallbackUserId}`);
-          const clients = await storage.getClientsByTherapistId(fallbackUserId);
-          
-          if (clients && clients.length > 0) {
-            console.log(`Fallback: Found ${clients.length} clients for therapist ${fallbackUserId}`);
-            return res.status(200).json(clients);
-          }
-        } catch (fallbackError) {
-          console.error(`Fallback database error: ${fallbackError}`);
-        }
-      }
+      console.log(`Found ${Array.isArray(result) ? result.length : 0} clients in database`);
       
-      // Last resort: use real database clients from a known therapist ID (20)
-      try {
-        console.log("Last resort: Getting real clients for therapist ID 20");
-        const clients = await storage.getClientsByTherapistId(20);
-        
-        if (clients && clients.length > 0) {
-          console.log(`Last resort: Found ${clients.length} clients for therapist 20`);
-          return res.status(200).json(clients);
-        }
-      } catch (lastResortError) {
-        console.error(`Last resort database error: ${lastResortError}`);
-      }
-      
-      // If all attempts to get real data fail, return empty array (no fake data)
-      console.log("All attempts to fetch clients failed, returning empty array");
-      return res.status(200).json([]);
+      // Return the results from the database
+      return res.status(200).json(result || []);
     } catch (error) {
       console.error("Error in client list endpoint:", error);
-      return res.status(200).json([]);
+      return res.status(500).json({ error: "Failed to retrieve clients" });
     }
   });
   
