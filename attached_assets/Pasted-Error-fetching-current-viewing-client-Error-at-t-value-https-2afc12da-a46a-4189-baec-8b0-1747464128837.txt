@@ -1,0 +1,42 @@
+Error fetching current viewing client: 
+Error {}
+
+at t.value (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Error fetching clients: 
+Error {}
+
+at t.value (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Query failed for /api/users/clients: 
+Error {}
+
+at t.value (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Query failed for /api/users/clients: 
+Error {}
+
+at t.value (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Query failed for /api/users/clients: 
+Error {}
+
+at t.value (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Query failed for /api/users/clients: 
+Error {}
+
+at t.value (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
