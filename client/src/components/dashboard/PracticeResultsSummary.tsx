@@ -35,14 +35,11 @@ export function PracticeResultsSummary({ className }: PracticeResultsSummaryProp
   if (!results || !Array.isArray(results) || results.length === 0) {
     return (
       <Card className={cn("w-full border-dashed", className)}>
-        <CardHeader>
-          <CardTitle className="text-lg">Practice Results Summary</CardTitle>
-          <CardDescription>Track your progress with cognitive restructuring</CardDescription>
-        </CardHeader>
-        <CardContent className="text-center pb-6">
+        <CardContent className="text-center py-6">
           <div className="mb-4 mx-auto rounded-full bg-muted/40 w-12 h-12 flex items-center justify-center">
             <Award className="h-6 w-6 text-muted-foreground" />
           </div>
+          <h3 className="text-lg font-semibold mb-1">Practice Results</h3>
           <p className="text-sm text-muted-foreground mb-4">
             No practice results yet
           </p>
@@ -72,11 +69,10 @@ export function PracticeResultsSummary({ className }: PracticeResultsSummaryProp
 
   return (
     <Card className={cn("w-full", className)}>
-      <CardHeader>
-        <CardTitle className="text-lg">Practice Results Summary</CardTitle>
-        <CardDescription>Your cognitive restructuring practice progress</CardDescription>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
+        <h3 className="text-lg font-semibold mb-1">Practice Results</h3>
+        <p className="text-sm text-muted-foreground mb-4">Your practice progress</p>
+        
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="bg-muted/30 p-3 rounded-md text-center">
             <div className="text-2xl font-semibold text-primary">
