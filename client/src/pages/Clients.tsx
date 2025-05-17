@@ -671,21 +671,7 @@ export default function Clients() {
     enabled: true,
     // Use a more resilient approach to ensure data is always available
     queryFn: async () => {
-      // Start with a guaranteed result for therapist ID 20
-      if (user?.id === 20) {
-        return [{
-          id: 36,
-          username: "amjedahmed",
-          email: "aabojedi@banacenter.com",
-          name: "Amjed Abojedi",
-          role: "client",
-          therapist_id: 20,
-          therapistId: 20, 
-          status: "active",
-          created_at: "2025-05-14 02:01:36.245061",
-          createdAt: new Date("2025-05-14 02:01:36.245061")
-        }];
-      }
+      // No special treatment for specific user IDs - query the database for any therapist
       
       try {
         // Add user ID header for authentication
@@ -715,17 +701,17 @@ export default function Clients() {
           console.log("Error parsing JSON response, using empty array");
         }
         
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           console.log("Client data from API:", data);
           return data;
         } else {
-          console.log("No clients returned from API, using sample data");
-          return sampleClients;
+          console.log("No clients returned from API or invalid format");
+          return [];
         }
       } catch (error) {
         console.error("Query failed for /api/public/clients:", error);
-        console.log("Using sample clients data as fallback");
-        return sampleClients;
+        // Don't use hardcoded data, return an empty array for proper error handling
+        return [];
       }
     }
   });
@@ -734,20 +720,21 @@ export default function Clients() {
   const clients = React.useMemo(() => {
     if (!apiClients || !Array.isArray(apiClients)) return [];
     
-    // Map the data to normalize field names between snake_case DB and camelCase UI
+    // Map the data to normalize field names - backend should already format these correctly
+    // but we'll handle both formats for resilience
     return apiClients.map(client => ({
       id: client.id,
       username: client.username,
       email: client.email,
       name: client.name,
       role: client.role,
-      // Handle both camelCase and snake_case field names
-      therapistId: client.therapistId || client.therapist_id,
-      status: client.status,
-      // Handle created_at (DB) vs createdAt (UI)
-      createdAt: client.createdAt || client.created_at,
-      // Add any other fields needed by components
-      currentViewingClientId: client.currentViewingClientId || client.current_viewing_client_id
+      // Use therapistId field consistently (backend now normalizes this)
+      therapistId: client.therapistId || client.therapist_id || null,
+      status: client.status || 'active', // Default to active if not specified
+      // Use createdAt field consistently
+      createdAt: client.createdAt || (client.created_at ? new Date(client.created_at) : new Date()),
+      // Other normalized fields
+      currentViewingClientId: client.currentViewingClientId || client.current_viewing_client_id || null
     }));
   }, [apiClients]);
   

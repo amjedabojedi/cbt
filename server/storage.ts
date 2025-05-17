@@ -281,13 +281,15 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`Querying database for clients with therapist_id = ${therapistId}`);
       
-      // Use parameterized query for better security and reliability
-      const clientsList = await db.query(`
-        SELECT * FROM users 
-        WHERE role = 'client' 
-        AND therapist_id = $1 
-        ORDER BY name
-      `, [therapistId]);
+      // Use Drizzle ORM instead of raw SQL queries
+      const clientsList = await db
+        .select()
+        .from(users)
+        .where(and(
+          eq(users.role, 'client'),
+          eq(users.therapist_id, therapistId)
+        ))
+        .orderBy(users.name);
       
       console.log(`Found ${clientsList.length} clients for therapist ${therapistId}`);
       return clientsList;
