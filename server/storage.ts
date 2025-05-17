@@ -275,14 +275,14 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`Querying database for clients with therapist_id = ${therapistId}`);
       
-      const clientsList = await db
-        .select()
-        .from(users)
-        .where(eq(users.therapist_id, therapistId))
-        .orderBy(users.name);
+      // Using the raw SQL query approach to prevent column name issues
+      const clientsList = await db.execute(
+        `SELECT * FROM users WHERE role = 'client' AND therapist_id = $1 ORDER BY name`,
+        [therapistId]
+      );
         
-      console.log(`Found ${clientsList.length} clients for therapist ${therapistId}`);
-      return clientsList;
+      console.log(`Found ${clientsList.rows.length} clients for therapist ${therapistId}`);
+      return clientsList.rows;
     } catch (error) {
       console.error("Error in getClients:", error);
       return [];
