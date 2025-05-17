@@ -34,23 +34,12 @@ export function PracticeResultsSummary({ className }: PracticeResultsSummaryProp
   // If no results are available yet
   if (!results || !Array.isArray(results) || results.length === 0) {
     return (
-      <Card className={cn("w-full border-dashed", className)}>
-        <CardContent className="text-center py-6">
-          <div className="mb-4 mx-auto rounded-full bg-muted/40 w-12 h-12 flex items-center justify-center">
-            <Award className="h-6 w-6 text-muted-foreground" />
-          </div>
-          <h3 className="text-lg font-semibold mb-1">Practice Results</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            No practice results yet
+      <Card className={cn("w-full", className)}>
+        <CardContent className="py-6">
+          <h3 className="text-lg font-semibold mb-1">Practice History</h3>
+          <p className="text-sm text-muted-foreground">
+            No practice history available. When you complete practice sessions, your results will appear here.
           </p>
-          <Button 
-            variant="outline" 
-            className="mt-2"
-            onClick={() => window.location.href = '/reframe-coach'}
-          >
-            Start Practicing
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
         </CardContent>
       </Card>
     );
@@ -70,8 +59,8 @@ export function PracticeResultsSummary({ className }: PracticeResultsSummaryProp
   return (
     <Card className={cn("w-full", className)}>
       <CardContent className="pt-6">
-        <h3 className="text-lg font-semibold mb-1">Practice Results</h3>
-        <p className="text-sm text-muted-foreground mb-4">Your practice progress</p>
+        <h3 className="text-lg font-semibold mb-1">Practice History</h3>
+        <p className="text-sm text-muted-foreground mb-4">Past practice session results</p>
         
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="bg-muted/30 p-3 rounded-md text-center">
@@ -106,7 +95,7 @@ export function PracticeResultsSummary({ className }: PracticeResultsSummaryProp
               onClick={() => window.location.href = '/users/' + activeUserId + '/reframe-history'}
             >
               <BarChart3 className="h-3.5 w-3.5 mr-1" />
-              View History
+              View Full History
             </Button>
           </div>
         </div>
