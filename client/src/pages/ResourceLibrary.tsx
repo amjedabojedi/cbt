@@ -1015,11 +1015,11 @@ export default function ResourceLibrary() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Delete Protective Factor</DialogTitle>
-                  <DialogDescription>
+                  <DialogDescription className="pt-2">
                     Are you sure you want to delete this protective factor? This action cannot be undone.
                   </DialogDescription>
                 </DialogHeader>
-                <DialogFooter>
+                <div className="flex justify-end space-x-2 pt-4">
                   <Button 
                     variant="outline" 
                     onClick={() => setIsDeleteFactorDialogOpen(false)}
@@ -1031,13 +1031,14 @@ export default function ResourceLibrary() {
                     onClick={() => {
                       if (selectedFactor) {
                         deleteFactorMutation.mutate(selectedFactor.id);
+                        setIsDeleteFactorDialogOpen(false);
                       }
                     }}
                     disabled={deleteFactorMutation.isPending}
                   >
                     {deleteFactorMutation.isPending ? "Deleting..." : "Delete Factor"}
                   </Button>
-                </DialogFooter>
+                </div>
               </DialogContent>
             </Dialog>
           </TabsContent>
@@ -1320,11 +1321,11 @@ export default function ResourceLibrary() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Delete Coping Strategy</DialogTitle>
-                  <DialogDescription>
+                  <DialogDescription className="pt-2">
                     Are you sure you want to delete this coping strategy? This action cannot be undone.
                   </DialogDescription>
                 </DialogHeader>
-                <DialogFooter>
+                <div className="flex justify-end space-x-2 pt-4">
                   <Button 
                     variant="outline" 
                     onClick={() => setIsDeleteStrategyDialogOpen(false)}
@@ -1336,13 +1337,14 @@ export default function ResourceLibrary() {
                     onClick={() => {
                       if (selectedStrategy) {
                         deleteStrategyMutation.mutate(selectedStrategy.id);
+                        setIsDeleteStrategyDialogOpen(false);
                       }
                     }}
                     disabled={deleteStrategyMutation.isPending}
                   >
                     {deleteStrategyMutation.isPending ? "Deleting..." : "Delete Strategy"}
                   </Button>
-                </DialogFooter>
+                </div>
               </DialogContent>
             </Dialog>
             
@@ -1351,11 +1353,11 @@ export default function ResourceLibrary() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Delete Educational Resource</DialogTitle>
-                  <DialogDescription>
+                  <DialogDescription className="pt-2">
                     Are you sure you want to delete this educational resource? This action cannot be undone.
                   </DialogDescription>
                 </DialogHeader>
-                <DialogFooter>
+                <div className="flex justify-end space-x-2 pt-4">
                   <Button 
                     variant="outline" 
                     onClick={() => setIsDeleteResourceDialogOpen(false)}
@@ -1374,7 +1376,7 @@ export default function ResourceLibrary() {
                   >
                     {deleteResourceMutation.isPending ? "Deleting..." : "Delete Resource"}
                   </Button>
-                </DialogFooter>
+                </div>
               </DialogContent>
             </Dialog>
           </TabsContent>
