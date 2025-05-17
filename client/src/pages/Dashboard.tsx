@@ -78,18 +78,22 @@ export default function Dashboard() {
           </div>
         )}
         
-        {/* Mood Trends, Practice Summary and Reflection Trends Charts */}
+        {/* Mood Trends and Reflection Trends Charts */}
         {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <div className="lg:col-span-1">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div>
               <MoodTrends />
             </div>
-            <div className="lg:col-span-1">
-              <PracticeResultsSummary />
-            </div>
-            <div className="lg:col-span-1">
+            <div>
               {activeUserId && <ReflectionTrends userId={activeUserId} days={30} />}
             </div>
+          </div>
+        )}
+        
+        {/* Practice Results Summary - displayed below charts */}
+        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
+          <div className="mb-6">
+            <PracticeResultsSummary />
           </div>
         )}
         
