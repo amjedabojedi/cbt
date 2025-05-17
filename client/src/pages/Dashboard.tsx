@@ -7,6 +7,7 @@ import MoodTrends from "@/components/dashboard/MoodTrends";
 import ReflectionTrends from "@/components/dashboard/ReflectionTrends";
 import ReflectionInsights from "@/components/dashboard/ReflectionInsights";
 import CrossComponentInsights from "@/components/dashboard/CrossComponentInsights";
+import { PracticeResultsSummary } from "@/components/dashboard/PracticeResultsSummary";
 import TherapistStats from "@/components/dashboard/TherapistStats";
 import useActiveUser from "@/hooks/use-active-user";
 import { useClientContext } from "@/context/ClientContext";
@@ -77,13 +78,16 @@ export default function Dashboard() {
           </div>
         )}
         
-        {/* Mood Trends and Reflection Trends Charts - for clients and when a therapist is viewing client data */}
+        {/* Mood Trends, Practice Summary and Reflection Trends Charts */}
         {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div className="lg:col-span-1">
               <MoodTrends />
             </div>
-            <div>
+            <div className="lg:col-span-1">
+              <PracticeResultsSummary />
+            </div>
+            <div className="lg:col-span-1">
               {activeUserId && <ReflectionTrends userId={activeUserId} days={30} />}
             </div>
           </div>
