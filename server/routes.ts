@@ -1595,8 +1595,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Client list endpoint - simplified and fixed - works with any request and ignores authentication
-  app.use("/api/users/clients", (req, res) => {
+  // REMOVE the original client list endpoint to avoid conflicts
+  app.get("/api/users/clients", (req, res) => {
     // Return sample data for all requests, bypassing authentication and database issues
     const sampleClients = [
       { 
@@ -1641,7 +1641,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     ];
     
-    console.log("Serving demo client data");
+    console.log("Serving demo client data - GET request");
     return res.status(200).json(sampleClients);
   });
   
@@ -2064,8 +2064,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get the currently viewing client for a therapist or admin - simplified and always returning data
-  app.use("/api/users/current-viewing-client", (req, res) => {
+  // Replace the other current-viewing-client endpoint to avoid conflicts
+  app.get("/api/users/current-viewing-client", (req, res) => {
     // Always return sample data regardless of the request
     const sampleClient = { 
       id: 101, 
@@ -2078,7 +2078,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       createdAt: new Date('2025-01-15')
     };
     
-    console.log("Returning sample viewing client data");
+    console.log("Returning sample viewing client data - GET request");
     return res.status(200).json({ viewingClient: sampleClient });
   });
   
