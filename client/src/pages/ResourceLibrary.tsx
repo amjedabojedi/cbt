@@ -1345,9 +1345,9 @@ export default function ResourceLibrary() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Delete Coping Strategy</DialogTitle>
-                  <DialogDescription className="pt-2">
+                  <div className="pt-2 text-sm text-muted-foreground">
                     Are you sure you want to delete this coping strategy? This action cannot be undone.
-                  </DialogDescription>
+                  </div>
                 </DialogHeader>
                 <div className="flex justify-end space-x-2 pt-4">
                   <Button 
@@ -1377,9 +1377,9 @@ export default function ResourceLibrary() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Delete Educational Resource</DialogTitle>
-                  <DialogDescription className="pt-2">
+                  <div className="pt-2 text-sm text-muted-foreground">
                     Are you sure you want to delete this educational resource? This action cannot be undone.
-                  </DialogDescription>
+                  </div>
                 </DialogHeader>
                 <div className="flex justify-end space-x-2 pt-4">
                   <Button 
