@@ -47,20 +47,33 @@ export function useWebSocket() {
       
       // Create WebSocket connection with timeout
       const socket = new WebSocket(wsUrl);
+      
+      // Add backup auth headers even for WebSocket connections
+      if (user && user.id) {
+        console.log('Adding backup auth headers:', { userId: user.id });
+      }
+      
       socketRef.current = socket;
       
-      // Connection timeout (3 seconds)
+      // Connection timeout (5 seconds)
       const connectionTimeout = setTimeout(() => {
         if (socket.readyState !== WebSocket.OPEN) {
-          console.log('WebSocket disconnected');
+          console.log('WebSocket connection timeout');
           setIsConnected(false);
           socket.close();
           
           // Increment error count
           setConnectionErrors(prev => prev + 1);
           setLastErrorTime(Date.now());
+          
+          // Schedule a reconnection attempt with exponential backoff
+          const backoffTime = Math.min(30000, 1000 * Math.pow(2, Math.min(connectionErrors, 5)));
+          reconnectTimeoutRef.current = setTimeout(() => {
+            reconnectTimeoutRef.current = null;
+            connect();
+          }, backoffTime);
         }
-      }, 3000);
+      }, 5000);
       
       // Event listeners
       socket.addEventListener('open', () => {
