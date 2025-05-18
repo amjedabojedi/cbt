@@ -1,9 +1,10 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect, useCallback } from 'react';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, WifiOff } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
 
 // Define the context shape
 interface WebSocketContextType {
@@ -47,28 +48,47 @@ const ConnectionErrorFallback = ({ onRetry }: { onRetry: () => void }) => (
 
 // Provider component with enhanced error handling
 export function WebSocketProvider({ children }: { children: ReactNode }) {
+  // Get user information for authentication
+  const { user } = useAuth();
+  
   // Track connection attempts for better error handling
   const [connectionAttempts, setConnectionAttempts] = useState(0);
   const [hasConnectionError, setHasConnectionError] = useState(false);
+  const [showErrorPrompt, setShowErrorPrompt] = useState(false);
   
-  // Use our WebSocket hook
+  // Use our WebSocket hook with authentication info
   const { isConnected, lastMessage, sendMessage } = useWebSocket();
+  
+  // Handle authentication change - trigger reconnect when user changes
+  useEffect(() => {
+    if (user && !isConnected && connectionAttempts < 3) {
+      // If user is logged in but WebSocket isn't connected, try to reconnect
+      setConnectionAttempts(prev => prev + 1);
+    }
+  }, [user, isConnected, connectionAttempts]);
   
   // Reset connection error when successfully connected
   useEffect(() => {
     if (isConnected) {
       setHasConnectionError(false);
+      setShowErrorPrompt(false);
     } else if (connectionAttempts > 5) {
       // After 5 failed attempts, consider it a connection error
       setHasConnectionError(true);
+      
+      // Only show error prompt to user after significant retry attempts
+      if (connectionAttempts > 8) {
+        setShowErrorPrompt(true);
+      }
     }
   }, [isConnected, connectionAttempts]);
   
-  // Function to trigger a reconnection
-  const reconnect = () => {
+  // Function to trigger a reconnection with debounce
+  const reconnect = useCallback(() => {
     setConnectionAttempts(prev => prev + 1);
-    // The useWebSocket hook will handle the actual reconnection
-  };
+    // Hide error prompt while attempting to reconnect
+    setShowErrorPrompt(false);
+  }, []);
   
   // Context value with enhanced properties
   const value = {
@@ -83,7 +103,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   return (
     <ErrorBoundary name="WebSocket Provider">
       <WebSocketContext.Provider value={value}>
-        {hasConnectionError && <ConnectionErrorFallback onRetry={reconnect} />}
+        {showErrorPrompt && hasConnectionError && <ConnectionErrorFallback onRetry={reconnect} />}
         {children}
       </WebSocketContext.Provider>
     </ErrorBoundary>

@@ -41,8 +41,11 @@ export function useWebSocket() {
       // Use the current host which includes hostname and port
       const host = window.location.host;
       
-      // Construct a safe WebSocket URL without explicitly specifying port
-      const wsUrl = `${protocol}//${host}/ws`;
+      // Add user ID as a query parameter for authentication
+      const authQuery = user?.id ? `?userId=${user.id}` : '';
+      
+      // Construct a safe WebSocket URL with authentication
+      const wsUrl = `${protocol}//${host}/ws${authQuery}`;
       console.log('Connecting to WebSocket URL:', wsUrl);
       
       // Create WebSocket connection with timeout
@@ -123,11 +126,23 @@ export function useWebSocket() {
         }, backoffTime);
       });
       
-      socket.addEventListener('error', (error) => {
-        console.error('WebSocket error:', error);
+      socket.addEventListener('error', (event) => {
+        // Don't log the entire error object as it can cause circular reference errors
+        console.error('WebSocket error - will attempt reconnection soon');
         setIsConnected(false);
         setConnectionErrors(prev => prev + 1);
         setLastErrorTime(Date.now());
+        
+        // Schedule reconnection with backoff
+        const backoffTime = Math.min(30000, 1000 * Math.pow(2, Math.min(connectionErrors, 5)));
+        console.log(`Will attempt reconnection in ${backoffTime/1000} seconds`);
+        
+        reconnectTimeoutRef.current = setTimeout(() => {
+          reconnectTimeoutRef.current = null;
+          if (user) {
+            connect();
+          }
+        }, backoffTime);
       });
     } catch (error) {
       console.error('Error establishing WebSocket connection:', error);

@@ -81,13 +81,23 @@ export default function NotificationBell() {
 
   async function fetchUnreadCount() {
     try {
-      const response = await apiRequest("GET", "/api/notifications/unread");
+      // Add backup authentication header for improved reliability
+      const options = user?.id ? { headers: { 'X-User-ID': user.id.toString() } } : undefined;
+      
+      const response = await apiRequest("GET", "/api/notifications/unread", null, options);
       if (response.ok) {
         const data = await response.json();
         setUnreadCount(data.length);
+      } else {
+        // If the request fails, don't display an error, just keep the current count
+        console.log("Unable to fetch unread count - will retry later");
       }
     } catch (error) {
-      console.error("Error fetching unread count:", error);
+      // Don't log full error object as it can cause circular reference issues
+      console.error("Error fetching unread count - will retry later");
+      
+      // Schedule another retry in 30 seconds
+      setTimeout(fetchUnreadCount, 30000);
     }
   }
 
