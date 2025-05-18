@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import CbtToolsSection from '@/components/landing/CbtToolsSection';
+import FeatureFlowImage from '@/components/landing/FeatureFlowImage';
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -130,16 +131,7 @@ export default function LandingPage() {
         <h2 className="text-3xl font-bold text-center mb-12">Tools for Emotion and Behavior Tracking</h2>
         
         {/* Feature Flow Image */}
-        <div className="mb-16">
-          <h3 className="text-xl font-semibold text-center mb-8">How ResilienceHub™ Works</h3>
-          <div className="max-w-4xl mx-auto">
-            <img 
-              src="/images/image_1747581873634.png" 
-              alt="ResilienceHub™ Feature Usage Sequence" 
-              className="w-full rounded-lg shadow-md"
-            />
-          </div>
-        </div>
+        <FeatureFlowImage />
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Feature 1 */}
