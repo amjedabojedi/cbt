@@ -128,6 +128,19 @@ export default function LandingPage() {
       {/* Features Section */}
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">Tools for Emotion and Behavior Tracking</h2>
+        
+        {/* Feature Flow Image */}
+        <div className="mb-16">
+          <h3 className="text-xl font-semibold text-center mb-8">How ResilienceHub™ Works</h3>
+          <div className="max-w-4xl mx-auto">
+            <img 
+              src="@assets/image_1747581873634.png" 
+              alt="ResilienceHub™ Feature Usage Sequence" 
+              className="w-full rounded-lg shadow-md"
+            />
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Feature 1 */}
           <div className="landing-feature-box rounded-lg p-6 shadow-sm">
