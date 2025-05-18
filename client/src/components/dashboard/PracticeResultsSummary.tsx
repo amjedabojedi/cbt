@@ -45,16 +45,25 @@ export function PracticeResultsSummary({ className }: PracticeResultsSummaryProp
     );
   }
 
-  // Calculate summary stats
-  const totalCompleted = results.filter((result: any) => result.completed).length;
-  const averageScore = results.reduce((sum: number, result: any) => {
-    return sum + (result.correctCount / (result.totalCount || 1)) * 100;
-  }, 0) / results.length;
+  // Calculate summary stats - handle both field naming conventions
+  const totalCompleted = results.filter((result: any) => 
+    result.completed || (result.correctAnswers > 0 || result.correctCount > 0)
+  ).length || 0;
+  
+  // Calculate average score safely with fallbacks for different field names
+  const averageScore = totalCompleted > 0 ? 
+    Math.round(results.reduce((sum: number, result: any) => {
+      const correct = result.correctAnswers || result.correctCount || 0;
+      const total = result.totalQuestions || result.totalCount || 1;
+      return sum + ((correct / total) * 100);
+    }, 0) / results.length) : 0;
   
   // Get the most recent result
   const mostRecent = results[0];
   const mostRecentDate = new Date(mostRecent.createdAt).toLocaleDateString();
-  const mostRecentScore = Math.round((mostRecent.correctCount / (mostRecent.totalCount || 1)) * 100);
+  const correct = mostRecent.correctAnswers || mostRecent.correctCount || 0;
+  const total = mostRecent.totalQuestions || mostRecent.totalCount || 1;
+  const mostRecentScore = Math.round((correct / total) * 100);
 
   return (
     <Card className={cn("w-full", className)}>
