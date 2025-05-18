@@ -217,8 +217,14 @@ export default function EmotionTrackingForm({
       
       const recordedEmotion = await response.json();
       
-      // Invalidate emotion records query to refresh data
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/emotions`] });
+      // Use our refresh utility to handle data refreshing consistently
+      refreshAfterOperation(
+        'emotion',
+        'create',
+        recordedEmotion.id,
+        "Your emotion has been recorded successfully",
+        false // Don't reload the page as we want to show the success dialog
+      );
       
       // Reset form to default values
       form.reset({
@@ -231,12 +237,6 @@ export default function EmotionTrackingForm({
         company: "",
         timestamp: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
         useCurrentTime: true,
-      });
-      
-      // Show success message
-      toast({
-        title: "Emotion Recorded",
-        description: "Your emotion has been recorded successfully.",
       });
       
       // Store the recorded emotion

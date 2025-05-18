@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
 import { useAuth } from "@/lib/auth";
+import { useRefreshData } from "@/hooks/use-refresh-data";
 import { 
   ArrowRight, 
   Smile, 
@@ -101,6 +102,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   const [emotionToDelete, setEmotionToDelete] = useState<EmotionRecord | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { refreshAfterOperation } = useRefreshData();
   
   // Check if there's an emotion ID in the URL to auto-select
   const urlParams = new URLSearchParams(window.location.search);
@@ -129,15 +131,15 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
       if (!activeUserId) throw new Error('User not authenticated');
       return apiRequest('PATCH', `/api/users/${activeUserId}/emotions/${emotion.id}`, emotion);
     },
-    onSuccess: () => {
-      // Invalidate and refetch emotions
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/emotions`] });
-      
-      toast({
-        title: "Record updated",
-        description: "The emotion record has been updated successfully.",
-        variant: "default",
-      });
+    onSuccess: (_data, emotion) => {
+      // Use the refreshAfterOperation utility to handle data refreshing consistently
+      refreshAfterOperation(
+        'emotion',
+        'update',
+        emotion.id,
+        "The emotion record has been updated successfully.",
+        false  // don't force a page reload
+      );
       
       setShowEditEmotionDialog(false);
     },
