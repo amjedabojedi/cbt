@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Brain, Heart, Shield, Target, Book, MessageCircle, BarChart3, Smartphone } from 'lucide-react';
+import { 
+  ArrowRight, Brain, Heart, Shield, Target, Book, MessageCircle, 
+  BarChart3, Smartphone, Activity, BookOpen, BrainCircuit, 
+  Users, LineChart, FileText, LibraryBig, CheckCircle 
+} from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import CbtToolsSection from '@/components/landing/CbtToolsSection';
 
@@ -232,93 +236,111 @@ export default function LandingPage() {
       {/* User Roles Section */}
       <section className="bg-blue-50/70 py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Tailored for Everyone</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <h2 className="text-3xl font-bold text-center mb-12">Experience Growth and Connection</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             {/* Client Role */}
-            <div className="landing-feature-box rounded-lg p-6 shadow-sm">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Heart className="h-5 w-5 text-rose-500" /> For Clients
+            <div className="landing-feature-box rounded-lg p-8 shadow-md bg-white">
+              <h3 className="text-2xl font-semibold mb-5 flex items-center gap-2">
+                <Heart className="h-6 w-6 text-rose-500" /> For Individuals
               </h3>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Create personal emotion records and track patterns
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Journal with AI-powered insights
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Set and track personal goals
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Access thought records and cognitive techniques
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Track progress through visual reports
-                </li>
-              </ul>
+              <p className="text-neutral-600 mb-5">
+                Take an active role in your personal growth through structured tools that help
+                you understand emotions, recognize thought patterns, and develop healthier perspectives.
+              </p>
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-medium flex items-center gap-2 text-neutral-800">
+                    <Activity className="h-5 w-5 text-blue-600" /> Track Emotional Patterns
+                  </h4>
+                  <p className="mt-1 text-neutral-600">
+                    Use the interactive emotion wheel to identify and record emotions with precision.
+                    Gain valuable insights by tracking patterns over time and understanding your emotional responses.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium flex items-center gap-2 text-neutral-800">
+                    <BookOpen className="h-5 w-5 text-amber-600" /> Reflect Through Journaling
+                  </h4>
+                  <p className="mt-1 text-neutral-600">
+                    Express yourself through guided journaling with optional AI-powered analysis that identifies 
+                    themes and emotional tones. Track your progress and see your growth over time.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium flex items-center gap-2 text-neutral-800">
+                    <BrainCircuit className="h-5 w-5 text-purple-600" /> Practice Reframing Skills
+                  </h4>
+                  <p className="mt-1 text-neutral-600">
+                    Strengthen your cognitive flexibility with interactive reframing exercises. 
+                    Challenge unhelpful thinking patterns and practice developing balanced perspectives through 
+                    engaging practice sessions.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium flex items-center gap-2 text-neutral-800">
+                    <Target className="h-5 w-5 text-green-600" /> Set Meaningful Goals
+                  </h4>
+                  <p className="mt-1 text-neutral-600">
+                    Create structured goals with specific milestones, track your progress, and celebrate achievements. 
+                    Connect your goals with emotions and thought patterns for a holistic approach to personal growth.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Professional Role */}
-            <div className="landing-feature-box rounded-lg p-6 shadow-sm">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Brain className="h-5 w-5 text-blue-500" /> For Mental Health Professionals
+            <div className="landing-feature-box rounded-lg p-8 shadow-md bg-white">
+              <h3 className="text-2xl font-semibold mb-5 flex items-center gap-2">
+                <Brain className="h-6 w-6 text-blue-500" /> For Mental Health Professionals
               </h3>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  View and provide feedback on client records
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Approve and monitor client goals
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Share interactive CBT tools and educational content
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Track client progress through practical dashboards
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Invite and manage multiple clients
-                </li>
-              </ul>
-            </div>
-
-            {/* Admin Role */}
-            <div className="landing-feature-box rounded-lg p-6 shadow-sm">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Shield className="h-5 w-5 text-purple-500" /> For Administrators
-              </h3>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Manage therapist accounts and permissions
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Oversee subscription plans and payments
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Access platform usage analytics
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Manage interactive CBT tools library content
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  Configure system-wide settings
-                </li>
-              </ul>
+              <p className="text-neutral-600 mb-5">
+                Enhance your practice with powerful, data-driven insights and structured tools that support
+                your clients between sessions, creating continuity in their growth journey.
+              </p>
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-medium flex items-center gap-2 text-neutral-800">
+                    <Users className="h-5 w-5 text-indigo-600" /> Support Client Engagement
+                  </h4>
+                  <p className="mt-1 text-neutral-600">
+                    Invite clients to the platform where they can use structured CBT tools between sessions.
+                    Help them build consistent tracking habits that reinforce cognitive behavioral techniques.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium flex items-center gap-2 text-neutral-800">
+                    <LineChart className="h-5 w-5 text-blue-600" /> Access Comprehensive Insights
+                  </h4>
+                  <p className="mt-1 text-neutral-600">
+                    View detailed data on client emotions, thought patterns, and journaling over time.
+                    Identify recurring themes and patterns to inform your sessions with objective data.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium flex items-center gap-2 text-neutral-800">
+                    <FileText className="h-5 w-5 text-emerald-600" /> Review Client Progress
+                  </h4>
+                  <p className="mt-1 text-neutral-600">
+                    Monitor client engagement with reframing exercises, emotion tracking, and journaling.
+                    See which techniques are most effective and tailor your approach based on concrete data.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium flex items-center gap-2 text-neutral-800">
+                    <LibraryBig className="h-5 w-5 text-amber-600" /> Share Targeted Resources
+                  </h4>
+                  <p className="mt-1 text-neutral-600">
+                    Provide educational materials and interactive exercises tailored to each client's specific needs.
+                    Track resource engagement and effectiveness to optimize your client's learning experience.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
