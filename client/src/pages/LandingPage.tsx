@@ -55,16 +55,22 @@ export default function LandingPage() {
       {/* Hero Section */}
       <header className="container mx-auto px-4 pt-24 pb-16 text-center">
         <h1 className="text-4xl md:text-6xl font-bold text-primary mb-6">
-          ResilienceHub
+          ResilienceHub™
         </h1>
-        <p className="text-xl md:text-2xl text-neutral-700 max-w-3xl mx-auto mb-4">
-          A tool for tracking emotions, thoughts, and behaviors
-          that connects mental health professionals with clients for basic mental health tracking.
-        </p>
+        
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-primary mb-4">What Is ResilienceHub™?</h2>
+          <p className="text-lg text-neutral-700 max-w-3xl mx-auto mb-4">
+            ResilienceHub™ is an interactive mental health support tool that helps individuals track and understand 
+            their emotional patterns, thought processes, and daily progress. It encourages self-reflection, 
+            builds emotional awareness, and supports healthier thinking habits through structured, evidence-informed tools.
+          </p>
+        </div>
+        
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-3xl mx-auto mb-8">
           <p className="text-sm text-yellow-800">
-            <strong>Important:</strong> This app provides interactive CBT tools for tracking emotions, thoughts, and behaviors. 
-            It is not a replacement for professional mental health guidance. These tools work best when used with a qualified mental health professional.
+            <strong>Important:</strong> This app works alongside therapy—not as a replacement—to strengthen personal reflection 
+            and improve between-session engagement. These tools are most effective when used with a qualified mental health professional.
           </p>
         </div>
         
