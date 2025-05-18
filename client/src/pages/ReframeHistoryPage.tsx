@@ -186,7 +186,8 @@ const ReframeHistoryPage = () => {
                     <div className="text-center p-4 bg-muted/20 rounded-md">
                       <p className="text-muted-foreground text-sm">Accuracy</p>
                       <p className="text-2xl font-bold">
-                        {result.successRate || Math.round((result.correctAnswers / result.totalQuestions) * 100)}%
+                        {result.successRate || (result.totalQuestions > 0 ? 
+                          Math.round(((result.correctAnswers || 0) / result.totalQuestions) * 100) : 0)}%
                       </p>
                     </div>
                     <div className="text-center p-4 bg-muted/20 rounded-md">

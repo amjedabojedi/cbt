@@ -359,7 +359,7 @@ const PracticeResults = ({
             <div className="text-center p-4 bg-muted/20 rounded-md">
               <p className="text-muted-foreground text-sm">Accuracy</p>
               <p className="text-2xl font-bold">
-                {Math.round((correctAnswers / scenarios.length) * 100)}%
+                {scenarios.length > 0 ? Math.round((correctAnswers / scenarios.length) * 100) : 0}%
               </p>
             </div>
           </div>
