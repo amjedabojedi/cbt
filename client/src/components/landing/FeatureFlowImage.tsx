@@ -1,5 +1,5 @@
 import React from 'react';
-import featureFlowImage from '../../assets/image_1747581873634.png';
+import featureFlowImage from '../../assets/feature_flow.png';
 
 export default function FeatureFlowImage() {
   return (
