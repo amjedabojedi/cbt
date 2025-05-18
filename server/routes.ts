@@ -2157,7 +2157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/current-viewing-client", async (req, res) => {
     // Default response structure - always return 200 with this minimum
     const response = { viewingClient: null, success: true };
-    console.log("Current-viewing-client request received");
+    console.log("Current-viewing-client request received with query:", req.query);
     
     try {
       // Get user ID using multiple fallback methods
