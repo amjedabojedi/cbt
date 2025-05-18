@@ -2152,11 +2152,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get current viewing client - ALWAYS RETURNS 200 with a valid response 
-  // This endpoint intentionally doesn't require authentication for fallback purposes
+  // Get current viewing client endpoint - ALWAYS returns 200 with a valid response
+  // This endpoint intentionally doesn't require authentication and never returns an error
   app.get("/api/users/current-viewing-client", async (req, res) => {
     // Default response structure - always return 200 with this minimum
     const response = { viewingClient: null, success: true };
+    console.log("Current-viewing-client request received");
     
     try {
       // Get user ID using multiple fallback methods
@@ -2238,48 +2239,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Getting current viewing client for user ID: ${userId}`);
       
-      // Check the user record
+      // Create a completely safe user lookup with double validation
+      let user = null;
+      let viewingClientId = null;
+      
       try {
-        const user = await storage.getUser(userId);
+        // Try to get the user
+        user = await storage.getUser(userId);
         
-        // If no user found, return default response
-        if (!user) {
-          console.log(`User ${userId} not found`);
-          return res.status(200).json(response);
-        }
-        
-        // If no viewing client set, return default response
-        if (!user.currentViewingClientId) {
-          console.log(`User ${userId} has no current viewing client set`);
-          return res.status(200).json(response);
-        }
-        
-        // Try to get the client details
-        try {
-          const client = await storage.getClient(user.currentViewingClientId);
+        // If we got a user, check for a viewing client ID
+        if (user && typeof user.currentViewingClientId === 'number' && user.currentViewingClientId > 0) {
+          viewingClientId = user.currentViewingClientId;
+          console.log(`Found user ${userId} with viewing client ID: ${viewingClientId}`);
           
-          if (!client) {
-            console.log(`Client ID ${user.currentViewingClientId} not found`);
+          // Try to get the client details now that we have valid IDs
+          try {
+            // Safely retrieve client data with error handling
+            let client = null;
+            try {
+              client = await storage.getClient(viewingClientId);
+            } catch (clientFetchError) {
+              console.log(`Error fetching client ${viewingClientId}:`, clientFetchError);
+              return res.status(200).json(response);
+            }
+            
+            if (!client) {
+              console.log(`Client ID ${viewingClientId} not found`);
+              return res.status(200).json(response);
+            }
+            
+            console.log(`Found current viewing client: ${client.name || 'Unnamed'} for user ${userId}`);
+            
+            // Update the response with client data
+            response.viewingClient = {
+              id: client.id,
+              name: client.name || "Unknown Client",
+              username: client.username || "",
+              email: client.email || "",
+            };
+          } catch (clientError) {
+            console.log(`Error fetching client details:`, clientError);
+            // Return default response on client fetch error
             return res.status(200).json(response);
           }
-          
-          console.log(`Found current viewing client: ${client.name || 'Unnamed'} for user ${userId}`);
-          
-          // Update the response with client data
-          response.viewingClient = {
-            id: client.id,
-            name: client.name || "Unknown Client",
-            username: client.username || "",
-            email: client.email || "",
-          };
-        } catch (clientError) {
-          console.log(`Error fetching client ${user.currentViewingClientId}:`, clientError);
-          // Return default response on client fetch error
+        } else {
+          console.log(`User has no valid viewing client ID set`);
           return res.status(200).json(response);
         }
       } catch (userError) {
+        // Any error in this process, just return the default response
         console.log(`Error fetching user ${userId}:`, userError);
-        // Return default response on user fetch error
         return res.status(200).json(response);
       }
       
