@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
 import { useLocation } from "wouter";
+import { useRefreshData } from "@/hooks/use-refresh-data";
 
 import {
   Dialog,
@@ -78,6 +79,9 @@ export default function ThoughtRecordsList({
   // Use provided records if they exist, otherwise use fetched records
   const thoughtRecords = providedRecords || fetchedRecords;
   
+  // Import the useRefreshData hook
+  const { refreshAfterOperation } = useRefreshData();
+  
   // Delete thought record mutation - only allowed for own records
   const deleteThoughtMutation = useMutation({
     mutationFn: async (recordId: number) => {
@@ -88,16 +92,17 @@ export default function ThoughtRecordsList({
       }
       return apiRequest('DELETE', `/api/users/${activeUserId}/thoughts/${recordId}`);
     },
-    onSuccess: () => {
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/thoughts`] });
+    onSuccess: (_data, recordId) => {
+      // Use the refreshAfterOperation utility to handle related data refreshing
+      refreshAfterOperation(
+        'thought',
+        'delete',
+        recordId,
+        "The thought record has been deleted successfully.",
+        true  // force a page reload to ensure all related data is refreshed
+      );
       
-      toast({
-        title: "Record deleted",
-        description: "The thought record has been deleted successfully.",
-        variant: "default",
-      });
-      
+      // Clear local state
       setRecordToDelete(null);
       setDeleteConfirmOpen(false);
     },
@@ -108,14 +113,14 @@ export default function ThoughtRecordsList({
       if (error?.response?.status === 404) {
         // The record was likely already deleted (maybe as part of a cascade deletion)
         // We'll treat this as a successful operation
-        toast({
-          title: "Record deleted",
-          description: "The record no longer exists.",
-          variant: "default",
-        });
+        refreshAfterOperation(
+          'thought',
+          'delete',
+          null,
+          "The record no longer exists.",
+          true  // force a page reload
+        );
         
-        // Still refetch to update the UI
-        queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/thoughts`] });
         setRecordToDelete(null);
         setDeleteConfirmOpen(false);
         return;
