@@ -1,3 +1,17 @@
+/**
+ * EmotionTrackingForm - Core form for tracking and recording emotions
+ * 
+ * This component provides a comprehensive interface for recording emotions using
+ * the emotion wheel. It captures:
+ * - Primary, secondary and tertiary emotions
+ * - Emotion intensity
+ * - Situational context
+ * - Body sensations
+ * - Personal notes
+ * 
+ * The form uses the EmotionWheelResponsive component to provide an optimal
+ * experience on both mobile and desktop devices.
+ */
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
