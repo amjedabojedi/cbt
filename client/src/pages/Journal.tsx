@@ -476,18 +476,22 @@ export default function Journal() {
     },
     onSuccess: (data) => {
       console.log("Record linked successfully:", data);
+      
+      // Use the refreshAfterOperation utility for consistent data refreshing
+      refreshAfterOperation(
+        'journal_link_thought',
+        'update',
+        data.id,
+        "Thought record has been linked to this journal entry.",
+        false // don't force a page reload
+      );
+      
       loadEntryWithRelatedRecords(data);
       
-      // Invalidate all related queries
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+      // Also invalidate thought records queries
       queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/thoughts', userId] });
       
       setShowThoughtRecordDialog(false);
-      
-      toast({
-        title: "Record Linked",
-        description: "Thought record has been linked to this journal entry."
-      });
     },
     onError: (error: Error) => {
       console.error("Error linking thought record:", error);
@@ -513,16 +517,20 @@ export default function Journal() {
     },
     onSuccess: (data) => {
       console.log("Record unlinked successfully:", data);
+      
+      // Use the refreshAfterOperation utility for consistent data refreshing
+      refreshAfterOperation(
+        'journal_unlink_thought',
+        'update',
+        data.id,
+        "Thought record has been unlinked from this journal entry.",
+        false // don't force a page reload
+      );
+      
       loadEntryWithRelatedRecords(data);
       
-      // Invalidate all related queries
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+      // Also invalidate thought records queries
       queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/thoughts', userId] });
-      
-      toast({
-        title: "Record Unlinked",
-        description: "Thought record has been unlinked from this journal entry."
-      });
     },
     onError: (error: Error) => {
       console.error("Error unlinking thought record:", error);
