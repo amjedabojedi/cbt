@@ -287,15 +287,19 @@ export default function Journal() {
       const response = await apiRequest('PATCH', `/api/journal/${id}`, updates);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+    onSuccess: (_data, params) => {
+      // Use the refreshAfterOperation utility for consistent data refreshing
+      refreshAfterOperation(
+        'journal',
+        'update',
+        params.id,
+        "Your journal entry has been updated.",
+        false // don't force a page reload
+      );
+      
       setShowEntryDialog(false);
       setTitle("");
       setContent("");
-      toast({
-        title: "Journal Entry Updated",
-        description: "Your journal entry has been updated."
-      });
     },
     onError: (error: Error) => {
       toast({
@@ -311,16 +315,20 @@ export default function Journal() {
       if (!userId) throw new Error("User not authenticated");
       await apiRequest('DELETE', `/api/journal/${id}`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+    onSuccess: (_data, id) => {
+      // Use the refreshAfterOperation utility for consistent data refreshing
+      refreshAfterOperation(
+        'journal',
+        'delete',
+        id,
+        "Your journal entry has been deleted.",
+        false // don't force a page reload
+      );
+      
       setShowEntryDialog(false);
       setShowConfirmDelete(false);
       setCurrentEntry(null);
       setActiveTab("list"); // Switch back to list view after delete
-      toast({
-        title: "Journal Entry Deleted",
-        description: "Your journal entry has been deleted."
-      });
     },
     onError: (error: Error) => {
       toast({
@@ -341,6 +349,16 @@ export default function Journal() {
     },
     onSuccess: (data) => {
       console.log("Comment added successfully:", data);
+      
+      // Use the refreshAfterOperation utility for consistent data refreshing
+      refreshAfterOperation(
+        'journal_comment',
+        'create',
+        currentEntry?.id,
+        "Your comment has been added to the journal entry.",
+        false // don't force a page reload
+      );
+      
       // Update the current entry with the new comment
       if (currentEntry) {
         // Ensure we're properly handling the comments array
@@ -352,14 +370,7 @@ export default function Journal() {
           comments: updatedComments
         });
         
-        // Also invalidate the main query to ensure the list is updated
-        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
         setCommentContent("");
-        
-        toast({
-          title: "Comment Added",
-          description: "Your comment has been added to the journal entry."
-        });
       }
     },
     onError: (error: Error) => {
@@ -383,13 +394,19 @@ export default function Journal() {
     },
     onSuccess: (data) => {
       if (data) {
+        // Use the refreshAfterOperation utility for consistent data refreshing
+        refreshAfterOperation(
+          'journal_tags',
+          'update',
+          data.id,
+          "Tags have been updated successfully.",
+          false // don't force a page reload
+        );
+        
         setCurrentEntry(data);
         
-        // Invalidate both journal entries and stats queries
-        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+        // Invalidate the stats queries
         queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal/stats', userId] });
-        
-        // Force reload the stats tab if it's active
         if (activeTab === "stats") {
           setActiveTab("view");
           setTimeout(() => setActiveTab("stats"), 100);
@@ -421,16 +438,19 @@ export default function Journal() {
     },
     onSuccess: (data) => {
       if (data) {
+        // Use the refreshAfterOperation utility for consistent data refreshing
+        refreshAfterOperation(
+          'journal_distortions',
+          'update',
+          data.id,
+          "Your selected cognitive distortions have been updated.",
+          false // don't force a page reload
+        );
+        
         setCurrentEntry(data);
         
-        // Invalidate both journal entries and stats queries
-        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+        // Invalidate the stats queries
         queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal/stats', userId] });
-        
-        toast({
-          title: "Cognitive Distortions Updated",
-          description: "Your selected cognitive distortions have been updated."
-        });
       }
     },
     onError: (error: Error) => {
