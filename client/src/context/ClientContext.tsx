@@ -82,23 +82,43 @@ export function ClientProvider({ children }: { children: ReactNode }) {
             
             // Only process if component is still mounted
             if (isMounted) {
-              if (data?.viewingClient && 
-                  typeof data.viewingClient.id === 'number' && 
-                  typeof data.viewingClient.name === 'string') {
-                
-                // Valid client data found
-                setViewingClientId(data.viewingClient.id);
-                setViewingClientName(data.viewingClient.name);
-                
-                // Also update localStorage for persistence
-                localStorage.setItem('viewingClientId', data.viewingClient.id.toString());
-                localStorage.setItem('viewingClientName', data.viewingClient.name);
-                
-                console.log("Current viewing client set to:", data.viewingClient.name);
-              } else {
-                // If we have existing localStorage values and no valid response data,
-                // keep the localStorage values (they're already in state)
-                console.log("No current viewing client from server, using stored values if available");
+              try {
+                if (data?.viewingClient && 
+                    typeof data.viewingClient.id === 'number' && 
+                    typeof data.viewingClient.name === 'string') {
+                  
+                  // Valid client data found
+                  setViewingClientId(data.viewingClient.id);
+                  setViewingClientName(data.viewingClient.name);
+                  
+                  // Also update localStorage for persistence
+                  localStorage.setItem('viewingClientId', data.viewingClient.id.toString());
+                  localStorage.setItem('viewingClientName', data.viewingClient.name);
+                  
+                  console.log("Current viewing client set to:", data.viewingClient.name);
+                } else {
+                  // If using a therapist account and we have localStorage values but no valid response,
+                  // keep using the localStorage values which are already in state
+                  if (user?.role === 'therapist' || user?.role === 'admin') {
+                    // If no viewing client is set in state but we have one in localStorage, restore it
+                    if (!viewingClientId && storedClientId && storedClientName) {
+                      const parsedId = parseInt(storedClientId);
+                      if (!isNaN(parsedId)) {
+                        setViewingClientId(parsedId);
+                        setViewingClientName(storedClientName);
+                        console.log("Restored viewing client from localStorage:", storedClientName);
+                      }
+                    } else {
+                      console.log("No current viewing client from server, using stored values if available");
+                    }
+                  } else {
+                    // For client users, we don't use localStorage values
+                    console.log("No current viewing client from server for client user");
+                  }
+                }
+              } catch (processError) {
+                console.log("Error processing client data:", processError);
+                // Fall back to existing state, don't change anything
               }
             }
           } catch (apiError) {
