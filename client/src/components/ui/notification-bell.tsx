@@ -40,12 +40,19 @@ export default function NotificationBell() {
     }
   }, [isOpen]);
 
-  // Fetch unread count on mount and every minute
+  // Fetch unread count on mount and every minute, but only if user is authenticated
   useEffect(() => {
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 60000);
-    return () => clearInterval(interval);
-  }, []);
+    // Only fetch notifications if a user is logged in
+    if (user?.id) {
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 60000);
+      return () => clearInterval(interval);
+    } else {
+      // Reset notification state when no user is logged in
+      setUnreadCount(0);
+      setNotifications([]);
+    }
+  }, [user]);
   
   // Handle real-time notifications via WebSocket
   useEffect(() => {
