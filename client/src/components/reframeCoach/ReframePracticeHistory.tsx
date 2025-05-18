@@ -102,12 +102,15 @@ const ReframePracticeHistory: React.FC<ReframePracticeHistoryProps> = ({
                 </div>
                 <div className="text-center p-2 bg-muted/20 rounded-md">
                   <p className="text-xs text-muted-foreground">Correct</p>
-                  <p className="text-lg font-bold">{result.correctAnswers} / {result.totalQuestions}</p>
+                  <p className="text-lg font-bold">
+                    {result.correctAnswers || result.correctCount || 0} / {result.totalQuestions || result.totalCount || 0}
+                  </p>
                 </div>
                 <div className="text-center p-2 bg-muted/20 rounded-md">
                   <p className="text-xs text-muted-foreground">Accuracy</p>
                   <p className="text-lg font-bold">
-                    {Math.round((result.correctAnswers / result.totalQuestions) * 100)}%
+                    {Math.round(((result.correctAnswers || result.correctCount || 0) / 
+                      (result.totalQuestions || result.totalCount || 1)) * 100)}%
                   </p>
                 </div>
               </div>
