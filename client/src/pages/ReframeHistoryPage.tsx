@@ -1,3 +1,17 @@
+/**
+ * ReframeHistoryPage - Displays detailed history of reframing practice sessions
+ * 
+ * This page shows a comprehensive history of a user's reframing practice results,
+ * including:
+ * - Overall stats (sessions completed, average score, success rate)
+ * - Individual session details with timestamps
+ * - Score breakdown for each session
+ * - Cognitive distortions identified and practiced
+ * 
+ * The component safely handles calculation edge cases, preventing NaN values
+ * and supporting both naming conventions (correctCount/correctAnswers,
+ * totalCount/totalQuestions) consistently.
+ */
 import React from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";

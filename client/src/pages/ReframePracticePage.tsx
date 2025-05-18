@@ -1,3 +1,19 @@
+/**
+ * ReframePracticePage - Page for interactive cognitive reframing practice
+ * 
+ * This page provides an interactive practice experience for cognitive reframing.
+ * It can be used to practice with scenarios generated from an existing thought 
+ * record or with general reframing scenarios.
+ * 
+ * Key components:
+ * - Practice interface with scenario presentation
+ * - Multiple-choice reframe selection
+ * - Score tracking and results display
+ * - History of previous practice sessions
+ * 
+ * The component supports different data formats and prevents calculation errors
+ * when working with completions data.
+ */
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";

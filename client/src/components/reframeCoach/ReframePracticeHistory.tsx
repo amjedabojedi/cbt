@@ -1,3 +1,15 @@
+/**
+ * ReframePracticeHistory - Displays a history of reframe practice results
+ * 
+ * This component shows recent practice sessions with details like:
+ * - Score and accuracy percentage
+ * - Completion date
+ * - Time taken to complete
+ * - Number of correct answers
+ * 
+ * It handles both naming conventions for data fields (correctCount/correctAnswers
+ * and totalCount/totalQuestions) and properly prevents NaN% calculations.
+ */
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 

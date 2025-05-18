@@ -1,3 +1,20 @@
+/**
+ * ReframePractice - Interactive cognitive reframing practice component
+ * 
+ * This component provides an interactive experience for practicing cognitive 
+ * reframing skills. Users are presented with scenarios containing cognitive
+ * distortions and must select the most helpful reframing option.
+ * 
+ * Features:
+ * - Timed practice sessions with scoring
+ * - Progress tracking
+ * - Results summary with accuracy calculations
+ * - Distortion identification practice
+ * 
+ * The component correctly handles different data field naming conventions
+ * (correctCount/correctAnswers, totalCount/totalQuestions) and prevents
+ * NaN% calculations in results display.
+ */
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
