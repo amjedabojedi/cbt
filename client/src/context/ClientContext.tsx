@@ -54,48 +54,39 @@ export function ClientProvider({ children }: { children: ReactNode }) {
             backupHeaders["X-User-ID"] = user.id.toString();
           }
           
-          const response = await fetch("/api/users/current-viewing-client", {
-            method: "GET",
-            credentials: "include",
-            headers: backupHeaders
-          });
-          
-          // Consider non-2xx responses as successful but empty
-          let data;
+          // Use apiRequest from our queryClient to handle errors more gracefully
           try {
-            data = await response.json();
-          } catch (e) {
-            // If JSON parsing fails, create empty response
-            data = { viewingClient: null };
-            console.error("Error fetching current viewing client:", e);
-          }
-          
-          // If there's an error message, log it
-          if (data.message) {
-            console.log("Request issue for GET /api/users/current-viewing-client:", data.message);
-          }
-          
-          if (isMounted) {
-            // Check if data and viewingClient exist and have valid properties
-            if (data?.viewingClient && 
-                typeof data.viewingClient.id === 'number' && 
-                typeof data.viewingClient.name === 'string') {
-              
-              setViewingClientId(data.viewingClient.id);
-              setViewingClientName(data.viewingClient.name);
-              
-              // Also update localStorage for backwards compatibility
-              localStorage.setItem('viewingClientId', data.viewingClient.id.toString());
-              localStorage.setItem('viewingClientName', data.viewingClient.name);
-            } else {
-              // If no valid client data from API, keep using localStorage values if available
-              // (already initialized in state constructor)
-              console.log("No valid client data received from API, using localStorage if available");
+            const data = await apiRequest("GET", "/api/users/current-viewing-client", null, {
+              headers: backupHeaders
+            }).then(r => r.ok ? r.json() : { viewingClient: null });
+            
+            // Only process if component is still mounted
+            if (isMounted) {
+              if (data?.viewingClient && 
+                  typeof data.viewingClient.id === 'number' && 
+                  typeof data.viewingClient.name === 'string') {
+                
+                setViewingClientId(data.viewingClient.id);
+                setViewingClientName(data.viewingClient.name);
+                
+                // Also update localStorage for backwards compatibility
+                localStorage.setItem('viewingClientId', data.viewingClient.id.toString());
+                localStorage.setItem('viewingClientName', data.viewingClient.name);
+                
+                console.log("Current viewing client set to:", data.viewingClient.name);
+              } else {
+                // If no valid client data from API, keep using localStorage values if available
+                // (already initialized in state constructor)
+                console.log("No current viewing client from server, using stored values if available");
+              }
             }
+          } catch (apiError) {
+            // Just log the error and fallback to localStorage values
+            console.log("API request for current viewing client failed, using stored values");
           }
         } catch (error) {
-          console.error("Error fetching current viewing client:", error);
-          // If fetch fails, fallback to localStorage values (already set in state)
+          // Outer try-catch for any other errors
+          console.log("Error in current viewing client fetch:", error);
         } finally {
           if (isMounted) {
             setLoading(false);
