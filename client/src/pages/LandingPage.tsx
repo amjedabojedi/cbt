@@ -303,7 +303,7 @@ export default function LandingPage() {
               <div className="space-y-6">
                 <div>
                   <h4 className="font-medium flex items-center gap-2 text-neutral-800">
-                    <Users className="h-5 w-5 text-indigo-600" /> Support Client Engagement
+                    <MessageCircle className="h-5 w-5 text-indigo-600" /> Support Client Engagement
                   </h4>
                   <p className="mt-1 text-neutral-600">
                     Invite clients to the platform where they can use structured CBT tools between sessions.
@@ -313,7 +313,7 @@ export default function LandingPage() {
                 
                 <div>
                   <h4 className="font-medium flex items-center gap-2 text-neutral-800">
-                    <LineChart className="h-5 w-5 text-blue-600" /> Access Comprehensive Insights
+                    <BarChart3 className="h-5 w-5 text-blue-600" /> Access Comprehensive Insights
                   </h4>
                   <p className="mt-1 text-neutral-600">
                     View detailed data on client emotions, thought patterns, and journaling over time.
@@ -323,7 +323,7 @@ export default function LandingPage() {
                 
                 <div>
                   <h4 className="font-medium flex items-center gap-2 text-neutral-800">
-                    <FileText className="h-5 w-5 text-emerald-600" /> Review Client Progress
+                    <CheckCircle className="h-5 w-5 text-emerald-600" /> Review Client Progress
                   </h4>
                   <p className="mt-1 text-neutral-600">
                     Monitor client engagement with reframing exercises, emotion tracking, and journaling.
@@ -333,7 +333,7 @@ export default function LandingPage() {
                 
                 <div>
                   <h4 className="font-medium flex items-center gap-2 text-neutral-800">
-                    <LibraryBig className="h-5 w-5 text-amber-600" /> Share Targeted Resources
+                    <Book className="h-5 w-5 text-amber-600" /> Share Targeted Resources
                   </h4>
                   <p className="mt-1 text-neutral-600">
                     Provide educational materials and interactive exercises tailored to each client's specific needs.
