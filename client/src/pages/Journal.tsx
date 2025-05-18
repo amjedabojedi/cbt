@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { useClientContext } from "@/context/ClientContext";
 import useActiveUser from "@/hooks/use-active-user";
+import { useRefreshData } from "@/hooks/use-refresh-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -179,6 +180,7 @@ export default function Journal() {
   const { user } = useAuth();
   const { viewingClientId } = useClientContext();
   const { activeUserId, isViewingSelf } = useActiveUser();
+  const { refreshAfterOperation } = useRefreshData();
   
   // If viewing client data, use client's ID, otherwise use current user's ID
   const userId = activeUserId;
@@ -254,18 +256,21 @@ export default function Journal() {
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal', userId] });
+      // Use the refreshAfterOperation utility for consistent data refreshing
+      refreshAfterOperation(
+        'journal',
+        'create',
+        data.id,
+        "Your journal entry has been saved. Please add emotions and topics to help categorize it.",
+        false // don't force a page reload
+      );
+      
       setShowEntryDialog(false);
       setTitle("");
       setContent("");
       
       // Instead of just viewing the entry, show the tagging dialog
       loadEntryWithRelatedRecords(data, true);
-      
-      toast({
-        title: "Journal Entry Created",
-        description: "Your journal entry has been saved. Please add emotions and topics to help categorize it."
-      });
     },
     onError: (error: Error) => {
       toast({

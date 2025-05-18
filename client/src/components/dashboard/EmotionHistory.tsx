@@ -160,15 +160,15 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
       if (!activeUserId) throw new Error('User not authenticated');
       return apiRequest('DELETE', `/api/users/${activeUserId}/emotions/${emotionId}`);
     },
-    onSuccess: () => {
-      // Invalidate and refetch emotions
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/emotions`] });
-      
-      toast({
-        title: "Record deleted",
-        description: "The emotion record has been deleted successfully.",
-        variant: "default",
-      });
+    onSuccess: (_data, emotionId) => {
+      // Use the refreshAfterOperation utility for consistent data refreshing
+      refreshAfterOperation(
+        'emotion',
+        'delete',
+        emotionId,
+        "The emotion record has been deleted successfully.",
+        false // don't force a page reload
+      );
       
       setEmotionToDelete(null);
       setDeleteConfirmOpen(false);
@@ -179,15 +179,14 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
       // Check if it's a 404 error (record doesn't exist)
       if (error?.response?.status === 404) {
         // The record was likely already deleted
-        // We'll treat this as a successful operation
-        toast({
-          title: "Record deleted",
-          description: "The record no longer exists.",
-          variant: "default",
-        });
-        
-        // Still refetch to update the UI
-        queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/emotions`] });
+        // We'll treat this as a successful operation and use our refresh utility
+        refreshAfterOperation(
+          'emotion',
+          'delete',
+          emotionToDelete?.id || 0,
+          "The record no longer exists.",
+          false // don't force a page reload
+        );
         setEmotionToDelete(null);
         setDeleteConfirmOpen(false);
         return;
