@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import useActiveUser from "@/hooks/use-active-user";
 import { useLocation } from "wouter";
+import { useRefreshData } from "@/hooks/use-refresh-data";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -119,6 +120,7 @@ export default function EmotionTrackingForm({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isViewingSelf } = useActiveUser();
+  const { refreshAfterOperation } = useRefreshData();
   const [showReflectionWizard, setShowReflectionWizard] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [recordedEmotion, setRecordedEmotion] = useState<any>(null);
