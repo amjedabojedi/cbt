@@ -54,11 +54,11 @@ export function ClientProvider({ children }: { children: ReactNode }) {
             backupHeaders["X-User-ID"] = user.id.toString();
           }
           
-          // Add userId explicitly as query parameter for maximum reliability
-          const url = `/api/users/current-viewing-client${user?.id ? `?userId=${user.id}` : ''}`;
+          // IMPORTANT: Use the fixed endpoint that always returns 200 status
+          const url = `/api/users/viewing-client-fixed${user?.id ? `?userId=${user.id}` : ''}`;
           
           try {
-            // Use fetch directly with more robust error handling
+            // Use the fixed endpoint with 200 status code guarantee
             const response = await fetch(url, {
               method: 'GET',
               headers: backupHeaders,
