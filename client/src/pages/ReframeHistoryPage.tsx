@@ -181,13 +181,18 @@ const ReframeHistoryPage = () => {
                     </div>
                     <div className="text-center p-4 bg-muted/20 rounded-md">
                       <p className="text-muted-foreground text-sm">Correct</p>
-                      <p className="text-2xl font-bold">{result.correctAnswers} / {result.totalQuestions}</p>
+                      <p className="text-2xl font-bold">
+                        {result.correctAnswers || result.correctCount || 0} / {result.totalQuestions || result.totalCount || 0}
+                      </p>
                     </div>
                     <div className="text-center p-4 bg-muted/20 rounded-md">
                       <p className="text-muted-foreground text-sm">Accuracy</p>
                       <p className="text-2xl font-bold">
-                        {result.successRate || (result.totalQuestions > 0 ? 
-                          Math.round(((result.correctAnswers || 0) / result.totalQuestions) * 100) : 0)}%
+                        {result.successRate || (
+                          (result.totalQuestions || result.totalCount) > 0 ? 
+                          Math.round(((result.correctAnswers || result.correctCount || 0) / 
+                            (result.totalQuestions || result.totalCount)) * 100) : 0
+                        )}%
                       </p>
                     </div>
                     <div className="text-center p-4 bg-muted/20 rounded-md">
@@ -213,7 +218,7 @@ const ReframeHistoryPage = () => {
                         ))
                       ) : (
                         result.scenarioData && Array.isArray(result.scenarioData) ? (
-                          Array.from(new Set(result.scenarioData
+                          (Array.from(new Set(result.scenarioData
                             .map((scenario: any) => scenario.cognitiveDistortion)
                             .filter(Boolean)
                             .map((distortion: string) => {
@@ -223,10 +228,10 @@ const ReframeHistoryPage = () => {
                                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                                 .join(' ');
                             })
-                          )).map((distortion: string, index: number) => (
+                          )) as string[]).map((distortion: string, index: number) => (
                             <Badge key={index} variant="outline" className="bg-primary/10">
                               <BrainCircuit className="mr-1 h-3 w-3" />
-                              {distortion}
+                              {String(distortion)}
                             </Badge>
                           ))
                         ) : (

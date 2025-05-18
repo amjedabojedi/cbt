@@ -260,6 +260,9 @@ export default function CrossComponentInsights() {
           if (improvementValues.length > 0) {
             const totalImprovement = improvementValues.reduce((sum, val) => sum + val, 0);
             mostFrequentEmotion.averageImprovement = totalImprovement / improvementValues.length;
+          } else {
+            // Set a default value when no improvement values are available
+            mostFrequentEmotion.averageImprovement = 0;
           }
         }
       }
