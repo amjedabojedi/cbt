@@ -2167,7 +2167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } 
       // If no authenticated user, try to get from backup header
       else if (req.headers['x-user-id']) {
-        const parsedId = parseInt(req.headers['x-user-id'] as string);
+        const parsedId = parseInt(req.headers['x-user-id'] as string, 10);
         if (!isNaN(parsedId)) {
           userId = parsedId;
         }
@@ -2243,6 +2243,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Add endpoint for client recent activity
+  app.get("/api/users/:userId/recent-activity", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Get recent emotions, journals, thought records, and goals
+      const limit = 10; // Limit to 10 recent activities
+      const emotions = await storage.getEmotionRecordsByUser(userId, limit);
+      const journals = await storage.getJournalEntriesByUser(userId, limit);
+      const thoughts = await storage.getThoughtRecordsByUser(userId, limit);
+      const userGoals = await storage.getGoalsByUser(userId, limit);
+      
+      // Format each into a consistent activity format
+      const activities = [];
+      
+      // Add emotions
+      if (emotions && emotions.length > 0) {
+        emotions.forEach(emotion => {
+          activities.push({
+            id: `emotion-${emotion.id}`,
+            type: 'emotion',
+            title: `Tracked ${emotion.primaryEmotion || emotion.coreEmotion}`,
+            timestamp: emotion.timestamp || emotion.createdAt,
+            data: emotion
+          });
+        });
+      }
+      
+      // Add journals
+      if (journals && journals.length > 0) {
+        journals.forEach(journal => {
+          activities.push({
+            id: `journal-${journal.id}`,
+            type: 'journal',
+            title: journal.title || 'New journal entry',
+            timestamp: journal.createdAt,
+            data: journal
+          });
+        });
+      }
+      
+      // Add thought records
+      if (thoughts && thoughts.length > 0) {
+        thoughts.forEach(thought => {
+          activities.push({
+            id: `thought-${thought.id}`,
+            type: 'thought_record',
+            title: thought.situation || 'New thought record',
+            timestamp: thought.createdAt,
+            data: thought
+          });
+        });
+      }
+      
+      // Add goals
+      if (userGoals && userGoals.length > 0) {
+        userGoals.forEach(goal => {
+          activities.push({
+            id: `goal-${goal.id}`,
+            type: 'goal',
+            title: goal.title || 'New goal',
+            timestamp: goal.createdAt,
+            data: goal
+          });
+        });
+      }
+      
+      // Sort by timestamp, newest first
+      activities.sort((a, b) => {
+        const dateA = new Date(a.timestamp || 0);
+        const dateB = new Date(b.timestamp || 0);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      // Return the top activities
+      res.status(200).json(activities.slice(0, limit));
+    } catch (error) {
+      console.error("Error fetching recent activity:", error);
+      res.status(200).json([]); // Return empty array instead of error
+    }
+  });
+
   // Client invitation management endpoints
   
   // Get all invitations for a therapist
