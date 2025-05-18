@@ -250,7 +250,7 @@ export default function LandingPage() {
               <div className="space-y-6">
                 <div>
                   <h4 className="font-medium flex items-center gap-2 text-neutral-800">
-                    <Activity className="h-5 w-5 text-blue-600" /> Track Emotional Patterns
+                    <BarChart3 className="h-5 w-5 text-blue-600" /> Track Emotional Patterns
                   </h4>
                   <p className="mt-1 text-neutral-600">
                     Use the interactive emotion wheel to identify and record emotions with precision.
@@ -260,7 +260,7 @@ export default function LandingPage() {
                 
                 <div>
                   <h4 className="font-medium flex items-center gap-2 text-neutral-800">
-                    <BookOpen className="h-5 w-5 text-amber-600" /> Reflect Through Journaling
+                    <Book className="h-5 w-5 text-amber-600" /> Reflect Through Journaling
                   </h4>
                   <p className="mt-1 text-neutral-600">
                     Express yourself through guided journaling with optional AI-powered analysis that identifies 
@@ -270,7 +270,7 @@ export default function LandingPage() {
                 
                 <div>
                   <h4 className="font-medium flex items-center gap-2 text-neutral-800">
-                    <BrainCircuit className="h-5 w-5 text-purple-600" /> Practice Reframing Skills
+                    <Brain className="h-5 w-5 text-purple-600" /> Practice Reframing Skills
                   </h4>
                   <p className="mt-1 text-neutral-600">
                     Strengthen your cognitive flexibility with interactive reframing exercises. 
