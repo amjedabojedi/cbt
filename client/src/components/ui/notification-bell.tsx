@@ -81,31 +81,46 @@ export default function NotificationBell() {
 
   async function fetchUnreadCount() {
     try {
-      // Create headers object as a proper Record<string, string>
-      const headers: Record<string, string> = {};
-      
-      // Add backup authentication header if we have a user ID
-      if (user?.id) {
-        headers['X-User-ID'] = user.id.toString();
+      // Don't attempt to fetch if there's no user
+      if (!user?.id) {
+        setUnreadCount(0);
+        return;
       }
       
-      // Only pass headers option if we have headers to send
-      const options = Object.keys(headers).length > 0 ? { headers } : undefined;
+      // Create headers object as a proper Record<string, string>
+      const headers: Record<string, string> = {
+        'X-User-ID': user.id.toString(),
+        // Add a cache buster to prevent cached responses
+        'Cache-Control': 'no-cache'
+      };
       
-      const response = await apiRequest("GET", "/api/notifications/unread", null, options);
+      const response = await apiRequest("GET", "/api/notifications/unread", null, { headers });
+      
+      // Safely parse the response
       if (response.ok) {
-        const data = await response.json();
-        setUnreadCount(data.length);
+        try {
+          const data = await response.json();
+          if (Array.isArray(data)) {
+            setUnreadCount(data.length);
+          } else {
+            // If data is not an array, keep current count
+            console.warn("Unexpected notification data format:", typeof data);
+          }
+        } catch (jsonError) {
+          // JSON parsing error, keeping the current count
+          console.warn("Failed to parse notification response as JSON");
+        }
       } else {
-        // If the request fails, don't display an error, just keep the current count
-        console.log("Unable to fetch unread count - will retry later");
+        // If the request fails, log status but keep the current count
+        console.warn(`Notification request failed with status: ${response.status}`);
       }
     } catch (error) {
       // Don't log full error object as it can cause circular reference issues
       console.error("Error fetching unread count - will retry later");
-      
-      // Schedule another retry in 30 seconds
-      setTimeout(fetchUnreadCount, 30000);
+    } finally {
+      // Always schedule another retry in 60 seconds, regardless of success/failure
+      // This ensures we keep trying even after errors
+      setTimeout(fetchUnreadCount, 60000);
     }
   }
 
