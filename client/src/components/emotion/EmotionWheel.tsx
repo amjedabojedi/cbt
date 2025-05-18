@@ -1,4 +1,12 @@
-// This file is now a wrapper around the fixed implementation
+/**
+ * EmotionWheel - Desktop implementation of the emotion wheel component
+ * 
+ * This component is a wrapper around EmotionWheelFixed that maintains
+ * a consistent interface for the emotion wheel functionality.
+ * 
+ * EmotionWheelResponsive uses this component for desktop view and 
+ * EmotionWheelMobile for mobile views.
+ */
 import EmotionWheelFixed from "./EmotionWheelFixed";
 
 interface EmotionWheelProps {

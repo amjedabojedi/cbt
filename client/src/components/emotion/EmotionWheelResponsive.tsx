@@ -1,3 +1,14 @@
+/**
+ * EmotionWheelResponsive - Responsive emotion wheel component
+ * 
+ * This component dynamically renders either the desktop (EmotionWheel) or 
+ * mobile (EmotionWheelMobile) version of the emotion wheel based on the
+ * current viewport size. It provides a consistent interface for the
+ * emotion wheel functionality regardless of the device.
+ * 
+ * Used in the emotion tracking forms and wherever an emotion selection
+ * interface is required.
+ */
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import EmotionWheel from "./EmotionWheel";
@@ -21,17 +32,19 @@ export default function EmotionWheelResponsive({
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [mounted, setMounted] = useState(false);
   
+  // Client-side only code for responsive behavior
   useEffect(() => {
     setMounted(true);
   }, []);
   
-  // Use a shimmer placeholder while determining mobile/desktop
+  // Show a shimmer placeholder during SSR and client hydration
   if (!mounted) {
     return (
       <div className="w-full aspect-square bg-gray-100 animate-pulse rounded-full" />
     );
   }
   
+  // Render the appropriate wheel component based on device size
   return isMobile ? (
     <EmotionWheelMobile
       language={language}

@@ -1,3 +1,12 @@
+/**
+ * EmotionWheelFixed - Core implementation of the desktop emotion wheel
+ * 
+ * This component renders an interactive emotion wheel for desktop users.
+ * It provides a visual way to explore and select emotions organized in
+ * a hierarchical wheel structure.
+ * 
+ * This is the base implementation used by the EmotionWheel wrapper component.
+ */
 import { useEffect, useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";

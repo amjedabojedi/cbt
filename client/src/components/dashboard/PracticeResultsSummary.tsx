@@ -1,3 +1,11 @@
+/**
+ * PracticeResultsSummary - Dashboard card displaying reframe practice results
+ * 
+ * This component shows a summary of the user's reframe practice history,
+ * including total practices completed, accuracy rate, and average score.
+ * It handles different data field naming conventions (correctCount/correctAnswers,
+ * totalCount/totalQuestions) and prevents NaN% values in calculations.
+ */
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';

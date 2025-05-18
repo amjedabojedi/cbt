@@ -1,3 +1,13 @@
+/**
+ * CrossComponentInsights - Visualizes relationships between different data components
+ * 
+ * This component provides charts and visualizations showing connections between
+ * emotion records, thought records, and journal entries. It helps users identify
+ * patterns in their mental health data across different tracking tools.
+ * 
+ * This component handles NaN% and error values properly, gracefully falling back
+ * to zero or default values when data is missing.
+ */
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

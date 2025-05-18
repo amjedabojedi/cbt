@@ -1,3 +1,12 @@
+/**
+ * EmotionWheelMobile - Mobile-optimized emotion selection interface
+ * 
+ * This component provides a mobile-friendly interface for selecting emotions.
+ * It uses a different UI approach than the desktop version to accommodate
+ * smaller screen sizes and touch interactions.
+ * 
+ * Used by EmotionWheelResponsive when a mobile viewport is detected.
+ */
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
