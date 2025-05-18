@@ -136,7 +136,7 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-semibold mb-2">Emotion Tracking</h3>
             <p>
-              Record and visualize emotions between sessions using our emotion wheel with intensity tracking and pattern identification.
+              Use the emotion wheel to record how you feel with intensity tracking. Spot emotional trends and gain greater self-awareness between sessions.
             </p>
           </div>
 
@@ -145,9 +145,9 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Heart className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Interactive CBT Tools</h3>
+            <h3 className="text-xl font-semibold mb-2">Thought & Behavior Tools</h3>
             <p>
-              Complete structured thought records between sessions to document thinking patterns. Track and record coping strategies that work for you.
+              Document thinking patterns using structured CBT tools. Track which coping strategies work best for you when managing difficult moments.
             </p>
           </div>
 
@@ -156,9 +156,9 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Target className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Goal Setting & Tracking</h3>
+            <h3 className="text-xl font-semibold mb-2">Goal Setting</h3>
             <p>
-              Document specific, measurable goals and track your progress between sessions. Break down larger goals into manageable steps.
+              Create specific, measurable goals and break them into manageable steps. Monitor your progress consistently to maintain momentum.
             </p>
           </div>
 
@@ -169,7 +169,7 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-semibold mb-2">Simple Journaling</h3>
             <p>
-              Record thoughts in journal entries between sessions. Basic AI assistance helps spot common patterns in your writing.
+              Reflect on your experiences with journal entries that help you process thoughts and feelings. Basic AI assistance helps spot recurring patterns in your writing.
             </p>
           </div>
 
@@ -178,9 +178,9 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <BarChart3 className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Basic Progress Tracking</h3>
+            <h3 className="text-xl font-semibold mb-2">Progress Visualization</h3>
             <p>
-              See simple connections between your recorded emotions, thoughts, and journal entries. View simple charts showing your activity over time.
+              See connections between your recorded emotions, thoughts, and journal entries. View intuitive charts showing your activity and patterns over time.
             </p>
           </div>
 
@@ -189,9 +189,9 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <MessageCircle className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Professional-Client Connection</h3>
+            <h3 className="text-xl font-semibold mb-2">Professional Connection</h3>
             <p>
-              Share your tracking data securely with your therapist. Receive feedback on your progress and recording activities between sessions.
+              Securely share your tracking data with your therapist. Receive feedback on your progress between sessions, enhancing the effectiveness of your professional support.
             </p>
           </div>
         </div>
@@ -242,7 +242,7 @@ export default function LandingPage() {
       {/* User Roles Section */}
       <section className="bg-blue-50/70 py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Experience Growth and Connection</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">Collaborative Benefits</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             {/* Client Role */}
             <div className="landing-feature-box rounded-lg p-8 shadow-md bg-white">
@@ -250,8 +250,8 @@ export default function LandingPage() {
                 <Heart className="h-6 w-6 text-rose-500" /> For Individuals
               </h3>
               <p className="text-neutral-600 mb-5">
-                Take an active role in your personal growth through structured tools that help
-                you understand emotions, recognize thought patterns, and develop healthier perspectives.
+                Track your emotional journey in real-time, build self-awareness through consistent recording,
+                and strengthen the connection with your mental health professional between sessions.
               </p>
               <div className="space-y-6">
                 <div>
@@ -269,29 +269,28 @@ export default function LandingPage() {
                     <Book className="h-5 w-5 text-amber-600" /> Reflect Through Journaling
                   </h4>
                   <p className="mt-1 text-neutral-600">
-                    Express yourself through guided journaling with optional AI-powered analysis that identifies 
-                    themes and emotional tones. Track your progress and see your growth over time.
+                    Express yourself through guided journaling that helps you process thoughts and feelings.
+                    Basic AI assistance identifies recurring themes in your writing, providing additional perspective.
                   </p>
                 </div>
                 
                 <div>
                   <h4 className="font-medium flex items-center gap-2 text-neutral-800">
-                    <Brain className="h-5 w-5 text-purple-600" /> Practice Reframing Skills
+                    <Brain className="h-5 w-5 text-purple-600" /> Identify Effective Strategies
                   </h4>
                   <p className="mt-1 text-neutral-600">
-                    Strengthen your cognitive flexibility with interactive reframing exercises. 
-                    Challenge unhelpful thinking patterns and practice developing balanced perspectives through 
-                    engaging practice sessions.
+                    Track which coping mechanisms and protective factors work best for you in different situations.
+                    Build a personalized toolkit of proven strategies for managing challenging moments.
                   </p>
                 </div>
                 
                 <div>
                   <h4 className="font-medium flex items-center gap-2 text-neutral-800">
-                    <Target className="h-5 w-5 text-green-600" /> Set Meaningful Goals
+                    <Target className="h-5 w-5 text-green-600" /> Maintain Momentum
                   </h4>
                   <p className="mt-1 text-neutral-600">
                     Create structured goals with specific milestones, track your progress, and celebrate achievements. 
-                    Connect your goals with emotions and thought patterns for a holistic approach to personal growth.
+                    Stay engaged with your personal growth journey between professional sessions.
                   </p>
                 </div>
               </div>
@@ -303,8 +302,8 @@ export default function LandingPage() {
                 <Brain className="h-6 w-6 text-blue-500" /> For Mental Health Professionals
               </h3>
               <p className="text-neutral-600 mb-5">
-                Enhance your practice with powerful, data-driven insights and structured tools that support
-                your clients between sessions, creating continuity in their growth journey.
+                Access client-recorded data to gain deeper insights, provide more targeted support based on 
+                observed patterns, and enhance therapeutic conversations with data-driven observations.
               </p>
               <div className="space-y-6">
                 <div>
