@@ -2159,31 +2159,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const response = { viewingClient: null, success: true };
     
     try {
+      // Get user ID from various sources
       let userId = null;
       
       // Try to get userId from authentication data first
       if (req.user && typeof req.user.id === 'number') {
         userId = req.user.id;
+        console.log(`Found user ID from req.user: ${userId}`);
       } 
       // If no authenticated user, try to get from backup header
       else if (req.headers['x-user-id']) {
-        const parsedId = parseInt(req.headers['x-user-id'] as string, 10);
-        if (!isNaN(parsedId)) {
-          userId = parsedId;
+        try {
+          const headerValue = req.headers['x-user-id'];
+          const idString = Array.isArray(headerValue) ? headerValue[0] : headerValue;
+          const parsedId = parseInt(idString, 10);
+          
+          if (!isNaN(parsedId)) {
+            userId = parsedId;
+            console.log(`Found user ID from X-User-ID header: ${userId}`);
+          }
+        } catch (headerError) {
+          console.log("Error parsing X-User-ID header:", headerError);
         }
       }
+      
       // Try from cookie as last resort
-      else if (req.headers.cookie && req.headers.cookie.includes('sessionId')) {
+      if (!userId && req.headers.cookie) {
         try {
-          const sessionId = req.headers.cookie.split('sessionId=')[1]?.split(';')[0]?.trim();
+          const cookies = req.headers.cookie.split(';');
+          let sessionId = null;
+          
+          for (const cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'sessionId' && value) {
+              sessionId = value;
+              break;
+            }
+          }
+          
           if (sessionId) {
+            console.log(`Found sessionId from cookie: ${sessionId}`);
             const session = await storage.getSession(sessionId);
-            if (session && session.userId) {
+            if (session && typeof session.userId === 'number') {
               userId = session.userId;
+              console.log(`Found user ID from session: ${userId}`);
             }
           }
         } catch (cookieError) {
-          console.log("Error parsing cookie, continuing with null viewingClient");
+          console.log("Error parsing cookie:", cookieError);
         }
       }
       
@@ -2196,49 +2219,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Getting current viewing client for user ID: ${userId}`);
       
       // Check the user record
-      try {
-        const user = await storage.getUser(userId);
-        
-        // If no user found or no viewing client set, return default response
-        if (!user || !user.currentViewingClientId) {
-          const reason = !user 
-            ? `User ${userId} not found` 
-            : `User ${userId} has no current viewing client set`;
-          console.log(reason);
-          return res.status(200).json(response);
-        }
-        
-        // Try to get the client details
-        try {
-          const client = await storage.getClient(user.currentViewingClientId);
-          
-          if (!client) {
-            console.log(`Client ID ${user.currentViewingClientId} not found`);
-            return res.status(200).json(response);
-          }
-          
-          console.log(`Found current viewing client: ${client.name} for user ${userId}`);
-          
-          // Only if we successfully get a client do we update the response
-          response.viewingClient = {
-            id: client.id,
-            name: client.name || "Unknown Client",
-            username: client.username || "",
-            email: client.email || "",
-          };
-          
-        } catch (clientError) {
-          console.log(`Error fetching client ${user.currentViewingClientId} - returning null`);
-        }
-      } catch (userError) {
-        console.log(`Error fetching user ${userId} - returning null`);
+      const user = await storage.getUser(userId);
+      
+      // If no user found or no viewing client set, return default response
+      if (!user) {
+        console.log(`User ${userId} not found`);
+        return res.status(200).json(response);
       }
       
-      // Always return 200 with the response object
+      if (!user.currentViewingClientId) {
+        console.log(`User ${userId} has no current viewing client set`);
+        return res.status(200).json(response);
+      }
+      
+      // Try to get the client details
+      const client = await storage.getClient(user.currentViewingClientId);
+      
+      if (!client) {
+        console.log(`Client ID ${user.currentViewingClientId} not found`);
+        return res.status(200).json(response);
+      }
+      
+      console.log(`Found current viewing client: ${client.name} for user ${userId}`);
+      
+      // Update the response with client data
+      response.viewingClient = {
+        id: client.id,
+        name: client.name || "Unknown Client",
+        username: client.username || "",
+        email: client.email || "",
+      };
+      
+      // Return success response
       return res.status(200).json(response);
       
     } catch (error) {
-      console.error("Error in current viewing client endpoint - returning null");
+      console.error("Error in current viewing client endpoint:", error);
+      // Always return 200 with default response on error
       return res.status(200).json(response);
     }
   });
