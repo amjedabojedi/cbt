@@ -81,8 +81,16 @@ export default function NotificationBell() {
 
   async function fetchUnreadCount() {
     try {
-      // Add backup authentication header for improved reliability
-      const options = user?.id ? { headers: { 'X-User-ID': user.id.toString() } } : undefined;
+      // Create headers object as a proper Record<string, string>
+      const headers: Record<string, string> = {};
+      
+      // Add backup authentication header if we have a user ID
+      if (user?.id) {
+        headers['X-User-ID'] = user.id.toString();
+      }
+      
+      // Only pass headers option if we have headers to send
+      const options = Object.keys(headers).length > 0 ? { headers } : undefined;
       
       const response = await apiRequest("GET", "/api/notifications/unread", null, options);
       if (response.ok) {

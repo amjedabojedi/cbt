@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { Notification } from '@shared/schema';
+import { URL } from 'url';
 
 interface ExtendedWebSocket extends WebSocket {
   userId?: number;
@@ -16,8 +17,33 @@ export function initializeWebSocketServer(httpServer: Server) {
   
   console.log("WebSocket server initialized at /ws");
 
-  wss.on('connection', (ws: ExtendedWebSocket) => {
+  wss.on('connection', (ws: ExtendedWebSocket, req) => {
     ws.isAlive = true;
+    
+    // Process URL query parameters for authentication
+    try {
+      // Extract userId from URL query parameters if present
+      const url = new URL(req.url || '', 'http://localhost');
+      const userIdParam = url.searchParams.get('userId');
+      
+      if (userIdParam) {
+        const userId = parseInt(userIdParam);
+        if (!isNaN(userId)) {
+          // Authenticate immediately using the URL parameter
+          ws.userId = userId;
+          
+          // Store client connection
+          if (!connectedClients.has(userId)) {
+            connectedClients.set(userId, []);
+          }
+          connectedClients.get(userId)?.push(ws);
+          
+          console.log(`WebSocket client authenticated for user ${userId}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error processing WebSocket URL parameters:', error);
+    }
     
     // Handle pings to keep connection alive
     ws.on('pong', () => {
@@ -32,15 +58,19 @@ export function initializeWebSocketServer(httpServer: Server) {
         // Handle authentication
         if (data.type === 'auth' && data.userId) {
           const userId = parseInt(data.userId);
-          ws.userId = userId;
           
-          // Store client connection
-          if (!connectedClients.has(userId)) {
-            connectedClients.set(userId, []);
+          // Only process if not already authenticated or if userId is different
+          if (!ws.userId || ws.userId !== userId) {
+            ws.userId = userId;
+            
+            // Store client connection
+            if (!connectedClients.has(userId)) {
+              connectedClients.set(userId, []);
+            }
+            connectedClients.get(userId)?.push(ws);
+            
+            console.log(`WebSocket client authenticated for user ${userId}`);
           }
-          connectedClients.get(userId)?.push(ws);
-          
-          console.log(`WebSocket client authenticated for user ${userId}`);
         }
         
         // Handle client ping messages (heartbeat)
@@ -77,13 +107,14 @@ export function initializeWebSocketServer(httpServer: Server) {
   
   // Ping all clients every 30 seconds to check if they're still alive
   const interval = setInterval(() => {
-    wss.clients.forEach((ws: ExtendedWebSocket) => {
-      if (!ws.isAlive) {
-        return ws.terminate();
+    wss.clients.forEach((ws) => {
+      const extWs = ws as ExtendedWebSocket;
+      if (!extWs.isAlive) {
+        return extWs.terminate();
       }
       
-      ws.isAlive = false;
-      ws.ping();
+      extWs.isAlive = false;
+      extWs.ping();
     });
   }, 30000);
   
