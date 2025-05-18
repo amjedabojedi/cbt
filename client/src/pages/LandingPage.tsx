@@ -134,7 +134,7 @@ export default function LandingPage() {
           <h3 className="text-xl font-semibold text-center mb-8">How ResilienceHub™ Works</h3>
           <div className="max-w-4xl mx-auto">
             <img 
-              src="@assets/image_1747581873634.png" 
+              src="/images/image_1747581873634.png" 
               alt="ResilienceHub™ Feature Usage Sequence" 
               className="w-full rounded-lg shadow-md"
             />
