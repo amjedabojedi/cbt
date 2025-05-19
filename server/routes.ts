@@ -3608,7 +3608,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/notifications/unread", authenticate, async (req, res) => {
     try {
       const userId = req.user!.id;
-      const notifications = await storage.getUnreadNotificationsByUser(userId);
+      
+      // Import withRetry for database resilience
+      const { withRetry } = await import('./db');
+      
+      // Use retry mechanism for fetching unread notifications
+      const notifications = await withRetry(async () => {
+        return await storage.getUnreadNotificationsByUser(userId);
+      });
+      
       res.status(200).json(notifications);
     } catch (error) {
       console.error("Error fetching unread notifications:", error);
