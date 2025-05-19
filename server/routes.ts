@@ -828,6 +828,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check the password
       console.log("Comparing passwords");
+      console.log("User data for password check:", { id: user.id, hasPassword: !!user.password });
       const passwordMatch = await bcrypt.compare(password, user.password);
       console.log("Password match result:", passwordMatch);
       
@@ -836,13 +837,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
-      // Create a session
-      const session = await storage.createSession(user.id);
-      
-      // Set the session cookie using our standardized cookie options
-      const cookieOptions = getSessionCookieOptions();
-      console.log("Setting cookie with options:", cookieOptions);
-      res.cookie("sessionId", session.id, cookieOptions);
+      // Create a session with retry logic
+      let session;
+      try {
+        console.log("Creating session for user:", user.id);
+        const { withRetry } = await import('./db');
+        session = await withRetry(async () => {
+          return await storage.createSession(user.id);
+        });
+        console.log("Session created successfully:", session.id);
+        
+        // Set the session cookie using our standardized cookie options
+        const cookieOptions = getSessionCookieOptions();
+        console.log("Setting cookie with options:", cookieOptions);
+        res.cookie("sessionId", session.id, cookieOptions);
+      } catch (sessionError) {
+        console.error("Error creating session:", sessionError);
+        return res.status(500).json({ message: "Failed to create session, please try again" });
+      }
       
       // Return the user (without password)
       const { password: _, ...userWithoutPassword } = user;
