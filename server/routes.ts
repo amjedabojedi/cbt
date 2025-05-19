@@ -3589,7 +3589,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user!.id;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
-      const notifications = await storage.getNotificationsByUser(userId, limit);
+      
+      // Import withRetry for database resilience
+      const { withRetry } = await import('./db');
+      
+      // Use retry mechanism for fetching notifications
+      const notifications = await withRetry(async () => {
+        return await storage.getNotificationsByUser(userId, limit);
+      });
+      
       res.status(200).json(notifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
