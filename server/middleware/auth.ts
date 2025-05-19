@@ -69,24 +69,6 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
   }
   
   try {
-    // Special handling for emergency admin sessions
-    if (sessionId.startsWith('session-')) {
-      console.log("Processing emergency admin session");
-      
-      // Verify this is our emergency admin session
-      const adminUser = {
-        id: 1,
-        username: 'admin',
-        email: 'admin@example.com',
-        name: 'Administrator',
-        role: 'admin'
-      };
-      
-      req.user = adminUser as User;
-      return next();
-    }
-    
-    // Normal database session lookup
     console.log("Looking up session ID:", sessionId);
     const session = await storage.getSessionById(sessionId);
     
