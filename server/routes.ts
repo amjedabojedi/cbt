@@ -795,13 +795,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Clearing existing cookies with options:", clearOptions);
       res.clearCookie("sessionId", clearOptions);
       
+      // Declare user at a higher scope so it's available in the whole function
+      let user;
+      
       try {
         // Import the withRetry function for database operations
         const { withRetry } = await import('./db');
         
         // First try to get the user by username with retry mechanism
         console.log("Finding user with username:", username);
-        let user = await storage.getUserByUsername(username);
+        user = await storage.getUserByUsername(username);
         console.log("User lookup by username result:", user ? `Found user ${user.id}` : "Not found");
         
         // If user not found by username, try by email with retry mechanism
