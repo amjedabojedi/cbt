@@ -795,21 +795,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Clearing existing cookies with options:", clearOptions);
       res.clearCookie("sessionId", clearOptions);
       
-      // First try to get the user by username
-      console.log("Finding user with username:", username);
-      let user = await storage.getUserByUsername(username);
-      console.log("User lookup by username result:", user ? `Found user ${user.id}` : "Not found");
-      
-      // If user not found by username, try by email
-      if (!user) {
-        console.log("User not found by username, trying email lookup");
-        user = await storage.getUserByEmail(username);
-        console.log("User lookup by email result:", user ? `Found user ${user.id}` : "Not found");
-      }
-      
-      if (!user) {
-        console.log("User not found by username or email");
-        return res.status(401).json({ message: "Invalid credentials" });
+      try {
+        // Import the withRetry function for database operations
+        const { withRetry } = await import('./db');
+        
+        // First try to get the user by username with retry mechanism
+        console.log("Finding user with username:", username);
+        let user = await storage.getUserByUsername(username);
+        console.log("User lookup by username result:", user ? `Found user ${user.id}` : "Not found");
+        
+        // If user not found by username, try by email with retry mechanism
+        if (!user) {
+          console.log("User not found by username, trying email lookup");
+          // We'll use withRetry directly here to add resilience
+          user = await withRetry(async () => {
+            return await storage.getUserByEmail(username);
+          });
+          console.log("User lookup by email result:", user ? `Found user ${user.id}` : "Not found");
+        }
+        
+        if (!user) {
+          console.log("User not found by username or email");
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
+      } catch (error) {
+        console.error("Error during user lookup:", error);
+        return res.status(500).json({ message: "Database connection issue, please try again in a moment" });
       }
       
       // Check the password

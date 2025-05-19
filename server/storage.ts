@@ -230,8 +230,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+    try {
+      // Import the withRetry function from db.ts
+      const { withRetry } = await import('./db');
+      
+      // Use the retry mechanism for this critical operation
+      const [user] = await withRetry(async () => {
+        console.log(`Attempting to fetch user with username: ${username}`);
+        return await db.select().from(users).where(eq(users.username, username));
+      });
+      
+      return user;
+    } catch (error) {
+      console.error(`Error in getUserByUsername for '${username}':`, error);
+      // Return undefined on failure after all retries
+      return undefined;
+    }
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
@@ -826,12 +840,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSessionById(sessionId: string): Promise<Session | undefined> {
-    const [session] = await db
-      .select()
-      .from(sessions)
-      .where(eq(sessions.id, sessionId));
-    
-    return session;
+    try {
+      // Import the withRetry function from db.ts
+      const { withRetry } = await import('./db');
+      
+      // Use the retry mechanism for this critical operation
+      const [session] = await withRetry(async () => {
+        console.log(`Attempting to fetch session with ID: ${sessionId}`);
+        return await db.select().from(sessions).where(eq(sessions.id, sessionId));
+      });
+      
+      return session;
+    } catch (error) {
+      console.error(`Error retrieving session ${sessionId}:`, error);
+      return undefined;
+    }
   }
 
   async deleteSession(sessionId: string): Promise<void> {
