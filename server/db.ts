@@ -8,6 +8,8 @@ neonConfig.webSocketConstructor = ws;
 // Adding additional options for better reliability
 neonConfig.useSecureWebSocket = true;
 neonConfig.pipelineConnect = "password";
+// Set longer read timeout
+neonConfig.readTimeoutMillis = 60000;
 
 // Ensure DATABASE_URL is available
 if (!process.env.DATABASE_URL) {
@@ -19,12 +21,29 @@ if (!process.env.DATABASE_URL) {
 // Create connection pool with more resilient settings
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 3, // reduce max connections to prevent overloading
+  max: 1, // Use just one connection to prevent connection conflicts
   idleTimeoutMillis: 30000, // how long a client is allowed to remain idle before being closed
-  connectionTimeoutMillis: 15000, // increase connection timeout for slower connections
-  maxUses: 5000, // close pool connections after fewer uses to prevent stale connections
+  connectionTimeoutMillis: 30000, // even longer timeout
+  maxUses: 1000, // close pool connections after fewer uses to prevent stale connections
   allowExitOnIdle: true, // allow the pool to exit when all clients have finished
 });
+
+// Add retry mechanism for database operations
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
+
+// Helper function to retry database operations
+export async function withRetry<T>(operation: () => Promise<T>, retries = MAX_RETRIES): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    if (retries <= 0) throw error;
+    
+    console.log(`Database operation failed, retrying in ${RETRY_DELAY_MS}ms... (${retries} attempts left)`);
+    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+    return withRetry(operation, retries - 1);
+  }
+}
 
 // Log when a new connection is created
 pool.on('connect', () => {
