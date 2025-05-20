@@ -186,29 +186,49 @@ function ClientEmotionRecordsList({ clientId, limit = 3 }: ClientStatProps & { l
     );
   }
 
-  // Display only the most recent records up to the limit
-  const recentEmotions = emotions.slice(0, limit);
-
+  // Display all emotion records with a scrollable container if needed
+  // For the client profile view, we'll still limit the initial display
+  const recordsToShow = limit ? emotions.slice(0, limit) : emotions;
+  const showViewAllButton = limit && emotions.length > limit;
+  
   return (
-    <div className="space-y-3">
-      {recentEmotions.map((emotion, index) => (
-        <div key={index} className="flex items-start bg-blue-50 p-3 rounded-md">
-          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 mt-0.5">
-            <Heart className="h-4 w-4" />
+    <div className="flex flex-col space-y-2">
+      {/* Scrollable container for emotion records */}
+      <div className={`space-y-3 ${!limit ? "max-h-[400px] pr-2 overflow-y-auto custom-scrollbar" : ""}`}>
+        {recordsToShow.map((emotion, index) => (
+          <div key={index} className="flex items-start bg-blue-50 p-3 rounded-md">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 mt-0.5 flex-shrink-0">
+              <Heart className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-medium truncate">
+                {emotion.name} {emotion.intensity && <span className="text-blue-600">({emotion.intensity}/10)</span>}
+              </p>
+              <p className="text-sm text-neutral-500">
+                {emotion.createdAt ? formatDistanceToNow(new Date(emotion.createdAt), { addSuffix: true }) : 'Unknown time'}
+              </p>
+              {emotion.situation && (
+                <p className="text-sm mt-1 break-words">{emotion.situation}</p>
+              )}
+            </div>
           </div>
-          <div>
-            <p className="font-medium">
-              {emotion.name} {emotion.intensity && <span className="text-blue-600">({emotion.intensity}/10)</span>}
-            </p>
-            <p className="text-sm text-neutral-500">
-              {emotion.createdAt ? formatDistanceToNow(new Date(emotion.createdAt), { addSuffix: true }) : 'Unknown time'}
-            </p>
-            {emotion.situation && (
-              <p className="text-sm mt-1">{emotion.situation}</p>
-            )}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
+      
+      {/* Show "View All" button if we have more records than the limit */}
+      {showViewAllButton && (
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full mt-2"
+          onClick={() => {
+            const client = { id: clientId } as User;
+            handleViewRecords(client);
+          }}
+        >
+          View All Records ({emotions.length})
+        </Button>
+      )}
     </div>
   );
 }

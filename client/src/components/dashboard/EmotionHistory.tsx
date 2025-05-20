@@ -328,9 +328,9 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className={`overflow-x-auto ${!limit ? "custom-scrollbar max-h-[400px] overflow-y-auto" : ""}`}>
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Emotion</TableHead>
