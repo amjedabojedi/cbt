@@ -2180,7 +2180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // TEMPORARY FIX - Create an entirely new endpoint path that always returns 200
   // This endpoint ALWAYS returns 200 success response with no attempt to fetch data
-  app.get("/api/users/viewing-client-fixed", async (req, res) => {
+  app.get("/api/users/viewing-client-fixed", authenticate, async (req, res) => {
     // Default response structure - always use this minimum
     const response = { viewingClient: null, success: true };
     
