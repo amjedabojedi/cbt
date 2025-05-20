@@ -2183,8 +2183,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/viewing-client-fixed", async (req, res) => {
     // Default response structure - always use this minimum
     const response = { viewingClient: null, success: true };
-    console.log("New fixed viewing client endpoint called");
-    return res.status(200).json(response);
+    
+    // Get user ID from query parameter or authenticated user
+    let userId = null;
+    
+    // Try to get from query parameter
+    if (req.query && req.query.userId) {
+      const queryId = parseInt(String(req.query.userId));
+      if (!isNaN(queryId) && queryId > 0) {
+        userId = queryId;
+        console.log(`Using user ID from query parameter: ${userId}`);
+      }
+    }
+    
+    // Try to get from authenticated user if query parameter didn't work
+    if (!userId && req.user && req.user.id) {
+      userId = parseInt(String(req.user.id));
+      if (isNaN(userId) || userId <= 0) {
+        userId = null;
+      }
+    }
+    
+    console.log(`Fixed viewing client endpoint called with user ID: ${userId || 'none'}`);
+    
+    if (!userId) {
+      // If no valid user ID, return default empty response
+      return res.status(200).json(response);
+    }
+    
+    try {
+      // Try to get the user's current viewing client
+      const user = await storage.getUser(userId);
+      
+      if (user && user.currentViewingClientId) {
+        const clientId = user.currentViewingClientId;
+        const client = await storage.getUser(clientId);
+        
+        if (client) {
+          response.viewingClient = {
+            id: client.id,
+            name: client.name || "Unknown Client",
+            username: client.username || "",
+            email: client.email || "",
+          };
+        }
+      }
+      
+      return res.status(200).json(response);
+    } catch (error) {
+      console.error("Error in fixed viewing client endpoint:", error);
+      // Always return 200 with default response on error
+      return res.status(200).json(response);
+    }
   });
   
   // Original current viewing client endpoint (will be replaced by the fixed version in client code)
