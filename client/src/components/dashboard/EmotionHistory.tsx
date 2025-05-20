@@ -416,8 +416,8 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
       {/* Emotion Details Dialog */}
       {selectedEmotion && (
         <Dialog open={!!selectedEmotion && !showReflectionWizard} onOpenChange={() => setSelectedEmotion(null)}>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+            <DialogHeader className="sticky top-0 bg-background z-10 pb-4">
               <DialogTitle className="flex items-center gap-2 text-lg">
                 <div className={`p-2 rounded-full ${getEmotionBadgeColor(selectedEmotion.coreEmotion).replace('text-', 'text-').replace('bg-', 'bg-')}`}>
                   {selectedEmotion.coreEmotion === 'Joy' && <Smile className="h-5 w-5" />}
@@ -435,7 +435,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-6">
+            <div className="space-y-6 pr-1">
               {/* Emotion visualization card */}
               <Card className="border-l-4 overflow-hidden" style={{
                 borderLeftColor: selectedEmotion.coreEmotion === 'Joy' ? '#FFC107' : 
@@ -565,8 +565,8 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
             setShowEditEmotionDialog(false);
           }
         }}>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+            <DialogHeader className="sticky top-0 bg-background z-10 pb-4">
               <DialogTitle className="flex items-center gap-2 text-lg">
                 <div className={`p-2 rounded-full ${getEmotionBadgeColor(selectedEmotion.coreEmotion)}`}>
                   {selectedEmotion.coreEmotion === 'Joy' && <Smile className="h-5 w-5" />}
@@ -755,8 +755,8 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
       
       {/* Full History Dialog */}
       <Dialog open={showFullHistory} onOpenChange={setShowFullHistory}>
-        <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+          <DialogHeader className="sticky top-0 bg-background z-10 pb-4">
             <DialogTitle>Emotion History</DialogTitle>
           </DialogHeader>
           <div className="overflow-x-auto">
