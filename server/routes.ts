@@ -54,6 +54,31 @@ import * as emotionMapping from "./services/emotionMapping";
 import { initializeWebSocketServer, sendNotificationToUser } from "./services/websocket";
 import { sendEmail, sendEmotionTrackingReminder, sendWeeklyProgressDigest, isEmailEnabled } from "./services/email";
 
+// Simple implementation of functions previously in other services
+export async function sendProfessionalWelcomeEmail(email: string, name: string): Promise<boolean> {
+  return sendEmail({
+    to: email,
+    subject: "Welcome to ResilienceHub™",
+    html: `<p>Welcome ${name} to ResilienceHub™</p>`
+  });
+}
+
+export async function sendClientInvitation(email: string, therapistName: string): Promise<boolean> {
+  return sendEmail({
+    to: email,
+    subject: "You've been invited to ResilienceHub™",
+    html: `<p>${therapistName} has invited you to join ResilienceHub™</p>`
+  });
+}
+
+export async function sendPasswordResetEmail(email: string, resetLink: string): Promise<boolean> {
+  return sendEmail({
+    to: email,
+    subject: "Reset your ResilienceHub™ password",
+    html: `<p>Click <a href="${resetLink}">here</a> to reset your password</p>`
+  });
+}
+
 // Global reference to default email sender for alternative domain testing
 (global as any).DEFAULT_FROM_EMAIL = 'ResilienceHub <notifications@resilience-hub.com>';
 import { 
@@ -113,6 +138,84 @@ function getEmotionColor(emotion: string): string {
   // Use the centralized emotion mapping service
   return emotionMapping.getEmotionColor(emotion);
 };
+
+/**
+ * Find clients who haven't recorded emotions in the specified number of days
+ */
+async function findInactiveClients(days: number = 3): Promise<any[]> {
+  try {
+    const now = new Date();
+    const cutoffDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    
+    // Find clients who haven't recorded emotions since the cutoff date
+    const query = `
+      SELECT u.id, u.name, u.email, u.therapist_id
+      FROM users u
+      WHERE u.role = 'client' 
+        AND u.status = 'active'
+        AND (
+          -- Has tracked emotions before
+          EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id)
+          -- But not since cutoff date
+          AND NOT EXISTS (
+            SELECT 1 FROM emotion_records e 
+            WHERE e.user_id = u.id 
+            AND e.timestamp > $1
+          )
+        )
+    `;
+    
+    const result = await pool.query(query, [cutoffDate.toISOString()]);
+    return result.rows;
+  } catch (error) {
+    console.error('Error finding inactive clients:', error);
+    return [];
+  }
+}
+
+/**
+ * Create in-app notification for a client
+ */
+async function createInactivityNotification(userId: number): Promise<boolean> {
+  try {
+    // Use notifications table
+    const notificationData = {
+      user_id: userId,
+      title: "Emotion Tracking Reminder",
+      body: "It's been a while since you last recorded your emotions. Regular tracking helps build self-awareness and improve therapy outcomes.",
+      type: "reminder",
+      is_read: false,
+      created_at: new Date()
+    };
+    
+    const query = `
+      INSERT INTO notifications (user_id, title, body, type, is_read, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id
+    `;
+    
+    const result = await pool.query(query, [
+      notificationData.user_id,
+      notificationData.title,
+      notificationData.body,
+      notificationData.type,
+      notificationData.is_read,
+      notificationData.created_at
+    ]);
+    
+    // Try to send real-time notification through WebSocket if available
+    try {
+      sendNotificationToUser(userId, result.rows[0]);
+    } catch (wsError) {
+      console.log('WebSocket notification sending failed (not critical):', wsError);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Error creating inactivity notification for user ${userId}:`, error);
+    return false;
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Use the pool from the imported db
