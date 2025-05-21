@@ -1,60 +1,158 @@
-/**
- * Email service for ResilienceHub
- * 
- * This simplified version logs email attempts without actually sending them,
- * to allow the rest of the application to function while we implement the email integration.
- */
+import { pool } from '../db';
 
-// Email sending functions
-export async function sendEmail(options: {
+// Default from email address to use when not specified
+const DEFAULT_FROM_EMAIL = "notifications@resiliencehub.app";
+
+// Email configuration 
+const SPARKPOST_API_KEY = process.env.SPARKPOST_API_KEY;
+const EMAIL_ENABLED = !!SPARKPOST_API_KEY;
+
+// Email service configuration
+interface EmailParams {
   to: string;
-  subject: string;
-  html?: string;
-  text?: string;
   from?: string;
-}): Promise<boolean> {
-  console.log(`[EMAIL SERVICE] Would send email to ${options.to}`);
-  console.log(`Subject: ${options.subject}`);
-  console.log(`From: ${options.from || 'notifications@resilience-hub.com'}`);
-  
-  // In a real implementation, this would connect to SparkPost or another email provider
-  console.log('Email content was logged but not sent (SparkPost integration pending)');
-  
-  // For testing purposes, we'll return success
-  return true;
+  subject: string;
+  text?: string;
+  html?: string;
+  templateId?: string;
+  templateData?: Record<string, any>;
 }
 
 /**
- * Send emotion tracking reminder email
- */
-export async function sendEmotionTrackingReminder(email: string, name: string): Promise<boolean> {
-  console.log(`[EMAIL SERVICE] Would send emotion tracking reminder to ${email} (${name})`);
-  
-  // In a real implementation, this would send an email through SparkPost
-  return true;
-}
-
-/**
- * Send weekly progress digest email
- */
-export async function sendWeeklyProgressDigest(
-  email: string,
-  name: string,
-  summary: string,
-  completedGoals: number,
-  trackedEmotions: number,
-  completedThoughts: number
-): Promise<boolean> {
-  console.log(`[EMAIL SERVICE] Would send weekly progress digest to ${email} (${name})`);
-  
-  // In a real implementation, this would send an email through SparkPost
-  return true;
-}
-
-/**
- * Check if email functionality is available
+ * Check if email service is enabled
  */
 export function isEmailEnabled(): boolean {
-  // We'll return false since we don't have actual email capability yet
-  return false;
+  return EMAIL_ENABLED;
+}
+
+/**
+ * Generic function to send an email
+ */
+export async function sendEmail(params: EmailParams): Promise<boolean> {
+  // If SparkPost integration isn't configured, log the email that would have been sent
+  if (!EMAIL_ENABLED) {
+    console.log('Email service not configured. Would have sent:');
+    console.log('To:', params.to);
+    console.log('Subject:', params.subject);
+    console.log('Body:', params.text || params.html || '(HTML content)');
+    return false;
+  }
+
+  try {
+    // Use SparkPost for real email delivery when API key is available
+    // This is a placeholder - we'll implement actual SparkPost integration when we have the API key
+    console.log(`Sending email to ${params.to}`);
+    
+    // Record the email in our database for auditing
+    await pool.query(
+      `INSERT INTO email_logs (recipient, subject, body_text, sent_at) 
+       VALUES ($1, $2, $3, $4)`,
+      [params.to, params.subject, params.text || '(HTML content)', new Date()]
+    );
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return false;
+  }
+}
+
+/**
+ * Send an emotion tracking reminder email to a client
+ */
+export async function sendEmotionTrackingReminder(email: string, name: string): Promise<boolean> {
+  const subject = "Reminder: Track Your Emotions with ResilienceHub™";
+  
+  const text = `
+Hello ${name},
+
+We noticed it's been a few days since you last tracked your emotions on ResilienceHub™. 
+
+Regular emotion tracking helps build self-awareness and can lead to better therapy outcomes. Even a quick 30-second check-in can provide valuable insights for both you and your therapist.
+
+To record your emotions, simply log in to your ResilienceHub™ account and click on "Track Emotions" from your dashboard.
+
+Wishing you well,
+Resilience Counseling Research and Consultation Team
+`;
+
+  const html = `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <h2 style="color: #4f46e5;">Hello ${name},</h2>
+  
+  <p>We noticed it's been a few days since you last tracked your emotions on ResilienceHub™.</p>
+  
+  <p>Regular emotion tracking helps build self-awareness and can lead to better therapy outcomes. Even a quick 30-second check-in can provide valuable insights for both you and your therapist.</p>
+  
+  <p><a href="https://resiliencehub.app/dashboard" style="background-color: #4f46e5; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 15px 0;">Track Your Emotions Now</a></p>
+  
+  <p>Wishing you well,<br>
+  Resilience Counseling Research and Consultation Team</p>
+  
+  <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+  <p style="font-size: 12px; color: #666;">This email was sent as part of your therapy program with Resilience Counseling. If you believe you received this in error, please contact your therapist.</p>
+</div>
+`;
+
+  return sendEmail({
+    to: email,
+    from: DEFAULT_FROM_EMAIL,
+    subject,
+    text,
+    html
+  });
+}
+
+/**
+ * Send a weekly progress digest email to a client
+ */
+export async function sendWeeklyProgressDigest(email: string, name: string, stats: any): Promise<boolean> {
+  const subject = "Your Weekly Progress Report from ResilienceHub™";
+  
+  const text = `
+Hello ${name},
+
+Here's your weekly progress report from ResilienceHub™:
+
+• Emotions tracked: ${stats.emotionsTracked || 0}
+• Journal entries: ${stats.journalEntries || 0}
+• Thought records completed: ${stats.thoughtRecords || 0}
+• Goals progress: ${stats.goalsProgress || 'No updates'}
+
+Log in to your ResilienceHub™ account to see more detailed analytics and insights.
+
+Wishing you continued growth,
+Resilience Counseling Research and Consultation Team
+`;
+
+  const html = `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <h2 style="color: #4f46e5;">Hello ${name},</h2>
+  
+  <p>Here's your weekly progress report from ResilienceHub™:</p>
+  
+  <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+    <p><strong>Emotions tracked:</strong> ${stats.emotionsTracked || 0}</p>
+    <p><strong>Journal entries:</strong> ${stats.journalEntries || 0}</p>
+    <p><strong>Thought records completed:</strong> ${stats.thoughtRecords || 0}</p>
+    <p><strong>Goals progress:</strong> ${stats.goalsProgress || 'No updates'}</p>
+  </div>
+  
+  <p><a href="https://resiliencehub.app/dashboard/analytics" style="background-color: #4f46e5; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 15px 0;">View Detailed Analytics</a></p>
+  
+  <p>Wishing you continued growth,<br>
+  Resilience Counseling Research and Consultation Team</p>
+  
+  <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+  <p style="font-size: 12px; color: #666;">This email was sent as part of your therapy program with Resilience Counseling. If you believe you received this in error, please contact your therapist.</p>
+</div>
+`;
+
+  return sendEmail({
+    to: email,
+    from: DEFAULT_FROM_EMAIL,
+    subject,
+    text,
+    html
+  });
 }

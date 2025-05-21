@@ -53,6 +53,7 @@ import Stripe from "stripe";
 import * as emotionMapping from "./services/emotionMapping";
 import { initializeWebSocketServer, sendNotificationToUser } from "./services/websocket";
 import { sendEmail, sendEmotionTrackingReminder, sendWeeklyProgressDigest, isEmailEnabled } from "./services/email";
+import { checkInactiveClients, sendInactivityReminders } from "./controllers/inactivityReminders";
 
 // Simple implementation of functions previously in other services
 export async function sendProfessionalWelcomeEmail(email: string, name: string): Promise<boolean> {
@@ -5410,6 +5411,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Initialize WebSocket server for real-time notifications
   initializeWebSocketServer(httpServer);
+  
+  // Admin section endpoints will be added here later
   
   // Test endpoint for therapist email (development only)
   if (process.env.NODE_ENV === "development") {

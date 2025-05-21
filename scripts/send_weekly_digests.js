@@ -6,32 +6,16 @@
  * (This would run every Monday at 8:00 AM)
  */
 
+// Setup database connection
 require('dotenv').config();
-const { Pool } = require('@neondatabase/serverless');
-const SparkPost = require('sparkpost');
-const path = require('path');
+const { Pool } = require('pg');
 
-// Initialize SparkPost client
-const sparkpost = process.env.SPARKPOST_API_KEY 
-  ? new SparkPost(process.env.SPARKPOST_API_KEY)
-  : null;
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
 
-// Database connection
-if (!process.env.DATABASE_URL) {
-  console.error('DATABASE_URL environment variable is not set');
-  process.exit(1);
-}
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-
-// Date formatting helper
 function formatDate(date) {
-  return date.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
+  return date.toISOString().split('T')[0];
 }
 
 /**
@@ -39,84 +23,95 @@ function formatDate(date) {
  */
 async function getUserWeeklySummary(userId) {
   try {
-    // Get time range for the past week
     const now = new Date();
     const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     
-    // Get emotion records count
-    const emotionsQuery = `
-      SELECT COUNT(*) as count,
-             json_agg(DISTINCT core_emotion) as emotions
-      FROM emotion_records
-      WHERE user_id = $1
-        AND timestamp >= $2
-    `;
-    const emotionsResult = await pool.query(emotionsQuery, [userId, oneWeekAgo]);
-    const emotionCount = parseInt(emotionsResult.rows[0].count, 10) || 0;
-    const emotions = emotionsResult.rows[0].emotions || [];
+    // Format dates for SQL query
+    const startDate = formatDate(oneWeekAgo);
+    const endDate = formatDate(now);
     
-    // Get thought record count
-    const thoughtsQuery = `
-      SELECT COUNT(*) as count
-      FROM thought_records
-      WHERE user_id = $1
-        AND created_at >= $2
+    // Get emotion records count
+    const emotionQuery = `
+      SELECT COUNT(*) as count 
+      FROM emotion_records 
+      WHERE user_id = $1 
+      AND timestamp BETWEEN $2 AND $3
     `;
-    const thoughtsResult = await pool.query(thoughtsQuery, [userId, oneWeekAgo]);
-    const thoughtCount = parseInt(thoughtsResult.rows[0].count, 10) || 0;
+    const emotionResult = await pool.query(emotionQuery, [userId, startDate, endDate]);
+    const emotionsTracked = parseInt(emotionResult.rows[0].count, 10);
     
     // Get journal entries count
-    const journalsQuery = `
-      SELECT COUNT(*) as count
-      FROM journal_entries
-      WHERE user_id = $1
-        AND created_at >= $2
+    const journalQuery = `
+      SELECT COUNT(*) as count 
+      FROM journal_entries 
+      WHERE user_id = $1 
+      AND created_at BETWEEN $2 AND $3
     `;
-    const journalsResult = await pool.query(journalsQuery, [userId, oneWeekAgo]);
-    const journalCount = parseInt(journalsResult.rows[0].count, 10) || 0;
+    const journalResult = await pool.query(journalQuery, [userId, startDate, endDate]);
+    const journalEntries = parseInt(journalResult.rows[0].count, 10);
     
-    // Most frequently recorded emotion
-    let topEmotion = null;
-    if (emotionCount > 0) {
-      const topEmotionQuery = `
-        SELECT core_emotion, COUNT(*) as count
-        FROM emotion_records
-        WHERE user_id = $1
-          AND timestamp >= $2
-        GROUP BY core_emotion
-        ORDER BY count DESC
-        LIMIT 1
-      `;
-      const topEmotionResult = await pool.query(topEmotionQuery, [userId, oneWeekAgo]);
-      if (topEmotionResult.rows.length > 0) {
-        topEmotion = topEmotionResult.rows[0].core_emotion;
-      }
+    // Get thought records count
+    const thoughtQuery = `
+      SELECT COUNT(*) as count 
+      FROM thought_records 
+      WHERE user_id = $1 
+      AND created_at BETWEEN $2 AND $3
+    `;
+    const thoughtResult = await pool.query(thoughtQuery, [userId, startDate, endDate]);
+    const thoughtRecords = parseInt(thoughtResult.rows[0].count, 10);
+    
+    // Get goals progress
+    const goalsQuery = `
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
+      FROM goals
+      WHERE user_id = $1
+      AND (created_at BETWEEN $2 AND $3 OR updated_at BETWEEN $2 AND $3)
+    `;
+    const goalsResult = await pool.query(goalsQuery, [userId, startDate, endDate]);
+    
+    // Calculate percentage if there are goals
+    let goalsProgress = 'No updates';
+    if (goalsResult.rows[0].total > 0) {
+      const percentage = Math.round((goalsResult.rows[0].completed / goalsResult.rows[0].total) * 100);
+      goalsProgress = `${percentage}% (${goalsResult.rows[0].completed}/${goalsResult.rows[0].total})`;
     }
     
-    // Return the summary
+    // Get the most tracked emotion
+    const mostTrackedEmotionQuery = `
+      SELECT core_emotion as emotion, COUNT(*) as count
+      FROM emotion_records
+      WHERE user_id = $1
+      AND timestamp BETWEEN $2 AND $3
+      GROUP BY core_emotion
+      ORDER BY count DESC
+      LIMIT 1
+    `;
+    const emotionResult2 = await pool.query(mostTrackedEmotionQuery, [userId, startDate, endDate]);
+    const mostTrackedEmotion = emotionResult2.rows.length > 0 
+      ? emotionResult2.rows[0].emotion 
+      : null;
+    
     return {
-      emotionCount,
-      thoughtCount,
-      journalCount,
-      topEmotion,
-      emotions: emotions.filter(e => e !== null),
-      timeRange: {
-        start: formatDate(oneWeekAgo),
-        end: formatDate(now)
-      }
+      emotionsTracked,
+      journalEntries,
+      thoughtRecords,
+      goalsProgress,
+      mostTrackedEmotion,
+      startDate,
+      endDate
     };
   } catch (error) {
     console.error(`Error getting weekly summary for user ${userId}:`, error);
     return {
-      emotionCount: 0,
-      thoughtCount: 0,
-      journalCount: 0,
-      topEmotion: null,
-      emotions: [],
-      timeRange: {
-        start: formatDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
-        end: formatDate(new Date())
-      }
+      emotionsTracked: 0,
+      journalEntries: 0,
+      thoughtRecords: 0,
+      goalsProgress: 'Error getting data',
+      mostTrackedEmotion: null,
+      startDate: formatDate(oneWeekAgo),
+      endDate: formatDate(now)
     };
   }
 }
@@ -125,126 +120,93 @@ async function getUserWeeklySummary(userId) {
  * Generate email content based on user activity
  */
 function generateEmailContent(user, summary) {
-  // Emotion color map
-  const emotionColors = {
-    'Joy': '#FFD700',
-    'Sadness': '#4682B4',
-    'Anger': '#FF6347',
-    'Fear': '#9370DB',
-    'Disgust': '#32CD32',
-    'Surprise': '#FF69B4',
-    'Trust': '#40E0D0',
-    'Anticipation': '#FFA500'
-  };
+  // Generate personalized insight based on activity
+  let insight = '';
+  const totalActivity = summary.emotionsTracked + summary.journalEntries + summary.thoughtRecords;
   
-  const totalEntries = summary.emotionCount + summary.thoughtCount + summary.journalCount;
-  const hasActivity = totalEntries > 0;
-  
-  // Progress section
-  let progressSection = '';
-  if (hasActivity) {
-    progressSection = `
-      <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-        <h2 style="color: #3b82f6; margin-top: 0;">Your Activity Summary</h2>
-        <p style="color: #4b5563;">Here's what you've accomplished from ${summary.timeRange.start} to ${summary.timeRange.end}:</p>
-        
-        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-top: 15px;">
-          <div style="flex: 1; min-width: 120px; background-color: white; border-radius: 6px; padding: 15px; margin: 5px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">${summary.emotionCount}</div>
-            <div style="color: #6b7280;">Emotions Tracked</div>
-          </div>
-          
-          <div style="flex: 1; min-width: 120px; background-color: white; border-radius: 6px; padding: 15px; margin: 5px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">${summary.thoughtCount}</div>
-            <div style="color: #6b7280;">Thought Records</div>
-          </div>
-          
-          <div style="flex: 1; min-width: 120px; background-color: white; border-radius: 6px; padding: 15px; margin: 5px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">${summary.journalCount}</div>
-            <div style="color: #6b7280;">Journal Entries</div>
-          </div>
-        </div>
-        
-        ${summary.topEmotion ? `
-          <div style="margin-top: 20px;">
-            <p style="color: #4b5563;">Your most frequently recorded emotion was <strong style="color: ${emotionColors[summary.topEmotion] || '#3b82f6'}">${summary.topEmotion}</strong>.</p>
-          </div>
-        ` : ''}
-      </div>
-    `;
+  if (totalActivity === 0) {
+    insight = "We haven't seen much activity from you this week. Regular engagement with the app helps build emotional awareness and resilience. Even a quick check-in can make a difference!";
+  } else if (summary.emotionsTracked > 0 && summary.thoughtRecords === 0) {
+    insight = "Great job tracking your emotions! Consider adding thought records to help identify patterns in your thinking that might be affecting your emotions.";
+  } else if (summary.mostTrackedEmotion) {
+    insight = `We noticed that '${summary.mostTrackedEmotion}' was your most recorded emotion this week. Recognizing emotional patterns is a key step toward improved well-being.`;
   } else {
-    progressSection = `
-      <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-        <h2 style="color: #3b82f6; margin-top: 0;">No Activity This Week</h2>
-        <p style="color: #4b5563;">We noticed you haven't recorded any activity in ResilienceHub™ this past week.</p>
-        <p style="color: #4b5563;">Regular tracking helps build emotional awareness and provides valuable insights for your therapy journey.</p>
-      </div>
-    `;
+    insight = "Keep up the great work using ResilienceHub™ to support your mental health journey!";
   }
   
-  // Main email template
-  return `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-      <div style="text-align: center; margin-bottom: 20px;">
-        <h1 style="color: #3b82f6; margin-bottom: 10px;">Your Weekly Progress Report</h1>
-        <p style="color: #4b5563; font-size: 16px;">Hello ${user.name},</p>
-        <p style="color: #4b5563; font-size: 16px;">Here's your weekly summary from ResilienceHub™.</p>
-      </div>
-      
-      ${progressSection}
-      
-      <div style="background-color: #eef2ff; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-        <h2 style="color: #3b82f6; margin-top: 0;">This Week's Tip</h2>
-        <p style="color: #4b5563;">Regular emotional tracking is essential for building self-awareness. Try to notice and record your emotions at different times throughout the day, especially during challenging moments.</p>
-      </div>
-      
-      <div style="text-align: center; margin-top: 25px;">
-        <a href="{{loginUrl}}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">View Your Full Progress</a>
-      </div>
-      
-      <p style="color: #6b7280; font-size: 14px; margin-top: 30px; text-align: center;">
-        This email was sent by ResilienceHub™, a service of Resilience Counseling Research and Consultation.
-        <br>If you'd prefer not to receive these weekly updates, you can update your notification preferences in your account settings.
-      </p>
-    </div>
-  `;
+  return {
+    subject: `Your Weekly Progress Report (${summary.startDate} to ${summary.endDate})`,
+    text: `
+Hello ${user.name},
+
+Here's your weekly progress report from ResilienceHub™:
+
+• Emotions tracked: ${summary.emotionsTracked}
+• Journal entries: ${summary.journalEntries}
+• Thought records completed: ${summary.thoughtRecords}
+• Goals progress: ${summary.goalsProgress}
+
+${insight}
+
+Log in to your ResilienceHub™ account to see more detailed analytics and insights.
+
+Wishing you continued growth,
+Resilience Counseling Research and Consultation Team
+`,
+    html: `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <h2 style="color: #4f46e5;">Hello ${user.name},</h2>
+  
+  <p>Here's your weekly progress report from ResilienceHub™:</p>
+  
+  <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+    <p><strong>Emotions tracked:</strong> ${summary.emotionsTracked}</p>
+    <p><strong>Journal entries:</strong> ${summary.journalEntries}</p>
+    <p><strong>Thought records completed:</strong> ${summary.thoughtRecords}</p>
+    <p><strong>Goals progress:</strong> ${summary.goalsProgress}</p>
+  </div>
+  
+  <p style="color: #4b5563; font-style: italic;">${insight}</p>
+  
+  <p><a href="https://resiliencehub.app/dashboard/analytics" style="background-color: #4f46e5; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 15px 0;">View Detailed Analytics</a></p>
+  
+  <p>Wishing you continued growth,<br>
+  Resilience Counseling Research and Consultation Team</p>
+  
+  <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+  <p style="font-size: 12px; color: #666;">This email was sent as part of your therapy program with Resilience Counseling. If you believe you received this in error, please contact your therapist.</p>
+</div>
+`
+  };
 }
 
 /**
  * Send email to a user
  */
 async function sendDigestEmail(user, summary) {
-  if (!sparkpost) {
-    console.warn('SparkPost API key not configured. Email not sent.');
-    return false;
-  }
-  
   try {
-    const appUrl = process.env.APP_URL || 'https://resilience-hub.replit.app';
-    const loginUrl = `${appUrl}/login`;
-    
-    let emailContent = generateEmailContent(user, summary);
-    emailContent = emailContent.replace('{{loginUrl}}', loginUrl);
-    
-    const transmission = {
-      content: {
-        from: {
-          name: "ResilienceHub™",
-          email: "notifications@resilience-hub.com"
-        },
-        subject: "Your Weekly Progress Report",
-        html: emailContent
-      },
-      recipients: [
-        { address: user.email }
-      ]
-    };
-    
-    const result = await sparkpost.transmissions.send(transmission);
-    console.log(`Weekly digest email sent to ${user.email}, result:`, result);
-    return true;
+    // If we have SparkPost API key, use real email system from server
+    if (process.env.SPARKPOST_API_KEY) {
+      // Import actual email service
+      const { sendEmail } = require('../server/services/email');
+      const emailContent = generateEmailContent(user, summary);
+      
+      return await sendEmail({
+        to: user.email,
+        from: "reports@resiliencehub.app",
+        subject: emailContent.subject,
+        text: emailContent.text,
+        html: emailContent.html
+      });
+    } else {
+      // Log mock email for development
+      console.log(`[MOCK EMAIL] Would send weekly digest to: ${user.name} <${user.email}>`);
+      console.log(`Subject: Your Weekly Progress Report (${summary.startDate} to ${summary.endDate})`);
+      console.log(`Body: Weekly summary with ${summary.emotionsTracked} emotions tracked, ${summary.journalEntries} journal entries, etc.`);
+      return true;
+    }
   } catch (error) {
-    console.error(`Error sending weekly digest email to ${user.email}:`, error);
+    console.error(`Error sending digest email to ${user.email}:`, error);
     return false;
   }
 }
@@ -254,36 +216,40 @@ async function sendDigestEmail(user, summary) {
  */
 async function createDigestNotification(userId, summary) {
   try {
-    const totalEntries = summary.emotionCount + summary.thoughtCount + summary.journalCount;
-    const hasActivity = totalEntries > 0;
+    // Format a short message about the weekly digest
+    let message = `Your weekly progress report is ready. `;
     
-    let notificationBody = hasActivity
-      ? `Your weekly summary: ${summary.emotionCount} emotions tracked, ${summary.thoughtCount} thought records, and ${summary.journalCount} journal entries. Keep up the good work!`
-      : `We missed your activity this week. Regular tracking helps build emotional awareness and provides valuable insights.`;
+    if (summary.emotionsTracked > 0 || summary.journalEntries > 0 || summary.thoughtRecords > 0) {
+      message += `This week you tracked ${summary.emotionsTracked} emotions, wrote ${summary.journalEntries} journal entries, and completed ${summary.thoughtRecords} thought records.`;
+    } else {
+      message += `We haven't seen much activity from you this week. Regular tracking helps build awareness and resilience.`;
+    }
     
-    const notification = {
-      user_id: userId,
+    // Create notification in database
+    const notificationData = {
       title: "Weekly Progress Report",
-      body: notificationBody,
+      body: message,
       type: "progress_update",
-      is_read: false
+      is_read: false,
+      created_at: new Date()
     };
     
     const query = `
       INSERT INTO notifications (user_id, title, body, type, is_read, created_at)
-      VALUES ($1, $2, $3, $4, $5, NOW())
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id
     `;
     
     const result = await pool.query(query, [
-      notification.user_id,
-      notification.title,
-      notification.body,
-      notification.type,
-      notification.is_read
+      userId,
+      notificationData.title,
+      notificationData.body,
+      notificationData.type,
+      notificationData.is_read,
+      notificationData.created_at
     ]);
     
-    console.log(`Created digest notification ${result.rows[0].id} for user ${userId}`);
+    console.log(`Created weekly digest notification for user ${userId} with ID ${result.rows[0].id}`);
     return true;
   } catch (error) {
     console.error(`Error creating digest notification for user ${userId}:`, error);
@@ -295,55 +261,74 @@ async function createDigestNotification(userId, summary) {
  * Main function to process weekly digests
  */
 async function processWeeklyDigests() {
-  console.log(`[${new Date().toISOString()}] Starting weekly digest process`);
-  
   try {
+    console.log('Starting weekly digest process...');
+    
     // Get all active users
     const usersQuery = `
       SELECT id, name, email, role
       FROM users
       WHERE status = 'active'
-        AND role = 'client'
     `;
-    
     const usersResult = await pool.query(usersQuery);
     const users = usersResult.rows;
     
-    console.log(`Found ${users.length} active users to process`);
+    console.log(`Found ${users.length} active users`);
     
     // Process each user
+    let notificationsSent = 0;
     let emailsSent = 0;
-    let notificationsCreated = 0;
     
     for (const user of users) {
-      console.log(`Processing user ${user.id} (${user.name})`);
+      console.log(`Processing weekly digest for: ${user.name} (ID: ${user.id})`);
       
       // Get user's weekly summary
       const summary = await getUserWeeklySummary(user.id);
       
+      // Create in-app notification
+      const notificationCreated = await createDigestNotification(user.id, summary);
+      if (notificationCreated) notificationsSent++;
+      
       // Send email digest
       const emailSent = await sendDigestEmail(user, summary);
       if (emailSent) emailsSent++;
-      
-      // Create in-app notification
-      const notificationCreated = await createDigestNotification(user.id, summary);
-      if (notificationCreated) notificationsCreated++;
     }
     
-    console.log(`Weekly digest process complete. Results: ${emailsSent} emails sent, ${notificationsCreated} notifications created`);
+    console.log(`Weekly digest process complete. Sent ${notificationsSent} in-app notifications and ${emailsSent} emails.`);
+    
+    // Close the database connection
+    await pool.end();
+    
+    return {
+      totalUsers: users.length,
+      notificationsSent,
+      emailsSent
+    };
   } catch (error) {
     console.error('Error processing weekly digests:', error);
-  } finally {
-    // Close database connection
     await pool.end();
+    return { error: error.message };
   }
 }
 
-// Execute if run directly
+// If this script is run directly (not imported), execute the main function
 if (require.main === module) {
   processWeeklyDigests()
-    .then(() => console.log('Weekly digest process completed'))
-    .catch(err => console.error('Error in weekly digest process:', err));
+    .then(result => {
+      console.log('Process completed successfully:', result);
+      process.exit(0);
+    })
+    .catch(error => {
+      console.error('Process failed:', error);
+      process.exit(1);
+    });
 }
 
-module.exports = { processWeeklyDigests };
+// Export functions for use in other scripts or tests
+module.exports = {
+  getUserWeeklySummary,
+  generateEmailContent,
+  sendDigestEmail,
+  createDigestNotification,
+  processWeeklyDigests
+};

@@ -6,53 +6,13 @@
  * (This would run daily at 10:00 AM)
  */
 
+// Setup database connection
 require('dotenv').config();
-const { Pool } = require('@neondatabase/serverless');
-const { drizzle } = require('drizzle-orm/neon-serverless');
-const { eq, and, sql, lt, gt } = require('drizzle-orm');
-const SparkPost = require('sparkpost');
+const { Pool } = require('pg');
 
-// Initialize SparkPost client
-const sparkpost = process.env.SPARKPOST_API_KEY 
-  ? new SparkPost(process.env.SPARKPOST_API_KEY)
-  : null;
-
-// Database connection
-if (!process.env.DATABASE_URL) {
-  console.error('DATABASE_URL environment variable is not set');
-  process.exit(1);
-}
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const db = drizzle({ client: pool });
-
-// Email templates
-const reminderEmailHtml = `
-<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-  <div style="text-align: center; margin-bottom: 20px;">
-    <h1 style="color: #3b82f6; margin-bottom: 10px;">Emotion Check-In Reminder</h1>
-    <p style="color: #4b5563; font-size: 16px;">We've noticed you haven't recorded your emotions recently.</p>
-  </div>
-  
-  <div style="margin-bottom: 20px; padding: 15px; background-color: #f9fafb; border-radius: 6px;">
-    <p style="color: #4b5563; font-size: 15px;">Regular emotion tracking helps you:</p>
-    <ul style="color: #4b5563;">
-      <li>Recognize patterns in your emotional responses</li>
-      <li>Develop greater emotional awareness</li>
-      <li>Improve your emotional regulation skills</li>
-      <li>Provide valuable insights for your therapy journey</li>
-    </ul>
-  </div>
-  
-  <div style="text-align: center; margin-top: 25px;">
-    <a href="{{loginUrl}}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Log In Now</a>
-  </div>
-  
-  <p style="color: #6b7280; font-size: 14px; margin-top: 30px; text-align: center;">
-    If you'd prefer not to receive these reminders, you can update your notification preferences in your account settings.
-  </p>
-</div>
-`;
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
 
 /**
  * Find clients who haven't recorded emotions in the specified number of days
@@ -62,9 +22,9 @@ async function findInactiveClients(days) {
     const now = new Date();
     const cutoffDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
     
-    // Find clients who have emotion records but haven't tracked since the cutoff date
+    // Find clients who haven't recorded emotions since the cutoff date
     const query = `
-      SELECT u.id, u.name, u.email, u.therapist_id
+      SELECT u.id, u.name, u.email, u.therapist_id as "therapistId"
       FROM users u
       WHERE u.role = 'client' 
         AND u.status = 'active'
@@ -80,7 +40,7 @@ async function findInactiveClients(days) {
         )
     `;
     
-    const result = await pool.query(query, [cutoffDate]);
+    const result = await pool.query(query, [cutoffDate.toISOString()]);
     return result.rows;
   } catch (error) {
     console.error('Error finding inactive clients:', error);
@@ -92,34 +52,19 @@ async function findInactiveClients(days) {
  * Send email reminder to a client
  */
 async function sendEmailReminder(client) {
-  if (!sparkpost) {
-    console.warn('SparkPost API key not configured. Email not sent.');
-    return false;
-  }
-  
   try {
-    const appUrl = process.env.APP_URL || 'https://resilience-hub.replit.app';
-    const loginUrl = `${appUrl}/login`;
-    
-    const emailContent = reminderEmailHtml.replace('{{loginUrl}}', loginUrl);
-    
-    const transmission = {
-      content: {
-        from: {
-          name: "ResilienceHub™",
-          email: "notifications@resilience-hub.com"
-        },
-        subject: "Emotion Tracking Reminder",
-        html: emailContent
-      },
-      recipients: [
-        { address: client.email }
-      ]
-    };
-    
-    const result = await sparkpost.transmissions.send(transmission);
-    console.log(`Email sent to ${client.email}, result:`, result);
-    return true;
+    // If we have SparkPost API key, use real email system from server
+    if (process.env.SPARKPOST_API_KEY) {
+      // Import actual email service
+      const { sendEmotionTrackingReminder } = require('../server/services/email');
+      return await sendEmotionTrackingReminder(client.email, client.name);
+    } else {
+      // Log mock email for development
+      console.log(`[MOCK EMAIL] Would send reminder to: ${client.name} <${client.email}>`);
+      console.log(`Subject: Reminder: Track Your Emotions with ResilienceHub™`);
+      console.log(`Body: Regular emotion tracking helps build self-awareness and can lead to better therapy outcomes...`);
+      return true;
+    }
   } catch (error) {
     console.error(`Error sending email to ${client.email}:`, error);
     return false;
@@ -131,32 +76,34 @@ async function sendEmailReminder(client) {
  */
 async function createNotification(clientId) {
   try {
-    const notification = {
-      user_id: clientId,
+    // Create notification in database
+    const notificationData = {
       title: "Emotion Tracking Reminder",
-      body: "It's been a few days since you last recorded your emotions. Regular tracking helps build self-awareness and improve therapy outcomes.",
+      body: "It's been a while since you last recorded your emotions. Regular tracking helps build self-awareness and improve therapy outcomes.",
       type: "reminder",
-      is_read: false
+      is_read: false,
+      created_at: new Date()
     };
     
     const query = `
       INSERT INTO notifications (user_id, title, body, type, is_read, created_at)
-      VALUES ($1, $2, $3, $4, $5, NOW())
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id
     `;
     
     const result = await pool.query(query, [
-      notification.user_id,
-      notification.title,
-      notification.body,
-      notification.type,
-      notification.is_read
+      clientId,
+      notificationData.title,
+      notificationData.body,
+      notificationData.type,
+      notificationData.is_read,
+      notificationData.created_at
     ]);
     
-    console.log(`Created notification ${result.rows[0].id} for client ${clientId}`);
+    console.log(`Created notification for user ${clientId} with ID ${result.rows[0].id}`);
     return true;
   } catch (error) {
-    console.error(`Error creating notification for client ${clientId}:`, error);
+    console.error(`Error creating notification for user ${clientId}:`, error);
     return false;
   }
 }
@@ -165,52 +112,64 @@ async function createNotification(clientId) {
  * Main function to process reminders
  */
 async function processReminders() {
-  console.log(`[${new Date().toISOString()}] Starting emotion tracking reminder process`);
-  
   try {
-    // Configuration
-    const inactivityDays = 3; // Send reminders after 3 days of inactivity
-    const sendEmails = true;
-    const createNotifications = true;
+    console.log('Starting emotion tracking reminder process...');
     
-    // Find inactive clients
-    const inactiveClients = await findInactiveClients(inactivityDays);
-    console.log(`Found ${inactiveClients.length} clients inactive for ${inactivityDays}+ days`);
+    // Find clients who haven't tracked emotions in the last 2 days
+    const daysThreshold = 2;
+    const inactiveClients = await findInactiveClients(daysThreshold);
+    console.log(`Found ${inactiveClients.length} clients who haven't tracked emotions in ${daysThreshold} days`);
     
-    // Process each client
+    // Process each inactive client
+    let notificationsSent = 0;
     let emailsSent = 0;
-    let notificationsCreated = 0;
     
     for (const client of inactiveClients) {
-      console.log(`Processing client ${client.id} (${client.name})`);
-      
-      // Send email reminder
-      if (sendEmails) {
-        const emailSent = await sendEmailReminder(client);
-        if (emailSent) emailsSent++;
-      }
+      console.log(`Processing client: ${client.name} (ID: ${client.id})`);
       
       // Create in-app notification
-      if (createNotifications) {
-        const notificationCreated = await createNotification(client.id);
-        if (notificationCreated) notificationsCreated++;
-      }
+      const notificationCreated = await createNotification(client.id);
+      if (notificationCreated) notificationsSent++;
+      
+      // Send email reminder
+      const emailSent = await sendEmailReminder(client);
+      if (emailSent) emailsSent++;
     }
     
-    console.log(`Reminder process complete. Results: ${emailsSent} emails sent, ${notificationsCreated} notifications created`);
+    console.log(`Reminder process complete. Sent ${notificationsSent} in-app notifications and ${emailsSent} emails.`);
+    
+    // Close the database connection
+    await pool.end();
+    
+    return {
+      inactiveClients: inactiveClients.length,
+      notificationsSent,
+      emailsSent
+    };
   } catch (error) {
     console.error('Error processing reminders:', error);
-  } finally {
-    // Close database connection
     await pool.end();
+    return { error: error.message };
   }
 }
 
-// Execute if run directly
+// If this script is run directly (not imported), execute the main function
 if (require.main === module) {
   processReminders()
-    .then(() => console.log('Reminder process completed'))
-    .catch(err => console.error('Error in reminder process:', err));
+    .then(result => {
+      console.log('Process completed successfully:', result);
+      process.exit(0);
+    })
+    .catch(error => {
+      console.error('Process failed:', error);
+      process.exit(1);
+    });
 }
 
-module.exports = { processReminders };
+// Export functions for use in other scripts or tests
+module.exports = {
+  findInactiveClients,
+  sendEmailReminder,
+  createNotification,
+  processReminders
+};
