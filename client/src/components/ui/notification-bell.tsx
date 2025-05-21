@@ -54,6 +54,15 @@ export default function NotificationBell() {
     }
   }, [user]);
   
+  // Refresh unread count whenever notifications are marked as read
+  useEffect(() => {
+    if (isOpen && user?.id) {
+      // Small delay to ensure server has processed the changes
+      const refreshTimer = setTimeout(fetchUnreadCount, 500);
+      return () => clearTimeout(refreshTimer);
+    }
+  }, [isOpen, notifications]);
+  
   // Handle real-time notifications via WebSocket
   useEffect(() => {
     // Process incoming WebSocket messages
@@ -94,20 +103,28 @@ export default function NotificationBell() {
         return;
       }
       
-      // Create headers object as a proper Record<string, string>
-      const headers: Record<string, string> = {
-        'X-User-ID': user.id.toString(),
-        // Add a cache buster to prevent cached responses
-        'Cache-Control': 'no-cache'
-      };
+      // Add timestamp to URL to prevent caching
+      const timestampedUrl = `/api/notifications/unread?_t=${Date.now()}`;
       
-      const response = await apiRequest("GET", "/api/notifications/unread", null, { headers });
+      // Use fetch directly to avoid type issues
+      const response = await fetch(timestampedUrl, {
+        method: 'GET',
+        headers: {
+          'X-User-ID': user.id.toString(),
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Timestamp': Date.now().toString()
+        },
+        credentials: 'include'
+      });
       
       // Safely parse the response
       if (response.ok) {
         try {
           const data = await response.json();
           if (Array.isArray(data)) {
+            console.log("Unread notifications count:", data.length);
             setUnreadCount(data.length);
           } else {
             // If data is not an array, keep current count
@@ -124,10 +141,6 @@ export default function NotificationBell() {
     } catch (error) {
       // Don't log full error object as it can cause circular reference issues
       console.error("Error fetching unread count - will retry later");
-    } finally {
-      // Always schedule another retry in 60 seconds, regardless of success/failure
-      // This ensures we keep trying even after errors
-      setTimeout(fetchUnreadCount, 60000);
     }
   }
 
@@ -141,6 +154,9 @@ export default function NotificationBell() {
         ));
         // Update unread count
         setUnreadCount(prevCount => Math.max(0, prevCount - 1));
+        
+        // Force a fresh fetch to ensure we have the latest data
+        setTimeout(() => fetchUnreadCount(), 500);
       }
     } catch (error) {
       console.error("Error marking notification as read:", error);
@@ -155,6 +171,9 @@ export default function NotificationBell() {
         setNotifications(notifications.map(notification => ({ ...notification, isRead: true })));
         // Reset unread count
         setUnreadCount(0);
+        // Force a fresh fetch to ensure we have the latest data
+        setTimeout(() => fetchUnreadCount(), 500);
+        
         toast({
           title: "Success",
           description: "All notifications marked as read",
@@ -183,6 +202,9 @@ export default function NotificationBell() {
         if (deletedNotification && !deletedNotification.isRead) {
           setUnreadCount(prevCount => Math.max(0, prevCount - 1));
         }
+        
+        // Force a fresh fetch of unread count
+        setTimeout(() => fetchUnreadCount(), 500);
         
         toast({
           title: "Success",
