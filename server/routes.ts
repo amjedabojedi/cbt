@@ -52,10 +52,10 @@ import * as bcrypt from "bcrypt";
 import Stripe from "stripe";
 import * as emotionMapping from "./services/emotionMapping";
 import { initializeWebSocketServer, sendNotificationToUser } from "./services/websocket";
-import { sendEmail, sendProfessionalWelcomeEmail, sendClientInvitation, sendEmotionTrackingReminder, sendPasswordResetEmail, sendWeeklyProgressDigest, sparkPostClient } from "./services/email";
+import { sendEmail, sendEmotionTrackingReminder, sendWeeklyProgressDigest, isEmailEnabled } from "./services/email";
 
 // Global reference to default email sender for alternative domain testing
-(global as any).DEFAULT_FROM_EMAIL = 'ResilienceHub <noreply@send.rcrc.ca>';
+(global as any).DEFAULT_FROM_EMAIL = 'ResilienceHub <notifications@resilience-hub.com>';
 import { 
   insertUserSchema, 
   insertEmotionRecordSchema,
@@ -91,9 +91,9 @@ import {
   emotionRecords
 } from "@shared/schema";
 import cookieParser from "cookie-parser";
-// Email services already imported above
-import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
-import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
+// Email reminders will be handled by the script files we created
+// import { sendEmotionTrackingReminders, sendWeeklyProgressDigests } from "./services/reminders";
+// import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
 import { registerIntegrationRoutes } from "./services/integrationRoutes";
 import { registerReframeCoachRoutes } from "./services/reframeCoach";
 import { eq, or, isNull, desc, and, inArray, sql } from "drizzle-orm";
