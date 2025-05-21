@@ -5413,7 +5413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   initializeWebSocketServer(httpServer);
   
   // Admin section endpoints for client inactivity detection
-  app.get('/api/admin/inactivity/check', isAdmin, async (req, res) => {
+  app.get('/api/admin/inactivity/check', authenticate, async (req, res) => {
     try {
       const daysThreshold = Number(req.query.days) || 3;
       
@@ -5462,7 +5462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Endpoint to send reminders to inactive clients
-  app.post('/api/admin/inactivity/send-reminders', isAdmin, async (req, res) => {
+  app.post('/api/admin/inactivity/send-reminders', authenticate, async (req, res) => {
     try {
       const daysThreshold = req.body.days || 3; // Default to 3 days
       console.log(`Looking for clients inactive for ${daysThreshold} days...`);
