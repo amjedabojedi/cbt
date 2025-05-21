@@ -1,4 +1,5 @@
 import { pool } from '../db';
+import * as SparkPost from 'sparkpost';
 
 // Default from email address to use when not specified
 const DEFAULT_FROM_EMAIL = "notifications@resiliencehub.app";
@@ -6,6 +7,17 @@ const DEFAULT_FROM_EMAIL = "notifications@resiliencehub.app";
 // Email configuration 
 const SPARKPOST_API_KEY = process.env.SPARKPOST_API_KEY;
 const EMAIL_ENABLED = !!SPARKPOST_API_KEY;
+
+// Initialize SparkPost client if API key is available
+let sparkPostClient: SparkPost.Client | null = null;
+if (EMAIL_ENABLED) {
+  try {
+    sparkPostClient = new SparkPost(SPARKPOST_API_KEY as string);
+    console.log('SparkPost client initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize SparkPost client:', error);
+  }
+}
 
 // Email service configuration
 interface EmailParams {
@@ -22,7 +34,7 @@ interface EmailParams {
  * Check if email service is enabled
  */
 export function isEmailEnabled(): boolean {
-  return EMAIL_ENABLED;
+  return EMAIL_ENABLED && sparkPostClient !== null;
 }
 
 /**
@@ -30,7 +42,7 @@ export function isEmailEnabled(): boolean {
  */
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   // If SparkPost integration isn't configured, log the email that would have been sent
-  if (!EMAIL_ENABLED) {
+  if (!isEmailEnabled()) {
     console.log('Email service not configured. Would have sent:');
     console.log('To:', params.to);
     console.log('Subject:', params.subject);
@@ -39,20 +51,54 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   }
 
   try {
-    // Use SparkPost for real email delivery when API key is available
-    // This is a placeholder - we'll implement actual SparkPost integration when we have the API key
-    console.log(`Sending email to ${params.to}`);
+    // Use SparkPost for real email delivery
+    const transmission = {
+      content: {
+        from: params.from || DEFAULT_FROM_EMAIL,
+        subject: params.subject,
+      },
+      recipients: [{ address: { email: params.to } }],
+    };
+
+    // Add either text or HTML content
+    if (params.html) {
+      transmission.content.html = params.html;
+    }
+    if (params.text) {
+      transmission.content.text = params.text;
+    }
+
+    // If a template ID is provided, use that instead of custom content
+    if (params.templateId) {
+      transmission.content = {
+        template_id: params.templateId,
+        from: params.from || DEFAULT_FROM_EMAIL,
+      };
+      
+      if (params.templateData) {
+        transmission.substitution_data = params.templateData;
+      }
+    }
+
+    // Send the email through SparkPost
+    console.log(`Sending email to ${params.to} via SparkPost`);
+    const result = await sparkPostClient.transmissions.send(transmission);
+    console.log('Email sent successfully:', result);
     
     // Record the email in our database for auditing
-    await pool.query(
-      `INSERT INTO email_logs (recipient, subject, body_text, sent_at) 
-       VALUES ($1, $2, $3, $4)`,
-      [params.to, params.subject, params.text || '(HTML content)', new Date()]
-    );
+    try {
+      await pool.query(
+        `INSERT INTO email_logs (recipient, subject, body_text, sent_at) 
+         VALUES ($1, $2, $3, $4)`,
+        [params.to, params.subject, params.text || '(HTML content)', new Date()]
+      );
+    } catch (dbError) {
+      console.error('Failed to log email to database (non-critical):', dbError);
+    }
     
     return true;
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error sending email via SparkPost:', error);
     return false;
   }
 }
@@ -71,6 +117,11 @@ We noticed it's been a few days since you last tracked your emotions on Resilien
 Regular emotion tracking helps build self-awareness and can lead to better therapy outcomes. Even a quick 30-second check-in can provide valuable insights for both you and your therapist.
 
 To record your emotions, simply log in to your ResilienceHub™ account and click on "Track Emotions" from your dashboard.
+
+Remember that ResilienceHub™ is a supportive tool for your therapy with Resilience Counseling Research and Consultation, not a replacement for professional care.
+
+Wishing you well,
+The Resilience Counseling Team
 
 Wishing you well,
 Resilience Counseling Research and Consultation Team
