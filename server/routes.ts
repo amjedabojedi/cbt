@@ -3801,16 +3801,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/notifications/unread", authenticate, async (req, res) => {
     try {
       const userId = req.user!.id;
+      console.log(`Fetching unread notifications for user ${userId}`);
       
       // Import withRetry for database resilience
       const { withRetry } = await import('./db');
       
-      // Use retry mechanism for fetching unread notifications
-      const notifications = await withRetry(async () => {
+      // Get the user to check role
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      let allUnreadNotifications = [];
+      
+      // First get direct notifications for this user
+      const userNotifications = await withRetry(async () => {
         return await storage.getUnreadNotificationsByUser(userId);
       });
       
-      res.status(200).json(notifications);
+      allUnreadNotifications = [...userNotifications];
+      console.log(`Found ${userNotifications.length} direct notifications for user ${userId}`);
+      
+      // If therapist, also get notifications for their clients
+      if (user.role === 'therapist') {
+        console.log(`User ${userId} is a therapist, checking client notifications`);
+        const clients = await storage.getClients(userId);
+        
+        // For each client of this therapist, get their unread notifications
+        for (const client of clients) {
+          // Only include notifications that should be visible to therapists
+          // This prevents therapists from seeing personal client notifications
+          const clientNotifications = await withRetry(async () => {
+            return await storage.getUnreadNotificationsByUser(client.id, true);
+          });
+          
+          if (clientNotifications.length > 0) {
+            console.log(`Found ${clientNotifications.length} notifications for client ${client.id}`);
+            // Mark these as viewed by the therapist (but not read, which is done separately)
+            allUnreadNotifications = [...allUnreadNotifications, ...clientNotifications];
+          }
+        }
+      }
+      
+      console.log(`Returning ${allUnreadNotifications.length} total unread notifications`);
+      res.status(200).json(allUnreadNotifications);
     } catch (error) {
       console.error("Error fetching unread notifications:", error);
       res.status(500).json({ message: "Failed to fetch unread notifications" });
