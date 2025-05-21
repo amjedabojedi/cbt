@@ -6,14 +6,18 @@ import { Request, Response } from 'express';
 /**
  * Find clients who haven't recorded emotions in the specified number of days
  */
-export async function findInactiveClients(days: number = 3): Promise<any[]> {
+export async function findInactiveClients(days: number = 3, therapistId?: number): Promise<any[]> {
   try {
     const now = new Date();
     const cutoffDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
     
-    // Find clients who haven't recorded emotions since the cutoff date
-    const query = `
-      SELECT u.id, u.name, u.email, u.therapist_id as "therapistId"
+    // Base query to find clients who haven't recorded emotions since the cutoff date
+    let query = `
+      SELECT u.id, u.name, u.email, u.therapist_id as "therapistId", 
+             COALESCE(
+               (SELECT MAX(e.timestamp) FROM emotion_records e WHERE e.user_id = u.id),
+               'Never'
+             ) as "lastActivity"
       FROM users u
       WHERE u.role = 'client' 
         AND u.status = 'active'
@@ -29,7 +33,17 @@ export async function findInactiveClients(days: number = 3): Promise<any[]> {
         )
     `;
     
-    const result = await pool.query(query, [cutoffDate.toISOString()]);
+    // Add therapist filter if specified
+    const queryParams = [cutoffDate.toISOString()];
+    if (therapistId) {
+      query += ` AND u.therapist_id = $2`;
+      queryParams.push(therapistId);
+    }
+    
+    // Add sorting to show most inactive clients first
+    query += ` ORDER BY "lastActivity" ASC`;
+    
+    const result = await pool.query(query, queryParams);
     return result.rows;
   } catch (error) {
     console.error('Error finding inactive clients:', error);
@@ -87,16 +101,25 @@ export async function createInactivityNotification(userId: number): Promise<bool
 export async function checkInactiveClients(req: Request, res: Response) {
   try {
     const daysThreshold = Number(req.query.days) || 3;
-    const inactiveClients = await findInactiveClients(daysThreshold);
+    
+    // Check if we should filter by therapist
+    let therapistId = undefined;
+    if (req.query.therapistOnly === 'true' && req.user && req.user.role === 'therapist') {
+      therapistId = req.user.id;
+    }
+    
+    const inactiveClients = await findInactiveClients(daysThreshold, therapistId);
     
     return res.status(200).json({
       success: true,
       count: inactiveClients.length,
+      threshold: daysThreshold,
       clients: inactiveClients.map(c => ({
         id: c.id,
         name: c.name,
         email: c.email,
-        therapistId: c.therapistId
+        therapistId: c.therapistId,
+        lastActivity: c.lastActivity
       }))
     });
   } catch (error) {

@@ -2,7 +2,8 @@ import { pool } from '../db';
 import SparkPost from 'sparkpost';
 
 // Default from email address to use when not specified
-const DEFAULT_FROM_EMAIL = "notifications@resiliencehub.app";
+// Default from email address - will need to be configured in SparkPost
+const DEFAULT_FROM_EMAIL = "support@resilience-counseling.com";
 
 // Email configuration 
 const SPARKPOST_API_KEY = process.env.SPARKPOST_API_KEY;
