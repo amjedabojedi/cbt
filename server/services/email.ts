@@ -1,5 +1,5 @@
 import { pool } from '../db';
-import * as SparkPost from 'sparkpost';
+import SparkPost from 'sparkpost';
 
 // Default from email address to use when not specified
 const DEFAULT_FROM_EMAIL = "notifications@resiliencehub.app";
@@ -9,7 +9,7 @@ const SPARKPOST_API_KEY = process.env.SPARKPOST_API_KEY;
 const EMAIL_ENABLED = !!SPARKPOST_API_KEY;
 
 // Initialize SparkPost client if API key is available
-let sparkPostClient: SparkPost.Client | null = null;
+let sparkPostClient: any = null;
 if (EMAIL_ENABLED) {
   try {
     sparkPostClient = new SparkPost(SPARKPOST_API_KEY as string);
@@ -52,7 +52,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
 
   try {
     // Use SparkPost for real email delivery
-    const transmission = {
+    const transmission: any = {
       content: {
         from: params.from || DEFAULT_FROM_EMAIL,
         subject: params.subject,
@@ -119,9 +119,6 @@ Regular emotion tracking helps build self-awareness and can lead to better thera
 To record your emotions, simply log in to your ResilienceHub™ account and click on "Track Emotions" from your dashboard.
 
 Remember that ResilienceHub™ is a supportive tool for your therapy with Resilience Counseling Research and Consultation, not a replacement for professional care.
-
-Wishing you well,
-The Resilience Counseling Team
 
 Wishing you well,
 Resilience Counseling Research and Consultation Team
