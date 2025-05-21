@@ -5412,7 +5412,303 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize WebSocket server for real-time notifications
   initializeWebSocketServer(httpServer);
   
-  // Admin section endpoints will be added here later
+  // Admin section endpoints for client inactivity detection
+  app.get('/api/admin/inactivity/check', isAdmin, async (req, res) => {
+    try {
+      const daysThreshold = Number(req.query.days) || 3;
+      
+      // Find inactive clients using the PostgreSQL query
+      const now = new Date();
+      const cutoffDate = new Date(now.getTime() - daysThreshold * 24 * 60 * 60 * 1000);
+      
+      const query = `
+        SELECT u.id, u.name, u.email, u.therapist_id as "therapistId"
+        FROM users u
+        WHERE u.role = 'client' 
+          AND u.status = 'active'
+          AND (
+            -- Has tracked emotions before
+            EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id)
+            -- But not since cutoff date
+            AND NOT EXISTS (
+              SELECT 1 FROM emotion_records e 
+              WHERE e.user_id = u.id 
+              AND e.timestamp > $1
+            )
+          )
+      `;
+      
+      const result = await pool.query(query, [cutoffDate.toISOString()]);
+      const inactiveClients = result.rows;
+      
+      return res.status(200).json({
+        success: true,
+        count: inactiveClients.length,
+        clients: inactiveClients.map(c => ({
+          id: c.id,
+          name: c.name,
+          email: c.email,
+          therapistId: c.therapistId
+        })),
+        threshold: daysThreshold
+      });
+    } catch (error) {
+      console.error("Error checking inactive clients:", error);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Error checking inactive clients" 
+      });
+    }
+  });
+  
+  // Endpoint to send reminders to inactive clients
+  app.post('/api/admin/inactivity/send-reminders', isAdmin, async (req, res) => {
+    try {
+      const daysThreshold = req.body.days || 3; // Default to 3 days
+      console.log(`Looking for clients inactive for ${daysThreshold} days...`);
+      
+      // Find inactive clients
+      const now = new Date();
+      const cutoffDate = new Date(now.getTime() - daysThreshold * 24 * 60 * 60 * 1000);
+      
+      const query = `
+        SELECT u.id, u.name, u.email, u.therapist_id as "therapistId"
+        FROM users u
+        WHERE u.role = 'client' 
+          AND u.status = 'active'
+          AND (
+            -- Has tracked emotions before
+            EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id)
+            -- But not since cutoff date
+            AND NOT EXISTS (
+              SELECT 1 FROM emotion_records e 
+              WHERE e.user_id = u.id 
+              AND e.timestamp > $1
+            )
+          )
+      `;
+      
+      const result = await pool.query(query, [cutoffDate.toISOString()]);
+      const inactiveClients = result.rows;
+      console.log(`Found ${inactiveClients.length} inactive clients`);
+      
+      // Send notifications and emails
+      let notificationsSent = 0;
+      let emailsSent = 0;
+      
+      for (const client of inactiveClients) {
+        // Create notification in database
+        const notificationData = {
+          user_id: client.id,
+          title: "Emotion Tracking Reminder",
+          body: "It's been a while since you last recorded your emotions. Regular tracking helps build self-awareness and improve therapy outcomes.",
+          type: "reminder",
+          is_read: false,
+          created_at: new Date()
+        };
+        
+        const notificationQuery = `
+          INSERT INTO notifications (user_id, title, body, type, is_read, created_at)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING id
+        `;
+        
+        try {
+          const notificationResult = await pool.query(notificationQuery, [
+            notificationData.user_id,
+            notificationData.title,
+            notificationData.body,
+            notificationData.type,
+            notificationData.is_read,
+            notificationData.created_at
+          ]);
+          
+          // Try to send real-time notification through WebSocket if available
+          try {
+            sendNotificationToUser(client.id, notificationResult.rows[0]);
+          } catch (wsError) {
+            console.log('WebSocket notification sending failed (not critical):', wsError);
+          }
+          
+          notificationsSent++;
+        } catch (notificationError) {
+          console.error(`Error creating notification for user ${client.id}:`, notificationError);
+        }
+        
+        // Send email if SparkPost is configured
+        if (isEmailEnabled()) {
+          try {
+            const emailSent = await sendEmotionTrackingReminder(client.email, client.name);
+            if (emailSent) emailsSent++;
+          } catch (emailError) {
+            console.error(`Error sending email to ${client.email}:`, emailError);
+          }
+        }
+      }
+      
+      return res.status(200).json({
+        success: true,
+        inactiveClients: inactiveClients.length,
+        notificationsSent,
+        emailsSent,
+        emailsEnabled: isEmailEnabled(),
+        message: `Sent ${notificationsSent} in-app notifications and ${emailsSent} emails to inactive clients`
+      });
+    } catch (error) {
+      console.error("Error sending inactivity reminders:", error);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Error sending inactivity reminders" 
+      });
+    }
+  });
+  
+  // Endpoint to trigger weekly digest creation and sending
+  app.post('/api/admin/weekly-digests/send', isAdmin, async (req, res) => {
+    try {
+      // Get all active users
+      const usersQuery = `
+        SELECT id, name, email, role
+        FROM users
+        WHERE status = 'active'
+        ${req.body.userId ? 'AND id = $1' : ''}
+      `;
+      
+      const usersResult = req.body.userId
+        ? await pool.query(usersQuery, [req.body.userId])
+        : await pool.query(usersQuery);
+        
+      const users = usersResult.rows;
+      console.log(`Processing weekly digests for ${users.length} users`);
+      
+      // Process each user
+      let notificationsSent = 0;
+      let emailsSent = 0;
+      const processedUsers = [];
+      
+      for (const user of users) {
+        console.log(`Processing weekly digest for: ${user.name} (ID: ${user.id})`);
+        
+        // Get user's weekly summary
+        const now = new Date();
+        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        
+        // Format dates for SQL query
+        const startDate = oneWeekAgo.toISOString().split('T')[0];
+        const endDate = now.toISOString().split('T')[0];
+        
+        // Get emotion records count
+        const emotionQuery = `
+          SELECT COUNT(*) as count 
+          FROM emotion_records 
+          WHERE user_id = $1 
+          AND timestamp BETWEEN $2 AND $3
+        `;
+        const emotionResult = await pool.query(emotionQuery, [user.id, startDate, endDate]);
+        const emotionsTracked = parseInt(emotionResult.rows[0].count, 10);
+        
+        // Get journal entries count
+        const journalQuery = `
+          SELECT COUNT(*) as count 
+          FROM journal_entries 
+          WHERE user_id = $1 
+          AND created_at BETWEEN $2 AND $3
+        `;
+        const journalResult = await pool.query(journalQuery, [user.id, startDate, endDate]);
+        const journalEntries = parseInt(journalResult.rows[0].count, 10);
+        
+        // Get thought records count
+        const thoughtQuery = `
+          SELECT COUNT(*) as count 
+          FROM thought_records 
+          WHERE user_id = $1 
+          AND created_at BETWEEN $2 AND $3
+        `;
+        const thoughtResult = await pool.query(thoughtQuery, [user.id, startDate, endDate]);
+        const thoughtRecords = parseInt(thoughtResult.rows[0].count, 10);
+        
+        const summary = {
+          emotionsTracked,
+          journalEntries,
+          thoughtRecords,
+          goalsProgress: 'No updates',
+          startDate,
+          endDate
+        };
+        
+        // Create digest notification
+        const message = `Your weekly progress report is ready. This week you tracked ${summary.emotionsTracked} emotions, wrote ${summary.journalEntries} journal entries, and completed ${summary.thoughtRecords} thought records.`;
+        
+        const notificationData = {
+          title: "Weekly Progress Report",
+          body: message,
+          type: "progress_update",
+          is_read: false,
+          created_at: new Date()
+        };
+        
+        try {
+          const notificationQuery = `
+            INSERT INTO notifications (user_id, title, body, type, is_read, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id
+          `;
+          
+          const notificationResult = await pool.query(notificationQuery, [
+            user.id,
+            notificationData.title,
+            notificationData.body,
+            notificationData.type,
+            notificationData.is_read,
+            notificationData.created_at
+          ]);
+          
+          // Try to send real-time notification through WebSocket if available
+          try {
+            sendNotificationToUser(user.id, notificationResult.rows[0]);
+          } catch (wsError) {
+            console.log('WebSocket notification sending failed (not critical):', wsError);
+          }
+          
+          notificationsSent++;
+        } catch (notificationError) {
+          console.error(`Error creating digest notification for user ${user.id}:`, notificationError);
+        }
+        
+        // Send email if SparkPost is configured
+        if (isEmailEnabled()) {
+          try {
+            const emailSent = await sendWeeklyProgressDigest(user.email, user.name, summary);
+            if (emailSent) emailsSent++;
+          } catch (emailError) {
+            console.error(`Error sending digest email to ${user.email}:`, emailError);
+          }
+        }
+        
+        processedUsers.push({
+          id: user.id,
+          name: user.name,
+          stats: summary
+        });
+      }
+      
+      return res.status(200).json({
+        success: true,
+        totalUsers: users.length,
+        notificationsSent,
+        emailsSent,
+        emailsEnabled: isEmailEnabled(),
+        processedUsers,
+        message: `Sent ${notificationsSent} in-app notifications and ${emailsSent} weekly digest emails`
+      });
+    } catch (error) {
+      console.error("Error sending weekly digests:", error);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Error sending weekly digests" 
+      });
+    }
+  });
   
   // Test endpoint for therapist email (development only)
   if (process.env.NODE_ENV === "development") {
