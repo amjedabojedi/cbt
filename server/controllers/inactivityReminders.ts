@@ -37,7 +37,7 @@ export async function findInactiveClients(days: number = 3, therapistId?: number
     const queryParams = [cutoffDate.toISOString()];
     if (therapistId) {
       query += ` AND u.therapist_id = $2`;
-      queryParams.push(therapistId);
+      queryParams.push(therapistId.toString());
     }
     
     // Add sorting to show most inactive clients first
@@ -54,13 +54,13 @@ export async function findInactiveClients(days: number = 3, therapistId?: number
 /**
  * Create in-app notification for a client
  */
-export async function createInactivityNotification(userId: number): Promise<boolean> {
+export async function createInactivityNotification(userId: number, customMessage?: string): Promise<boolean> {
   try {
     // Use notifications table
     const notificationData = {
       user_id: userId,
       title: "Emotion Tracking Reminder",
-      body: "It's been a while since you last recorded your emotions. Regular tracking helps build self-awareness and improve therapy outcomes.",
+      body: customMessage || "It's been a while since you last recorded your emotions. Regular tracking helps build self-awareness and improve therapy outcomes.",
       type: "reminder",
       is_read: false,
       created_at: new Date()
@@ -139,13 +139,21 @@ export async function sendInactivityReminders(req: Request, res: Response) {
     const daysThreshold = req.body.days || 3; // Default to 3 days
     console.log(`Looking for clients inactive for ${daysThreshold} days...`);
     
+    // Check if we should only send to therapist's clients
+    let therapistId = undefined;
+    if (req.body.therapistOnly === true && req.user && req.user.role === 'therapist') {
+      therapistId = req.user.id;
+      console.log(`Filtering to only clients of therapist ${therapistId}`);
+    }
+    
     // Find inactive clients
-    const inactiveClients = await findInactiveClients(daysThreshold);
+    const inactiveClients = await findInactiveClients(daysThreshold, therapistId);
     console.log(`Found ${inactiveClients.length} inactive clients`);
     
     // Send notifications
     let notificationsSent = 0;
     let emailsSent = 0;
+    const emailsEnabled = isEmailEnabled();
     
     for (const client of inactiveClients) {
       // Create in-app notification
@@ -153,7 +161,7 @@ export async function sendInactivityReminders(req: Request, res: Response) {
       if (notificationCreated) notificationsSent++;
       
       // Send email if SparkPost is configured
-      if (isEmailEnabled()) {
+      if (emailsEnabled) {
         const emailSent = await sendEmotionTrackingReminder(client.email, client.name);
         if (emailSent) emailsSent++;
       }
@@ -164,6 +172,7 @@ export async function sendInactivityReminders(req: Request, res: Response) {
       inactiveClients: inactiveClients.length,
       notificationsSent,
       emailsSent,
+      emailsEnabled,
       message: `Sent ${notificationsSent} in-app notifications and ${emailsSent} emails to inactive clients`
     });
   } catch (error) {

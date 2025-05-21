@@ -133,6 +133,22 @@ export function isTherapist(req: Request, res: Response, next: NextFunction) {
 }
 
 /**
+ * Check if the user is a therapist or admin (alias for isTherapist)
+ * Created for better semantic naming in routes
+ */
+export function isTherapistOrAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
+  if (req.user.role !== 'therapist' && req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied. Therapist or admin role required.' });
+  }
+  
+  next();
+}
+
+/**
  * Check if the user is an admin
  */
 export function isAdmin(req: Request, res: Response, next: NextFunction) {

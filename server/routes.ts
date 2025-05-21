@@ -46,7 +46,7 @@ export function getSessionCookieOptions(): CookieOptions {
   console.log(`Cookie options: secure=${cookieOptions.secure}, sameSite=${cookieOptions.sameSite}, domain=${cookieOptions.domain || 'not set'}`);
   return cookieOptions;
 }
-import { authenticate, isTherapist, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission, ensureAuthenticated } from "./middleware/auth";
+import { authenticate, isTherapist, isTherapistOrAdmin, isAdmin, checkUserAccess, isClientOrAdmin, checkResourceCreationPermission, ensureAuthenticated } from "./middleware/auth";
 import { z } from "zod";
 import * as bcrypt from "bcrypt";
 import Stripe from "stripe";
@@ -3662,14 +3662,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Email notification endpoints (protected for admin and system use)
+  // Client engagement monitoring and notification endpoints
+  
+  // Check inactive clients - accessible by therapists to monitor client engagement
+  app.get("/api/client-engagement/inactive", authenticate, isTherapistOrAdmin, async (req, res) => {
+    try {
+      await checkInactiveClients(req, res);
+    } catch (error) {
+      console.error("Error checking inactive clients:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to check inactive clients" 
+      });
+    }
+  });
+  
+  // Send reminders to inactive clients - accessible by therapists
+  app.post("/api/client-engagement/send-reminders", authenticate, isTherapistOrAdmin, async (req, res) => {
+    try {
+      await sendInactivityReminders(req, res);
+    } catch (error) {
+      console.error("Error sending client engagement reminders:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to send client engagement reminders" 
+      });
+    }
+  });
+  
+  // Send a reminder to a specific client - accessible by therapists
+  app.post("/api/client-engagement/remind-client/:clientId", authenticate, async (req, res) => {
+    try {
+      const clientId = parseInt(req.params.clientId, 10);
+      const { message } = req.body;
+      
+      // Ensure the therapist has access to this client
+      if (req.user.role !== 'admin') {
+        const isClientOfCurrentTherapist = await isClientOfTherapist(clientId, req.user.id);
+        if (!isClientOfTherapist) {
+          return res.status(403).json({
+            success: false,
+            message: "You don't have permission to send reminders to this client"
+          });
+        }
+      }
+      
+      // Create the notification
+      const notificationCreated = await createInactivityNotification(clientId, message);
+      
+      // Send email if SparkPost is configured
+      let emailSent = false;
+      if (isEmailEnabled()) {
+        // Get client details
+        const client = await pool.query(`
+          SELECT name, email FROM users WHERE id = $1
+        `, [clientId]);
+        
+        if (client.rows.length > 0) {
+          emailSent = await sendEmotionTrackingReminder(
+            client.rows[0].email, 
+            client.rows[0].name
+          );
+        }
+      }
+      
+      return res.status(200).json({
+        success: true,
+        notificationCreated,
+        emailSent,
+        message: `Reminder ${notificationCreated ? 'successfully' : 'failed to be'} sent to client`
+      });
+    } catch (error) {
+      console.error("Error sending reminder to specific client:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to send reminder to client" 
+      });
+    }
+  });
+  
+  // Legacy admin-only email notification endpoints
   app.post("/api/notifications/emotion-reminders", isAdmin, async (req, res) => {
     try {
       const { daysWithoutTracking } = req.body;
-      const remindersSent = await sendEmotionTrackingReminders(daysWithoutTracking || 2);
-      res.status(200).json({ 
-        message: `Sent ${remindersSent} emotion tracking reminders` 
-      });
+      // Redirect to our newer endpoint with deprecation notice
+      console.log("Using deprecated emotion-reminders endpoint. Please update to use /api/client-engagement/send-reminders");
+      
+      // Create a modified request for compatibility
+      const modifiedReq = {
+        ...req,
+        body: {
+          days: daysWithoutTracking || 2,
+          therapistOnly: false
+        }
+      };
+      
+      await sendInactivityReminders(modifiedReq, res);
     } catch (error) {
       console.error("Send emotion reminders error:", error);
       res.status(500).json({ message: "Failed to send emotion tracking reminders" });
@@ -3678,9 +3766,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/notifications/weekly-digests", isAdmin, async (req, res) => {
     try {
-      const digestsSent = await sendWeeklyProgressDigests();
+      const digestsSent = await sendWeeklyProgressDigest(req.body.email, req.body.name, req.body.stats || {});
       res.status(200).json({ 
-        message: `Sent ${digestsSent} weekly progress digests` 
+        success: digestsSent,
+        message: digestsSent ? "Weekly progress digest sent successfully" : "Failed to send weekly progress digest"
       });
     } catch (error) {
       console.error("Send weekly digests error:", error);
