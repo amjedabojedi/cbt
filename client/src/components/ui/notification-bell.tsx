@@ -165,33 +165,57 @@ export default function NotificationBell() {
 
   async function markAllAsRead() {
     try {
-      // Use a more reliable approach with cache-busting
-      const response = await fetch("/api/notifications/read-all", {
+      // Create a timestamp for robust cache-busting
+      const timestamp = Date.now();
+      
+      // First, set UI to reflect all read immediately for better UX
+      setNotifications(notifications.map(notification => ({ ...notification, isRead: true })));
+      setUnreadCount(0);
+      
+      // Then perform the server-side update with strong cache prevention
+      const response = await fetch(`/api/notifications/read-all?_t=${timestamp}`, {
         method: 'POST',
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0',
-          'X-Timestamp': Date.now().toString()
+          'X-Timestamp': timestamp.toString(),
+          'X-User-ID': user?.id?.toString() || ''
         },
         credentials: 'include'
       });
       
       if (response.ok) {
-        // Set all notifications as read in the UI
-        setNotifications(notifications.map(notification => ({ ...notification, isRead: true })));
-        // Reset unread count immediately for better user experience
-        setUnreadCount(0);
+        console.log("Successfully marked all notifications as read on server");
         
-        // Force multiple refreshes to ensure we get the latest data
-        // First immediate refresh
-        fetchUnreadCount();
+        // Force multiple refreshes with exponential backoff to ensure we get the latest data
+        const refreshIntervals = [100, 500, 1500, 3000];
         
-        // Second refresh after a delay
-        setTimeout(() => fetchUnreadCount(), 1000);
-        
-        // Third refresh after a longer delay to catch any lagging updates
-        setTimeout(() => fetchUnreadCount(), 3000);
+        // Schedule all refreshes
+        refreshIntervals.forEach(delay => {
+          setTimeout(() => {
+            console.log(`Refreshing notification count after ${delay}ms`);
+            fetch(`/api/notifications/unread?_t=${Date.now()}`, {
+              method: 'GET',
+              headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache', 
+                'Expires': '0',
+                'X-Timestamp': Date.now().toString(),
+                'X-User-ID': user?.id?.toString() || ''
+              },
+              credentials: 'include'
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (Array.isArray(data)) {
+                console.log(`Refresh after ${delay}ms: ${data.length} unread notifications`);
+                setUnreadCount(data.length);
+              }
+            })
+            .catch(err => console.error(`Error in refresh after ${delay}ms:`, err));
+          }, delay);
+        });
         
         toast({
           title: "Success",

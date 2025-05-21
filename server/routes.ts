@@ -3895,6 +3895,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`Marking notifications as read for client ${client.id}`);
             await storage.markAllNotificationsAsRead(client.id);
           }
+          
+          // Direct SQL approach to ensure all relevant notifications are marked as read
+          try {
+            // Use a direct SQL query to update all notifications that this therapist should see
+            const { withRetry } = await import('./db');
+            await withRetry(async () => {
+              const result = await db.execute(sql`
+                UPDATE notifications 
+                SET is_read = true 
+                WHERE user_id IN (
+                  SELECT id FROM users WHERE therapist_id = ${userId}
+                )
+                OR user_id = ${userId}
+              `);
+              console.log(`Direct SQL update completed successfully`);
+              return result;
+            });
+          } catch (sqlError) {
+            console.error("Error with direct SQL update:", sqlError);
+          }
         }
         
         // If user is admin, they might need to mark all notifications as read
