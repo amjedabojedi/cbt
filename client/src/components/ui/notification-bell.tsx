@@ -165,14 +165,33 @@ export default function NotificationBell() {
 
   async function markAllAsRead() {
     try {
-      const response = await apiRequest("POST", "/api/notifications/read-all");
+      // Use a more reliable approach with cache-busting
+      const response = await fetch("/api/notifications/read-all", {
+        method: 'POST',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Timestamp': Date.now().toString()
+        },
+        credentials: 'include'
+      });
+      
       if (response.ok) {
-        // Set all notifications as read
+        // Set all notifications as read in the UI
         setNotifications(notifications.map(notification => ({ ...notification, isRead: true })));
-        // Reset unread count
+        // Reset unread count immediately for better user experience
         setUnreadCount(0);
-        // Force a fresh fetch to ensure we have the latest data
-        setTimeout(() => fetchUnreadCount(), 500);
+        
+        // Force multiple refreshes to ensure we get the latest data
+        // First immediate refresh
+        fetchUnreadCount();
+        
+        // Second refresh after a delay
+        setTimeout(() => fetchUnreadCount(), 1000);
+        
+        // Third refresh after a longer delay to catch any lagging updates
+        setTimeout(() => fetchUnreadCount(), 3000);
         
         toast({
           title: "Success",

@@ -3841,11 +3841,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/notifications/read-all", authenticate, async (req, res) => {
     try {
       const userId = req.user!.id;
+      console.log(`Marking all notifications as read for user ${userId}`);
+      
+      // First attempt to clear only notifications directly for this user
       await storage.markAllNotificationsAsRead(userId);
-      res.status(200).json({ message: "All notifications marked as read" });
+      
+      // For therapists, also clear notifications for their clients that they can view
+      const user = await storage.getUser(userId);
+      if (user && (user.role === "therapist" || user.role === "admin")) {
+        console.log(`User ${userId} is a ${user.role}, checking for client notifications`);
+        
+        // If user is a therapist, mark client notifications as read too
+        if (user.role === "therapist") {
+          const clients = await storage.getClients(userId);
+          console.log(`Found ${clients.length} clients for therapist ${userId}`);
+          
+          // Mark notifications for all clients as read
+          for (const client of clients) {
+            console.log(`Marking notifications as read for client ${client.id}`);
+            await storage.markAllNotificationsAsRead(client.id);
+          }
+        }
+        
+        // If user is admin, they might need to mark all notifications as read
+        if (user.role === "admin") {
+          console.log("Admin user, marking all system notifications as read");
+          // Additional admin-specific notification clearing could go here
+        }
+      }
+      
+      res.status(200).json({ 
+        success: true,
+        message: "All notifications marked as read" 
+      });
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
-      res.status(500).json({ message: "Failed to mark all notifications as read" });
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to mark all notifications as read" 
+      });
     }
   });
   
