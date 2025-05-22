@@ -5,6 +5,22 @@ import SparkPost from 'sparkpost';
 // Default from email address - will need to be configured in SparkPost
 const DEFAULT_FROM_EMAIL = "support@resilience-counseling.com";
 
+// Check if SparkPost domain is verified
+async function checkSparkPostDomainStatus() {
+  if (!sparkPostClient) return false;
+  
+  try {
+    console.log('Checking SparkPost domain verification status...');
+    const domain = DEFAULT_FROM_EMAIL.split('@')[1];
+    const result = await sparkPostClient.sendingDomains.retrieve(domain);
+    console.log('SparkPost domain status:', result);
+    return result.status && result.status.ownership_verified === true;
+  } catch (error) {
+    console.error('Error checking SparkPost domain status:', error);
+    return false;
+  }
+}
+
 // Email configuration 
 const SPARKPOST_API_KEY = process.env.SPARKPOST_API_KEY;
 const EMAIL_ENABLED = !!SPARKPOST_API_KEY;
@@ -35,7 +51,39 @@ interface EmailParams {
  * Check if email service is enabled
  */
 export function isEmailEnabled(): boolean {
-  return EMAIL_ENABLED && sparkPostClient !== null;
+  if (!EMAIL_ENABLED || sparkPostClient === null) {
+    console.log('Email service disabled: SparkPost API key not configured or client initialization failed');
+    return false;
+  }
+  
+  // Check if domain is verified - but don't block sending if we can't verify
+  // This just adds informational warnings to the logs
+  try {
+    const domain = DEFAULT_FROM_EMAIL.split('@')[1];
+    console.log(`Attempting to use email domain: ${domain}`);
+    
+    // Don't await this - just log the result when it completes
+    sparkPostClient.sendingDomains.retrieve(domain)
+      .then(result => {
+        if (result && result.status) {
+          const isVerified = result.status.ownership_verified === true;
+          console.log(`SparkPost domain status for ${domain}: ${isVerified ? 'Verified' : 'Not verified'}`);
+          if (!isVerified) {
+            console.warn(`WARNING: The domain ${domain} is not verified with SparkPost.`);
+            console.warn('This may cause emails to fail or be delivered to spam folders.');
+            console.warn('Please verify your domain in the SparkPost dashboard.');
+          }
+        }
+      })
+      .catch(error => {
+        console.error(`Error checking SparkPost domain ${domain}:`, error);
+        console.warn('Domain verification check failed. This may indicate the domain is not set up in SparkPost.');
+      });
+  } catch (error) {
+    console.error('Error in domain verification check:', error);
+  }
+  
+  return true;
 }
 
 /**
