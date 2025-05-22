@@ -253,3 +253,65 @@ Resilience Counseling Research and Consultation Team
     html
   });
 }
+
+/**
+ * Send a password reset email to a user
+ */
+export async function sendPasswordResetEmail(email: string, resetLink: string): Promise<boolean> {
+  const subject = "Reset Your ResilienceHub™ Password";
+  
+  const text = `
+Hello,
+
+We received a request to reset your password for your ResilienceHub™ account. If you didn't make this request, please ignore this email.
+
+To reset your password, click the link below:
+${resetLink}
+
+This link will expire in 1 hour for security reasons.
+
+If you didn't request a password reset, please contact our support team immediately.
+
+Best regards,
+Resilience Counseling Research and Consultation Team
+`;
+
+  const html = `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="text-align: center; margin-bottom: 20px;">
+    <img src="https://www.rcrc.ca/wp-content/uploads/2023/06/RCRC-Logo-scaled.jpg" alt="Resilience Counseling Research and Consultation" style="max-width: 200px;">
+  </div>
+  
+  <h2 style="color: #4A6FA5; margin-bottom: 20px;">Reset Your Password</h2>
+  
+  <p>Hello,</p>
+  
+  <p>We received a request to reset your password for your ResilienceHub™ account. If you didn't make this request, please ignore this email.</p>
+  
+  <p>To reset your password, click the button below:</p>
+  
+  <div style="text-align: center; margin: 30px 0;">
+    <a href="${resetLink}" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Password</a>
+  </div>
+  
+  <p>This link will expire in 1 hour for security reasons.</p>
+  
+  <p>If you didn't request a password reset, please contact our support team immediately.</p>
+  
+  <p>Best regards,<br>
+  Resilience Counseling Research and Consultation Team</p>
+  
+  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666;">
+    <p>For security, this reset request was received on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+  </div>
+</div>
+`;
+
+  return sendEmail({
+    to: email,
+    from: DEFAULT_FROM_EMAIL,
+    subject,
+    text,
+    html
+  });
+}
