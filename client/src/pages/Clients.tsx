@@ -468,7 +468,86 @@ export default function Clients() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [inactiveClients, setInactiveClients] = useState<any[]>([]);
+  const [inactivityDays, setInactivityDays] = useState(3);
+  const [checkingInactiveClients, setCheckingInactiveClients] = useState(false);
+  const [showInactiveClientsModal, setShowInactiveClientsModal] = useState(false);
+  const [sendingReminders, setSendingReminders] = useState(false);
   
+  // Function to check for inactive clients
+  const checkInactiveClients = async () => {
+    setCheckingInactiveClients(true);
+    try {
+      const response = await apiRequest(`/api/engagement/check-inactive?days=${inactivityDays}&therapistOnly=true`);
+      if (response.success) {
+        setInactiveClients(response.clients || []);
+        setShowInactiveClientsModal(true);
+        toast({
+          title: `Found ${response.count} inactive clients`,
+          description: `Clients who haven't recorded emotions in ${inactivityDays} days`,
+          duration: 3000,
+        });
+      } else {
+        toast({
+          title: "Error checking inactive clients",
+          description: response.message || "Unable to check for inactive clients",
+          variant: "destructive",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Error checking inactive clients:", error);
+      toast({
+        title: "Error checking inactive clients",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setCheckingInactiveClients(false);
+    }
+  };
+
+  // Function to send reminders to inactive clients
+  const sendRemindersToInactiveClients = async () => {
+    setSendingReminders(true);
+    try {
+      const response = await apiRequest(`/api/engagement/send-reminders`, {
+        method: 'POST',
+        body: JSON.stringify({
+          days: inactivityDays,
+          therapistOnly: true
+        })
+      });
+      
+      if (response.success) {
+        toast({
+          title: "Reminders sent successfully",
+          description: `Sent ${response.notificationsSent} notifications and ${response.emailsSent} emails to inactive clients`,
+          duration: 5000,
+        });
+        setShowInactiveClientsModal(false);
+      } else {
+        toast({
+          title: "Error sending reminders",
+          description: response.message || "Unable to send reminders",
+          variant: "destructive",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Error sending reminders:", error);
+      toast({
+        title: "Error sending reminders",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setSendingReminders(false);
+    }
+  };
+
   // Use client context directly at the top level
   let clientContext;
   try {
@@ -834,6 +913,7 @@ export default function Clients() {
               <TabsTrigger value="all">All Clients</TabsTrigger>
               <TabsTrigger value="active">Active</TabsTrigger>
               <TabsTrigger value="pending">Pending</TabsTrigger>
+              <TabsTrigger value="engagement">Engagement</TabsTrigger>
             </TabsList>
           </div>
           
