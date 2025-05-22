@@ -22,16 +22,17 @@ interface ReminderConfig {
 const REMINDER_EMAIL_TEMPLATE = `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
   <div style="text-align: center; margin-bottom: 20px;">
-    <h1 style="color: #3b82f6; margin-bottom: 10px;">Emotion Check-In Reminder</h1>
-    <p style="color: #4b5563; font-size: 16px;">We've noticed you haven't recorded your emotions recently.</p>
+    <h1 style="color: #3b82f6; margin-bottom: 10px;">ResilienceHub™ Activity Reminder</h1>
+    <p style="color: #4b5563; font-size: 16px;">We've noticed you haven't been active on ResilienceHub™ recently.</p>
   </div>
   
   <div style="margin-bottom: 20px; padding: 15px; background-color: #f9fafb; border-radius: 6px;">
-    <p style="color: #4b5563; font-size: 15px;">Regular emotion tracking helps you:</p>
+    <p style="color: #4b5563; font-size: 15px;">Regular tracking of your emotions, thoughts, and activities helps you:</p>
     <ul style="color: #4b5563;">
       <li>Recognize patterns in your emotional responses</li>
-      <li>Develop greater emotional awareness</li>
+      <li>Develop greater self-awareness</li>
       <li>Improve your emotional regulation skills</li>
+      <li>Track your progress toward personal goals</li>
       <li>Provide valuable insights for your therapy journey</li>
     </ul>
   </div>
@@ -119,7 +120,7 @@ export async function sendReminderToClient(
       
       const emailResult = await sendEmail({
         to: clientEmail,
-        subject: 'ResilienceHub™ - Emotion Tracking Reminder',
+        subject: 'ResilienceHub™ - Activity Reminder',
         html: emailContent
       });
       
@@ -134,8 +135,8 @@ export async function sendReminderToClient(
       try {
         await createNotification({
           userId: clientId,
-          title: 'Emotion Tracking Reminder',
-          body: `It's been ${config.inactivityThreshold} days since you last recorded your emotions. Regular tracking helps build self-awareness and improve therapy outcomes.`,
+          title: 'ResilienceHub™ Activity Reminder',
+          body: `It's been ${config.inactivityThreshold} days since you last used ResilienceHub™. Regular tracking of emotions, thoughts, and activities helps build self-awareness and improve therapy outcomes.`,
           type: 'reminder',
           isRead: false
         });

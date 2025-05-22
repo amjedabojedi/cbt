@@ -4,16 +4,19 @@ import { sendNotificationToUser } from '../services/websocket';
 import { Request, Response } from 'express';
 
 /**
- * Find clients who haven't recorded emotions in the specified number of days
+ * Find clients who haven't performed any activity in the specified number of days
+ * Activity includes: emotion records, thought records, journal entries, and goals
  */
 export async function findInactiveClients(days: number = 3, therapistId?: number): Promise<any[]> {
   try {
     const now = new Date();
     const cutoffDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
     
-    // We need to handle two cases:
-    // 1. Clients who have emotion records but none since the cutoff date
-    // 2. Clients who have never recorded emotions and have been registered for more than 'days' days
+    // We need to track the most recent activity from any tracked source:
+    // - emotion_records
+    // - thought_records
+    // - journal_entries
+    // - goals
     
     // First, build our base query for finding clients
     let query = `
@@ -24,9 +27,16 @@ export async function findInactiveClients(days: number = 3, therapistId?: number
         u.therapist_id as "therapistId",
         u.created_at as "createdAt",
         (
-          SELECT MAX(e.timestamp) 
-          FROM emotion_records e 
-          WHERE e.user_id = u.id
+          SELECT GREATEST(
+            -- Check emotion_records
+            COALESCE((SELECT MAX(e.timestamp) FROM emotion_records e WHERE e.user_id = u.id), '1970-01-01'),
+            -- Check thought_records
+            COALESCE((SELECT MAX(t.created_at) FROM thought_records t WHERE t.user_id = u.id), '1970-01-01'),
+            -- Check journal_entries
+            COALESCE((SELECT MAX(j.created_at) FROM journal_entries j WHERE j.user_id = u.id), '1970-01-01'),
+            -- Check goals
+            COALESCE((SELECT MAX(g.created_at) FROM goals g WHERE g.user_id = u.id), '1970-01-01')
+          )
         ) as "lastActivity"
       FROM users u
       WHERE 
@@ -44,27 +54,41 @@ export async function findInactiveClients(days: number = 3, therapistId?: number
     // Now add our condition to identify inactive clients
     query += `
       AND (
-        -- Case 1: Has emotion records but none since cutoff date
+        -- Case 1: Has any records but none since cutoff date
         (
-          EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id) AND
-          NOT EXISTS (
-            SELECT 1 FROM emotion_records e 
-            WHERE e.user_id = u.id AND e.timestamp > $1
+          (
+            EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id) OR
+            EXISTS (SELECT 1 FROM thought_records t WHERE t.user_id = u.id) OR
+            EXISTS (SELECT 1 FROM journal_entries j WHERE j.user_id = u.id) OR
+            EXISTS (SELECT 1 FROM goals g WHERE g.user_id = u.id)
+          )
+          AND (
+            -- Get the most recent activity timestamp and check if it's before cutoff
+            (
+              SELECT GREATEST(
+                COALESCE((SELECT MAX(e.timestamp) FROM emotion_records e WHERE e.user_id = u.id), '1970-01-01'),
+                COALESCE((SELECT MAX(t.created_at) FROM thought_records t WHERE t.user_id = u.id), '1970-01-01'),
+                COALESCE((SELECT MAX(j.created_at) FROM journal_entries j WHERE j.user_id = u.id), '1970-01-01'),
+                COALESCE((SELECT MAX(g.created_at) FROM goals g WHERE g.user_id = u.id), '1970-01-01')
+              )
+            ) < $1
           )
         )
-        -- Case 2: Has never recorded emotions but registered more than 'days' days ago
+        -- Case 2: Has never recorded any activity but registered more than 'days' days ago
         OR (
           NOT EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id) AND
+          NOT EXISTS (SELECT 1 FROM thought_records t WHERE t.user_id = u.id) AND
+          NOT EXISTS (SELECT 1 FROM journal_entries j WHERE j.user_id = u.id) AND
+          NOT EXISTS (SELECT 1 FROM goals g WHERE g.user_id = u.id) AND
           u.created_at < $1
         )
       )
     `;
     
     // Add sorting to show most inactive clients first
-    // For clients who never recorded emotions, order by their registration date
     query += ` 
       ORDER BY 
-        CASE WHEN "lastActivity" IS NULL THEN u.created_at ELSE "lastActivity" END ASC
+        CASE WHEN "lastActivity" = '1970-01-01' THEN u.created_at ELSE "lastActivity" END ASC
     `;
     
     const result = await pool.query(query, queryParams);
@@ -72,7 +96,7 @@ export async function findInactiveClients(days: number = 3, therapistId?: number
     // Format the result to ensure consistent format
     return result.rows.map(client => ({
       ...client,
-      lastActivity: client.lastActivity || 'Never recorded'
+      lastActivity: client.lastActivity === '1970-01-01' ? 'Never recorded' : client.lastActivity
     }));
   } catch (error) {
     console.error('Error finding inactive clients:', error);
@@ -88,8 +112,8 @@ export async function createInactivityNotification(userId: number, customMessage
     // Use notifications table
     const notificationData = {
       user_id: userId,
-      title: "Emotion Tracking Reminder",
-      body: customMessage || "It's been a while since you last recorded your emotions. Regular tracking helps build self-awareness and improve therapy outcomes.",
+      title: "Activity Reminder",
+      body: customMessage || "It's been a while since you last used ResilienceHub™. Regular tracking of emotions, thoughts, and other activities helps build self-awareness and improve therapy outcomes.",
       type: "reminder",
       is_read: false,
       created_at: new Date()
