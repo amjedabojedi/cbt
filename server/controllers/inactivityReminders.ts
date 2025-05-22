@@ -146,16 +146,41 @@ export async function sendInactivityReminders(req: Request, res: Response) {
       console.log(`Filtering to only clients of therapist ${therapistId}`);
     }
     
-    // Find inactive clients
-    const inactiveClients = await findInactiveClients(daysThreshold, therapistId);
-    console.log(`Found ${inactiveClients.length} inactive clients`);
+    // Check if specific client IDs were provided
+    const specificClientIds: number[] = req.body.clientIds || [];
+    let clientsToProcess: any[] = [];
+    
+    if (specificClientIds.length > 0) {
+      console.log(`Sending reminders to specifically selected clients: ${specificClientIds.join(', ')}`);
+      
+      // If specific clients are selected, we need to fetch their details
+      const query = `
+        SELECT u.id, u.name, u.email, u.therapist_id as "therapistId" 
+        FROM users u
+        WHERE u.id = ANY($1)
+        ${therapistId ? 'AND u.therapist_id = $2' : ''}
+      `;
+      
+      const params = [specificClientIds];
+      if (therapistId) {
+        params.push(therapistId);
+      }
+      
+      const result = await pool.query(query, params);
+      clientsToProcess = result.rows;
+      console.log(`Found ${clientsToProcess.length} specific clients to send reminders to`);
+    } else {
+      // Otherwise get all inactive clients based on the days threshold
+      clientsToProcess = await findInactiveClients(daysThreshold, therapistId);
+      console.log(`Found ${clientsToProcess.length} inactive clients to send reminders to`);
+    }
     
     // Send notifications
     let notificationsSent = 0;
     let emailsSent = 0;
     const emailsEnabled = isEmailEnabled();
     
-    for (const client of inactiveClients) {
+    for (const client of clientsToProcess) {
       // Create in-app notification
       const notificationCreated = await createInactivityNotification(client.id);
       if (notificationCreated) notificationsSent++;
@@ -169,11 +194,11 @@ export async function sendInactivityReminders(req: Request, res: Response) {
     
     return res.status(200).json({
       success: true,
-      inactiveClients: inactiveClients.length,
+      processedClients: clientsToProcess.length,
       notificationsSent,
       emailsSent,
       emailsEnabled,
-      message: `Sent ${notificationsSent} in-app notifications and ${emailsSent} emails to inactive clients`
+      message: `Sent ${notificationsSent} in-app notifications and ${emailsSent} emails to ${specificClientIds.length > 0 ? 'selected' : 'inactive'} clients`
     });
   } catch (error) {
     console.error("Error sending inactivity reminders:", error);

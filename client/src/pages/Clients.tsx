@@ -1392,7 +1392,7 @@ export default function Clients() {
                 </Button>
                 {inactiveClients.length > 0 && (
                   <Button 
-                    onClick={sendRemindersToInactiveClients} 
+                    onClick={() => sendRemindersToInactiveClients(selectedClientIds.length > 0 ? selectedClientIds : undefined)} 
                     disabled={sendingReminders}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
@@ -1404,7 +1404,9 @@ export default function Clients() {
                     ) : (
                       <>
                         <Send className="mr-2 h-4 w-4" />
-                        Send Reminders to All
+                        {selectedClientIds.length > 0 
+                          ? `Send to ${selectedClientIds.length} Selected` 
+                          : 'Send Reminders to All'}
                       </>
                     )}
                   </Button>
