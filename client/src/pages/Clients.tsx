@@ -28,8 +28,10 @@ import {
   UserPlus,
   BarChart,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Check
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Client Stats Component
@@ -473,12 +475,22 @@ export default function Clients() {
   const [checkingInactiveClients, setCheckingInactiveClients] = useState(false);
   const [showInactiveClientsModal, setShowInactiveClientsModal] = useState(false);
   const [sendingReminders, setSendingReminders] = useState(false);
+  const [selectedClientIds, setSelectedClientIds] = useState<number[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
   
   // Function to check for inactive clients
   const checkInactiveClients = async () => {
     setCheckingInactiveClients(true);
     try {
-      const response = await apiRequest("GET", `/api/client-engagement/inactive?days=${inactivityDays}&therapistOnly=true`);
+      // Using fetch directly since apiRequest is having issues with query parameters
+      const response = await fetch(`/api/client-engagement/inactive?days=${inactivityDays}&therapistOnly=true`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
+      
       if (response.ok) {
         const data = await response.json();
         setInactiveClients(data.clients || []);
@@ -511,12 +523,21 @@ export default function Clients() {
   };
 
   // Function to send reminders to inactive clients
-  const sendRemindersToInactiveClients = async () => {
+  const sendRemindersToInactiveClients = async (specificClientIds?: number[]) => {
     setSendingReminders(true);
     try {
-      const response = await apiRequest("POST", `/api/client-engagement/send-reminders`, {
-        days: inactivityDays,
-        therapistOnly: true
+      // Using fetch directly for consistent behavior with the check function
+      const response = await fetch(`/api/client-engagement/send-reminders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          days: inactivityDays,
+          therapistOnly: true,
+          clientIds: specificClientIds // Only send to specific clients if IDs provided
+        })
       });
       
       if (response.ok) {
@@ -1277,6 +1298,21 @@ export default function Clients() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-[50px]">
+                        <Checkbox 
+                          checked={selectAll}
+                          onCheckedChange={(checked) => {
+                            setSelectAll(!!checked);
+                            if (checked) {
+                              // Select all client IDs
+                              setSelectedClientIds(inactiveClients.map(client => client.id));
+                            } else {
+                              // Deselect all
+                              setSelectedClientIds([]);
+                            }
+                          }}
+                        />
+                      </TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Last Activity</TableHead>
@@ -1286,6 +1322,20 @@ export default function Clients() {
                   <TableBody>
                     {inactiveClients.map((client) => (
                       <TableRow key={client.id}>
+                        <TableCell>
+                          <Checkbox 
+                            checked={selectedClientIds.includes(client.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedClientIds(prev => [...prev, client.id]);
+                              } else {
+                                setSelectedClientIds(prev => prev.filter(id => id !== client.id));
+                                // Uncheck "select all" if any item is unchecked
+                                setSelectAll(false);
+                              }
+                            }}
+                          />
+                        </TableCell>
                         <TableCell className="font-medium">{client.name}</TableCell>
                         <TableCell>{client.email}</TableCell>
                         <TableCell>{client.lastActivity !== 'Never' ? 
@@ -1293,19 +1343,33 @@ export default function Clients() {
                           'No activity'}
                         </TableCell>
                         <TableCell>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              // Set the current viewing client
-                              setViewingClient(client.id, client.name);
-                              // Close modal
-                              setShowInactiveClientsModal(false);
-                            }}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View Profile
-                          </Button>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                // Set the current viewing client
+                                setViewingClient(client.id, client.name);
+                                // Close modal
+                                setShowInactiveClientsModal(false);
+                              }}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                // Send reminder to just this client
+                                sendRemindersToInactiveClients([client.id]);
+                              }}
+                              disabled={sendingReminders}
+                            >
+                              <Send className="h-4 w-4 mr-1" />
+                              Remind
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
