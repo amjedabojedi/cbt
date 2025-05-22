@@ -478,7 +478,7 @@ export default function Clients() {
   const checkInactiveClients = async () => {
     setCheckingInactiveClients(true);
     try {
-      const response = await apiRequest(`/api/engagement/check-inactive?days=${inactivityDays}&therapistOnly=true`);
+      const response = await apiRequest(`/api/client-engagement/inactive?days=${inactivityDays}&therapistOnly=true`);
       if (response.success) {
         setInactiveClients(response.clients || []);
         setShowInactiveClientsModal(true);
@@ -1164,7 +1164,190 @@ export default function Clients() {
               </CardContent>
             </Card>
           </TabsContent>
+          
+          {/* Client Engagement Tab */}
+          <TabsContent value="engagement">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div>
+                  <CardTitle>Client Engagement Tracking</CardTitle>
+                  <CardDescription>
+                    Monitor and improve client participation between sessions
+                  </CardDescription>
+                </div>
+                <Button 
+                  onClick={checkInactiveClients} 
+                  disabled={checkingInactiveClients}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {checkingInactiveClients ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="mr-2 h-4 w-4" />
+                      Check Inactive Clients
+                    </>
+                  )}
+                </Button>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="border rounded-lg p-4">
+                      <h3 className="text-lg font-medium mb-2">Inactivity Settings</h3>
+                      <div className="flex items-center space-x-4 mt-4">
+                        <div className="grid gap-2 flex-1">
+                          <div className="flex justify-between">
+                            <label htmlFor="inactivityDays" className="text-sm font-medium">
+                              Days without emotion tracking
+                            </label>
+                            <span className="text-sm text-muted-foreground">{inactivityDays} days</span>
+                          </div>
+                          <Input
+                            id="inactivityDays"
+                            type="range"
+                            min={1}
+                            max={14}
+                            value={inactivityDays}
+                            onChange={(e) => setInactivityDays(Number(e.target.value))}
+                            className="w-full"
+                          />
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>1 day</span>
+                            <span>14 days</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="border rounded-lg p-4">
+                      <h3 className="text-lg font-medium mb-2">Reminder Features</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Inactive clients will receive both in-app notifications and email reminders (if email is configured).
+                      </p>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-center">
+                          <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                          <span>In-app notifications</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                          <span>Email reminders</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                          <span>Custom message templates</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <div className="border rounded-lg p-4">
+                    <h3 className="text-lg font-medium mb-4">Client Engagement Instructions</h3>
+                    <ol className="space-y-2 ml-6 list-decimal text-sm">
+                      <li>Click the "Check Inactive Clients" button to find clients who haven't recorded emotions recently</li>
+                      <li>Review the list of inactive clients to identify those who might need additional support</li>
+                      <li>Send engagement reminders to all inactive clients or select specific individuals</li>
+                      <li>Follow up directly during your next session to discuss any barriers to regular tracking</li>
+                      <li>Check notification history to see which reminders have been sent</li>
+                    </ol>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
+        
+        {/* Inactive Clients Modal */}
+        <Dialog open={showInactiveClientsModal} onOpenChange={setShowInactiveClientsModal}>
+          <DialogContent className="sm:max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Inactive Clients</DialogTitle>
+              <DialogDescription>
+                Clients who haven't recorded emotions in {inactivityDays} days
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="max-h-[60vh] overflow-y-auto">
+              {inactiveClients.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Last Activity</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {inactiveClients.map((client) => (
+                      <TableRow key={client.id}>
+                        <TableCell className="font-medium">{client.name}</TableCell>
+                        <TableCell>{client.email}</TableCell>
+                        <TableCell>{client.lastActivity !== 'Never' ? 
+                          formatDistanceToNow(new Date(client.lastActivity), { addSuffix: true }) : 
+                          'No activity'}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              // Set the current viewing client
+                              setViewingClient(client.id, client.name);
+                              // Close modal
+                              setShowInactiveClientsModal(false);
+                            }}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View Profile
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No inactive clients found</p>
+                </div>
+              )}
+            </div>
+            
+            <DialogFooter className="flex justify-between items-center">
+              <div className="text-sm text-muted-foreground">
+                {inactiveClients.length} client{inactiveClients.length !== 1 ? 's' : ''} found
+              </div>
+              <div className="flex space-x-2">
+                <Button variant="outline" onClick={() => setShowInactiveClientsModal(false)}>
+                  Close
+                </Button>
+                {inactiveClients.length > 0 && (
+                  <Button 
+                    onClick={sendRemindersToInactiveClients} 
+                    disabled={sendingReminders}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {sendingReminders ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4" />
+                        Send Reminders to All
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         
         {/* Invite Client Dialog */}
         <Dialog open={isInviting} onOpenChange={setIsInviting}>
