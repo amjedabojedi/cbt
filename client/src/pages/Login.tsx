@@ -143,77 +143,9 @@ export default function Login() {
               />
             </div>
             
-            {/* Demo login buttons - still functional but credentials not exposed */}
-            <div className="flex gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-1/2"
-                disabled={loading}
-                onClick={() => {
-                  setUsername('admin');
-                  setPassword('123456');
-                  
-                  // Short delay to ensure state is updated before submitting
-                  setTimeout(() => {
-                    handleLogin({ preventDefault: () => {} } as React.FormEvent);
-                  }, 50);
-                }}
-              >
-                Login as Admin
-              </Button>
-              
-              <Button
-                type="button"
-                variant="outline"
-                className="w-1/2"
-                disabled={loading}
-                onClick={() => {
-                  setUsername('lcanady');
-                  setPassword('123456');
-                  
-                  // Short delay to ensure state is updated before submitting
-                  setTimeout(() => {
-                    handleLogin({ preventDefault: () => {} } as React.FormEvent);
-                  }, 50);
-                }}
-              >
-                Login as Therapist
-              </Button>
-            </div>
-            
-            <div className="space-y-3">
+            <div className="space-y-3 pt-2">
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Logging in..." : "Log In"}
-              </Button>
-              
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-muted"></span>
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    Or
-                  </span>
-                </div>
-              </div>
-              
-              <Button
-                type="button"
-                variant="secondary"
-                className="w-full"
-                disabled={loading}
-                onClick={() => {
-                  setUsername('admin');
-                  setPassword('123456');
-                  
-                  // Short delay to ensure state is updated before submitting
-                  setTimeout(() => {
-                    handleLogin({ preventDefault: () => {} } as React.FormEvent);
-                  }, 50);
-                }}
-              >
-                Login as Admin
               </Button>
             </div>
           </form>
