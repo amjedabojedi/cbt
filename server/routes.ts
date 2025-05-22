@@ -3801,10 +3801,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/notifications/unread", authenticate, async (req, res) => {
     try {
       const userId = req.user!.id;
-      console.log(`Fetching unread notifications for user ${userId}`);
+      const forceRefresh = req.query._t || req.query.timestamp; // Support cache busting
       
-      // Import withRetry for database resilience
-      const { withRetry } = await import('./db');
+      console.log(`Fetching unread notifications for user ${userId} ${forceRefresh ? '(forced refresh)' : ''}`);
+      
+      // Import what we need from db
+      const { withRetry, db, sql } = await import('./db');
       
       // Get the user to check role
       const user = await storage.getUser(userId);
@@ -3812,36 +3814,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
+      // Set up an empty array for the results
       let allUnreadNotifications = [];
       
-      // First get direct notifications for this user
-      const userNotifications = await withRetry(async () => {
-        return await storage.getUnreadNotificationsByUser(userId);
-      });
-      
-      allUnreadNotifications = [...userNotifications];
-      console.log(`Found ${userNotifications.length} direct notifications for user ${userId}`);
-      
-      // If therapist, also get notifications for their clients
+      // STEP 1: Use a direct database query to get the most accurate count
+      // ALWAYS verify is_read status directly in the query
       if (user.role === 'therapist') {
-        console.log(`User ${userId} is a therapist, checking client notifications`);
-        const clients = await storage.getClients(userId);
-        
-        // For each client of this therapist, get their unread notifications
-        for (const client of clients) {
-          // Only include notifications that should be visible to therapists
-          // This prevents therapists from seeing personal client notifications
-          const clientNotifications = await withRetry(async () => {
-            return await storage.getUnreadNotificationsByUser(client.id, true);
+        // For therapists, we need to get their unread notifications AND client notifications
+        try {
+          // First get the therapist's own notifications
+          const therapistNotifications = await withRetry(async () => {
+            const result = await db.query(sql`
+              SELECT * FROM notifications
+              WHERE user_id = ${userId}
+              AND is_read = false
+              ORDER BY created_at DESC
+            `);
+            return result.rows;
           });
           
-          if (clientNotifications.length > 0) {
-            console.log(`Found ${clientNotifications.length} notifications for client ${client.id}`);
-            // Mark these as viewed by the therapist (but not read, which is done separately)
-            allUnreadNotifications = [...allUnreadNotifications, ...clientNotifications];
+          allUnreadNotifications = therapistNotifications || [];
+          console.log(`Found ${allUnreadNotifications.length} direct unread notifications for therapist ${userId}`);
+          
+          // Then get client notifications - start by getting client IDs
+          const clients = await storage.getClients(userId);
+          if (clients.length > 0) {
+            const clientIds = clients.map(client => client.id);
+            console.log(`Checking unread notifications for ${clients.length} clients of therapist ${userId}`);
+            
+            // Get all unread client notifications in a single query for performance
+            const clientNotifications = await withRetry(async () => {
+              const clientIdsStr = clientIds.join(',');
+              if (!clientIdsStr) return []; // Safety check
+              
+              const result = await db.query(sql`
+                SELECT * FROM notifications
+                WHERE user_id IN (${sql.raw(clientIdsStr)})
+                AND is_read = false
+                AND (
+                  type = 'reminder' OR 
+                  type = 'system' OR 
+                  type = 'progress_update'
+                )
+                ORDER BY created_at DESC
+              `);
+              return result.rows;
+            });
+            
+            if (clientNotifications && clientNotifications.length > 0) {
+              console.log(`Found ${clientNotifications.length} client unread notifications visible to therapist ${userId}`);
+              allUnreadNotifications = [...allUnreadNotifications, ...clientNotifications];
+            }
           }
+        } catch (dbError) {
+          console.error("Database error fetching therapist notifications:", dbError);
         }
+      } else {
+        // For regular users, just get their notifications
+        const userNotifications = await withRetry(async () => {
+          const result = await db.query(sql`
+            SELECT * FROM notifications
+            WHERE user_id = ${userId}
+            AND is_read = false
+            ORDER BY created_at DESC
+          `);
+          return result.rows;
+        });
+        
+        allUnreadNotifications = userNotifications || [];
+        console.log(`Found ${allUnreadNotifications.length} unread notifications for user ${userId}`);
       }
+      
+      // Set cache control headers to prevent stale data
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       
       console.log(`Returning ${allUnreadNotifications.length} total unread notifications`);
       res.status(200).json(allUnreadNotifications);
@@ -3875,64 +3922,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/notifications/read-all", authenticate, async (req, res) => {
     try {
       const userId = req.user!.id;
-      console.log(`Marking all notifications as read for user ${userId}`);
+      console.log(`EMERGENCY NOTIFICATION RESET for user ${userId}`);
       
-      // First attempt to clear only notifications directly for this user
-      await storage.markAllNotificationsAsRead(userId);
-      
-      // For therapists, also clear notifications for their clients that they can view
+      // Get the user to check role
       const user = await storage.getUser(userId);
-      if (user && (user.role === "therapist" || user.role === "admin")) {
-        console.log(`User ${userId} is a ${user.role}, checking for client notifications`);
-        
-        // If user is a therapist, mark client notifications as read too
-        if (user.role === "therapist") {
-          const clients = await storage.getClients(userId);
-          console.log(`Found ${clients.length} clients for therapist ${userId}`);
-          
-          // Mark notifications for all clients as read
-          for (const client of clients) {
-            console.log(`Marking notifications as read for client ${client.id}`);
-            await storage.markAllNotificationsAsRead(client.id);
-          }
-          
-          // Direct SQL approach to ensure all relevant notifications are marked as read
-          try {
-            // Use a direct SQL query to update all notifications that this therapist should see
-            const { withRetry } = await import('./db');
-            await withRetry(async () => {
-              const result = await db.execute(sql`
-                UPDATE notifications 
-                SET is_read = true 
-                WHERE user_id IN (
-                  SELECT id FROM users WHERE therapist_id = ${userId}
-                )
-                OR user_id = ${userId}
-              `);
-              console.log(`Direct SQL update completed successfully`);
-              return result;
-            });
-          } catch (sqlError) {
-            console.error("Error with direct SQL update:", sqlError);
-          }
-        }
-        
-        // If user is admin, they might need to mark all notifications as read
-        if (user.role === "admin") {
-          console.log("Admin user, marking all system notifications as read");
-          // Additional admin-specific notification clearing could go here
-        }
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
       
+      // Direct SQL approach - most reliable way to clear all notifications
+      try {
+        const { withRetry, db, sql } = await import('./db');
+        
+        // Different queries based on user role
+        if (user.role === "therapist") {
+          console.log(`User ${userId} is a therapist, executing therapist-specific notification reset`);
+          
+          // Get all client IDs for this therapist
+          const clients = await storage.getClients(userId);
+          const clientIds = clients.map(client => client.id);
+          console.log(`Found ${clients.length} clients for therapist ${userId}: ${clientIds.join(', ')}`);
+          
+          // Prepare a comprehensive update that covers both therapist and all their clients
+          await withRetry(async () => {
+            // First, mark all the therapist's own notifications as read
+            await db.execute(sql`
+              UPDATE notifications 
+              SET is_read = true 
+              WHERE user_id = ${userId}
+            `);
+            console.log(`Reset direct notifications for therapist ${userId}`);
+            
+            // Then, mark all notifications for all clients of this therapist as read
+            if (clientIds.length > 0) {
+              const clientIdsStr = clientIds.join(',');
+              await db.execute(sql`
+                UPDATE notifications 
+                SET is_read = true 
+                WHERE user_id IN (${sql.raw(clientIdsStr)})
+              `);
+              console.log(`Reset notifications for all ${clientIds.length} clients of therapist ${userId}`);
+            }
+            
+            return true;
+          });
+        } else if (user.role === "admin") {
+          // Admins can mark all notifications as read
+          await withRetry(async () => {
+            await db.execute(sql`
+              UPDATE notifications 
+              SET is_read = true 
+              WHERE user_id = ${userId}
+            `);
+            console.log(`Reset all notifications for admin ${userId}`);
+            return true;
+          });
+        } else {
+          // Regular users can only mark their own notifications as read
+          await withRetry(async () => {
+            await db.execute(sql`
+              UPDATE notifications 
+              SET is_read = true 
+              WHERE user_id = ${userId}
+            `);
+            console.log(`Reset notifications for regular user ${userId}`);
+            return true;
+          });
+        }
+        
+        console.log(`Notification database reset completed successfully for user ${userId}`);
+      } catch (sqlError) {
+        console.error("Critical error with notification reset:", sqlError);
+        throw sqlError; // Re-throw to be caught by outer try/catch
+      }
+      
+      // Send successful response with cache control headers
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       res.status(200).json({ 
         success: true,
-        message: "All notifications marked as read" 
+        message: "All notifications marked as read",
+        timestamp: Date.now()
       });
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
       res.status(500).json({ 
         success: false,
-        message: "Failed to mark all notifications as read" 
+        message: "Failed to mark all notifications as read",
+        timestamp: Date.now() 
       });
     }
   });
