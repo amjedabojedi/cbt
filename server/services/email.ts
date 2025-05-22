@@ -2,8 +2,8 @@ import { pool } from '../db';
 import SparkPost from 'sparkpost';
 
 // Default from email address to use when not specified
-// Default from email address - will need to be configured in SparkPost
-const DEFAULT_FROM_EMAIL = "support@resilience-counseling.com";
+// Default from email address - configured in SparkPost
+const DEFAULT_FROM_EMAIL = "noreply@send.rcrc.ca";
 
 // Check if SparkPost domain is verified
 async function checkSparkPostDomainStatus() {
