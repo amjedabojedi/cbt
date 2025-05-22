@@ -77,7 +77,39 @@ export async function sendPasswordResetEmail(email: string, resetLink: string): 
   return sendEmail({
     to: email,
     subject: "Reset your ResilienceHub™ password",
-    html: `<p>Click <a href="${resetLink}">here</a> to reset your password</p>`
+    html: `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 5px;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h1 style="color: #4A6FA5; margin-bottom: 10px;">ResilienceHub™</h1>
+        <p style="color: #666; font-size: 16px;">Resilience Counseling Research and Consultation</p>
+      </div>
+      
+      <div style="background-color: #f8f9fa; border-left: 4px solid #4A6FA5; padding: 15px; margin-bottom: 20px;">
+        <h2 style="color: #4A6FA5; margin-top: 0;">Password Reset Request</h2>
+        <p style="color: #333; line-height: 1.5;">We received a request to reset your password for ResilienceHub™. If you didn't make this request, you can safely ignore this email.</p>
+      </div>
+      
+      <div style="margin-bottom: 25px;">
+        <p style="color: #333; line-height: 1.5;">To set a new password, please click the button below:</p>
+        <div style="text-align: center; margin: 25px 0;">
+          <a href="${resetLink}" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">Reset My Password</a>
+        </div>
+        <p style="color: #333; line-height: 1.5;">This link will expire in 1 hour for security reasons. If you need a new link, you can always request another password reset.</p>
+      </div>
+      
+      <div style="border-top: 1px solid #e1e1e1; padding-top: 20px; font-size: 14px; color: #666; line-height: 1.5;">
+        <p>If you're having trouble with the button above, copy and paste the URL below into your web browser:</p>
+        <p style="word-break: break-all;">${resetLink}</p>
+      </div>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e1e1e1; text-align: center;">
+        <p style="color: #666; font-size: 14px;">
+          &copy; ${new Date().getFullYear()} Resilience Counseling Research and Consultation<br>
+          <em>Supporting your emotional well-being journey</em>
+        </p>
+      </div>
+    </div>
+    `
   });
 }
 
