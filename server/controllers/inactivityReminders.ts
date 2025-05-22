@@ -236,8 +236,17 @@ export async function sendInactivityReminders(req: Request, res: Response) {
       
       // Send email if SparkPost is configured
       if (emailsEnabled) {
+        console.log(`Attempting to send reminder email to ${client.name} (${client.email})`);
         const emailSent = await sendEmotionTrackingReminder(client.email, client.name);
-        if (emailSent) emailsSent++;
+        
+        if (emailSent) {
+          console.log(`✓ Successfully sent email to ${client.email}`);
+          emailsSent++;
+        } else {
+          console.log(`✗ Failed to send email to ${client.email}`);
+        }
+      } else {
+        console.log(`Email service not enabled - would have sent reminder to ${client.email}`);
       }
     }
     
