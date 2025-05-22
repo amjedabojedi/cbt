@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { pool, db } from "./db";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 
 // Helper function to create consistent cookie options for all session cookies
 // This ensures mobile and cross-device compatibility
@@ -114,7 +115,8 @@ import {
   cognitiveDistortions,
   thoughtRecords,
   users,
-  emotionRecords
+  emotionRecords,
+  passwordResetTokens
 } from "@shared/schema";
 import cookieParser from "cookie-parser";
 // Email reminders will be handled by the script files we created
@@ -122,7 +124,7 @@ import cookieParser from "cookie-parser";
 // import { analyzeJournalEntry, JournalAnalysisResult } from "./services/openai";
 import { registerIntegrationRoutes } from "./services/integrationRoutes";
 import { registerReframeCoachRoutes } from "./services/reframeCoach";
-import { eq, or, isNull, desc, and, inArray, sql } from "drizzle-orm";
+import { eq, or, isNull, desc, and, inArray, sql, gt } from "drizzle-orm";
 
 // Initialize Stripe
 if (!process.env.STRIPE_SECRET_KEY) {
