@@ -9,35 +9,19 @@ import { Request, Response } from 'express';
  */
 export async function findInactiveClients(days: number = 3, therapistId?: number): Promise<any[]> {
   try {
+    console.log(`Finding inactive clients with threshold of ${days} days`);
     const now = new Date();
     const cutoffDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    console.log(`Cutoff date: ${cutoffDate.toISOString()}`);
     
-    // We need to track the most recent activity from any tracked source:
-    // - emotion_records
-    // - thought_records
-    // - journal_entries
-    // - goals
-    
-    // First, build our base query for finding clients
-    let query = `
+    // First get all clients
+    let clientQuery = `
       SELECT 
         u.id, 
         u.name, 
         u.email, 
         u.therapist_id as "therapistId",
-        u.created_at as "createdAt",
-        (
-          SELECT GREATEST(
-            -- Check emotion_records
-            COALESCE((SELECT MAX(e.timestamp) FROM emotion_records e WHERE e.user_id = u.id), '1970-01-01'),
-            -- Check thought_records
-            COALESCE((SELECT MAX(t.created_at) FROM thought_records t WHERE t.user_id = u.id), '1970-01-01'),
-            -- Check journal_entries
-            COALESCE((SELECT MAX(j.created_at) FROM journal_entries j WHERE j.user_id = u.id), '1970-01-01'),
-            -- Check goals
-            COALESCE((SELECT MAX(g.created_at) FROM goals g WHERE g.user_id = u.id), '1970-01-01')
-          )
-        ) as "lastActivity"
+        u.created_at as "createdAt"
       FROM users u
       WHERE 
         u.role = 'client' AND 
@@ -45,59 +29,71 @@ export async function findInactiveClients(days: number = 3, therapistId?: number
     `;
     
     // Add therapist filter if specified
-    const queryParams = [cutoffDate.toISOString()];
+    const clientQueryParams = [];
     if (therapistId) {
-      query += ` AND u.therapist_id = $2`;
-      queryParams.push(therapistId.toString());
+      clientQuery += ` AND u.therapist_id = $1`;
+      clientQueryParams.push(therapistId);
     }
     
-    // Now add our condition to identify inactive clients
-    query += `
-      AND (
-        -- Case 1: Has any records but none since cutoff date
-        (
-          (
-            EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id) OR
-            EXISTS (SELECT 1 FROM thought_records t WHERE t.user_id = u.id) OR
-            EXISTS (SELECT 1 FROM journal_entries j WHERE j.user_id = u.id) OR
-            EXISTS (SELECT 1 FROM goals g WHERE g.user_id = u.id)
-          )
-          AND (
-            -- Get the most recent activity timestamp and check if it's before cutoff
-            (
-              SELECT GREATEST(
-                COALESCE((SELECT MAX(e.timestamp) FROM emotion_records e WHERE e.user_id = u.id), '1970-01-01'),
-                COALESCE((SELECT MAX(t.created_at) FROM thought_records t WHERE t.user_id = u.id), '1970-01-01'),
-                COALESCE((SELECT MAX(j.created_at) FROM journal_entries j WHERE j.user_id = u.id), '1970-01-01'),
-                COALESCE((SELECT MAX(g.created_at) FROM goals g WHERE g.user_id = u.id), '1970-01-01')
-              )
-            ) < $1
-          )
-        )
-        -- Case 2: Has never recorded any activity but registered more than 'days' days ago
-        OR (
-          NOT EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id) AND
-          NOT EXISTS (SELECT 1 FROM thought_records t WHERE t.user_id = u.id) AND
-          NOT EXISTS (SELECT 1 FROM journal_entries j WHERE j.user_id = u.id) AND
-          NOT EXISTS (SELECT 1 FROM goals g WHERE g.user_id = u.id) AND
-          u.created_at < $1
-        )
-      )
-    `;
+    // Get all the clients
+    const clientsResult = await pool.query(clientQuery, clientQueryParams);
+    const allClients = clientsResult.rows;
+    console.log(`Found ${allClients.length} total clients to check for inactivity`);
     
-    // Add sorting to show most inactive clients first
-    query += ` 
-      ORDER BY 
-        CASE WHEN "lastActivity" = '1970-01-01' THEN u.created_at ELSE "lastActivity" END ASC
-    `;
+    // Now for each client, check their most recent activities
+    const inactiveClients = [];
     
-    const result = await pool.query(query, queryParams);
+    for (const client of allClients) {
+      // Query to get the most recent activity across all types
+      const activityQuery = `
+        SELECT 
+          GREATEST(
+            COALESCE((SELECT MAX(timestamp) FROM emotion_records WHERE user_id = $1), '1970-01-01'),
+            COALESCE((SELECT MAX(created_at) FROM thought_records WHERE user_id = $1), '1970-01-01'),
+            COALESCE((SELECT MAX(created_at) FROM journal_entries WHERE user_id = $1), '1970-01-01'),
+            COALESCE((SELECT MAX(created_at) FROM goals WHERE user_id = $1), '1970-01-01')
+          ) as last_activity
+      `;
+      
+      const activityResult = await pool.query(activityQuery, [client.id]);
+      const lastActivity = activityResult.rows[0].last_activity;
+      
+      // Check if the client has ever recorded any activity
+      const hasActivity = lastActivity !== '1970-01-01';
+      
+      // Determine if the client is inactive
+      let isInactive = false;
+      
+      if (hasActivity) {
+        // Check if their last activity is before the cutoff date
+        const lastActivityDate = new Date(lastActivity);
+        isInactive = lastActivityDate < cutoffDate;
+        console.log(`Client ${client.id}: ${client.name} - Last activity: ${lastActivityDate.toISOString()} - Inactive: ${isInactive}`);
+      } else {
+        // If they have never recorded any activity, check if they registered before the cutoff date
+        const createdAt = new Date(client.createdAt);
+        isInactive = createdAt < cutoffDate;
+        console.log(`Client ${client.id}: ${client.name} - No activity, created at: ${createdAt.toISOString()} - Inactive: ${isInactive}`);
+      }
+      
+      // If inactive, add to our list
+      if (isInactive) {
+        inactiveClients.push({
+          ...client,
+          lastActivity: hasActivity ? lastActivity : 'Never recorded'
+        });
+      }
+    }
     
-    // Format the result to ensure consistent format
-    return result.rows.map(client => ({
-      ...client,
-      lastActivity: client.lastActivity === '1970-01-01' ? 'Never recorded' : client.lastActivity
-    }));
+    // Sort by last activity date (or creation date if no activity)
+    inactiveClients.sort((a, b) => {
+      const dateA = a.lastActivity === 'Never recorded' ? new Date(a.createdAt) : new Date(a.lastActivity);
+      const dateB = b.lastActivity === 'Never recorded' ? new Date(b.createdAt) : new Date(b.lastActivity);
+      return dateA.getTime() - dateB.getTime();
+    });
+    
+    console.log(`Found ${inactiveClients.length} inactive clients`);
+    return inactiveClients;
   } catch (error) {
     console.error('Error finding inactive clients:', error);
     return [];
