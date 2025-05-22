@@ -11,26 +11,27 @@ export async function findInactiveClients(days: number = 3, therapistId?: number
     const now = new Date();
     const cutoffDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
     
-    // Base query to find clients who haven't recorded emotions since the cutoff date
+    // We need to handle two cases:
+    // 1. Clients who have emotion records but none since the cutoff date
+    // 2. Clients who have never recorded emotions and have been registered for more than 'days' days
+    
+    // First, build our base query for finding clients
     let query = `
-      SELECT u.id, u.name, u.email, u.therapist_id as "therapistId", 
-             COALESCE(
-               (SELECT MAX(e.timestamp) FROM emotion_records e WHERE e.user_id = u.id),
-               'Never'
-             ) as "lastActivity"
+      SELECT 
+        u.id, 
+        u.name, 
+        u.email, 
+        u.therapist_id as "therapistId",
+        u.created_at as "createdAt",
+        (
+          SELECT MAX(e.timestamp) 
+          FROM emotion_records e 
+          WHERE e.user_id = u.id
+        ) as "lastActivity"
       FROM users u
-      WHERE u.role = 'client' 
-        AND u.status = 'active'
-        AND (
-          -- Has tracked emotions before
-          EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id)
-          -- But not since cutoff date
-          AND NOT EXISTS (
-            SELECT 1 FROM emotion_records e 
-            WHERE e.user_id = u.id 
-            AND e.timestamp > $1
-          )
-        )
+      WHERE 
+        u.role = 'client' AND 
+        u.status = 'active'
     `;
     
     // Add therapist filter if specified
@@ -40,11 +41,39 @@ export async function findInactiveClients(days: number = 3, therapistId?: number
       queryParams.push(therapistId.toString());
     }
     
+    // Now add our condition to identify inactive clients
+    query += `
+      AND (
+        -- Case 1: Has emotion records but none since cutoff date
+        (
+          EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id) AND
+          NOT EXISTS (
+            SELECT 1 FROM emotion_records e 
+            WHERE e.user_id = u.id AND e.timestamp > $1
+          )
+        )
+        -- Case 2: Has never recorded emotions but registered more than 'days' days ago
+        OR (
+          NOT EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id) AND
+          u.created_at < $1
+        )
+      )
+    `;
+    
     // Add sorting to show most inactive clients first
-    query += ` ORDER BY "lastActivity" ASC`;
+    // For clients who never recorded emotions, order by their registration date
+    query += ` 
+      ORDER BY 
+        CASE WHEN "lastActivity" IS NULL THEN u.created_at ELSE "lastActivity" END ASC
+    `;
     
     const result = await pool.query(query, queryParams);
-    return result.rows;
+    
+    // Format the result to ensure consistent format
+    return result.rows.map(client => ({
+      ...client,
+      lastActivity: client.lastActivity || 'Never recorded'
+    }));
   } catch (error) {
     console.error('Error finding inactive clients:', error);
     return [];
