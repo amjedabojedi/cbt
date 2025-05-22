@@ -549,3 +549,5 @@ export const insertClientInvitationSchema = createInsertSchema(clientInvitations
 });
 export type ClientInvitation = typeof clientInvitations.$inferSelect;
 export type InsertClientInvitation = z.infer<typeof insertClientInvitationSchema>;
+
+
