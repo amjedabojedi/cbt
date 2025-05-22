@@ -109,10 +109,6 @@ export default function Login() {
         <CardHeader>
           <CardTitle>Log In</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
-          <div className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded-md">
-            <span className="font-semibold">Admin Account:</span> username: admin, password: 123456<br/>
-            <span className="font-semibold">Therapist:</span> username: lcanady, password: 123456
-          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
