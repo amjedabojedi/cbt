@@ -17,6 +17,8 @@ const Login = lazy(() => import("@/pages/Login"));
 const Register = lazy(() => import("@/pages/Register"));
 const AuthPage = lazy(() => import("@/pages/auth-page"));
 const MobileLogin = lazy(() => import("@/pages/MobileLogin"));
+const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
@@ -83,6 +85,8 @@ function Router() {
           <Route path="/auth" component={AuthPage} />
           <Route path="/m/login" component={MobileLogin} />
           <Route path="/mobile-login" component={MobileLogin} />
+          <Route path="/forgot-password" component={ForgotPassword} />
+          <Route path="/reset-password/:token" component={ResetPassword} />
           <Route path="/privacy-policy" component={PrivacyPolicy} />
           <Route path="/terms-of-service" component={TermsOfService} />
           
