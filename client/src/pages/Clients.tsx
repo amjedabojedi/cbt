@@ -852,8 +852,8 @@ export default function Clients() {
       // Use therapistId field consistently (backend now normalizes this)
       therapistId: client.therapistId || client.therapist_id || null,
       status: client.status || 'active', // Default to active if not specified
-      // Use createdAt field consistently
-      createdAt: client.createdAt || (client.created_at ? new Date(client.created_at) : new Date()),
+      // Use createdAt field consistently - IMPORTANT: Never use today's date as fallback
+      createdAt: client.createdAt || (client.created_at ? new Date(client.created_at) : null),
       // Other normalized fields
       currentViewingClientId: client.currentViewingClientId || client.current_viewing_client_id || null
     }));
