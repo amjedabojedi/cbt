@@ -478,19 +478,21 @@ export default function Clients() {
   const checkInactiveClients = async () => {
     setCheckingInactiveClients(true);
     try {
-      const response = await apiRequest(`/api/client-engagement/inactive?days=${inactivityDays}&therapistOnly=true`);
-      if (response.success) {
-        setInactiveClients(response.clients || []);
+      const response = await apiRequest("GET", `/api/client-engagement/inactive?days=${inactivityDays}&therapistOnly=true`);
+      if (response.ok) {
+        const data = await response.json();
+        setInactiveClients(data.clients || []);
         setShowInactiveClientsModal(true);
         toast({
-          title: `Found ${response.count} inactive clients`,
+          title: `Found ${data.count} inactive clients`,
           description: `Clients who haven't recorded emotions in ${inactivityDays} days`,
           duration: 3000,
         });
       } else {
+        const error = await response.json();
         toast({
           title: "Error checking inactive clients",
-          description: response.message || "Unable to check for inactive clients",
+          description: error.message || "Unable to check for inactive clients",
           variant: "destructive",
           duration: 3000,
         });
@@ -512,25 +514,24 @@ export default function Clients() {
   const sendRemindersToInactiveClients = async () => {
     setSendingReminders(true);
     try {
-      const response = await apiRequest(`/api/engagement/send-reminders`, {
-        method: 'POST',
-        body: JSON.stringify({
-          days: inactivityDays,
-          therapistOnly: true
-        })
+      const response = await apiRequest("POST", `/api/client-engagement/send-reminders`, {
+        days: inactivityDays,
+        therapistOnly: true
       });
       
-      if (response.success) {
+      if (response.ok) {
+        const data = await response.json();
         toast({
           title: "Reminders sent successfully",
-          description: `Sent ${response.notificationsSent} notifications and ${response.emailsSent} emails to inactive clients`,
+          description: `Sent ${data.notificationsSent} notifications and ${data.emailsSent} emails to inactive clients`,
           duration: 5000,
         });
         setShowInactiveClientsModal(false);
       } else {
+        const errorData = await response.json();
         toast({
           title: "Error sending reminders",
-          description: response.message || "Unable to send reminders",
+          description: errorData.message || "Unable to send reminders",
           variant: "destructive",
           duration: 3000,
         });
