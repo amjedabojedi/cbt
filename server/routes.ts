@@ -3822,15 +3822,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user.role === 'therapist') {
         // For therapists, we need to get their unread notifications AND client notifications
         try {
-          // First get the therapist's own notifications
+          // First get the therapist's own notifications using storage method
           const therapistNotifications = await withRetry(async () => {
-            const result = await db.query(sql`
-              SELECT * FROM notifications
-              WHERE user_id = ${userId}
-              AND is_read = false
-              ORDER BY created_at DESC
-            `);
-            return result.rows;
+            return await storage.getUnreadNotificationsByUser(userId);
           });
           
           allUnreadNotifications = therapistNotifications || [];
@@ -3842,43 +3836,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const clientIds = clients.map(client => client.id);
             console.log(`Checking unread notifications for ${clients.length} clients of therapist ${userId}`);
             
-            // Get all unread client notifications in a single query for performance
-            const clientNotifications = await withRetry(async () => {
-              const clientIdsStr = clientIds.join(',');
-              if (!clientIdsStr) return []; // Safety check
+            // Get all unread client notifications one client at a time to avoid SQL errors
+            for (const clientId of clientIds) {
+              const clientNotifications = await withRetry(async () => {
+                return await storage.getUnreadNotificationsByUser(clientId, true);
+              });
               
-              const result = await db.query(sql`
-                SELECT * FROM notifications
-                WHERE user_id IN (${sql.raw(clientIdsStr)})
-                AND is_read = false
-                AND (
-                  type = 'reminder' OR 
-                  type = 'system' OR 
-                  type = 'progress_update'
-                )
-                ORDER BY created_at DESC
-              `);
-              return result.rows;
-            });
-            
-            if (clientNotifications && clientNotifications.length > 0) {
-              console.log(`Found ${clientNotifications.length} client unread notifications visible to therapist ${userId}`);
-              allUnreadNotifications = [...allUnreadNotifications, ...clientNotifications];
+              if (clientNotifications && clientNotifications.length > 0) {
+                console.log(`Found ${clientNotifications.length} unread notifications for client ${clientId}`);
+                allUnreadNotifications = [...allUnreadNotifications, ...clientNotifications];
+              }
             }
           }
         } catch (dbError) {
           console.error("Database error fetching therapist notifications:", dbError);
         }
       } else {
-        // For regular users, just get their notifications
+        // For regular users, just get their notifications using storage method
         const userNotifications = await withRetry(async () => {
-          const result = await db.query(sql`
-            SELECT * FROM notifications
-            WHERE user_id = ${userId}
-            AND is_read = false
-            ORDER BY created_at DESC
-          `);
-          return result.rows;
+          return await storage.getUnreadNotificationsByUser(userId);
         });
         
         allUnreadNotifications = userNotifications || [];
