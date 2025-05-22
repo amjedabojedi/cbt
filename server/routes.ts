@@ -1817,7 +1817,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...client,
         // Only add these if they're not already present
         therapistId: client.therapistId || client.therapist_id || null,
-        createdAt: client.createdAt || (client.created_at ? new Date(client.created_at) : new Date())
+        createdAt: client.createdAt || (client.created_at ? new Date(client.created_at) : null)
       }));
       
       console.log(`Found ${formattedClients.length} clients for therapist ${therapistId}`);

@@ -295,15 +295,36 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`Querying database for clients with therapist_id = ${therapistId}`);
       
-      // Use Drizzle ORM with correct column name
-      const clientsList = await db
-        .select()
-        .from(users)
-        .where(and(
-          eq(users.role, 'client'),
-          eq(users.therapistId, therapistId)
-        ))
-        .orderBy(users.name);
+      // Use raw SQL query to ensure we get all fields properly, especially created_at
+      const query = `
+        SELECT 
+          id, 
+          username, 
+          email, 
+          name, 
+          role, 
+          therapist_id, 
+          current_viewing_client_id, 
+          status,
+          created_at,
+          stripe_customer_id,
+          stripe_subscription_id,
+          subscription_plan_id,
+          subscription_status,
+          subscription_end_date,
+          bio,
+          specialty,
+          licenses,
+          education,
+          approach
+        FROM users
+        WHERE role = 'client' AND therapist_id = $1
+        ORDER BY name
+      `;
+      
+      const { pool } = await import('./db');
+      const result = await pool.query(query, [therapistId]);
+      const clientsList = result.rows;
       
       console.log(`Found ${clientsList.length} clients for therapist ${therapistId}`);
       return clientsList;
