@@ -227,7 +227,7 @@ function ClientEmotionRecordsList({ clientId, limit = 3 }: ClientStatProps & { l
           className="w-full mt-2"
           onClick={() => {
             const client = { id: clientId } as User;
-            handleViewRecords(client);
+            handleViewRecords_FIXED(client);
           }}
         >
           View All Records ({emotions.length})
