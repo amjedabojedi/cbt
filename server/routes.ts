@@ -4203,11 +4203,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Then, mark all notifications for all clients of this therapist as read
             if (clientIds.length > 0) {
-              const clientIdsStr = clientIds.join(',');
               await db.execute(sql`
                 UPDATE notifications 
                 SET is_read = true 
-                WHERE user_id IN (${sql.raw(clientIdsStr)})
+                WHERE user_id IN ${sql.join(clientIds.map(id => sql`${id}`), sql`, `)}
               `);
               console.log(`Reset notifications for all ${clientIds.length} clients of therapist ${userId}`);
             }
