@@ -687,6 +687,30 @@ export default function Clients() {
   const onInviteSubmit = (data: InviteClientFormValues) => {
     inviteMutation.mutate(data);
   };
+
+  // Resend invitation mutation
+  const resendInviteMutation = useMutation({
+    mutationFn: async (client: User) => {
+      const response = await apiRequest("POST", "/api/users/resend-invitation", {
+        email: client.email,
+        name: client.name
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Invitation Resent",
+        description: "The invitation has been sent again to the client.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to resend invitation.",
+        variant: "destructive",
+      });
+    },
+  });
   
   // Delete client mutation
   const deleteClientMutation = useMutation({
@@ -1054,6 +1078,20 @@ export default function Clients() {
                                   className="cursor-pointer"
                                   onClick={() => handleViewGoals(client)}
                                 >
+                                  <Target className="h-4 w-4 mr-2" />
+                                  View Goals
+                                </DropdownMenuItem>
+                                {client.status === "pending" && (
+                                  <DropdownMenuItem 
+                                    className="cursor-pointer text-blue-600"
+                                    onClick={() => resendInviteMutation.mutate(client)}
+                                    disabled={resendInviteMutation.isPending}
+                                  >
+                                    <Mail className="h-4 w-4 mr-2" />
+                                    {resendInviteMutation.isPending ? "Sending..." : "Resend Invitation"}
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
                                   <Flag className="h-4 w-4 mr-2" />
                                   View Goals
                                 </DropdownMenuItem>
