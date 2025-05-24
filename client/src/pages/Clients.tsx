@@ -25,8 +25,13 @@ import {
   BarChart3,
   Brain,
   UserPlus,
-  User
+  User,
+  Send,
+  Clock,
+  RefreshCw
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface User {
   id: number;
@@ -58,6 +63,11 @@ export default function Clients() {
 
   const { data: clients, isLoading: clientsLoading } = useQuery({
     queryKey: ['/api/users/clients'],
+    enabled: !!user && (user.role === 'therapist' || user.role === 'admin')
+  });
+
+  const { data: invitations, isLoading: invitationsLoading } = useQuery({
+    queryKey: ['/api/invitations'],
     enabled: !!user && (user.role === 'therapist' || user.role === 'admin')
   });
 
@@ -141,6 +151,32 @@ export default function Clients() {
       title: "Feature Coming Soon",
       description: "Direct messaging will be available in a future update."
     });
+  };
+
+  const resendMutation = useMutation({
+    mutationFn: async (invitationId: number) => {
+      return apiRequest(`/api/invitations/${invitationId}/resend`, {
+        method: 'POST'
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Invitation Resent!",
+        description: "The invitation has been sent again successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/invitations'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to resend invitation.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleResendInvitation = (invitationId: number) => {
+    resendMutation.mutate(invitationId);
   };
 
   const filteredClients = clients ? clients.filter((client: User) => 
@@ -237,102 +273,186 @@ export default function Clients() {
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredClients?.map((client: User) => (
-            <Card key={client.id} className="hover:shadow-lg transition-shadow">
+        <Tabs defaultValue="clients" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="clients">Active Clients</TabsTrigger>
+            <TabsTrigger value="invitations">
+              Pending Invitations
+              {invitations && invitations.length > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {invitations.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="clients" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredClients?.map((client: User) => (
+                <Card key={client.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                          <User className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{client.name || client.username}</CardTitle>
+                          <CardDescription className="text-sm">{client.email}</CardDescription>
+                        </div>
+                      </div>
+                      <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
+                        {client.status}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center justify-center"
+                        onClick={() => handleViewRecords(client)}
+                      >
+                        <Heart className="mr-1 h-4 w-4" />
+                        Records
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center justify-center"
+                        onClick={() => handleViewGoals(client)}
+                      >
+                        <Target className="mr-1 h-4 w-4" />
+                        Goals
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center justify-center"
+                        onClick={() => handleViewJournals(client)}
+                      >
+                        <BookOpen className="mr-1 h-4 w-4" />
+                        Journal
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center justify-center"
+                        onClick={() => handleViewThoughtRecords(client)}
+                      >
+                        <Brain className="mr-1 h-4 w-4" />
+                        Thoughts
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleViewStats(client)}
+                      >
+                        <BarChart3 className="mr-1 h-4 w-4" />
+                        Dashboard
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSendMessage(client)}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {filteredClients?.length === 0 && (
+              <div className="text-center py-12">
+                <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No clients found</h3>
+                <p className="text-gray-500 mb-4">
+                  {searchTerm ? "No clients match your search." : "Get started by inviting your first client."}
+                </p>
+                {!searchTerm && (
+                  <Button onClick={() => setShowInviteDialog(true)}>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Invite First Client
+                  </Button>
+                )}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="invitations" className="space-y-6">
+            <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <User className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{client.name || client.username}</CardTitle>
-                      <CardDescription className="text-sm">{client.email}</CardDescription>
-                    </div>
-                  </div>
-                  <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
-                    {client.status}
-                  </Badge>
-                </div>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Pending Invitations
+                </CardTitle>
+                <CardDescription>
+                  Manage client invitations that haven't been accepted yet
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center justify-center"
-                    onClick={() => handleViewRecords(client)}
-                  >
-                    <Heart className="mr-1 h-4 w-4" />
-                    Records
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center justify-center"
-                    onClick={() => handleViewGoals(client)}
-                  >
-                    <Target className="mr-1 h-4 w-4" />
-                    Goals
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center justify-center"
-                    onClick={() => handleViewJournals(client)}
-                  >
-                    <BookOpen className="mr-1 h-4 w-4" />
-                    Journal
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center justify-center"
-                    onClick={() => handleViewThoughtRecords(client)}
-                  >
-                    <Brain className="mr-1 h-4 w-4" />
-                    Thoughts
-                  </Button>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleViewStats(client)}
-                  >
-                    <BarChart3 className="mr-1 h-4 w-4" />
-                    Dashboard
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSendMessage(client)}
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                  </Button>
-                </div>
+                {invitationsLoading ? (
+                  <div className="text-center py-8">Loading invitations...</div>
+                ) : invitations && invitations.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Invited On</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {invitations.map((invitation: any) => (
+                        <TableRow key={invitation.id}>
+                          <TableCell className="font-medium">{invitation.email}</TableCell>
+                          <TableCell>{invitation.name}</TableCell>
+                          <TableCell>
+                            {invitation.createdAt ? new Date(invitation.createdAt).toLocaleDateString() : 'N/A'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleResendInvitation(invitation.id)}
+                              disabled={resendMutation.isPending}
+                            >
+                              {resendMutation.isPending ? (
+                                <RefreshCw className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Send className="h-4 w-4" />
+                              )}
+                              <span className="ml-2">Resend</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-8">
+                    <Send className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No pending invitations</h3>
+                    <p className="text-gray-500 mb-4">
+                      All your invitations have been accepted or you haven't sent any yet.
+                    </p>
+                    <Button onClick={() => setShowInviteDialog(true)}>
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Send New Invitation
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
-          ))}
-        </div>
-
-        {filteredClients?.length === 0 && (
-          <div className="text-center py-12">
-            <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No clients found</h3>
-            <p className="text-gray-500 mb-4">
-              {searchTerm ? "No clients match your search." : "Get started by inviting your first client."}
-            </p>
-            {!searchTerm && (
-              <Button onClick={() => setShowInviteDialog(true)}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Invite First Client
-              </Button>
-            )}
-          </div>
-        )}
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
   );
