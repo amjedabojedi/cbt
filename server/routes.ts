@@ -97,6 +97,9 @@ export async function sendProfessionalWelcomeEmail(email: string, name: string):
 }
 
 export async function sendClientInvitation(email: string, therapistName: string): Promise<boolean> {
+  const appUrl = process.env.APP_URL || 'https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev';
+  const registrationUrl = `${appUrl}/register?email=${encodeURIComponent(email)}`;
+  
   return sendEmail({
     to: email,
     subject: "You've been invited to ResilienceHub™",
@@ -121,7 +124,17 @@ export async function sendClientInvitation(email: string, therapistName: string)
           <li>Journal your experiences</li>
           <li>Securely share information with your therapist</li>
         </ul>
-        <p style="color: #333; line-height: 1.5;">To get started, please create your account using the instructions sent in a separate email.</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${registrationUrl}" style="background-color: #4A6FA5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">Create Your Account</a>
+        </div>
+        
+        <p style="color: #333; line-height: 1.5;">Click the button above to create your account and get started with ResilienceHub™. Your email address (${email}) will be pre-filled to make the process easier.</p>
+      </div>
+      
+      <div style="border-top: 1px solid #e1e1e1; padding-top: 20px; font-size: 14px; color: #666; line-height: 1.5;">
+        <p>If you're having trouble with the button above, copy and paste the URL below into your web browser:</p>
+        <p style="word-break: break-all;">${registrationUrl}</p>
       </div>
       
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e1e1e1; text-align: center;">
