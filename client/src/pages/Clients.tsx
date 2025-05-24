@@ -1,24 +1,22 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { useClientContext } from "@/context/ClientContext";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useClientContext } from "../context/ClientContext";
+import { useToast } from "../hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest } from "../lib/queryClient";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { AppLayout } from "@/components/layout/AppLayout";
-import { ClientStats, ClientRecentActivity, ClientEmotionRecordsList, ClientJournalsList, ClientThoughtRecordsList, ClientGoalsList } from "@/components/clients/ClientDashboard";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
+import { Input } from "../components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../components/ui/form";
+import AppLayout from "../components/layout/AppLayout";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
   Users, 
-  Plus, 
   Search, 
   BookOpen, 
   Heart, 
@@ -27,30 +25,7 @@ import {
   BarChart3,
   Brain,
   UserPlus,
-  Mail,
-  Phone,
-  Calendar,
-  MapPin,
-  Settings,
-  Eye,
-  EyeOff,
-  Trash2,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  TrendingUp,
-  FileText,
-  Lightbulb,
-  Send,
-  User,
-  Filter,
-  Download,
-  Upload,
-  RefreshCw,
-  ChevronRight,
-  ChevronDown,
-  Star,
-  Activity
+  User
 } from "lucide-react";
 
 interface User {
@@ -65,218 +40,6 @@ interface User {
   currentViewingClientId: number | null;
 }
 
-interface ClientStatProps {
-  clientId: number;
-}
-
-function ClientStats({ clientId }: ClientStatProps) {
-  const { data: emotions } = useQuery({
-    queryKey: ['/api/users', clientId, 'emotions'],
-    enabled: !!clientId
-  });
-
-  const { data: thoughts } = useQuery({
-    queryKey: ['/api/users', clientId, 'thought-records'],
-    enabled: !!clientId
-  });
-
-  const { data: journals } = useQuery({
-    queryKey: ['/api/users', clientId, 'journal-entries'],
-    enabled: !!clientId
-  });
-
-  const { data: goals } = useQuery({
-    queryKey: ['/api/users', clientId, 'goals'],
-    enabled: !!clientId
-  });
-
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div className="text-center p-4 bg-blue-50 rounded-lg">
-        <div className="text-2xl font-bold text-blue-600">{emotions?.length || 0}</div>
-        <div className="text-sm text-blue-500">Emotions</div>
-      </div>
-      <div className="text-center p-4 bg-green-50 rounded-lg">
-        <div className="text-2xl font-bold text-green-600">{thoughts?.length || 0}</div>
-        <div className="text-sm text-green-500">Thoughts</div>
-      </div>
-      <div className="text-center p-4 bg-purple-50 rounded-lg">
-        <div className="text-2xl font-bold text-purple-600">{journals?.length || 0}</div>
-        <div className="text-sm text-purple-500">Journals</div>
-      </div>
-      <div className="text-center p-4 bg-orange-50 rounded-lg">
-        <div className="text-2xl font-bold text-orange-600">{goals?.length || 0}</div>
-        <div className="text-sm text-orange-500">Goals</div>
-      </div>
-    </div>
-  );
-}
-
-function ClientRecentActivity({ clientId }: ClientStatProps) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Recent Activity</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-sm text-gray-500">Recent client activity will appear here</div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function ClientEmotionRecordsList({ clientId, limit = 3 }: ClientStatProps & { limit?: number }) {
-  const { data: emotions } = useQuery({
-    queryKey: ['/api/users', clientId, 'emotions'],
-    enabled: !!clientId
-  });
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Heart className="h-5 w-5 text-red-500" />
-          Recent Emotions
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {emotions && emotions.length > 0 ? (
-          <div className="space-y-2">
-            {emotions.slice(0, limit).map((emotion: any) => (
-              <div key={emotion.id} className="p-2 bg-gray-50 rounded text-sm">
-                <div className="font-medium">{emotion.emotion}</div>
-                <div className="text-gray-500">Intensity: {emotion.intensity}/10</div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-sm text-gray-500">No emotions recorded yet</div>
-        )}
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full mt-2"
-          onClick={() => {
-            const client = { id: clientId } as User;
-            // Navigate to emotions page
-          }}
-        >
-          View All Records ({emotions?.length || 0})
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
-function ClientJournalsList({ clientId, limit = 3 }: ClientStatProps & { limit?: number }) {
-  const { data: journals } = useQuery({
-    queryKey: ['/api/users', clientId, 'journal-entries'],
-    enabled: !!clientId
-  });
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-blue-500" />
-          Recent Journals
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {journals && journals.length > 0 ? (
-          <div className="space-y-2">
-            {journals.slice(0, limit).map((journal: any) => (
-              <div key={journal.id} className="p-2 bg-gray-50 rounded text-sm">
-                <div className="font-medium truncate">{journal.title}</div>
-                <div className="text-gray-500">
-                  {new Date(journal.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-sm text-gray-500">No journal entries yet</div>
-        )}
-        <Button variant="outline" size="sm" className="w-full mt-2">
-          View All Journals ({journals?.length || 0})
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
-function ClientThoughtRecordsList({ clientId, limit = 3 }: ClientStatProps & { limit?: number }) {
-  const { data: thoughts } = useQuery({
-    queryKey: ['/api/users', clientId, 'thought-records'],
-    enabled: !!clientId
-  });
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Brain className="h-5 w-5 text-green-500" />
-          Recent Thought Records
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {thoughts && thoughts.length > 0 ? (
-          <div className="space-y-2">
-            {thoughts.slice(0, limit).map((thought: any) => (
-              <div key={thought.id} className="p-2 bg-gray-50 rounded text-sm">
-                <div className="font-medium truncate">{thought.automaticThoughts}</div>
-                <div className="text-gray-500">
-                  {new Date(thought.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-sm text-gray-500">No thought records yet</div>
-        )}
-        <Button variant="outline" size="sm" className="w-full mt-2">
-          View All Thoughts ({thoughts?.length || 0})
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
-function ClientGoalsList({ clientId, limit = 3 }: ClientStatProps & { limit?: number }) {
-  const { data: goals } = useQuery({
-    queryKey: ['/api/users', clientId, 'goals'],
-    enabled: !!clientId
-  });
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Target className="h-5 w-5 text-orange-500" />
-          Active Goals
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {goals && goals.length > 0 ? (
-          <div className="space-y-2">
-            {goals.slice(0, limit).map((goal: any) => (
-              <div key={goal.id} className="p-2 bg-gray-50 rounded text-sm">
-                <div className="font-medium truncate">{goal.title}</div>
-                <div className="text-gray-500">Status: {goal.status}</div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-sm text-gray-500">No goals set yet</div>
-        )}
-        <Button variant="outline" size="sm" className="w-full mt-2">
-          View All Goals ({goals?.length || 0})
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
 const inviteClientSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -289,7 +52,7 @@ export default function Clients() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
-  const { setViewingClient, viewingClientId } = useClientContext();
+  const { setViewingClient } = useClientContext();
   const [searchTerm, setSearchTerm] = useState("");
   const [showInviteDialog, setShowInviteDialog] = useState(false);
 
@@ -310,6 +73,9 @@ export default function Clients() {
     mutationFn: async (data: InviteClientFormValues) => {
       return apiRequest('/api/auth/invite-client', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       });
     },
@@ -333,13 +99,6 @@ export default function Clients() {
 
   const onInviteSubmit = (data: InviteClientFormValues) => {
     inviteMutation.mutate(data);
-  };
-
-  const handleViewProfile = (client: User) => {
-    setViewingClient(client.id, client.name || client.username);
-    localStorage.setItem('viewingClientId', client.id.toString());
-    localStorage.setItem('viewingClientName', client.name || client.username);
-    navigate("/profile");
   };
 
   const handleViewRecords = (client: User) => {
