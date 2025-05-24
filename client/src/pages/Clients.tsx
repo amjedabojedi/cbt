@@ -29,7 +29,9 @@ import {
   BarChart,
   Trash2,
   AlertTriangle,
-  Check
+  Check,
+  Target,
+  Mail
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -618,6 +620,57 @@ export default function Clients() {
     localStorage.setItem('viewingClientName', client.name || client.username);
     navigate("/emotions");
   };
+
+  const handleViewGoals = (client: User) => {
+    console.log("View Goals clicked for client:", client);
+    setViewingClient(client.id, client.name || client.username);
+    localStorage.setItem('viewingClientId', client.id.toString());
+    localStorage.setItem('viewingClientName', client.name || client.username);
+    navigate("/goals");
+  };
+
+  const handleViewJournals = (client: User) => {
+    console.log("View Journals clicked for client:", client);
+    setViewingClient(client.id, client.name || client.username);
+    localStorage.setItem('viewingClientId', client.id.toString());
+    localStorage.setItem('viewingClientName', client.name || client.username);
+    navigate("/journals");
+  };
+
+  const handleViewThoughtRecords = (client: User) => {
+    console.log("View Thought Records clicked for client:", client);
+    setViewingClient(client.id, client.name || client.username);
+    localStorage.setItem('viewingClientId', client.id.toString());
+    localStorage.setItem('viewingClientName', client.name || client.username);
+    navigate("/thought-records");
+  };
+
+  const handleViewStats = (client: User) => {
+    console.log("View Stats clicked for client:", client);
+    setViewingClient(client.id, client.name || client.username);
+    localStorage.setItem('viewingClientId', client.id.toString());
+    localStorage.setItem('viewingClientName', client.name || client.username);
+    navigate("/insights");
+  };
+
+  const handleSendMessage = (client: User) => {
+    console.log("Send Message clicked for client:", client);
+    navigate("/messages");
+  };
+
+  const handleDeleteClient = (client: User) => {
+    console.log("Delete Client clicked for client:", client);
+    // You can implement deletion logic here
+  };
+
+  const handleViewRecords_FIXED = (client: User) => {
+    console.log("View Records clicked for client:", client);
+    setViewingClient(client.id, client.name || client.username);
+    // Save to localStorage as fallback
+    localStorage.setItem('viewingClientId', client.id.toString());
+    localStorage.setItem('viewingClientName', client.name || client.username);
+    navigate("/emotions");
+  };
   
   // Helper function to view a client's goals
   const handleViewGoals = (client: User) => {
@@ -1092,9 +1145,6 @@ export default function Clients() {
                                   </DropdownMenuItem>
                                 )}
                                 <DropdownMenuSeparator />
-                                  <Flag className="h-4 w-4 mr-2" />
-                                  View Goals
-                                </DropdownMenuItem>
                                 <DropdownMenuItem 
                                   className="cursor-pointer"
                                   onClick={() => handleViewStats(client)}
