@@ -458,23 +458,20 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
   // Track intensity of emotions for deeper analysis
   const emotionIntensity: {[key: string]: number} = {};
   
-  // Define emotion and topic keywords
+  // Enhanced emotion keywords with broader coverage
   const emotionKeywords = [
-    'happy', 'sad', 'angry', 'anxious', 'stressed', 
-    'worried', 'excited', 'calm', 'frustrated', 'confident',
-    'fear', 'joy', 'love', 'trust', 'pride', 'hopeful',
-    'nervous', 'confused', 'overwhelmed', 'peaceful', 'grateful',
-    'motivated', 'disappointed', 'content', 'lonely', 'guilty',
-    'ashamed', 'embarrassed', 'surprised', 'jealous', 'hopeless',
-    'satisfied', 'hurt', 'insecure', 'regretful', 'optimistic',
-    'pessimistic', 'apathetic', 'bored', 'enthusiastic', 'determined',
-    'discouraged', 'vulnerable', 'resentful', 'compassionate',
-    'depressed', 'numb', 'empty', 'exhausted', 'tired', 'drained',
-    'helpless', 'struggling', 'grief', 'grieving', 'hope', 'despair', 
-    'meaningless', 'lost', 'distressed', 'miserable', 'relief', 'relieved',
-    'alone', 'isolated', 'distant', 'disconnected', 'detached',
-    'heavy', 'hollow', 'void', 'abandoned', 'suffocating',
-    'tense', 'uneasy', 'restless', 'unsettled', 'apprehensive'
+    'happy', 'sad', 'angry', 'anxious', 'stressed', 'worried', 'excited', 'calm', 'frustrated', 'confident',
+    'fear', 'joy', 'love', 'trust', 'pride', 'hopeful', 'nervous', 'confused', 'overwhelmed', 'peaceful', 'grateful',
+    'motivated', 'disappointed', 'content', 'lonely', 'guilty', 'ashamed', 'embarrassed', 'surprised', 'jealous', 'hopeless',
+    'satisfied', 'hurt', 'insecure', 'regretful', 'optimistic', 'pessimistic', 'apathetic', 'bored', 'enthusiastic', 'determined',
+    'discouraged', 'vulnerable', 'resentful', 'compassionate', 'depressed', 'numb', 'empty', 'exhausted', 'tired', 'drained',
+    'helpless', 'struggling', 'grief', 'grieving', 'hope', 'despair', 'meaningless', 'lost', 'distressed', 'miserable', 'relief', 'relieved',
+    'alone', 'isolated', 'distant', 'disconnected', 'detached', 'heavy', 'hollow', 'void', 'abandoned', 'suffocating',
+    'tense', 'uneasy', 'restless', 'unsettled', 'apprehensive', 'elated', 'ecstatic', 'blissful', 'serene', 'tranquil',
+    'rage', 'fury', 'irritated', 'annoyed', 'agitated', 'terror', 'panic', 'dread', 'phobia', 'melancholy', 'sorrowful',
+    'cheerful', 'jubilant', 'delighted', 'pleased', 'thrilled', 'devastated', 'heartbroken', 'crushed', 'shattered',
+    'betrayed', 'rejected', 'humiliated', 'mortified', 'disgusted', 'revolted', 'contempt', 'scorn', 'amazed', 'astonished',
+    'bewildered', 'perplexed', 'envious', 'covetous', 'remorseful', 'contrite', 'yearning', 'longing', 'nostalgic'
   ];
   
   const topicKeywords = [
