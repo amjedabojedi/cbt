@@ -96,9 +96,9 @@ export async function sendProfessionalWelcomeEmail(email: string, name: string):
   });
 }
 
-export async function sendClientInvitation(email: string, therapistName: string): Promise<boolean> {
-  const appUrl = process.env.APP_URL || 'https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev';
-  const registrationUrl = `${appUrl}/register?email=${encodeURIComponent(email)}`;
+export async function sendClientInvitation(email: string, therapistName: string, inviteLink?: string): Promise<boolean> {
+  // Use the provided invite link or create a default one
+  const registrationUrl = inviteLink || `${process.env.APP_URL || 'https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev'}/register?email=${encodeURIComponent(email)}`;
   
   return sendEmail({
     to: email,
