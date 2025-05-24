@@ -2,6 +2,7 @@ import express, { type Express, type Request, type Response, type NextFunction, 
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { pool, db } from "./db";
+import { analyzeJournalEntry } from "./services/openai";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
