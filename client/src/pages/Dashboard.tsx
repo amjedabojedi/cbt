@@ -20,6 +20,34 @@ export default function Dashboard() {
   
   const isTherapist = user?.role === "therapist"; // DB role still "therapist"
   const isClient = user?.role === "client";
+  const isAdmin = user?.role === "admin";
+  
+  // For admins, redirect to admin pages or show admin-specific content
+  if (isAdmin) {
+    return (
+      <AppLayout title="Admin Dashboard">
+        <div className="container mx-auto px-4 py-6">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-neutral-800">
+              Admin Dashboard
+            </h1>
+            <p className="text-neutral-500">
+              Manage users and system settings from the navigation menu.
+            </p>
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-blue-800 mb-2">Administrative Functions</h2>
+            <p className="text-blue-700 mb-4">Use the navigation menu to access:</p>
+            <ul className="list-disc list-inside text-blue-700 space-y-1">
+              <li>User Management - View and manage all users</li>
+              <li>System Statistics - Monitor application usage</li>
+              <li>Subscription Plans - Manage subscription tiers</li>
+            </ul>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
   
   // Determine whose name to display
   const displayName = isViewingClientData 

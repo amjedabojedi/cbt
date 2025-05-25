@@ -275,87 +275,13 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
     );
   }
 
-  // For admins, show admin badge and all users selector
+  // For admins, show admin badge only (no client viewing functionality)
   if (user.role === "admin") {
     return (
       <div className="flex items-center">
-        {viewingClientId ? (
-          <div className="flex items-center">
-            <Badge variant="outline" className="mr-2 bg-purple-50 text-purple-700 border-purple-200">
-              Admin Viewing User
-            </Badge>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 border-dashed">
-                  <span className="truncate max-w-[150px]">{viewingClientName}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px]">
-                <DropdownMenuItem onClick={handleReturnToSelf}>
-                  Return to Admin Dashboard
-                </DropdownMenuItem>
-                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                  View User Data
-                </div>
-                {loading ? (
-                  <div className="flex justify-center p-2">
-                    <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
-                  </div>
-                ) : clients.length > 0 ? (
-                  clients.map((client) => (
-                    <DropdownMenuItem 
-                      key={client.id}
-                      onClick={() => handleClientSelect(client.id, client.name)}
-                    >
-                      {client.name} ({client.role})
-                    </DropdownMenuItem>
-                  ))
-                ) : (
-                  <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                    No users found
-                  </div>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        ) : (
-          <div className="flex items-center">
-            <Badge variant="outline" className="mr-2 bg-purple-50 text-purple-700 border-purple-200">
-              Administrator
-            </Badge>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8">
-                  <Users className="mr-1 h-4 w-4" />
-                  <span>All Users</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px]">
-                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                  View User Data
-                </div>
-                {loading ? (
-                  <div className="flex justify-center p-2">
-                    <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
-                  </div>
-                ) : clients.length > 0 ? (
-                  clients.map((client) => (
-                    <DropdownMenuItem 
-                      key={client.id}
-                      onClick={() => handleClientSelect(client.id, client.name)}
-                    >
-                      {client.name} ({client.role})
-                    </DropdownMenuItem>
-                  ))
-                ) : (
-                  <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                    No users found
-                  </div>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
+        <Badge variant="outline" className="mr-2 bg-purple-50 text-purple-700 border-purple-200">
+          Administrator
+        </Badge>
       </div>
     );
   }
