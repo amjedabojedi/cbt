@@ -10,6 +10,16 @@ import { getSessionCookieOptions } from '../routes';
 const sessionCache = new Map<string, { session: any; user: User; expires: number }>();
 const CACHE_DURATION = 30000; // 30 seconds cache
 
+// Clean up expired cache entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of sessionCache.entries()) {
+    if (now > value.expires) {
+      sessionCache.delete(key);
+    }
+  }
+}, 60000); // Clean every minute
+
 // Extend Express Request type to include user information
 declare global {
   namespace Express {

@@ -4263,9 +4263,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // PERFORMANCE: Simple notification cache to speed up frequent requests
+  const notificationCache = new Map<number, { notifications: any[]; expires: number }>();
+  const NOTIFICATION_CACHE_DURATION = 10000; // 10 seconds cache
+
   app.get("/api/notifications/unread", authenticate, async (req, res) => {
     try {
       const userId = req.user!.id;
+      
+      // PERFORMANCE: Check cache first
+      const cached = notificationCache.get(userId);
+      if (cached && Date.now() < cached.expires) {
+        return res.status(200).json(cached.notifications);
+      }
+      
       console.log(`🔥 CRITICAL TRACE: /api/notifications/unread called for user ${userId}`);
       
       // DIRECT DATABASE QUERY - bypass all storage layers
@@ -4283,6 +4294,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const notifications = result.rows || [];
       console.log(`🔥 CRITICAL TRACE: Direct DB query returned exactly ${notifications.length} notifications`);
+      
+      // PERFORMANCE: Cache the results
+      notificationCache.set(userId, {
+        notifications,
+        expires: Date.now() + NOTIFICATION_CACHE_DURATION
+      });
       
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('X-Direct-Query', 'true');
