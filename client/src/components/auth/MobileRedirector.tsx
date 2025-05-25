@@ -68,15 +68,22 @@ export function MobileRedirector() {
     const isAlreadyOnMobileLogin = location === '/m/login' || location === '/mobile-login';
     const isLandingPage = location === '/' || location === '/landing';
     
+    // Check if current URL has invitation parameters
+    const hasInvitationParams = window.location.search.includes('invitation=') || 
+                               window.location.search.includes('email=') || 
+                               window.location.search.includes('therapistId=');
+    
     // Only redirect if:
     // 1. This is a mobile device
     // 2. User is on auth/login/register page
     // 3. User is not already on mobile login page
     // 4. User is not on landing page
+    // 5. NO invitation parameters present (preserve invitation flow)
     if (isMobile && 
         (isAuthPage || isLoginPage || isRegisterPage) && 
         !isAlreadyOnMobileLogin && 
-        !isLandingPage) {
+        !isLandingPage &&
+        !hasInvitationParams) {
       console.log('Mobile device detected on auth page, redirecting to mobile login page');
       navigate('/m/login');
     }
