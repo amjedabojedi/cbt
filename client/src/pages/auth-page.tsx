@@ -65,8 +65,8 @@ export default function AuthPage() {
   const therapistIdParam = searchParams.get("therapistId");
   
   // Initialize invitation state immediately based on URL params
-  const [isInvitation, setIsInvitation] = useState(invitationParam === "true");
-  const [activeTab, setActiveTab] = useState(invitationParam === "true" ? "register" : "login");
+  const [isInvitation, setIsInvitation] = useState(invitationParam === "true" || !!emailParam);
+  const [activeTab, setActiveTab] = useState((invitationParam === "true" || !!emailParam) ? "register" : "login");
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [registerSubmitting, setRegisterSubmitting] = useState(false);
   
