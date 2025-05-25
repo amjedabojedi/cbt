@@ -43,7 +43,18 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const urlParams = new URLSearchParams(window.location.search);
   const invitationEmail = urlParams.get('email');
   const therapistId = urlParams.get('therapistId');
-  const isInvitation = urlParams.get('invitation') === 'true' || !!invitationEmail;
+  const invitationToken = urlParams.get('token');
+  const isInvitation = urlParams.get('invitation') === 'true' || !!invitationEmail || !!invitationToken;
+  
+  // Debug logging for invitation detection
+  console.log('🔍 Invitation Detection:', {
+    url: window.location.search,
+    invitationEmail,
+    therapistId,
+    invitationToken,
+    isInvitation,
+    mode
+  });
 
   // Use the appropriate schema based on the mode
   const schema = mode === "login" ? loginSchema : registerSchema;
