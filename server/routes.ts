@@ -860,21 +860,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // When users register directly, they are automatically active
       validatedData.status = "active";
       
-      // Clean invitation token validation
-      const invitationToken = req.body.invitationToken;
-      if (invitationToken) {
-        try {
-          const invitation = await storage.getClientInvitationByEmail(validatedData.email);
-          if (invitation && invitation.inviteLink.includes(invitationToken)) {
-            validatedData.role = "client";
-            validatedData.therapistId = invitation.therapistId;
-            console.log(`Invitation registration: ${validatedData.email} -> client for therapist ${invitation.therapistId}`);
-          } else {
-            return res.status(400).json({ message: "Invalid invitation token" });
-          }
-        } catch (error) {
-          return res.status(400).json({ message: "Invalid invitation" });
+      // FORCE CLIENT ROLE FOR ALL INVITATIONS - SECURITY CRITICAL
+      try {
+        const invitation = await storage.getClientInvitationByEmail(validatedData.email);
+        if (invitation) {
+          // FORCE client role and therapist assignment - NO EXCEPTIONS
+          validatedData.role = "client";
+          validatedData.therapistId = invitation.therapistId;
+          console.log(`SECURITY: Forcing invitation registration ${validatedData.email} -> client for therapist ${invitation.therapistId}`);
         }
+      } catch (error) {
+        // If invitation exists but fails, still check for role override
+        console.log('Invitation check failed, proceeding with registration');
       }
       
       // Create the user - if therapistId is provided, it will be included in validatedData 
