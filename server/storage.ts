@@ -685,6 +685,9 @@ export class DatabaseStorage implements IStorage {
     // Delete resource feedback provided by this user
     await db.delete(resourceFeedback).where(eq(resourceFeedback.userId, userId));
     
+    // Delete any client invitations for this user's email
+    await db.delete(clientInvitations).where(eq(clientInvitations.email, user.email));
+    
     // Update therapist references for clients of this user (if the user is a therapist)
     await db
       .update(users)
