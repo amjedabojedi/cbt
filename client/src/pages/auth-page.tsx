@@ -59,23 +59,46 @@ export default function AuthPage() {
   const { user, login, register: registerUser } = useAuth();
   const [location, navigate] = useLocation();
   const { toast } = useToast();
-  const searchParams = new URLSearchParams(window.location.search);
+  // Fix parameter parsing - check both window.location.search and window.location.href
+  const fullUrl = window.location.href;
+  const searchString = window.location.search || (fullUrl.includes('?') ? fullUrl.split('?')[1] : '');
+  const searchParams = new URLSearchParams(searchString);
   const invitationParam = searchParams.get("invitation");
   const emailParam = searchParams.get("email");
   const therapistIdParam = searchParams.get("therapistId");
   
-  // DEBUG: Log URL parameters to see what's being received
-  console.log('🔍 AUTH DEBUG: Full URL:', window.location.href);
-  console.log('🔍 AUTH DEBUG: Search params:', window.location.search);
-  console.log('🔍 AUTH DEBUG: URLSearchParams object:', searchParams);
-  console.log('🔍 AUTH DEBUG: All params:', Array.from(searchParams.entries()));
-  console.log('🔍 AUTH DEBUG: invitation param:', invitationParam);
-  console.log('🔍 AUTH DEBUG: email param:', emailParam);
-  console.log('🔍 AUTH DEBUG: therapistId param:', therapistIdParam);
+  // Store invitation data if URL parameters are present (before they get lost)
+  useEffect(() => {
+    if (invitationParam === "true" && emailParam && therapistIdParam) {
+      const invitationData = {
+        email: emailParam,
+        therapistId: therapistIdParam,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('pending_invitation', JSON.stringify(invitationData));
+      console.log('🔍 STORED invitation data:', invitationData);
+    }
+  }, [invitationParam, emailParam, therapistIdParam]);
+
+  // Get invitation data from URL params or localStorage
+  const storedInvitationData = localStorage.getItem('pending_invitation');
+  let invitationData = null;
+  if (storedInvitationData) {
+    try {
+      invitationData = JSON.parse(storedInvitationData);
+      // Clear old data (older than 1 hour)
+      if (Date.now() - (invitationData.timestamp || 0) > 3600000) {
+        localStorage.removeItem('pending_invitation');
+        invitationData = null;
+      }
+    } catch (e) {
+      localStorage.removeItem('pending_invitation');
+    }
+  }
   
-  // Calculate invitation state directly from URL params - no state needed
-  const isInvitation = invitationParam === "true" || !!emailParam;
-  console.log('🔍 AUTH DEBUG: isInvitation calculated as:', isInvitation);
+  const isInvitation = invitationParam === "true" || !!emailParam || !!invitationData;
+  const finalEmail = emailParam || invitationData?.email || "";
+  const finalTherapistId = therapistIdParam ? parseInt(therapistIdParam) : invitationData?.therapistId || undefined;
   const [activeTab, setActiveTab] = useState(isInvitation ? "register" : "login");
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [registerSubmitting, setRegisterSubmitting] = useState(false);
@@ -93,11 +116,11 @@ export default function AuthPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       username: "",
-      email: emailParam || "",
+      email: finalEmail,
       password: "",
       name: "",
       role: isInvitation ? "client" : "therapist", // Default to therapist for direct registration, client for invitations
-      therapistId: therapistIdParam ? parseInt(therapistIdParam) : undefined,
+      therapistId: finalTherapistId,
       status: isInvitation ? "active" : undefined,
       isInvitation: isInvitation || false,
     },
@@ -106,13 +129,13 @@ export default function AuthPage() {
   // Check for invitation parameter and set registration tab active
   useEffect(() => {
     // If invitation parameter is present, set up for client registration
-    if (invitationParam === "true") {
+    if (isInvitation) {
       setActiveTab("register");
       
       // Display invitation toast
       toast({
-        title: "Professional Invitation",
-        description: "A mental health professional has invited you to create an account. Please register to access interactive CBT tools.",
+        title: "Client Invitation",
+        description: "A mental health professional has invited you to create an account. Please register to access your therapy tools.",
       });
     }
     
@@ -168,6 +191,11 @@ export default function AuthPage() {
       }
       
       const result = await registerUser(registrationData);
+      
+      // Clear stored invitation data after successful registration
+      if (isInvitation) {
+        localStorage.removeItem('pending_invitation');
+      }
       
       // Registration is handled by the auth hook which will redirect on success
       if (isInvitation) {
