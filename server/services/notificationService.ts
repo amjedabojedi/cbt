@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { notifications, type InsertNotification } from '@shared/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, sql } from 'drizzle-orm';
 import { sendNotificationToUser } from './websocket';
 
 /**

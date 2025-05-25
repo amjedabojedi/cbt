@@ -4305,23 +4305,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Database error fetching therapist notifications:", dbError);
         }
       } else {
-        // For regular users, get notifications directly from database to avoid storage bugs
-        const directQuery = `
-          SELECT id, user_id, title, body, type, is_read, created_at, expires_at, metadata, link_path, link
-          FROM notifications 
-          WHERE user_id = $1 
-            AND is_read = false 
-            AND (expires_at IS NULL OR expires_at >= NOW())
-          ORDER BY created_at DESC
-        `;
-        
-        const directResult = await withRetry(async () => {
-          const result = await db.execute(sql.raw(directQuery, [userId]));
-          console.log(`RAW DB RESULT:`, result);
-          return result;
+        // For clients, use simple direct database query to get accurate count
+        allUnreadNotifications = await withRetry(async () => {
+          const result = await db.execute(sql`
+            SELECT id, user_id as "userId", title, body, type, is_read as "isRead", 
+                   created_at as "createdAt", expires_at as "expiresAt", metadata, link_path as "linkPath", link
+            FROM notifications 
+            WHERE user_id = ${userId}
+              AND is_read = false 
+              AND (expires_at IS NULL OR expires_at >= NOW())
+            ORDER BY created_at DESC
+          `);
+          return result.rows || [];
         });
-        
-        allUnreadNotifications = directResult.rows || [];
         console.log(`DIRECT DB: Found ${allUnreadNotifications.length} unread notifications for user ${userId}`);
       }
       
