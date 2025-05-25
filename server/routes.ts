@@ -4265,7 +4265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // PERFORMANCE: Simple notification cache to speed up frequent requests
   const notificationCache = new Map<number, { notifications: any[]; expires: number }>();
-  const NOTIFICATION_CACHE_DURATION = 10000; // 10 seconds cache
+  const NOTIFICATION_CACHE_DURATION = 30000; // 30 seconds cache for better consistency
 
   app.get("/api/notifications/unread", authenticate, async (req, res) => {
     try {
@@ -4300,6 +4300,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notifications,
         expires: Date.now() + NOTIFICATION_CACHE_DURATION
       });
+      
+      // Clean up expired notification cache entries
+      const now = Date.now();
+      for (const [key, value] of notificationCache.entries()) {
+        if (now > value.expires) {
+          notificationCache.delete(key);
+        }
+      }
       
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('X-Direct-Query', 'true');
