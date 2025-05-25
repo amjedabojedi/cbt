@@ -1011,6 +1011,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+
+  // Client invitation endpoint
+  app.post("/api/auth/invite-client", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
+    try {
+      const { email, name } = req.body;
+      
+      if (!email || !name) {
+        return res.status(400).json({ message: "Email and name are required" });
+      }
+      
+      // Check if email is already registered
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({ message: "Email already registered" });
+      }
+      
+      // Check if there's already a pending invitation for this email
+      const existingInvitation = await storage.getClientInvitationByEmail(email);
+      if (existingInvitation && existingInvitation.status === 'pending') {
+        return res.status(409).json({ message: "Invitation already pending for this email" });
+      }
+      
+      // Create the invitation
+      const invitation = await storage.createClientInvitation({
+        email,
+        therapistId: req.user.id,
+        status: 'email_sent'
+      });
+      
+      // Send email invitation
+      const therapistName = req.user.name || req.user.username;
+      const emailSent = await sendClientInvitation(email, therapistName);
+      
+      // Create notification for therapist
+      await storage.createNotification({
+        userId: req.user.id,
+        title: "Client Invitation Sent",
+        body: `Invitation sent to ${email} (${name})`,
+        type: "system",
+        isRead: false
+      });
+      
+      res.status(201).json({ 
+        message: "Invitation sent successfully",
+        invitation,
+        emailSent 
+      });
+    } catch (error) {
+      console.error("Error creating invitation:", error);
+      res.status(500).json({ message: "Failed to create invitation" });
+    }
+  });
   
   // Password reset routes
   app.post("/api/auth/forgot-password", async (req, res) => {
