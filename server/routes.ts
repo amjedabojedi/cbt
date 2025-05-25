@@ -2272,6 +2272,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Email and name are required" });
       }
       
+      // Check if there's already a pending invitation for this email from this therapist
+      const existingInvitation = await storage.getClientInvitationByEmail(email);
+      if (existingInvitation && existingInvitation.therapistId === req.user.id && existingInvitation.status === 'pending') {
+        return res.status(409).json({ 
+          message: "A pending invitation already exists for this email. You can resend it from the Pending Invitations tab.",
+          invitationId: existingInvitation.id
+        });
+      }
+      
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
       
