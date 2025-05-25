@@ -185,6 +185,22 @@ export default function Clients() {
     client.email?.toLowerCase().includes(searchTerm.toLowerCase())
   ) : [];
 
+  // Group invitations by email to show each email only once
+  const uniqueInvitations = invitations ? invitations.reduce((acc: any[], invitation: any) => {
+    const existingInvitation = acc.find(inv => inv.email === invitation.email);
+    if (!existingInvitation) {
+      // Add the most recent invitation for this email
+      acc.push(invitation);
+    } else {
+      // Keep the more recent invitation (higher ID or later date)
+      if (invitation.id > existingInvitation.id) {
+        const index = acc.findIndex(inv => inv.email === invitation.email);
+        acc[index] = invitation;
+      }
+    }
+    return acc;
+  }, []) : [];
+
   if (clientsLoading) {
     return (
       <AppLayout title="Clients">
@@ -278,9 +294,9 @@ export default function Clients() {
             <TabsTrigger value="clients">Active Clients</TabsTrigger>
             <TabsTrigger value="invitations">
               Pending Invitations
-              {invitations && invitations.length > 0 && (
+              {uniqueInvitations && uniqueInvitations.length > 0 && (
                 <Badge variant="secondary" className="ml-2">
-                  {invitations.length}
+                  {uniqueInvitations.length}
                 </Badge>
               )}
             </TabsTrigger>
@@ -399,18 +415,18 @@ export default function Clients() {
               <CardContent>
                 {invitationsLoading ? (
                   <div className="text-center py-8">Loading invitations...</div>
-                ) : invitations && invitations.length > 0 ? (
+                ) : uniqueInvitations && uniqueInvitations.length > 0 ? (
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Email</TableHead>
                         <TableHead>Name</TableHead>
-                        <TableHead>Invited On</TableHead>
+                        <TableHead>Latest Invitation</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {invitations.map((invitation: any) => (
+                      {uniqueInvitations.map((invitation: any) => (
                         <TableRow key={invitation.id}>
                           <TableCell className="font-medium">{invitation.email}</TableCell>
                           <TableCell>{invitation.name}</TableCell>
