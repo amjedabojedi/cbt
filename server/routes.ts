@@ -1049,7 +1049,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tempUsername,
         tempPassword,
         inviteLink,
-        status: 'email_sent'
+        status: 'pending'
       });
       
       // Send email invitation
@@ -2934,23 +2934,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Filter out invitations for emails that are already registered as active users
       const validInvitations = [];
       for (const invitation of allInvitations) {
-        if (invitation.status !== 'pending') {
-          validInvitations.push(invitation);
-          continue;
-        }
-        
-        // Check if this email is already a registered user
-        const existingUser = await storage.getUserByEmail(invitation.email);
-        if (!existingUser) {
-          // No user exists with this email, keep the invitation
-          validInvitations.push(invitation);
-        } else {
-          // User exists - mark invitation as accepted if they're a client of this therapist
-          if (existingUser.therapistId === req.user.id) {
-            await storage.updateClientInvitationStatus(invitation.id, 'accepted');
+        // Only include pending invitations (standardized status)
+        if (invitation.status === 'pending') {
+          // Check if this email is already a registered user
+          const existingUser = await storage.getUserByEmail(invitation.email);
+          if (!existingUser) {
+            // No user exists with this email, keep the invitation
+            validInvitations.push(invitation);
           } else {
-            // User exists but not as client of this therapist - mark as expired
-            await storage.updateClientInvitationStatus(invitation.id, 'expired');
+            // User exists - mark invitation as accepted if they're a client of this therapist
+            if (existingUser.therapistId === req.user.id) {
+              await storage.updateClientInvitationStatus(invitation.id, 'accepted');
+            } else {
+              // User exists but not as client of this therapist - mark as expired
+              await storage.updateClientInvitationStatus(invitation.id, 'expired');
+            }
           }
         }
       }
