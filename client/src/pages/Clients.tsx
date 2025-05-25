@@ -207,13 +207,13 @@ export default function Clients() {
 
   // Filter out invitations for people who are already registered as active clients
   const filteredInvitations = (invitations && Array.isArray(invitations)) ? invitations.filter((invitation: any) => {
-    // Only show pending invitations (standardized status)
-    if (invitation.status !== 'pending') {
+    // Show pending and email_sent invitations
+    if (invitation.status !== 'pending' && invitation.status !== 'email_sent') {
       return false;
     }
     
     // Check if this email belongs to an existing active client
-    const isExistingClient = clients?.some((client: any) => client.email === invitation.email);
+    const isExistingClient = clients && Array.isArray(clients) ? clients.some((client: any) => client.email === invitation.email) : false;
     return !isExistingClient;
   }) : [];
 
