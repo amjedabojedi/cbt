@@ -132,7 +132,7 @@ export default function Clients() {
     setViewingClient(client.id, client.name || client.username);
     localStorage.setItem('viewingClientId', client.id.toString());
     localStorage.setItem('viewingClientName', client.name || client.username);
-    navigate("/thought-records");
+    navigate("/thoughts");
   };
 
   const handleViewStats = (client: User) => {
