@@ -4306,64 +4306,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
-      // Direct SQL approach - most reliable way to clear all notifications
+      // Simple direct database approach 
       try {
-        const { withRetry, db, sql } = await import('./db');
+        const { pool } = await import('./db');
         
-        // Different queries based on user role
-        if (user.role === "therapist") {
-          console.log(`User ${userId} is a therapist, executing therapist-specific notification reset`);
-          
-          // Get all client IDs for this therapist
-          const clients = await storage.getClients(userId);
-          const clientIds = clients.map(client => client.id);
-          console.log(`Found ${clients.length} clients for therapist ${userId}: ${clientIds.join(', ')}`);
-          
-          // Prepare a comprehensive update that covers both therapist and all their clients
-          await withRetry(async () => {
-            // First, mark all the therapist's own notifications as read
-            await db.execute(sql`
-              UPDATE notifications 
-              SET is_read = true 
-              WHERE user_id = ${userId}
-            `);
-            console.log(`Reset direct notifications for therapist ${userId}`);
-            
-            // Then, mark all notifications for all clients of this therapist as read
-            if (clientIds.length > 0) {
-              await db.execute(sql`
-                UPDATE notifications 
-                SET is_read = true 
-                WHERE user_id IN ${sql.join(clientIds.map(id => sql`${id}`), sql`, `)}
-              `);
-              console.log(`Reset notifications for all ${clientIds.length} clients of therapist ${userId}`);
-            }
-            
-            return true;
-          });
-        } else if (user.role === "admin") {
-          // Admins can mark all notifications as read
-          await withRetry(async () => {
-            await db.execute(sql`
-              UPDATE notifications 
-              SET is_read = true 
-              WHERE user_id = ${userId}
-            `);
-            console.log(`Reset all notifications for admin ${userId}`);
-            return true;
-          });
-        } else {
-          // Regular users can only mark their own notifications as read
-          await withRetry(async () => {
-            await pool.query(`
-              UPDATE notifications 
-              SET is_read = true 
-              WHERE user_id = $1
-            `, [userId]);
-            console.log(`Reset notifications for regular user ${userId}`);
-            return true;
-          });
-        }
+        // Direct SQL query that works for all user types
+        await pool.query(`
+          UPDATE notifications 
+          SET is_read = true 
+          WHERE user_id = $1
+        `, [userId]);
+        
+        console.log(`Successfully marked all notifications as read for user ${userId}`);
         
         console.log(`Notification database reset completed successfully for user ${userId}`);
       } catch (sqlError) {
