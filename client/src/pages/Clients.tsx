@@ -191,11 +191,20 @@ export default function Clients() {
       setResendingInvitation(null);
     },
     onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to resend invitation.",
-        variant: "destructive"
-      });
+      // If invitation not found, refresh the list to remove deleted invitations
+      if (error.message.includes("Invitation not found")) {
+        queryClient.invalidateQueries({ queryKey: ['/api/invitations'] });
+        toast({
+          title: "Invitation Removed",
+          description: "This invitation was already processed or removed.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to resend invitation.",
+          variant: "destructive"
+        });
+      }
       setResendingInvitation(null);
     }
   });
