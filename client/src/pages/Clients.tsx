@@ -171,14 +171,14 @@ export default function Clients() {
     resendMutation.mutate(invitationId);
   };
 
-  const filteredClients = clients ? clients.filter((client: User) => 
+  const filteredClients = (clients && Array.isArray(clients)) ? clients.filter((client: User) => 
     client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email?.toLowerCase().includes(searchTerm.toLowerCase())
   ) : [];
 
   // Group invitations by email to show each email only once
-  const uniqueInvitations = invitations ? invitations.reduce((acc: any[], invitation: any) => {
+  const uniqueInvitations = (invitations && Array.isArray(invitations)) ? invitations.reduce((acc: any[], invitation: any) => {
     const existingInvitation = acc.find(inv => inv.email === invitation.email);
     if (!existingInvitation) {
       // Add the most recent invitation for this email
