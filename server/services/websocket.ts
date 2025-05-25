@@ -62,9 +62,18 @@ export function initializeWebSocketServer(httpServer: Server) {
               connectedClients.set(userId, []);
             }
             
-            // Add connection to the user's connections list
+            // Add connection to the user's connections list with limits
             const userConnections = connectedClients.get(userId);
             if (userConnections) {
+              // Limit connections per user to prevent storms (max 3 connections)
+              if (userConnections.length >= 3) {
+                console.log(`Connection limit reached for user ${userId}, closing oldest connection`);
+                const oldConnection = userConnections.shift();
+                if (oldConnection) {
+                  oldConnection.close(1000, 'Connection limit exceeded');
+                }
+              }
+              
               userConnections.push(ws);
               console.log(`WebSocket client authenticated for user ${userId} (connection: ${ws.connectionId})`);
             }
