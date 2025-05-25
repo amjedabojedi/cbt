@@ -222,7 +222,9 @@ export default function AuthPage() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full auth-tabs">
             <TabsList className="grid w-full grid-cols-2 mb-6 tabs-list">
               <TabsTrigger value="login" className="tabs-trigger">Login</TabsTrigger>
-              <TabsTrigger value="register" className="tabs-trigger">Professional Registration</TabsTrigger>
+              <TabsTrigger value="register" className="tabs-trigger">
+                {isInvitation ? "Client Registration" : "Professional Registration"}
+              </TabsTrigger>
             </TabsList>
             
             {!isInvitation && (
