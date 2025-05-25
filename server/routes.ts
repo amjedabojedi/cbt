@@ -98,8 +98,11 @@ export async function sendProfessionalWelcomeEmail(email: string, name: string):
 }
 
 export async function sendClientInvitation(email: string, therapistName: string, inviteLink?: string): Promise<boolean> {
-  // Use the provided invite link or create a default one
-  const registrationUrl = inviteLink || `${process.env.APP_URL || 'https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev'}/register?email=${encodeURIComponent(email)}`;
+  // SECURITY CRITICAL: Always use the provided secure invite link with all parameters
+  if (!inviteLink) {
+    throw new Error("Secure invitation link is required");
+  }
+  const registrationUrl = inviteLink;
   
   return sendEmail({
     to: email,
