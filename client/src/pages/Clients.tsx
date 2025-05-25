@@ -155,9 +155,7 @@ export default function Clients() {
 
   const resendMutation = useMutation({
     mutationFn: async (invitationId: number) => {
-      return apiRequest(`/api/invitations/${invitationId}/resend`, {
-        method: 'POST'
-      });
+      return apiRequest('POST', `/api/invitations/${invitationId}/resend`);
     },
     onSuccess: () => {
       toast({

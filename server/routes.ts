@@ -224,7 +224,8 @@ import {
   thoughtRecords,
   users,
   emotionRecords,
-  passwordResetTokens
+  passwordResetTokens,
+  clientInvitations
 } from "@shared/schema";
 import cookieParser from "cookie-parser";
 // Email reminders will be handled by the script files we created
@@ -862,6 +863,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create the user - if therapistId is provided, it will be included in validatedData 
       // due to our schema allowing it in the insertUserSchema
       const user = await storage.createUser(validatedData);
+      
+      // AUTOMATIC CLEANUP: Mark any pending invitations for this email as accepted
+      if (user.email && user.therapistId) {
+        try {
+          // Update invitation status from pending to accepted for this email and therapist
+          await db
+            .update(clientInvitations)
+            .set({ status: 'accepted', acceptedAt: new Date() })
+            .where(and(
+              eq(clientInvitations.email, user.email),
+              eq(clientInvitations.therapistId, user.therapistId),
+              inArray(clientInvitations.status, ['pending', 'email_sent'])
+            ));
+          console.log(`Automatically marked invitation as accepted for ${user.email} with therapist ${user.therapistId}`);
+        } catch (invitationError) {
+          console.error('Error updating invitation status:', invitationError);
+          // Don't fail registration if invitation update fails
+        }
+      }
       
       // Log the registration with therapist information
       if (validatedData.therapistId) {
