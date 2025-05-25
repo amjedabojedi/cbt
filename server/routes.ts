@@ -98,11 +98,13 @@ export async function sendProfessionalWelcomeEmail(email: string, name: string):
 }
 
 export async function sendClientInvitation(email: string, therapistName: string, inviteLink?: string, therapistId?: number): Promise<boolean> {
-  // SECURITY CRITICAL: Always use the secure invitation link from database when provided
-  const registrationUrl = inviteLink || `${process.env.APP_URL || 'https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev'}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${therapistId || ''}`;
-  
-  console.log('🔍 DEBUG: Sending invitation email with URL:', registrationUrl);
+  // SECURITY CRITICAL: Always use the invitation link provided - never generate a fallback
+  console.log('🔍 DEBUG: inviteLink provided:', inviteLink);
+  console.log('🔍 DEBUG: process.env.APP_URL:', process.env.APP_URL);
   console.log('🔍 DEBUG: therapistId parameter:', therapistId);
+  
+  const registrationUrl = inviteLink || `FALLBACK_URL_ERROR_CHECK_INVITE_GENERATION`;
+  console.log('🔍 DEBUG: Final registration URL:', registrationUrl);
   
   return sendEmail({
     to: email,
