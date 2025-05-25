@@ -1734,10 +1734,10 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getUnreadNotificationsByUser(userId: number): Promise<Notification[]> {
-    console.log(`Storage DEBUG: Fetching unread notifications for user ${userId}`);
+    console.log(`STORAGE FIX: Fetching unread notifications for user ${userId}`);
     
-    // Direct SQL query to bypass any ORM issues
-    const rawQuery = `
+    // CRITICAL FIX: Use direct database pool to prevent data multiplication
+    const result = await pool.query(`
       SELECT id, user_id as "userId", title, body, type, is_read as "isRead", 
              created_at as "createdAt", expires_at as "expiresAt", metadata, link_path as "linkPath", link
       FROM notifications 
@@ -1745,14 +1745,12 @@ export class DatabaseStorage implements IStorage {
         AND is_read = false 
         AND (expires_at IS NULL OR expires_at >= NOW())
       ORDER BY created_at DESC
-    `;
+    `, [userId]);
     
-    const queryResult = await db.execute(sql.raw(rawQuery, [userId]));
-    const result = queryResult.rows || [];
+    const notifications = result.rows || [];
+    console.log(`STORAGE FIX: Found exactly ${notifications.length} unread notifications for user ${userId} (data integrity restored)`);
     
-    console.log(`Storage DEBUG: Found ${result.length} notifications for user ${userId}:`, result.map((n: any) => ({ id: n.id, title: n.title, isRead: n.isRead })));
-    
-    return result as Notification[];
+    return notifications as Notification[];
   }
   
   async getNotificationById(id: number): Promise<Notification | undefined> {
