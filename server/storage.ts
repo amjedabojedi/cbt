@@ -1739,17 +1739,19 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .select()
       .from(notifications)
-      .where(eq(notifications.userId, userId))
-      .where(eq(notifications.isRead, false))
       .where(
-        or(
-          isNull(notifications.expiresAt),
-          gte(notifications.expiresAt, new Date())
+        and(
+          eq(notifications.userId, userId),
+          eq(notifications.isRead, false),
+          or(
+            isNull(notifications.expiresAt),
+            gte(notifications.expiresAt, new Date())
+          )
         )
       )
       .orderBy(desc(notifications.createdAt));
     
-    console.log(`Storage DEBUG: Found ${result.length} notifications for user ${userId}:`, result.map(n => ({ id: n.id, title: n.title, isRead: n.isRead })));
+    console.log(`Storage DEBUG: Found ${result.length} notifications for user ${userId}:`, result.map((n: any) => ({ id: n.id, title: n.title, isRead: n.isRead })));
     
     return result;
   }

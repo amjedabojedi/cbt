@@ -4251,6 +4251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Import what we need from db
       const { withRetry, db, sql } = await import('./db');
+      const schema = await import('@shared/schema');
       
       // Get the user to check role
       const user = await storage.getUser(userId);
@@ -4296,13 +4297,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Database error fetching therapist notifications:", dbError);
         }
       } else {
-        // For regular users, just get their notifications using storage method
-        const userNotifications = await withRetry(async () => {
-          return await storage.getUnreadNotificationsByUser(userId);
+        // For regular users, get notifications directly from database to avoid storage bugs
+        const directQuery = `
+          SELECT id, user_id, title, body, type, is_read, created_at, expires_at, metadata, link_path, link
+          FROM notifications 
+          WHERE user_id = $1 
+            AND is_read = false 
+            AND (expires_at IS NULL OR expires_at >= NOW())
+          ORDER BY created_at DESC
+        `;
+        
+        const directNotifications = await withRetry(async () => {
+          return await db.execute(sql.raw(directQuery, [userId]));
         });
         
-        allUnreadNotifications = userNotifications || [];
-        console.log(`Found ${allUnreadNotifications.length} unread notifications for user ${userId}`);
+        allUnreadNotifications = directNotifications.rows || [];
+        console.log(`DIRECT DB: Found ${allUnreadNotifications.length} unread notifications for user ${userId}`);
       }
       
       // Set cache control headers to prevent stale data
