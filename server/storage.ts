@@ -688,8 +688,8 @@ export class DatabaseStorage implements IStorage {
     // Delete any client invitations for this user's email
     await db.delete(clientInvitations).where(eq(clientInvitations.email, user.email));
     
-    // Delete reframe practice results for this user
-    await db.delete(reframePracticeResults).where(eq(reframePracticeResults.userId, userId));
+    // Delete reframe coach results for this user
+    await db.delete(reframeCoachResults).where(eq(reframeCoachResults.userId, userId));
     
     // Delete user game profiles for this user
     await db.delete(userGameProfiles).where(eq(userGameProfiles.userId, userId));
