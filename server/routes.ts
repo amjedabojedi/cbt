@@ -1084,7 +1084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const invitationToken = crypto.randomBytes(32).toString('hex');
       const tempUsername = email.split('@')[0] + Math.floor(Math.random() * 1000);
       const tempPassword = Math.random().toString(36).substring(2, 10);
-      const inviteLink = `${process.env.FRONTEND_URL || 'http://resiliencehub.replit.app'}/auth?token=${invitationToken}&email=${encodeURIComponent(email)}&therapistId=${req.user.id}`;
+      const inviteLink = `${process.env.FRONTEND_URL || 'http://resiliencehub.replit.app'}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${req.user.id}`;
       
       // Create the invitation
       const invitation = await storage.createClientInvitation({
