@@ -691,6 +691,12 @@ export class DatabaseStorage implements IStorage {
     // Delete reframe practice results for this user
     await db.delete(reframePracticeResults).where(eq(reframePracticeResults.userId, userId));
     
+    // Delete user game profiles for this user
+    await db.delete(userGameProfiles).where(eq(userGameProfiles.userId, userId));
+    
+    // Delete coping strategy usage for this user
+    await db.delete(copingStrategyUsage).where(eq(copingStrategyUsage.userId, userId));
+    
     // Update therapist references for clients of this user (if the user is a therapist)
     await db
       .update(users)
