@@ -178,8 +178,20 @@ export default function Clients() {
     client.email?.toLowerCase().includes(searchTerm.toLowerCase())
   ) : [];
 
-  // Group invitations by email to show each email only once
-  const uniqueInvitations = (invitations && Array.isArray(invitations)) ? invitations.reduce((acc: any[], invitation: any) => {
+  // Filter out invitations for people who are already registered as active clients
+  const filteredInvitations = (invitations && Array.isArray(invitations)) ? invitations.filter((invitation: any) => {
+    // Only show invitations that haven't been accepted yet
+    if (invitation.status === 'accepted') {
+      return false;
+    }
+    
+    // Check if this email belongs to an existing active client
+    const isExistingClient = clients?.some((client: any) => client.email === invitation.email);
+    return !isExistingClient;
+  }) : [];
+
+  // Group remaining invitations by email to show each email only once
+  const uniqueInvitations = filteredInvitations.reduce((acc: any[], invitation: any) => {
     const existingInvitation = acc.find(inv => inv.email === invitation.email);
     if (!existingInvitation) {
       // Add the most recent invitation for this email
@@ -192,7 +204,7 @@ export default function Clients() {
       }
     }
     return acc;
-  }, []) : [];
+  }, []);
 
   if (clientsLoading) {
     return (
