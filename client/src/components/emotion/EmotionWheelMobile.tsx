@@ -88,18 +88,29 @@ export default function EmotionWheelMobile({
     }
   };
   
-  // Function to confirm emotion selection
+  // Function to confirm emotion selection - allow selection at any level
   const handleConfirmSelection = () => {
-    if (selectedCoreGroup !== null && selectedPrimaryGroup !== null && selectedTertiaryEmotion) {
+    triggerHapticFeedback();
+    
+    // Allow confirmation at core, primary, or tertiary level
+    if (selectedCoreGroup !== null) {
       const coreEmotion = emotionGroups[selectedCoreGroup].core;
-      const primaryEmotion = emotionGroups[selectedCoreGroup].primary[selectedPrimaryGroup];
+      let primaryEmotion = "";
+      let tertiaryEmotion = "";
       
-      triggerHapticFeedback();
+      if (selectedPrimaryGroup !== null) {
+        primaryEmotion = emotionGroups[selectedCoreGroup].primary[selectedPrimaryGroup];
+      }
+      
+      if (selectedTertiaryEmotion) {
+        tertiaryEmotion = selectedTertiaryEmotion;
+      }
+      
       if (onEmotionSelect) {
         onEmotionSelect({
           coreEmotion,
           primaryEmotion,
-          tertiaryEmotion: selectedTertiaryEmotion,
+          tertiaryEmotion,
         });
       }
     }
@@ -362,20 +373,24 @@ export default function EmotionWheelMobile({
         {/* Show selection preview if any emotion is selected */}
         {selectedCore && renderSelectionPreview()}
         
-        {/* Confirm button for mobile users */}
-        {selectedTertiaryEmotion && (
+        {/* Confirm button for mobile users - show at any selection level */}
+        {selectedCoreGroup !== null && (
           <div className="mt-4 flex gap-2">
-            <button
-              onClick={handleBack}
-              className="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium"
-            >
-              Back
-            </button>
+            {(viewMode !== "core") && (
+              <button
+                onClick={handleBack}
+                className="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium"
+              >
+                Back
+              </button>
+            )}
             <button
               onClick={handleConfirmSelection}
               className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg font-medium"
             >
-              Confirm Selection
+              {selectedTertiaryEmotion ? 'Confirm Selection' : 
+               selectedPrimaryGroup !== null ? 'Confirm & Continue' : 
+               'Select This Emotion'}
             </button>
           </div>
         )}
