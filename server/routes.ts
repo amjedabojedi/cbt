@@ -1103,9 +1103,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'pending'
       });
       
-      // Send email invitation with proper invitation link including therapist ID
+      // Send email invitation with dynamically generated link (don't use stored link)
       const therapistName = req.user.name || req.user.username;
-      const emailSent = await sendClientInvitation(email, therapistName, inviteLink);
+      const dynamicInviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${req.user.id}`;
+      const emailSent = await sendClientInvitation(email, therapistName, dynamicInviteLink);
       
       // Create notification for therapist
       await storage.createNotification({
