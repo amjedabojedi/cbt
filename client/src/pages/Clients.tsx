@@ -91,6 +91,7 @@ export default function Clients() {
       setShowInviteDialog(false);
       inviteForm.reset();
       queryClient.invalidateQueries({ queryKey: ['/api/users/clients'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/invitations'] });
     },
     onError: (error: Error) => {
       toast({
