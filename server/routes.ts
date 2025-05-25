@@ -875,15 +875,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // FORCE client role and therapist assignment - NO EXCEPTIONS
           validatedData.role = "client";
           validatedData.therapistId = invitation.therapistId;
-          console.log(`SECURITY: Forcing invitation registration ${validatedData.email} -> client for therapist ${invitation.therapistId}`);
+          console.log(`🔒 INVITATION REGISTRATION: ${validatedData.email} -> client for therapist ${invitation.therapistId}`);
+          console.log(`📋 Full registration data:`, {
+            email: validatedData.email,
+            role: validatedData.role,
+            therapistId: validatedData.therapistId,
+            isInvitation: isInvitationRegistration
+          });
         }
       } catch (error) {
-        console.log('Invitation check failed, proceeding with registration');
+        console.log('⚠️ Invitation check failed, proceeding with registration:', error);
       }
       
       // Create the user - if therapistId is provided, it will be included in validatedData 
       // due to our schema allowing it in the insertUserSchema
       const user = await storage.createUser(validatedData);
+      
+      console.log(`✅ User created successfully:`, {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        therapistId: user.therapistId,
+        status: user.status
+      });
+      
+      // SAFETY CHECK: If this was an invitation registration but therapistId is missing, fix it
+      if (isInvitation && !user.therapistId && validatedData.therapistId) {
+        console.log(`🚨 FIXING MISSING THERAPIST CONNECTION: Setting therapist ${validatedData.therapistId} for user ${user.id}`);
+        await storage.updateUser(user.id, { therapistId: validatedData.therapistId });
+        user.therapistId = validatedData.therapistId;
+      }
       
       // AUTOMATIC CLEANUP: Mark any pending invitations for this email as accepted
       if (user.email && user.therapistId) {
