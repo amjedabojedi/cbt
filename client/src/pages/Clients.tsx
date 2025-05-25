@@ -207,7 +207,7 @@ export default function Clients() {
 
   // Filter out invitations for people who are already registered as active clients
   const filteredInvitations = (invitations && Array.isArray(invitations)) ? invitations.filter((invitation: any) => {
-    // Only show invitations that haven't been accepted yet
+    // Only show invitations that haven't been accepted yet (include email_sent, pending, etc.)
     if (invitation.status === 'accepted') {
       return false;
     }
