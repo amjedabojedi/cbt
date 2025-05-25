@@ -21,7 +21,9 @@ import {
   cognitiveDistortions, type CognitiveDistortion, type InsertCognitiveDistortion,
   systemLogs, type SystemLog, type InsertSystemLog,
   clientInvitations, type ClientInvitation, type InsertClientInvitation,
-  aiRecommendations, type AiRecommendation, type InsertAiRecommendation
+  aiRecommendations, type AiRecommendation, type InsertAiRecommendation,
+  reframePracticeResults,
+  userGameProfile
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, or, isNull, gte, gt } from "drizzle-orm";
@@ -688,11 +690,11 @@ export class DatabaseStorage implements IStorage {
     // Delete any client invitations for this user's email
     await db.delete(clientInvitations).where(eq(clientInvitations.email, user.email));
     
-    // Delete reframe coach results for this user
-    await db.delete(reframeCoachResults).where(eq(reframeCoachResults.userId, userId));
+    // Delete reframe practice results for this user
+    await db.delete(reframePracticeResults).where(eq(reframePracticeResults.userId, userId));
     
     // Delete user game profiles for this user
-    await db.delete(userGameProfiles).where(eq(userGameProfiles.userId, userId));
+    await db.delete(userGameProfile).where(eq(userGameProfile.userId, userId));
     
     // Delete coping strategy usage for this user
     await db.delete(copingStrategyUsage).where(eq(copingStrategyUsage.userId, userId));
