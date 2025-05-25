@@ -67,6 +67,8 @@ export default function AuthPage() {
   // DEBUG: Log URL parameters to see what's being received
   console.log('🔍 AUTH DEBUG: Full URL:', window.location.href);
   console.log('🔍 AUTH DEBUG: Search params:', window.location.search);
+  console.log('🔍 AUTH DEBUG: URLSearchParams object:', searchParams);
+  console.log('🔍 AUTH DEBUG: All params:', Array.from(searchParams.entries()));
   console.log('🔍 AUTH DEBUG: invitation param:', invitationParam);
   console.log('🔍 AUTH DEBUG: email param:', emailParam);
   console.log('🔍 AUTH DEBUG: therapistId param:', therapistIdParam);
