@@ -3052,10 +3052,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Therapist not found" });
       }
       
+      // Generate a fresh invitation link with therapistId for resending
+      const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+      const freshInviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(invitation.email)}&therapistId=${req.user.id}`;
+      
       const emailSent = await sendClientInvitation(
         invitation.email,
         therapist.name || therapist.username,
-        invitation.inviteLink,
+        freshInviteLink,
         req.user.id
       );
       
