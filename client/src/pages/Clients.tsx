@@ -81,13 +81,7 @@ export default function Clients() {
 
   const inviteMutation = useMutation({
     mutationFn: async (data: InviteClientFormValues) => {
-      return apiRequest('/api/auth/invite-client', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      return apiRequest('POST', '/api/auth/invite-client', data);
     },
     onSuccess: () => {
       toast({
