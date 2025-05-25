@@ -860,6 +860,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // When users register directly, they are automatically active
       validatedData.status = "active";
       
+      // SECURITY FIX: If this is an invitation (has therapistId), force role to be "client"
+      if (validatedData.therapistId) {
+        validatedData.role = "client";
+        console.log(`Security enforcement: User ${validatedData.username} registered via invitation - role forced to "client"`);
+      }
+      
       // Create the user - if therapistId is provided, it will be included in validatedData 
       // due to our schema allowing it in the insertUserSchema
       const user = await storage.createUser(validatedData);
