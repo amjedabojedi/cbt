@@ -189,6 +189,29 @@ export default function AuthForm({ mode }: AuthFormProps) {
                     )}
                   />
                 )}
+                
+                {isInvitation && (
+                  <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Role</FormLabel>
+                        <FormControl>
+                          <Input 
+                            value="Client" 
+                            disabled 
+                            className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          You're registering as a client through a therapist invitation
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </>
             )}
             
