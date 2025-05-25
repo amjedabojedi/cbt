@@ -59,24 +59,36 @@ export default function AuthPage() {
   const { user, login, register: registerUser } = useAuth();
   const [location, navigate] = useLocation();
   const { toast } = useToast();
-  // Fix parameter parsing - check both window.location.search and window.location.href
+  // Enhanced mobile parameter parsing - check multiple sources
   const fullUrl = window.location.href;
   const searchString = window.location.search || (fullUrl.includes('?') ? fullUrl.split('?')[1] : '');
   const searchParams = new URLSearchParams(searchString);
-  const invitationParam = searchParams.get("invitation");
-  const emailParam = searchParams.get("email");
-  const therapistIdParam = searchParams.get("therapistId");
+  
+  // Mobile browsers sometimes strip parameters - check hash and referrer too
+  const hashParams = window.location.hash.includes('?') ? 
+    new URLSearchParams(window.location.hash.split('?')[1]) : new URLSearchParams();
+  
+  const invitationParam = searchParams.get("invitation") || hashParams.get("invitation");
+  const emailParam = searchParams.get("email") || hashParams.get("email");
+  const therapistIdParam = searchParams.get("therapistId") || hashParams.get("therapistId");
   
   // Store invitation data if URL parameters are present (before they get lost)
   useEffect(() => {
-    if (invitationParam === "true" && emailParam && therapistIdParam) {
+    // Enhanced mobile detection - check for invitation parameters in multiple ways
+    const hasInvitationParams = (invitationParam === "true" && emailParam && therapistIdParam) ||
+                               (emailParam && therapistIdParam); // Sometimes mobile strips the invitation=true param
+    
+    if (hasInvitationParams) {
       const invitationData = {
         email: emailParam,
         therapistId: therapistIdParam,
         timestamp: Date.now()
       };
       localStorage.setItem('pending_invitation', JSON.stringify(invitationData));
-      console.log('🔍 STORED invitation data:', invitationData);
+      console.log('Mobile invitation data stored:', invitationData);
+      
+      // Force mobile users to signup tab if they have invitation parameters
+      setActiveTab("register");
     }
   }, [invitationParam, emailParam, therapistIdParam]);
 
