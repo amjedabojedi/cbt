@@ -39,6 +39,12 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
+  // Check if this is an invitation registration
+  const urlParams = new URLSearchParams(window.location.search);
+  const isInvitation = urlParams.get('invitation') === 'true';
+  const invitationEmail = urlParams.get('email');
+  const therapistId = urlParams.get('therapistId');
+
   // Use the appropriate schema based on the mode
   const schema = mode === "login" ? loginSchema : registerSchema;
   
@@ -47,7 +53,14 @@ export default function AuthForm({ mode }: AuthFormProps) {
     resolver: zodResolver(schema),
     defaultValues: mode === "login" 
       ? { username: "", password: "" } 
-      : { username: "", email: "", password: "", name: "", role: "client" },
+      : { 
+          username: "", 
+          email: invitationEmail || "", 
+          password: "", 
+          name: "", 
+          role: isInvitation ? "client" : "client",
+          therapistId: therapistId ? parseInt(therapistId) : undefined
+        },
   });
 
   // Handle form submission
@@ -74,11 +87,19 @@ export default function AuthForm({ mode }: AuthFormProps) {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>{mode === "login" ? "Log In" : "Create Account"}</CardTitle>
+        <CardTitle>
+          {mode === "login" 
+            ? "Log In" 
+            : isInvitation 
+              ? "Complete Your Registration" 
+              : "Create Account"}
+        </CardTitle>
         <CardDescription>
           {mode === "login" 
             ? "Enter your credentials to access your account" 
-            : "Fill out the form below to create your account"}
+            : isInvitation
+              ? "You've been invited to join as a client. Please complete your registration below."
+              : "Fill out the form below to create your account"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -107,8 +128,19 @@ export default function AuthForm({ mode }: AuthFormProps) {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="john.doe@example.com" {...field} />
+                        <Input 
+                          type="email" 
+                          placeholder="john.doe@example.com" 
+                          {...field} 
+                          disabled={isInvitation}
+                          className={isInvitation ? "bg-muted" : ""}
+                        />
                       </FormControl>
+                      {isInvitation && (
+                        <FormDescription>
+                          This email is from your invitation link
+                        </FormDescription>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -128,33 +160,35 @@ export default function AuthForm({ mode }: AuthFormProps) {
                   )}
                 />
                 
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select your role" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="client">Client</SelectItem>
-                          <SelectItem value="therapist">Therapist</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Choose your role in the system
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!isInvitation && (
+                  <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Role</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select your role" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="client">Client</SelectItem>
+                            <SelectItem value="therapist">Therapist</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Choose your role in the system
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </>
             )}
             
