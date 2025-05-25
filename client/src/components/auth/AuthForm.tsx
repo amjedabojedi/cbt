@@ -41,9 +41,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
   // Check if this is an invitation registration
   const urlParams = new URLSearchParams(window.location.search);
-  const isInvitation = urlParams.get('invitation') === 'true';
   const invitationEmail = urlParams.get('email');
   const therapistId = urlParams.get('therapistId');
+  const isInvitation = urlParams.get('invitation') === 'true' || !!invitationEmail;
 
   // Use the appropriate schema based on the mode
   const schema = mode === "login" ? loginSchema : registerSchema;
