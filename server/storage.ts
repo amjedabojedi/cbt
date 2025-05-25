@@ -1734,7 +1734,9 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getUnreadNotificationsByUser(userId: number): Promise<Notification[]> {
-    return db
+    console.log(`Storage DEBUG: Fetching unread notifications for user ${userId}`);
+    
+    const result = await db
       .select()
       .from(notifications)
       .where(eq(notifications.userId, userId))
@@ -1746,6 +1748,10 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(desc(notifications.createdAt));
+    
+    console.log(`Storage DEBUG: Found ${result.length} notifications for user ${userId}:`, result.map(n => ({ id: n.id, title: n.title, isRead: n.isRead })));
+    
+    return result;
   }
   
   async getNotificationById(id: number): Promise<Notification | undefined> {
