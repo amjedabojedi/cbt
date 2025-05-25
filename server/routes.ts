@@ -2501,8 +2501,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Generate an invitation link with email parameter and therapist ID
-      // Use the request's host for the base URL if BASE_URL is not set
-      const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+      // Use the request's host for the base URL to ensure correct domain
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
       console.log(`Using base URL for invitation: ${baseUrl}`);
       const encodedEmail = encodeURIComponent(email);
       const therapistId = req.user.id;
@@ -3056,7 +3056,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Generate a fresh invitation link with therapistId for resending
-      const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
       const freshInviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(invitation.email)}&therapistId=${req.user.id}`;
       
       const emailSent = await sendClientInvitation(
