@@ -1055,7 +1055,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if there's already a pending invitation for this email
       const existingInvitation = await storage.getClientInvitationByEmail(email);
-      if (existingInvitation && existingInvitation.status === 'pending') {
+      if (existingInvitation && (existingInvitation.status === 'pending' || existingInvitation.status === 'email_sent')) {
         return res.status(409).json({ message: "Invitation already pending for this email" });
       }
       
