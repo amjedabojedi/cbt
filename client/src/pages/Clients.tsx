@@ -175,8 +175,11 @@ export default function Clients() {
     }
   };;
 
+  const [resendingInvitation, setResendingInvitation] = useState<number | null>(null);
+
   const resendMutation = useMutation({
     mutationFn: async (invitationId: number) => {
+      setResendingInvitation(invitationId);
       return apiRequest('POST', `/api/invitations/${invitationId}/resend`);
     },
     onSuccess: () => {
@@ -185,6 +188,7 @@ export default function Clients() {
         description: "The invitation has been sent again successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/invitations'] });
+      setResendingInvitation(null);
     },
     onError: (error: Error) => {
       toast({
@@ -192,6 +196,7 @@ export default function Clients() {
         description: error.message || "Failed to resend invitation.",
         variant: "destructive"
       });
+      setResendingInvitation(null);
     }
   });
 
@@ -478,9 +483,9 @@ export default function Clients() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleResendInvitation(invitation.id)}
-                              disabled={resendMutation.isPending}
+                              disabled={resendingInvitation === invitation.id}
                             >
-                              {resendMutation.isPending ? (
+                              {resendingInvitation === invitation.id ? (
                                 <RefreshCw className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Send className="h-4 w-4" />
