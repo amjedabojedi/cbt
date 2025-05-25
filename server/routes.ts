@@ -4355,11 +4355,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           // Regular users can only mark their own notifications as read
           await withRetry(async () => {
-            await db.execute(sql`
+            await pool.query(`
               UPDATE notifications 
               SET is_read = true 
-              WHERE user_id = ${userId}
-            `);
+              WHERE user_id = $1
+            `, [userId]);
             console.log(`Reset notifications for regular user ${userId}`);
             return true;
           });
