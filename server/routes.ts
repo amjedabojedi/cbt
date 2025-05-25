@@ -2845,8 +2845,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/invitations", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
     try {
       // No need to check if user is authenticated as ensureAuthenticated already did that
-      const invitations = await storage.getClientInvitationsByProfessional(req.user.id);
-      res.json(invitations);
+      const allInvitations = await storage.getClientInvitationsByProfessional(req.user.id);
+      
+      // Filter out invitations for emails that are already registered as active users
+      const validInvitations = [];
+      for (const invitation of allInvitations) {
+        if (invitation.status !== 'pending') {
+          validInvitations.push(invitation);
+          continue;
+        }
+        
+        // Check if this email is already a registered user
+        const existingUser = await storage.getUserByEmail(invitation.email);
+        if (!existingUser) {
+          // No user exists with this email, keep the invitation
+          validInvitations.push(invitation);
+        } else {
+          // User exists - mark invitation as accepted if they're a client of this therapist
+          if (existingUser.therapistId === req.user.id) {
+            await storage.updateClientInvitationStatus(invitation.id, 'accepted');
+          } else {
+            // User exists but not as client of this therapist - mark as expired
+            await storage.updateClientInvitationStatus(invitation.id, 'expired');
+          }
+        }
+      }
+      
+      res.json(validInvitations);
     } catch (error) {
       console.error("Error fetching invitations:", error);
       res.status(500).json({ message: "Failed to fetch invitations" });
