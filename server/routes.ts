@@ -860,10 +860,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // When users register directly, they are automatically active
       validatedData.status = "active";
       
-      // SECURITY FIX: If this is an invitation (has therapistId), force role to be "client"
-      if (validatedData.therapistId) {
+      // SECURITY FIX: Force role to "client" for ALL invitation registrations
+      // Check multiple conditions to ensure comprehensive security
+      if (validatedData.therapistId || isInvitation) {
         validatedData.role = "client";
         console.log(`Security enforcement: User ${validatedData.username} registered via invitation - role forced to "client"`);
+      }
+      
+      // ADDITIONAL SECURITY: Check if email has a pending invitation
+      if (validatedData.email) {
+        try {
+          const existingInvitation = await storage.getClientInvitationByEmail(validatedData.email);
+          if (existingInvitation && (existingInvitation.status === 'pending' || existingInvitation.status === 'email_sent')) {
+            validatedData.role = "client";
+            validatedData.therapistId = existingInvitation.therapistId;
+            console.log(`Security enforcement: Found pending invitation for ${validatedData.email} - role forced to "client" with therapist ${existingInvitation.therapistId}`);
+          }
+        } catch (invitationCheckError) {
+          console.error('Error checking invitation:', invitationCheckError);
+          // Continue with registration even if invitation check fails
+        }
       }
       
       // Create the user - if therapistId is provided, it will be included in validatedData 
