@@ -335,7 +335,7 @@ export default function Clients() {
           </TabsList>
 
           <TabsContent value="clients" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
               {filteredClients?.map((client: User) => (
                 <Card key={client.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
