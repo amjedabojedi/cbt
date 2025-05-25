@@ -1736,24 +1736,23 @@ export class DatabaseStorage implements IStorage {
   async getUnreadNotificationsByUser(userId: number): Promise<Notification[]> {
     console.log(`Storage DEBUG: Fetching unread notifications for user ${userId}`);
     
-    const result = await db
-      .select()
-      .from(notifications)
-      .where(
-        and(
-          eq(notifications.userId, userId),
-          eq(notifications.isRead, false),
-          or(
-            isNull(notifications.expiresAt),
-            gte(notifications.expiresAt, new Date())
-          )
-        )
-      )
-      .orderBy(desc(notifications.createdAt));
+    // Direct SQL query to bypass any ORM issues
+    const rawQuery = `
+      SELECT id, user_id as "userId", title, body, type, is_read as "isRead", 
+             created_at as "createdAt", expires_at as "expiresAt", metadata, link_path as "linkPath", link
+      FROM notifications 
+      WHERE user_id = $1 
+        AND is_read = false 
+        AND (expires_at IS NULL OR expires_at >= NOW())
+      ORDER BY created_at DESC
+    `;
+    
+    const queryResult = await db.execute(sql.raw(rawQuery, [userId]));
+    const result = queryResult.rows || [];
     
     console.log(`Storage DEBUG: Found ${result.length} notifications for user ${userId}:`, result.map((n: any) => ({ id: n.id, title: n.title, isRead: n.isRead })));
     
-    return result;
+    return result as Notification[];
   }
   
   async getNotificationById(id: number): Promise<Notification | undefined> {

@@ -4259,11 +4259,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
+      console.log(`NOTIFICATION DEBUG: User ${userId} has role: ${user.role}`);
+      
       // Set up an empty array for the results
       let allUnreadNotifications = [];
       
       // STEP 1: Use a direct database query to get the most accurate count
       // ALWAYS verify is_read status directly in the query
+      if (user.role === 'therapist') {
+        console.log(`NOTIFICATION DEBUG: Processing as THERAPIST`);
+      } else {
+        console.log(`NOTIFICATION DEBUG: Processing as CLIENT`);
+      }
+      
       if (user.role === 'therapist') {
         // For therapists, we need to get their unread notifications AND client notifications
         try {
@@ -4307,11 +4315,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ORDER BY created_at DESC
         `;
         
-        const directNotifications = await withRetry(async () => {
-          return await db.execute(sql.raw(directQuery, [userId]));
+        const directResult = await withRetry(async () => {
+          const result = await db.execute(sql.raw(directQuery, [userId]));
+          console.log(`RAW DB RESULT:`, result);
+          return result;
         });
         
-        allUnreadNotifications = directNotifications.rows || [];
+        allUnreadNotifications = directResult.rows || [];
         console.log(`DIRECT DB: Found ${allUnreadNotifications.length} unread notifications for user ${userId}`);
       }
       

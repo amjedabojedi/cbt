@@ -52,15 +52,19 @@ export async function getNotificationsByUser(userId: number, limit?: number) {
  */
 export async function getUnreadNotificationsByUser(userId: number) {
   try {
-    return await db.select()
-      .from(notifications)
-      .where(
-        and(
-          eq(notifications.userId, userId),
-          eq(notifications.isRead, false)
-        )
-      )
-      .orderBy(desc(notifications.createdAt));
+    // Direct SQL query to avoid any ORM issues
+    const result = await db.execute(sql`
+      SELECT id, user_id as "userId", title, body, type, is_read as "isRead", 
+             created_at as "createdAt", expires_at as "expiresAt", metadata, link_path as "linkPath", link
+      FROM notifications 
+      WHERE user_id = ${userId}
+        AND is_read = false 
+        AND (expires_at IS NULL OR expires_at >= NOW())
+      ORDER BY created_at DESC
+    `);
+    
+    console.log(`Found ${result.rows?.length || 0} unread notifications for user ${userId}`);
+    return result.rows || [];
   } catch (error) {
     console.error(`Error fetching unread notifications for user ${userId}:`, error);
     throw error;
