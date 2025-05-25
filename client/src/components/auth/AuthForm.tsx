@@ -70,7 +70,16 @@ export default function AuthForm({ mode }: AuthFormProps) {
       if (mode === "login") {
         await login((data as LoginFormValues).username, (data as LoginFormValues).password);
       } else {
-        await register(data as RegisterFormValues);
+        const registerData = data as RegisterFormValues;
+        
+        // SECURITY CRITICAL: Force role to "client" for ALL invitations
+        if (isInvitation) {
+          registerData.role = "client";
+          registerData.therapistId = therapistId ? parseInt(therapistId) : undefined;
+          console.log("FORCED INVITATION ROLE:", registerData.role, "therapistId:", registerData.therapistId);
+        }
+        
+        await register(registerData);
       }
     } catch (error) {
       console.error(error);
