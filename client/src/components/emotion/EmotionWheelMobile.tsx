@@ -83,16 +83,28 @@ export default function EmotionWheelMobile({
       const coreEmotion = emotionGroups[selectedCoreGroup].core;
       const primaryEmotion = emotionGroups[selectedCoreGroup].primary[selectedPrimaryGroup];
       
+      // Don't auto-trigger onEmotionSelect - let user manually confirm
+      // Store the selection in state and wait for user to press confirm
+    }
+  };
+  
+  // Function to confirm emotion selection
+  const handleConfirmSelection = () => {
+    if (selectedCoreGroup !== null && selectedPrimaryGroup !== null && selectedTertiaryEmotion) {
+      const coreEmotion = emotionGroups[selectedCoreGroup].core;
+      const primaryEmotion = emotionGroups[selectedCoreGroup].primary[selectedPrimaryGroup];
+      
+      triggerHapticFeedback();
       if (onEmotionSelect) {
         onEmotionSelect({
           coreEmotion,
           primaryEmotion,
-          tertiaryEmotion,
+          tertiaryEmotion: selectedTertiaryEmotion,
         });
       }
     }
   };
-  
+
   // Function to go back to previous selection level
   const handleBack = () => {
     triggerHapticFeedback();
@@ -349,6 +361,24 @@ export default function EmotionWheelMobile({
         
         {/* Show selection preview if any emotion is selected */}
         {selectedCore && renderSelectionPreview()}
+        
+        {/* Confirm button for mobile users */}
+        {selectedTertiaryEmotion && (
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={handleBack}
+              className="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium"
+            >
+              Back
+            </button>
+            <button
+              onClick={handleConfirmSelection}
+              className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg font-medium"
+            >
+              Confirm Selection
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
