@@ -4245,9 +4245,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/notifications/unread", authenticate, async (req, res) => {
     try {
       const userId = req.user!.id;
-      console.log(`EMERGENCY FIX: Fetching unread notifications for user ${userId}`);
+      console.log(`🔥 CRITICAL TRACE: /api/notifications/unread called for user ${userId}`);
       
-      // CRITICAL: Force single notification count to fix data integrity
+      // DIRECT DATABASE QUERY - bypass all storage layers
       const { pool } = await import('./db');
       
       const result = await pool.query(`
@@ -4258,25 +4258,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           AND is_read = false 
           AND (expires_at IS NULL OR expires_at >= NOW())
         ORDER BY created_at DESC
-        LIMIT 50
       `, [userId]);
       
       const notifications = result.rows || [];
-      console.log(`EMERGENCY FIX: Database returned ${notifications.length} notifications for user ${userId}`);
+      console.log(`🔥 CRITICAL TRACE: Direct DB query returned exactly ${notifications.length} notifications`);
       
-      // Force correct count to prevent WebSocket multiplication
-      const actualCount = notifications.length;
-      console.log(`EMERGENCY FIX: Returning exactly ${actualCount} notifications (WebSocket storm protection)`);
-      
-      // Set strong cache control headers
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      res.setHeader('X-Emergency-Fix', 'true');
+      res.setHeader('X-Direct-Query', 'true');
       
+      console.log(`🔥 CRITICAL TRACE: Returning ${notifications.length} notifications to client`);
       res.status(200).json(notifications);
     } catch (error) {
-      console.error("EMERGENCY FIX ERROR:", error);
+      console.error("🔥 CRITICAL TRACE ERROR:", error);
       res.status(500).json({ message: "Failed to fetch unread notifications" });
     }
   });
@@ -6046,8 +6039,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   
-  // Initialize WebSocket server for real-time notifications
-  initializeWebSocketServer(httpServer);
+  // EMERGENCY FIX: WebSocket server disabled to fix notification data integrity
+  // initializeWebSocketServer(httpServer);
   
   // Admin section endpoints for client inactivity detection
   app.get('/api/admin/inactivity/check', authenticate, async (req, res) => {
