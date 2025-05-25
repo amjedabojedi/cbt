@@ -64,9 +64,9 @@ export default function AuthPage() {
   const emailParam = searchParams.get("email");
   const therapistIdParam = searchParams.get("therapistId");
   
-  // Initialize invitation state immediately based on URL params
-  const [isInvitation, setIsInvitation] = useState(invitationParam === "true" || !!emailParam);
-  const [activeTab, setActiveTab] = useState((invitationParam === "true" || !!emailParam) ? "register" : "login");
+  // Calculate invitation state directly from URL params - no state needed
+  const isInvitation = invitationParam === "true" || !!emailParam;
+  const [activeTab, setActiveTab] = useState(isInvitation ? "register" : "login");
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [registerSubmitting, setRegisterSubmitting] = useState(false);
   
@@ -97,7 +97,6 @@ export default function AuthPage() {
   useEffect(() => {
     // If invitation parameter is present, set up for client registration
     if (invitationParam === "true") {
-      setIsInvitation(true);
       setActiveTab("register");
       
       // Display invitation toast
