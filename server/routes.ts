@@ -1096,9 +1096,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'pending'
       });
       
-      // Send email invitation
+      // Send email invitation with proper invitation link including therapist ID
       const therapistName = req.user.name || req.user.username;
-      const emailSent = await sendClientInvitation(email, therapistName);
+      const emailSent = await sendClientInvitation(email, therapistName, inviteLink);
       
       // Create notification for therapist
       await storage.createNotification({
