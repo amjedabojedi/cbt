@@ -97,9 +97,9 @@ export async function sendProfessionalWelcomeEmail(email: string, name: string):
   });
 }
 
-export async function sendClientInvitation(email: string, therapistName: string, inviteLink?: string): Promise<boolean> {
+export async function sendClientInvitation(email: string, therapistName: string, inviteLink?: string, therapistId?: number): Promise<boolean> {
   // SECURITY CRITICAL: Always use the secure invitation link from database when provided
-  const registrationUrl = inviteLink || `${process.env.APP_URL || 'https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev'}/auth?invitation=true&email=${encodeURIComponent(email)}`;
+  const registrationUrl = inviteLink || `${process.env.APP_URL || 'https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev'}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${therapistId || ''}`;
   
   return sendEmail({
     to: email,
@@ -2509,7 +2509,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emailSent = await sendClientInvitation(
         email,
         req.user.name || req.user.username,
-        inviteLink
+        inviteLink,
+        req.user.id
       );
       
       if (emailSent) {
@@ -3054,7 +3055,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emailSent = await sendClientInvitation(
         invitation.email,
         therapist.name || therapist.username,
-        invitation.inviteLink
+        invitation.inviteLink,
+        req.user.id
       );
       
       // Create a notification for the therapist regardless of email status
