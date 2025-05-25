@@ -59,15 +59,16 @@ export default function AuthPage() {
   const { user, login, register: registerUser } = useAuth();
   const [location, navigate] = useLocation();
   const { toast } = useToast();
-  const [isInvitation, setIsInvitation] = useState(false);
-  const [activeTab, setActiveTab] = useState("login");
-  const [loginSubmitting, setLoginSubmitting] = useState(false);
-  const [registerSubmitting, setRegisterSubmitting] = useState(false);
-  
   const searchParams = new URLSearchParams(window.location.search);
   const invitationParam = searchParams.get("invitation");
   const emailParam = searchParams.get("email");
   const therapistIdParam = searchParams.get("therapistId");
+  
+  // Initialize invitation state immediately based on URL params
+  const [isInvitation, setIsInvitation] = useState(invitationParam === "true");
+  const [activeTab, setActiveTab] = useState(invitationParam === "true" ? "register" : "login");
+  const [loginSubmitting, setLoginSubmitting] = useState(false);
+  const [registerSubmitting, setRegisterSubmitting] = useState(false);
   
   // Initialize forms
   const loginForm = useForm<LoginFormValues>({
@@ -360,7 +361,8 @@ export default function AuthPage() {
                                 type="email" 
                                 placeholder="john.doe@example.com" 
                                 {...field} 
-                                disabled={isInvitation && !!emailParam}
+                                disabled={isInvitation}
+                                className={isInvitation ? "bg-muted" : ""}
                               />
                             </FormControl>
                             <FormMessage className="form-message" />
