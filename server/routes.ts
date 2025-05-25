@@ -4291,7 +4291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(200).json(cached.notifications);
       }
       
-      console.log(`🔥 CRITICAL TRACE: /api/notifications/unread called for user ${userId}`);
+
       
       // DIRECT DATABASE QUERY - bypass all storage layers
       const { pool } = await import('./db');
@@ -4307,7 +4307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `, [userId]);
       
       const notifications = result.rows || [];
-      console.log(`🔥 CRITICAL TRACE: Direct DB query returned exactly ${notifications.length} notifications`);
+
       
       // PERFORMANCE: Cache the results
       notificationCache.set(userId, {
@@ -4326,10 +4326,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('X-Direct-Query', 'true');
       
-      console.log(`🔥 CRITICAL TRACE: Returning ${notifications.length} notifications to client`);
+
       res.status(200).json(notifications);
     } catch (error) {
-      console.error("🔥 CRITICAL TRACE ERROR:", error);
+      console.error("Error fetching notifications:", error);
       res.status(500).json({ message: "Failed to fetch unread notifications" });
     }
   });
