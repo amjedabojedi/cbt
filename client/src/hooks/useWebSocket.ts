@@ -21,6 +21,10 @@ export function useWebSocket() {
 
   // Enhanced connect function with better error handling
   const connect = useCallback(() => {
+    // PERFORMANCE FIX: Disable WebSocket connections to stop constant reconnection attempts
+    console.log('WebSocket disabled for performance - using HTTP polling instead');
+    return;
+    
     if (!user) return;
     
     // Don't attempt to reconnect if we already have an open connection

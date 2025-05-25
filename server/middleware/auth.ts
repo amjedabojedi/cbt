@@ -6,6 +6,10 @@ import { User } from '@shared/schema';
 // This ensures consistent cookie handling across the application
 import { getSessionCookieOptions } from '../routes';
 
+// PERFORMANCE FIX: Simple session cache to avoid repeated database lookups
+const sessionCache = new Map<string, { session: any; user: User; expires: number }>();
+const CACHE_DURATION = 30000; // 30 seconds cache
+
 // Extend Express Request type to include user information
 declare global {
   namespace Express {
@@ -69,7 +73,17 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
   }
   
   try {
+    // PERFORMANCE FIX: Check cache first to avoid repeated database calls
+    const cached = sessionCache.get(sessionId);
+    if (cached && Date.now() < cached.expires) {
+      // Use cached session and user data
+      req.user = cached.user;
+      req.session = cached.session;
+      return next();
+    }
+
     console.log("Looking up session ID:", sessionId);
+    console.log("Attempting to fetch session with ID:", sessionId);
     const session = await storage.getSessionById(sessionId);
     
     if (!session) {
@@ -104,6 +118,13 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     }
     
     console.log("Authentication successful for user:", user.id, user.username);
+    
+    // PERFORMANCE FIX: Cache the session and user data
+    sessionCache.set(sessionId, {
+      session,
+      user,
+      expires: Date.now() + CACHE_DURATION
+    });
     
     // Attach user and session to the request
     req.user = user;
