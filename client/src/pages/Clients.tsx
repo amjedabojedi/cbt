@@ -28,7 +28,8 @@ import {
   User,
   Send,
   Clock,
-  RefreshCw
+  RefreshCw,
+  Trash2
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -147,6 +148,32 @@ export default function Clients() {
       description: "Direct messaging will be available in a future update."
     });
   };
+
+  const deleteClientMutation = useMutation({
+    mutationFn: async (clientId: number) => {
+      return apiRequest('DELETE', `/api/users/clients/${clientId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Client Removed",
+        description: "The client has been successfully removed from your practice.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/clients'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove client",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleDeleteClient = (client: User) => {
+    if (confirm(`Are you sure you want to remove ${client.name || client.username} from your practice? This action cannot be undone.`)) {
+      deleteClientMutation.mutate(client.id);
+    }
+  };;
 
   const resendMutation = useMutation({
     mutationFn: async (invitationId: number) => {
@@ -382,6 +409,14 @@ export default function Clients() {
                         onClick={() => handleSendMessage(client)}
                       >
                         <MessageCircle className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteClient(client)}
+                        disabled={deleteClientMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </CardContent>
