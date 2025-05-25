@@ -860,20 +860,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // When users register directly, they are automatically active
       validatedData.status = "active";
       
-      // CRITICAL SECURITY: Check for ANY invitation for this email FIRST
-      if (validatedData.email) {
+      // Clean invitation token validation
+      const invitationToken = req.body.invitationToken;
+      if (invitationToken) {
         try {
-          const existingInvitation = await storage.getClientInvitationByEmail(validatedData.email);
-          if (existingInvitation && (existingInvitation.status === 'pending' || existingInvitation.status === 'email_sent')) {
-            // FORCE client role and therapist assignment - NO EXCEPTIONS
+          const invitation = await storage.getClientInvitationByEmail(validatedData.email);
+          if (invitation && invitation.inviteLink.includes(invitationToken)) {
             validatedData.role = "client";
-            validatedData.therapistId = existingInvitation.therapistId;
-            validatedData.status = "active";
-            console.log(`SECURITY OVERRIDE: Email ${validatedData.email} has pending invitation - FORCED role="client", therapistId=${existingInvitation.therapistId}`);
+            validatedData.therapistId = invitation.therapistId;
+            console.log(`Invitation registration: ${validatedData.email} -> client for therapist ${invitation.therapistId}`);
+          } else {
+            return res.status(400).json({ message: "Invalid invitation token" });
           }
-        } catch (invitationCheckError) {
-          console.error('Error checking invitation:', invitationCheckError);
-          return res.status(500).json({ message: "Registration validation failed" });
+        } catch (error) {
+          return res.status(400).json({ message: "Invalid invitation" });
         }
       }
       
@@ -1054,10 +1054,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ message: "Invitation already pending for this email" });
       }
       
-      // Generate temporary credentials
+      // Generate secure invitation token
+      const crypto = await import('crypto');
+      const invitationToken = crypto.randomBytes(32).toString('hex');
       const tempUsername = email.split('@')[0] + Math.floor(Math.random() * 1000);
       const tempPassword = Math.random().toString(36).substring(2, 10);
-      const inviteLink = `${process.env.FRONTEND_URL || 'http://resiliencehub.replit.app'}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${req.user.id}`;
+      const inviteLink = `${process.env.FRONTEND_URL || 'http://resiliencehub.replit.app'}/auth?token=${invitationToken}&email=${encodeURIComponent(email)}&therapistId=${req.user.id}`;
       
       // Create the invitation
       const invitation = await storage.createClientInvitation({
