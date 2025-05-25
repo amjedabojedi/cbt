@@ -3351,10 +3351,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? parseInt(req.query.emotionRecordId as string) 
         : undefined;
       
-      // If the user is a therapist with a current viewing client, show that client's thoughts
-      if (req.user?.role === 'therapist' && req.user.currentViewingClientId) {
-        console.log(`Therapist ${req.user.id} is viewing client ${req.user.currentViewingClientId}'s thoughts`);
-        const clientThoughts = await storage.getThoughtRecordsByUser(req.user.currentViewingClientId);
+      console.log(`Getting thought records for user ${userId}, requester: ${req.user.id} (${req.user.role})`);
+      
+      // If the requesting user is a therapist and trying to access a client's data
+      if (req.user?.role === 'therapist' && userId !== req.user.id) {
+        console.log(`Therapist ${req.user.id} is trying to access client ${userId}'s thought records`);
+        
+        // Check if this client belongs to the therapist
+        const isClientOfTherapist = await isClientOfTherapist(userId, req.user.id);
+        if (!isClientOfTherapist) {
+          console.log(`Client ${userId} does not belong to therapist ${req.user.id}`);
+          return res.status(403).json({ message: "Access denied - client not assigned to you" });
+        }
+        
+        console.log(`Access granted - client ${userId} belongs to therapist ${req.user.id}`);
+        const clientThoughts = await storage.getThoughtRecordsByUser(userId);
         
         // Filter by emotion record ID if provided
         const filteredClientThoughts = emotionRecordId
@@ -3364,7 +3375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(200).json(filteredClientThoughts);
       }
       
-      // Get all thoughts for this user
+      // Get all thoughts for this user (own data or admin access)
       const thoughts = await storage.getThoughtRecordsByUser(userId);
       
       // Filter by emotion record ID if provided
