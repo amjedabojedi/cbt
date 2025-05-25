@@ -860,17 +860,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // When users register directly, they are automatically active
       validatedData.status = "active";
       
-      // FORCE CLIENT ROLE FOR ALL INVITATIONS - SECURITY CRITICAL
+      // SECURITY CRITICAL: Check if this email has any pending invitations
       try {
         const invitation = await storage.getClientInvitationByEmail(validatedData.email);
-        if (invitation) {
+        if (invitation && (invitation.status === 'pending' || invitation.status === 'email_sent')) {
+          // If there's a pending invitation, they MUST use the invitation link
+          const isInvitationRegistration = req.body.isInvitation || req.query.invitation;
+          if (!isInvitationRegistration) {
+            return res.status(403).json({ 
+              message: "This email has a pending invitation. Please use the invitation link sent to your email." 
+            });
+          }
+          
           // FORCE client role and therapist assignment - NO EXCEPTIONS
           validatedData.role = "client";
           validatedData.therapistId = invitation.therapistId;
           console.log(`SECURITY: Forcing invitation registration ${validatedData.email} -> client for therapist ${invitation.therapistId}`);
         }
       } catch (error) {
-        // If invitation exists but fails, still check for role override
         console.log('Invitation check failed, proceeding with registration');
       }
       
