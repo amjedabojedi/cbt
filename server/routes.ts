@@ -1021,10 +1021,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Email and name are required" });
       }
       
-      // Check if email is already registered
+      // Check if email is already registered as an active user
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
-        return res.status(409).json({ message: "Email already registered" });
+        // Only block if user is active (not deleted)
+        if (existingUser.status === 'active') {
+          return res.status(409).json({ message: "Email already registered" });
+        }
+        // If user exists but was deleted/inactive, we can proceed with invitation
       }
       
       // Check if there's already a pending invitation for this email
