@@ -64,8 +64,16 @@ export default function AuthPage() {
   const emailParam = searchParams.get("email");
   const therapistIdParam = searchParams.get("therapistId");
   
+  // DEBUG: Log URL parameters to see what's being received
+  console.log('🔍 AUTH DEBUG: Full URL:', window.location.href);
+  console.log('🔍 AUTH DEBUG: Search params:', window.location.search);
+  console.log('🔍 AUTH DEBUG: invitation param:', invitationParam);
+  console.log('🔍 AUTH DEBUG: email param:', emailParam);
+  console.log('🔍 AUTH DEBUG: therapistId param:', therapistIdParam);
+  
   // Calculate invitation state directly from URL params - no state needed
   const isInvitation = invitationParam === "true" || !!emailParam;
+  console.log('🔍 AUTH DEBUG: isInvitation calculated as:', isInvitation);
   const [activeTab, setActiveTab] = useState(isInvitation ? "register" : "login");
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [registerSubmitting, setRegisterSubmitting] = useState(false);

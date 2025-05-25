@@ -101,6 +101,9 @@ export async function sendClientInvitation(email: string, therapistName: string,
   // SECURITY CRITICAL: Always use the secure invitation link from database when provided
   const registrationUrl = inviteLink || `${process.env.APP_URL || 'https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-1dq9i72fpc629.kirk.replit.dev'}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${therapistId || ''}`;
   
+  console.log('🔍 DEBUG: Sending invitation email with URL:', registrationUrl);
+  console.log('🔍 DEBUG: therapistId parameter:', therapistId);
+  
   return sendEmail({
     to: email,
     subject: "You've been invited to ResilienceHub™",
