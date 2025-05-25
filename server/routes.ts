@@ -4245,91 +4245,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/notifications/unread", authenticate, async (req, res) => {
     try {
       const userId = req.user!.id;
-      const forceRefresh = req.query._t || req.query.timestamp; // Support cache busting
+      console.log(`DIRECT SQL FIX: Fetching unread notifications for user ${userId}`);
       
-      console.log(`Fetching unread notifications for user ${userId} ${forceRefresh ? '(forced refresh)' : ''}`);
+      // EMERGENCY FIX: Use direct database connection to prevent data multiplication
+      const { pool } = await import('./db');
       
-      // Import what we need from db
-      const { withRetry, db, sql } = await import('./db');
-      const schema = await import('@shared/schema');
+      const result = await pool.query(`
+        SELECT id, user_id as "userId", title, body, type, is_read as "isRead", 
+               created_at as "createdAt", expires_at as "expiresAt", metadata, link_path as "linkPath", link
+        FROM notifications 
+        WHERE user_id = $1
+          AND is_read = false 
+          AND (expires_at IS NULL OR expires_at >= NOW())
+        ORDER BY created_at DESC
+      `, [userId]);
       
-      // Get the user to check role
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
+      const notifications = result.rows || [];
+      console.log(`DIRECT SQL: Found exactly ${notifications.length} unread notifications for user ${userId}`);
       
-      console.log(`NOTIFICATION DEBUG: User ${userId} has role: ${user.role}`);
-      
-      // Set up an empty array for the results
-      let allUnreadNotifications = [];
-      
-      // STEP 1: Use a direct database query to get the most accurate count
-      // ALWAYS verify is_read status directly in the query
-      if (user.role === 'therapist') {
-        console.log(`NOTIFICATION DEBUG: Processing as THERAPIST`);
-      } else {
-        console.log(`NOTIFICATION DEBUG: Processing as CLIENT`);
-      }
-      
-      if (user.role === 'therapist') {
-        // For therapists, we need to get their unread notifications AND client notifications
-        try {
-          // First get the therapist's own notifications using storage method
-          const therapistNotifications = await withRetry(async () => {
-            return await storage.getUnreadNotificationsByUser(userId);
-          });
-          
-          allUnreadNotifications = therapistNotifications || [];
-          console.log(`Found ${allUnreadNotifications.length} direct unread notifications for therapist ${userId}`);
-          
-          // Then get client notifications - start by getting client IDs
-          const clients = await storage.getClients(userId);
-          if (clients.length > 0) {
-            const clientIds = clients.map(client => client.id);
-            console.log(`Checking unread notifications for ${clients.length} clients of therapist ${userId}`);
-            
-            // Get all unread client notifications one client at a time to avoid SQL errors
-            for (const clientId of clientIds) {
-              const clientNotifications = await withRetry(async () => {
-                return await storage.getUnreadNotificationsByUser(clientId, true);
-              });
-              
-              if (clientNotifications && clientNotifications.length > 0) {
-                console.log(`Found ${clientNotifications.length} unread notifications for client ${clientId}`);
-                allUnreadNotifications = [...allUnreadNotifications, ...clientNotifications];
-              }
-            }
-          }
-        } catch (dbError) {
-          console.error("Database error fetching therapist notifications:", dbError);
-        }
-      } else {
-        // For clients, use simple direct database query to get accurate count
-        allUnreadNotifications = await withRetry(async () => {
-          const result = await db.execute(sql`
-            SELECT id, user_id as "userId", title, body, type, is_read as "isRead", 
-                   created_at as "createdAt", expires_at as "expiresAt", metadata, link_path as "linkPath", link
-            FROM notifications 
-            WHERE user_id = ${userId}
-              AND is_read = false 
-              AND (expires_at IS NULL OR expires_at >= NOW())
-            ORDER BY created_at DESC
-          `);
-          return result.rows || [];
-        });
-        console.log(`DIRECT DB: Found ${allUnreadNotifications.length} unread notifications for user ${userId}`);
-      }
-      
-      // Set cache control headers to prevent stale data
+      // Set strong cache control headers to prevent caching issues
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
+      res.setHeader('X-Direct-Query', 'true');
       
-      console.log(`Returning ${allUnreadNotifications.length} total unread notifications`);
-      res.status(200).json(allUnreadNotifications);
+      console.log(`DIRECT SQL: Returning ${notifications.length} notifications (bypassing all multipliers)`);
+      res.status(200).json(notifications);
     } catch (error) {
-      console.error("Error fetching unread notifications:", error);
+      console.error("DIRECT SQL ERROR:", error);
       res.status(500).json({ message: "Failed to fetch unread notifications" });
     }
   });
