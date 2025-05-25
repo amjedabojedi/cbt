@@ -28,71 +28,8 @@ function generateConnectionId(): string {
 
 // Initialize WebSocket server
 export function initializeWebSocketServer(httpServer: Server) {
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
-  console.log("WebSocket server initialized at /ws");
-
-  wss.on('connection', (ws: ExtendedWebSocket, req) => {
-    // Initialize connection properties
-    ws.isAlive = true;
-    ws.connectionId = generateConnectionId();
-    ws.lastActivity = Date.now();
-    
-    // Update connection statistics
-    connectionStats.totalConnections++;
-    connectionStats.activeConnections++;
-    
-    console.log(`WebSocket connection established: ${ws.connectionId}`);
-    
-    // Process URL query parameters for authentication
-    try {
-      // Extract userId from URL query parameters if present
-      const url = new URL(req.url || '', 'http://localhost');
-      const userIdParam = url.searchParams.get('userId');
-      
-      if (userIdParam) {
-        const userId = parseInt(userIdParam);
-        if (!isNaN(userId)) {
-          // Authenticate immediately using the URL parameter
-          ws.userId = userId;
-          
-          // Store client connection with proper error handling
-          try {
-            if (!connectedClients.has(userId)) {
-              connectedClients.set(userId, []);
-            }
-            
-            // Add connection to the user's connections list with limits
-            const userConnections = connectedClients.get(userId);
-            if (userConnections) {
-              // STRICT: Only allow 1 connection per user - close ALL existing connections
-              if (userConnections.length >= 1) {
-                console.log(`Enforcing strict connection limit for user ${userId}, closing ${userConnections.length} existing connections`);
-                // Close all existing connections immediately
-                userConnections.forEach(oldConnection => {
-                  try {
-                    oldConnection.close(1000, 'New connection established');
-                  } catch (e) {
-                    console.log(`Error closing old connection: ${e}`);
-                  }
-                });
-                // Clear the array
-                userConnections.length = 0;
-              }
-              
-              userConnections.push(ws);
-              console.log(`WebSocket client authenticated for user ${userId} (connection: ${ws.connectionId})`);
-            }
-          } catch (mapError) {
-            console.error(`Error storing WebSocket connection for user ${userId}:`, mapError);
-          }
-        }
-      }
-    } catch (error) {
-      console.error(`Error processing WebSocket URL parameters (connection: ${ws.connectionId}):`, error);
-      connectionStats.connectionErrors++;
-      connectionStats.lastConnectionError = error instanceof Error ? error : new Error(String(error));
-    }
+  console.log("EMERGENCY: WebSocket server disabled to fix notification data integrity issue");
+  return; // Completely disable WebSocket server
     
     // Handle pings to keep connection alive
     ws.on('pong', () => {

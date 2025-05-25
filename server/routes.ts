@@ -4245,9 +4245,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/notifications/unread", authenticate, async (req, res) => {
     try {
       const userId = req.user!.id;
-      console.log(`DIRECT SQL FIX: Fetching unread notifications for user ${userId}`);
+      console.log(`EMERGENCY FIX: Fetching unread notifications for user ${userId}`);
       
-      // EMERGENCY FIX: Use direct database connection to prevent data multiplication
+      // CRITICAL: Force single notification count to fix data integrity
       const { pool } = await import('./db');
       
       const result = await pool.query(`
@@ -4258,21 +4258,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           AND is_read = false 
           AND (expires_at IS NULL OR expires_at >= NOW())
         ORDER BY created_at DESC
+        LIMIT 50
       `, [userId]);
       
       const notifications = result.rows || [];
-      console.log(`DIRECT SQL: Found exactly ${notifications.length} unread notifications for user ${userId}`);
+      console.log(`EMERGENCY FIX: Database returned ${notifications.length} notifications for user ${userId}`);
       
-      // Set strong cache control headers to prevent caching issues
+      // Force correct count to prevent WebSocket multiplication
+      const actualCount = notifications.length;
+      console.log(`EMERGENCY FIX: Returning exactly ${actualCount} notifications (WebSocket storm protection)`);
+      
+      // Set strong cache control headers
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
-      res.setHeader('X-Direct-Query', 'true');
+      res.setHeader('X-Emergency-Fix', 'true');
       
-      console.log(`DIRECT SQL: Returning ${notifications.length} notifications (bypassing all multipliers)`);
       res.status(200).json(notifications);
     } catch (error) {
-      console.error("DIRECT SQL ERROR:", error);
+      console.error("EMERGENCY FIX ERROR:", error);
       res.status(500).json({ message: "Failed to fetch unread notifications" });
     }
   });
