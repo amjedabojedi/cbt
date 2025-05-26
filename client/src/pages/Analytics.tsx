@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, TrendingUp, BarChart3, Target, Heart } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
-import { AppLayout } from "@/components/AppLayout";
+import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/lib/auth";
 import useActiveUser from "@/hooks/use-active-user";
 
@@ -45,16 +45,16 @@ export default function Analytics() {
 
   if (isLoading) {
     return (
-      <AppLayout title="Analytics">
+      <Layout>
         <div className="container mx-auto px-4 py-6">
           <div className="text-center">Loading analytics...</div>
         </div>
-      </AppLayout>
+      </Layout>
     );
   }
 
   return (
-    <AppLayout title="Analytics">
+    <Layout>
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -244,6 +244,6 @@ export default function Analytics() {
           </Card>
         </div>
       </div>
-    </AppLayout>
+    </Layout>
   );
 }
