@@ -5824,7 +5824,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Helper function to check if a user is a client of a therapist
   async function isClientOfTherapist(clientId: number, therapistId: number): Promise<boolean> {
-    const client = await storage.getUserById(clientId);
+    const client = await storage.getUser(clientId);
     return !!client && client.therapistId === therapistId;
   }
   
