@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Globe, Moon, Sun, Menu } from "lucide-react";
+import { Globe, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ import {
 import RoleIndicator from "./RoleIndicator";
 import { useClientContext } from "@/context/ClientContext";
 import NotificationBell from "@/components/ui/notification-bell";
+import MobileNavigation from "@/components/MobileNavigation";
 
 interface HeaderProps {
   title: string;
@@ -37,13 +38,7 @@ export default function Header({ title }: HeaderProps) {
     <header className="bg-white shadow-sm">
       <div className="flex items-center justify-between px-2 sm:px-4 py-3">
         <div className="flex items-center">
-          <button
-            id="sidebar-toggle"
-            className="mr-2 md:hidden text-neutral-500"
-            aria-label="Toggle sidebar"
-          >
-            <Menu size={24} />
-          </button>
+          <MobileNavigation className="mr-2" />
           <h2 className="text-lg font-medium truncate max-w-[180px] sm:max-w-xs md:max-w-full">{displayTitle}</h2>
         </div>
         <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
