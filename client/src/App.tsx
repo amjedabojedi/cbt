@@ -47,6 +47,7 @@ const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const UserManagement = lazy(() => import("@/pages/UserManagement"));
 const SubscriptionManagement = lazy(() => import("@/pages/SubscriptionManagement"));
 const ReframeAnalytics = lazy(() => import("@/pages/admin/ReframeAnalyticsPage"));
+const Analytics = lazy(() => import("@/pages/Analytics"));
 
 // Import the ProtectedRoute component
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -101,6 +102,7 @@ function Router() {
           <ProtectedRoute path="/library" component={ResourceLibrary} />
           <ProtectedRoute path="/journal" component={Journal} />
           <ProtectedRoute path="/reports" component={Reports} />
+          <ProtectedRoute path="/analytics" component={Analytics} />
           
           {/* Reframe Coach routes */}
           <ProtectedRoute path="/reframe-coach" component={ReframeCoachDashboard} />
