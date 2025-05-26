@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { ApiService } from '../services/api';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface LoginScreenProps {
   navigation: any;
@@ -23,22 +23,35 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password');
+      Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await ApiService.login(email, password);
-      
-      if (response.error) {
-        Alert.alert('Login Failed', response.error);
-      } else if (response.data?.user) {
-        // Login successful, navigate to dashboard
+      // Make API call to your backend
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store auth token
+        await AsyncStorage.setItem('authToken', data.token);
+        await AsyncStorage.setItem('userId', data.user.id.toString());
+        
+        // Navigate to dashboard
         navigation.replace('Dashboard');
+      } else {
+        Alert.alert('Login Failed', data.message || 'Invalid credentials');
       }
     } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred');
+      Alert.alert('Error', 'Network error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -46,15 +59,13 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
         <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.title}>ResilienceHub</Text>
-            <Text style={styles.subtitle}>Your Mental Health Companion</Text>
-          </View>
+          <Text style={styles.title}>ResilienceHub</Text>
+          <Text style={styles.subtitle}>Your mental wellness journey</Text>
 
           <View style={styles.form}>
             <TextInput
@@ -66,7 +77,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               autoCapitalize="none"
               autoCorrect={false}
             />
-            
+
             <TextInput
               style={styles.input}
               placeholder="Password"
@@ -74,6 +85,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               onChangeText={setPassword}
               secureTextEntry
               autoCapitalize="none"
+              autoCorrect={false}
             />
 
             <TouchableOpacity
@@ -86,12 +98,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               </Text>
             </TouchableOpacity>
           </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              Connect with your therapist and track your progress
-            </Text>
-          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -101,7 +107,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#F8FAFC',
   },
   keyboardView: {
     flex: 1,
@@ -109,75 +115,46 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 48,
+    paddingHorizontal: 32,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1e293b',
+    color: '#1E293B',
+    textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#64748b',
+    color: '#64748B',
     textAlign: 'center',
+    marginBottom: 48,
   },
   form: {
-    marginBottom: 32,
+    gap: 16,
   },
   input: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 12,
+    backgroundColor: 'white',
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     fontSize: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
   },
   button: {
-    backgroundColor: '#3b82f6',
-    borderRadius: 12,
+    backgroundColor: '#3B82F6',
     paddingVertical: 16,
+    borderRadius: 8,
     alignItems: 'center',
-    shadowColor: '#3b82f6',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: 8,
   },
   buttonDisabled: {
-    backgroundColor: '#94a3b8',
-    shadowOpacity: 0,
-    elevation: 0,
+    backgroundColor: '#94A3B8',
   },
   buttonText: {
-    color: '#ffffff',
+    color: 'white',
     fontSize: 16,
     fontWeight: '600',
-  },
-  footer: {
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 14,
-    color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 20,
   },
 });
