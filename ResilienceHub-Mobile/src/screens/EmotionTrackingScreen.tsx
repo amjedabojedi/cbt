@@ -15,21 +15,133 @@ interface EmotionTrackingScreenProps {
   navigation: any;
 }
 
-const emotions = [
-  'happy', 'sad', 'angry', 'anxious', 'excited', 'frustrated',
-  'calm', 'overwhelmed', 'grateful', 'lonely', 'content', 'stressed'
+// Complete emotion wheel data matching your web application
+const emotionGroups = [
+  {
+    core: "Joy",
+    primary: ["Cheerfulness", "Contentment", "Pride", "Optimism", "Enthusiasm", "Love"],
+    tertiary: [
+      ["Amusement", "Bliss", "Delight", "Elation", "Happiness", "Jubilation"],
+      ["Calmness", "Comfort", "Relaxation", "Relief", "Satisfaction", "Serenity"],
+      ["Achievement", "Confidence", "Dignity", "Fulfillment", "Success", "Triumph"],
+      ["Eagerness", "Hope", "Inspiration", "Motivation", "Positivity", "Trust"],
+      ["Excitement", "Exhilaration", "Passion", "Pleasure", "Thrill", "Zeal"],
+      ["Adoration", "Affection", "Attraction", "Caring", "Compassion", "Tenderness"]
+    ]
+  },
+  {
+    core: "Sadness",
+    primary: ["Neglect", "Loneliness", "Disappointment", "Shame", "Suffering", "Sadness"],
+    tertiary: [
+      ["Abandonment", "Alienation", "Exclusion", "Isolation", "Rejection", "Unwanted"],
+      ["Defeat", "Dejection", "Gloom", "Hopelessness", "Hurt", "Unhappiness"],
+      ["Embarrassment", "Guilt", "Humiliation", "Insecurity", "Regret", "Self-consciousness"],
+      ["Agony", "Anguish", "Despair", "Grief", "Misery", "Pain"],
+      ["Depression", "Despair", "Melancholy", "Sorrow", "Unhappiness", "Woe"],
+      ["Disconnection", "Emptiness", "Homesickness", "Longing", "Missing", "Nostalgia"]
+    ]
+  },
+  {
+    core: "Fear",
+    primary: ["Horror", "Nervousness", "Insecurity", "Terror", "Worry", "Fear"],
+    tertiary: [
+      ["Alarm", "Dread", "Fright", "Panic", "Shock", "Startled"],
+      ["Anxiety", "Apprehension", "Discomfort", "Edginess", "Restlessness", "Tension"],
+      ["Distrust", "Helplessness", "Inadequacy", "Self-doubt", "Uncertainty", "Vulnerability"],
+      ["Dread", "Horror", "Hysteria", "Mortification", "Panic", "Paralysis"],
+      ["Apprehension", "Concern", "Distress", "Foreboding", "Nervousness", "Uneasiness"],
+      ["Angst", "Disquiet", "Dread", "Nervousness", "Tenseness", "Unease"]
+    ]
+  },
+  {
+    core: "Anger",
+    primary: ["Rage", "Exasperation", "Irritability", "Envy", "Disgust", "Anger"],
+    tertiary: [
+      ["Bitterness", "Ferocity", "Fury", "Hate", "Outrage", "Wrath"],
+      ["Frustration", "Agitation", "Distress", "Impatience", "Stress", "Tension"],
+      ["Aggravation", "Annoyance", "Contempt", "Grouchiness", "Grumpiness", "Irritation"],
+      ["Covetousness", "Discontentment", "Jealousy", "Longing", "Resentment", "Rivalry"],
+      ["Abhorrence", "Aversion", "Distaste", "Nausea", "Repugnance", "Revulsion"],
+      ["Aggression", "Betrayal", "Hostility", "Indignation", "Offense", "Vengefulness"]
+    ]
+  },
+  {
+    core: "Surprise",
+    primary: ["Amazement", "Confusion", "Excitement", "Awe", "Shock", "Surprise"],
+    tertiary: [
+      ["Astonishment", "Bewilderment", "Fascination", "Intrigue", "Wonder", "Wow"],
+      ["Bewilderment", "Disorientation", "Perplexity", "Puzzlement", "Uncertainty", "Unclarity"],
+      ["Eagerness", "Elation", "Enthusiasm", "Exhilaration", "Stimulation", "Thrill"],
+      ["Admiration", "Appreciation", "Esteem", "Regard", "Respect", "Reverence"],
+      ["Disbelief", "Disturbance", "Jolted", "Stunned", "Stupefaction", "Unsettled"],
+      ["Astonishment", "Disbelief", "Distraction", "Impressed", "Startled", "Wonder"]
+    ]
+  },
+  {
+    core: "Love",
+    primary: ["Acceptance", "Trust", "Admiration", "Adoration", "Desire", "Peace"],
+    tertiary: [
+      ["Acknowledgment", "Appreciation", "Empathy", "Kindness", "Tolerance", "Understanding"],
+      ["Assurance", "Belief", "Certainty", "Confidence", "Faith", "Reliability"],
+      ["Approval", "Esteem", "Regard", "Respect", "Reverence", "Worship"],
+      ["Affection", "Devotion", "Fondness", "Infatuation", "Liking", "Passion"],
+      ["Attraction", "Craving", "Infatuation", "Longing", "Lust", "Yearning"],
+      ["Bliss", "Contentment", "Harmony", "Serenity", "Tranquility", "Well-being"]
+    ]
+  }
 ];
 
 export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScreenProps) {
-  const [selectedEmotion, setSelectedEmotion] = useState('');
+  const [selectedCore, setSelectedCore] = useState('');
+  const [selectedPrimary, setSelectedPrimary] = useState('');
+  const [selectedTertiary, setSelectedTertiary] = useState('');
   const [intensity, setIntensity] = useState(5);
   const [location, setLocation] = useState('');
   const [company, setCompany] = useState('');
   const [situation, setSituation] = useState('');
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState(1); // 1: core, 2: primary, 3: tertiary, 4: details
+
+  // Get emotion colors matching web app
+  const getEmotionColor = (emotion: string) => {
+    const coreColors: Record<string, string> = {
+      "Joy": "#FFD700",
+      "Sadness": "#4682B4", 
+      "Fear": "#228B22",
+      "Anger": "#FF4500",
+      "Surprise": "#9932CC",
+      "Love": "#FF69B4",
+    };
+    return coreColors[emotion] || "#808080";
+  };
+
+  const handleCoreSelect = (coreEmotion: string) => {
+    setSelectedCore(coreEmotion);
+    setSelectedPrimary('');
+    setSelectedTertiary('');
+    setStep(2);
+  };
+
+  const handlePrimarySelect = (primaryEmotion: string) => {
+    setSelectedPrimary(primaryEmotion);
+    setSelectedTertiary('');
+    setStep(3);
+  };
+
+  const handleTertiarySelect = (tertiaryEmotion: string) => {
+    setSelectedTertiary(tertiaryEmotion);
+    setStep(4);
+  };
+
+  const resetSelection = () => {
+    setSelectedCore('');
+    setSelectedPrimary('');
+    setSelectedTertiary('');
+    setStep(1);
+  };
 
   const handleSave = async () => {
-    if (!selectedEmotion) {
+    if (!selectedCore) {
       Alert.alert('Missing Information', 'Please select an emotion');
       return;
     }
@@ -44,12 +156,14 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
       }
 
       const emotionData = {
-        emotion: selectedEmotion,
+        coreEmotion: selectedCore,
+        primaryEmotion: selectedPrimary || null,
+        tertiaryEmotion: selectedTertiary || null,
         intensity,
         location: location || null,
         company: company || null,
         situation: situation || null,
-        time: new Date().toISOString(),
+        timestamp: new Date().toISOString(),
       };
 
       const response = await ApiService.createEmotion(userResponse.data.id, emotionData);
@@ -68,32 +182,106 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
     }
   };
 
+  // Get current emotion group
+  const currentGroup = emotionGroups.find(group => group.core === selectedCore);
+  const primaryIndex = currentGroup?.primary.indexOf(selectedPrimary) || 0;
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>How are you feeling?</Text>
-            <View style={styles.emotionGrid}>
-              {emotions.map((emotion) => (
-                <TouchableOpacity
-                  key={emotion}
-                  style={[
-                    styles.emotionButton,
-                    selectedEmotion === emotion && styles.emotionButtonSelected
-                  ]}
-                  onPress={() => setSelectedEmotion(emotion)}
-                >
-                  <Text style={[
-                    styles.emotionButtonText,
-                    selectedEmotion === emotion && styles.emotionButtonTextSelected
-                  ]}>
-                    {emotion}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+          {/* Step indicator */}
+          <View style={styles.stepIndicator}>
+            <Text style={styles.stepText}>
+              Step {step} of 4: {
+                step === 1 ? 'Core Emotion' :
+                step === 2 ? 'Primary Emotion' :
+                step === 3 ? 'Specific Emotion' : 'Details'
+              }
+            </Text>
+            {step > 1 && (
+              <TouchableOpacity onPress={resetSelection} style={styles.resetButton}>
+                <Text style={styles.resetText}>Reset</Text>
+              </TouchableOpacity>
+            )}
           </View>
+
+          {/* Core emotions selection */}
+          {step === 1 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Select a Core Emotion</Text>
+              <View style={styles.emotionGrid}>
+                {emotionGroups.map((group) => (
+                  <TouchableOpacity
+                    key={group.core}
+                    style={[
+                      styles.coreEmotionButton,
+                      { backgroundColor: getEmotionColor(group.core) + '40' }
+                    ]}
+                    onPress={() => handleCoreSelect(group.core)}
+                  >
+                    <Text style={styles.emotionText}>{group.core}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Primary emotions selection */}
+          {step === 2 && currentGroup && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                Selected: {selectedCore} → Choose Primary Emotion
+              </Text>
+              <View style={styles.emotionGrid}>
+                {currentGroup.primary.map((primary) => (
+                  <TouchableOpacity
+                    key={primary}
+                    style={[
+                      styles.primaryEmotionButton,
+                      { backgroundColor: getEmotionColor(selectedCore) + '60' }
+                    ]}
+                    onPress={() => handlePrimarySelect(primary)}
+                  >
+                    <Text style={styles.emotionText}>{primary}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Tertiary emotions selection */}
+          {step === 3 && currentGroup && currentGroup.tertiary[primaryIndex] && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {selectedCore} → {selectedPrimary} → Choose Specific Emotion
+              </Text>
+              <View style={styles.emotionGrid}>
+                {currentGroup.tertiary[primaryIndex].map((tertiary) => (
+                  <TouchableOpacity
+                    key={tertiary}
+                    style={[
+                      styles.tertiaryEmotionButton,
+                      { backgroundColor: getEmotionColor(selectedCore) + '80' }
+                    ]}
+                    onPress={() => handleTertiarySelect(tertiary)}
+                  >
+                    <Text style={styles.emotionText}>{tertiary}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Details form - only show when emotion is selected */}
+          {step === 4 && (
+            <>
+              <View style={styles.selectedEmotionSummary}>
+                <Text style={styles.summaryTitle}>Selected Emotion:</Text>
+                <Text style={styles.summaryPath}>
+                  {selectedCore} → {selectedPrimary} → {selectedTertiary}
+                </Text>
+              </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Intensity (1-10)</Text>
@@ -150,15 +338,17 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
             />
           </View>
 
-          <TouchableOpacity
-            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-            onPress={handleSave}
-            disabled={loading}
-          >
-            <Text style={styles.saveButtonText}>
-              {loading ? 'Saving...' : 'Save Emotion'}
-            </Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+                onPress={handleSave}
+                disabled={loading}
+              >
+                <Text style={styles.saveButtonText}>
+                  {loading ? 'Saving...' : 'Save Emotion'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
