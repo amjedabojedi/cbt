@@ -45,8 +45,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         await AsyncStorage.setItem('authToken', data.token);
         await AsyncStorage.setItem('userId', data.user.id.toString());
         
-        // Navigate to dashboard
-        navigation.replace('Dashboard');
+        // Navigate to main app tabs
+        navigation.replace('MainTabs');
       } else {
         Alert.alert('Login Failed', data.message || 'Invalid credentials');
       }
