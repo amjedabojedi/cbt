@@ -239,14 +239,14 @@
                 <div class="screen">
                     <div class="status-bar">Track Emotions</div>
                     <div class="content">
-                        <div class="section-title">How are you feeling?</div>
-                        <div class="emotion-grid">
-                            <div class="emotion-btn selected">happy</div>
-                            <div class="emotion-btn">sad</div>
-                            <div class="emotion-btn">anxious</div>
-                            <div class="emotion-btn">calm</div>
-                            <div class="emotion-btn">excited</div>
-                            <div class="emotion-btn">stressed</div>
+                        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="color: #3b82f6; font-weight: 600;">Step 4 of 4: Details</div>
+                            <div style="background: #f1f5f9; padding: 6px 12px; border-radius: 8px; color: #64748b; font-size: 14px;">Reset</div>
+                        </div>
+                        
+                        <div style="background: #dbeafe; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                            <div style="color: #1e40af; font-weight: 600; margin-bottom: 8px;">Selected Emotion:</div>
+                            <div style="color: #3730a3; font-weight: 500;">Joy → Enthusiasm → Excitement</div>
                         </div>
                         
                         <div class="section-title">Intensity (1-10)</div>
@@ -259,6 +259,8 @@
                             <div class="intensity-btn">6</div>
                             <div class="intensity-btn">7</div>
                             <div class="intensity-btn selected">8</div>
+                            <div class="intensity-btn">9</div>
+                            <div class="intensity-btn">10</div>
                         </div>
                         
                         <div class="section-title">Where are you?</div>
@@ -267,7 +269,39 @@
                         <div class="section-title">Who are you with?</div>
                         <input class="input" placeholder="e.g., Alone, Family, Friends" value="Family">
                         
+                        <div class="section-title">What's happening?</div>
+                        <textarea class="input" placeholder="Describe the situation" style="height: 80px; resize: none;">Celebrating a family achievement</textarea>
+                        
                         <button class="button">Save Emotion</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Core Emotions Screen -->
+        <div>
+            <h2>Core Emotions</h2>
+            <div class="phone-container">
+                <div class="screen">
+                    <div class="status-bar">Track Emotions</div>
+                    <div class="content">
+                        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                            <div style="color: #3b82f6; font-weight: 600;">Step 1 of 4: Core Emotion</div>
+                        </div>
+                        
+                        <div class="section-title">Select a Core Emotion</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+                            <div style="background: #FFD700; opacity: 0.7; padding: 16px 20px; border-radius: 12px; text-align: center; font-weight: 600; color: #1e293b;">Joy</div>
+                            <div style="background: #4682B4; opacity: 0.7; padding: 16px 20px; border-radius: 12px; text-align: center; font-weight: 600; color: white;">Sadness</div>
+                            <div style="background: #228B22; opacity: 0.7; padding: 16px 20px; border-radius: 12px; text-align: center; font-weight: 600; color: white;">Fear</div>
+                            <div style="background: #FF4500; opacity: 0.7; padding: 16px 20px; border-radius: 12px; text-align: center; font-weight: 600; color: white;">Anger</div>
+                            <div style="background: #9932CC; opacity: 0.7; padding: 16px 20px; border-radius: 12px; text-align: center; font-weight: 600; color: white;">Surprise</div>
+                            <div style="background: #FF69B4; opacity: 0.7; padding: 16px 20px; border-radius: 12px; text-align: center; font-weight: 600; color: white;">Love</div>
+                        </div>
+                        
+                        <div style="text-align: center; color: #64748b; font-size: 14px;">
+                            Tap a core emotion to continue
+                        </div>
                     </div>
                 </div>
             </div>
