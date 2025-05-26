@@ -3358,8 +3358,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Therapist ${req.user.id} is trying to access client ${userId}'s thought records`);
         
         // Check if this client belongs to the therapist
-        const isClientOfTherapist = await isClientOfTherapist(userId, req.user.id);
-        if (!isClientOfTherapist) {
+        const clientBelongsToTherapist = await isClientOfTherapist(userId, req.user.id);
+        if (!clientBelongsToTherapist) {
           console.log(`Client ${userId} does not belong to therapist ${req.user.id}`);
           return res.status(403).json({ message: "Access denied - client not assigned to you" });
         }
