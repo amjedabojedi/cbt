@@ -5824,8 +5824,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Helper function to check if a user is a client of a therapist
   async function isClientOfTherapist(clientId: number, therapistId: number): Promise<boolean> {
-    const client = await storage.getUser(clientId);
-    return !!client && client.therapistId === therapistId;
+    try {
+      const client = await storage.getUser(clientId);
+      return !!client && client.therapistId === therapistId;
+    } catch (error) {
+      console.error('Error checking client-therapist relationship:', error);
+      return false;
+    }
   }
   
   // Link a journal entry to a thought record
