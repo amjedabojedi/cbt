@@ -35,7 +35,7 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap;
+          let iconName;
 
           if (route.name === 'Dashboard') {
             iconName = focused ? 'home' : 'home-outline';
