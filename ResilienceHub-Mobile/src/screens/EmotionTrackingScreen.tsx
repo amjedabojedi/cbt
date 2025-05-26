@@ -101,6 +101,8 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
   const [situation, setSituation] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: core, 2: primary, 3: tertiary, 4: details
+  const [useCurrentTime, setUseCurrentTime] = useState(true);
+  const [customTimestamp, setCustomTimestamp] = useState(new Date().toISOString().slice(0, 16));
 
   // Get emotion colors matching web app
   const getEmotionColor = (emotion: string) => {
