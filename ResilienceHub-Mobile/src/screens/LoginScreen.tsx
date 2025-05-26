@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ApiService } from '../services/api';
 
 interface LoginScreenProps {
   navigation: any;
@@ -29,29 +30,27 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
     setLoading(true);
     try {
-      // Make API call to your backend
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await ApiService.login(email, password);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Store auth token
-        await AsyncStorage.setItem('authToken', data.token);
-        await AsyncStorage.setItem('userId', data.user.id.toString());
+      if (response.data && response.data.user) {
+        // Store user data
+        await AsyncStorage.setItem('userId', response.data.user.id.toString());
+        await AsyncStorage.setItem('userEmail', response.data.user.email);
+        
+        // Set auth token if provided
+        if (response.data.token) {
+          await AsyncStorage.setItem('authToken', response.data.token);
+          ApiService.setAuthToken(response.data.token);
+        }
         
         // Navigate to main app tabs
         navigation.replace('MainTabs');
       } else {
-        Alert.alert('Login Failed', data.message || 'Invalid credentials');
+        Alert.alert('Login Failed', response.error || 'Invalid credentials');
       }
     } catch (error) {
-      Alert.alert('Error', 'Network error. Please try again.');
+      console.error('Login error:', error);
+      Alert.alert('Error', 'Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
