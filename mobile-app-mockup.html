@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResilienceHub Mobile App Preview</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .phone-container {
+            width: 320px;
+            height: 640px;
+            background: #000;
+            border-radius: 25px;
+            padding: 10px;
+            margin: 20px auto;
+            position: relative;
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #f8fafc;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        .status-bar {
+            height: 30px;
+            background: #3b82f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 24px;
+            height: calc(100% - 30px);
+            overflow-y: auto;
+        }
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .input {
+            width: 100%;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+        .button {
+            width: 100%;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+        }
+        .emotion-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .emotion-btn {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #64748b;
+            text-transform: capitalize;
+        }
+        .emotion-btn.selected {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .intensity-grid {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+        .intensity-btn {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .intensity-btn.selected {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+        .welcome-text {
+            font-size: 16px;
+            color: #64748b;
+        }
+        .name-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-top: 4px;
+            margin-bottom: 32px;
+        }
+        .action-button {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+        .action-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        .action-subtitle {
+            font-size: 14px;
+            color: #64748b;
+        }
+        .screens {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        h2 {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; color: #1e293b;">ResilienceHub Mobile App Preview</h1>
+    
+    <div class="screens">
+        <!-- Login Screen -->
+        <div>
+            <h2>Login Screen</h2>
+            <div class="phone-container">
+                <div class="screen">
+                    <div class="content" style="padding-top: 80px;">
+                        <div class="title">ResilienceHub</div>
+                        <div class="subtitle">Your Mental Health Companion</div>
+                        
+                        <input class="input" placeholder="Email" type="email">
+                        <input class="input" placeholder="Password" type="password">
+                        
+                        <button class="button">Sign In</button>
+                        
+                        <div style="text-align: center; margin-top: 32px; font-size: 14px; color: #64748b; line-height: 20px;">
+                            Connect with your therapist and track your progress
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Screen -->
+        <div>
+            <h2>Dashboard Screen</h2>
+            <div class="phone-container">
+                <div class="screen">
+                    <div class="status-bar">ResilienceHub</div>
+                    <div class="content">
+                        <div class="welcome-text">Welcome back,</div>
+                        <div class="name-text">Sarah Johnson</div>
+                        
+                        <div class="section-title">Quick Actions</div>
+                        
+                        <div class="action-button">
+                            <div class="action-title">Track Emotions</div>
+                            <div class="action-subtitle">Log your current feelings</div>
+                        </div>
+                        
+                        <div class="action-button">
+                            <div class="action-title">Write Journal</div>
+                            <div class="action-subtitle">Reflect on your day</div>
+                        </div>
+                        
+                        <div class="action-button">
+                            <div class="action-title">Thought Record</div>
+                            <div class="action-subtitle">Challenge negative thoughts</div>
+                        </div>
+                        
+                        <div class="section-title" style="margin-top: 24px;">Recent Emotions</div>
+                        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
+                            <div style="font-weight: 600; color: #1e293b;">Happy</div>
+                            <div style="font-size: 14px; color: #64748b;">Intensity: 8/10</div>
+                            <div style="font-size: 12px; color: #94a3b8;">Today</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emotion Tracking Screen -->
+        <div>
+            <h2>Emotion Tracking</h2>
+            <div class="phone-container">
+                <div class="screen">
+                    <div class="status-bar">Track Emotions</div>
+                    <div class="content">
+                        <div class="section-title">How are you feeling?</div>
+                        <div class="emotion-grid">
+                            <div class="emotion-btn selected">happy</div>
+                            <div class="emotion-btn">sad</div>
+                            <div class="emotion-btn">anxious</div>
+                            <div class="emotion-btn">calm</div>
+                            <div class="emotion-btn">excited</div>
+                            <div class="emotion-btn">stressed</div>
+                        </div>
+                        
+                        <div class="section-title">Intensity (1-10)</div>
+                        <div class="intensity-grid">
+                            <div class="intensity-btn">1</div>
+                            <div class="intensity-btn">2</div>
+                            <div class="intensity-btn">3</div>
+                            <div class="intensity-btn">4</div>
+                            <div class="intensity-btn">5</div>
+                            <div class="intensity-btn">6</div>
+                            <div class="intensity-btn">7</div>
+                            <div class="intensity-btn selected">8</div>
+                        </div>
+                        
+                        <div class="section-title">Where are you?</div>
+                        <input class="input" placeholder="e.g., Home, Work, School" value="Home">
+                        
+                        <div class="section-title">Who are you with?</div>
+                        <input class="input" placeholder="e.g., Alone, Family, Friends" value="Family">
+                        
+                        <button class="button">Save Emotion</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
