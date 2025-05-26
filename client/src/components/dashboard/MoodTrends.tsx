@@ -351,16 +351,7 @@ export default function MoodTrends() {
   const chartData = getChartData();
   
   // We have valid data if there are emotions records 
-  // AND they contain at least one data point with a value > 0
-  const hasNonZeroData = chartData.some(day => {
-    // Check if any emotion has a value > 0
-    return Object.keys(day).some(key => {
-      if (key === 'date') return false;
-      const value = day[key];
-      return typeof value === 'number' && value > 0;
-    });
-  });
-  const hasData = emotions && emotions.length > 0 && hasNonZeroData;
+  const hasData = emotions && emotions.length > 0;
 
   return (
     <Card>
