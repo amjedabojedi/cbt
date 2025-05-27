@@ -142,6 +142,10 @@ export default function Clients() {
     navigate("/dashboard");
   };
 
+  const handleViewProfile = (client: User) => {
+    navigate(`/client/${client.id}`);
+  };
+
   const handleSendMessage = (client: User) => {
     toast({
       title: "Feature Coming Soon",

@@ -32,6 +32,7 @@ const ResourceLibrary = lazy(() => import("@/pages/ResourceLibrary"));
 const Journal = lazy(() => import("@/pages/Journal"));
 const Reports = lazy(() => import("@/pages/Reports"));
 const Clients = lazy(() => import("@/pages/Clients"));
+const ClientProfile = lazy(() => import("@/pages/ClientProfile"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const ExportPage = lazy(() => import("@/pages/ExportPage"));
 const InvitationLinks = lazy(() => import("@/pages/InvitationLinks"));
@@ -123,8 +124,8 @@ function Router() {
             allowedRoles={["therapist", "admin"]} 
           />
           <ProtectedRoute 
-            path="/clients/:clientId" 
-            component={Clients} 
+            path="/client/:clientId" 
+            component={ClientProfile} 
             allowedRoles={["therapist", "admin"]} 
           />
           <ProtectedRoute 
