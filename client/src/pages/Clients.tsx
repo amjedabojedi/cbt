@@ -411,9 +411,18 @@ export default function Clients() {
                         Thoughts
                       </Button>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 mb-2">
                       <Button
                         variant="default"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleViewProfile(client)}
+                      >
+                        <User className="mr-1 h-4 w-4" />
+                        View Profile
+                      </Button>
+                      <Button
+                        variant="outline"
                         size="sm"
                         className="flex-1"
                         onClick={() => handleViewStats(client)}
@@ -421,6 +430,8 @@ export default function Clients() {
                         <BarChart3 className="mr-1 h-4 w-4" />
                         Dashboard
                       </Button>
+                    </div>
+                    <div className="flex gap-2">
                       <Button
                         variant="outline"
                         size="sm"
