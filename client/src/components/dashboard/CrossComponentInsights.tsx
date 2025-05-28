@@ -150,11 +150,7 @@ export default function CrossComponentInsights() {
       });
     }
     
-    // 3. Common emotion names to add if not already in data
-    ['Joy', 'Sadness', 'Anger', 'Fear', 'Disgust', 'Love', 'Surprise', 'Trust', 
-     'Anxiety', 'Happiness', 'Depression', 'Frustration', 'Worry'].forEach(emotion => {
-      allEmotionNames.add(emotion);
-    });
+    // Only use emotions that actually appear in the data - no artificial additions
     
     // All emotion names collected from data sources
     
