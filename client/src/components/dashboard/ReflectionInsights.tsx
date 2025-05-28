@@ -776,21 +776,10 @@ export default function ReflectionInsights() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-sm space-y-2">
-                          {/* Always show the definition first */}
-                          <p className="font-medium text-muted-foreground">
-                            {distortionDescriptions[distortion.name] || 
-                             "A pattern of thinking that can distort your view of reality and reinforce negative emotions."}
-                          </p>
-                          
-                          {/* For therapists, also show intervention strategies */}
-                          {isViewingClientData && (
-                            <p className="text-primary">
-                              <strong>Therapeutic approach:</strong> {therapeuticInterventions[distortion.name] || 
-                               "Work with the client to identify triggers and develop specific coping strategies for this thinking pattern. Use thought challenging techniques to examine evidence."}
-                            </p>
-                          )}
-                        </div>
+                        <p className="text-sm">
+                          {distortionDescriptions[distortion.name] || 
+                           "A pattern of thinking that can distort your view of reality and reinforce negative emotions."}
+                        </p>
                       </CardContent>
                     </Card>
                   ));
