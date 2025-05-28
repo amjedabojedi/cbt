@@ -311,14 +311,7 @@ export default function CrossComponentInsights() {
         if (tags.length > 0) {
           // Process journal tags for emotion matching
           
-          // Force add Fear and Anxiety for this specific journal that we know has these emotions
-          emotionMap["Fear"].journalCount = 2;  // Set directly based on the tags we saw in logs
-          emotionMap["Anxiety"].journalCount = 2;
-          
-          // Also connect a thought record to these emotions for visualization
-          // This ensures we have connections to display
-          emotionMap["Fear"].thoughtRecordCount = 1;
-          emotionMap["Anxiety"].thoughtRecordCount = 1;
+          // Process emotions that actually exist in the data only
           
           // Process all tags
           tags.forEach((tag: string) => {
