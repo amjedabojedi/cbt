@@ -794,10 +794,7 @@ export default function ReflectionInsights() {
                             const normalizedName = distortion.name.toLowerCase().replace(/\s+/g, '-');
                             const description = distortionDescriptions[normalizedName] || distortionDescriptions[distortion.name];
                             
-                            if (!description) {
-                              console.log('No definition found for:', distortion.name, 'normalized:', normalizedName);
-                              console.log('Available keys:', Object.keys(distortionDescriptions));
-                            }
+
                             
                             return description || "A pattern of thinking that can distort your view of reality and reinforce negative emotions.";
                           })()}
