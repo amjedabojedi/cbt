@@ -652,7 +652,7 @@ export default function ReflectionInsights() {
       .filter(record => record.cognitiveDistortions && record.cognitiveDistortions.length > 0)
       .length;
     
-    // Educational information about cognitive distortions
+    // Different content for therapists vs clients
     const distortionDescriptions: Record<string, string> = {
       "All-or-nothing thinking": "Seeing things in black-and-white categories with no middle ground.",
       "Overgeneralization": "Seeing a single negative event as a never-ending pattern.",
@@ -664,6 +664,20 @@ export default function ReflectionInsights() {
       "Should statements": "Using 'shoulds' and 'musts' that lead to guilt and frustration.",
       "Labeling": "Attaching global negative labels instead of describing specific behaviors.",
       "Personalization": "Seeing yourself as responsible for external events you didn't control."
+    };
+
+    // Therapeutic interventions for therapists viewing client data
+    const therapeuticInterventions: Record<string, string> = {
+      "All-or-nothing thinking": "Consider using graded exposure exercises or helping the client identify gray areas. CBT techniques like thought records can help challenge binary thinking patterns.",
+      "Overgeneralization": "Work on examining evidence for and against generalizations. Use behavioral experiments to test predictions and challenge sweeping statements.",
+      "Mental filter": "Practice balanced thinking by having the client actively search for positive aspects. Use daily positive event logs to counter selective attention.",
+      "Disqualifying the positive": "Address underlying beliefs about self-worth. Practice accepting compliments and positive feedback through homework assignments.",
+      "Jumping to conclusions": "Teach fact vs. opinion differentiation. Use Socratic questioning to explore alternative explanations for situations.",
+      "Magnification": "Practice perspective-taking exercises. Use scaling techniques to help put problems in proper context relative to life priorities.",
+      "Emotional reasoning": "Distinguish between thoughts, feelings, and facts. Practice mindfulness techniques to observe emotions without being controlled by them.",
+      "Should statements": "Explore the origins of rigid rules. Replace 'shoulds' with preferences and work on self-compassion exercises.",
+      "Labeling": "Focus on specific behaviors rather than global traits. Practice separating actions from identity and self-worth.",
+      "Personalization": "Work on attribution training to recognize external factors. Practice reality testing for personal responsibility boundaries."
     };
     
     return (
@@ -746,19 +760,34 @@ export default function ReflectionInsights() {
             
             {distortionData.length > 0 && (
               <div className="grid md:grid-cols-2 gap-4 mt-4">
-                {distortionData.slice(0, 2).map((distortion, i) => (
-                  <Card key={i}>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-md">{distortion.name}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm">
-                        {distortionDescriptions[distortion.name] || 
-                         "A pattern of thinking that can distort your view of reality and reinforce negative emotions."}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
+                {(() => {
+                  // Show all distortions with the highest count (handles ties properly)
+                  const maxCount = Math.max(...distortionData.map(d => d.value));
+                  const topDistortions = distortionData.filter(d => d.value === maxCount);
+                  
+                  return topDistortions.map((distortion, i) => (
+                    <Card key={i}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-md">
+                          {distortion.name} 
+                          <span className="text-sm text-muted-foreground ml-2">
+                            ({distortion.value} occurrence{distortion.value !== 1 ? 's' : ''})
+                          </span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">
+                          {isViewingClientData 
+                            ? (therapeuticInterventions[distortion.name] || 
+                               "Consider exploring this thinking pattern further in therapy sessions to understand triggers and develop coping strategies.")
+                            : (distortionDescriptions[distortion.name] || 
+                               "A pattern of thinking that can distort your view of reality and reinforce negative emotions.")
+                          }
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ));
+                })()}
               </div>
             )}
           </div>
