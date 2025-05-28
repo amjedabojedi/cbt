@@ -652,18 +652,18 @@ export default function ReflectionInsights() {
       .filter(record => record.cognitiveDistortions && record.cognitiveDistortions.length > 0)
       .length;
     
-    // Different content for therapists vs clients
+    // Clear definitions for each cognitive distortion
     const distortionDescriptions: Record<string, string> = {
-      "All-or-nothing thinking": "Seeing things in black-and-white categories with no middle ground.",
-      "Overgeneralization": "Seeing a single negative event as a never-ending pattern.",
-      "Mental filter": "Focusing exclusively on negatives while filtering out positives.",
-      "Disqualifying the positive": "Rejecting positive experiences by insisting they 'don't count'.",
-      "Jumping to conclusions": "Making negative interpretations without supporting facts.",
-      "Magnification": "Exaggerating problems or minimizing positive attributes.",
-      "Emotional reasoning": "Assuming feelings reflect reality. 'I feel it, so it must be true.'",
-      "Should statements": "Using 'shoulds' and 'musts' that lead to guilt and frustration.",
-      "Labeling": "Attaching global negative labels instead of describing specific behaviors.",
-      "Personalization": "Seeing yourself as responsible for external events you didn't control."
+      "All-or-nothing thinking": "Viewing situations in only two categories instead of on a continuum. Things are either perfect or a complete failure, with no middle ground or gray areas.",
+      "Overgeneralization": "Drawing broad negative conclusions based on a single incident. Using words like 'always' or 'never' when describing patterns from limited evidence.",
+      "Mental filter": "Picking out a single negative detail and dwelling on it exclusively, so that the whole situation becomes darkened, like a drop of ink that colors an entire glass of water.",
+      "Disqualifying the positive": "Rejecting positive experiences by insisting they 'don't count' for some reason. This maintains negative beliefs despite contradictory everyday experiences.",
+      "Jumping to conclusions": "Making negative interpretations even though there are no facts to support the conclusion. This includes mind reading and fortune telling.",
+      "Magnification": "Exaggerating the importance of negative events or minimizing positive ones. Also called the 'binocular trick' - looking through the wrong end of binoculars.",
+      "Emotional reasoning": "Assuming that negative emotions necessarily reflect the way things really are. 'I feel guilty, so I must have done something wrong' or 'I feel overwhelmed, so my problems must be impossible to solve.'",
+      "Should statements": "Trying to motivate yourself or others with 'shoulds,' 'shouldn'ts,' 'musts,' 'oughts,' and 'have-tos.' These create pressure and resentment rather than motivation.",
+      "Labeling": "An extreme form of overgeneralization. Instead of describing an error, you attach a negative label to yourself or others. 'I'm a loser' instead of 'I made a mistake.'",
+      "Personalization": "Taking responsibility for events that are not entirely under your control. Seeing yourself as the cause of some negative external event when you were not primarily responsible."
     };
 
     // Therapeutic interventions for therapists viewing client data
