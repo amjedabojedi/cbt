@@ -1667,50 +1667,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users/register-by-admin", authenticate, isAdmin, async (req, res) => {
     try {
       const { name, email, username, password, role } = req.body;
-        console.log("Therapist", req.user.id, "attempting to access user", userId);
-        
-        // Special case: if this is the user's own profile, allow access
-        if (req.user.id === userId) {
-          const user = await storage.getUser(userId);
-          if (!user) {
-            return res.status(404).json({ message: "User not found" });
-          }
-          
-          // Remove password from response
-          const { password, ...userWithoutPassword } = user;
-          return res.status(200).json(userWithoutPassword);
-        }
-        
-        // Check if this is one of the therapist's clients
-        const client = await storage.getClientByIdAndTherapist(userId, req.user.id);
-        if (!client) {
-          console.log("Client lookup result: Not found or not belonging to this therapist");
-          return res.status(403).json({ message: "Access denied" });
-        }
-        
-        console.log("Client", userId, "lookup result: Found: therapistId =", client.therapistId);
-        console.log("This client belongs to the professional - ALLOWED");
-        
-        // Remove password from response
-        const { password, ...clientWithoutPassword } = client;
-        return res.status(200).json(clientWithoutPassword);
+      
+      if (!name || !email || !username || !password || !role) {
+        return res.status(400).json({ message: "All fields are required" });
       }
       
-      // Regular users can only access their own data
-      if (req.user?.id !== userId) {
-        return res.status(403).json({ message: "Access denied" });
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({ message: "User with this email already exists" });
       }
       
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
+      // Create the user
+      const userData = {
+        name,
+        email,
+        username,
+        password,
+        role,
+        status: 'active'
+      };
+      
+      const newUser = await storage.createUser(userData);
       
       // Remove password from response
-      const { password, ...userWithoutPassword } = user;
-      return res.status(200).json(userWithoutPassword);
+      const { password: _, ...userWithoutPassword } = newUser;
+      res.status(201).json(userWithoutPassword);
     } catch (error) {
-      console.error("Get user by ID error:", error);
+      console.error("Admin user creation error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
