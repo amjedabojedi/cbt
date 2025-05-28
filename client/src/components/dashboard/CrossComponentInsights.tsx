@@ -498,9 +498,12 @@ export default function CrossComponentInsights() {
   // Modified to include data even when connections aren't perfect
   const connectionStrengthData = enhancedInsights
     .filter(insight => 
-      // Include emotions that appear in multiple records OR
-      // have journal entries OR thought records AND have a strong presence
-      (insight.journalCount > 0 || insight.thoughtRecordCount > 0 || insight.totalEntries > 0)
+      // Only include emotions that have BOTH journal entries AND thought records (true connections)
+      // OR at least some meaningful data in one source
+      (insight.journalCount > 0 && insight.thoughtRecordCount > 0) ||
+      (insight.journalCount > 1) || 
+      (insight.thoughtRecordCount > 1) ||
+      (insight.totalEntries > 2)
     )
     .sort((a, b) => {
       // Sort by connection strength (journal + thought records) first
