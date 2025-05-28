@@ -652,28 +652,25 @@ export default function ReflectionInsights() {
       .filter(record => record.cognitiveDistortions && record.cognitiveDistortions.length > 0)
       .length;
     
-    // Clear definitions for each cognitive distortion (matching data format)
+    // Clear definitions for each cognitive distortion (matching exact data format)
     const distortionDescriptions: Record<string, string> = {
       "all-or-nothing": "Viewing situations in only two categories instead of on a continuum. Things are either perfect or a complete failure, with no middle ground or gray areas.",
-      "All-or-nothing thinking": "Viewing situations in only two categories instead of on a continuum. Things are either perfect or a complete failure, with no middle ground or gray areas.",
       "overgeneralization": "Drawing broad negative conclusions based on a single incident. Using words like 'always' or 'never' when describing patterns from limited evidence.",
-      "Overgeneralization": "Drawing broad negative conclusions based on a single incident. Using words like 'always' or 'never' when describing patterns from limited evidence.",
       "mental-filter": "Picking out a single negative detail and dwelling on it exclusively, so that the whole situation becomes darkened, like a drop of ink that colors an entire glass of water.",
-      "Mental filter": "Picking out a single negative detail and dwelling on it exclusively, so that the whole situation becomes darkened, like a drop of ink that colors an entire glass of water.",
       "disqualifying-the-positive": "Rejecting positive experiences by insisting they 'don't count' for some reason. This maintains negative beliefs despite contradictory everyday experiences.",
-      "Disqualifying the positive": "Rejecting positive experiences by insisting they 'don't count' for some reason. This maintains negative beliefs despite contradictory everyday experiences.",
       "jumping-to-conclusions": "Making negative interpretations even though there are no facts to support the conclusion. This includes mind reading and fortune telling.",
-      "Jumping to conclusions": "Making negative interpretations even though there are no facts to support the conclusion. This includes mind reading and fortune telling.",
       "magnification": "Exaggerating the importance of negative events or minimizing positive ones. Also called the 'binocular trick' - looking through the wrong end of binoculars.",
-      "Magnification": "Exaggerating the importance of negative events or minimizing positive ones. Also called the 'binocular trick' - looking through the wrong end of binoculars.",
+      "minimization": "Inappropriately shrinking things until they appear tiny (your own positive qualities, desirable characteristics, or accomplishments).",
       "emotional-reasoning": "Assuming that negative emotions necessarily reflect the way things really are. 'I feel guilty, so I must have done something wrong' or 'I feel overwhelmed, so my problems must be impossible to solve.'",
-      "Emotional reasoning": "Assuming that negative emotions necessarily reflect the way things really are. 'I feel guilty, so I must have done something wrong' or 'I feel overwhelmed, so my problems must be impossible to solve.'",
       "should-statements": "Trying to motivate yourself or others with 'shoulds,' 'shouldn'ts,' 'musts,' 'oughts,' and 'have-tos.' These create pressure and resentment rather than motivation.",
-      "Should statements": "Trying to motivate yourself or others with 'shoulds,' 'shouldn'ts,' 'musts,' 'oughts,' and 'have-tos.' These create pressure and resentment rather than motivation.",
       "labeling": "An extreme form of overgeneralization. Instead of describing an error, you attach a negative label to yourself or others. 'I'm a loser' instead of 'I made a mistake.'",
-      "Labeling": "An extreme form of overgeneralization. Instead of describing an error, you attach a negative label to yourself or others. 'I'm a loser' instead of 'I made a mistake.'",
       "personalization": "Taking responsibility for events that are not entirely under your control. Seeing yourself as the cause of some negative external event when you were not primarily responsible.",
-      "Personalization": "Taking responsibility for events that are not entirely under your control. Seeing yourself as the cause of some negative external event when you were not primarily responsible."
+      "blame": "Holding other people responsible for your pain, or taking the other track and blaming yourself for every problem.",
+      "fortune-telling": "Anticipating that things will turn out badly, and feeling convinced that your prediction is an already-established fact.",
+      "mind-reading": "Concluding that someone is reacting negatively to you, and you don't bother to check this out.",
+      "catastrophizing": "Expecting disaster to strike, no matter what. Also called 'magnification' - you blow things way out of proportion.",
+      "discounting-the-positive": "Rejecting positive experiences by insisting they 'don't count' for some arbitrary reason.",
+      "filtering": "Focusing on the negative details while ignoring all the positive aspects of a situation."
     };
 
     // Therapeutic interventions for therapists viewing client data
