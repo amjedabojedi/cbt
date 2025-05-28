@@ -282,10 +282,12 @@ export default function ReflectionInsights() {
     const distortionCounts: Record<string, number> = {};
     
     // Collect all distortions across all thought records
-    reflectionRecords.forEach(reflection => {
-      if (reflection.cognitiveDistortions) {
+    reflectionRecords.forEach((reflection) => {
+      if (reflection.cognitiveDistortions && Array.isArray(reflection.cognitiveDistortions)) {
         reflection.cognitiveDistortions.forEach(distortion => {
-          distortionCounts[distortion] = (distortionCounts[distortion] || 0) + 1;
+          // Normalize to hyphenated lowercase format
+          const normalizedDistortion = distortion.trim().toLowerCase().replace(/\s+/g, '-');
+          distortionCounts[normalizedDistortion] = (distortionCounts[normalizedDistortion] || 0) + 1;
         });
       }
     });
@@ -293,14 +295,17 @@ export default function ReflectionInsights() {
     // Add distortions from journal entries if available
     if (journalStats && journalStats.cognitiveDistortions) {
       Object.entries(journalStats.cognitiveDistortions).forEach(([distortion, count]) => {
-        distortionCounts[distortion] = (distortionCounts[distortion] || 0) + count;
+        // Normalize to hyphenated lowercase format
+        const normalizedDistortion = distortion.trim().toLowerCase().replace(/\s+/g, '-');
+        distortionCounts[normalizedDistortion] = (distortionCounts[normalizedDistortion] || 0) + (typeof count === 'number' ? count : 0);
       });
     }
     
     // Convert to array format for chart
-    return Object.entries(distortionCounts)
+    const result = Object.entries(distortionCounts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
+    return result;
   };
 
   // Render charts and insights based on active tab
@@ -784,8 +789,18 @@ export default function ReflectionInsights() {
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm">
-                          {distortionDescriptions[distortion.name] || 
-                           "A pattern of thinking that can distort your view of reality and reinforce negative emotions."}
+                          {(() => {
+                            // Normalize the distortion name to match our keys
+                            const normalizedName = distortion.name.toLowerCase().replace(/\s+/g, '-');
+                            const description = distortionDescriptions[normalizedName] || distortionDescriptions[distortion.name];
+                            
+                            if (!description) {
+                              console.log('No definition found for:', distortion.name, 'normalized:', normalizedName);
+                              console.log('Available keys:', Object.keys(distortionDescriptions));
+                            }
+                            
+                            return description || "A pattern of thinking that can distort your view of reality and reinforce negative emotions.";
+                          })()}
                         </p>
                       </CardContent>
                     </Card>
