@@ -1193,32 +1193,25 @@ export default function CrossComponentInsights() {
             <div>
               <h3 className="text-sm font-medium mb-2">Key Takeaways:</h3>
               <ul className="space-y-1 text-sm text-muted-foreground">
-                {/* Show insights from the enhanced API if available */}
-                {enhancedApiInsights?.insights && enhancedApiInsights.insights.length > 0 ? (
-                  // Display AI-generated insights from our enhanced API
-                  enhancedApiInsights.insights.map((insight: string, index: number) => (
-                    <li key={index}>
-                      <span className="font-medium text-primary">Insight {index + 1}:</span> {insight}
-                    </li>
-                  ))
-                ) : (
-                  // Fallback to our calculated insights if API data is not available
-                  <>
-                    {connectionStrengthData.length > 0 && (
-                      <li>
-                        <span className="font-medium text-primary">
-                          {connectionStrengthData[0]?.emotion}
-                        </span> appears most frequently across your records.
-                      </li>
-                    )}
-                    {improvementData.length > 0 && (
-                      <li>
-                        <span className="font-medium text-primary">
-                          {improvementData.sort((a, b) => b.improvement - a.improvement)[0]?.emotion}
-                        </span> shows the highest improvement after using coping strategies.
-                      </li>
-                    )}
-                  </>
+                {/* Only show insights when there's actual data - no fake insights */}
+                {connectionStrengthData.length > 0 && (
+                  <li>
+                    <span className="font-medium text-primary">
+                      {connectionStrengthData[0]?.emotion}
+                    </span> appears most frequently across your records.
+                  </li>
+                )}
+                {improvementData.length > 0 && copingStrategiesData.length > 0 && (
+                  <li>
+                    <span className="font-medium text-primary">
+                      {improvementData.sort((a, b) => b.improvement - a.improvement)[0]?.emotion}
+                    </span> shows the highest improvement after using coping strategies.
+                  </li>
+                )}
+                {connectionStrengthData.length === 0 && improvementData.length === 0 && (
+                  <li className="text-muted-foreground">
+                    Continue recording emotions and completing thought records to generate personalized insights.
+                  </li>
                 )}
                 {intensityImprovementData.length > 0 && (
                   <li>
