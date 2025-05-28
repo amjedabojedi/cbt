@@ -772,12 +772,7 @@ export default function ReflectionInsights() {
             
             {distortionData.length > 0 && (
               <div className="grid md:grid-cols-2 gap-4 mt-4">
-                {(() => {
-                  // Show all distortions with the highest count (handles ties properly)
-                  const maxCount = Math.max(...distortionData.map(d => d.value));
-                  const topDistortions = distortionData.filter(d => d.value === maxCount);
-                  
-                  return topDistortions.map((distortion, i) => (
+                {distortionData.map((distortion, i) => (
                     <Card key={i}>
                       <CardHeader className="pb-2">
                         <CardTitle className="text-md">
@@ -801,8 +796,7 @@ export default function ReflectionInsights() {
                         </p>
                       </CardContent>
                     </Card>
-                  ));
-                })()}
+                  ))}
               </div>
             )}
           </div>
