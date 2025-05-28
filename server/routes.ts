@@ -3213,13 +3213,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.params.userId);
       
-      // If the user is a therapist with a current viewing client, show that client's emotions
-      if (req.user?.role === 'therapist' && req.user.currentViewingClientId) {
-        console.log(`Therapist ${req.user.id} is viewing client ${req.user.currentViewingClientId}'s emotions`);
-        const clientEmotions = await storage.getEmotionRecordsByUser(req.user.currentViewingClientId);
-        return res.status(200).json(clientEmotions);
-      }
-      
+      // ALWAYS use the userId from the URL path - this is the client being viewed
+      // The checkUserAccess middleware already verified the therapist has permission to view this client
+      console.log(`Therapist ${req.user?.id} is viewing client ${userId}'s emotions`);
       const emotions = await storage.getEmotionRecordsByUser(userId);
       res.status(200).json(emotions);
     } catch (error) {
