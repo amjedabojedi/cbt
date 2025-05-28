@@ -1213,7 +1213,7 @@ export default function CrossComponentInsights() {
                     Continue recording emotions and completing thought records to generate personalized insights.
                   </li>
                 )}
-                {intensityImprovementData.length > 0 && (
+                {intensityImprovementData.length > 0 && copingStrategiesData.length > 0 && (
                   <li>
                     Higher intensity emotions 
                     {intensityImprovementData.some(item => item.intensity > 7 && item.improvement > 0)
