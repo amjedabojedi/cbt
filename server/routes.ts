@@ -1619,32 +1619,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(200).json([]);
     }
   });
-  
-  // Get user by ID (therapists can access their clients, admins can access anyone)
+
+  // Get individual user details (for client profiles)
   app.get("/api/users/:userId", authenticate, async (req, res) => {
     try {
-      // Validate userId is a number before continuing
-      const userIdParam = req.params.userId;
-      if (!userIdParam || isNaN(Number(userIdParam))) {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const userId = parseInt(req.params.userId);
+      if (!userId) {
         return res.status(400).json({ message: "Invalid user ID" });
       }
-      
-      const userId = parseInt(userIdParam);
-      
-      // Admin can access any user
-      if (req.user?.role === "admin") {
-        const user = await storage.getUser(userId);
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
+
+      // Check access permissions
+      if (user.role === "admin") {
+        // Admins can access any user
+      } else if (user.role === "therapist") {
+        // Therapists can access their clients
+        const isClientAccessible = await isClientOfTherapist(userId, user.id);
+        if (!isClientAccessible) {
+          return res.status(403).json({ message: "Access denied - not your client" });
         }
-        
-        // Remove password from response
-        const { password, ...userWithoutPassword } = user;
-        return res.status(200).json(userWithoutPassword);
+      } else {
+        // Users can only access their own data
+        if (user.id !== userId) {
+          return res.status(403).json({ message: "Access denied" });
+        }
       }
-      
-      // Therapists can only access their clients
-      if (req.user?.role === "therapist") {
+
+      const targetUser = await storage.getUser(userId);
+      if (!targetUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Remove sensitive information
+      const { password, ...userWithoutPassword } = targetUser;
+      res.status(200).json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+  
+  // Register user by admin (for creating therapists and admins)
+  app.post("/api/users/register-by-admin", authenticate, isAdmin, async (req, res) => {
+    try {
+      const { name, email, username, password, role } = req.body;
         console.log("Therapist", req.user.id, "attempting to access user", userId);
         
         // Special case: if this is the user's own profile, allow access
