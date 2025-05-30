@@ -168,7 +168,7 @@ Resilience Counseling Research and Consultation Team
   
   <p style="color: #4b5563; font-style: italic;">${insight}</p>
   
-  <p><a href="https://resiliencehub.app/dashboard/analytics" style="background-color: #4f46e5; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 15px 0;">View Detailed Analytics</a></p>
+  <p><a href="${process.env.APP_URL || 'https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-3h69oaxj28v0x.kirk.replit.dev'}/dashboard" style="background-color: #4f46e5; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 15px 0;">View Detailed Analytics</a></p>
   
   <p>Wishing you continued growth,<br>
   Resilience Counseling Research and Consultation Team</p>
