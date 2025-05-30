@@ -221,7 +221,7 @@ Resilience Counseling Research and Consultation Team
     <p><strong>Goals progress:</strong> ${stats.goalsProgress || 'No updates'}</p>
   </div>
   
-  <p><a href="https://resiliencehub.app/dashboard/analytics" style="background-color: #4f46e5; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 15px 0;">View Detailed Analytics</a></p>
+  <p><a href="${process.env.APP_URL || 'https://workspace.dramjedabojedi.repl.co'}/dashboard/analytics" style="background-color: #4f46e5; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 15px 0;">View Detailed Analytics</a></p>
   
   <p>Wishing you continued growth,<br>
   Resilience Counseling Research and Consultation Team</p>

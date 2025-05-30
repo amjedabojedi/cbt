@@ -112,7 +112,7 @@ export async function sendReminderToClient(
 ): Promise<boolean> {
   try {
     let success = true;
-    const appUrl = process.env.APP_URL || 'https://2afc12da-a46a-4189-baec-8b01e2d4ebaf-00-3h69oaxj28v0x.kirk.replit.dev';
+    const appUrl = process.env.APP_URL || 'https://workspace.dramjedabojedi.repl.co';
     
     // Send email reminder if configured
     if (config.sendEmails) {
