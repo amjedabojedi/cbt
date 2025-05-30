@@ -1089,9 +1089,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const invitationToken = crypto.randomBytes(32).toString('hex');
       const tempUsername = email.split('@')[0] + Math.floor(Math.random() * 1000);
       const tempPassword = Math.random().toString(36).substring(2, 10);
-      // Use the request's host for the base URL to ensure correct domain
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      // Use APP_URL environment variable first, fall back to request headers
+      const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
       const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${req.user.id}`;
+      
+      // Log the invitation link for debugging
+      console.log(`Generated invitation link: ${inviteLink}`);
       
       // Create the invitation
       const invitation = await storage.createClientInvitation({
@@ -1103,10 +1106,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'pending'
       });
       
-      // Send email invitation with dynamically generated link (don't use stored link)
+      // Send email invitation with the same reliable link
       const therapistName = req.user.name || req.user.username;
-      const dynamicInviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${req.user.id}`;
-      const emailSent = await sendClientInvitation(email, therapistName, dynamicInviteLink);
+      const emailSent = await sendClientInvitation(email, therapistName, inviteLink);
       
       // Create notification for therapist
       await storage.createNotification({
@@ -2512,12 +2514,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Generate an invitation link with email parameter and therapist ID
-      // Use the request's host for the base URL to ensure correct domain
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      // Use APP_URL environment variable first, fall back to request headers
+      const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
       console.log(`Using base URL for invitation: ${baseUrl}`);
       const encodedEmail = encodeURIComponent(email);
       const therapistId = req.user.id;
       const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodedEmail}&therapistId=${therapistId}`;
+      
+      // Log the invitation link for debugging
+      console.log(`Generated invitation link: ${inviteLink}`);
       
       // Send email with the client's credentials
       const emailSent = await sendClientInvitation(
