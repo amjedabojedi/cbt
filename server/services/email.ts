@@ -167,7 +167,7 @@ Resilience Counseling Research and Consultation Team
   
   <p>Regular emotion tracking helps build self-awareness and can lead to better therapy outcomes. Even a quick 30-second check-in can provide valuable insights for both you and your therapist.</p>
   
-  <p><a href="https://resiliencehub.app/dashboard" style="background-color: #4f46e5; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 15px 0;">Track Your Emotions Now</a></p>
+  <p><a href="${process.env.APP_URL || 'https://resiliencehub.replit.app'}/dashboard" style="background-color: #4f46e5; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 15px 0;">Track Your Emotions Now</a></p>
   
   <p>Wishing you well,<br>
   Resilience Counseling Research and Consultation Team</p>
