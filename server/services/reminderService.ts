@@ -112,7 +112,7 @@ export async function sendReminderToClient(
 ): Promise<boolean> {
   try {
     let success = true;
-    const appUrl = process.env.APP_URL || 'https://workspace.dramjedabojedi.repl.co';
+    const appUrl = process.env.APP_URL || 'https://resiliencehub.replit.app';
     
     // Send email reminder if configured
     if (config.sendEmails) {
