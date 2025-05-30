@@ -581,7 +581,7 @@ export class DatabaseStorage implements IStorage {
         const admin = await this.getUser(adminId);
         await this.createSystemLog({
           action: "user_deleted",
-          performedBy: adminId,
+          userId: adminId,
           details: {
             deletedUserId: userId,
             username: user.username,
@@ -976,7 +976,12 @@ export class DatabaseStorage implements IStorage {
   }
   
   async deleteThoughtRecord(id: number): Promise<void> {
-    // First delete related coping strategy usage records
+    // First delete reframe practice results that reference this thought record
+    await db
+      .delete(reframePracticeResults)
+      .where(eq(reframePracticeResults.thoughtRecordId, id));
+    
+    // Then delete related coping strategy usage records
     await db
       .delete(copingStrategyUsage)
       .where(eq(copingStrategyUsage.thoughtRecordId, id));
