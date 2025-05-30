@@ -4238,6 +4238,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Scheduler management endpoints
+  app.post("/api/admin/scheduler/trigger-daily-reminders", isAdmin, async (req, res) => {
+    try {
+      const { engagementScheduler } = await import('./scheduler');
+      await engagementScheduler.triggerDailyReminders();
+      res.json({ 
+        success: true, 
+        message: "Daily reminders triggered successfully" 
+      });
+    } catch (error) {
+      console.error("Error triggering daily reminders:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to trigger daily reminders" 
+      });
+    }
+  });
+
+  app.post("/api/admin/scheduler/trigger-weekly-digests", isAdmin, async (req, res) => {
+    try {
+      const { engagementScheduler } = await import('./scheduler');
+      await engagementScheduler.triggerWeeklyDigests();
+      res.json({ 
+        success: true, 
+        message: "Weekly digests triggered successfully" 
+      });
+    } catch (error) {
+      console.error("Error triggering weekly digests:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to trigger weekly digests" 
+      });
+    }
+  });
+
   // Legacy admin-only email notification endpoints
   app.post("/api/notifications/emotion-reminders", isAdmin, async (req, res) => {
     try {
