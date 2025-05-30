@@ -174,6 +174,16 @@ Resilience Counseling Research and Consultation Team
   
   <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
   <p style="font-size: 12px; color: #666;">This email was sent as part of your therapy program with Resilience Counseling. If you believe you received this in error, please contact your therapist.</p>
+  
+  <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0; border-left: 4px solid #4f46e5;">
+    <p style="margin: 0; font-size: 12px; color: #666; line-height: 1.4;">
+      <strong>Automated Reminder System:</strong><br>
+      This is an automated engagement reminder sent to encourage regular use of your mental health tracking tools. 
+      The system monitors your activity and sends reminders when you haven't logged emotions for several days. 
+      You can adjust reminder preferences in your account settings at 
+      <a href="https://resiliencehub.replit.app/dashboard" style="color: #4f46e5;">https://resiliencehub.replit.app/dashboard</a>
+    </p>
+  </div>
 </div>
 `;
 
