@@ -116,7 +116,7 @@ export async function sendReminderToClient(
     
     // Send email reminder if configured
     if (config.sendEmails) {
-      const emailContent = REMINDER_EMAIL_TEMPLATE.replace('{{loginUrl}}', `${appUrl}/auth`);
+      const emailContent = REMINDER_EMAIL_TEMPLATE.replace('{{loginUrl}}', `${appUrl}`);
       
       const emailResult = await sendEmail({
         to: clientEmail,
