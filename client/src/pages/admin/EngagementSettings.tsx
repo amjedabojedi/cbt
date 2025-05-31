@@ -491,7 +491,7 @@ Best regards,
                   <div className="space-y-4 border-l-4 border-orange-200 pl-4">
                     <h4 className="font-medium">Escalation Timeline</h4>
                     
-                    {settings.escalationDays.map((days, index) => (
+                    {(settings.escalationDays || []).map((days, index) => (
                       <Card key={index} className="bg-orange-50">
                         <CardContent className="pt-4">
                           <div className="space-y-3">
@@ -518,7 +518,7 @@ Best regards,
                             <div>
                               <Label>Email Subject</Label>
                               <Input
-                                value={`Escalation ${index + 1}: ${settings.escalationTemplates[index] || 'Custom message'}`}
+                                value={`Escalation ${index + 1}: ${(settings.escalationTemplates || [])[index] || 'Custom message'}`}
                                 placeholder="Enter escalation email subject"
                                 className="mt-1"
                               />
