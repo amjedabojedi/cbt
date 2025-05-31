@@ -12,6 +12,7 @@ import { Loader2, Save, Send, Clock, Mail, Settings as SettingsIcon, Eye, FileTe
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface EngagementSettings {
   reminderEnabled: boolean;
@@ -43,6 +44,8 @@ export default function EngagementSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewContent, setPreviewContent] = useState({ subject: "", body: "", type: "" });
   const [settings, setSettings] = useState<EngagementSettings>({
     reminderEnabled: true,
     reminderDays: 3,
@@ -183,6 +186,58 @@ Best regards,
     } finally {
       setSending(false);
     }
+  };
+
+  const generateEmailPreview = (templateType: 'reminder' | 'digest') => {
+    const sampleData = {
+      clientName: "Sarah Johnson",
+      therapistName: "Dr. Emily Chen",
+      daysSinceLastActivity: settings.reminderDays,
+      dashboardLink: "https://resiliencehub.app/dashboard",
+      supportEmail: "support@resiliencehub.app",
+      emotionsThisWeek: 12,
+      journalEntriesThisWeek: 4,
+      thoughtRecordsThisWeek: 2,
+      goalsWorkedOn: 3,
+      weeklyInsight: "You've shown great consistency in tracking your emotions this week, with a notable improvement in positive mood ratings.",
+      progressPercentage: 78
+    };
+
+    if (templateType === 'reminder') {
+      let body = settings.reminderEmailTemplate || "Hi {{clientName}}, this is a reminder to track your emotions today.";
+      let subject = settings.reminderEmailSubject || "Emotion Tracking Reminder";
+      
+      // Replace template variables with sample data
+      Object.entries(sampleData).forEach(([key, value]) => {
+        const placeholder = `{{${key}}}`;
+        body = body.replace(new RegExp(placeholder, 'g'), value.toString());
+        subject = subject.replace(new RegExp(placeholder, 'g'), value.toString());
+      });
+
+      setPreviewContent({
+        subject,
+        body,
+        type: "Emotion Tracking Reminder"
+      });
+    } else {
+      let body = settings.weeklyDigestTemplate || "Hi {{clientName}}, here's your weekly progress summary.";
+      let subject = settings.weeklyDigestSubject || "Weekly Progress Digest";
+      
+      // Replace template variables with sample data
+      Object.entries(sampleData).forEach(([key, value]) => {
+        const placeholder = `{{${key}}}`;
+        body = body.replace(new RegExp(placeholder, 'g'), value.toString());
+        subject = subject.replace(new RegExp(placeholder, 'g'), value.toString());
+      });
+
+      setPreviewContent({
+        subject,
+        body,
+        type: "Weekly Progress Digest"
+      });
+    }
+    
+    setPreviewOpen(true);
   };
 
   const updateSetting = (key: keyof EngagementSettings, value: any) => {
@@ -394,7 +449,7 @@ Best regards,
                 </div>
 
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => generateEmailPreview('reminder')}>
                     <Eye className="mr-2 h-4 w-4" />
                     Preview Email
                   </Button>
@@ -450,7 +505,7 @@ Best regards,
                 </div>
 
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => generateEmailPreview('digest')}>
                     <Eye className="mr-2 h-4 w-4" />
                     Preview Digest
                   </Button>
@@ -661,6 +716,52 @@ The ResilienceHub Team`}
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Email Preview Dialog */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Email Preview - {previewContent.type}</DialogTitle>
+            <DialogDescription>
+              Preview how the email will appear to clients with sample data
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="border rounded-lg p-4 bg-muted/50">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Mail className="h-4 w-4" />
+                  Email Subject:
+                </div>
+                <div className="font-medium bg-white p-2 rounded border">
+                  {previewContent.subject}
+                </div>
+              </div>
+            </div>
+
+            <div className="border rounded-lg p-4 bg-white">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                  <FileText className="h-4 w-4" />
+                  Email Content:
+                </div>
+                <div className="prose prose-sm max-w-none">
+                  <div className="whitespace-pre-wrap font-normal leading-relaxed">
+                    {previewContent.body}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> This preview uses sample data. Actual emails will use real client information when sent.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
