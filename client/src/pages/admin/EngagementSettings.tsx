@@ -209,42 +209,48 @@ Best regards,
     if (templateType === 'reminder') {
       // Use default template if empty
       subject = settings.reminderEmailSubject || "Emotion Tracking Reminder";
-      body = settings.reminderEmailTemplate || `Hi {{clientName}},
+      body = settings.reminderEmailTemplate || `<p>Hi <strong>{{clientName}}</strong>,</p>
 
-This is a friendly reminder to track your emotions today. Regular emotional tracking helps you understand patterns and improve your mental health journey.
+<p>This is a friendly reminder to track your emotions today. Regular emotional tracking helps you understand patterns and improve your mental health journey.</p>
 
-Your therapist {{therapistName}} is here to support you every step of the way.
+<p>Your therapist <strong>{{therapistName}}</strong> is here to support you every step of the way.</p>
 
-Please visit your dashboard: {{loginLink}}
+<p><a href="{{loginLink}}" style="background-color: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Visit Your Dashboard</a></p>
 
-If you have any questions, feel free to reach out to us at {{supportEmail}}.
+<p>If you have any questions, feel free to reach out to us at <a href="mailto:{{supportEmail}}">{{supportEmail}}</a>.</p>
 
-Best regards,
-The ResilienceHub Team`;
+<p>Best regards,<br>
+<strong>The ResilienceHub Team</strong></p>`;
       typeLabel = "Emotion Tracking Reminder";
     } else {
       // Use default template if empty
       subject = settings.weeklyDigestSubject || "Your Weekly Progress Summary";
-      body = settings.weeklyDigestTemplate || `Hi {{clientName}},
+      body = settings.weeklyDigestTemplate || `<p>Hi <strong>{{clientName}}</strong>,</p>
 
-Here's your weekly progress summary:
+<p>Here's your weekly progress summary:</p>
 
-📊 This Week's Activity:
-• Emotions tracked: {{emotionsThisWeek}}
-• Journal entries: {{journalEntriesThisWeek}}
-• Thought records: {{thoughtRecordsThisWeek}}
-• Goals worked on: {{goalsWorkedOn}}
+<div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+<h3 style="color: #1e40af; margin-top: 0;">📊 This Week's Activity:</h3>
+<ul style="list-style: none; padding: 0;">
+<li style="margin: 8px 0;">• Emotions tracked: <strong>{{emotionsThisWeek}}</strong></li>
+<li style="margin: 8px 0;">• Journal entries: <strong>{{journalEntriesThisWeek}}</strong></li>
+<li style="margin: 8px 0;">• Thought records: <strong>{{thoughtRecordsThisWeek}}</strong></li>
+<li style="margin: 8px 0;">• Goals worked on: <strong>{{goalsWorkedOn}}</strong></li>
+</ul>
+</div>
 
-🎯 Progress: {{progressPercentage}}% completion
+<p><strong>🎯 Progress: {{progressPercentage}}% completion</strong></p>
 
-💡 Weekly Insight: {{weeklyInsight}}
+<div style="background-color: #ecfdf5; padding: 15px; border-left: 4px solid #10b981; margin: 20px 0;">
+<p style="margin: 0;"><strong>💡 Weekly Insight:</strong> {{weeklyInsight}}</p>
+</div>
 
-Keep up the great work! Your therapist {{therapistName}} is proud of your progress.
+<p>Keep up the great work! Your therapist <strong>{{therapistName}}</strong> is proud of your progress.</p>
 
-Visit your dashboard: {{loginLink}}
+<p><a href="{{loginLink}}" style="background-color: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Visit Your Dashboard</a></p>
 
-Best regards,
-The ResilienceHub Team`;
+<p>Best regards,<br>
+<strong>The ResilienceHub Team</strong></p>`;
       typeLabel = "Weekly Progress Digest";
     }
     
@@ -772,11 +778,15 @@ The ResilienceHub Team`}
                 </div>
                 <div className="prose prose-sm max-w-none">
                   <div 
-                    className="whitespace-pre-line font-normal leading-relaxed bg-gray-50 p-4 rounded border"
+                    className="font-normal leading-relaxed bg-white p-4 rounded border"
                     style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-                  >
-                    {previewContent.body}
-                  </div>
+                    dangerouslySetInnerHTML={{ 
+                      __html: previewContent.body
+                        .replace(/\n/g, '<br>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    }}
+                  />
                 </div>
               </div>
             </div>
