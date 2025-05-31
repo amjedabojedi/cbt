@@ -189,6 +189,9 @@ Best regards,
   };
 
   const generateEmailPreview = (templateType: 'reminder' | 'digest') => {
+    console.log('Generating preview for:', templateType);
+    console.log('Current settings:', settings);
+    
     const sampleData = {
       clientName: "Sarah Johnson",
       therapistName: "Dr. Emily Chen",
@@ -207,7 +210,6 @@ Best regards,
     let body: string, subject: string, typeLabel: string;
 
     if (templateType === 'reminder') {
-      // Use default template if empty
       subject = settings.reminderEmailSubject || "Emotion Tracking Reminder";
       body = settings.reminderEmailTemplate || `<p>Hi <strong>{{clientName}}</strong>,</p>
 
@@ -215,7 +217,7 @@ Best regards,
 
 <p>Your therapist <strong>{{therapistName}}</strong> is here to support you every step of the way.</p>
 
-<p><a href="{{loginLink}}" style="background-color: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Visit Your Dashboard</a></p>
+<p>Please visit your dashboard: {{loginLink}}</p>
 
 <p>If you have any questions, feel free to reach out to us at <a href="mailto:{{supportEmail}}">{{supportEmail}}</a>.</p>
 
@@ -223,7 +225,6 @@ Best regards,
 <strong>The ResilienceHub Team</strong></p>`;
       typeLabel = "Emotion Tracking Reminder";
     } else {
-      // Use default template if empty
       subject = settings.weeklyDigestSubject || "Your Weekly Progress Summary";
       body = settings.weeklyDigestTemplate || `<p>Hi <strong>{{clientName}}</strong>,</p>
 
@@ -247,12 +248,15 @@ Best regards,
 
 <p>Keep up the great work! Your therapist <strong>{{therapistName}}</strong> is proud of your progress.</p>
 
-<p><a href="{{loginLink}}" style="background-color: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Visit Your Dashboard</a></p>
+<p>Visit your dashboard: {{loginLink}}</p>
 
 <p>Best regards,<br>
 <strong>The ResilienceHub Team</strong></p>`;
       typeLabel = "Weekly Progress Digest";
     }
+    
+    console.log('Before replacement - Body:', body);
+    console.log('Before replacement - Subject:', subject);
     
     // Replace template variables with sample data
     Object.entries(sampleData).forEach(([key, value]) => {
@@ -268,6 +272,9 @@ Best regards,
       
       subject = subject.replace(new RegExp(placeholder, 'g'), value.toString());
     });
+
+    console.log('After replacement - Body:', body);
+    console.log('After replacement - Subject:', subject);
 
     setPreviewContent({
       subject,
@@ -443,6 +450,25 @@ Best regards,
 
           {/* Email Templates Tab */}
           <TabsContent value="templates" className="space-y-6">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="text-lg font-medium">Email Templates</h3>
+                <p className="text-sm text-muted-foreground">Customize your engagement email templates</p>
+              </div>
+              <Button onClick={saveSettings} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Templates
+                  </>
+                )}
+              </Button>
+            </div>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
