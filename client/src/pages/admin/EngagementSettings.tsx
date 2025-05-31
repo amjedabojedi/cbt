@@ -257,7 +257,15 @@ Best regards,
     // Replace template variables with sample data
     Object.entries(sampleData).forEach(([key, value]) => {
       const placeholder = `{{${key}}}`;
-      body = body.replace(new RegExp(placeholder, 'g'), value.toString());
+      
+      // Special handling for link variables to create buttons
+      if (key === 'dashboardLink' || key === 'loginLink') {
+        const buttonHtml = `<a href="${value.toString()}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500; margin: 10px 0;">Visit Your Dashboard</a>`;
+        body = body.replace(new RegExp(placeholder, 'g'), buttonHtml);
+      } else {
+        body = body.replace(new RegExp(placeholder, 'g'), value.toString());
+      }
+      
       subject = subject.replace(new RegExp(placeholder, 'g'), value.toString());
     });
 
@@ -782,9 +790,6 @@ The ResilienceHub Team`}
                     style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
                     dangerouslySetInnerHTML={{ 
                       __html: previewContent.body
-                        .replace(/\n/g, '<br>')
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
                     }}
                   />
                 </div>
