@@ -203,39 +203,62 @@ Best regards,
       progressPercentage: 78
     };
 
+    let body, subject, typeLabel;
+
     if (templateType === 'reminder') {
-      let body = settings.reminderEmailTemplate || "Hi {{clientName}}, this is a reminder to track your emotions today.";
-      let subject = settings.reminderEmailSubject || "Emotion Tracking Reminder";
-      
-      // Replace template variables with sample data
-      Object.entries(sampleData).forEach(([key, value]) => {
-        const placeholder = `{{${key}}}`;
-        body = body.replace(new RegExp(placeholder, 'g'), value.toString());
-        subject = subject.replace(new RegExp(placeholder, 'g'), value.toString());
-      });
+      // Use default template if empty
+      subject = settings.reminderEmailSubject || "Emotion Tracking Reminder";
+      body = settings.reminderEmailTemplate || `Hi {{clientName}},
 
-      setPreviewContent({
-        subject,
-        body,
-        type: "Emotion Tracking Reminder"
-      });
+This is a friendly reminder to track your emotions today. Regular emotional tracking helps you understand patterns and improve your mental health journey.
+
+Your therapist {{therapistName}} is here to support you every step of the way.
+
+Please visit your dashboard: {{dashboardLink}}
+
+If you have any questions, feel free to reach out to us at {{supportEmail}}.
+
+Best regards,
+The ResilienceHub Team`;
+      typeLabel = "Emotion Tracking Reminder";
     } else {
-      let body = settings.weeklyDigestTemplate || "Hi {{clientName}}, here's your weekly progress summary.";
-      let subject = settings.weeklyDigestSubject || "Weekly Progress Digest";
-      
-      // Replace template variables with sample data
-      Object.entries(sampleData).forEach(([key, value]) => {
-        const placeholder = `{{${key}}}`;
-        body = body.replace(new RegExp(placeholder, 'g'), value.toString());
-        subject = subject.replace(new RegExp(placeholder, 'g'), value.toString());
-      });
+      // Use default template if empty
+      subject = settings.weeklyDigestSubject || "Your Weekly Progress Summary";
+      body = settings.weeklyDigestTemplate || `Hi {{clientName}},
 
-      setPreviewContent({
-        subject,
-        body,
-        type: "Weekly Progress Digest"
-      });
+Here's your weekly progress summary:
+
+📊 This Week's Activity:
+• Emotions tracked: {{emotionsThisWeek}}
+• Journal entries: {{journalEntriesThisWeek}}
+• Thought records: {{thoughtRecordsThisWeek}}
+• Goals worked on: {{goalsWorkedOn}}
+
+🎯 Progress: {{progressPercentage}}% completion
+
+💡 Weekly Insight: {{weeklyInsight}}
+
+Keep up the great work! Your therapist {{therapistName}} is proud of your progress.
+
+Visit your dashboard: {{dashboardLink}}
+
+Best regards,
+The ResilienceHub Team`;
+      typeLabel = "Weekly Progress Digest";
     }
+    
+    // Replace template variables with sample data
+    Object.entries(sampleData).forEach(([key, value]) => {
+      const placeholder = `{{${key}}}`;
+      body = body.replace(new RegExp(placeholder, 'g'), value.toString());
+      subject = subject.replace(new RegExp(placeholder, 'g'), value.toString());
+    });
+
+    setPreviewContent({
+      subject,
+      body,
+      type: typeLabel
+    });
     
     setPreviewOpen(true);
   };
