@@ -194,6 +194,7 @@ Best regards,
       therapistName: "Dr. Emily Chen",
       daysSinceLastActivity: settings.reminderDays,
       dashboardLink: "https://resiliencehub.app/dashboard",
+      loginLink: "https://resiliencehub.app/login",
       supportEmail: "support@resiliencehub.app",
       emotionsThisWeek: 12,
       journalEntriesThisWeek: 4,
@@ -203,7 +204,7 @@ Best regards,
       progressPercentage: 78
     };
 
-    let body, subject, typeLabel;
+    let body: string, subject: string, typeLabel: string;
 
     if (templateType === 'reminder') {
       // Use default template if empty
@@ -214,7 +215,7 @@ This is a friendly reminder to track your emotions today. Regular emotional trac
 
 Your therapist {{therapistName}} is here to support you every step of the way.
 
-Please visit your dashboard: {{dashboardLink}}
+Please visit your dashboard: {{loginLink}}
 
 If you have any questions, feel free to reach out to us at {{supportEmail}}.
 
@@ -240,7 +241,7 @@ Here's your weekly progress summary:
 
 Keep up the great work! Your therapist {{therapistName}} is proud of your progress.
 
-Visit your dashboard: {{dashboardLink}}
+Visit your dashboard: {{loginLink}}
 
 Best regards,
 The ResilienceHub Team`;
@@ -771,9 +772,11 @@ The ResilienceHub Team`}
                 </div>
                 <div className="prose prose-sm max-w-none">
                   <div 
-                    className="whitespace-pre-wrap font-normal leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: previewContent.body.replace(/\n/g, '<br>') }}
-                  />
+                    className="whitespace-pre-line font-normal leading-relaxed bg-gray-50 p-4 rounded border"
+                    style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                  >
+                    {previewContent.body}
+                  </div>
                 </div>
               </div>
             </div>
