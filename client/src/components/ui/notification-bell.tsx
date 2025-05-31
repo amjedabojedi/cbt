@@ -17,7 +17,7 @@ import { useWebSocketContext } from "@/context/WebSocketContext";
 interface Notification {
   id: number;
   title: string;
-  body: string; // Changed from "content" to "body" to match database
+  body: string;
   type: string;
   isRead: boolean;
   createdAt: string;
@@ -42,44 +42,42 @@ export default function NotificationBell() {
 
   // Fetch unread count on mount and every minute, but only if user is authenticated
   useEffect(() => {
-    // Only fetch notifications if a user is logged in
     if (user?.id) {
       fetchUnreadCount();
       const interval = setInterval(fetchUnreadCount, 60000);
       return () => clearInterval(interval);
     } else {
-      // Reset notification state when no user is logged in
       setUnreadCount(0);
       setNotifications([]);
     }
-  }, [user]);
-  
-  // Refresh unread count whenever notifications are marked as read
+  }, [user?.id]);
+
+  // Handle WebSocket messages for real-time notifications
   useEffect(() => {
-    if (isOpen && user?.id) {
-      // Small delay to ensure server has processed the changes
-      const refreshTimer = setTimeout(fetchUnreadCount, 500);
-      return () => clearTimeout(refreshTimer);
-    }
-  }, [isOpen, notifications]);
-  
-  // Handle real-time notifications via WebSocket
-  useEffect(() => {
-    // Process incoming WebSocket messages
-    if (lastMessage && lastMessage.type === 'notification') {
-      // Refresh notifications when we receive a new one
-      if (isOpen) {
-        fetchNotifications();
+    if (lastMessage && lastMessage.data) {
+      try {
+        const messageData = typeof lastMessage.data === 'string' 
+          ? JSON.parse(lastMessage.data) 
+          : lastMessage.data;
+        
+        if (messageData.type === 'new_notification') {
+          setUnreadCount(prev => prev + 1);
+          
+          // Add to notifications list if dropdown is open
+          if (isOpen && messageData.notification) {
+            setNotifications(prev => [messageData.notification, ...prev]);
+          }
+          
+          // Show toast notification
+          toast({
+            title: messageData.notification?.title || 'New Notification',
+            description: messageData.notification?.body || '',
+            duration: 5000,
+          });
+        }
+      } catch (error) {
+        console.error("Error parsing WebSocket message:", error);
       }
-      // Always refresh the unread count
-      fetchUnreadCount();
-      
-      // Show a toast notification
-      toast({
-        title: lastMessage.data.title || 'New Notification',
-        description: lastMessage.data.body || '',
-        duration: 5000,
-      });
     }
   }, [lastMessage, isOpen, toast]);
 
@@ -97,16 +95,13 @@ export default function NotificationBell() {
 
   async function fetchUnreadCount() {
     try {
-      // Don't attempt to fetch if there's no user
       if (!user?.id) {
         setUnreadCount(0);
         return;
       }
       
-      // Add timestamp to URL to prevent caching
       const timestampedUrl = `/api/notifications/unread?_t=${Date.now()}`;
       
-      // Use fetch directly to avoid type issues
       const response = await fetch(timestampedUrl, {
         method: 'GET',
         headers: {
@@ -119,27 +114,20 @@ export default function NotificationBell() {
         credentials: 'include'
       });
       
-      // Safely parse the response
       if (response.ok) {
         try {
           const data = await response.json();
           if (Array.isArray(data)) {
-            console.log("Unread notifications count:", data.length);
             setUnreadCount(data.length);
           } else {
-            // If data is not an array, keep current count
-            console.warn("Unexpected notification data format:", typeof data);
+            setUnreadCount(0);
           }
-        } catch (jsonError) {
-          // JSON parsing error, keeping the current count
-          console.warn("Failed to parse notification response as JSON");
+        } catch (parseError) {
+          console.error("Error parsing unread count response");
+          setUnreadCount(0);
         }
-      } else {
-        // If the request fails, log status but keep the current count
-        console.warn(`Notification request failed with status: ${response.status}`);
       }
     } catch (error) {
-      // Don't log full error object as it can cause circular reference issues
       console.error("Error fetching unread count - will retry later");
     }
   }
@@ -148,14 +136,11 @@ export default function NotificationBell() {
     try {
       const response = await apiRequest("POST", `/api/notifications/read/${id}`);
       if (response.ok) {
-        // Update the notification in the list
         setNotifications(notifications.map(notification => 
           notification.id === id ? { ...notification, isRead: true } : notification
         ));
-        // Update unread count
         setUnreadCount(prevCount => Math.max(0, prevCount - 1));
         
-        // Force a fresh fetch to ensure we have the latest data
         setTimeout(() => fetchUnreadCount(), 500);
       }
     } catch (error) {
@@ -165,14 +150,11 @@ export default function NotificationBell() {
 
   async function markAllAsRead() {
     try {
-      // Create a timestamp for robust cache-busting
       const timestamp = Date.now();
       
-      // First, set UI to reflect all read immediately for better UX
       setNotifications(notifications.map(notification => ({ ...notification, isRead: true })));
       setUnreadCount(0);
       
-      // Then perform the server-side update with strong cache prevention
       const response = await fetch(`/api/notifications/read-all?_t=${timestamp}`, {
         method: 'POST',
         headers: {
@@ -186,36 +168,9 @@ export default function NotificationBell() {
       });
       
       if (response.ok) {
-        console.log("Successfully marked all notifications as read on server");
-        
-        // Force multiple refreshes with exponential backoff to ensure we get the latest data
-        const refreshIntervals = [100, 500, 1500, 3000];
-        
-        // Schedule all refreshes
-        refreshIntervals.forEach(delay => {
-          setTimeout(() => {
-            console.log(`Refreshing notification count after ${delay}ms`);
-            fetch(`/api/notifications/unread?_t=${Date.now()}`, {
-              method: 'GET',
-              headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache', 
-                'Expires': '0',
-                'X-Timestamp': Date.now().toString(),
-                'X-User-ID': user?.id?.toString() || ''
-              },
-              credentials: 'include'
-            })
-            .then(res => res.json())
-            .then(data => {
-              if (Array.isArray(data)) {
-                console.log(`Refresh after ${delay}ms: ${data.length} unread notifications`);
-                setUnreadCount(data.length);
-              }
-            })
-            .catch(err => console.error(`Error in refresh after ${delay}ms:`, err));
-          }, delay);
-        });
+        setTimeout(() => {
+          fetchUnreadCount();
+        }, 1000);
         
         toast({
           title: "Success",
@@ -236,17 +191,14 @@ export default function NotificationBell() {
     try {
       const response = await apiRequest("DELETE", `/api/notifications/${id}`);
       if (response.ok) {
-        // Remove notification from list
         const updatedNotifications = notifications.filter(notification => notification.id !== id);
         setNotifications(updatedNotifications);
         
-        // If the deleted notification was unread, update the count
         const deletedNotification = notifications.find(notification => notification.id === id);
         if (deletedNotification && !deletedNotification.isRead) {
           setUnreadCount(prevCount => Math.max(0, prevCount - 1));
         }
         
-        // Force a fresh fetch of unread count
         setTimeout(() => fetchUnreadCount(), 500);
         
         toast({
@@ -264,18 +216,17 @@ export default function NotificationBell() {
     }
   }
 
-  // Create a test notification for development purposes
   async function createTestNotification() {
     try {
       const response = await apiRequest("POST", "/api/notifications/test");
       if (response.ok) {
+        await fetchNotifications();
+        await fetchUnreadCount();
+        
         toast({
           title: "Success",
           description: "Test notification created",
         });
-        // Refresh notifications list and unread count
-        fetchNotifications();
-        fetchUnreadCount();
       }
     } catch (error) {
       console.error("Error creating test notification:", error);
@@ -287,131 +238,112 @@ export default function NotificationBell() {
     }
   }
 
-  // Format notification date to a more readable format
   function formatDate(dateString: string) {
     const date = new Date(dateString);
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHrs = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
     
-    if (diffMins < 1) {
-      return "Just now";
-    } else if (diffMins < 60) {
-      return `${diffMins} min ago`;
-    } else if (diffHrs < 24) {
-      return `${diffHrs} hr ago`;
-    } else if (diffDays < 7) {
-      return `${diffDays} day ago`;
-    } else {
-      // Format date as MM/DD/YYYY
-      return date.toLocaleDateString();
-    }
+    if (diffInMinutes < 1) return "Just now";
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
   }
 
-  // Get notification color based on type
   function getNotificationColor(type: string) {
     switch (type) {
-      case "reminder":
-        return "text-yellow-500 bg-yellow-50";
-      case "progress":
-        return "text-green-500 bg-green-50";
-      case "message":
-        return "text-blue-500 bg-blue-50";
-      default:
-        return "text-gray-500 bg-gray-50";
+      case 'reminder': return 'text-blue-600';
+      case 'alert': return 'text-red-600';
+      case 'system': return 'text-gray-600';
+      case 'therapist_message': return 'text-green-600';
+      default: return 'text-gray-600';
     }
   }
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell size={20} />
+        <Button variant="ghost" size="sm" className="relative">
+          <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
             <Badge 
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] bg-red-500" 
-              variant="destructive"
+              variant="destructive" 
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs p-0"
             >
-              {unreadCount > 9 ? "9+" : unreadCount}
+              {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>
           )}
-          {/* Connection status indicator - small dot in bottom right */}
-          <div className={`absolute bottom-0 right-0 h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-gray-400'}`} 
-               title={isConnected ? "Connected" : "Disconnected"} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        <div className="flex items-center justify-between px-4 py-2 border-b">
+        <div className="flex items-center justify-between p-2 border-b">
           <h3 className="font-semibold">Notifications</h3>
-          {unreadCount > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={markAllAsRead}
-              className="text-xs text-blue-600"
+          <div className="flex gap-2">
+            {notifications.some(n => !n.isRead) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={markAllAsRead}
+                className="text-xs"
+              >
+                Mark all read
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={createTestNotification}
+              className="text-xs"
             >
-              Mark all as read
+              Test
             </Button>
-          )}
+          </div>
         </div>
-        <ScrollArea className="h-[300px]">
+        
+        <ScrollArea className="max-h-80">
           {notifications.length === 0 ? (
-            <div className="p-4 text-center text-sm text-gray-500">
-              <div>No notifications yet</div>
-              {user?.role === "admin" && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={createTestNotification}
-                  className="mt-2 w-full text-xs"
-                >
-                  Create Test Notification
-                </Button>
-              )}
+            <div className="p-4 text-center text-muted-foreground">
+              No notifications
             </div>
           ) : (
             notifications.map((notification) => (
-              <div 
-                key={notification.id} 
-                className={`px-4 py-3 border-b last:border-b-0 transition-colors ${notification.isRead ? 'bg-white' : 'bg-blue-50'}`}
-              >
-                <div className="flex justify-between mb-1">
-                  <h4 className="font-medium text-sm">{notification.title}</h4>
-                  <div className="flex gap-2">
-                    {!notification.isRead && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => markAsRead(notification.id)} 
-                        className="h-6 w-6 p-0 hover:bg-gray-100"
-                      >
-                        <span className="sr-only">Mark as read</span>
-                        <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                      </Button>
-                    )}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => deleteNotification(notification.id)} 
-                      className="h-6 w-6 p-0 hover:bg-gray-100"
-                    >
-                      <span className="sr-only">Delete</span>
-                      <span className="text-xs">×</span>
-                    </Button>
+              <DropdownMenuItem key={notification.id} className="p-3 block">
+                <div 
+                  className={`space-y-1 ${!notification.isRead ? 'bg-blue-50' : ''} rounded p-2`}
+                  onClick={() => !notification.isRead && markAsRead(notification.id)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className={`text-sm font-medium ${getNotificationColor(notification.type)}`}>
+                          {notification.title}
+                        </h4>
+                        {!notification.isRead && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {notification.body}
+                      </p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(notification.createdAt)}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteNotification(notification.id);
+                          }}
+                          className="text-xs p-1 h-auto"
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <p className="text-xs text-gray-700">{notification.body}</p>
-                <div className="flex justify-between mt-1">
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${getNotificationColor(notification.type)}`}>
-                    {notification.type}
-                  </span>
-                  <span className="text-[10px] text-gray-500">
-                    {formatDate(notification.createdAt)}
-                  </span>
-                </div>
-              </div>
+              </DropdownMenuItem>
             ))
           )}
         </ScrollArea>

@@ -4370,11 +4370,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Clean up expired notification cache entries
       const now = Date.now();
-      for (const [key, value] of notificationCache.entries()) {
+      const keysToDelete: number[] = [];
+      notificationCache.forEach((value, key) => {
         if (now > value.expires) {
-          notificationCache.delete(key);
+          keysToDelete.push(key);
         }
-      }
+      });
+      keysToDelete.forEach(key => notificationCache.delete(key));
       
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('X-Direct-Query', 'true');
