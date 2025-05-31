@@ -52,6 +52,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { href: "/admin/users", icon: <Users className="h-5 w-5" />, label: "User Management" },
     { href: "/admin/resources", icon: <Book className="h-5 w-5" />, label: "Resources" },
     { href: "/admin/reframe-analytics", icon: <Brain className="h-5 w-5" />, label: "Reframe Analytics" },
+    { href: "/admin/engagement-settings", icon: <Mail className="h-5 w-5" />, label: "Engagement Settings" },
     { href: "/admin/logs", icon: <FileText className="h-5 w-5" />, label: "Logs" },
     { href: "/admin/notifications", icon: <MessageSquare className="h-5 w-5" />, label: "Notifications" },
     { href: "/admin/settings", icon: <Settings className="h-5 w-5" />, label: "Settings" },
