@@ -357,7 +357,7 @@ Best regards,
                   Daily Reminder Email Template
                 </CardTitle>
                 <CardDescription>
-                  Customize the email sent to inactive clients. Use variables like {{clientName}}, {{therapistName}}, {{daysSinceLastActivity}}, {{dashboardLink}}
+                  Customize the email sent to inactive clients. Use variables like clientName, therapistName, daysSinceLastActivity, dashboardLink
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -384,12 +384,12 @@ Best regards,
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h4 className="font-medium text-blue-900 mb-2">Available Variables:</h4>
                   <div className="grid grid-cols-2 gap-2 text-sm text-blue-800">
-                    <span>{{clientName}} - Client's name</span>
-                    <span>{{therapistName}} - Therapist's name</span>
-                    <span>{{daysSinceLastActivity}} - Days inactive</span>
-                    <span>{{dashboardLink}} - Login link</span>
-                    <span>{{loginLink}} - Direct login URL</span>
-                    <span>{{supportEmail}} - Support contact</span>
+                    <span>{"{{clientName}}"} - Client's name</span>
+                    <span>{"{{therapistName}}"} - Therapist's name</span>
+                    <span>{"{{daysSinceLastActivity}}"} - Days inactive</span>
+                    <span>{"{{dashboardLink}}"} - Login link</span>
+                    <span>{"{{loginLink}}"} - Direct login URL</span>
+                    <span>{"{{supportEmail}}"} - Support contact</span>
                   </div>
                 </div>
 
@@ -413,7 +413,7 @@ Best regards,
                   Weekly Digest Email Template
                 </CardTitle>
                 <CardDescription>
-                  Weekly progress summary sent to clients. Additional variables: {{emotionsThisWeek}}, {{journalEntriesThisWeek}}, {{goalsWorkedOn}}, {{weeklyInsight}}
+                  Weekly progress summary sent to clients. Additional variables for weekly data tracking.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -440,12 +440,12 @@ Best regards,
                 <div className="bg-green-50 p-4 rounded-lg">
                   <h4 className="font-medium text-green-900 mb-2">Weekly Digest Variables:</h4>
                   <div className="grid grid-cols-2 gap-2 text-sm text-green-800">
-                    <span>{{emotionsThisWeek}} - Emotions tracked</span>
-                    <span>{{journalEntriesThisWeek}} - Journal entries</span>
-                    <span>{{thoughtRecordsThisWeek}} - Thought records</span>
-                    <span>{{goalsWorkedOn}} - Goals in progress</span>
-                    <span>{{weeklyInsight}} - AI-generated insight</span>
-                    <span>{{progressPercentage}} - Weekly progress</span>
+                    <span>{"{{emotionsThisWeek}}"} - Emotions tracked</span>
+                    <span>{"{{journalEntriesThisWeek}}"} - Journal entries</span>
+                    <span>{"{{thoughtRecordsThisWeek}}"} - Thought records</span>
+                    <span>{"{{goalsWorkedOn}}"} - Goals in progress</span>
+                    <span>{"{{weeklyInsight}}"} - AI-generated insight</span>
+                    <span>{"{{progressPercentage}}"} - Weekly progress</span>
                   </div>
                 </div>
 
@@ -532,8 +532,8 @@ Best regards,
 We've noticed you haven't been active on ResilienceHub for ${days} days. Your mental health journey is important to us.
 
 ${index === 0 ? 'This is a gentle reminder to check in.' : 
-                  index === 1 ? 'We want to make sure you\'re doing okay.' : 
-                  'We\'re concerned about your wellbeing and would like to connect.'}
+                  index === 1 ? 'We want to make sure you are doing okay.' : 
+                  'We are concerned about your wellbeing and would like to connect.'}
 
 Your therapist {{therapistName}} is here to support you.
 
