@@ -4502,6 +4502,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Admin endpoint to get all notifications
+  app.get("/api/admin/notifications", authenticate, isAdmin, async (req, res) => {
+    try {
+      const query = `
+        SELECT 
+          n.id, 
+          n.title, 
+          n.body, 
+          n.type, 
+          n.is_read as "isRead", 
+          n.created_at as "createdAt",
+          n.user_id as "userId",
+          u.name as "userName",
+          u.email as "userEmail"
+        FROM notifications n
+        LEFT JOIN users u ON n.user_id = u.id
+        ORDER BY n.created_at DESC
+        LIMIT 100
+      `;
+      
+      const result = await pool.query(query);
+      res.status(200).json(result.rows);
+    } catch (error) {
+      console.error("Error fetching admin notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  // Admin endpoint to get system logs
+  app.get("/api/admin/logs", authenticate, isAdmin, async (req, res) => {
+    try {
+      const query = `
+        SELECT 
+          sl.id,
+          sl.action,
+          sl.performed_by as "performedBy",
+          sl.details,
+          sl.ip_address as "ipAddress",
+          sl.timestamp,
+          u.name as "performerName",
+          u.email as "performerEmail"
+        FROM system_logs sl
+        LEFT JOIN users u ON sl.performed_by = u.id
+        ORDER BY sl.timestamp DESC
+        LIMIT 100
+      `;
+      
+      const result = await pool.query(query);
+      res.status(200).json(result.rows);
+    } catch (error) {
+      console.error("Error fetching system logs:", error);
+      res.status(500).json({ message: "Failed to fetch system logs" });
+    }
+  });
+
+  // Admin endpoint to clear system logs
+  app.delete("/api/admin/logs", authenticate, isAdmin, async (req, res) => {
+    try {
+      await pool.query("DELETE FROM system_logs");
+      res.status(200).json({ message: "System logs cleared successfully" });
+    } catch (error) {
+      console.error("Error clearing system logs:", error);
+      res.status(500).json({ message: "Failed to clear system logs" });
+    }
+  });
+
   // Get protective factors used for a specific thought record
   app.get("/api/users/:userId/thoughts/:id/protective-factors", authenticate, checkUserAccess, async (req, res) => {
     try {
