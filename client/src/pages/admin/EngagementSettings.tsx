@@ -747,17 +747,19 @@ The ResilienceHub Team`}
                   Email Content:
                 </div>
                 <div className="prose prose-sm max-w-none">
-                  <div className="whitespace-pre-wrap font-normal leading-relaxed">
-                    {previewContent.body}
-                  </div>
+                  <div 
+                    className="whitespace-pre-wrap font-normal leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: previewContent.body.replace(/\n/g, '<br>') }}
+                  />
                 </div>
               </div>
             </div>
 
             <div className="bg-blue-50 p-3 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>Note:</strong> This preview uses sample data. Actual emails will use real client information when sent.
-              </p>
+              <div className="text-sm text-blue-800 space-y-1">
+                <p><strong>Note:</strong> This preview uses sample data. Actual emails will use real client information when sent.</p>
+                <p><strong>HTML Support:</strong> You can use HTML tags like &lt;strong&gt;, &lt;em&gt;, &lt;p&gt;, &lt;br&gt;, and &lt;a&gt; for formatting.</p>
+              </div>
             </div>
           </div>
         </DialogContent>
