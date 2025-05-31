@@ -8,9 +8,10 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, Save, Send, Clock, Mail, Settings as SettingsIcon } from "lucide-react";
+import { Loader2, Save, Send, Clock, Mail, Settings as SettingsIcon, Eye, FileText, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface EngagementSettings {
   reminderEnabled: boolean;
@@ -20,6 +21,13 @@ interface EngagementSettings {
   weeklyDigestDay: number;
   weeklyDigestTime: string;
   emailTemplate: string;
+  reminderEmailSubject: string;
+  reminderEmailTemplate: string;
+  weeklyDigestSubject: string;
+  weeklyDigestTemplate: string;
+  escalationEnabled: boolean;
+  escalationDays: number[];
+  escalationTemplates: string[];
 }
 
 interface ReminderStats {
@@ -42,7 +50,45 @@ export default function EngagementSettingsPage() {
     weeklyDigestEnabled: true,
     weeklyDigestDay: 0, // Sunday
     weeklyDigestTime: "08:00",
-    emailTemplate: ""
+    emailTemplate: "",
+    reminderEmailSubject: "Time to check in with ResilienceHub",
+    reminderEmailTemplate: `Hi {{clientName}},
+
+We haven't seen you on ResilienceHub for {{daysSinceLastActivity}} days and wanted to check in with you.
+
+Your mental health journey is important, and we're here to support you every step of the way. Taking just a few minutes to track your emotions or write in your journal can make a real difference.
+
+Ready to continue your progress?
+{{dashboardLink}}
+
+If you have any questions or need support, don't hesitate to reach out to your therapist: {{therapistName}}.
+
+Take care,
+The ResilienceHub Team`,
+    weeklyDigestSubject: "Your weekly progress summary",
+    weeklyDigestTemplate: `Hi {{clientName}},
+
+Here's a summary of your progress this week:
+
+• Emotions tracked: {{emotionsThisWeek}}
+• Journal entries: {{journalEntriesThisWeek}}  
+• Goals worked on: {{goalsWorkedOn}}
+• Thought records: {{thoughtRecordsThisWeek}}
+
+{{weeklyInsight}}
+
+Keep up the great work! Continue your journey:
+{{dashboardLink}}
+
+Best regards,
+{{therapistName}} and the ResilienceHub Team`,
+    escalationEnabled: false,
+    escalationDays: [7, 14, 30],
+    escalationTemplates: [
+      "Gentle follow-up after 1 week",
+      "More concerned check-in after 2 weeks", 
+      "Urgent wellness check after 1 month"
+    ]
   });
   const [stats, setStats] = useState<ReminderStats>({
     lastRunTime: null,
@@ -169,6 +215,8 @@ export default function EngagementSettingsPage() {
         <Tabs defaultValue="settings" className="space-y-6">
           <TabsList>
             <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="templates">Email Templates</TabsTrigger>
+            <TabsTrigger value="escalation">Escalation Rules</TabsTrigger>
             <TabsTrigger value="stats">Statistics</TabsTrigger>
             <TabsTrigger value="testing">Testing</TabsTrigger>
           </TabsList>
@@ -298,6 +346,219 @@ export default function EngagementSettingsPage() {
                 )}
               </Button>
             </div>
+          </TabsContent>
+
+          {/* Email Templates Tab */}
+          <TabsContent value="templates" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Daily Reminder Email Template
+                </CardTitle>
+                <CardDescription>
+                  Customize the email sent to inactive clients. Use variables like {{clientName}}, {{therapistName}}, {{daysSinceLastActivity}}, {{dashboardLink}}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Email Subject</Label>
+                  <Input
+                    value={settings.reminderEmailSubject}
+                    onChange={(e) => updateSetting("reminderEmailSubject", e.target.value)}
+                    placeholder="Enter email subject line"
+                  />
+                </div>
+                
+                <div>
+                  <Label>Email Content</Label>
+                  <Textarea
+                    value={settings.reminderEmailTemplate}
+                    onChange={(e) => updateSetting("reminderEmailTemplate", e.target.value)}
+                    placeholder="Write your email template here..."
+                    rows={8}
+                    className="font-mono text-sm"
+                  />
+                </div>
+
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">Available Variables:</h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm text-blue-800">
+                    <span>{{clientName}} - Client's name</span>
+                    <span>{{therapistName}} - Therapist's name</span>
+                    <span>{{daysSinceLastActivity}} - Days inactive</span>
+                    <span>{{dashboardLink}} - Login link</span>
+                    <span>{{loginLink}} - Direct login URL</span>
+                    <span>{{supportEmail}} - Support contact</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <Eye className="mr-2 h-4 w-4" />
+                    Preview Email
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Send className="mr-2 h-4 w-4" />
+                    Send Test Email
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Weekly Digest Email Template
+                </CardTitle>
+                <CardDescription>
+                  Weekly progress summary sent to clients. Additional variables: {{emotionsThisWeek}}, {{journalEntriesThisWeek}}, {{goalsWorkedOn}}, {{weeklyInsight}}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Email Subject</Label>
+                  <Input
+                    value={settings.weeklyDigestSubject}
+                    onChange={(e) => updateSetting("weeklyDigestSubject", e.target.value)}
+                    placeholder="Enter weekly digest subject"
+                  />
+                </div>
+                
+                <div>
+                  <Label>Email Content</Label>
+                  <Textarea
+                    value={settings.weeklyDigestTemplate}
+                    onChange={(e) => updateSetting("weeklyDigestTemplate", e.target.value)}
+                    placeholder="Write your weekly digest template here..."
+                    rows={8}
+                    className="font-mono text-sm"
+                  />
+                </div>
+
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-green-900 mb-2">Weekly Digest Variables:</h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm text-green-800">
+                    <span>{{emotionsThisWeek}} - Emotions tracked</span>
+                    <span>{{journalEntriesThisWeek}} - Journal entries</span>
+                    <span>{{thoughtRecordsThisWeek}} - Thought records</span>
+                    <span>{{goalsWorkedOn}} - Goals in progress</span>
+                    <span>{{weeklyInsight}} - AI-generated insight</span>
+                    <span>{{progressPercentage}} - Weekly progress</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <Eye className="mr-2 h-4 w-4" />
+                    Preview Digest
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Send className="mr-2 h-4 w-4" />
+                    Send Test Digest
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Escalation Rules Tab */}
+          <TabsContent value="escalation" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="h-5 w-5" />
+                  Escalation Reminder System
+                </CardTitle>
+                <CardDescription>
+                  Set up multiple reminder stages with increasing urgency for long-term inactive clients
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={settings.escalationEnabled}
+                    onCheckedChange={(checked) => updateSetting("escalationEnabled", checked)}
+                  />
+                  <Label>Enable escalation reminders</Label>
+                  <Badge variant={settings.escalationEnabled ? "default" : "secondary"}>
+                    {settings.escalationEnabled ? "Active" : "Disabled"}
+                  </Badge>
+                </div>
+
+                {settings.escalationEnabled && (
+                  <div className="space-y-4 border-l-4 border-orange-200 pl-4">
+                    <h4 className="font-medium">Escalation Timeline</h4>
+                    
+                    {settings.escalationDays.map((days, index) => (
+                      <Card key={index} className="bg-orange-50">
+                        <CardContent className="pt-4">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-2">
+                                <Label>After</Label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max="90"
+                                  value={days}
+                                  onChange={(e) => {
+                                    const newDays = [...settings.escalationDays];
+                                    newDays[index] = parseInt(e.target.value);
+                                    updateSetting("escalationDays", newDays);
+                                  }}
+                                  className="w-20"
+                                />
+                                <Label>days</Label>
+                              </div>
+                              <Badge variant="outline">Stage {index + 1}</Badge>
+                            </div>
+                            
+                            <div>
+                              <Label>Email Subject</Label>
+                              <Input
+                                value={`Escalation ${index + 1}: ${settings.escalationTemplates[index] || 'Custom message'}`}
+                                placeholder="Enter escalation email subject"
+                                className="mt-1"
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label>Email Template</Label>
+                              <Textarea
+                                value={`Hi {{clientName}},
+
+We've noticed you haven't been active on ResilienceHub for ${days} days. Your mental health journey is important to us.
+
+${index === 0 ? 'This is a gentle reminder to check in.' : 
+                  index === 1 ? 'We want to make sure you\'re doing okay.' : 
+                  'We\'re concerned about your wellbeing and would like to connect.'}
+
+Your therapist {{therapistName}} is here to support you.
+
+{{dashboardLink}}
+
+Please reach out if you need any assistance.
+
+Best regards,
+The ResilienceHub Team`}
+                                rows={6}
+                                className="font-mono text-sm"
+                              />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                    
+                    <Button variant="outline" size="sm">
+                      Add Escalation Stage
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-6">
