@@ -6109,6 +6109,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Admin engagement settings routes
+  app.get("/api/admin/engagement-settings", authenticate, isAdmin, async (req, res) => {
+    try {
+      // For now, return hardcoded settings - these could be stored in database later
+      const settings = {
+        reminderEnabled: true,
+        reminderDays: 3,
+        reminderTime: "09:00",
+        weeklyDigestEnabled: true,
+        weeklyDigestDay: 0, // Sunday
+        weeklyDigestTime: "08:00",
+        emailTemplate: ""
+      };
+      
+      res.status(200).json(settings);
+    } catch (error) {
+      console.error("Error fetching engagement settings:", error);
+      res.status(500).json({ message: "Failed to fetch engagement settings" });
+    }
+  });
+
+  app.post("/api/admin/engagement-settings", authenticate, isAdmin, async (req, res) => {
+    try {
+      const { reminderEnabled, reminderDays, reminderTime, weeklyDigestEnabled, weeklyDigestDay, weeklyDigestTime } = req.body;
+      
+      // Here you would save to database - for now we'll just return success
+      // In the future, store these in a settings table
+      
+      console.log("Updated engagement settings:", {
+        reminderEnabled,
+        reminderDays,
+        reminderTime,
+        weeklyDigestEnabled,
+        weeklyDigestDay,
+        weeklyDigestTime
+      });
+      
+      res.status(200).json({ message: "Settings updated successfully" });
+    } catch (error) {
+      console.error("Error saving engagement settings:", error);
+      res.status(500).json({ message: "Failed to save engagement settings" });
+    }
+  });
+
+  app.get("/api/admin/engagement-stats", authenticate, isAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      const clients = users.filter(user => user.role === "client");
+      
+      // Calculate inactive clients (no emotions in last 3 days)
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      
+      let activeClients = 0;
+      let inactiveClients = 0;
+      
+      for (const client of clients) {
+        const emotions = await storage.getEmotionRecordsByUser(client.id);
+        const hasRecentEmotion = emotions.some(emotion => 
+          new Date(emotion.createdAt) > threeDaysAgo
+        );
+        
+        if (hasRecentEmotion) {
+          activeClients++;
+        } else {
+          inactiveClients++;
+        }
+      }
+      
+      const stats = {
+        lastRunTime: null, // Would track this in database
+        totalEmailsSent: 0, // Would track this in database
+        totalNotificationsSent: 0, // Would track this in database
+        activeClients,
+        inactiveClients
+      };
+      
+      res.status(200).json(stats);
+    } catch (error) {
+      console.error("Error fetching engagement stats:", error);
+      res.status(500).json({ message: "Failed to fetch engagement stats" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // EMERGENCY FIX: WebSocket server disabled to fix notification data integrity

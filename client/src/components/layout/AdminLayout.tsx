@@ -8,7 +8,8 @@ import {
   BarChart2, 
   Book, 
   MessageSquare,
-  Brain
+  Brain,
+  Mail
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";

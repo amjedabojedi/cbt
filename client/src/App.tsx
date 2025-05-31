@@ -48,6 +48,7 @@ const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const UserManagement = lazy(() => import("@/pages/UserManagement"));
 const SubscriptionManagement = lazy(() => import("@/pages/SubscriptionManagement"));
 const ReframeAnalytics = lazy(() => import("@/pages/admin/ReframeAnalyticsPage"));
+const EngagementSettings = lazy(() => import("@/pages/admin/EngagementSettings"));
 const Analytics = lazy(() => import("@/pages/Analytics"));
 
 // Import the ProtectedRoute component
@@ -153,6 +154,11 @@ function Router() {
           <ProtectedRoute 
             path="/admin/reframe-analytics" 
             component={ReframeAnalytics} 
+            allowedRoles={["admin"]} 
+          />
+          <ProtectedRoute 
+            path="/admin/engagement-settings" 
+            component={EngagementSettings} 
             allowedRoles={["admin"]} 
           />
           
