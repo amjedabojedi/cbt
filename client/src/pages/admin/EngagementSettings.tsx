@@ -211,47 +211,11 @@ Best regards,
 
     if (templateType === 'reminder') {
       subject = settings.reminderEmailSubject || "Emotion Tracking Reminder";
-      body = settings.reminderEmailTemplate || `<p>Hi <strong>{{clientName}}</strong>,</p>
-
-<p>This is a friendly reminder to track your emotions today. Regular emotional tracking helps you understand patterns and improve your mental health journey.</p>
-
-<p>Your therapist <strong>{{therapistName}}</strong> is here to support you every step of the way.</p>
-
-<p>Please visit your dashboard: {{loginLink}}</p>
-
-<p>If you have any questions, feel free to reach out to us at <a href="mailto:{{supportEmail}}">{{supportEmail}}</a>.</p>
-
-<p>Best regards,<br>
-<strong>The ResilienceHub Team</strong></p>`;
+      body = settings.reminderEmailTemplate || "No template content yet. Please add your reminder email template.";
       typeLabel = "Emotion Tracking Reminder";
     } else {
       subject = settings.weeklyDigestSubject || "Your Weekly Progress Summary";
-      body = settings.weeklyDigestTemplate || `<p>Hi <strong>{{clientName}}</strong>,</p>
-
-<p>Here's your weekly progress summary:</p>
-
-<div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-<h3 style="color: #1e40af; margin-top: 0;">📊 This Week's Activity:</h3>
-<ul style="list-style: none; padding: 0;">
-<li style="margin: 8px 0;">• Emotions tracked: <strong>{{emotionsThisWeek}}</strong></li>
-<li style="margin: 8px 0;">• Journal entries: <strong>{{journalEntriesThisWeek}}</strong></li>
-<li style="margin: 8px 0;">• Thought records: <strong>{{thoughtRecordsThisWeek}}</strong></li>
-<li style="margin: 8px 0;">• Goals worked on: <strong>{{goalsWorkedOn}}</strong></li>
-</ul>
-</div>
-
-<p><strong>🎯 Progress: {{progressPercentage}}% completion</strong></p>
-
-<div style="background-color: #ecfdf5; padding: 15px; border-left: 4px solid #10b981; margin: 20px 0;">
-<p style="margin: 0;"><strong>💡 Weekly Insight:</strong> {{weeklyInsight}}</p>
-</div>
-
-<p>Keep up the great work! Your therapist <strong>{{therapistName}}</strong> is proud of your progress.</p>
-
-<p>Visit your dashboard: {{loginLink}}</p>
-
-<p>Best regards,<br>
-<strong>The ResilienceHub Team</strong></p>`;
+      body = settings.weeklyDigestTemplate || "No template content yet. Please add your weekly digest email template.";
       typeLabel = "Weekly Progress Digest";
     }
     
