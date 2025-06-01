@@ -6180,7 +6180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin engagement settings routes
   app.get("/api/admin/engagement-settings", authenticate, isAdmin, async (req, res) => {
     try {
-      // For now, return hardcoded settings - these could be stored in database later
+      // For now, return default settings with email templates - these could be stored in database later
       const settings = {
         reminderEnabled: true,
         reminderDays: 3,
@@ -6188,7 +6188,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         weeklyDigestEnabled: true,
         weeklyDigestDay: 0, // Sunday
         weeklyDigestTime: "08:00",
-        emailTemplate: ""
+        emailTemplate: "",
+        reminderEmailSubject: "",
+        reminderEmailTemplate: "",
+        weeklyDigestSubject: "",
+        weeklyDigestTemplate: "",
+        escalationEnabled: false,
+        escalationDays: [7, 14, 30],
+        escalationTemplates: []
       };
       
       res.status(200).json(settings);
@@ -6200,7 +6207,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/engagement-settings", authenticate, isAdmin, async (req, res) => {
     try {
-      const { reminderEnabled, reminderDays, reminderTime, weeklyDigestEnabled, weeklyDigestDay, weeklyDigestTime } = req.body;
+      const { 
+        reminderEnabled, 
+        reminderDays, 
+        reminderTime, 
+        weeklyDigestEnabled, 
+        weeklyDigestDay, 
+        weeklyDigestTime,
+        reminderEmailSubject,
+        reminderEmailTemplate,
+        weeklyDigestSubject,
+        weeklyDigestTemplate,
+        escalationEnabled,
+        escalationDays,
+        escalationTemplates
+      } = req.body;
       
       // Here you would save to database - for now we'll just return success
       // In the future, store these in a settings table
@@ -6211,7 +6232,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reminderTime,
         weeklyDigestEnabled,
         weeklyDigestDay,
-        weeklyDigestTime
+        weeklyDigestTime,
+        reminderEmailSubject,
+        reminderEmailTemplate,
+        weeklyDigestSubject,
+        weeklyDigestTemplate,
+        escalationEnabled,
+        escalationDays,
+        escalationTemplates
       });
       
       res.status(200).json({ message: "Settings updated successfully" });

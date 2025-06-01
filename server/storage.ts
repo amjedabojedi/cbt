@@ -22,6 +22,7 @@ import {
   systemLogs, type SystemLog, type InsertSystemLog,
   clientInvitations, type ClientInvitation, type InsertClientInvitation,
   aiRecommendations, type AiRecommendation, type InsertAiRecommendation,
+  engagementSettings, type EngagementSettings, type InsertEngagementSettings,
   reframePracticeResults,
   userGameProfile
 } from "@shared/schema";
@@ -205,6 +206,10 @@ export interface IStorage {
   getPendingAiRecommendationsByTherapist(therapistId: number): Promise<AiRecommendation[]>;
   updateAiRecommendationStatus(id: number, status: string, therapistNotes?: string): Promise<AiRecommendation>;
   deleteAiRecommendation(id: number): Promise<void>;
+  
+  // Engagement Settings
+  getEngagementSettings(): Promise<EngagementSettings | undefined>;
+  updateEngagementSettings(settings: Partial<InsertEngagementSettings>): Promise<EngagementSettings>;
 }
 
 export class DatabaseStorage implements IStorage {

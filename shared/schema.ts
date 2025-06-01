@@ -445,6 +445,34 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
+// Engagement settings table
+export const engagementSettings = pgTable("engagement_settings", {
+  id: serial("id").primaryKey(),
+  reminderEnabled: boolean("reminder_enabled").notNull().default(true),
+  reminderDays: integer("reminder_days").notNull().default(3),
+  reminderTime: text("reminder_time").notNull().default("09:00"),
+  weeklyDigestEnabled: boolean("weekly_digest_enabled").notNull().default(true),
+  weeklyDigestDay: integer("weekly_digest_day").notNull().default(0), // Sunday
+  weeklyDigestTime: text("weekly_digest_time").notNull().default("08:00"),
+  reminderEmailSubject: text("reminder_email_subject").notNull().default(""),
+  reminderEmailTemplate: text("reminder_email_template").notNull().default(""),
+  weeklyDigestSubject: text("weekly_digest_subject").notNull().default(""),
+  weeklyDigestTemplate: text("weekly_digest_template").notNull().default(""),
+  escalationEnabled: boolean("escalation_enabled").notNull().default(false),
+  escalationDays: jsonb("escalation_days").notNull().default([7, 14, 30]).$type<number[]>(),
+  escalationTemplates: jsonb("escalation_templates").notNull().default([]).$type<string[]>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertEngagementSettingsSchema = createInsertSchema(engagementSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type EngagementSettings = typeof engagementSettings.$inferSelect;
+export type InsertEngagementSettings = z.infer<typeof insertEngagementSettingsSchema>;
+
 // Notification preferences table
 export const notificationPreferences = pgTable("notification_preferences", {
   id: serial("id").primaryKey(),
