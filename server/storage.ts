@@ -1977,6 +1977,58 @@ export class DatabaseStorage implements IStorage {
       .delete(aiRecommendations)
       .where(eq(aiRecommendations.id, id));
   }
+
+  // Engagement Settings
+  async getEngagementSettings(): Promise<EngagementSettings | undefined> {
+    const [settings] = await db
+      .select()
+      .from(engagementSettings)
+      .limit(1);
+    
+    return settings || undefined;
+  }
+
+  async updateEngagementSettings(settingsData: Partial<InsertEngagementSettings>): Promise<EngagementSettings> {
+    // First try to get existing settings
+    const existing = await this.getEngagementSettings();
+    
+    if (existing) {
+      // Update existing record
+      const [updated] = await db
+        .update(engagementSettings)
+        .set({
+          ...settingsData,
+          updatedAt: new Date()
+        })
+        .where(eq(engagementSettings.id, existing.id))
+        .returning();
+      
+      return updated;
+    } else {
+      // Create new record
+      const [created] = await db
+        .insert(engagementSettings)
+        .values({
+          reminderEnabled: true,
+          reminderDays: 3,
+          reminderTime: "09:00",
+          weeklyDigestEnabled: true,
+          weeklyDigestDay: 0,
+          weeklyDigestTime: "08:00",
+          reminderEmailSubject: "",
+          reminderEmailTemplate: "",
+          weeklyDigestSubject: "",
+          weeklyDigestTemplate: "",
+          escalationEnabled: false,
+          escalationDays: [7, 14, 30],
+          escalationTemplates: [],
+          ...settingsData
+        })
+        .returning();
+      
+      return created;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

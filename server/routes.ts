@@ -6180,25 +6180,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin engagement settings routes
   app.get("/api/admin/engagement-settings", authenticate, isAdmin, async (req, res) => {
     try {
-      // For now, return default settings with email templates - these could be stored in database later
-      const settings = {
-        reminderEnabled: true,
-        reminderDays: 3,
-        reminderTime: "09:00",
-        weeklyDigestEnabled: true,
-        weeklyDigestDay: 0, // Sunday
-        weeklyDigestTime: "08:00",
-        emailTemplate: "",
-        reminderEmailSubject: "",
-        reminderEmailTemplate: "",
-        weeklyDigestSubject: "",
-        weeklyDigestTemplate: "",
-        escalationEnabled: false,
-        escalationDays: [7, 14, 30],
-        escalationTemplates: []
-      };
+      const settings = await storage.getEngagementSettings();
       
-      res.status(200).json(settings);
+      // If no settings exist, return defaults
+      if (!settings) {
+        const defaultSettings = {
+          reminderEnabled: true,
+          reminderDays: 3,
+          reminderTime: "09:00",
+          weeklyDigestEnabled: true,
+          weeklyDigestDay: 0, // Sunday
+          weeklyDigestTime: "08:00",
+          emailTemplate: "",
+          reminderEmailSubject: "",
+          reminderEmailTemplate: "",
+          weeklyDigestSubject: "",
+          weeklyDigestTemplate: "",
+          escalationEnabled: false,
+          escalationDays: [7, 14, 30],
+          escalationTemplates: []
+        };
+        res.status(200).json(defaultSettings);
+      } else {
+        res.status(200).json(settings);
+      }
     } catch (error) {
       console.error("Error fetching engagement settings:", error);
       res.status(500).json({ message: "Failed to fetch engagement settings" });
@@ -6223,10 +6228,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         escalationTemplates
       } = req.body;
       
-      // Here you would save to database - for now we'll just return success
-      // In the future, store these in a settings table
-      
-      console.log("Updated engagement settings:", {
+      // Save settings to database
+      const updatedSettings = await storage.updateEngagementSettings({
         reminderEnabled,
         reminderDays,
         reminderTime,
@@ -6242,7 +6245,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         escalationTemplates
       });
       
-      res.status(200).json({ message: "Settings updated successfully" });
+      console.log("Updated engagement settings:", updatedSettings);
+      
+      res.status(200).json({ message: "Settings updated successfully", settings: updatedSettings });
     } catch (error) {
       console.error("Error saving engagement settings:", error);
       res.status(500).json({ message: "Failed to save engagement settings" });
