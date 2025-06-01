@@ -506,10 +506,13 @@ Best regards,
                     <span>{"{{clientName}}"} - Client's name</span>
                     <span>{"{{therapistName}}"} - Therapist's name</span>
                     <span>{"{{daysSinceLastActivity}}"} - Days inactive</span>
-                    <span>{"{{dashboardLink}}"} - Login link</span>
-                    <span>{"{{loginLink}}"} - Direct login URL</span>
+                    <span>{"{{dashboardLink}}"} - Dashboard URL</span>
+                    <span>{"{{loginLink}}"} - Login page URL</span>
                     <span>{"{{supportEmail}}"} - Support contact</span>
                   </div>
+                  <p className="text-xs text-blue-700 mt-2">
+                    <strong>Note:</strong> Use HTML tags like &lt;p&gt;, &lt;br&gt;, &lt;strong&gt; for formatting. Links will be converted to buttons automatically.
+                  </p>
                 </div>
 
                 <div className="flex gap-2">
@@ -812,10 +815,10 @@ The ResilienceHub Team`}
                 </div>
                 <div className="prose prose-sm max-w-none">
                   <div 
-                    className="font-normal leading-relaxed bg-white p-4 rounded border"
+                    className="font-normal leading-relaxed bg-white p-4 rounded border email-preview"
                     style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
                     dangerouslySetInnerHTML={{ 
-                      __html: previewContent.body
+                      __html: previewContent.body.replace(/\n/g, '<br>')
                     }}
                   />
                 </div>
