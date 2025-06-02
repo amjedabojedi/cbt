@@ -4537,15 +4537,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT 
           sl.id,
           sl.action,
-          sl.performed_by as "performedBy",
-          sl.details,
+          sl.action_type as "actionType",
+          sl.level,
+          sl.message,
+          sl.user_id as "performedBy",
           sl.ip_address as "ipAddress",
-          sl.timestamp,
-          u.name as "performerName",
+          sl.user_agent as "userAgent",
+          sl.created_at as "timestamp",
+          u.username as "performerName",
           u.email as "performerEmail"
         FROM system_logs sl
-        LEFT JOIN users u ON sl.performed_by = u.id
-        ORDER BY sl.timestamp DESC
+        LEFT JOIN users u ON sl.user_id = u.id
+        ORDER BY sl.created_at DESC
         LIMIT 100
       `;
       

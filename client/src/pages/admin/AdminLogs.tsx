@@ -13,9 +13,12 @@ import { formatDistanceToNow } from "date-fns";
 interface SystemLog {
   id: number;
   action: string;
+  actionType: string;
+  level: string;
+  message: string;
   performedBy: number | null;
-  details: Record<string, any>;
   ipAddress: string | null;
+  userAgent: string | null;
   timestamp: string;
   performerName?: string;
   performerEmail?: string;
