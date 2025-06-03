@@ -144,7 +144,7 @@ function Router() {
             allowedRoles={["admin"]} 
           />
           <ProtectedRoute 
-            path="/users" 
+            path="/admin/users" 
             component={UserManagement} 
             allowedRoles={["admin"]} 
           />
