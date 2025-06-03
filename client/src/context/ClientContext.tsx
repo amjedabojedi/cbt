@@ -36,8 +36,15 @@ export function ClientProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
     
-    // Only attempt to fetch if user is a therapist or admin
-    if (user?.role === "therapist" || user?.role === "admin") {
+    // Skip viewing client fetch for admin users - they don't need viewing clients
+    if (user?.role === "admin") {
+      console.log("Admin user detected - skipping viewing client fetch");
+      setLoading(false);
+      return;
+    }
+    
+    // Only attempt to fetch if user is a therapist
+    if (user?.role === "therapist") {
       const fetchCurrentViewingClient = async () => {
         try {
           if (!isMounted) return;

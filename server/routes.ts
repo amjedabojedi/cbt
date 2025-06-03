@@ -2711,21 +2711,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Admin-specific viewing client endpoint (always returns null for admins)
+  app.get("/api/admin/viewing-client-status", authenticate, async (req, res) => {
+    console.log("Admin viewing client status requested");
+    return res.status(200).json({ viewingClient: null, success: true });
+  });
+
   // Fixed viewing client endpoint - handles all cases gracefully
-  app.get("/api/users/viewing-client-fixed", async (req, res) => {
+  app.get("/api/users/viewing-client-fixed", authenticate, async (req, res) => {
     // Always return 200 status with proper response structure
     const defaultResponse = { viewingClient: null, success: true };
     
     try {
-      console.log("viewing-client-fixed endpoint called");
-      
-      // Check if user is authenticated
-      if (!req.user || !req.user.id) {
-        console.log("No authenticated user, returning null");
-        return res.status(200).json(defaultResponse);
-      }
-      
-      console.log("User authenticated:", { userId: req.user.id, role: req.user.role });
+      console.log("viewing-client-fixed endpoint called for user:", req.user?.id, "role:", req.user?.role);
       
       // Admin users don't have viewing clients
       if (req.user.role === 'admin') {
