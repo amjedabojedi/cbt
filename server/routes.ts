@@ -56,6 +56,21 @@ import * as emotionMapping from "./services/emotionMapping";
 import { initializeWebSocketServer, sendNotificationToUser } from "./services/websocket";
 import { sendEmail, sendEmotionTrackingReminder, sendWeeklyProgressDigest, isEmailEnabled } from "./services/email";
 import { checkInactiveClients, sendInactivityReminders } from "./controllers/inactivityReminders";
+import { systemLogs } from "@shared/schema";
+
+// Function to create system logs for admin actions
+async function createSystemLog(action: string, performedBy: number | null, ipAddress: string | null, details: Record<string, any> = {}) {
+  try {
+    await db.insert(systemLogs).values({
+      action,
+      performedBy,
+      ipAddress,
+      details
+    });
+  } catch (error) {
+    console.error("Failed to create system log:", error);
+  }
+}
 
 // Simple implementation of functions previously in other services
 export async function sendProfessionalWelcomeEmail(email: string, name: string): Promise<boolean> {
@@ -4551,18 +4566,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT 
           sl.id,
           sl.action,
-          sl.action_type as "actionType",
-          sl.level,
-          sl.message,
-          sl.user_id as "performedBy",
+          sl.action as "actionType",
+          'info' as "level",
+          sl.action as "message",
+          sl.performed_by as "performedBy",
           sl.ip_address as "ipAddress",
-          sl.user_agent as "userAgent",
-          sl.created_at as "timestamp",
+          '' as "userAgent",
+          sl.timestamp,
           u.username as "performerName",
           u.email as "performerEmail"
         FROM system_logs sl
-        LEFT JOIN users u ON sl.user_id = u.id
-        ORDER BY sl.created_at DESC
+        LEFT JOIN users u ON sl.performed_by = u.id
+        ORDER BY sl.timestamp DESC
         LIMIT 100
       `;
       
