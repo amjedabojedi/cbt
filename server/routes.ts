@@ -59,14 +59,12 @@ import { checkInactiveClients, sendInactivityReminders } from "./controllers/ina
 import { systemLogs } from "@shared/schema";
 
 // Function to create system logs for admin actions
-async function createSystemLog(action: string, performedBy: number | null, ipAddress: string | null, details: Record<string, any> = {}) {
+async function createSystemLog(action: string, userId: number | null, ipAddress: string | null, userAgent: string | null = null, actionType: string = 'admin') {
   try {
-    await db.insert(systemLogs).values({
-      action,
-      performedBy,
-      ipAddress,
-      details
-    });
+    await pool.query(
+      'INSERT INTO system_logs (action, user_id, ip_address, user_agent, action_type, level, message, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())',
+      [action, userId, ipAddress, userAgent, actionType, 'info', action]
+    );
   } catch (error) {
     console.error("Failed to create system log:", error);
   }
@@ -2740,6 +2738,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("viewing-client-fixed endpoint called for user:", req.user?.id, "role:", req.user?.role);
       
+      // Create system log for therapist accessing viewing client
+      if (req.user.role === 'therapist') {
+        await createSystemLog(
+          'Therapist accessed viewing client',
+          req.user.id,
+          req.ip,
+          req.get('User-Agent'),
+          'therapist'
+        );
+      }
+      
       // Admin users don't have viewing clients
       if (req.user.role === 'admin') {
         console.log("Admin user - no viewing client needed");
@@ -4566,18 +4575,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT 
           sl.id,
           sl.action,
-          sl.action as "actionType",
-          'info' as "level",
-          sl.action as "message",
-          sl.performed_by as "performedBy",
+          sl.action_type as "actionType",
+          sl.level,
+          sl.message,
+          sl.user_id as "performedBy",
           sl.ip_address as "ipAddress",
-          '' as "userAgent",
-          sl.timestamp,
+          sl.user_agent as "userAgent",
+          sl.created_at as "timestamp",
           u.username as "performerName",
           u.email as "performerEmail"
         FROM system_logs sl
-        LEFT JOIN users u ON sl.performed_by = u.id
-        ORDER BY sl.timestamp DESC
+        LEFT JOIN users u ON sl.user_id = u.id
+        ORDER BY sl.created_at DESC
         LIMIT 100
       `;
       
