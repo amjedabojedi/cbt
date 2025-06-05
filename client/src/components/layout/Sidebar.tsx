@@ -30,7 +30,7 @@ export default function Sidebar() {
   // Admin navigation
   if (user?.role === "admin") {
     navItems = [
-      { href: "/admin", label: "Admin Dashboard", icon: <LayoutDashboard size={20} /> },
+      { href: "/admin", label: "Admin Dashboard", icon: <LayoutDashboard size={20} />, exact: true },
       { href: "/admin/users", label: "User Management", icon: <Users size={20} /> },
       { href: "/admin/engagement-settings", label: "Engagement Settings", icon: <Heart size={20} /> },
       { href: "/subscriptions", label: "Subscription Plans", icon: <Award size={20} /> },
@@ -115,7 +115,16 @@ export default function Sidebar() {
                     href={item.href}
                     className={cn(
                       "flex items-center px-2 py-1.5 rounded-md transition-colors text-sm",
-                      location === item.href 
+                      (() => {
+                        // Check if current route matches this nav item
+                        if (item.exact) {
+                          // Exact match for items like /admin dashboard
+                          return location === item.href;
+                        } else {
+                          // Prefix match for nested routes like /admin/users, /admin/logs, etc.
+                          return location === item.href || location.startsWith(item.href + '/');
+                        }
+                      })()
                         ? "text-primary font-medium bg-primary/10" 
                         : "text-neutral-600 hover:text-primary hover:bg-primary/5"
                     )}
