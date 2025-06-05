@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AdminLayout } from "@/components/layout/AdminLayout";
+import AppLayout from "@/components/layout/AppLayout";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, FileText, User, Trash2, AlertTriangle } from "lucide-react";
@@ -122,16 +122,16 @@ export default function AdminLogs() {
 
   if (loading) {
     return (
-      <AdminLayout>
+      <AppLayout title="System Logs">
         <div className="flex items-center justify-center min-h-[500px]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </AdminLayout>
+      </AppLayout>
     );
   }
 
   return (
-    <AdminLayout>
+    <AppLayout title="System Logs">
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -236,6 +236,6 @@ export default function AdminLogs() {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </AppLayout>
   );
 }

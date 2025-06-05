@@ -16,7 +16,8 @@ import {
   LogOut,
   Award,
   BookMarked,
-  Lightbulb
+  Lightbulb,
+  MessageCircle
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -33,6 +34,8 @@ export default function Sidebar() {
       { href: "/admin", label: "Admin Dashboard", icon: <LayoutDashboard size={20} />, exact: true },
       { href: "/admin/users", label: "User Management", icon: <Users size={20} /> },
       { href: "/admin/engagement-settings", label: "Engagement Settings", icon: <Heart size={20} /> },
+      { href: "/admin/logs", label: "System Logs", icon: <BookMarked size={20} /> },
+      { href: "/admin/notifications", label: "Notifications", icon: <MessageCircle size={20} /> },
       { href: "/subscriptions", label: "Subscription Plans", icon: <Award size={20} /> },
       { href: "/emotion-mapping", label: "Emotion Mapping", icon: <Heart size={20} /> },
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
