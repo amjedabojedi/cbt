@@ -268,14 +268,6 @@ export default function NotificationBell() {
                 Mark all read
               </Button>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={createTestNotification}
-              className="text-xs"
-            >
-              Test
-            </Button>
           </div>
         </div>
         
