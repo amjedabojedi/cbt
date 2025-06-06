@@ -216,27 +216,7 @@ export default function NotificationBell() {
     }
   }
 
-  async function createTestNotification() {
-    try {
-      const response = await apiRequest("POST", "/api/notifications/test");
-      if (response.ok) {
-        await fetchNotifications();
-        await fetchUnreadCount();
-        
-        toast({
-          title: "Success",
-          description: "Test notification created",
-        });
-      }
-    } catch (error) {
-      console.error("Error creating test notification:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create test notification",
-        variant: "destructive",
-      });
-    }
-  }
+
 
   function formatDate(dateString: string) {
     const date = new Date(dateString);
