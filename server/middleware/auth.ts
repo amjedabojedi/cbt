@@ -6,9 +6,9 @@ import { User } from '@shared/schema';
 // This ensures consistent cookie handling across the application
 import { getSessionCookieOptions } from '../routes';
 
-// PERFORMANCE FIX: Simple session cache to avoid repeated database lookups
-const sessionCache = new Map<string, { session: any; user: User; expires: number }>();
-const CACHE_DURATION = 30000; // 30 seconds cache
+// Import optimized session cache
+import { sessionCache } from './sessionCache';
+const CACHE_DURATION = 300000; // 5 minutes cache
 
 // Clean up expired cache entries periodically
 setInterval(() => {
@@ -84,11 +84,15 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
   
   try {
     // PERFORMANCE FIX: Check cache first to avoid repeated database calls
-    const cached = sessionCache.get(sessionId);
-    if (cached && Date.now() < cached.expires) {
-      // Use cached session and user data
-      req.user = cached.user;
-      req.session = cached.session;
+    const cachedUser = sessionCache.get(sessionId);
+    if (cachedUser) {
+      // Use cached user data
+      req.user = cachedUser;
+      req.session = {
+        id: sessionId,
+        userId: cachedUser.id,
+        expiresAt: new Date(Date.now() + CACHE_DURATION)
+      };
       return next();
     }
 

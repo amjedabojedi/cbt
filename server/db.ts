@@ -18,14 +18,15 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Create connection pool with more resilient settings
+// Create connection pool with optimized settings
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 1, // Use just one connection to prevent connection conflicts
-  idleTimeoutMillis: 30000, // how long a client is allowed to remain idle before being closed
-  connectionTimeoutMillis: 30000, // even longer timeout
-  maxUses: 1000, // close pool connections after fewer uses to prevent stale connections
-  allowExitOnIdle: true, // allow the pool to exit when all clients have finished
+  max: 10, // Increase pool size for better concurrency
+  min: 2, // Keep minimum connections alive
+  idleTimeoutMillis: 60000, // Longer idle timeout
+  connectionTimeoutMillis: 10000, // Faster connection timeout
+  maxUses: 7500, // More uses before recycling
+  allowExitOnIdle: false, // Keep pool alive
 });
 
 // Add retry mechanism for database operations
