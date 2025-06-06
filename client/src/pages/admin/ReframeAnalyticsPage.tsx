@@ -110,7 +110,7 @@ export default function ReframeAnalyticsPage() {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
   return (
-    <AdminLayout>
+    <AppLayout title="Reframe Analytics">
       <div className="p-6">
         <h1 className="text-3xl font-bold mb-6">Reframe Coach Analytics</h1>
         
@@ -282,6 +282,6 @@ export default function ReframeAnalyticsPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AdminLayout>
+    </AppLayout>
   );
 }
