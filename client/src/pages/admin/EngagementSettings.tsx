@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AdminLayout } from "@/components/layout/AdminLayout";
+import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -255,16 +255,16 @@ Best regards,
 
   if (loading) {
     return (
-      <AdminLayout>
+      <AppLayout title="Engagement Settings">
         <div className="flex items-center justify-center min-h-[500px]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </AdminLayout>
+      </AppLayout>
     );
   }
 
   return (
-    <AdminLayout>
+    <AppLayout title="Engagement Settings">
       <div className="container mx-auto px-4 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -798,6 +798,6 @@ The ResilienceHub Team`}
           </div>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </AppLayout>
   );
 }

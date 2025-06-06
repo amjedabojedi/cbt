@@ -2,7 +2,7 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AdminLayout } from "@/components/layout/AdminLayout";
+import AppLayout from "@/components/layout/AppLayout";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Loader2, Activity, BarChart3, Clock } from "lucide-react";
 import { format } from "date-fns";
@@ -47,17 +47,17 @@ export default function ReframeAnalyticsPage() {
 
   if (isLoading) {
     return (
-      <AdminLayout>
+      <AppLayout title="Reframe Analytics">
         <div className="flex items-center justify-center min-h-screen">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
-      </AdminLayout>
+      </AppLayout>
     );
   }
 
   if (error) {
     return (
-      <AdminLayout>
+      <AppLayout title="Reframe Analytics">
         <div className="p-6">
           <Card>
             <CardHeader>
@@ -71,7 +71,7 @@ export default function ReframeAnalyticsPage() {
             </CardContent>
           </Card>
         </div>
-      </AdminLayout>
+      </AppLayout>
     );
   }
 
