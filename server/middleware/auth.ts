@@ -6,19 +6,21 @@ import { User } from '@shared/schema';
 // This ensures consistent cookie handling across the application
 import { getSessionCookieOptions } from '../routes';
 
-// Import optimized session cache
-import { sessionCache } from './sessionCache';
-const CACHE_DURATION = 300000; // 5 minutes cache
+// Simple in-memory cache for session lookups (fixed implementation)
+const sessionLookupCache = new Map<string, { user: User; timestamp: number }>();
+const CACHE_TTL = 60000; // 1 minute cache
 
-// Clean up expired cache entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of sessionCache.entries()) {
-    if (now > value.expires) {
-      sessionCache.delete(key);
-    }
-  }
-}, 60000); // Clean every minute
+// Clean up expired cache entries periodically - disabled to prevent startup crash
+// setInterval(() => {
+//   const now = Date.now();
+//   const keysToDelete: string[] = [];
+//   sessionLookupCache.forEach((value, key) => {
+//     if (now - value.timestamp > CACHE_TTL) {
+//       keysToDelete.push(key);
+//     }
+//   });
+//   keysToDelete.forEach(key => sessionLookupCache.delete(key));
+// }, 30000);
 
 // Extend Express Request type to include user information
 declare global {
@@ -84,14 +86,14 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
   
   try {
     // PERFORMANCE FIX: Check cache first to avoid repeated database calls
-    const cachedUser = sessionCache.get(sessionId);
-    if (cachedUser) {
+    const cached = sessionLookupCache.get(sessionId);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       // Use cached user data
-      req.user = cachedUser;
+      req.user = cached.user;
       req.session = {
         id: sessionId,
-        userId: cachedUser.id,
-        expiresAt: new Date(Date.now() + CACHE_DURATION)
+        userId: cached.user.id,
+        expiresAt: new Date(Date.now() + CACHE_TTL)
       };
       return next();
     }
@@ -133,12 +135,8 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     
     console.log("Authentication successful for user:", user.id, user.username);
     
-    // PERFORMANCE FIX: Cache the session and user data
-    sessionCache.set(sessionId, {
-      session,
-      user,
-      expires: Date.now() + CACHE_DURATION
-    });
+    // PERFORMANCE FIX: Cache the user data
+    sessionLookupCache.set(sessionId, { user, timestamp: Date.now() });
     
     // Attach user and session to the request
     req.user = user;

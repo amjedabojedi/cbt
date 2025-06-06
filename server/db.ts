@@ -8,8 +8,7 @@ neonConfig.webSocketConstructor = ws;
 // Adding additional options for better reliability
 neonConfig.useSecureWebSocket = true;
 neonConfig.pipelineConnect = "password";
-// Set longer read timeout
-neonConfig.readTimeoutMillis = 60000;
+// Set connection options for reliability
 
 // Ensure DATABASE_URL is available
 if (!process.env.DATABASE_URL) {
