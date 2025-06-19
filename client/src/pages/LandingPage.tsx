@@ -126,6 +126,33 @@ export default function LandingPage() {
         )}
       </header>
 
+      {/* Video Demo Section */}
+      <section className="container mx-auto px-4 py-16 bg-white">
+        <h2 className="text-3xl font-bold text-center mb-8">See ResilienceHub™ in Action</h2>
+        <p className="text-lg text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
+          Watch this demonstration to see how ResilienceHub™ supports mental health professionals and their clients through evidence-based therapeutic tools.
+        </p>
+        
+        <div className="max-w-5xl mx-auto">
+          <div className="relative bg-gray-100 rounded-lg overflow-hidden shadow-lg" style={{ paddingBottom: '56.25%', height: 0 }}>
+            <iframe 
+              src="https://1drv.ms/v/c/fe35fbb650bb71d8/IQQheJwETdNGSYPR6cIBlA_DAVHeMN0kSiv0wWGUeHB8m4Q" 
+              className="absolute top-0 left-0 w-full h-full"
+              frameBorder="0" 
+              scrolling="no" 
+              allowFullScreen
+              title="ResilienceHub Platform Demo"
+            />
+          </div>
+          
+          <div className="mt-6 text-center">
+            <p className="text-sm text-neutral-600">
+              This video demonstrates the platform's core features including emotion tracking, thought records, journaling, and therapeutic progress monitoring.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">Tools for Emotion and Behavior Tracking</h2>
