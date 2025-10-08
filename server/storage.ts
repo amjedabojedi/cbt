@@ -63,7 +63,7 @@ export interface IStorage {
   getAllEmotionRecords(): Promise<EmotionRecord[]>;
   getAllThoughtRecords(): Promise<ThoughtRecord[]>;
   getAllGoals(): Promise<Goal[]>;
-  getAllResources(): Promise<Resource[]>;
+  
   getAllResourceAssignments(): Promise<ResourceAssignment[]>;
   
   // Subscription plans management
@@ -767,12 +767,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(goals.createdAt));
   }
   
-  async getAllResources(): Promise<Resource[]> {
-    return db
-      .select()
-      .from(resources)
-      .orderBy(resources.title);
-  }
+  
   
   async getAllResourceAssignments(): Promise<ResourceAssignment[]> {
     return db
