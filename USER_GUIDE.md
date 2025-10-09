@@ -1,4 +1,4 @@
-# ResilienceHub - User Guide
+# ResilienceHub - User Guide for auto deploy
 
 ## Application Overview
 
