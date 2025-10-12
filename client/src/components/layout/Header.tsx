@@ -1,14 +1,7 @@
 import { useState } from "react";
-import { Globe, Moon, Sun } from "lucide-react";
+import { Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import RoleIndicator from "./RoleIndicator";
 import { useClientContext } from "@/context/ClientContext";
 import NotificationBell from "@/components/ui/notification-bell";
@@ -19,7 +12,6 @@ interface HeaderProps {
 }
 
 export default function Header({ title }: HeaderProps) {
-  const { theme, setTheme } = useTheme();
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const { setViewingClient, viewingClientName } = useClientContext();
 
@@ -63,33 +55,6 @@ export default function Header({ title }: HeaderProps) {
               <Globe size={20} />
             </Button>
           </div>
-
-          {/* Theme Toggle */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-neutral-500 hover:text-primary focus:outline-none"
-              >
-                {theme === "dark" ? <Moon size={20} /> : <Sun size={20} />}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setTheme("light")}>
-                <Sun className="mr-2 h-4 w-4" />
-                <span>Light</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("dark")}>
-                <Moon className="mr-2 h-4 w-4" />
-                <span>Dark</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("system")}>
-                <span className="mr-2 h-4 w-4">💻</span>
-                <span>System</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
 

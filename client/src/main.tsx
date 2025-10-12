@@ -6,7 +6,7 @@ import "./index.css";
 import { ThemeProvider } from "next-themes";
 
 createRoot(document.getElementById("root")!).render(
-  <ThemeProvider attribute="class">
+  <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light">
     <App />
   </ThemeProvider>
 );

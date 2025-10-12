@@ -3,7 +3,6 @@ import { useAuth } from "@/lib/auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useTheme } from "next-themes";
 import AppLayout from "@/components/layout/AppLayout";
 import { useToast } from "@/hooks/use-toast";
 
@@ -42,7 +41,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Bell, Moon, Sun, Globe, ShieldAlert, LogOut } from "lucide-react";
+import { Bell, Globe, ShieldAlert, LogOut } from "lucide-react";
 
 // Define schema for profile form
 const profileFormSchema = z.object({
@@ -75,7 +74,6 @@ type NotificationFormValues = z.infer<typeof notificationFormSchema>;
 
 export default function Settings() {
   const { user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const [language, setLanguage] = useState("en");
   
@@ -439,50 +437,10 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle>Appearance</CardTitle>
                 <CardDescription>
-                  Customize the appearance and language settings
+                  Customize the language settings
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Theme</h3>
-                  <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <p className="text-base font-medium">Dark Mode</p>
-                      <p className="text-sm text-neutral-500">
-                        Switch between light and dark mode
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setTheme("light")}
-                        className={theme === "light" ? "border-primary bg-primary/10" : ""}
-                      >
-                        <Sun className="h-5 w-5" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setTheme("dark")}
-                        className={theme === "dark" ? "border-primary bg-primary/10" : ""}
-                      >
-                        <Moon className="h-5 w-5" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setTheme("system")}
-                        className={theme === "system" ? "border-primary bg-primary/10" : ""}
-                      >
-                        <span className="text-sm">OS</span>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                
-                <Separator />
-                
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Language</h3>
                   <div className="flex flex-row items-center justify-between rounded-lg border p-4">
