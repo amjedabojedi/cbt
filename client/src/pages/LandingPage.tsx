@@ -146,12 +146,6 @@ export default function LandingPage() {
               title="ResilienceHub Platform Demo"
             />
           </div>
-          
-          <div className="mt-6 text-center">
-            <p className="text-sm text-neutral-600">
-              This video demonstrates the platform's core features including emotion tracking, thought records, journaling, and therapeutic progress monitoring.
-            </p>
-          </div>
         </div>
       </section>
 
