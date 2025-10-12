@@ -136,11 +136,13 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="relative bg-gray-100 rounded-lg overflow-hidden shadow-lg" style={{ paddingBottom: '56.25%', height: 0 }}>
             <iframe 
-              src="https://1drv.ms/v/c/fe35fbb650bb71d8/IQQheJwETdNGSYPR6cIBlA_DAVHeMN0kSiv0wWGUeHB8m4Q" 
-              className="absolute top-0 left-0 w-full h-full"
+              className="sproutvideo-player absolute top-0 left-0 w-full h-full" 
+              src="https://videos.sproutvideo.com/embed/8c9bd9bf131aecc506/8f9a044478c2937a" 
+              width="640" 
+              height="360" 
               frameBorder="0" 
-              scrolling="no" 
-              allowFullScreen
+              allowFullScreen 
+              referrerPolicy="no-referrer-when-downgrade" 
               title="ResilienceHub Platform Demo"
             />
           </div>
