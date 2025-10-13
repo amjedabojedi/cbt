@@ -57,6 +57,7 @@ const Analytics = lazy(() => import("@/pages/Analytics"));
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { MobileRedirector } from "@/components/auth/MobileRedirector";
 import { useAuth } from "@/lib/auth";
+import PostHogPageTracker from "@/components/PostHogPageTracker";
 
 function LoadingFallback() {
   return (
@@ -80,6 +81,7 @@ const RoleDashboard = () => {
 function Router() {
   return (
     <ErrorBoundary name="Main Router">
+      <PostHogPageTracker />
       <Suspense fallback={<LoadingFallback />}>
         <Switch>
           {/* Public routes */}
