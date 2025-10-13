@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 import { useLocation } from "wouter";
 import type { User } from "@shared/schema";
 import { apiRequest } from "./queryClient";
+import posthog from "posthog-js";
 
 // Define the auth context type
 interface AuthContextType {
@@ -126,6 +127,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(userData);
           setError(null);
           console.log("User data set in state:", userData.username);
+          
+          // Identify user in PostHog
+          if (posthog && userData.id) {
+            posthog.identify(userData.id.toString(), {
+              email: userData.email,
+              username: userData.username,
+              name: userData.name,
+              role: userData.role
+            });
+          }
         }
       } catch (err) {
         console.error("Auth check error:", err);
@@ -201,6 +212,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log("Login successful for user:", userData.username);
       
+      // Identify user in PostHog
+      if (posthog && userData.id) {
+        posthog.identify(userData.id.toString(), {
+          email: userData.email,
+          username: userData.username,
+          name: userData.name,
+          role: userData.role
+        });
+        posthog.capture("user_login", {
+          method: isMobileLogin ? "mobile" : "web"
+        });
+      }
+      
       // Store login info in sessionStorage
       window.sessionStorage.setItem('auth-method', 'standard');
       window.sessionStorage.setItem('last-auth-check', new Date().toISOString());
@@ -245,6 +269,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await apiRequest("POST", "/api/auth/register", data);
       const userData = await response.json();
       setUser(userData as User);
+      
+      // Identify user in PostHog
+      if (posthog && userData.id) {
+        posthog.identify(userData.id.toString(), {
+          email: userData.email,
+          username: userData.username,
+          name: userData.name,
+          role: userData.role
+        });
+        posthog.capture("user_registered", {
+          role: userData.role,
+          isInvitation: data.isInvitation || false
+        });
+      }
+      
       navigate("/dashboard");
       return userData as User; // Return the user data for additional processing
     } catch (err) {
@@ -276,6 +315,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('auth_timestamp');
       } catch (e) {
         console.warn("Could not clear localStorage during logout:", e);
+      }
+      
+      // Reset PostHog user
+      if (posthog) {
+        posthog.reset();
       }
       
       setUser(null);
