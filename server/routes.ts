@@ -3889,6 +3889,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get all milestones for all of a user's goals
+  app.get("/api/users/:userId/goals/milestones", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Determine which user's goals/milestones to fetch
+      let targetUserId = userId;
+      if (req.user.role === 'therapist' && req.user.currentViewingClientId) {
+        console.log(`Therapist ${req.user.id} is viewing client ${req.user.currentViewingClientId}'s milestones`);
+        targetUserId = req.user.currentViewingClientId;
+      }
+      
+      // Get all goals for the user
+      const goals = await storage.getGoalsByUser(targetUserId);
+      
+      // Get milestones for each goal
+      const allMilestones = [];
+      for (const goal of goals) {
+        const milestones = await storage.getGoalMilestonesByGoal(goal.id);
+        allMilestones.push(...milestones);
+      }
+      
+      res.status(200).json(allMilestones);
+    } catch (error) {
+      console.error("Get all milestones error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   app.patch("/api/goals/:id/status", authenticate, async (req, res) => {
     try {
       const { status, therapistComments } = req.body;

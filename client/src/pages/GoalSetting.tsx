@@ -54,7 +54,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Calendar, CheckCircle, Clock, Flag, HelpCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { PlusCircle, Calendar, CheckCircle, Clock, Flag, HelpCircle, Target, TrendingUp } from "lucide-react";
 
 // Schema for goal creation
 const goalSchema = z.object({
@@ -95,11 +96,45 @@ export default function GoalSetting() {
     enabled: !!activeUserId,
   });
   
+  // Fetch all milestones for all goals to calculate progress
+  const { data: allMilestones = [] } = useQuery<any[]>({
+    queryKey: [`${apiPath}/goals/milestones`],
+    enabled: !!activeUserId && goals.length > 0,
+  });
+  
   // Fetch milestones for selected goal
   const { data: milestones = [], isLoading: milestonesLoading } = useQuery<any[]>({
     queryKey: selectedGoal ? [`/api/goals/${selectedGoal.id}/milestones`] : [],
     enabled: !!selectedGoal,
   });
+  
+  // Calculate milestone progress for a goal
+  const getMilestoneProgress = (goalId: number) => {
+    const goalMilestones = allMilestones.filter((m: any) => m.goalId === goalId);
+    if (goalMilestones.length === 0) return { completed: 0, total: 0, percentage: 0 };
+    
+    const completed = goalMilestones.filter((m: any) => m.isCompleted).length;
+    const total = goalMilestones.length;
+    const percentage = Math.round((completed / total) * 100);
+    
+    return { completed, total, percentage };
+  };
+  
+  // Get progress color based on percentage
+  const getProgressColor = (percentage: number) => {
+    if (percentage === 0) return "bg-gray-300";
+    if (percentage < 30) return "bg-red-500";
+    if (percentage < 70) return "bg-yellow-500";
+    return "bg-green-500";
+  };
+  
+  // Calculate overall stats
+  const overallStats = {
+    totalGoals: goals.length,
+    completedGoals: goals.filter((g: any) => g.status === 'completed').length,
+    inProgressGoals: goals.filter((g: any) => g.status === 'in_progress' || g.status === 'approved').length,
+    pendingGoals: goals.filter((g: any) => g.status === 'pending').length,
+  };
   
   // Goal form - moved up to avoid reference errors
   const goalForm = useForm<GoalFormValues>({
@@ -272,18 +307,40 @@ export default function GoalSetting() {
     createMilestoneMutation.mutate(data);
   };
   
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, size: 'sm' | 'lg' = 'sm') => {
+    const sizeClasses = size === 'lg' ? 'px-3 py-1.5 text-sm' : 'px-2 py-0.5 text-xs';
+    
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Pending</Badge>;
+        return (
+          <Badge variant="outline" className={`bg-yellow-100 text-yellow-800 hover:bg-yellow-100 ${sizeClasses}`}>
+            <Clock className="h-3 w-3 mr-1" />
+            Pending
+          </Badge>
+        );
       case 'in_progress':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">In Progress</Badge>;
+        return (
+          <Badge variant="outline" className={`bg-blue-100 text-blue-800 hover:bg-blue-100 ${sizeClasses}`}>
+            <TrendingUp className="h-3 w-3 mr-1" />
+            In Progress
+          </Badge>
+        );
       case 'approved':
-        return <Badge variant="outline" className="bg-purple-100 text-purple-800 hover:bg-purple-100">Approved</Badge>;
+        return (
+          <Badge variant="outline" className={`bg-purple-100 text-purple-800 hover:bg-purple-100 ${sizeClasses}`}>
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Approved
+          </Badge>
+        );
       case 'completed':
-        return <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">Completed</Badge>;
+        return (
+          <Badge variant="outline" className={`bg-green-100 text-green-800 hover:bg-green-100 ${sizeClasses}`}>
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Completed
+          </Badge>
+        );
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline" className={sizeClasses}>{status}</Badge>;
     }
   };
   
@@ -304,7 +361,7 @@ export default function GoalSetting() {
           {user?.role === 'client' && (
             <Dialog open={isCreatingGoal} onOpenChange={setIsCreatingGoal}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-1">
+                <Button size="sm" className="gap-1" data-testid="button-new-goal">
                   <PlusCircle className="h-4 w-4" />
                   New Goal
                 </Button>
@@ -562,6 +619,38 @@ export default function GoalSetting() {
           )}
         </div>
         
+        {/* Overall Progress Summary */}
+        {!isLoading && goals.length > 0 && (
+          <Card className="mb-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Overall Progress</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-3 bg-white/50 rounded-lg" data-testid="stat-total-goals">
+                  <div className="text-2xl font-bold text-primary">{overallStats.totalGoals}</div>
+                  <div className="text-sm text-muted-foreground">Total Goals</div>
+                </div>
+                <div className="text-center p-3 bg-white/50 rounded-lg" data-testid="stat-completed-goals">
+                  <div className="text-2xl font-bold text-green-600">{overallStats.completedGoals}</div>
+                  <div className="text-sm text-muted-foreground">Completed</div>
+                </div>
+                <div className="text-center p-3 bg-white/50 rounded-lg" data-testid="stat-in-progress-goals">
+                  <div className="text-2xl font-bold text-blue-600">{overallStats.inProgressGoals}</div>
+                  <div className="text-sm text-muted-foreground">In Progress</div>
+                </div>
+                <div className="text-center p-3 bg-white/50 rounded-lg" data-testid="stat-pending-goals">
+                  <div className="text-2xl font-bold text-yellow-600">{overallStats.pendingGoals}</div>
+                  <div className="text-sm text-muted-foreground">Pending</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
         <Tabs defaultValue="goals" className="w-full">
           <TabsList>
             <TabsTrigger value="goals">My Goals</TabsTrigger>
@@ -601,43 +690,66 @@ export default function GoalSetting() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {goals.map((goal) => (
-                  <Card key={goal.id} className="overflow-hidden">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="text-lg font-bold">{goal.title}</CardTitle>
-                        <div>{getStatusBadge(goal.status)}</div>
-                      </div>
-                      {goal.deadline && (
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          Target: {format(parseISO(goal.deadline), "MMM d, yyyy")}
-                        </div>
-                      )}
-                    </CardHeader>
-                    
-                    <CardContent className="pb-3">
-                      <div className="space-y-2">
-                        <div>
-                          <h4 className="text-sm font-medium text-primary">Specific</h4>
-                          <p className="text-sm text-muted-foreground">{goal.specific}</p>
+                {goals.map((goal) => {
+                  const progress = getMilestoneProgress(goal.id);
+                  const progressColor = getProgressColor(progress.percentage);
+                  
+                  return (
+                    <Card key={goal.id} className="overflow-hidden" data-testid={`goal-card-${goal.id}`}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between mb-2">
+                          <CardTitle className="text-lg font-bold">{goal.title}</CardTitle>
+                          <div>{getStatusBadge(goal.status, 'lg')}</div>
                         </div>
                         
-                        <div>
-                          <h4 className="text-sm font-medium text-primary">Measurable</h4>
-                          <p className="text-sm text-muted-foreground">{goal.measurable}</p>
-                        </div>
+                        {/* Milestone Progress */}
+                        {progress.total > 0 && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">Milestone Progress</span>
+                              <span className="font-semibold" data-testid={`goal-progress-${goal.id}`}>
+                                {progress.completed}/{progress.total} completed ({progress.percentage}%)
+                              </span>
+                            </div>
+                            <Progress 
+                              value={progress.percentage} 
+                              className="h-2"
+                              data-testid={`progress-bar-${goal.id}`}
+                            />
+                          </div>
+                        )}
                         
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="mt-1 h-auto p-0 text-primary hover:text-primary/80 hover:bg-transparent"
-                          onClick={() => setSelectedGoal(goal)}
-                        >
-                          View Details & Milestones
-                        </Button>
-                      </div>
-                    </CardContent>
+                        {goal.deadline && (
+                          <div className="flex items-center text-sm text-muted-foreground mt-2">
+                            <Calendar className="h-4 w-4 mr-1" />
+                            Target: {format(parseISO(goal.deadline), "MMM d, yyyy")}
+                          </div>
+                        )}
+                      </CardHeader>
+                      
+                      <CardContent className="pb-3">
+                        <div className="space-y-2">
+                          <div>
+                            <h4 className="text-sm font-medium text-primary">Specific</h4>
+                            <p className="text-sm text-muted-foreground line-clamp-2">{goal.specific}</p>
+                          </div>
+                          
+                          <div>
+                            <h4 className="text-sm font-medium text-primary">Measurable</h4>
+                            <p className="text-sm text-muted-foreground line-clamp-2">{goal.measurable}</p>
+                          </div>
+                          
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="mt-1 h-auto p-0 text-primary hover:text-primary/80 hover:bg-transparent"
+                            onClick={() => setSelectedGoal(goal)}
+                            data-testid={`button-view-details-${goal.id}`}
+                          >
+                            View Details & Milestones
+                          </Button>
+                        </div>
+                      </CardContent>
                     
                     {user?.role === 'therapist' && (
                       <CardFooter className="flex flex-col items-stretch pt-1 pb-3">
@@ -708,8 +820,9 @@ export default function GoalSetting() {
                         </div>
                       </CardFooter>
                     )}
-                  </Card>
-                ))}
+                    </Card>
+                  );
+                })}
               </div>
             )}
             
