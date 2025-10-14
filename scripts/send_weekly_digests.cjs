@@ -2,7 +2,7 @@
  * Send weekly progress digest emails to all users
  * 
  * This script is designed to be run by a cron job, e.g.:
- * 0 8 * * 1 /path/to/node /path/to/send_weekly_digests.js
+ * 0 8 * * 1 /path/to/node /path/to/send_weekly_digests.cjs
  * (This would run every Monday at 8:00 AM)
  */
 
@@ -110,8 +110,8 @@ async function getUserWeeklySummary(userId) {
       thoughtRecords: 0,
       goalsProgress: 'Error getting data',
       mostTrackedEmotion: null,
-      startDate: formatDate(oneWeekAgo),
-      endDate: formatDate(now)
+      startDate: null,
+      endDate: null
     };
   }
 }
@@ -332,3 +332,5 @@ module.exports = {
   createDigestNotification,
   processWeeklyDigests
 };
+
+
