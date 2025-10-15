@@ -4195,6 +4195,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Admin endpoint to recalculate all goal statuses
+  app.post("/api/admin/recalculate-goal-statuses", authenticate, async (req, res) => {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+      
+      // Get all goals with milestones
+      const allGoals = await db.select().from(goals);
+      let updatedCount = 0;
+      
+      for (const goal of allGoals) {
+        await updateGoalStatusBasedOnMilestones(goal.id);
+        updatedCount++;
+      }
+      
+      res.status(200).json({ 
+        message: `Successfully recalculated status for ${updatedCount} goals`,
+        updatedCount 
+      });
+    } catch (error) {
+      console.error("Recalculate goal statuses error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Actions routes - only clients can create actions
   app.post("/api/users/:userId/actions", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
     try {
