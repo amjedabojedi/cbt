@@ -117,11 +117,15 @@ All core modules follow a consistent wizard-based pattern:
 ## Changelog
 
 - October 15, 2025 (latest). Fixed Microsoft Edge textarea text visibility bug in thought wizards
-  - **Root Cause**: Radix UI Dialog component has a rendering bug in Microsoft Edge causing textarea text to be invisible (even though data is captured correctly)
-  - **Solution**: Converted ThoughtRecordWizard and ThoughtChallengeWizard from Dialog to Card component (matching the working EmotionTrackingFormWizard pattern)
-  - **Investigation Method**: Systematic debugging ruled out CSS issues (all properties were correct); identified browser-specific Dialog rendering bug
-  - **Design Pattern**: Card-based wizards work correctly across all browsers; Dialog-based wizards have Edge text rendering issues
-  - **Result**: Text is now fully visible in all textareas across all wizards in Microsoft Edge and other browsers
+  - **Root Cause**: shadcn/ui FormField component has a bug in Microsoft Edge where `field.value` doesn't sync with actual form state, causing textareas to appear empty even though data is being captured
+  - **Investigation**: Systematic debugging with console logs revealed form state contained correct values but FormField's render prop received empty field.value
+  - **Solution**: Bypassed FormField entirely - use direct value binding with `form.watch()` and `form.setValue()` instead of FormField render props
+  - **Pattern Applied**: 
+    - `value={watchedValues.fieldName}` instead of `{...field}`
+    - `onChange={(e) => form.setValue("fieldName", e.target.value)}` instead of `field.onChange`
+  - **Files Fixed**: ThoughtRecordWizard (2 textareas), ThoughtChallengeWizard (3 textareas)
+  - **Result**: Text now fully visible in all textareas across all browsers including Microsoft Edge
+  - **Technical Note**: This is a Microsoft Edge-specific compatibility issue with React Hook Form's FormField component; EmotionTrackingFormWizard didn't have this issue because it used a different pattern
 - October 15, 2025 (earlier). Implemented Thought Challenging Wizard with educational CBT guidance
   - **ThoughtChallengeWizard Component**: Created 4-step wizard flow (Review Thought → Identify Cognitive Distortions → Evaluate Evidence → Develop Alternative Perspectives)
   - **Educational Intro Dialog**: Added CBT psychoeducation explaining what thought challenging is and why it's helpful before the wizard begins

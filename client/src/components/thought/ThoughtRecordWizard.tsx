@@ -111,11 +111,8 @@ export default function ThoughtRecordWizard({
     },
   });
 
-  // Debug: Watch all form values
+  // Watch all form values for direct binding (Edge compatibility fix)
   const watchedValues = form.watch();
-  console.log("📊 FORM STATE - All values:", watchedValues);
-  console.log("📊 FORM STATE - situation value:", watchedValues.situation);
-  console.log("📊 FORM STATE - current step:", currentStep);
 
   const onSubmit = async (data: ThoughtRecordFormValues) => {
     if (!activeUserId) return;
@@ -222,36 +219,33 @@ export default function ThoughtRecordWizard({
         </div>
       </div>
 
-      <FormField
-        control={form.control}
-        name="automaticThought"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-base font-semibold flex items-center gap-2">
-              <Brain className="h-5 w-5" />
-              What automatic thought did you have? <span className="text-red-500">*</span>
-            </FormLabel>
-            <FormDescription>
-              Write down the exact thought that came to mind. Be as specific as possible.
-            </FormDescription>
-            <FormControl>
-              <Textarea
-                placeholder="e.g., I'm going to embarrass myself in front of everyone..."
-                className="resize-none w-full min-h-[120px] text-base"
-                rows={5}
-                {...field}
-                data-testid="textarea-automatic-thought"
-              />
-            </FormControl>
-            <div className="flex justify-between items-center text-sm">
-              <FormMessage />
-              <span className={`${(field.value || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
-                {(field.value || "").length}/10 characters minimum
-              </span>
-            </div>
-          </FormItem>
-        )}
-      />
+      <div className="space-y-2">
+        <label className="text-base font-semibold flex items-center gap-2">
+          <Brain className="h-5 w-5" />
+          What automatic thought did you have? <span className="text-red-500">*</span>
+        </label>
+        <p className="text-sm text-muted-foreground">
+          Write down the exact thought that came to mind. Be as specific as possible.
+        </p>
+        <Textarea
+          placeholder="e.g., I'm going to embarrass myself in front of everyone..."
+          className="resize-none w-full min-h-[120px] text-base"
+          rows={5}
+          value={watchedValues.automaticThought || ""}
+          onChange={(e) => {
+            form.setValue("automaticThought", e.target.value, { shouldValidate: true });
+          }}
+          data-testid="textarea-automatic-thought"
+        />
+        <div className="flex justify-between items-center text-sm">
+          {form.formState.errors.automaticThought && (
+            <p className="text-red-500 text-sm">{form.formState.errors.automaticThought.message}</p>
+          )}
+          <span className={`${(watchedValues.automaticThought || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
+            {(watchedValues.automaticThought || "").length}/10 characters minimum
+          </span>
+        </div>
+      </div>
 
       <div className="bg-gray-50 p-4 rounded-md">
         <h4 className="font-medium mb-2">Common Automatic Thoughts:</h4>
@@ -392,9 +386,7 @@ export default function ThoughtRecordWizard({
           rows={5}
           value={watchedValues.situation || ""}
           onChange={(e) => {
-            console.log("⌨️ DIRECT TEXTAREA onChange - New value:", e.target.value);
             form.setValue("situation", e.target.value, { shouldValidate: true });
-            console.log("✅ After setValue, form state:", form.getValues());
           }}
           data-testid="textarea-situation"
         />

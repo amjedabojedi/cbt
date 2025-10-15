@@ -126,6 +126,9 @@ export function ThoughtChallengeWizard({
     },
   });
 
+  // Watch all form values for direct binding (Edge compatibility fix)
+  const watchedValues = form.watch();
+
   const progress = currentStep === 0 ? 0 : (currentStep / totalSteps) * 100;
 
   const handleNext = async () => {
@@ -412,65 +415,59 @@ export function ThoughtChallengeWizard({
                     <p className="text-sm italic text-gray-700">"{thoughtRecord.automaticThoughts}"</p>
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="evidenceFor"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base font-semibold">
-                          Evidence supporting this thought <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormDescription>
-                          What facts or experiences support this thought?
-                        </FormDescription>
-                        <FormControl>
-                          <Textarea
-                            placeholder="e.g., My manager gave me critical feedback on my last report..."
-                            className="resize-none w-full min-h-[100px] text-base"
-                            rows={4}
-                            {...field}
-                            data-testid="textarea-evidence-for"
-                          />
-                        </FormControl>
-                        <div className="flex justify-end text-sm">
-                          <span className={`${(field.value || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
-                            {(field.value || "").length}/10 characters minimum
-                          </span>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-2">
+                    <label className="text-base font-semibold">
+                      Evidence supporting this thought <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-sm text-muted-foreground">
+                      What facts or experiences support this thought?
+                    </p>
+                    <Textarea
+                      placeholder="e.g., My manager gave me critical feedback on my last report..."
+                      className="resize-none w-full min-h-[100px] text-base"
+                      rows={4}
+                      value={watchedValues.evidenceFor || ""}
+                      onChange={(e) => {
+                        form.setValue("evidenceFor", e.target.value, { shouldValidate: true });
+                      }}
+                      data-testid="textarea-evidence-for"
+                    />
+                    <div className="flex justify-between items-center text-sm">
+                      {form.formState.errors.evidenceFor && (
+                        <p className="text-red-500 text-sm">{form.formState.errors.evidenceFor.message}</p>
+                      )}
+                      <span className={`${(watchedValues.evidenceFor || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
+                        {(watchedValues.evidenceFor || "").length}/10 characters minimum
+                      </span>
+                    </div>
+                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="evidenceAgainst"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base font-semibold">
-                          Evidence against this thought <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormDescription>
-                          What facts or experiences contradict this thought?
-                        </FormDescription>
-                        <FormControl>
-                          <Textarea
-                            placeholder="e.g., I've received positive feedback on my work before. My colleague said I did great work last month..."
-                            className="resize-none w-full min-h-[100px] text-base"
-                            rows={4}
-                            {...field}
-                            data-testid="textarea-evidence-against"
-                          />
-                        </FormControl>
-                        <div className="flex justify-end text-sm">
-                          <span className={`${(field.value || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
-                            {(field.value || "").length}/10 characters minimum
-                          </span>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-2">
+                    <label className="text-base font-semibold">
+                      Evidence against this thought <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-sm text-muted-foreground">
+                      What facts or experiences contradict this thought?
+                    </p>
+                    <Textarea
+                      placeholder="e.g., I've received positive feedback on my work before. My colleague said I did great work last month..."
+                      className="resize-none w-full min-h-[100px] text-base"
+                      rows={4}
+                      value={watchedValues.evidenceAgainst || ""}
+                      onChange={(e) => {
+                        form.setValue("evidenceAgainst", e.target.value, { shouldValidate: true });
+                      }}
+                      data-testid="textarea-evidence-against"
+                    />
+                    <div className="flex justify-between items-center text-sm">
+                      {form.formState.errors.evidenceAgainst && (
+                        <p className="text-red-500 text-sm">{form.formState.errors.evidenceAgainst.message}</p>
+                      )}
+                      <span className={`${(watchedValues.evidenceAgainst || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
+                        {(watchedValues.evidenceAgainst || "").length}/10 characters minimum
+                      </span>
+                    </div>
+                  </div>
 
                   <div className="flex justify-between pt-4">
                     <Button type="button" variant="outline" onClick={handlePrevious}>
@@ -504,35 +501,32 @@ export function ThoughtChallengeWizard({
                     </div>
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="alternativeThought"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base font-semibold">
-                          Alternative, balanced thought <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormDescription>
-                          Write a more realistic thought that considers all evidence
-                        </FormDescription>
-                        <FormControl>
-                          <Textarea
-                            placeholder="e.g., While I got some critical feedback, I've also done good work that was praised. One piece of criticism doesn't mean I'm incompetent - it means I have room to improve in this area..."
-                            className="resize-none w-full min-h-[120px] text-base"
-                            rows={5}
-                            {...field}
-                            data-testid="textarea-alternative"
-                          />
-                        </FormControl>
-                        <div className="flex justify-end text-sm">
-                          <span className={`${(field.value || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
-                            {(field.value || "").length}/10 characters minimum
-                          </span>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-2">
+                    <label className="text-base font-semibold">
+                      Alternative, balanced thought <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-sm text-muted-foreground">
+                      Write a more realistic thought that considers all evidence
+                    </p>
+                    <Textarea
+                      placeholder="e.g., While I got some critical feedback, I've also done good work that was praised. One piece of criticism doesn't mean I'm incompetent - it means I have room to improve in this area..."
+                      className="resize-none w-full min-h-[120px] text-base"
+                      rows={5}
+                      value={watchedValues.alternativeThought || ""}
+                      onChange={(e) => {
+                        form.setValue("alternativeThought", e.target.value, { shouldValidate: true });
+                      }}
+                      data-testid="textarea-alternative"
+                    />
+                    <div className="flex justify-between items-center text-sm">
+                      {form.formState.errors.alternativeThought && (
+                        <p className="text-red-500 text-sm">{form.formState.errors.alternativeThought.message}</p>
+                      )}
+                      <span className={`${(watchedValues.alternativeThought || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
+                        {(watchedValues.alternativeThought || "").length}/10 characters minimum
+                      </span>
+                    </div>
+                  </div>
 
                   <div className="bg-gray-50 p-4 rounded-md">
                     <h4 className="font-medium text-sm mb-2">Tips for Alternative Thoughts:</h4>
