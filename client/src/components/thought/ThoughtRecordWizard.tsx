@@ -425,30 +425,46 @@ export default function ThoughtRecordWizard({
                   control={form.control}
                   name="thoughtCategory"
                   render={({ field }) => (
-                    <div className="flex items-start space-x-3 bg-white p-4 rounded-lg border hover:border-blue-300 transition-colors">
-                      <Checkbox
-                        checked={field.value?.includes(category.value)}
-                        onCheckedChange={(checked) => {
-                          return checked
-                            ? field.onChange([...field.value, category.value])
-                            : field.onChange(
-                                field.value?.filter((value) => value !== category.value)
-                              );
-                        }}
-                        data-testid={`checkbox-${category.value}`}
-                      />
-                      <div className="flex-1">
-                        <Label className="font-semibold text-sm cursor-pointer">
-                          {category.label}
-                        </Label>
-                        <p className="text-xs text-gray-600 mt-1">{category.description}</p>
-                        <div className="mt-2 space-y-1">
-                          <p className="text-xs font-medium text-gray-700">Examples:</p>
-                          {category.examples.map((ex, idx) => (
-                            <p key={idx} className="text-xs text-gray-500 italic ml-2">
-                              • "{ex}"
+                    <div className={`group relative p-5 rounded-xl border-2 transition-all duration-200 cursor-pointer ${
+                      field.value?.includes(category.value) 
+                        ? 'border-blue-500 bg-blue-50 shadow-md' 
+                        : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
+                    }`}>
+                      <div className="flex items-start space-x-4">
+                        <Checkbox
+                          checked={field.value?.includes(category.value)}
+                          onCheckedChange={(checked) => {
+                            return checked
+                              ? field.onChange([...field.value, category.value])
+                              : field.onChange(
+                                  field.value?.filter((value) => value !== category.value)
+                                );
+                          }}
+                          data-testid={`checkbox-${category.value}`}
+                          className="mt-1"
+                        />
+                        <div className="flex-1">
+                          <Label className="text-base font-bold text-gray-900 cursor-pointer block mb-2">
+                            {category.label}
+                          </Label>
+                          <p className="text-sm text-gray-700 leading-relaxed mb-3">
+                            {category.description}
+                          </p>
+                          <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                              Examples:
                             </p>
-                          ))}
+                            <div className="space-y-1.5">
+                              {category.examples.map((ex, idx) => (
+                                <div key={idx} className="flex items-start">
+                                  <span className="text-blue-500 mr-2 mt-0.5">•</span>
+                                  <p className="text-sm text-gray-600 italic flex-1">
+                                    "{ex}"
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
