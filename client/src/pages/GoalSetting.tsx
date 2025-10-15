@@ -234,6 +234,8 @@ export default function GoalSetting() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/goals/${selectedGoal?.id}/milestones`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiPath}/goals`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiPath}/goals/milestones`] });
       milestoneForm.reset();
       setIsAddingMilestone(false);
       toast({
@@ -292,6 +294,8 @@ export default function GoalSetting() {
       if (selectedGoal) {
         queryClient.invalidateQueries({ queryKey: [`/api/goals/${selectedGoal.id}/milestones`] });
       }
+      queryClient.invalidateQueries({ queryKey: [`${apiPath}/goals`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiPath}/goals/milestones`] });
       toast({
         title: "Milestone Updated",
         description: "Milestone completion status has been updated.",
