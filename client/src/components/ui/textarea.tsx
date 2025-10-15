@@ -14,19 +14,16 @@ const Textarea = React.forwardRef<
       console.log('🔍 TEXTAREA DEBUG:', {
         color: computedStyle.color,
         backgroundColor: computedStyle.backgroundColor,
-        zIndex: computedStyle.zIndex,
-        fontSize: computedStyle.fontSize,
-        fontFamily: computedStyle.fontFamily,
-        lineHeight: computedStyle.lineHeight,
-        textIndent: computedStyle.textIndent,
-        caretColor: computedStyle.caretColor,
+        transform: computedStyle.transform,
+        clipPath: computedStyle.clipPath,
+        overflow: computedStyle.overflow,
+        textShadow: computedStyle.textShadow,
+        filter: computedStyle.filter,
+        mixBlendMode: computedStyle.mixBlendMode,
+        webkitTextFillColor: computedStyle.webkitTextFillColor || 'not set',
+        webkitTextStroke: computedStyle.webkitTextStroke || 'not set',
         value: textareaRef.current.value,
-        valueLength: textareaRef.current.value.length,
-        className: className,
-        visibility: computedStyle.visibility,
-        opacity: computedStyle.opacity,
-        position: computedStyle.position,
-        pointerEvents: computedStyle.pointerEvents
+        valueLength: textareaRef.current.value.length
       });
     }
   });
