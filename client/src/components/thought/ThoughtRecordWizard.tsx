@@ -62,37 +62,79 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-// Thought categories for educational recognition
+// ANT (Automatic Negative Thought) categories based on CBT
 const thoughtCategories = [
   {
-    value: "about_yourself",
-    label: "About Yourself",
-    description: "Thoughts that judge your abilities, worth, character, or identity as a person",
-    example: "\"I'm not good enough\", \"I'm a failure\", \"I always mess things up\", \"I'm worthless\""
+    value: "all_or_nothing",
+    label: "All or Nothing Thinking",
+    description: "Things are either right or wrong, good or bad. Can lead people to give up at the first small sign of failure.",
+    examples: ["I failed this test. I am stupid so I am giving up", "Either we do it like this or not at all"]
   },
   {
-    value: "about_others",
-    label: "About Others",
-    description: "Thoughts about what other people think of you or how they perceive you",
-    example: "\"They think I'm stupid\", \"Nobody likes me\", \"Everyone is judging me\", \"They're disappointed in me\""
+    value: "mental_filter",
+    label: "Mental Filter",
+    description: "Seeing the world through a 'filter' which only lets you see the negative without recognising the positive.",
+    examples: ["I only came second in the exam. I should have come first", "I have got more responsibilities so this will mean more work and longer hours"]
   },
   {
-    value: "about_future",
-    label: "About the Future",
-    description: "Predictions, worries, or expectations about what will happen next or in the future",
-    example: "\"This will never work\", \"I'm going to fail\", \"Something bad will happen\", \"It's going to be a disaster\""
+    value: "mind_reading",
+    label: "Mind Reading",
+    description: "Presuming we know what other people are thinking without looking at the evidence.",
+    examples: ["Sarah didn't say hello. She must be mad with me"]
   },
   {
-    value: "about_past",
-    label: "About the Past",
-    description: "Regrets, criticisms, or negative thoughts about things that already happened",
-    example: "\"I should have done better\", \"I ruined everything\", \"It's all my fault\", \"I made a terrible mistake\""
+    value: "fortune_telling",
+    label: "Fortune Telling",
+    description: "Predicting the future and having negative expectations about what will happen.",
+    examples: ["What's the point? I know I am going to do badly in this interview", "I am never going to lose weight so I may as well eat this cream cake"]
   },
   {
-    value: "about_situation",
-    label: "About the Situation",
-    description: "Judgments or interpretations about your current circumstances or what's happening around you",
-    example: "\"This is terrible\", \"Everything is falling apart\", \"This is unfair\", \"Nothing ever goes right\""
+    value: "labelling",
+    label: "Labelling",
+    description: "Giving negative labels to ourselves or other people.",
+    examples: ["I'm a loser. I am useless", "They are all idiots"]
+  },
+  {
+    value: "over_generalising",
+    label: "Over-Generalising",
+    description: "Using words like 'always', 'never', 'nothing', 'every time'. If something bad happens once, you expect it to happen again and again.",
+    examples: ["I am always bad at that", "Nothing good ever happens"]
+  },
+  {
+    value: "compare_despair",
+    label: "Compare and Despair",
+    description: "Comparing yourself unfavourably to others.",
+    examples: ["I am so disorganised I will never be able to juggle things like Jane", "Why can't I go on expensive holidays like Laura?"]
+  },
+  {
+    value: "emotional_thinking",
+    label: "Emotional Thinking",
+    description: "Thinking that the way we feel about something must make it true.",
+    examples: ["I feel like a failure so I must be", "I feel anxious about the presentation so I know it's going to go badly"]
+  },
+  {
+    value: "guilty_thinking",
+    label: "Guilty Thinking",
+    description: "Using words like 'should', 'must', 'have to' and 'ought to' can allow guilt to build up.",
+    examples: ["I must clean the house today", "I should have done that already", "I ought to have known that was wrong"]
+  },
+  {
+    value: "catastrophising",
+    label: "Catastrophising",
+    description: "Thinking an unlikely disaster is going to happen or attaching too much importance to a negative experience.",
+    examples: ["I have sent the wrong contract out. I am going to lose my job", "I think I left my hair straighteners on. The house is going to burn down"]
+  },
+  {
+    value: "blaming_others",
+    label: "Blaming Others",
+    description: "Thinking others are always to blame for things that have gone wrong without taking responsibility.",
+    examples: ["I would have got that promotion if it wasn't for her"]
+  },
+  {
+    value: "personalising",
+    label: "Personalising",
+    description: "Blaming yourself for something that wasn't entirely your fault or thinking that something somebody says is a reaction to you.",
+    examples: ["It's my fault we all missed the train", "Paul is in a bad mood today. It must be something I said to him"]
   },
 ];
 
@@ -348,13 +390,13 @@ export default function ThoughtRecordWizard({
           <div>
             <h4 className="font-semibold text-blue-900 mb-2">💡 What Are Automatic Thoughts?</h4>
             <p className="text-sm text-blue-800 mb-2">
-              Automatic thoughts are the immediate thoughts that pop into your mind in response to a situation. They're called "automatic" because they happen so quickly you barely notice them.
+              Automatic thoughts are the immediate thoughts that pop into your mind in response to a situation. They're called "automatic" because they happen so quickly you barely notice them. Sometimes these thoughts are unhelpful and can be called ANTs (Automatic Negative Thoughts).
             </p>
             <p className="text-sm text-blue-800 mb-2">
-              <strong>Why categorize them?</strong> Different types of automatic thoughts reveal different patterns. When you recognize what type of thought you had, you can better understand your thinking patterns over time.
+              <strong>Why categorize them?</strong> Recognizing which type of unhelpful thinking pattern your thought follows helps you understand your patterns over time. Once you can spot these patterns, you can challenge them and develop more balanced ways of thinking.
             </p>
             <p className="text-sm text-blue-800">
-              Below are the 5 main types of automatic thoughts. Read each definition and example, then select which ones match your thought.
+              Below are common types of unhelpful thinking styles. Read each definition and example, then select which ones match your thought. Your thought might fit into more than one category.
             </p>
           </div>
         </div>
@@ -402,9 +444,9 @@ export default function ThoughtRecordWizard({
                         <p className="text-xs text-gray-600 mt-1">{category.description}</p>
                         <div className="mt-2 space-y-1">
                           <p className="text-xs font-medium text-gray-700">Examples:</p>
-                          {category.example.split('", "').map((ex, idx) => (
+                          {category.examples.map((ex, idx) => (
                             <p key={idx} className="text-xs text-gray-500 italic ml-2">
-                              • {ex.replace(/^"|"$/g, '')}
+                              • "{ex}"
                             </p>
                           ))}
                         </div>

@@ -116,20 +116,25 @@ All core modules follow a consistent wizard-based pattern:
 
 ## Changelog
 
-- October 15, 2025 (latest). Enhanced thought categorization with educational content and detailed examples
-  - **Added Automatic Thought Education**: Step 3 now explains what automatic thoughts are and why we categorize them
-  - **Clear Instructions**: "Read each definition and example, then select which ones match your thought"
-  - **User's Thought Display**: Shows the user's actual automatic thought in a purple box for reference
-  - **Improved Category Descriptions**: Each of the 5 thought categories has a comprehensive definition
-  - **Multiple Examples**: Expanded from 2 to 3-4 relatable examples per category
-  - **Categories Enhanced**:
-    - About Yourself: "Thoughts that judge your abilities, worth, character, or identity as a person"
-    - About Others: "Thoughts about what other people think of you or how they perceive you"
-    - About the Future: "Predictions, worries, or expectations about what will happen next or in the future"
-    - About the Past: "Regrets, criticisms, or negative thoughts about things that already happened"
-    - About the Situation: "Judgments or interpretations about your current circumstances or what's happening around you"
-  - **Fixed Value Consistency**: Changed "about_self" to "about_yourself" to match database schema
-  - **Educational UX**: Step 3 is now a comprehensive learning tool that teaches CBT concepts through practice
+- October 15, 2025 (latest). Implemented ANTs (Automatic Negative Thoughts) categorization with clinical CBT framework
+  - **ANT Education**: Step 3 now explains what ANTs (Automatic Negative Thoughts) are and why recognizing unhelpful thinking patterns matters
+  - **12 Clinical CBT Categories**: Replaced simple categories with professional ANT categories from clinical CBT:
+    1. All or Nothing Thinking - Black and white thinking
+    2. Mental Filter - Only seeing the negative
+    3. Mind Reading - Presuming what others think without evidence
+    4. Fortune Telling - Predicting negative futures
+    5. Labelling - Giving negative labels to self or others
+    6. Over-Generalising - Using "always", "never", "nothing"
+    7. Compare and Despair - Comparing unfavourably to others
+    8. Emotional Thinking - Believing feelings equal facts
+    9. Guilty Thinking - "Should", "must", "have to" thinking
+    10. Catastrophising - Expecting unlikely disasters
+    11. Blaming Others - Always blaming external factors
+    12. Personalising - Taking inappropriate blame
+  - **Clear Educational Format**: Each category shows definition + 1-2 clinical examples
+  - **User's Thought Reference**: Purple box displays user's actual automatic thought for easy comparison
+  - **Professional Framework**: Based on evidence-based CBT unhelpful thinking styles from clinical psychology
+  - **Educational UX**: Step 3 teaches users to recognize their ANT patterns, first step in cognitive restructuring
 - October 15, 2025 (earlier). Fixed Microsoft Edge textarea text visibility bug in thought wizards
   - **Root Cause**: shadcn/ui FormField component has a bug in Microsoft Edge where `field.value` doesn't sync with actual form state, causing textareas to appear empty even though data is being captured
   - **Investigation**: Systematic debugging with console logs revealed form state contained correct values but FormField's render prop received empty field.value
