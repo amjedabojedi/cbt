@@ -447,11 +447,11 @@ export default function ThoughtRecordWizard({
 
           {/* Step Content */}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-4">
               {getStepContent()}
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between items-center pt-6 border-t">
+              <div className="flex justify-between items-center pt-6 mt-6 border-t">
                 <div>
                   {currentStep > 1 && (
                     <Button
