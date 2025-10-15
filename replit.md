@@ -116,7 +116,16 @@ All core modules follow a consistent wizard-based pattern:
 
 ## Changelog
 
-- October 15, 2025 (latest). Implemented ANTs (Automatic Negative Thoughts) categorization with clinical CBT framework
+- October 15, 2025 (latest). Streamlined thought workflows by removing duplication between recording and challenging
+  - **Removed Duplicate Step**: Removed "Identify Thinking Errors" step from ThoughtChallengeWizard since ANT categories are already captured during thought recording (Step 3)
+  - **Simplified Challenge Flow**: ThoughtChallengeWizard now has 3 steps instead of 4:
+    - Intro: Learn about thought challenging
+    - Step 1: Examine Evidence (for/against)
+    - Step 2: Generate Alternative Thought  
+    - Step 3: Rate Beliefs
+  - **Improved UX**: No redundant work - users identify ANTs once during recording, then focus on evidence and alternatives during challenging
+  - **Better Workflow**: Clear separation between identification (thought recording) and restructuring (thought challenging)
+- October 15, 2025 (earlier). Implemented ANTs (Automatic Negative Thoughts) categorization with clinical CBT framework
   - **ANT Education**: Step 3 now explains what ANTs (Automatic Negative Thoughts) are and why recognizing unhelpful thinking patterns matters
   - **12 Clinical CBT Categories**: Replaced simple categories with professional ANT categories from clinical CBT:
     1. All or Nothing Thinking - Black and white thinking

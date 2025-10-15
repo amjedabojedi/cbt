@@ -84,9 +84,8 @@ const cognitiveDistortions = [
   },
 ];
 
-// Form schema
+// Form schema - cognitiveDistortions removed as they're already captured in thought recording
 const challengeSchema = z.object({
-  cognitiveDistortions: z.array(z.string()).min(1, "Please select at least one thinking error"),
   evidenceFor: z.string().min(10, "Please provide at least 10 characters"),
   evidenceAgainst: z.string().min(10, "Please provide at least 10 characters"),
   alternativeThought: z.string().min(10, "Please provide at least 10 characters"),
@@ -110,14 +109,13 @@ export function ThoughtChallengeWizard({
   const { user } = useAuth();
   const { activeUserId } = useActiveUser();
   const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState(0); // 0 = intro, 1-4 = steps
+  const [currentStep, setCurrentStep] = useState(0); // 0 = intro, 1-3 = steps
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const totalSteps = 4;
+  const totalSteps = 3; // Reduced from 4 since we skip cognitive distortions step
 
   const form = useForm<ChallengeFormValues>({
     resolver: zodResolver(challengeSchema),
     defaultValues: {
-      cognitiveDistortions: [],
       evidenceFor: "",
       evidenceAgainst: "",
       alternativeThought: "",
@@ -134,11 +132,12 @@ export function ThoughtChallengeWizard({
   const handleNext = async () => {
     let isValid = true;
 
+    // Step 1: Examine Evidence (was Step 2)
     if (currentStep === 1) {
-      isValid = await form.trigger("cognitiveDistortions");
-    } else if (currentStep === 2) {
       isValid = await form.trigger(["evidenceFor", "evidenceAgainst"]);
-    } else if (currentStep === 3) {
+    } 
+    // Step 2: Generate Alternative Thought (was Step 3)
+    else if (currentStep === 2) {
       isValid = await form.trigger("alternativeThought");
     }
 
@@ -165,8 +164,8 @@ export function ThoughtChallengeWizard({
       }
 
       // Update the thought record with challenge data
+      // Note: cognitiveDistortions (ANT categories) are already captured in thought recording
       const updateData = {
-        cognitiveDistortions: data.cognitiveDistortions,
         evidenceFor: data.evidenceFor,
         evidenceAgainst: data.evidenceAgainst,
         alternativePerspective: data.alternativeThought,
@@ -321,86 +320,8 @@ export function ThoughtChallengeWizard({
                 </div>
               )}
 
-              {/* STEP 1: Identify Thinking Errors */}
+              {/* STEP 1: Examine Evidence (previously Step 2) */}
               {currentStep === 1 && (
-                <div className="space-y-4" data-testid="step-thinking-errors">
-                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <h3 className="font-medium text-sm mb-2">💡 Why Identify Thinking Errors?</h3>
-                    <p className="text-sm text-gray-700">
-                      Recognizing patterns in how you think helps you understand why certain thoughts cause distress.
-                      Select all that apply to your thought.
-                    </p>
-                  </div>
-
-                  <div className="bg-blue-50 p-3 rounded border border-blue-200">
-                    <p className="text-sm font-medium mb-1">Your thought:</p>
-                    <p className="text-sm italic text-gray-700">"{thoughtRecord.automaticThoughts}"</p>
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="cognitiveDistortions"
-                    render={() => (
-                      <FormItem>
-                        <FormLabel className="text-base font-semibold">
-                          Which thinking errors apply? <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormDescription>
-                          Select at least one cognitive distortion that fits your thought
-                        </FormDescription>
-                        <div className="space-y-3 mt-3">
-                          {cognitiveDistortions.map((distortion) => (
-                            <FormField
-                              key={distortion.value}
-                              control={form.control}
-                              name="cognitiveDistortions"
-                              render={({ field }) => (
-                                <div className="flex items-start space-x-3 bg-white p-4 rounded-lg border hover:border-purple-300 transition-colors">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(distortion.value)}
-                                      onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([...field.value, distortion.value])
-                                          : field.onChange(
-                                              field.value?.filter((value) => value !== distortion.value)
-                                            );
-                                      }}
-                                      data-testid={`checkbox-${distortion.value}`}
-                                    />
-                                  </FormControl>
-                                  <div className="flex-1">
-                                    <Label className="font-semibold text-sm cursor-pointer">
-                                      {distortion.label}
-                                    </Label>
-                                    <p className="text-xs text-gray-600 mt-1">{distortion.description}</p>
-                                    <p className="text-xs text-gray-500 italic mt-1">
-                                      Example: {distortion.example}
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
-                            />
-                          ))}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="flex justify-between pt-4">
-                    <Button type="button" variant="outline" onClick={handlePrevious}>
-                      Previous
-                    </Button>
-                    <Button type="button" onClick={handleNext} data-testid="button-next-step">
-                      Next Step
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 2: Examine Evidence */}
-              {currentStep === 2 && (
                 <div className="space-y-4" data-testid="step-evidence">
                   <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                     <h3 className="font-medium text-sm mb-2">💡 Why Examine Evidence?</h3>
@@ -480,8 +401,8 @@ export function ThoughtChallengeWizard({
                 </div>
               )}
 
-              {/* STEP 3: Generate Alternative Thought */}
-              {currentStep === 3 && (
+              {/* STEP 2: Generate Alternative Thought (previously Step 3) */}
+              {currentStep === 2 && (
                 <div className="space-y-4" data-testid="step-alternative">
                   <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                     <h3 className="font-medium text-sm mb-2">💡 Why Create an Alternative?</h3>
@@ -549,8 +470,8 @@ export function ThoughtChallengeWizard({
                 </div>
               )}
 
-              {/* STEP 4: Rate Beliefs */}
-              {currentStep === 4 && (
+              {/* STEP 3: Rate Beliefs (previously Step 4) */}
+              {currentStep === 3 && (
                 <div className="space-y-4" data-testid="step-beliefs">
                   <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                     <h3 className="font-medium text-sm mb-2">💡 Why Rate Your Beliefs?</h3>
