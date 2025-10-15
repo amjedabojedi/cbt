@@ -3441,6 +3441,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.userId);
       const thoughtId = parseInt(req.params.thoughtId);
       
+      // Validate the update data
+      const updateSchema = z.object({
+        cognitiveDistortions: z.array(z.string()).optional(),
+        evidenceFor: z.string().min(1).optional(),
+        evidenceAgainst: z.string().min(1).optional(),
+        alternativePerspective: z.string().min(1).optional(),
+        reflectionRating: z.number().min(0).max(10).optional(),
+        insightsGained: z.string().min(1).optional(),
+      });
+      
+      const validatedUpdate = updateSchema.parse(req.body);
+      
       // Get the existing thought record
       const existingThought = await storage.getThoughtRecordById(thoughtId);
       if (!existingThought) {
@@ -3454,12 +3466,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update only the fields that are provided
       const updateData = {
-        ...(req.body.cognitiveDistortions !== undefined && { cognitiveDistortions: req.body.cognitiveDistortions }),
-        ...(req.body.evidenceFor !== undefined && { evidenceFor: req.body.evidenceFor }),
-        ...(req.body.evidenceAgainst !== undefined && { evidenceAgainst: req.body.evidenceAgainst }),
-        ...(req.body.alternativePerspective !== undefined && { alternativePerspective: req.body.alternativePerspective }),
-        ...(req.body.reflectionRating !== undefined && { reflectionRating: req.body.reflectionRating }),
-        ...(req.body.insightsGained !== undefined && { insightsGained: req.body.insightsGained }),
+        ...(validatedUpdate.cognitiveDistortions !== undefined && { cognitiveDistortions: validatedUpdate.cognitiveDistortions }),
+        ...(validatedUpdate.evidenceFor !== undefined && { evidenceFor: validatedUpdate.evidenceFor }),
+        ...(validatedUpdate.evidenceAgainst !== undefined && { evidenceAgainst: validatedUpdate.evidenceAgainst }),
+        ...(validatedUpdate.alternativePerspective !== undefined && { alternativePerspective: validatedUpdate.alternativePerspective }),
+        ...(validatedUpdate.reflectionRating !== undefined && { reflectionRating: validatedUpdate.reflectionRating }),
+        ...(validatedUpdate.insightsGained !== undefined && { insightsGained: validatedUpdate.insightsGained }),
       };
       
       // Update in database
@@ -3470,6 +3482,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(200).json(updatedThought);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
       console.error("Update thought record error:", error);
       res.status(500).json({ message: "Internal server error" });
     }

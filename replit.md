@@ -116,7 +116,15 @@ All core modules follow a consistent wizard-based pattern:
 
 ## Changelog
 
-- October 15, 2025 (latest). Implemented wizard-based UX pattern across emotion tracking and thought recording
+- October 15, 2025 (latest). Implemented Thought Challenging Wizard with educational CBT guidance
+  - **ThoughtChallengeWizard Component**: Created 4-step wizard flow (Review Thought → Identify Cognitive Distortions → Evaluate Evidence → Develop Alternative Perspectives)
+  - **Educational Intro Dialog**: Added CBT psychoeducation explaining what thought challenging is and why it's helpful before the wizard begins
+  - **Integration**: "Challenge This Thought" button in ThoughtRecordWizard success dialog opens the challenge wizard
+  - **Backend API**: Added PATCH endpoint `/api/users/:userId/thoughts/:thoughtId` to update thought records with challenge data
+  - **Data Persistence**: Challenge data (cognitive distortions, evidence for/against, alternative perspective, insights, reflection rating) saved to database
+  - **Display**: ThoughtRecords history page displays all challenge data with visual sections for distortions, evidence evaluation, alternatives, insights, and progress ratings
+  - **UX Enhancement**: Updated Step 3 situation prompt to include "who, what, when, where, why" for comprehensive context gathering
+- October 15, 2025 (earlier). Implemented wizard-based UX pattern across emotion tracking and thought recording
   - **Emotion Tracking Wizard**: Created EmotionTrackingFormWizard with 4-step flow (Select Emotion → Rate Intensity → Describe Situation → Add Context)
   - **Onboarding Tour**: Created EmotionOnboardingTour with 3-slide introduction for first-time users, stored in localStorage
   - **Thought Recording Wizard**: Created ThoughtRecordWizard with 3-step flow (Write Thought → Optional Emotion Link → Describe Situation)
