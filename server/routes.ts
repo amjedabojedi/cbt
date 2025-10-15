@@ -3434,6 +3434,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+
+  // Update thought record (for adding challenge data)
+  app.patch("/api/users/:userId/thoughts/:thoughtId", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const thoughtId = parseInt(req.params.thoughtId);
+      
+      // Get the existing thought record
+      const existingThought = await storage.getThoughtRecordById(thoughtId);
+      if (!existingThought) {
+        return res.status(404).json({ message: "Thought record not found" });
+      }
+      
+      // Verify ownership
+      if (existingThought.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Update only the fields that are provided
+      const updateData = {
+        ...(req.body.cognitiveDistortions !== undefined && { cognitiveDistortions: req.body.cognitiveDistortions }),
+        ...(req.body.evidenceFor !== undefined && { evidenceFor: req.body.evidenceFor }),
+        ...(req.body.evidenceAgainst !== undefined && { evidenceAgainst: req.body.evidenceAgainst }),
+        ...(req.body.alternativePerspective !== undefined && { alternativePerspective: req.body.alternativePerspective }),
+        ...(req.body.reflectionRating !== undefined && { reflectionRating: req.body.reflectionRating }),
+        ...(req.body.insightsGained !== undefined && { insightsGained: req.body.insightsGained }),
+      };
+      
+      // Update in database
+      const [updatedThought] = await db.update(thoughtRecords)
+        .set(updateData)
+        .where(eq(thoughtRecords.id, thoughtId))
+        .returning();
+      
+      res.status(200).json(updatedThought);
+    } catch (error) {
+      console.error("Update thought record error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
   
   app.get("/api/users/:userId/thoughts", authenticate, checkUserAccess, async (req, res) => {
     try {
