@@ -95,7 +95,7 @@ export default function ThoughtRecordWizard({
   // Fetch recent emotions for linking
   const { data: emotions } = useQuery<EmotionRecord[]>({
     queryKey: activeUserId ? [`/api/users/${activeUserId}/emotions`] : [],
-    enabled: !!activeUserId && open,
+    enabled: !!activeUserId,
   });
 
   // Get recent emotions (last 10)
