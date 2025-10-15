@@ -34,8 +34,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, Trash2, Brain, BrainCircuit, AlertTriangle, Scale, Lightbulb, Sparkles, Calendar, Book, BookText, MessageSquare, Heart, Dumbbell, Plus } from "lucide-react";
+import { Edit, Eye, Trash2, Brain, BrainCircuit, AlertTriangle, Scale, Lightbulb, Sparkles, Calendar, Book, BookText, MessageSquare, Heart, Dumbbell, Plus, CheckCircle, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import CreateReframePracticeForm from "@/components/reframeCoach/CreateReframePracticeForm";
+import { ThoughtChallengeWizard } from "./ThoughtChallengeWizard";
 
 interface ThoughtRecordsListProps {
   limit?: number;
@@ -59,6 +61,7 @@ export default function ThoughtRecordsList({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState<ThoughtRecord | null>(null);
   const [showReframeDialog, setShowReframeDialog] = useState(false);
+  const [thoughtToChallenge, setThoughtToChallenge] = useState<ThoughtRecord | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [_, navigate] = useLocation(); // Used for navigation to different pages
@@ -184,6 +187,11 @@ export default function ThoughtRecordsList({
     }
   };
   
+  // Check if a thought has been challenged
+  const isThoughtChallenged = (record: ThoughtRecord): boolean => {
+    return !!(record.evidenceFor || record.evidenceAgainst || record.alternativePerspective);
+  };
+  
   if (isLoading) {
     return (
       <Card>
@@ -275,14 +283,29 @@ export default function ThoughtRecordsList({
                       <span className="text-sm font-medium">{formatDate(record.createdAt)}</span>
                     </div>
                     
-                    {/* Journal connections badge */}
-                    {record.relatedJournalEntryIds && record.relatedJournalEntryIds.length > 0 && (
-                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 text-primary rounded-full" 
-                        title={`${record.relatedJournalEntryIds.length} linked journal ${record.relatedJournalEntryIds.length === 1 ? 'entry' : 'entries'}`}>
-                        <BookText className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">{record.relatedJournalEntryIds.length}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {/* Challenge status badge */}
+                      {isThoughtChallenged(record) ? (
+                        <Badge variant="outline" className="gap-1 bg-green-50 text-green-700 border-green-200">
+                          <CheckCircle className="h-3 w-3" />
+                          <span className="text-xs">Challenged</span>
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="gap-1 bg-amber-50 text-amber-700 border-amber-200">
+                          <XCircle className="h-3 w-3" />
+                          <span className="text-xs">Not Challenged</span>
+                        </Badge>
+                      )}
+                      
+                      {/* Journal connections badge */}
+                      {record.relatedJournalEntryIds && record.relatedJournalEntryIds.length > 0 && (
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 text-primary rounded-full" 
+                          title={`${record.relatedJournalEntryIds.length} linked journal ${record.relatedJournalEntryIds.length === 1 ? 'entry' : 'entries'}`}>
+                          <BookText className="h-3.5 w-3.5" />
+                          <span className="text-xs font-medium">{record.relatedJournalEntryIds.length}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   <CardContent className="p-4 flex-1">
@@ -345,10 +368,25 @@ export default function ThoughtRecordsList({
                         size="sm"
                         onClick={() => handleViewDetails(record)}
                         className="text-primary hover:text-primary-dark"
+                        data-testid={`button-view-details-${record.id}`}
                       >
                         <Eye className="h-4 w-4 mr-1" />
                         Details
                       </Button>
+                      
+                      {/* Challenge This Thought Button - Only for unchallenged thoughts (own records only) */}
+                      {!isViewingClientData && !isThoughtChallenged(record) && (
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setThoughtToChallenge(record)}
+                          className="text-indigo-600 border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+                          data-testid={`button-challenge-thought-${record.id}`}
+                        >
+                          <Brain className="h-4 w-4 mr-1" />
+                          Challenge This Thought
+                        </Button>
+                      )}
                       
                       {/* Edit Button - Only for own records */}
                       {!isViewingClientData && (
@@ -357,6 +395,7 @@ export default function ThoughtRecordsList({
                           size="sm"
                           onClick={() => handleEditRecord(record)}
                           className="text-primary hover:text-primary-dark"
+                          data-testid={`button-edit-${record.id}`}
                         >
                           <Edit className="h-4 w-4 mr-1" />
                           Edit
@@ -372,6 +411,7 @@ export default function ThoughtRecordsList({
                           size="sm"
                           onClick={() => handleDeleteClick(record)}
                           className="text-destructive hover:text-destructive/80"
+                          data-testid={`button-delete-${record.id}`}
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
                           Delete
@@ -387,6 +427,7 @@ export default function ThoughtRecordsList({
                             window.location.href = `/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`;
                           }}
                           className="bg-amber-500 hover:bg-amber-600 text-white"
+                          data-testid={`button-practice-${record.id}`}
                         >
                           <Sparkles className="h-4 w-4 mr-1" />
                           Practice
@@ -693,6 +734,29 @@ export default function ThoughtRecordsList({
                 setShowReframeDialog(false);
                 setSelectedRecord(null);
               }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+      
+      {/* Thought Challenge Wizard Dialog */}
+      {thoughtToChallenge && (
+        <Dialog open={!!thoughtToChallenge} onOpenChange={() => setThoughtToChallenge(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <ThoughtChallengeWizard
+              thoughtRecord={thoughtToChallenge}
+              onComplete={() => {
+                // Refresh the thought records list
+                if (targetUserId) {
+                  queryClient.invalidateQueries({ queryKey: [`/api/users/${targetUserId}/thoughts`] });
+                }
+                setThoughtToChallenge(null);
+                toast({
+                  title: "Success! 🎉",
+                  description: "You've successfully challenged this thought.",
+                });
+              }}
+              onCancel={() => setThoughtToChallenge(null)}
             />
           </DialogContent>
         </Dialog>
