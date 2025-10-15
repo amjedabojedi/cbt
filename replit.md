@@ -116,7 +116,12 @@ All core modules follow a consistent wizard-based pattern:
 
 ## Changelog
 
-- October 15, 2025 (latest). Streamlined thought workflows by removing duplication between recording and challenging
+- October 15, 2025 (latest). Implemented tab-based layout for Thought Records matching emotion tracking pattern
+  - **Tab Navigation**: Added two tabs: "Record Thought" and "Thought Records History"
+  - **Direct Wizard Access**: ThoughtRecordWizard now opens directly in "Record Thought" tab instead of as a dialog
+  - **Consistent UX**: Matches the emotion tracking page layout for consistency
+  - **Smart Defaults**: Shows history tab by default for therapists and when viewing client data
+- October 15, 2025 (earlier). Streamlined thought workflows by removing duplication between recording and challenging
   - **Removed Duplicate Step**: Removed "Identify Thinking Errors" step from ThoughtChallengeWizard since ANT categories are already captured during thought recording (Step 3)
   - **Simplified Challenge Flow**: ThoughtChallengeWizard now has 3 steps instead of 4:
     - Intro: Learn about thought challenging
