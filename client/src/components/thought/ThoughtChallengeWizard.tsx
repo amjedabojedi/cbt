@@ -426,7 +426,8 @@ export function ThoughtChallengeWizard({
                         <FormControl>
                           <Textarea
                             placeholder="e.g., My manager gave me critical feedback on my last report..."
-                            className="resize-none w-full min-h-[100px] text-base text-foreground"
+                            className="resize-none w-full min-h-[100px] text-base"
+                            style={{ color: '#000000' }}
                             rows={4}
                             {...field}
                             data-testid="textarea-evidence-for"
@@ -456,7 +457,8 @@ export function ThoughtChallengeWizard({
                         <FormControl>
                           <Textarea
                             placeholder="e.g., I've received positive feedback on my work before. My colleague said I did great work last month..."
-                            className="resize-none w-full min-h-[100px] text-base text-foreground"
+                            className="resize-none w-full min-h-[100px] text-base"
+                            style={{ color: '#000000' }}
                             rows={4}
                             {...field}
                             data-testid="textarea-evidence-against"
@@ -518,7 +520,8 @@ export function ThoughtChallengeWizard({
                         <FormControl>
                           <Textarea
                             placeholder="e.g., While I got some critical feedback, I've also done good work that was praised. One piece of criticism doesn't mean I'm incompetent - it means I have room to improve in this area..."
-                            className="resize-none w-full min-h-[120px] text-base text-foreground"
+                            className="resize-none w-full min-h-[120px] text-base"
+                            style={{ color: '#000000' }}
                             rows={5}
                             {...field}
                             data-testid="textarea-alternative"
