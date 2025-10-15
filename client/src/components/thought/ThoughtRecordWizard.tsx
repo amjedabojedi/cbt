@@ -229,8 +229,8 @@ export default function ThoughtRecordWizard({
             </FormControl>
             <div className="flex justify-between items-center text-sm">
               <FormMessage />
-              <span className={`${field.value.length < 10 ? 'text-red-500' : 'text-green-600'}`}>
-                {field.value.length}/10 characters minimum
+              <span className={`${(field.value || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
+                {(field.value || "").length}/10 characters minimum
               </span>
             </div>
           </FormItem>
@@ -384,8 +384,8 @@ export default function ThoughtRecordWizard({
             </FormControl>
             <div className="flex justify-between items-center text-sm">
               <FormMessage />
-              <span className={`${field.value.length < 10 ? 'text-red-500' : 'text-green-600'}`}>
-                {field.value.length}/10 characters minimum
+              <span className={`${(field.value || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
+                {(field.value || "").length}/10 characters minimum
               </span>
             </div>
           </FormItem>
