@@ -116,7 +116,18 @@ All core modules follow a consistent wizard-based pattern:
 
 ## Changelog
 
-- October 15, 2025 (latest). Fixed Microsoft Edge textarea text visibility bug in thought wizards
+- October 15, 2025 (latest). Enhanced thought categorization with detailed definitions and multiple examples
+  - **Improved Category Descriptions**: Each of the 5 thought categories now has a comprehensive definition explaining what it means
+  - **Multiple Examples**: Expanded from 2 to 3-4 relatable examples per category to help users better understand
+  - **Categories Enhanced**:
+    - About Yourself: "Thoughts that judge your abilities, worth, character, or identity as a person"
+    - About Others: "Thoughts about what other people think of you or how they perceive you"
+    - About the Future: "Predictions, worries, or expectations about what will happen next or in the future"
+    - About the Past: "Regrets, criticisms, or negative thoughts about things that already happened"
+    - About the Situation: "Judgments or interpretations about your current circumstances or what's happening around you"
+  - **Fixed Value Consistency**: Changed "about_self" to "about_yourself" to match database schema
+  - **Educational UX**: Step 3 of ThoughtRecordWizard now serves as a learning tool with clear definitions and examples
+- October 15, 2025 (earlier). Fixed Microsoft Edge textarea text visibility bug in thought wizards
   - **Root Cause**: shadcn/ui FormField component has a bug in Microsoft Edge where `field.value` doesn't sync with actual form state, causing textareas to appear empty even though data is being captured
   - **Investigation**: Systematic debugging with console logs revealed form state contained correct values but FormField's render prop received empty field.value
   - **Solution**: Bypassed FormField entirely - use direct value binding with `form.watch()` and `form.setValue()` instead of FormField render props

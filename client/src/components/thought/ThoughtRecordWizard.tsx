@@ -65,34 +65,34 @@ import { Label } from "@/components/ui/label";
 // Thought categories for educational recognition
 const thoughtCategories = [
   {
-    value: "about_self",
+    value: "about_yourself",
     label: "About Yourself",
-    description: "Thoughts about your abilities, worth, or identity",
-    example: "\"I'm not good enough\" or \"I always mess things up\""
+    description: "Thoughts that judge your abilities, worth, character, or identity as a person",
+    example: "\"I'm not good enough\", \"I'm a failure\", \"I always mess things up\", \"I'm worthless\""
   },
   {
     value: "about_others",
     label: "About Others",
-    description: "Thoughts about what others think or how they see you",
-    example: "\"They think I'm stupid\" or \"Nobody likes me\""
+    description: "Thoughts about what other people think of you or how they perceive you",
+    example: "\"They think I'm stupid\", \"Nobody likes me\", \"Everyone is judging me\", \"They're disappointed in me\""
   },
   {
     value: "about_future",
     label: "About the Future",
-    description: "Predictions or worries about what will happen",
-    example: "\"This will never work\" or \"Something bad will happen\""
+    description: "Predictions, worries, or expectations about what will happen next or in the future",
+    example: "\"This will never work\", \"I'm going to fail\", \"Something bad will happen\", \"It's going to be a disaster\""
   },
   {
     value: "about_past",
     label: "About the Past",
-    description: "Regrets or criticisms about past actions",
-    example: "\"I should have done better\" or \"I ruined everything\""
+    description: "Regrets, criticisms, or negative thoughts about things that already happened",
+    example: "\"I should have done better\", \"I ruined everything\", \"It's all my fault\", \"I made a terrible mistake\""
   },
   {
     value: "about_situation",
     label: "About the Situation",
-    description: "Judgments about circumstances or events",
-    example: "\"This is terrible\" or \"Everything is falling apart\""
+    description: "Judgments or interpretations about your current circumstances or what's happening around you",
+    example: "\"This is terrible\", \"Everything is falling apart\", \"This is unfair\", \"Nothing ever goes right\""
   },
 ];
 
