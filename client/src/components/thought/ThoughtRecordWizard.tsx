@@ -22,8 +22,16 @@ import {
   Home,
   RefreshCw,
   ArrowRight,
+  X,
 } from "lucide-react";
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -62,13 +70,11 @@ const thoughtRecordSchema = z.object({
 type ThoughtRecordFormValues = z.infer<typeof thoughtRecordSchema>;
 
 interface ThoughtRecordWizardProps {
-  open: boolean;
   onClose: () => void;
   preselectedEmotionId?: number;
 }
 
 export default function ThoughtRecordWizard({ 
-  open, 
   onClose,
   preselectedEmotionId,
 }: ThoughtRecordWizardProps) {
@@ -426,17 +432,22 @@ export default function ThoughtRecordWizard({
 
   return (
     <>
-      <Dialog open={open && !showSuccessDialog} onOpenChange={(isOpen) => !isOpen && onClose()} modal={false}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-              <Brain className="h-7 w-7 text-primary" />
-              Record Automatic Thought
-            </DialogTitle>
-            <DialogDescription>
-              Capture and understand your automatic thoughts
-            </DialogDescription>
-          </DialogHeader>
+      <Card className="max-w-3xl mx-auto">
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                <Brain className="h-7 w-7 text-primary" />
+                Record Automatic Thought
+              </CardTitle>
+              <CardDescription>
+                Capture and understand your automatic thoughts
+              </CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onClose} data-testid="button-close-wizard">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
 
           {/* Progress Bar */}
           <div className="space-y-2" data-testid="progress-wizard">
@@ -446,7 +457,9 @@ export default function ThoughtRecordWizard({
             </div>
             <Progress value={progress} className="h-2" />
           </div>
+        </CardHeader>
 
+        <CardContent>
           {/* Step Content */}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-4">
@@ -512,8 +525,8 @@ export default function ThoughtRecordWizard({
               </div>
             </form>
           </Form>
-        </DialogContent>
-      </Dialog>
+        </CardContent>
+      </Card>
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>

@@ -217,10 +217,11 @@ export default function ThoughtRecords() {
         </div>
         
         {/* Thought Record Wizard */}
-        <ThoughtRecordWizard 
-          open={showWizard} 
-          onClose={() => setShowWizard(false)} 
-        />
+        {showWizard && (
+          <ThoughtRecordWizard 
+            onClose={() => setShowWizard(false)} 
+          />
+        )}
         
         {/* Thought Record Details Dialog */}
         {selectedThought && (
