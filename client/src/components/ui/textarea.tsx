@@ -15,10 +15,18 @@ const Textarea = React.forwardRef<
         color: computedStyle.color,
         backgroundColor: computedStyle.backgroundColor,
         zIndex: computedStyle.zIndex,
+        fontSize: computedStyle.fontSize,
+        fontFamily: computedStyle.fontFamily,
+        lineHeight: computedStyle.lineHeight,
+        textIndent: computedStyle.textIndent,
+        caretColor: computedStyle.caretColor,
         value: textareaRef.current.value,
+        valueLength: textareaRef.current.value.length,
         className: className,
         visibility: computedStyle.visibility,
-        opacity: computedStyle.opacity
+        opacity: computedStyle.opacity,
+        position: computedStyle.position,
+        pointerEvents: computedStyle.pointerEvents
       });
     }
   });
