@@ -424,7 +424,7 @@ export default function ThoughtRecordWizard({
 
   return (
     <>
-      <Dialog open={open && !showSuccessDialog} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <Dialog open={open && !showSuccessDialog} onOpenChange={(isOpen) => !isOpen && onClose()} modal={false}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-2">

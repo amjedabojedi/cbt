@@ -206,7 +206,7 @@ export function ThoughtChallengeWizard({
   return (
     <>
       {/* Main Challenge Dialog */}
-      <Dialog open={open && !showSuccessDialog} onOpenChange={handleSkip}>
+      <Dialog open={open && !showSuccessDialog} onOpenChange={handleSkip} modal={false}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -659,7 +659,7 @@ export function ThoughtChallengeWizard({
       </Dialog>
 
       {/* Success Dialog */}
-      <Dialog open={showSuccessDialog} onOpenChange={handleCloseSuccess}>
+      <Dialog open={showSuccessDialog} onOpenChange={handleCloseSuccess} modal={false}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
