@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import AppLayout from "@/components/layout/AppLayout";
-import EmotionTrackingForm from "@/components/emotion/EmotionTrackingForm";
+import EmotionTrackingFormWizard from "@/components/emotion/EmotionTrackingFormWizard";
 import EmotionHistory from "@/components/dashboard/EmotionHistory";
 import {
   Card,
@@ -106,7 +106,7 @@ export default function EmotionTracking() {
                     </div>
                   )}
                   
-                  <EmotionTrackingForm language={language} direction={direction} />
+                  <EmotionTrackingFormWizard language={language} direction={direction} />
                 </CardContent>
               </Card>
             </TabsContent>
