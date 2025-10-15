@@ -111,6 +111,12 @@ export default function ThoughtRecordWizard({
     },
   });
 
+  // Debug: Watch all form values
+  const watchedValues = form.watch();
+  console.log("📊 FORM STATE - All values:", watchedValues);
+  console.log("📊 FORM STATE - situation value:", watchedValues.situation);
+  console.log("📊 FORM STATE - current step:", currentStep);
+
   const onSubmit = async (data: ThoughtRecordFormValues) => {
     if (!activeUserId) return;
     
@@ -373,43 +379,34 @@ export default function ThoughtRecordWizard({
         </div>
       </div>
 
-      <FormField
-        control={form.control}
-        name="situation"
-        render={({ field }) => {
-          console.log("🔍 SITUATION FIELD RENDER - Current value:", field.value);
-          
-          return (
-            <FormItem>
-              <FormLabel className="text-base font-semibold">
-                What was happening when you had this thought? <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormDescription>
-                Describe the situation objectively - who, what, when, where, why
-              </FormDescription>
-              <Textarea
-                placeholder="e.g., I was preparing for my presentation tomorrow and my manager asked to review my slides..."
-                className="resize-none w-full min-h-[120px] text-base"
-                rows={5}
-                value={field.value}
-                onChange={(e) => {
-                  console.log("⌨️ TEXTAREA onChange - New value:", e.target.value);
-                  field.onChange(e.target.value);
-                }}
-                onBlur={field.onBlur}
-                name={field.name}
-                data-testid="textarea-situation"
-              />
-              <div className="flex justify-between items-center text-sm">
-                <FormMessage />
-                <span className={`${(field.value || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
-                  {(field.value || "").length}/10 characters minimum
-                </span>
-              </div>
-            </FormItem>
-          );
-        }}
-      />
+      <div className="space-y-2">
+        <label className="text-base font-semibold">
+          What was happening when you had this thought? <span className="text-red-500">*</span>
+        </label>
+        <p className="text-sm text-muted-foreground">
+          Describe the situation objectively - who, what, when, where, why
+        </p>
+        <Textarea
+          placeholder="e.g., I was preparing for my presentation tomorrow and my manager asked to review my slides..."
+          className="resize-none w-full min-h-[120px] text-base"
+          rows={5}
+          value={watchedValues.situation || ""}
+          onChange={(e) => {
+            console.log("⌨️ DIRECT TEXTAREA onChange - New value:", e.target.value);
+            form.setValue("situation", e.target.value, { shouldValidate: true });
+            console.log("✅ After setValue, form state:", form.getValues());
+          }}
+          data-testid="textarea-situation"
+        />
+        <div className="flex justify-between items-center text-sm">
+          {form.formState.errors.situation && (
+            <p className="text-red-500 text-sm">{form.formState.errors.situation.message}</p>
+          )}
+          <span className={`${(watchedValues.situation || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
+            {(watchedValues.situation || "").length}/10 characters minimum
+          </span>
+        </div>
+      </div>
 
       <div className="bg-gray-50 p-4 rounded-md">
         <h4 className="font-medium mb-2">Tips for Describing Situations:</h4>
