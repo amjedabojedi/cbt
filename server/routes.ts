@@ -269,6 +269,52 @@ function getEmotionColor(emotion: string): string {
   return emotionMapping.getEmotionColor(emotion);
 };
 
+// Helper function to auto-update goal status based on milestone completion
+async function updateGoalStatusBasedOnMilestones(goalId: number): Promise<void> {
+  try {
+    // Get all milestones for this goal
+    const milestones = await db
+      .select()
+      .from(goalMilestones)
+      .where(eq(goalMilestones.goalId, goalId));
+    
+    // If no milestones, set status to pending
+    if (milestones.length === 0) {
+      await db
+        .update(goals)
+        .set({ status: 'pending' })
+        .where(eq(goals.id, goalId));
+      console.log(`Goal ${goalId} status set to 'pending' (no milestones)`);
+      return;
+    }
+    
+    // Calculate completion percentage
+    const completedMilestones = milestones.filter(m => m.isCompleted).length;
+    const totalMilestones = milestones.length;
+    const completionPercentage = (completedMilestones / totalMilestones) * 100;
+    
+    // Determine new status based on completion
+    let newStatus: string;
+    if (completionPercentage === 0) {
+      newStatus = 'pending';
+    } else if (completionPercentage === 100) {
+      newStatus = 'completed';
+    } else {
+      newStatus = 'in_progress';
+    }
+    
+    // Update goal status
+    await db
+      .update(goals)
+      .set({ status: newStatus })
+      .where(eq(goals.id, goalId));
+    
+    console.log(`Goal ${goalId} status auto-updated to '${newStatus}' (${completedMilestones}/${totalMilestones} milestones completed)`);
+  } catch (error) {
+    console.error(`Error updating goal status for goal ${goalId}:`, error);
+  }
+}
+
 /**
  * Find clients who haven't recorded emotions in the specified number of days
  */
@@ -4023,6 +4069,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Validated milestone data:", JSON.stringify(validatedData));
       
       const milestone = await storage.createGoalMilestone(validatedData);
+      
+      // Auto-update goal status based on milestone completion
+      await updateGoalStatusBasedOnMilestones(goalId);
+      
       res.status(201).json(milestone);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -4134,6 +4184,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const updatedMilestone = await storage.updateGoalMilestoneCompletion(id, isCompleted);
+      
+      // Auto-update goal status based on milestone completion
+      await updateGoalStatusBasedOnMilestones(milestone.goalId);
+      
       res.status(200).json(updatedMilestone);
     } catch (error) {
       console.error("Update milestone completion error:", error);
