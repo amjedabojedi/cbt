@@ -35,7 +35,7 @@ ResilienceHub is a comprehensive mental health web application that provides cog
 1. **Emotion Tracking**: Interactive emotion wheel with intensity tracking
 2. **Thought Records**: CBT thought challenging with cognitive distortion identification
 3. **Journaling**: AI-assisted journal analysis with emotion detection
-4. **Goal Setting**: SMART goals with milestone tracking
+4. **Goal Setting**: SMART goals with smart milestone tracking and automatic status updates
 5. **Reframe Coach**: Interactive cognitive restructuring practice
 6. **Progress Tracking**: Cross-component insights and analytics
 
@@ -106,6 +106,7 @@ ResilienceHub is a comprehensive mental health web application that provides cog
 
 ## Changelog
 
+- October 15, 2025. Implemented Smart Status auto-update system for goals - status now automatically updates based on milestone completion percentage (0% → pending, 1-99% → in_progress, 100% → completed)
 - June 19, 2025. Initial setup
 
 ## User Preferences
