@@ -346,16 +346,22 @@ export default function ThoughtRecordWizard({
         <div className="flex items-start">
           <Info className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
           <div>
-            <h4 className="font-semibold text-blue-900 mb-1">💡 Why Categorize Your Thought?</h4>
+            <h4 className="font-semibold text-blue-900 mb-2">💡 What Are Automatic Thoughts?</h4>
+            <p className="text-sm text-blue-800 mb-2">
+              Automatic thoughts are the immediate thoughts that pop into your mind in response to a situation. They're called "automatic" because they happen so quickly you barely notice them.
+            </p>
+            <p className="text-sm text-blue-800 mb-2">
+              <strong>Why categorize them?</strong> Different types of automatic thoughts reveal different patterns. When you recognize what type of thought you had, you can better understand your thinking patterns over time.
+            </p>
             <p className="text-sm text-blue-800">
-              Recognizing what type of thought you had helps you see patterns over time. Many people discover they have certain "go-to" thought patterns!
+              Below are the 5 main types of automatic thoughts. Read each definition and example, then select which ones match your thought.
             </p>
           </div>
         </div>
       </div>
 
       <div className="bg-purple-50 border border-purple-200 p-4 rounded-md">
-        <p className="text-sm font-medium text-purple-900 mb-2">Your thought:</p>
+        <p className="text-sm font-medium text-purple-900 mb-2">Your automatic thought:</p>
         <p className="text-sm italic text-gray-700">"{watchedValues.automaticThought}"</p>
       </div>
 
