@@ -376,31 +376,47 @@ export default function ThoughtRecordWizard({
       <FormField
         control={form.control}
         name="situation"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-base font-semibold">
-              What was happening when you had this thought? <span className="text-red-500">*</span>
-            </FormLabel>
-            <FormDescription>
-              Describe the situation objectively - who, what, when, where, why
-            </FormDescription>
-            <FormControl>
-              <Textarea
-                placeholder="e.g., I was preparing for my presentation tomorrow and my manager asked to review my slides..."
-                className="resize-none w-full min-h-[120px] text-base"
-                rows={5}
-                {...field}
-                data-testid="textarea-situation"
-              />
-            </FormControl>
-            <div className="flex justify-between items-center text-sm">
-              <FormMessage />
-              <span className={`${(field.value || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
-                {(field.value || "").length}/10 characters minimum
-              </span>
-            </div>
-          </FormItem>
-        )}
+        render={({ field }) => {
+          console.log("🔍 SITUATION FIELD RENDER - Current value:", field.value);
+          console.log("🔍 SITUATION FIELD - Field object:", field);
+          
+          return (
+            <FormItem>
+              <FormLabel className="text-base font-semibold">
+                What was happening when you had this thought? <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormDescription>
+                Describe the situation objectively - who, what, when, where, why
+              </FormDescription>
+              <FormControl>
+                <Textarea
+                  placeholder="e.g., I was preparing for my presentation tomorrow and my manager asked to review my slides..."
+                  className="resize-none w-full min-h-[120px] text-base"
+                  rows={5}
+                  {...field}
+                  onChange={(e) => {
+                    console.log("⌨️ SITUATION TEXTAREA onChange - Event:", e);
+                    console.log("⌨️ SITUATION TEXTAREA onChange - Value:", e.target.value);
+                    console.log("⌨️ SITUATION TEXTAREA onChange - Value length:", e.target.value.length);
+                    field.onChange(e);
+                    console.log("✅ SITUATION TEXTAREA onChange - After field.onChange, field.value:", field.value);
+                  }}
+                  onBlur={(e) => {
+                    console.log("👋 SITUATION TEXTAREA onBlur - Value:", e.target.value);
+                    field.onBlur();
+                  }}
+                  data-testid="textarea-situation"
+                />
+              </FormControl>
+              <div className="flex justify-between items-center text-sm">
+                <FormMessage />
+                <span className={`${(field.value || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
+                  {(field.value || "").length}/10 characters minimum
+                </span>
+              </div>
+            </FormItem>
+          );
+        }}
       />
 
       <div className="bg-gray-50 p-4 rounded-md">
