@@ -3,6 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
 import ThoughtRecordsList from "@/components/thought/ThoughtRecordsList";
+import ThoughtRecordWizard from "@/components/thought/ThoughtRecordWizard";
 import { format } from "date-fns";
 import { ThoughtRecord as BaseThoughtRecord } from "@shared/schema";
 import useActiveUser from "@/hooks/use-active-user";
@@ -64,6 +65,7 @@ export default function ThoughtRecords() {
   const { user } = useAuth();
   const { isViewingClientData, activeUserId } = useActiveUser();
   const [selectedThought, setSelectedThought] = useState<ThoughtRecord | null>(null);
+  const [showWizard, setShowWizard] = useState(false);
   const [location, navigate] = useLocation();
   
   // Fetch related emotion records for the active user (could be a client viewed by a therapist)
@@ -161,11 +163,9 @@ export default function ThoughtRecords() {
               
               {/* Only show New Record button if user is viewing their own data AND is not a therapist */}
               {!isViewingClientData && user?.role !== 'therapist' && (
-                <Button asChild>
-                  <Link href="/emotions">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    New Record
-                  </Link>
+                <Button onClick={() => setShowWizard(true)} data-testid="button-new-thought">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  New Thought Record
                 </Button>
               )}
             </CardHeader>
@@ -176,7 +176,7 @@ export default function ThoughtRecords() {
                     <div className="flex gap-2 text-blue-700">
                       <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
                       <p className="text-xs">
-                        Start with an emotion entry, then add reflections to create thought records.
+                        Record automatic thoughts as they occur. You can optionally link them to emotions you've tracked.
                         Thought records help you identify patterns in your thinking and develop healthier perspectives.
                       </p>
                     </div>
@@ -215,6 +215,12 @@ export default function ThoughtRecords() {
           {/* Thought Records List Component */}
           <ThoughtRecordsList onEditRecord={handleEditThought} />
         </div>
+        
+        {/* Thought Record Wizard */}
+        <ThoughtRecordWizard 
+          open={showWizard} 
+          onClose={() => setShowWizard(false)} 
+        />
         
         {/* Thought Record Details Dialog */}
         {selectedThought && (

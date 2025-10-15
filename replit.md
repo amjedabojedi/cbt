@@ -32,12 +32,22 @@ ResilienceHub is a comprehensive mental health web application that provides cog
 - **Session Management**: Secure session handling with fallback authentication
 
 ### Core Features
-1. **Emotion Tracking**: Interactive emotion wheel with intensity tracking
-2. **Thought Records**: CBT thought challenging with cognitive distortion identification
+1. **Emotion Tracking**: Interactive emotion wheel with wizard-based 4-step flow, onboarding tour, and intensity tracking
+2. **Thought Records**: Wizard-based 3-step thought recording with optional emotion linking and separate thought challenging
 3. **Journaling**: AI-assisted journal analysis with emotion detection
 4. **Goal Setting**: SMART goals with smart milestone tracking and automatic status updates
 5. **Reframe Coach**: Interactive cognitive restructuring practice
 6. **Progress Tracking**: Cross-component insights and analytics
+
+### UX Pattern - Wizard-Based Flows
+All core modules follow a consistent wizard-based pattern:
+- **Step-by-step guidance**: Progress bar showing "Step X of Y" with percentage
+- **Informative guidance**: Blue info boxes explaining "Why This Step?" at each stage
+- **Required fields**: Marked with red asterisk (*) and minimum character validation
+- **Inline examples**: Placeholder text and FormDescription showing examples
+- **Success dialogs**: Post-submission insights with clear next actions
+- **Navigation**: Previous/Next buttons with validation before advancing
+- **First-time onboarding**: localStorage-persisted tours for new users
 
 ### AI Integration
 - **OpenAI Integration**: Journal analysis, emotion detection, and reframe coaching
@@ -106,7 +116,16 @@ ResilienceHub is a comprehensive mental health web application that provides cog
 
 ## Changelog
 
-- October 15, 2025 (later). Code cleanup and TypeScript improvements
+- October 15, 2025 (latest). Implemented wizard-based UX pattern across emotion tracking and thought recording
+  - **Emotion Tracking Wizard**: Created EmotionTrackingFormWizard with 4-step flow (Select Emotion → Rate Intensity → Describe Situation → Add Context)
+  - **Onboarding Tour**: Created EmotionOnboardingTour with 3-slide introduction for first-time users, stored in localStorage
+  - **Thought Recording Wizard**: Created ThoughtRecordWizard with 3-step flow (Write Thought → Optional Emotion Link → Describe Situation)
+  - **Flow Separation**: Decoupled emotion tracking from thought recording - each module is now standalone with optional cross-linking
+  - **Thought Challenging**: Made optional post-recording action instead of forced flow
+  - **Success Dialogs**: Enhanced with insights (total tracked, most common emotion, average intensity) and clear next actions
+  - **Consistent Pattern**: All wizards follow same pattern with progress bars, informative guidance, required field indicators, and inline examples
+  - **Updated ThoughtRecords page**: Replaced emotion-first flow with direct thought recording wizard access
+- October 15, 2025 (earlier). Code cleanup and TypeScript improvements
   - Removed duplicate `/emotion-tracking` route (kept `/emotions` as canonical route)
   - Removed broken `/analytics` page that had API errors and was not accessible from navigation
   - Fixed all 15 TypeScript warnings in Reports.tsx by adding proper type annotations (EmotionRecord[], ThoughtRecord[], Goal[])
