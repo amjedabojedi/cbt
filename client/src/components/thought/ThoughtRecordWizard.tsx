@@ -377,10 +377,15 @@ export default function ThoughtRecordWizard({
             </FormDescription>
             <FormControl>
               <Textarea
-                {...field}
+                value={field.value || ""}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                name={field.name}
+                ref={field.ref}
                 placeholder="e.g., I was preparing for my presentation tomorrow and my manager asked to review my slides..."
                 className="min-h-[120px] text-base"
                 data-testid="textarea-situation"
+                disabled={false}
               />
             </FormControl>
             <div className="flex justify-between items-center text-sm">
