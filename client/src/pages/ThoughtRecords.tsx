@@ -123,7 +123,7 @@ export default function ThoughtRecords() {
         <ClientDebug />
         
         <div className="flex flex-col space-y-8">
-          <Card>
+          {!showWizard && <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
                 {isViewingClientData ? (
@@ -210,17 +210,19 @@ export default function ThoughtRecords() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </Card>}
           
-          {/* Thought Records List Component */}
-          <ThoughtRecordsList onEditRecord={handleEditThought} />
+          {/* Only show list when wizard is not open */}
+          {!showWizard && <ThoughtRecordsList onEditRecord={handleEditThought} />}
         </div>
         
-        {/* Thought Record Wizard */}
+        {/* Thought Record Wizard - Show instead of list when active */}
         {showWizard && (
-          <ThoughtRecordWizard 
-            onClose={() => setShowWizard(false)} 
-          />
+          <div className="mb-6">
+            <ThoughtRecordWizard 
+              onClose={() => setShowWizard(false)} 
+            />
+          </div>
         )}
         
         {/* Thought Record Details Dialog */}
