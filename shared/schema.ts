@@ -79,6 +79,8 @@ export const thoughtRecords = pgTable("thought_records", {
   userId: integer("user_id").notNull().references(() => users.id),
   emotionRecordId: integer("emotion_record_id").references(() => emotionRecords.id),
   automaticThoughts: text("automatic_thoughts").notNull(),
+  thoughtCategory: jsonb("thought_category").$type<string[]>(),
+  situation: text("situation"),
   cognitiveDistortions: jsonb("cognitive_distortions").notNull().$type<string[]>(),
   evidenceFor: text("evidence_for"),
   evidenceAgainst: text("evidence_against"),
