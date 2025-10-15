@@ -378,7 +378,6 @@ export default function ThoughtRecordWizard({
         name="situation"
         render={({ field }) => {
           console.log("🔍 SITUATION FIELD RENDER - Current value:", field.value);
-          console.log("🔍 SITUATION FIELD - Field object:", field);
           
           return (
             <FormItem>
@@ -388,26 +387,19 @@ export default function ThoughtRecordWizard({
               <FormDescription>
                 Describe the situation objectively - who, what, when, where, why
               </FormDescription>
-              <FormControl>
-                <Textarea
-                  placeholder="e.g., I was preparing for my presentation tomorrow and my manager asked to review my slides..."
-                  className="resize-none w-full min-h-[120px] text-base"
-                  rows={5}
-                  {...field}
-                  onChange={(e) => {
-                    console.log("⌨️ SITUATION TEXTAREA onChange - Event:", e);
-                    console.log("⌨️ SITUATION TEXTAREA onChange - Value:", e.target.value);
-                    console.log("⌨️ SITUATION TEXTAREA onChange - Value length:", e.target.value.length);
-                    field.onChange(e);
-                    console.log("✅ SITUATION TEXTAREA onChange - After field.onChange, field.value:", field.value);
-                  }}
-                  onBlur={(e) => {
-                    console.log("👋 SITUATION TEXTAREA onBlur - Value:", e.target.value);
-                    field.onBlur();
-                  }}
-                  data-testid="textarea-situation"
-                />
-              </FormControl>
+              <Textarea
+                placeholder="e.g., I was preparing for my presentation tomorrow and my manager asked to review my slides..."
+                className="resize-none w-full min-h-[120px] text-base"
+                rows={5}
+                value={field.value}
+                onChange={(e) => {
+                  console.log("⌨️ TEXTAREA onChange - New value:", e.target.value);
+                  field.onChange(e.target.value);
+                }}
+                onBlur={field.onBlur}
+                name={field.name}
+                data-testid="textarea-situation"
+              />
               <div className="flex justify-between items-center text-sm">
                 <FormMessage />
                 <span className={`${(field.value || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
