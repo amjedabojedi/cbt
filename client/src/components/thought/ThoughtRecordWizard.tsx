@@ -10,6 +10,7 @@ import useActiveUser from "@/hooks/use-active-user";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useLocation } from "wouter";
+import { ThoughtChallengeWizard } from "./ThoughtChallengeWizard";
 
 import {
   Brain,
@@ -78,6 +79,7 @@ export default function ThoughtRecordWizard({
   
   const [currentStep, setCurrentStep] = useState(1);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showChallengeWizard, setShowChallengeWizard] = useState(false);
   const [recordedThought, setRecordedThought] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -537,10 +539,7 @@ export default function ThoughtRecordWizard({
                 className="flex items-center justify-center gap-2 h-12"
                 onClick={() => {
                   setShowSuccessDialog(false);
-                  onClose();
-                  if (recordedThought) {
-                    navigate(`/reflection?thoughtId=${recordedThought.id}`);
-                  }
+                  setShowChallengeWizard(true);
                 }}
                 data-testid="button-challenge-thought"
               >
@@ -579,6 +578,18 @@ export default function ThoughtRecordWizard({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Thought Challenge Wizard */}
+      {recordedThought && (
+        <ThoughtChallengeWizard
+          open={showChallengeWizard}
+          onClose={() => {
+            setShowChallengeWizard(false);
+            onClose();
+          }}
+          thoughtRecord={recordedThought}
+        />
+      )}
     </>
   );
 }
