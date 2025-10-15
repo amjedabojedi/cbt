@@ -371,10 +371,10 @@ export default function ThoughtRecordWizard({
         render={() => (
           <FormItem>
             <FormLabel className="text-base font-semibold">
-              Which type of thought is this? <span className="text-red-500">*</span>
+              Read each definition and example, then select which ones match your thought <span className="text-red-500">*</span>
             </FormLabel>
             <FormDescription>
-              Select all that apply - your thought might fit multiple categories
+              Your thought might fit multiple categories - select all that apply
             </FormDescription>
             <div className="space-y-3 mt-3">
               {thoughtCategories.map((category) => (
@@ -400,9 +400,14 @@ export default function ThoughtRecordWizard({
                           {category.label}
                         </Label>
                         <p className="text-xs text-gray-600 mt-1">{category.description}</p>
-                        <p className="text-xs text-gray-500 italic mt-1">
-                          Example: {category.example}
-                        </p>
+                        <div className="mt-2 space-y-1">
+                          <p className="text-xs font-medium text-gray-700">Examples:</p>
+                          {category.example.split('", "').map((ex, idx) => (
+                            <p key={idx} className="text-xs text-gray-500 italic ml-2">
+                              • {ex.replace(/^"|"$/g, '')}
+                            </p>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
