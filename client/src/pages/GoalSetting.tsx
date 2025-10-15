@@ -743,15 +743,28 @@ export default function GoalSetting() {
                             <p className="text-sm text-muted-foreground line-clamp-2">{goal.measurable}</p>
                           </div>
                           
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="mt-1 h-auto p-0 text-primary hover:text-primary/80 hover:bg-transparent"
-                            onClick={() => setSelectedGoal(goal)}
-                            data-testid={`button-view-details-${goal.id}`}
-                          >
-                            View Details & Milestones
-                          </Button>
+                          <div className="flex gap-3 mt-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-auto p-0 text-primary hover:text-primary/80 hover:bg-transparent"
+                              onClick={() => setSelectedGoal(goal)}
+                              data-testid={`button-view-details-${goal.id}`}
+                            >
+                              <Flag className="h-3.5 w-3.5 mr-1" />
+                              View Details
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-auto p-0 text-primary hover:text-primary/80 hover:bg-transparent"
+                              onClick={() => setSelectedGoal(goal)}
+                              data-testid={`button-view-milestones-${goal.id}`}
+                            >
+                              <Target className="h-3.5 w-3.5 mr-1" />
+                              View Milestones ({progress.total})
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     
@@ -832,21 +845,30 @@ export default function GoalSetting() {
             
             {/* Goal Details Dialog */}
             <Dialog open={!!selectedGoal} onOpenChange={(open) => !open && setSelectedGoal(null)}>
-              <DialogContent className="max-w-3xl">
+              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>{selectedGoal?.title}</DialogTitle>
-                  <DialogDescription>
-                    {getStatusBadge(selectedGoal?.status || 'pending')}
+                  <DialogTitle className="text-2xl">{selectedGoal?.title}</DialogTitle>
+                  <DialogDescription className="flex items-center gap-3 flex-wrap">
+                    {getStatusBadge(selectedGoal?.status || 'pending', 'lg')}
                     {selectedGoal?.deadline && (
-                      <span className="ml-3 inline-flex items-center text-sm text-muted-foreground">
+                      <span className="inline-flex items-center text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4 mr-1" />
                         Target: {format(parseISO(selectedGoal?.deadline), "MMM d, yyyy")}
                       </span>
                     )}
+                    {(() => {
+                      const progress = getMilestoneProgress(selectedGoal?.id || 0);
+                      return progress.total > 0 ? (
+                        <span className="inline-flex items-center text-sm font-medium text-primary">
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          {progress.completed}/{progress.total} milestones completed
+                        </span>
+                      ) : null;
+                    })()}
                   </DialogDescription>
                 </DialogHeader>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <div>
                     <h3 className="font-medium text-lg mb-3">Goal Details</h3>
                     <div className="space-y-4">
@@ -886,19 +908,23 @@ export default function GoalSetting() {
                     )}
                   </div>
                   
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-medium text-lg">Milestones</h3>
+                  <div id="milestones-section" className="bg-muted/30 p-6 rounded-lg border">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Target className="h-5 w-5 text-primary" />
+                        <h3 className="font-semibold text-xl">Milestones</h3>
+                      </div>
                       
                       {user?.role === 'client' && (
                         <Button 
-                          variant="outline" 
+                          variant="default" 
                           size="sm" 
                           className="gap-1"
                           onClick={() => setIsAddingMilestone(true)}
+                          data-testid="button-add-milestone"
                         >
                           <PlusCircle className="h-4 w-4" />
-                          Add
+                          Add Milestone
                         </Button>
                       )}
                     </div>
