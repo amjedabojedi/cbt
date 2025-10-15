@@ -430,13 +430,7 @@ export default function ThoughtRecordWizard({
 
   return (
     <>
-      <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
-          <DialogTitle className="sr-only">Record Automatic Thought</DialogTitle>
-          <DialogDescription className="sr-only">
-            Capture and understand your automatic thoughts through this step-by-step process
-          </DialogDescription>
-          <Card className="border-0 shadow-none">
+      <Card className="max-w-3xl mx-auto">
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
@@ -530,9 +524,7 @@ export default function ThoughtRecordWizard({
             </form>
           </Form>
         </CardContent>
-          </Card>
-        </DialogContent>
-      </Dialog>
+      </Card>
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
