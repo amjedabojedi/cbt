@@ -225,8 +225,8 @@ export default function ThoughtRecordWizard({
             <FormControl>
               <Textarea
                 placeholder="e.g., I'm going to embarrass myself in front of everyone..."
-                className="min-h-[120px] text-base"
-                style={{ pointerEvents: 'auto' }}
+                className="resize-none w-full min-h-[120px] text-base"
+                rows={5}
                 {...field}
                 data-testid="textarea-automatic-thought"
               />
@@ -382,7 +382,6 @@ export default function ThoughtRecordWizard({
               <Textarea
                 placeholder="e.g., I was preparing for my presentation tomorrow and my manager asked to review my slides..."
                 className="resize-none w-full min-h-[120px] text-base"
-                style={{ pointerEvents: 'auto' }}
                 rows={5}
                 {...field}
                 data-testid="textarea-situation"

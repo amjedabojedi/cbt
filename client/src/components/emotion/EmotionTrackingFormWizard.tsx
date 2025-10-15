@@ -459,7 +459,6 @@ export default function EmotionTrackingFormWizard({
                           <Textarea
                             placeholder="Example: My boss criticized my work in front of the team during the meeting..."
                             className="resize-none w-full min-h-[120px] text-base"
-                            style={{ pointerEvents: 'auto' }}
                             rows={5}
                             {...field}
                             data-testid="textarea-situation"
