@@ -116,7 +116,13 @@ All core modules follow a consistent wizard-based pattern:
 
 ## Changelog
 
-- October 15, 2025 (latest). Implemented Thought Challenging Wizard with educational CBT guidance
+- October 15, 2025 (latest). Fixed Microsoft Edge textarea text visibility bug in thought wizards
+  - **Root Cause**: Radix UI Dialog component has a rendering bug in Microsoft Edge causing textarea text to be invisible (even though data is captured correctly)
+  - **Solution**: Converted ThoughtRecordWizard and ThoughtChallengeWizard from Dialog to Card component (matching the working EmotionTrackingFormWizard pattern)
+  - **Investigation Method**: Systematic debugging ruled out CSS issues (all properties were correct); identified browser-specific Dialog rendering bug
+  - **Design Pattern**: Card-based wizards work correctly across all browsers; Dialog-based wizards have Edge text rendering issues
+  - **Result**: Text is now fully visible in all textareas across all wizards in Microsoft Edge and other browsers
+- October 15, 2025 (earlier). Implemented Thought Challenging Wizard with educational CBT guidance
   - **ThoughtChallengeWizard Component**: Created 4-step wizard flow (Review Thought → Identify Cognitive Distortions → Evaluate Evidence → Develop Alternative Perspectives)
   - **Educational Intro Dialog**: Added CBT psychoeducation explaining what thought challenging is and why it's helpful before the wizard begins
   - **Integration**: "Challenge This Thought" button in ThoughtRecordWizard success dialog opens the challenge wizard
