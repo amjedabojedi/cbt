@@ -952,7 +952,7 @@ export default function GoalSetting() {
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {milestones.map((milestone) => (
+                        {milestones.map((milestone, index) => (
                           <div 
                             key={milestone.id} 
                             className={`p-3 border rounded-md ${
@@ -962,24 +962,29 @@ export default function GoalSetting() {
                             }`}
                           >
                             <div className="flex items-start gap-3">
-                              <div className="mt-1">
-                                {user?.role === 'client' ? (
-                                  <Checkbox 
-                                    checked={milestone.isCompleted} 
-                                    onCheckedChange={(checked) => {
-                                      toggleMilestoneCompletionMutation.mutate({
-                                        milestoneId: milestone.id,
-                                        isCompleted: !!checked,
-                                      });
-                                    }}
-                                  />
-                                ) : (
-                                  milestone.isCompleted ? (
-                                    <CheckCircle className="h-5 w-5 text-green-600" />
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                                  {index + 1}
+                                </div>
+                                <div className="mt-0.5">
+                                  {user?.role === 'client' ? (
+                                    <Checkbox 
+                                      checked={milestone.isCompleted} 
+                                      onCheckedChange={(checked) => {
+                                        toggleMilestoneCompletionMutation.mutate({
+                                          milestoneId: milestone.id,
+                                          isCompleted: !!checked,
+                                        });
+                                      }}
+                                    />
                                   ) : (
-                                    <Clock className="h-5 w-5 text-yellow-600" />
-                                  )
-                                )}
+                                    milestone.isCompleted ? (
+                                      <CheckCircle className="h-5 w-5 text-green-600" />
+                                    ) : (
+                                      <Clock className="h-5 w-5 text-yellow-600" />
+                                    )
+                                  )}
+                                </div>
                               </div>
                               
                               <div className="flex-1">
