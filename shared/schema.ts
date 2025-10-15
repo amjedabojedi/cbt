@@ -317,8 +317,8 @@ export const insertEmotionRecordSchema = z.object({
   tertiaryEmotion: z.string().optional(),
   intensity: z.number(),
   situation: z.string(),
-  location: z.string().optional(),
-  company: z.string().optional(),
+  location: z.string().nullable().optional(),
+  company: z.string().nullable().optional(),
   // Accept any valid date format (string or Date object)
   timestamp: z.any()
 });

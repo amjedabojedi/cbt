@@ -257,9 +257,10 @@ export default function EmotionTrackingFormWizard({
     return acc;
   }, {} as Record<string, number>);
   const mostCommonEmotion = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1])[0];
-  const avgIntensity = emotions.length > 0
-    ? (emotions.reduce((sum, e) => sum + e.intensity, 0) / emotions.length).toFixed(1)
-    : "0";
+  
+  // Get the recorded emotion's intensity and name for display
+  const currentIntensity = recordedEmotion?.intensity || 0;
+  const currentEmotionName = recordedEmotion?.tertiaryEmotion || recordedEmotion?.primaryEmotion || recordedEmotion?.coreEmotion || "Emotion";
   
   return (
     <>
@@ -685,12 +686,13 @@ export default function EmotionTrackingFormWizard({
               
               <Card>
                 <CardHeader className="pb-2">
-                  <CardDescription className="text-xs">Avg Intensity</CardDescription>
-                  <CardTitle className="text-2xl">{avgIntensity}</CardTitle>
+                  <CardDescription className="text-xs">This Emotion</CardDescription>
+                  <CardTitle className="text-lg">{currentEmotionName}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-xs text-gray-500">
-                    Out of 10
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <span className="text-lg font-bold text-blue-600">{currentIntensity}</span>
+                    <span>/10 intensity</span>
                   </p>
                 </CardContent>
               </Card>
