@@ -375,7 +375,7 @@ export default function ThoughtRecordWizard({
               What was happening when you had this thought? <span className="text-red-500">*</span>
             </FormLabel>
             <FormDescription>
-              Describe the situation objectively - who, what, when, where
+              Describe the situation objectively - who, what, when, where, why
             </FormDescription>
             <FormControl>
               <Textarea
