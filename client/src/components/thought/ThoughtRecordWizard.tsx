@@ -26,6 +26,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -426,9 +427,9 @@ export default function ThoughtRecordWizard({
               <Brain className="h-7 w-7 text-primary" />
               Record Automatic Thought
             </DialogTitle>
-            <p className="text-sm text-gray-600 mt-1">
+            <DialogDescription>
               Capture and understand your automatic thoughts
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
           {/* Progress Bar */}
