@@ -716,22 +716,6 @@ export default function EmotionTrackingFormWizard({
                 className="flex items-center justify-center gap-2 h-12"
                 onClick={() => {
                   setShowSuccessDialog(false);
-                  if (recordedEmotion) {
-                    navigate(`/thoughts/new?emotionId=${recordedEmotion.id}`);
-                  }
-                }}
-                data-testid="button-add-thought"
-              >
-                <ArrowRight className="h-5 w-5" />
-                Challenge This Thought (Recommended)
-              </Button>
-              
-              <Button 
-                size="lg"
-                variant="outline" 
-                className="flex items-center justify-center gap-2 h-12"
-                onClick={() => {
-                  setShowSuccessDialog(false);
                   form.reset({
                     coreEmotion: "",
                     primaryEmotion: "",
@@ -748,7 +732,21 @@ export default function EmotionTrackingFormWizard({
                 data-testid="button-record-another"
               >
                 <RefreshCw className="h-5 w-5" />
-                Record Another Emotion
+                Track Another Emotion
+              </Button>
+              
+              <Button 
+                size="lg"
+                variant="outline" 
+                className="flex items-center justify-center gap-2 h-12"
+                onClick={() => {
+                  setShowSuccessDialog(false);
+                  navigate("/emotions?tab=history");
+                }}
+                data-testid="button-view-history"
+              >
+                <Calendar className="h-5 w-5" />
+                View Emotion History
               </Button>
               
               <Button 
