@@ -225,7 +225,7 @@ export default function ThoughtRecordWizard({
             <FormControl>
               <Textarea
                 placeholder="e.g., I'm going to embarrass myself in front of everyone..."
-                className="resize-none w-full min-h-[120px] text-base"
+                className="resize-none w-full min-h-[120px] text-base relative z-[100]"
                 style={{ color: '#000000' }}
                 rows={5}
                 {...field}
@@ -382,7 +382,7 @@ export default function ThoughtRecordWizard({
             <FormControl>
               <Textarea
                 placeholder="e.g., I was preparing for my presentation tomorrow and my manager asked to review my slides..."
-                className="resize-none w-full min-h-[120px] text-base"
+                className="resize-none w-full min-h-[120px] text-base relative z-[100]"
                 style={{ color: '#000000' }}
                 rows={5}
                 {...field}
