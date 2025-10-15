@@ -51,7 +51,6 @@ const ReframeAnalytics = lazy(() => import("@/pages/admin/ReframeAnalyticsPage")
 const EngagementSettings = lazy(() => import("@/pages/admin/EngagementSettings"));
 const AdminNotifications = lazy(() => import("@/pages/admin/AdminNotifications"));
 const AdminLogs = lazy(() => import("@/pages/admin/AdminLogs"));
-const Analytics = lazy(() => import("@/pages/Analytics"));
 
 // Import the ProtectedRoute component
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -99,7 +98,6 @@ function Router() {
           
           {/* Protected routes - require authentication */}
           <ProtectedRoute path="/dashboard" component={RoleDashboard} />
-          <ProtectedRoute path="/emotion-tracking" component={EmotionTracking} />
           <ProtectedRoute path="/emotions" component={EmotionTracking} />
           <ProtectedRoute path="/thoughts" component={ThoughtRecords} />
           <ProtectedRoute path="/thoughts/new" component={ThoughtNew} />
@@ -108,7 +106,6 @@ function Router() {
           <ProtectedRoute path="/library" component={ResourceLibrary} />
           <ProtectedRoute path="/journal" component={Journal} />
           <ProtectedRoute path="/reports" component={Reports} />
-          <ProtectedRoute path="/analytics" component={Analytics} />
           
           {/* Reframe Coach routes */}
           <ProtectedRoute path="/reframe-coach" component={ReframeCoachDashboard} />

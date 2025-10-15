@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
 import { format, subDays, subMonths } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import type { EmotionRecord, ThoughtRecord, Goal } from "@shared/schema";
 
 import {
   Card,
@@ -59,19 +60,19 @@ export default function Reports() {
   const [timeRange, setTimeRange] = useState<TimeRange>("month");
   
   // Fetch emotion records
-  const { data: emotions, isLoading: emotionsLoading } = useQuery({
+  const { data: emotions = [], isLoading: emotionsLoading } = useQuery<EmotionRecord[]>({
     queryKey: user ? [`/api/users/${user.id}/emotions`] : [],
     enabled: !!user,
   });
   
   // Fetch thought records
-  const { data: thoughts, isLoading: thoughtsLoading } = useQuery({
+  const { data: thoughts = [], isLoading: thoughtsLoading } = useQuery<ThoughtRecord[]>({
     queryKey: user ? [`/api/users/${user.id}/thoughts`] : [],
     enabled: !!user,
   });
   
   // Fetch goals
-  const { data: goals, isLoading: goalsLoading } = useQuery({
+  const { data: goals = [], isLoading: goalsLoading } = useQuery<Goal[]>({
     queryKey: user ? [`/api/users/${user.id}/goals`] : [],
     enabled: !!user,
   });
@@ -187,7 +188,7 @@ export default function Reports() {
   };
   
   // Helper function to filter data by time range
-  const filterDataByTimeRange = (data: any[], range: TimeRange) => {
+  const filterDataByTimeRange = <T extends { timestamp?: string; createdAt?: string }>(data: T[], range: TimeRange): T[] => {
     const now = new Date();
     let startDate: Date;
     
