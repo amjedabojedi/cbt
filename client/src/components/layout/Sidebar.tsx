@@ -44,7 +44,7 @@ export default function Sidebar() {
   // Therapist navigation
   else if (user?.role === "therapist") {  // Note: DB role still "therapist" but displayed as "therapist"
     navItems = [
-      { href: "/", label: "Therapist Dashboard", icon: <LayoutDashboard size={20} /> },
+      { href: "/dashboard", label: "Therapist Dashboard", icon: <LayoutDashboard size={20} /> },
       { href: "/clients", label: "My Clients", icon: <Users size={20} /> },
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
     ];
@@ -52,7 +52,7 @@ export default function Sidebar() {
   // Client navigation
   else {
     navItems = [
-      { href: "/", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
       { href: "/emotions", label: "Emotion Tracking", icon: <Heart size={20} /> },
       { href: "/thoughts", label: "Thought Records", icon: <Brain size={20} /> },
       { href: "/journal", label: "Journal", icon: <BookMarked size={20} /> },

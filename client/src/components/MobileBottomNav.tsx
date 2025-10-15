@@ -16,8 +16,8 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
 
   const bottomNavItems = [
     { href: '/dashboard', icon: Home, label: 'Home' },
-    { href: '/emotion-tracking', icon: Heart, label: 'Emotions' },
-    { href: '/thought-records', icon: Brain, label: 'Thoughts' },
+    { href: '/emotions', icon: Heart, label: 'Emotions' },
+    { href: '/thoughts', icon: Brain, label: 'Thoughts' },
     { href: '/journal', icon: BookOpen, label: 'Journal' },
     { href: '/reports', icon: BarChart3, label: 'Reports' },
   ];
