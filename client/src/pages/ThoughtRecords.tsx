@@ -300,6 +300,53 @@ export default function ThoughtRecords() {
                   </CardContent>
                 </Card>
 
+                {/* Thought Category Section */}
+                {selectedThought.thoughtCategory && selectedThought.thoughtCategory.length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <BookText size={18} className="text-purple-500" />
+                        Thought Type
+                      </CardTitle>
+                      <CardDescription>
+                        What category of thought this represents
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2 p-2">
+                        {selectedThought.thoughtCategory.map((category, idx) => (
+                          <Badge 
+                            key={idx} 
+                            className="bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200"
+                          >
+                            {formatCategoryName(category)}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Situation Section */}
+                {selectedThought.situation && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <CalendarDays size={18} className="text-green-500" />
+                        Situation
+                      </CardTitle>
+                      <CardDescription>
+                        What was happening when you had this thought
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="p-4 border rounded-md bg-card shadow-sm whitespace-pre-wrap">
+                        {selectedThought.situation}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Cognitive Distortions Section */}
                 {selectedThought.cognitiveDistortions && selectedThought.cognitiveDistortions.length > 0 && (
                   <Card>
@@ -472,6 +519,14 @@ export default function ThoughtRecords() {
 function formatDistortionName(distortion: string) {
   return distortion
     .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+// Helper to format thought category names
+function formatCategoryName(category: string) {
+  return category
+    .split('_')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
