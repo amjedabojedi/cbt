@@ -27,64 +27,10 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 
-// Cognitive distortions list with descriptions
-const cognitiveDistortions = [
-  {
-    value: "all-or-nothing",
-    label: "All-or-Nothing Thinking",
-    description: "Seeing things in black and white - no middle ground",
-    example: "If I don't get a perfect score, I'm a complete failure",
-  },
-  {
-    value: "catastrophizing",
-    label: "Catastrophizing",
-    description: "Expecting the worst possible outcome",
-    example: "One mistake means my career is ruined",
-  },
-  {
-    value: "emotional-reasoning",
-    label: "Emotional Reasoning",
-    description: "Believing feelings are facts",
-    example: "I feel anxious, so it must be dangerous",
-  },
-  {
-    value: "mind-reading",
-    label: "Mind Reading",
-    description: "Assuming you know what others think",
-    example: "They didn't smile, so they must hate me",
-  },
-  {
-    value: "overgeneralization",
-    label: "Overgeneralization",
-    description: "One event = endless pattern",
-    example: "I failed once, so I'll always fail",
-  },
-  {
-    value: "personalization",
-    label: "Personalization",
-    description: "Everything is about you",
-    example: "The project failed because of me",
-  },
-  {
-    value: "should-statements",
-    label: "Should Statements",
-    description: "Rigid rules about how things 'should' be",
-    example: "I should never make mistakes",
-  },
-  {
-    value: "mental-filter",
-    label: "Mental Filter",
-    description: "Focusing only on negatives",
-    example: "Got 9 compliments, but I only remember the 1 criticism",
-  },
-];
-
-// Form schema - cognitiveDistortions removed as they're already captured in thought recording
+// Form schema - ANT categories are captured during thought recording, not during challenge
 const challengeSchema = z.object({
   evidenceFor: z.string().min(10, "Please provide at least 10 characters"),
   evidenceAgainst: z.string().min(10, "Please provide at least 10 characters"),
@@ -111,7 +57,7 @@ export function ThoughtChallengeWizard({
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0); // 0 = intro, 1-3 = steps
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const totalSteps = 3; // Reduced from 4 since we skip cognitive distortions step
+  const totalSteps = 3; // Evidence → Alternative → Beliefs
 
   const form = useForm<ChallengeFormValues>({
     resolver: zodResolver(challengeSchema),
@@ -132,11 +78,11 @@ export function ThoughtChallengeWizard({
   const handleNext = async () => {
     let isValid = true;
 
-    // Step 1: Examine Evidence (was Step 2)
+    // Step 1: Examine Evidence
     if (currentStep === 1) {
       isValid = await form.trigger(["evidenceFor", "evidenceAgainst"]);
     } 
-    // Step 2: Generate Alternative Thought (was Step 3)
+    // Step 2: Generate Alternative Thought
     else if (currentStep === 2) {
       isValid = await form.trigger("alternativeThought");
     }
@@ -163,8 +109,7 @@ export function ThoughtChallengeWizard({
         return;
       }
 
-      // Update the thought record with challenge data
-      // Note: cognitiveDistortions (ANT categories) are already captured in thought recording
+      // Update thought record with challenge data (ANT categories already saved during recording)
       const updateData = {
         evidenceFor: data.evidenceFor,
         evidenceAgainst: data.evidenceAgainst,
@@ -230,16 +175,13 @@ export function ThoughtChallengeWizard({
               <Progress value={progress} className="h-2" data-testid="progress-challenge" />
               <div className="flex justify-between text-xs text-gray-500">
                 <span className={currentStep >= 1 ? "text-purple-600 font-medium" : ""}>
-                  1. Thinking Errors
+                  1. Evidence
                 </span>
                 <span className={currentStep >= 2 ? "text-purple-600 font-medium" : ""}>
-                  2. Evidence
+                  2. Alternative
                 </span>
                 <span className={currentStep >= 3 ? "text-purple-600 font-medium" : ""}>
-                  3. Alternative
-                </span>
-                <span className={currentStep >= 4 ? "text-purple-600 font-medium" : ""}>
-                  4. Beliefs
+                  3. Beliefs
                 </span>
               </div>
             </div>
@@ -287,9 +229,9 @@ export function ThoughtChallengeWizard({
                       <div className="flex gap-3 bg-white p-4 rounded-lg border">
                         <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="font-medium text-sm">Break Thinking Patterns</p>
+                          <p className="font-medium text-sm">Develop Balanced Alternatives</p>
                           <p className="text-sm text-gray-600">
-                            Identify unhelpful thinking errors (cognitive distortions) and replace them with balanced thoughts
+                            Create more realistic, evidence-based thoughts that consider all the facts
                           </p>
                         </div>
                       </div>
@@ -320,7 +262,7 @@ export function ThoughtChallengeWizard({
                 </div>
               )}
 
-              {/* STEP 1: Examine Evidence (previously Step 2) */}
+              {/* STEP 1: Examine Evidence */}
               {currentStep === 1 && (
                 <div className="space-y-4" data-testid="step-evidence">
                   <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
@@ -401,7 +343,7 @@ export function ThoughtChallengeWizard({
                 </div>
               )}
 
-              {/* STEP 2: Generate Alternative Thought (previously Step 3) */}
+              {/* STEP 2: Generate Alternative Thought */}
               {currentStep === 2 && (
                 <div className="space-y-4" data-testid="step-alternative">
                   <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
@@ -470,7 +412,7 @@ export function ThoughtChallengeWizard({
                 </div>
               )}
 
-              {/* STEP 3: Rate Beliefs (previously Step 4) */}
+              {/* STEP 3: Rate Beliefs */}
               {currentStep === 3 && (
                 <div className="space-y-4" data-testid="step-beliefs">
                   <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
@@ -590,7 +532,6 @@ export function ThoughtChallengeWizard({
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <p className="text-sm font-medium mb-2">What you accomplished:</p>
               <ul className="text-sm text-gray-700 space-y-1">
-                <li>✅ Identified {form.watch("cognitiveDistortions")?.length || 0} thinking error(s)</li>
                 <li>✅ Examined evidence on both sides</li>
                 <li>✅ Created a balanced alternative perspective</li>
                 <li>✅ Shifted your belief by {Math.abs((form.watch("beliefInOriginal") || 50) - (form.watch("beliefInAlternative") || 50))}%</li>
