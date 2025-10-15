@@ -537,6 +537,8 @@ export default function ThoughtRecordWizard({
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <DialogContent className="max-w-md">
+          <DialogTitle className="sr-only">Thought Recorded Successfully</DialogTitle>
+          <DialogDescription className="sr-only">Your automatic thought has been saved</DialogDescription>
           <div className="text-center space-y-4 py-4">
             <div className="flex justify-center">
               <div className="rounded-full bg-green-100 p-3">
@@ -589,12 +591,11 @@ export default function ThoughtRecordWizard({
                 onClick={() => {
                   setShowSuccessDialog(false);
                   onClose();
-                  navigate("/dashboard");
                 }}
-                data-testid="button-go-dashboard"
+                data-testid="button-close-wizard"
               >
-                <Home className="h-5 w-5" />
-                Back to Dashboard
+                <X className="h-5 w-5" />
+                Close
               </Button>
             </div>
           </div>
