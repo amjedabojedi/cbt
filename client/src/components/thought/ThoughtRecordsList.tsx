@@ -39,6 +39,22 @@ import { Badge } from "@/components/ui/badge";
 import CreateReframePracticeForm from "@/components/reframeCoach/CreateReframePracticeForm";
 import { ThoughtChallengeWizard } from "./ThoughtChallengeWizard";
 
+// Map thought category values to display labels
+const thoughtCategoryLabels: Record<string, string> = {
+  all_or_nothing: "All or Nothing Thinking",
+  mental_filter: "Mental Filter",
+  mind_reading: "Mind Reading",
+  fortune_telling: "Fortune Telling",
+  labelling: "Labelling",
+  over_generalising: "Over-Generalising",
+  compare_despair: "Compare and Despair",
+  emotional_thinking: "Emotional Thinking",
+  guilty_thinking: "Guilty Thinking",
+  catastrophising: "Catastrophising",
+  blaming_others: "Blaming Others",
+  personalising: "Personalising",
+};
+
 interface ThoughtRecordsListProps {
   limit?: number;
   onEditRecord?: (record: ThoughtRecord) => void;
@@ -331,11 +347,11 @@ export default function ThoughtRecordsList({
                         <h4 className="text-sm font-medium text-slate-700">Distortions</h4>
                       </div>
                       <div className="pl-7">
-                        {record.cognitiveDistortions && record.cognitiveDistortions.length > 0 ? (
+                        {record.thoughtCategory && record.thoughtCategory.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
-                            {record.cognitiveDistortions.map((distortion: string, idx: number) => (
+                            {record.thoughtCategory.map((distortion: string, idx: number) => (
                               <span key={idx} className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-xs">
-                                {distortion}
+                                {thoughtCategoryLabels[distortion] || distortion}
                               </span>
                             ))}
                           </div>
