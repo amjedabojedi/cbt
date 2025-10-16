@@ -67,23 +67,15 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
     ].filter(item => item.value > 0);
   };
 
-  // Calculate milestone velocity
-  const getMilestoneVelocity = () => {
+  // Calculate milestone completion count
+  const getMilestoneStats = () => {
     const completedMilestones = allMilestones.filter(m => m.isCompleted);
-    
-    if (completedMilestones.length === 0) return { avgDays: 0, totalCompleted: 0 };
-    
-    const velocities = completedMilestones.map(m => {
-      const created = new Date(m.createdAt);
-      const completed = new Date(); // Approximation since we don't have completedAt
-      return differenceInDays(completed, created);
-    });
-    
-    const avgDays = velocities.reduce((sum, days) => sum + days, 0) / velocities.length;
+    const pendingMilestones = allMilestones.filter(m => !m.isCompleted);
     
     return {
-      avgDays: parseFloat(avgDays.toFixed(1)),
       totalCompleted: completedMilestones.length,
+      totalPending: pendingMilestones.length,
+      total: allMilestones.length,
     };
   };
 
@@ -202,7 +194,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
   }
 
   const stats = getCompletionRate();
-  const velocity = getMilestoneVelocity();
+  const milestoneStats = getMilestoneStats();
 
   return (
     <div className="space-y-6">
@@ -235,18 +227,18 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
             <CardTitle className="text-sm font-medium">Milestones Completed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{velocity.totalCompleted}</div>
+            <div className="text-2xl font-bold text-blue-600">{milestoneStats.totalCompleted}</div>
             <p className="text-xs text-muted-foreground mt-1">Total achieved</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Avg Milestone Time</CardTitle>
+            <CardTitle className="text-sm font-medium">Pending Milestones</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{velocity.avgDays} days</div>
-            <p className="text-xs text-muted-foreground mt-1">To complete milestones</p>
+            <div className="text-2xl font-bold text-purple-600">{milestoneStats.totalPending}</div>
+            <p className="text-xs text-muted-foreground mt-1">Still in progress</p>
           </CardContent>
         </Card>
       </div>

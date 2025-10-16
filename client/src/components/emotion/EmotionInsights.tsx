@@ -52,6 +52,7 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
     } else if (timeRange === "month") {
       startDate = subDays(new Date(), 30);
     } else {
+      if (emotions.length === 0) return [];
       startDate = new Date(Math.min(...emotions.map(e => new Date(e.createdAt).getTime())));
     }
 
