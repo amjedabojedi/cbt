@@ -230,9 +230,11 @@ export function registerReframeCoachRoutes(app: Express): void {
       }
       
       // Generate practice scenarios using OpenAI
+      // Use thoughtCategory as the distortions (where user's selections are stored)
+      const distortions = thoughtRecord.thoughtCategory || thoughtRecord.cognitiveDistortions || [];
       const practiceSession = await generateReframePracticeScenarios(
         thoughtRecord.automaticThoughts,
-        thoughtRecord.cognitiveDistortions,
+        distortions,
         emotionCategory,
         validatedData.customInstructions
       );
@@ -659,19 +661,24 @@ export function registerReframeCoachRoutes(app: Express): void {
         }
       }
       
+      // Use thoughtCategory as the distortions (where user's selections are stored)
+      const distortions = thoughtRecord.thoughtCategory || thoughtRecord.cognitiveDistortions || [];
+      
       // Log cognitive distortions for debugging
       console.log("Thought record cognitive distortions:", {
-        distortions: thoughtRecord.cognitiveDistortions,
-        type: typeof thoughtRecord.cognitiveDistortions,
-        isArray: Array.isArray(thoughtRecord.cognitiveDistortions),
-        rawValue: JSON.stringify(thoughtRecord.cognitiveDistortions),
+        thoughtCategory: thoughtRecord.thoughtCategory,
+        cognitiveDistortions: thoughtRecord.cognitiveDistortions,
+        distortions: distortions,
+        type: typeof distortions,
+        isArray: Array.isArray(distortions),
+        rawValue: JSON.stringify(distortions),
       });
       
       // Ensure cognitive distortions is always an array
-      const normalizedDistortions = Array.isArray(thoughtRecord.cognitiveDistortions) 
-        ? thoughtRecord.cognitiveDistortions 
-        : typeof thoughtRecord.cognitiveDistortions === 'string'
-          ? [thoughtRecord.cognitiveDistortions] 
+      const normalizedDistortions = Array.isArray(distortions) 
+        ? distortions 
+        : typeof distortions === 'string'
+          ? [distortions] 
           : ["unknown"];
       
       console.log("Normalized distortions:", normalizedDistortions);
