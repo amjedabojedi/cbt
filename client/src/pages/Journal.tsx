@@ -185,7 +185,10 @@ export default function Journal() {
   // If viewing client data, use client's ID, otherwise use current user's ID
   const userId = activeUserId;
   
-  const [activeTab, setActiveTab] = useState("list");
+  // Initialize tab based on role - therapists/admins should see history first
+  const [activeTab, setActiveTab] = useState(
+    user?.role === 'therapist' || user?.role === 'admin' ? "history" : "write"
+  );
   const [showEntryDialog, setShowEntryDialog] = useState(false);
   const [showTaggingDialog, setShowTaggingDialog] = useState(false);
   const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
@@ -261,16 +264,16 @@ export default function Journal() {
         'journal',
         'create',
         data.id,
-        "Your journal entry has been saved. Please add emotions and topics to help categorize it.",
+        "Journal entry created successfully! You can view it in your journal history.",
         false // don't force a page reload
       );
       
-      setShowEntryDialog(false);
+      // Clear form after successful creation
       setTitle("");
       setContent("");
       
-      // Instead of just viewing the entry, show the tagging dialog
-      loadEntryWithRelatedRecords(data, true);
+      // Switch to history tab to show the new entry
+      setActiveTab("history");
     },
     onError: (error: Error) => {
       toast({
@@ -549,12 +552,12 @@ export default function Journal() {
     setSelectedTags(entry.userSelectedTags || entry.emotions || []);
     setSelectedDistortions(entry.userSelectedDistortions || entry.detectedDistortions || []);
     
-    // If showTagging is true, show the tagging dialog instead of going to view
+    // If showTagging is true, show the tagging dialog
     if (showTagging) {
       setShowTaggingDialog(true);
-    } else {
-      setActiveTab("view");
     }
+    // Note: View tab has been removed in favor of 2-tab layout
+    // Detailed viewing functionality to be implemented via dialog if needed
     
     // Fetch related thought records if they exist
     if (entry.relatedThoughtRecordIds && entry.relatedThoughtRecordIds.length > 0 && userThoughtRecords.length > 0) {
@@ -667,41 +670,92 @@ export default function Journal() {
         {/* Back to Clients button */}
         <BackToClientsButton />
         
-        <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Journal</h1>
-        {canCreateEntries && (
-          <Button onClick={() => {
-            setCurrentEntry(null);
-            setTitle("");
-            setContent("");
-            setShowEntryDialog(true);
-          }}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Entry
-          </Button>
-        )}
-        </div>
+        <h1 className="text-3xl font-bold tracking-tight mb-6">Journal</h1>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+          defaultValue={
+            user?.role === 'therapist' || user?.role === 'admin' ? "history" : "write"
+          }
+        >
           <TabsList className="mb-4">
-            <TabsTrigger value="list">
-              <Tag className="mr-2 h-4 w-4" />
-              Entries
-            </TabsTrigger>
-            {currentEntry && (
-              <TabsTrigger value="view">
-                <Edit className="mr-2 h-4 w-4" />
-                View Entry
+            {/* Only show Write Entry tab for clients */}
+            {user?.role === 'client' && (
+              <TabsTrigger value="write">
+                <MessageSquarePlus className="mr-2 h-4 w-4" />
+                Write Entry
               </TabsTrigger>
             )}
-            <TabsTrigger value="stats">
-              <BarChart className="mr-2 h-4 w-4" />
-              Stats & Insights
+            <TabsTrigger value="history">
+              <Tag className="mr-2 h-4 w-4" />
+              {user?.role === 'therapist' || user?.role === 'admin' ? "Client's Journal" : "My Journal"}
             </TabsTrigger>
           </TabsList>
         
-          {/* List of Journal Entries */}
-          <TabsContent value="list">
+          {/* Write Entry tab - only for clients */}
+          {user?.role === 'client' && (
+            <TabsContent value="write">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Write a Journal Entry</CardTitle>
+                  <CardDescription>
+                    Take a moment to reflect on your thoughts, feelings, and experiences.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label htmlFor="title" className="block text-sm font-medium">
+                        Title <span className="text-destructive">*</span>
+                      </label>
+                      <Input
+                        id="title"
+                        data-testid="input-journal-title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Give your entry a title..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="content" className="block text-sm font-medium">
+                        Content <span className="text-destructive">*</span>
+                      </label>
+                      <Textarea
+                        id="content"
+                        data-testid="textarea-journal-content"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        placeholder="Write about your thoughts, feelings, or experiences..."
+                        className="min-h-[300px]"
+                      />
+                    </div>
+                    <Button 
+                      data-testid="button-create-entry"
+                      onClick={handleSubmit}
+                      disabled={!title.trim() || !content.trim() || createEntryMutation.isPending}
+                      className="w-full"
+                    >
+                      {createEntryMutation.isPending ? (
+                        <>
+                          <div className="animate-spin h-4 w-4 border-2 border-background border-t-transparent rounded-full mr-2" />
+                          Creating Entry...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-4 w-4" />
+                          Create Entry
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+        
+          {/* Journal History tab */}
+          <TabsContent value="history">
             {isLoading ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -783,7 +837,9 @@ export default function Journal() {
               <CardHeader>
                 <CardTitle>No Journal Entries</CardTitle>
                 <CardDescription>
-                  You haven't created any journal entries yet. Click the "New Entry" button to get started.
+                  {user?.role === 'client' 
+                    ? "You haven't created any journal entries yet. Switch to the 'Write Entry' tab to get started."
+                    : "This client hasn't created any journal entries yet."}
                 </CardDescription>
               </CardHeader>
             </Card>
