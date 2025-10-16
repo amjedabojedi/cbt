@@ -8,6 +8,7 @@ import { z } from "zod";
 import { format, parseISO } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import AppLayout from "@/components/layout/AppLayout";
+import ModuleHeader from "@/components/layout/ModuleHeader";
 import { useToast } from "@/hooks/use-toast";
 import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
 
@@ -354,22 +355,26 @@ export default function GoalSetting() {
         {/* Back to Clients button */}
         <BackToClientsButton />
         
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Goal Setting</h1>
-            <p className="text-muted-foreground mt-1">
-              Set structured SMART goals to track your progress and celebrate achievements.
-            </p>
-          </div>
-          
-          {user?.role === 'client' && (
-            <Dialog open={isCreatingGoal} onOpenChange={setIsCreatingGoal}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="gap-1" data-testid="button-new-goal">
-                  <PlusCircle className="h-4 w-4" />
-                  New Goal
-                </Button>
-              </DialogTrigger>
+        {/* Module Header with Progress */}
+        <ModuleHeader
+          title="Smart Goals"
+          description="Set structured SMART goals to track your progress and celebrate achievements"
+          badges={[
+            { label: "Active Goals", value: overallStats.inProgressGoals, icon: Target, color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200" },
+            { label: "Completed", value: overallStats.completedGoals, icon: CheckCircle, color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
+            { label: "Pending", value: overallStats.pendingGoals, icon: Clock, color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" },
+          ]}
+        />
+        
+        {/* Keep existing goal creation dialog for backward compatibility */}
+        {user?.role === 'client' && (
+          <Dialog open={isCreatingGoal} onOpenChange={setIsCreatingGoal}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-1 hidden" data-testid="button-new-goal">
+                <PlusCircle className="h-4 w-4" />
+                New Goal
+              </Button>
+            </DialogTrigger>
               <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Create a SMART Goal</DialogTitle>
@@ -621,7 +626,6 @@ export default function GoalSetting() {
               </DialogContent>
             </Dialog>
           )}
-        </div>
         
         {/* Overall Progress Summary */}
         {!isLoading && goals.length > 0 && (
