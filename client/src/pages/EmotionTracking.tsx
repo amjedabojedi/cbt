@@ -54,7 +54,7 @@ export default function EmotionTracking() {
     : "0";
   
   const emotionCounts = emotions.reduce((acc: Record<string, number>, e: any) => {
-    acc[e.emotion] = (acc[e.emotion] || 0) + 1;
+    acc[e.coreEmotion] = (acc[e.coreEmotion] || 0) + 1;
     return acc;
   }, {});
   
