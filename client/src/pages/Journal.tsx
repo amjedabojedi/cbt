@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useClientContext } from "@/context/ClientContext";
 import useActiveUser from "@/hooks/use-active-user";
 import { useRefreshData } from "@/hooks/use-refresh-data";
+import ModuleHeader from "@/components/layout/ModuleHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,7 +41,9 @@ import {
   LineChart,
   ArrowUpDown,
   Activity,
-  CheckCircle
+  CheckCircle,
+  Book,
+  TrendingUp
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
@@ -670,7 +673,15 @@ export default function Journal() {
         {/* Back to Clients button */}
         <BackToClientsButton />
         
-        <h1 className="text-3xl font-bold tracking-tight mb-6">Journal</h1>
+        {/* Module Header with Progress */}
+        <ModuleHeader
+          title="Journal"
+          description="Reflect on your thoughts, feelings, and experiences through daily journaling"
+          badges={[
+            { label: "Total Entries", value: stats.totalEntries, icon: Book, color: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200" },
+            { label: "Most Common", value: Object.keys(stats.emotions).length > 0 ? Object.entries(stats.emotions).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0] : "None", icon: TrendingUp, color: "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200" },
+          ]}
+        />
         
         <Tabs 
           value={activeTab} 
@@ -704,6 +715,40 @@ export default function Journal() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {/* Educational Accordion */}
+                  <Accordion type="single" collapsible className="mb-6 bg-teal-50 dark:bg-teal-950/30 rounded-lg px-4">
+                    <AccordionItem value="why-journal" className="border-0">
+                      <AccordionTrigger className="text-base font-medium hover:no-underline py-3">
+                        <div className="flex items-center">
+                          <HelpCircle className="h-5 w-5 mr-2 text-teal-600 dark:text-teal-400" />
+                          Why Journal?
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground pb-4">
+                        <p className="mb-3">
+                          Journaling is a powerful tool for self-reflection and emotional processing. It helps you understand patterns in your thoughts and feelings, track your progress, and gain valuable insights into your mental well-being.
+                        </p>
+                        
+                        <div className="space-y-3">
+                          <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                            <h4 className="font-medium text-foreground mb-1">Process Emotions</h4>
+                            <p>Writing about your feelings helps you make sense of them and reduces emotional intensity. It's a safe space to express yourself without judgment.</p>
+                          </div>
+                          
+                          <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                            <h4 className="font-medium text-foreground mb-1">Track Patterns</h4>
+                            <p>Over time, your journal entries reveal patterns in your mood, triggers, and coping strategies, helping you understand yourself better.</p>
+                          </div>
+                          
+                          <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                            <h4 className="font-medium text-foreground mb-1">Support Growth</h4>
+                            <p>Regular journaling documents your journey, celebrates progress, and provides insights that support your ongoing mental health and personal growth.</p>
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                  
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <label htmlFor="title" className="block text-sm font-medium">
