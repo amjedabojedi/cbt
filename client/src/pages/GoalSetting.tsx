@@ -10,6 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import AppLayout from "@/components/layout/AppLayout";
 import ModuleHeader from "@/components/layout/ModuleHeader";
 import SmartGoalWizard from "@/components/goal/SmartGoalWizard";
+import GoalInsights from "@/components/goal/GoalInsights";
 import { useToast } from "@/hooks/use-toast";
 import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
 
@@ -670,6 +671,10 @@ export default function GoalSetting() {
             <TabsTrigger value="goals">
               {user?.role === 'therapist' || user?.role === 'admin' ? "Client's Goals" : "My Goals"}
             </TabsTrigger>
+            <TabsTrigger value="insights">
+              <TrendingUp className="h-4 w-4 mr-1.5" />
+              Insights
+            </TabsTrigger>
           </TabsList>
           
           {/* Set Goal tab - only accessible to clients */}
@@ -1141,6 +1146,11 @@ export default function GoalSetting() {
                 </Form>
               </DialogContent>
             </Dialog>
+          </TabsContent>
+
+          {/* Insights tab */}
+          <TabsContent value="insights">
+            {activeUserId && <GoalInsights userId={activeUserId} />}
           </TabsContent>
         </Tabs>
       </div>
