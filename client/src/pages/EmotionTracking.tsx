@@ -24,10 +24,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Globe, ClipboardList, Heart, Activity, BarChart3, HelpCircle } from "lucide-react";
+import { Globe, ClipboardList, Heart, Activity, BarChart3, HelpCircle, TrendingUp } from "lucide-react";
 import useActiveUser from "@/hooks/use-active-user";
 import { ClientDebug } from "@/components/debug/ClientDebug";
 import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
+import EmotionInsights from "@/components/emotion/EmotionInsights";
 
 export default function EmotionTracking() {
   const { user } = useAuth();
@@ -139,6 +140,10 @@ export default function EmotionTracking() {
             <TabsTrigger value="history">
               {isViewingClientData ? "Client's Emotion History" : "My Emotion History"}
             </TabsTrigger>
+            <TabsTrigger value="insights">
+              <TrendingUp className="h-4 w-4 mr-1.5" />
+              Insights
+            </TabsTrigger>
           </TabsList>
           
           {/* Only show recording functionality for clients viewing their own data
@@ -229,6 +234,10 @@ export default function EmotionTracking() {
             ) : (
               <EmotionHistory />
             )}
+          </TabsContent>
+
+          <TabsContent value="insights">
+            {activeUserId && <EmotionInsights userId={activeUserId} />}
           </TabsContent>
         </Tabs>
       </div>
