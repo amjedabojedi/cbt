@@ -86,16 +86,40 @@ export default function EmotionTracking() {
         {/* Debug Information (Development Only) */}
         <ClientDebug />
         
-        {/* Module Header with Progress */}
+        {/* Module Header */}
         <ModuleHeader
           title="Emotion Tracking"
           description="Identify, track, and understand your emotional patterns using an interactive emotion wheel"
-          badges={[
-            { label: "Total Tracked", value: totalEmotions, icon: Heart, color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
-            { label: "Avg Intensity", value: `${avgIntensity}/10`, icon: Activity, color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200" },
-            { label: "Most Common", value: mostCommonEmotion, icon: BarChart3, color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
-          ]}
+          badges={[]}
         />
+        
+        {/* Overall Progress Summary */}
+        {emotions.length > 0 && (
+          <Card className="mb-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Heart className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Overall Progress</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-primary">{totalEmotions}</div>
+                  <div className="text-sm text-muted-foreground">Total Tracked</div>
+                </div>
+                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">{avgIntensity}/10</div>
+                  <div className="text-sm text-muted-foreground">Avg Intensity</div>
+                </div>
+                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">{mostCommonEmotion}</div>
+                  <div className="text-sm text-muted-foreground">Most Common</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         
         <Tabs 
           defaultValue={
