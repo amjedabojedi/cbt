@@ -74,6 +74,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import JournalWordCloud from "@/components/journal/JournalWordCloud";
+import JournalWizard from "@/components/journal/JournalWizard";
 import AppLayout from "@/components/layout/AppLayout";
 
 import { getEmotionInfo } from '@/utils/emotionUtils';
@@ -736,95 +737,41 @@ export default function Journal() {
           {/* Write Entry tab - only for clients */}
           {user?.role === 'client' && (
             <TabsContent value="write">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Write a Journal Entry</CardTitle>
-                  <CardDescription>
-                    Take a moment to reflect on your thoughts, feelings, and experiences.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {/* Educational Accordion */}
-                  <Accordion type="single" collapsible className="mb-6 bg-teal-50 dark:bg-teal-950/30 rounded-lg px-4">
-                    <AccordionItem value="why-journal" className="border-0">
-                      <AccordionTrigger className="text-base font-medium hover:no-underline py-3">
-                        <div className="flex items-center">
-                          <HelpCircle className="h-5 w-5 mr-2 text-teal-600 dark:text-teal-400" />
-                          Why Journal?
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="text-sm text-muted-foreground pb-4">
-                        <p className="mb-3">
-                          Journaling is a powerful tool for self-reflection and emotional processing. It helps you understand patterns in your thoughts and feelings, track your progress, and gain valuable insights into your mental well-being.
-                        </p>
-                        
-                        <div className="space-y-3">
-                          <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                            <h4 className="font-medium text-foreground mb-1">Process Emotions</h4>
-                            <p>Writing about your feelings helps you make sense of them and reduces emotional intensity. It's a safe space to express yourself without judgment.</p>
-                          </div>
-                          
-                          <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                            <h4 className="font-medium text-foreground mb-1">Track Patterns</h4>
-                            <p>Over time, your journal entries reveal patterns in your mood, triggers, and coping strategies, helping you understand yourself better.</p>
-                          </div>
-                          
-                          <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                            <h4 className="font-medium text-foreground mb-1">Support Growth</h4>
-                            <p>Regular journaling documents your journey, celebrates progress, and provides insights that support your ongoing mental health and personal growth.</p>
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label htmlFor="title" className="block text-sm font-medium">
-                        Title <span className="text-destructive">*</span>
-                      </label>
-                      <Input
-                        id="title"
-                        data-testid="input-journal-title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Give your entry a title..."
-                      />
+              {/* Educational Accordion */}
+              <Accordion type="single" collapsible className="mb-6 bg-teal-50 dark:bg-teal-950/30 rounded-lg px-4">
+                <AccordionItem value="why-journal" className="border-0">
+                  <AccordionTrigger className="text-base font-medium hover:no-underline py-3">
+                    <div className="flex items-center">
+                      <HelpCircle className="h-5 w-5 mr-2 text-teal-600 dark:text-teal-400" />
+                      Why Journal?
                     </div>
-                    <div className="space-y-2">
-                      <label htmlFor="content" className="block text-sm font-medium">
-                        Content <span className="text-destructive">*</span>
-                      </label>
-                      <Textarea
-                        id="content"
-                        data-testid="textarea-journal-content"
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        placeholder="Write about your thoughts, feelings, or experiences..."
-                        className="min-h-[300px]"
-                      />
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground pb-4">
+                    <p className="mb-3">
+                      Journaling is a powerful tool for self-reflection and emotional processing. It helps you understand patterns in your thoughts and feelings, track your progress, and gain valuable insights into your mental well-being.
+                    </p>
+                    
+                    <div className="space-y-3">
+                      <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                        <h4 className="font-medium text-foreground mb-1">Process Emotions</h4>
+                        <p>Writing about your feelings helps you make sense of them and reduces emotional intensity. It's a safe space to express yourself without judgment.</p>
+                      </div>
+                      
+                      <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                        <h4 className="font-medium text-foreground mb-1">Track Patterns</h4>
+                        <p>Over time, your journal entries reveal patterns in your mood, triggers, and coping strategies, helping you understand yourself better.</p>
+                      </div>
+                      
+                      <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                        <h4 className="font-medium text-foreground mb-1">Support Growth</h4>
+                        <p>Regular journaling documents your journey, celebrates progress, and provides insights that support your ongoing mental health and personal growth.</p>
+                      </div>
                     </div>
-                    <Button 
-                      data-testid="button-create-entry"
-                      onClick={handleSubmit}
-                      disabled={!title.trim() || !content.trim() || createEntryMutation.isPending}
-                      className="w-full"
-                    >
-                      {createEntryMutation.isPending ? (
-                        <>
-                          <div className="animate-spin h-4 w-4 border-2 border-background border-t-transparent rounded-full mr-2" />
-                          Creating Entry...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="mr-2 h-4 w-4" />
-                          Create Entry
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+
+              <JournalWizard onEntryCreated={() => setActiveTab("history")} />
             </TabsContent>
           )}
         
