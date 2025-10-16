@@ -319,19 +319,42 @@ export async function generateReframePracticeScenarios(
     // If not in cache, proceed with generating new scenarios
     console.log("No cache hit. Generating new practice scenarios via OpenAI...");
     
+    // Map thought category values to readable distortion names
+    const thoughtCategoryToDistortion: Record<string, string> = {
+      all_or_nothing: "All or Nothing Thinking",
+      mental_filter: "Mental Filter",
+      mind_reading: "Mind Reading",
+      fortune_telling: "Fortune Telling",
+      labelling: "Labelling",
+      over_generalising: "Over-Generalising",
+      compare_despair: "Compare and Despair",
+      emotional_thinking: "Emotional Thinking",
+      guilty_thinking: "Guilty Thinking",
+      catastrophising: "Catastrophising",
+      blaming_others: "Blaming Others",
+      personalising: "Personalising",
+      // Also handle kebab-case versions
+      "all-or-nothing": "All or Nothing Thinking",
+      "mental-filter": "Mental Filter",
+      "mind-reading": "Mind Reading",
+      "fortune-telling": "Fortune Telling",
+      "over-generalising": "Over-Generalising",
+      "compare-despair": "Compare and Despair",
+      "emotional-thinking": "Emotional Thinking",
+      "emotional-reasoning": "Emotional Reasoning",
+      "guilty-thinking": "Guilty Thinking",
+      overgeneralization: "Overgeneralization",
+    };
+    
     // Format cognitive distortions for better readability
     const formattedDistortions = cognitiveDistortions.map(distortion => {
-      // Convert kebab-case to readable format (e.g., "emotional-reasoning" to "Emotional Reasoning")
       if (!distortion) return "Unknown";
       
-      // Handle special cases like hyphenated names
-      if (distortion === "emotional-reasoning") return "Emotional Reasoning";
-      if (distortion === "mind-reading") return "Mind Reading";
-      if (distortion === "fortune-telling") return "Fortune Telling";
-      if (distortion === "all-or-nothing") return "All or Nothing Thinking";
-      if (distortion === "unknown") return "Cognitive Distortion";
+      // First check our mapping
+      const mapped = thoughtCategoryToDistortion[distortion.toLowerCase()];
+      if (mapped) return mapped;
       
-      // General case: convert kebab-case or snake_case to Title Case
+      // If unknown, just format it nicely
       return distortion
         .replace(/[-_]/g, ' ')
         .split(' ')
