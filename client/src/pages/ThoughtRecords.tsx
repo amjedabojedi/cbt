@@ -34,7 +34,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ClipboardList, Brain, CheckCircle, AlertTriangle, HelpCircle } from "lucide-react";
+import { ClipboardList, Brain, CheckCircle, AlertTriangle, HelpCircle, TrendingUp } from "lucide-react";
+import ThoughtInsights from "@/components/thought/ThoughtInsights";
 
 export default function ThoughtRecords() {
   const { user } = useAuth();
@@ -145,6 +146,10 @@ export default function ThoughtRecords() {
             <TabsTrigger value="history">
               {isViewingClientData ? "Client's Thought Records History" : "Thought Records History"}
             </TabsTrigger>
+            <TabsTrigger value="insights">
+              <TrendingUp className="h-4 w-4 mr-1.5" />
+              Insights
+            </TabsTrigger>
           </TabsList>
           
           {/* Only show recording functionality for clients viewing their own data
@@ -223,6 +228,10 @@ export default function ThoughtRecords() {
             ) : (
               <ThoughtRecordsList onEditRecord={handleEditThought} />
             )}
+          </TabsContent>
+
+          <TabsContent value="insights">
+            {activeUserId && <ThoughtInsights userId={activeUserId} />}
           </TabsContent>
         </Tabs>
       </div>
