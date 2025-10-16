@@ -75,6 +75,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import JournalWordCloud from "@/components/journal/JournalWordCloud";
 import JournalWizard from "@/components/journal/JournalWizard";
+import JournalInsights from "@/components/journal/JournalInsights";
 import AppLayout from "@/components/layout/AppLayout";
 
 import { getEmotionInfo } from '@/utils/emotionUtils';
@@ -731,6 +732,10 @@ export default function Journal() {
             <TabsTrigger value="history">
               <Tag className="mr-2 h-4 w-4" />
               {user?.role === 'therapist' || user?.role === 'admin' ? "Client's Journal" : "My Journal"}
+            </TabsTrigger>
+            <TabsTrigger value="insights">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Insights
             </TabsTrigger>
           </TabsList>
         
@@ -1618,6 +1623,11 @@ export default function Journal() {
                 </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* Insights tab */}
+        <TabsContent value="insights">
+          {userId && <JournalInsights userId={userId} />}
         </TabsContent>
       </Tabs>
       
