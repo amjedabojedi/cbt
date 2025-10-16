@@ -97,16 +97,40 @@ export default function ThoughtRecords() {
         {/* Debug Information (Development Only) */}
         <ClientDebug />
         
-        {/* Module Header with Progress */}
+        {/* Module Header */}
         <ModuleHeader
           title="Thought Records"
           description="Capture automatic thoughts, identify thinking patterns, and challenge unhelpful beliefs"
-          badges={[
-            { label: "Total Recorded", value: totalThoughts, icon: Brain, color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200" },
-            { label: "Challenged", value: challengedThoughts, icon: CheckCircle, color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
-            { label: "Unchallenged", value: unchallengedThoughts, icon: AlertTriangle, color: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200" },
-          ]}
+          badges={[]}
         />
+        
+        {/* Overall Progress Summary */}
+        {thoughtRecords.length > 0 && (
+          <Card className="mb-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Overall Progress</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-primary">{totalThoughts}</div>
+                  <div className="text-sm text-muted-foreground">Total Recorded</div>
+                </div>
+                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">{challengedThoughts}</div>
+                  <div className="text-sm text-muted-foreground">Challenged</div>
+                </div>
+                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-amber-600">{unchallengedThoughts}</div>
+                  <div className="text-sm text-muted-foreground">Unchallenged</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         
         <Tabs 
           value={activeTab}
