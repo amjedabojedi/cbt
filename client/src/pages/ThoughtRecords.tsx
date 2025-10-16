@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
+import ModuleHeader from "@/components/layout/ModuleHeader";
 import ThoughtRecordsList from "@/components/thought/ThoughtRecordsList";
 import ThoughtRecordWizard from "@/components/thought/ThoughtRecordWizard";
 import { format } from "date-fns";
@@ -27,7 +28,13 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { ClipboardList } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ClipboardList, Brain, CheckCircle, AlertTriangle, HelpCircle } from "lucide-react";
 
 export default function ThoughtRecords() {
   const { user } = useAuth();
@@ -63,10 +70,17 @@ export default function ThoughtRecords() {
   });
   
   // Fetch thought records for the active user
-  const { data: thoughtRecords } = useQuery({
+  const { data: thoughtRecords = [] } = useQuery<ThoughtRecord[]>({
     queryKey: activeUserId ? [`/api/users/${activeUserId}/thoughts`] : [],
     enabled: !!activeUserId,
   });
+  
+  // Calculate progress stats
+  const totalThoughts = thoughtRecords.length;
+  const challengedThoughts = thoughtRecords.filter((t: ThoughtRecord) => 
+    t.evidenceFor && t.evidenceAgainst
+  ).length;
+  const unchallengedThoughts = totalThoughts - challengedThoughts;
   
   // Handle editing a thought record
   const handleEditThought = (thought: ThoughtRecord) => {
@@ -82,6 +96,17 @@ export default function ThoughtRecords() {
         
         {/* Debug Information (Development Only) */}
         <ClientDebug />
+        
+        {/* Module Header with Progress */}
+        <ModuleHeader
+          title="Thought Records"
+          description="Capture automatic thoughts, identify thinking patterns, and challenge unhelpful beliefs"
+          badges={[
+            { label: "Total Recorded", value: totalThoughts, icon: Brain, color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200" },
+            { label: "Challenged", value: challengedThoughts, icon: CheckCircle, color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
+            { label: "Unchallenged", value: unchallengedThoughts, icon: AlertTriangle, color: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200" },
+          ]}
+        />
         
         <Tabs 
           value={activeTab}
@@ -111,6 +136,41 @@ export default function ThoughtRecords() {
                 </CardHeader>
                 
                 <CardContent>
+                  {/* Educational Accordion */}
+                  <Accordion type="single" collapsible className="mb-6 bg-indigo-50 dark:bg-indigo-950/30 rounded-lg px-4">
+                    <AccordionItem value="what-are-ants" className="border-0">
+                      <AccordionTrigger className="text-base font-medium hover:no-underline py-3">
+                        <div className="flex items-center">
+                          <HelpCircle className="h-5 w-5 mr-2 text-indigo-600 dark:text-indigo-400" />
+                          What are Automatic Thoughts?
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground pb-4">
+                        <p className="mb-3">
+                          Automatic thoughts (also called ANTs - Automatic Negative Thoughts) are the immediate, involuntary thoughts that pop into your mind in response to situations. They're often so quick and habitual that we don't even notice them.
+                        </p>
+                        
+                        <div className="space-y-3">
+                          <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                            <h4 className="font-medium text-foreground mb-1">Catch the Thought</h4>
+                            <p>The first step is simply noticing these thoughts. Write them down exactly as they occur—don't judge or analyze yet.</p>
+                            <p className="text-xs mt-1 italic text-indigo-600 dark:text-indigo-400">Example: "I'm going to fail this presentation" or "Everyone thinks I'm boring"</p>
+                          </div>
+                          
+                          <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                            <h4 className="font-medium text-foreground mb-1">Identify the Pattern</h4>
+                            <p>Once recorded, you'll identify which type of unhelpful thinking pattern (ANT category) it represents—like catastrophizing or mind-reading.</p>
+                          </div>
+                          
+                          <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                            <h4 className="font-medium text-foreground mb-1">Challenge & Reframe</h4>
+                            <p>After recording, you can challenge these thoughts by examining evidence and developing more balanced perspectives.</p>
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                  
                   <ThoughtRecordWizard onClose={() => {
                     // Switch to history tab after successful recording
                     setActiveTab('history');
