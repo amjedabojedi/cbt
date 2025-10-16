@@ -41,7 +41,6 @@ const InvitationLinks = lazy(() => import("@/pages/InvitationLinks"));
 // Reframe Coach pages
 const ReframeCoachDashboard = lazy(() => import("@/pages/ReframeCoachPage"));
 const ReframePracticePage = lazy(() => import("@/pages/ReframePracticePage"));
-const ReframeHistoryPage = lazy(() => import("@/pages/ReframeHistoryPage"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
@@ -110,7 +109,6 @@ function Router() {
           {/* Reframe Coach routes */}
           <ProtectedRoute path="/reframe-coach" component={ReframeCoachDashboard} />
           <ProtectedRoute path="/users/:userId/reframe-coach" component={ReframeCoachDashboard} />
-          <ProtectedRoute path="/users/:userId/reframe-history" component={ReframeHistoryPage} />
           <ProtectedRoute path="/reframe-coach/practice" component={ReframePracticePage} />
           <ProtectedRoute path="/reframe-coach/practice/:assignmentId" component={ReframePracticePage} />
           <ProtectedRoute path="/users/:userId/reframe-coach/practice/:thoughtId" component={ReframePracticePage} />

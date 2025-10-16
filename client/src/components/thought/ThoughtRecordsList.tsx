@@ -439,8 +439,8 @@ export default function ThoughtRecordsList({
                         <Button 
                           size="sm"
                           onClick={() => {
-                            // Redirect using proper route
-                            const url = `/users/${targetUserId}/reframe-history`;
+                            // Redirect to unified reframe coach page with history tab
+                            const url = `/users/${targetUserId}/reframe-coach?tab=history`;
                             console.log("Navigating to practice history:", url);
                             window.location.href = url;
                           }}
@@ -680,8 +680,8 @@ export default function ThoughtRecordsList({
               {isViewingClientData && (
                 <Button
                   onClick={() => {
-                    // Direct approach with full-page navigation
-                    const url = `/users/${targetUserId}/reframe-history`;
+                    // Direct approach with full-page navigation to unified page
+                    const url = `/users/${targetUserId}/reframe-coach?tab=history`;
                     console.log("Navigating to practice history:", url);
                     window.location.href = url;
                   }}

@@ -109,7 +109,7 @@ export function PracticeResultsSummary({ className }: PracticeResultsSummaryProp
               variant="ghost" 
               size="sm" 
               className="text-xs"
-              onClick={() => window.location.href = '/users/' + activeUserId + '/reframe-history'}
+              onClick={() => window.location.href = '/users/' + activeUserId + '/reframe-coach?tab=history'}
             >
               <BarChart3 className="h-3.5 w-3.5 mr-1" />
               View Full History
