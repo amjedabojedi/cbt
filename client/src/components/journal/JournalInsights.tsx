@@ -20,7 +20,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
 
   // Fetch journal entries
   const { data: entries = [], isLoading } = useQuery<any[]>({
-    queryKey: [`/api/users/${userId}/journal-entries`],
+    queryKey: [`/api/users/${userId}/journal`],
     enabled: !!userId,
   });
 

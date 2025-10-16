@@ -40,7 +40,7 @@ Preferred communication style: Simple, everyday language.
 - **Wizard-Based Flows**: Consistent step-by-step guidance with progress bars, informative "Why This Step?" sections, validation, and success dialogs. Features first-time user onboarding tours.
 - **Unified Module Pages**: All core modules (Emotion Tracking, Thought Records, Smart Goals, Journal) share a consistent structure:
     - **Module Header**: Reusable component with title, description, and dynamic progress badges.
-    - **Two-Tab Layout**: "Creation/Wizard Tab" and "History/View Tab".
+    - **Three-Tab Layout**: "Creation/Wizard Tab", "History/View Tab", and "Insights Tab" with analytics and trend visualizations.
     - **Educational Accordion**: Collapsible "Why [Feature]?" content on creation tabs.
 - **Visual Consistency**: Adherence to consistent card styles, spacing, typography, and color schemes.
 - **Progressive Learning**: CBT concepts are introduced through action before explicit terminology.
@@ -72,7 +72,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Changelog
 
-- October 16, 2025 (latest). Implemented unified design pattern across all 4 core module pages
+- October 16, 2025 (latest). Implemented 3-tab Insights structure across all 4 core modules
+  - **3-Tab Layout**: All modules now have Create/Record → History → Insights tabs
+  - **Insights Components**: Created dedicated insights components for each module:
+    - **EmotionInsights**: Mood trends chart, intensity heatmap, emotion distribution pie chart, time-of-day patterns
+    - **ThoughtInsights**: ANT patterns bar chart, challenge success rate, thought-emotion links, progress trends over time
+    - **JournalInsights**: Sentiment trends (positive/negative/neutral), emotion distribution, topic analysis, 30-day writing calendar, mood trends
+    - **GoalInsights**: Completion rate, status distribution, timeline performance, progress trends, 30-day milestone activity calendar
+  - **Analytics Focus**: Insights tabs show trends, patterns, and analytics over time (distinct from Overall Progress cards which show current snapshot stats)
+  - **Interactive Charts**: All insights use Recharts for beautiful visualizations (line charts, bar charts, pie charts, heatmaps)
+  - **Time Range Filters**: Week/Month/All Time toggle for trend analysis
+  - **Empty State Guards**: Proper handling of empty datasets to prevent crashes
+  - **Consistent UX**: All insights components follow the same visual pattern with metric cards, charts, and calendar heatmaps
+- October 16, 2025 (earlier). Implemented unified design pattern across all 4 core module pages
   - **ModuleHeader Component**: Created reusable component (`ModuleHeader.tsx`) with title, description, and dynamic progress badges
   - **Consistent Page Structure**: All pages now follow: ModuleHeader → 2-tab layout → Educational accordion in wizard/creation tab
   - **Progress Badges**: Added real-time stats to module headers:
