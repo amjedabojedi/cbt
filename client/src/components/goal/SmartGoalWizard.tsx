@@ -167,8 +167,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
 
     try {
       // Create goal
-      const goalResponse = await apiRequest("POST", "/api/goals", {
-        userId: activeUserId,
+      const goalResponse = await apiRequest("POST", `/api/users/${activeUserId}/goals`, {
         title: values.title,
         specific: values.specific,
         measurable: values.measurable,
@@ -186,8 +185,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
       if (milestones.length > 0) {
         await Promise.all(
           milestones.map((milestone) =>
-            apiRequest("POST", "/api/milestones", {
-              goalId: goal.id,
+            apiRequest("POST", `/api/goals/${goal.id}/milestones`, {
               title: milestone.title,
               description: milestone.description || null,
               dueDate: milestone.dueDate?.toISOString() || null,
