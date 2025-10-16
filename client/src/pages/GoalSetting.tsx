@@ -627,38 +627,6 @@ export default function GoalSetting() {
             </Dialog>
           )}
         
-        {/* Overall Progress Summary */}
-        {!isLoading && goals.length > 0 && (
-          <Card className="mb-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Overall Progress</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-3 bg-white/50 rounded-lg" data-testid="stat-total-goals">
-                  <div className="text-2xl font-bold text-primary">{overallStats.totalGoals}</div>
-                  <div className="text-sm text-muted-foreground">Total Goals</div>
-                </div>
-                <div className="text-center p-3 bg-white/50 rounded-lg" data-testid="stat-completed-goals">
-                  <div className="text-2xl font-bold text-green-600">{overallStats.completedGoals}</div>
-                  <div className="text-sm text-muted-foreground">Completed</div>
-                </div>
-                <div className="text-center p-3 bg-white/50 rounded-lg" data-testid="stat-in-progress-goals">
-                  <div className="text-2xl font-bold text-blue-600">{overallStats.inProgressGoals}</div>
-                  <div className="text-sm text-muted-foreground">In Progress</div>
-                </div>
-                <div className="text-center p-3 bg-white/50 rounded-lg" data-testid="stat-pending-goals">
-                  <div className="text-2xl font-bold text-yellow-600">{overallStats.pendingGoals}</div>
-                  <div className="text-sm text-muted-foreground">Pending</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
         <Tabs 
           defaultValue={
             (user?.role === 'therapist' || user?.role === 'admin') ? "goals" : "set"
