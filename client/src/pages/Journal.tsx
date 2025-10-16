@@ -673,15 +673,44 @@ export default function Journal() {
         {/* Back to Clients button */}
         <BackToClientsButton />
         
-        {/* Module Header with Progress */}
+        {/* Module Header */}
         <ModuleHeader
           title="Journal"
           description="Reflect on your thoughts, feelings, and experiences through daily journaling"
-          badges={[
-            { label: "Total Entries", value: stats.totalEntries, icon: Book, color: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200" },
-            { label: "Most Common", value: Object.keys(stats.emotions).length > 0 ? Object.entries(stats.emotions).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0] : "None", icon: TrendingUp, color: "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200" },
-          ]}
+          badges={[]}
         />
+        
+        {/* Overall Progress Summary */}
+        {stats.totalEntries > 0 && (
+          <Card className="mb-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Book className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Overall Progress</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-primary">{stats.totalEntries}</div>
+                  <div className="text-sm text-muted-foreground">Total Entries</div>
+                </div>
+                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-teal-600">
+                    {Object.keys(stats.emotions).length > 0 
+                      ? Object.entries(stats.emotions).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0] 
+                      : "None"}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Most Common Emotion</div>
+                </div>
+                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-rose-600">{Object.keys(stats.emotions).length}</div>
+                  <div className="text-sm text-muted-foreground">Unique Emotions</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         
         <Tabs 
           value={activeTab} 
