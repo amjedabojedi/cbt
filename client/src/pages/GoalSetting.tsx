@@ -9,6 +9,7 @@ import { format, parseISO } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import AppLayout from "@/components/layout/AppLayout";
 import ModuleHeader from "@/components/layout/ModuleHeader";
+import SmartGoalWizard from "@/components/goal/SmartGoalWizard";
 import { useToast } from "@/hooks/use-toast";
 import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
 
@@ -674,272 +675,48 @@ export default function GoalSetting() {
           {/* Set Goal tab - only accessible to clients */}
           {user?.role === 'client' && (
             <TabsContent value="set">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Set a SMART Goal</CardTitle>
-                  <CardDescription>
-                    SMART goals are Specific, Measurable, Achievable, Relevant, and Time-bound.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {/* Educational Content */}
-                  <div className="mb-6">
-                    <Accordion type="single" collapsible className="mb-6">
-                      <AccordionItem value="smart-goals-guide">
-                        <AccordionTrigger className="text-base font-medium">
-                          <div className="flex items-center">
-                            <HelpCircle className="h-5 w-5 mr-2 text-primary" />
-                            Goal Setting Guide
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-4 text-sm">
-                            <div>
-                              <h4 className="font-medium text-base">Why Set SMART Goals?</h4>
-                              <p className="mt-1">
-                                Setting SMART goals provides structure and direction to your personal growth journey. Research shows that well-defined goals are significantly more likely to be achieved than vague intentions.
-                              </p>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="bg-muted/30 p-3 rounded-lg">
-                                <h5 className="font-medium">For Mental Health</h5>
-                                <ul className="list-disc pl-5 space-y-1 mt-1">
-                                  <li>Provides a sense of purpose and direction</li>
-                                  <li>Creates structure and routine</li>
-                                  <li>Builds confidence through achievement</li>
-                                  <li>Reduces anxiety by breaking down challenges</li>
-                                </ul>
-                              </div>
-                              
-                              <div className="bg-muted/30 p-3 rounded-lg">
-                                <h5 className="font-medium">For Personal Growth</h5>
-                                <ul className="list-disc pl-5 space-y-1 mt-1">
-                                  <li>Helps identify important values and priorities</li>
-                                  <li>Develops self-discipline and focus</li>
-                                  <li>Creates a roadmap for steady improvement</li>
-                                  <li>Provides objective measures of progress</li>
-                                </ul>
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <h4 className="font-medium text-base">Goal-Setting Process</h4>
-                              <ol className="list-decimal pl-5 space-y-2 mt-1">
-                                <li>
-                                  <strong>Reflect on values and priorities</strong> - What matters most to you right now?
-                                </li>
-                                <li>
-                                  <strong>Identify areas for growth</strong> - Where would change be most beneficial?
-                                </li>
-                                <li>
-                                  <strong>Draft your goal</strong> - Create a preliminary statement of what you want to achieve
-                                </li>
-                                <li>
-                                  <strong>Apply the SMART criteria</strong> - Refine your goal to be specific, measurable, achievable, relevant, and time-bound
-                                </li>
-                                <li>
-                                  <strong>Break into milestones</strong> - Create smaller steps that lead to your goal
-                                </li>
-                                <li>
-                                  <strong>Review regularly</strong> - Track progress and adjust as needed
-                                </li>
-                              </ol>
-                            </div>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
+              {/* Educational Accordion */}
+              <Accordion type="single" collapsible className="mb-6 bg-blue-50 dark:bg-blue-950/30 rounded-lg px-4">
+                <AccordionItem value="why-smart-goals" className="border-0">
+                  <AccordionTrigger className="text-base font-medium hover:no-underline py-3">
+                    <div className="flex items-center">
+                      <HelpCircle className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+                      Why SMART Goals?
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground pb-4">
+                    <p className="mb-3">
+                      SMART goals provide structure and direction to your personal growth journey. Research shows that well-defined goals are significantly more likely to be achieved than vague intentions.
+                    </p>
+                    
+                    <div className="space-y-3">
+                      <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                        <h4 className="font-medium text-foreground mb-1">For Mental Health</h4>
+                        <ul className="list-disc pl-5 space-y-1 text-xs">
+                          <li>Provides a sense of purpose and direction</li>
+                          <li>Creates structure and routine</li>
+                          <li>Builds confidence through achievement</li>
+                          <li>Reduces anxiety by breaking down challenges</li>
+                        </ul>
+                      </div>
                       
-                      <AccordionItem value="example-goals">
-                        <AccordionTrigger className="text-base font-medium">
-                          <div className="flex items-center">
-                            <HelpCircle className="h-5 w-5 mr-2 text-primary" />
-                            Goal Examples and Templates
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-4 text-sm">
-                            <p>
-                              Below are examples of well-formed SMART goals in different areas of life. Use these as templates to help formulate your own goals.
-                            </p>
-                            
-                            <div className="space-y-3">
-                              <div className="border-l-4 border-primary/80 pl-3 py-1">
-                                <h5 className="font-medium">Emotional Regulation Example</h5>
-                                <p className="italic text-sm mt-1">
-                                  "I will practice mindfulness meditation for 10 minutes each morning before work for the next 30 days, tracking my emotional reactivity scores before and after to reduce my anxiety levels by at least 30%."
-                                </p>
-                                <ul className="text-xs mt-2 space-y-1">
-                                  <li><strong>Specific:</strong> Clearly defines the action (mindfulness meditation)</li>
-                                  <li><strong>Measurable:</strong> 10 minutes daily, with tracked anxiety scores</li>
-                                  <li><strong>Achievable:</strong> A modest time commitment that can fit into most schedules</li>
-                                  <li><strong>Relevant:</strong> Directly addresses emotional regulation</li>
-                                  <li><strong>Time-bound:</strong> 30-day commitment with clear success metrics</li>
-                                </ul>
-                              </div>
-                              
-                              <div className="border-l-4 border-primary/80 pl-3 py-1">
-                                <h5 className="font-medium">Communication Skills Example</h5>
-                                <p className="italic text-sm mt-1">
-                                  "I will practice active listening in at least one conversation per day for the next 8 weeks, noting three specific techniques I used and getting feedback from my conversation partner on my effectiveness."
-                                </p>
-                                <ul className="text-xs mt-2 space-y-1">
-                                  <li><strong>Specific:</strong> Focuses on active listening techniques</li>
-                                  <li><strong>Measurable:</strong> One conversation daily with documented techniques</li>
-                                  <li><strong>Achievable:</strong> Requires minimal time commitment</li>
-                                  <li><strong>Relevant:</strong> Directly improves relationship skills</li>
-                                  <li><strong>Time-bound:</strong> 8-week timeframe with ongoing assessment</li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </div>
-                  
-                  <Form {...goalForm}>
-                    <form onSubmit={goalForm.handleSubmit(onSubmitGoal)} className="space-y-4">
-                      <FormField
-                        control={goalForm.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Goal Title</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter a title for your goal" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={goalForm.control}
-                        name="specific"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Specific</FormLabel>
-                            <FormDescription>
-                              What exactly do you want to accomplish?
-                            </FormDescription>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Be precise about what you want to achieve..."
-                                rows={3}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={goalForm.control}
-                        name="measurable"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Measurable</FormLabel>
-                            <FormDescription>
-                              How will you track progress and measure success?
-                            </FormDescription>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Define criteria to measure progress..."
-                                rows={3}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={goalForm.control}
-                        name="achievable"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Achievable</FormLabel>
-                            <FormDescription>
-                              Is this goal realistic? Do you have the resources and capabilities?
-                            </FormDescription>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Explain why this goal is attainable..."
-                                rows={3}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={goalForm.control}
-                        name="relevant"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Relevant</FormLabel>
-                            <FormDescription>
-                              Why is this goal important to you? How does it align with your values?
-                            </FormDescription>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Describe why this goal matters to you..."
-                                rows={3}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={goalForm.control}
-                        name="timebound"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Time-bound</FormLabel>
-                            <FormDescription>
-                              When will you achieve this goal? Set a realistic timeframe.
-                            </FormDescription>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Define your timeline and deadline..."
-                                rows={3}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={goalForm.control}
-                        name="deadline"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Target Date (Optional)</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <Button type="submit" disabled={createGoalMutation.isPending} className="w-full">
-                        {createGoalMutation.isPending ? "Creating Goal..." : "Create SMART Goal"}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
+                      <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                        <h4 className="font-medium text-foreground mb-1">For Personal Growth</h4>
+                        <ul className="list-disc pl-5 space-y-1 text-xs">
+                          <li>Helps identify important values and priorities</li>
+                          <li>Develops self-discipline and focus</li>
+                          <li>Creates a roadmap for steady improvement</li>
+                          <li>Provides objective measures of progress</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+
+              <SmartGoalWizard onGoalCreated={() => {
+                queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/goals`] });
+              }} />
             </TabsContent>
           )}
           
