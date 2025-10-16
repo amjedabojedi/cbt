@@ -95,6 +95,36 @@ export default function ThoughtRecordsList({
     enabled: !!targetUserId,
   });
   
+  // Fetch reframe practice results to check last practice time
+  const { data: practiceResults } = useQuery<any[]>({
+    queryKey: targetUserId ? [`/api/users/${targetUserId}/reframe-coach/results`] : [],
+    enabled: !!targetUserId && showPracticeButton,
+  });
+  
+  // Helper function to check if a thought was practiced in the last 24 hours
+  const getLastPracticeInfo = (thoughtRecordId: number) => {
+    if (!practiceResults) return null;
+    
+    const practices = practiceResults.filter(p => p.thoughtRecordId === thoughtRecordId);
+    if (practices.length === 0) return null;
+    
+    // Get most recent practice
+    const lastPractice = practices.sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0];
+    
+    const lastPracticeTime = new Date(lastPractice.createdAt).getTime();
+    const now = Date.now();
+    const hoursSinceLastPractice = (now - lastPracticeTime) / (1000 * 60 * 60);
+    
+    return {
+      lastPracticeTime,
+      hoursSinceLastPractice,
+      canPractice: hoursSinceLastPractice >= 24,
+      hoursUntilNext: hoursSinceLastPractice >= 24 ? 0 : Math.ceil(24 - hoursSinceLastPractice)
+    };
+  };
+  
   // Use provided records if they exist, otherwise use fetched records
   const thoughtRecords = providedRecords || fetchedRecords;
   
@@ -435,20 +465,46 @@ export default function ThoughtRecordsList({
                       )}
                       
                       {/* Practice Button for clients only - If enabled */}
-                      {showPracticeButton && !isViewingClientData && (
-                        <Button 
-                          size="sm"
-                          onClick={() => {
-                            // Navigate to quick practice with this thought record
-                            window.location.href = `/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`;
-                          }}
-                          className="bg-amber-500 hover:bg-amber-600 text-white"
-                          data-testid={`button-practice-${record.id}`}
-                        >
-                          <Sparkles className="h-4 w-4 mr-1" />
-                          Practice
-                        </Button>
-                      )}
+                      {showPracticeButton && !isViewingClientData && (() => {
+                        const practiceInfo = getLastPracticeInfo(record.id);
+                        const canPractice = !practiceInfo || practiceInfo.canPractice;
+                        
+                        return (
+                          <div className="relative group">
+                            <Button 
+                              size="sm"
+                              onClick={() => {
+                                if (canPractice) {
+                                  // Navigate to quick practice with this thought record
+                                  window.location.href = `/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`;
+                                }
+                              }}
+                              disabled={!canPractice}
+                              className={canPractice 
+                                ? "bg-amber-500 hover:bg-amber-600 text-white" 
+                                : "bg-muted text-muted-foreground cursor-not-allowed"}
+                              data-testid={`button-practice-${record.id}`}
+                            >
+                              {canPractice ? (
+                                <>
+                                  <Sparkles className="h-4 w-4 mr-1" />
+                                  Practice
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Practiced
+                                </>
+                              )}
+                            </Button>
+                            {!canPractice && practiceInfo && (
+                              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2 bg-slate-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                ✓ Already practiced today. New exercise available in {practiceInfo.hoursUntilNext} hours
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                       
                       {/* View Practice History Button for therapists */}
                       {isViewingClientData && (
