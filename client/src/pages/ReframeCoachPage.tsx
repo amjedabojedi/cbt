@@ -137,13 +137,6 @@ export default function ReframeCoachPage() {
     : "0";
   const currentStreak = profileData?.profile?.practiceStreak || 0;
 
-  // Progress badges for ModuleHeader
-  const badges = [
-    { label: "Total Sessions", value: `${totalSessions}`, color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300" },
-    { label: "Avg Score", value: `${avgScore} pts`, color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" },
-    { label: "Streak", value: `${currentStreak} days`, color: "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300" },
-  ];
-
   return (
     <AppLayout title="Reframe Coach">
       <div className="container mx-auto px-4 py-6">
@@ -154,7 +147,6 @@ export default function ReframeCoachPage() {
         <ModuleHeader
           title="Reframe Coach"
           description="Practice cognitive reframing with interactive exercises based on your thought records"
-          badges={badges}
         />
         
         {/* Overall Progress Summary */}
@@ -348,7 +340,7 @@ export default function ReframeCoachPage() {
                     </CardHeader>
                     
                     <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                      <div className="grid grid-cols-4 gap-4 mb-4">
                         <div className="text-center p-4 bg-muted/20 rounded-md">
                           <p className="text-muted-foreground text-sm">Score</p>
                           <p className="text-2xl font-bold">{result.score}</p>
