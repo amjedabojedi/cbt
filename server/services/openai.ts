@@ -362,6 +362,47 @@ export async function generateReframePracticeScenarios(
         .join(' ');
     });
     
+    // Define each distortion with clear examples for the AI
+    const distortionDefinitions = `
+    COGNITIVE DISTORTION DEFINITIONS:
+    
+    1. **All or Nothing Thinking**: Seeing things in black-and-white categories. If performance isn't perfect, it's seen as total failure.
+       Example: "If I make ONE mistake, the ENTIRE presentation is ruined" or "Either I do this perfectly or I'm a complete failure"
+    
+    2. **Mental Filter**: Picking out a single negative detail and dwelling on it exclusively, filtering out all positive aspects.
+       Example: "I got 9/10 positive reviews, but that ONE negative comment proves I'm terrible at my job"
+    
+    3. **Mind Reading**: Assuming you know what others are thinking without evidence.
+       Example: "She didn't smile at me, so she must think I'm incompetent"
+    
+    4. **Fortune Telling**: Predicting negative outcomes without evidence.
+       Example: "I know this interview will be a disaster" or "I'm certain I'll fail this exam"
+    
+    5. **Labelling**: Attaching negative labels to yourself or others based on limited information.
+       Example: "I'm a loser" or "I'm worthless" instead of "I made a mistake"
+    
+    6. **Over-Generalising**: Making broad conclusions based on a single event.
+       Example: "I failed once, so I ALWAYS fail" or "NOTHING ever works out for me"
+    
+    7. **Compare and Despair**: Comparing yourself unfavourably to others.
+       Example: "Everyone else is better than me" or "I'll never be as successful as them"
+    
+    8. **Emotional Thinking**: Believing that feelings reflect reality.
+       Example: "I feel stupid, therefore I AM stupid" or "I feel anxious, so something bad WILL happen"
+    
+    9. **Guilty Thinking**: Using "should", "must", "ought to" statements that create guilt and pressure.
+       Example: "I SHOULD be perfect" or "I MUST never make mistakes"
+    
+    10. **Catastrophising**: Expecting disaster or magnifying the importance of negative events.
+        Example: "This small mistake will ruin my entire career" or "If I fail this test, my life is over"
+    
+    11. **Blaming Others**: Always blaming others for problems without taking any responsibility.
+        Example: "It's all their fault I didn't succeed" or "If they hadn't interfered, everything would be fine"
+    
+    12. **Personalising**: Taking personal responsibility for things outside your control or believing everything relates to you.
+        Example: "My boss is in a bad mood - I must have done something wrong" or "The project failed because of me, even though I was just one team member"
+    `;
+
     const prompt = `
     I need to create a cognitive restructuring practice session based on the following automatic thought:
     "${automaticThought}"
@@ -370,35 +411,46 @@ export async function generateReframePracticeScenarios(
     The primary emotion associated with this thought is: ${emotionCategory}
     ${customInstructions ? `Additional context and instructions: ${customInstructions}` : ""}
 
+    ${distortionDefinitions}
+
+    CRITICAL INSTRUCTIONS FOR SCENARIO CREATION:
+    1. Each scenario MUST explicitly demonstrate the SPECIFIC distortion pattern listed above
+    2. The scenario text should clearly show the distortion in action (e.g., for All or Nothing, show extreme binary thinking)
+    3. DO NOT just mention "I'm not good enough" - show the SPECIFIC distortion pattern happening
+    4. Make scenarios that are obviously teaching about the SPECIFIC distortion type
+    
+    Example of GOOD scenario for All or Nothing Thinking:
+    "During practice, you stumble over ONE word and immediately think: 'If I make even a single mistake during the real presentation, it will be a COMPLETE disaster and everyone will think I'm totally incompetent.'" (This clearly shows the binary, extreme thinking)
+    
+    Example of BAD scenario for All or Nothing Thinking:
+    "You're preparing for a presentation and think 'I'm not good enough'" (This doesn't show the all-or-nothing pattern)
+
     Please generate a cognitive restructuring practice session with 3 different scenarios.
     Each scenario should:
-    1. Present a realistic situation that directly relates to the original thought and distortions
-    2. Ensure the scenarios feel personally relevant to the user's specific situation
-    3. Provide 4 possible reframing options (1 correct, 3 incorrect)
-    4. For each option, include an explanation of why it's helpful or unhelpful
-    5. Make the scenarios progressively more challenging
-    6. Use examples that clearly demonstrate the specific cognitive distortions mentioned
-    
-    IMPORTANT: The scenarios MUST be closely connected to the themes, situations, and content of the original thought.
-    Do NOT create generic scenarios - make them highly specific to the user's thought content.
+    1. EXPLICITLY demonstrate the specific distortion pattern with clear language that shows the distortion
+    2. Relate to the original thought content but CLEARLY show the distortion mechanism
+    3. Use the exact wording patterns that characterize each distortion (see definitions above)
+    4. Provide 4 possible reframing options (1 correct, 3 incorrect)
+    5. For each option, explain why it's helpful or unhelpful
+    6. Make the scenarios progressively more challenging
     
     The correct option should demonstrate effective cognitive restructuring that:
-    - Directly challenges the specific distorted thinking pattern(s) in the original thought
+    - Directly challenges the specific distorted thinking pattern by name
     - Considers the evidence for and against the thought
-    - Uses balanced, realistic thinking based on the alternative perspective provided
+    - Uses balanced, realistic thinking
     - Promotes self-compassion and growth
     
     The incorrect options should:
-    - Show subtle ways people might maintain the exact same distortions present in the original thought
+    - Show subtle ways people might maintain the same distortion
     - Include examples that feel realistic but reinforce unhelpful patterns
-    - Vary in how obviously incorrect they are, with some being subtle traps
+    - Vary in how obviously incorrect they are
     - Feel plausible but ultimately unhelpful
 
     Return the response as a JSON object with this structure:
     {
       "scenarios": [
         {
-          "scenario": "Detailed scenario description",
+          "scenario": "Detailed scenario description that CLEARLY shows the distortion pattern in action",
           "options": [
             {
               "text": "Option text",
