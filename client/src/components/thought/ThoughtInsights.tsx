@@ -252,7 +252,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
                 interval={0}
                 tick={{ fontSize: 12 }}
               />
-              <YAxis />
+              <YAxis allowDecimals={false} />
               <Tooltip />
               <Bar dataKey="count" fill="#8884d8">
                 {getANTPatterns().map((entry, index) => (
