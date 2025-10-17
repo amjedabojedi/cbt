@@ -31,14 +31,35 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
     enabled: !!userId,
   });
 
+  // Mapping function to convert category values to readable labels
+  const getCategoryLabel = (category: string): string => {
+    const labels: Record<string, string> = {
+      'all_or_nothing': 'All or Nothing Thinking',
+      'overgeneralization': 'Overgeneralization',
+      'mental_filter': 'Mental Filter',
+      'disqualifying_positive': 'Disqualifying the Positive',
+      'jumping_to_conclusions': 'Jumping to Conclusions',
+      'magnification': 'Magnification/Minimization',
+      'emotional_reasoning': 'Emotional Reasoning',
+      'should_statements': 'Should Statements',
+      'labeling': 'Labeling',
+      'personalization': 'Personalization',
+      'catastrophizing': 'Catastrophizing',
+      'fortune_telling': 'Fortune Telling'
+    };
+    return labels[category] || category;
+  };
+
   // Calculate ANT patterns (cognitive distortions)
   const getANTPatterns = () => {
     const distortionCounts: Record<string, number> = {};
     
     thoughts.forEach((thought) => {
-      if (thought.cognitiveDistortions && Array.isArray(thought.cognitiveDistortions)) {
-        thought.cognitiveDistortions.forEach((distortion: string) => {
-          distortionCounts[distortion] = (distortionCounts[distortion] || 0) + 1;
+      // Use thoughtCategory field which contains the actual distortions
+      if (thought.thoughtCategory && Array.isArray(thought.thoughtCategory)) {
+        thought.thoughtCategory.forEach((category: string) => {
+          const label = getCategoryLabel(category);
+          distortionCounts[label] = (distortionCounts[label] || 0) + 1;
         });
       }
     });
