@@ -47,37 +47,40 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
     }));
   };
 
-  // Calculate mood trends over time with positive/negative separation - grouped by weeks starting Monday
+  // Calculate mood trends over time with positive/negative separation - individual days starting from Monday
   const getMoodTrends = () => {
-    let weeksToShow = 4;
+    let daysToShow = 7;
     
     if (timeRange === "week") {
-      weeksToShow = 1;
+      daysToShow = 7;
     } else if (timeRange === "month") {
-      weeksToShow = 4;
+      daysToShow = 30;
     } else {
       if (emotions.length === 0) return [];
       const oldestDate = new Date(Math.min(...emotions.map(e => new Date(e.createdAt).getTime())));
       const now = new Date();
-      weeksToShow = Math.ceil((now.getTime() - oldestDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+      daysToShow = Math.ceil((now.getTime() - oldestDate.getTime()) / (24 * 60 * 60 * 1000));
     }
 
-    const weeks = [];
+    // Get the Monday of the current week as the end point
     const today = new Date();
+    const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
     
-    for (let i = weeksToShow - 1; i >= 0; i--) {
-      const weekEnd = endOfWeek(subDays(today, i * 7), { weekStartsOn: 1 }); // Sunday
-      const weekStart = startOfWeek(weekEnd, { weekStartsOn: 1 }); // Monday
-      
-      // Get all emotions in this week
-      const weekEmotions = emotions.filter(e => {
-        const emotionDate = new Date(e.createdAt);
-        return emotionDate >= weekStart && emotionDate <= weekEnd;
-      });
+    // Start from the appropriate Monday in the past
+    const startDate = startOfWeek(subDays(currentWeekMonday, daysToShow - 7), { weekStartsOn: 1 });
+    const endDate = today;
+    
+    const days = eachDayOfInterval({ start: startDate, end: endDate });
+    
+    return days.map(day => {
+      const dayStr = format(day, "yyyy-MM-dd");
+      const dayEmotions = emotions.filter(e => 
+        format(new Date(e.createdAt), "yyyy-MM-dd") === dayStr
+      );
       
       // Separate positive and negative emotions
-      const positiveEmotions = weekEmotions.filter(e => POSITIVE_EMOTIONS.includes(e.coreEmotion));
-      const negativeEmotions = weekEmotions.filter(e => NEGATIVE_EMOTIONS.includes(e.coreEmotion));
+      const positiveEmotions = dayEmotions.filter(e => POSITIVE_EMOTIONS.includes(e.coreEmotion));
+      const negativeEmotions = dayEmotions.filter(e => NEGATIVE_EMOTIONS.includes(e.coreEmotion));
       
       const avgPositiveIntensity = positiveEmotions.length > 0
         ? positiveEmotions.reduce((sum, e) => sum + e.intensity, 0) / positiveEmotions.length
@@ -87,22 +90,24 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
         ? negativeEmotions.reduce((sum, e) => sum + e.intensity, 0) / negativeEmotions.length
         : 0;
       
-      // Format date range: "Oct 7-13" or "Sep 30-Oct 6" if spans months
+      // Get week range for this day
+      const weekStart = startOfWeek(day, { weekStartsOn: 1 });
+      const weekEnd = endOfWeek(day, { weekStartsOn: 1 });
       const startMonth = format(weekStart, 'MMM');
       const endMonth = format(weekEnd, 'MMM');
-      const dateRange = startMonth === endMonth 
+      const weekRange = startMonth === endMonth 
         ? `${startMonth} ${format(weekStart, 'd')}-${format(weekEnd, 'd')}`
         : `${startMonth} ${format(weekStart, 'd')}-${endMonth} ${format(weekEnd, 'd')}`;
       
-      weeks.push({
-        date: dateRange,
+      return {
+        date: `${format(day, 'EEE')}\n${weekRange}`, // e.g., "Mon\nOct 7-13"
+        dayName: format(day, 'EEE'), // e.g., "Mon"
+        weekRange, // e.g., "Oct 7-13"
         positiveIntensity: parseFloat(avgPositiveIntensity.toFixed(1)),
         negativeIntensity: parseFloat(avgNegativeIntensity.toFixed(1)),
-        count: weekEmotions.length,
-      });
-    }
-    
-    return weeks;
+        count: dayEmotions.length,
+      };
+    });
   };
 
   // Calculate intensity heatmap data with positive/negative separation - organized by weeks starting Monday
@@ -209,20 +214,46 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
               </TabsList>
             </Tabs>
           </div>
-          <CardDescription>Weekly positive vs negative emotional intensity trends (weeks start Monday)</CardDescription>
+          <CardDescription>Daily positive vs negative emotional intensity trends (starting Monday)</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={350}>
             <LineChart data={getMoodTrends()}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
-                dataKey="date" 
-                angle={0}
-                textAnchor="middle"
-                height={50}
+                dataKey="date"
+                tick={({ x, y, payload }) => {
+                  const [day, range] = payload.value.split('\n');
+                  return (
+                    <g transform={`translate(${x},${y})`}>
+                      <text x={0} y={0} dy={8} textAnchor="middle" fill="#666" fontSize="12" fontWeight="600">
+                        {day}
+                      </text>
+                      <text x={0} y={0} dy={24} textAnchor="middle" fill="#999" fontSize="10">
+                        {range}
+                      </text>
+                    </g>
+                  );
+                }}
+                height={70}
               />
               <YAxis domain={[0, 10]} label={{ value: 'Intensity', angle: -90, position: 'insideLeft' }} />
-              <Tooltip />
+              <Tooltip 
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-white dark:bg-gray-800 p-2 border rounded shadow-lg">
+                        <p className="font-semibold">{data.dayName} ({data.weekRange})</p>
+                        <p className="text-green-600">Positive: {data.positiveIntensity}</p>
+                        <p className="text-red-600">Negative: {data.negativeIntensity}</p>
+                        <p className="text-gray-600">Tracked: {data.count}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
               <Legend />
               <Line 
                 type="monotone" 
