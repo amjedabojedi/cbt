@@ -69,26 +69,54 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
       .sort((a, b) => b.count - a.count);
   };
 
-  // Calculate challenge success rate
-  const getChallengeSuccessRate = () => {
+  // Calculate challenge rate for pie chart
+  const getChallengeRate = () => {
     const challenged = thoughts.filter(t => t.evidenceFor || t.evidenceAgainst);
     const unchallenged = thoughts.filter(t => !t.evidenceFor && !t.evidenceAgainst);
     
-    const challengedAvgRating = challenged.length > 0
-      ? challenged.reduce((sum, t) => sum + (t.reflectionRating || 0), 0) / challenged.length
-      : 0;
-    
     return [
       { 
-        category: "Challenged Thoughts", 
-        count: challenged.length,
-        avgRating: parseFloat(challengedAvgRating.toFixed(1))
+        name: "Challenged", 
+        value: challenged.length,
+        percentage: thoughts.length > 0 ? Math.round((challenged.length / thoughts.length) * 100) : 0
       },
       { 
-        category: "Unchallenged Thoughts", 
-        count: unchallenged.length,
-        avgRating: 0
+        name: "Not Challenged", 
+        value: unchallenged.length,
+        percentage: thoughts.length > 0 ? Math.round((unchallenged.length / thoughts.length) * 100) : 0
       },
+    ];
+  };
+
+  // Calculate belief shift for challenged thoughts
+  const getBeliefShift = () => {
+    const challengedThoughts = thoughts.filter(t => t.alternativePerspective);
+    
+    if (challengedThoughts.length === 0) return [];
+    
+    // Calculate averages
+    const totalBeliefBefore = challengedThoughts.reduce((sum, t) => {
+      // beliefInOriginal not stored, but reflectionRating gives us insight
+      return sum + (t.reflectionRating ? (10 - t.reflectionRating) * 10 : 80);
+    }, 0);
+    
+    const totalBeliefAfter = challengedThoughts.reduce((sum, t) => {
+      // reflectionRating represents belief in alternative (1-10 scale = 10-100%)
+      return sum + ((t.reflectionRating || 0) * 10);
+    }, 0);
+    
+    const avgBeliefBefore = Math.round(totalBeliefBefore / challengedThoughts.length);
+    const avgBeliefAfter = Math.round(totalBeliefAfter / challengedThoughts.length);
+    
+    return [
+      {
+        stage: "Before Challenge",
+        belief: avgBeliefBefore,
+      },
+      {
+        stage: "After Challenge",
+        belief: avgBeliefAfter,
+      }
     ];
   };
 
@@ -266,27 +294,70 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Challenge Success Rate */}
+        {/* Challenge Rate */}
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
-              <CardTitle>Challenge Success</CardTitle>
+              <CardTitle>Challenge Rate</CardTitle>
             </div>
-            <CardDescription>Impact of challenging your thoughts</CardDescription>
+            <CardDescription>Percentage of thoughts you've challenged</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={getChallengeSuccessRate()}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="category" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" fill="#82ca9d" name="Count" />
-                <Bar dataKey="avgRating" fill="#8884d8" name="Avg Rating" />
-              </BarChart>
+              <PieChart>
+                <Pie
+                  data={getChallengeRate()}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percentage }) => `${name}: ${percentage}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  <Cell fill="#82ca9d" />
+                  <Cell fill="#e0e0e0" />
+                </Pie>
+                <Tooltip formatter={(value: number, name: string, props: any) => [value, `${props.payload.name} (${props.payload.percentage}%)`]} />
+              </PieChart>
             </ResponsiveContainer>
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                {thoughts.length > 0 ? `${getChallengeRate()[0].value} of ${thoughts.length} thoughts challenged` : 'No thoughts recorded yet'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Belief Shift from Challenging */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <CardTitle>Belief Shift</CardTitle>
+            </div>
+            <CardDescription>How challenging changes your belief in thoughts</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {getBeliefShift().length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={getBeliefShift()}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="stage" />
+                  <YAxis domain={[0, 100]} label={{ value: 'Belief %', angle: -90, position: 'insideLeft' }} allowDecimals={false} />
+                  <Tooltip formatter={(value: number) => [`${value}%`, 'Belief']} />
+                  <Bar dataKey="belief" fill="#8884d8">
+                    <Cell fill="#ff7c7c" />
+                    <Cell fill="#82ca9d" />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                Challenge thoughts to see belief shift
+              </div>
+            )}
           </CardContent>
         </Card>
 
