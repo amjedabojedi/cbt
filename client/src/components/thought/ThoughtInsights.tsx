@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, TrendingUp, Target, Link2 } from "lucide-react";
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ScatterChart, Scatter, ZAxis } from "recharts";
 import { format, subDays, eachDayOfInterval } from "date-fns";
 
 interface ThoughtInsightsProps {
@@ -172,6 +172,41 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
     return Object.entries(linkCounts)
       .map(([emotion, count]) => ({ emotion, count }))
       .sort((a, b) => b.count - a.count);
+  };
+
+  // Calculate distortion-emotion correlation for bubble chart
+  const getDistortionEmotionCorrelation = () => {
+    const emotionMap = new Map(emotions.map(e => [e.id, e.coreEmotion]));
+    
+    // Map to store frequency: key = "distortion|emotion", value = count
+    const correlationMap: Map<string, { distortion: string, emotion: string, count: number }> = new Map();
+    
+    thoughts.forEach(thought => {
+      if (thought.emotionRecordId && thought.thoughtCategory && Array.isArray(thought.thoughtCategory)) {
+        const coreEmotion = emotionMap.get(thought.emotionRecordId);
+        
+        if (coreEmotion) {
+          // For each distortion in this thought
+          thought.thoughtCategory.forEach((category: string) => {
+            const distortionLabel = getCategoryLabel(category);
+            const key = `${distortionLabel}|${coreEmotion}`;
+            
+            const existing = correlationMap.get(key);
+            if (existing) {
+              existing.count += 1;
+            } else {
+              correlationMap.set(key, {
+                distortion: distortionLabel,
+                emotion: coreEmotion,
+                count: 1
+              });
+            }
+          });
+        }
+      }
+    });
+    
+    return Array.from(correlationMap.values());
   };
 
   // Calculate improvement metrics
@@ -394,6 +429,106 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
               No thought-emotion links yet
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Distortion-Emotion Correlation Bubble Chart */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-primary" />
+            <CardTitle>Distortion-Emotion Patterns</CardTitle>
+          </div>
+          <CardDescription>Which thinking patterns appear with which emotions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {(() => {
+            const correlationData = getDistortionEmotionCorrelation();
+            
+            if (correlationData.length === 0) {
+              return (
+                <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+                  No distortion-emotion data yet
+                </div>
+              );
+            }
+
+            // Get unique distortions and emotions
+            const uniqueDistortions = Array.from(new Set(correlationData.map(d => d.distortion)));
+            const uniqueEmotions = Array.from(new Set(correlationData.map(d => d.emotion)));
+            
+            // Create mapping indices
+            const distortionIndex = new Map(uniqueDistortions.map((d, i) => [d, i]));
+            const emotionIndex = new Map(uniqueEmotions.map((e, i) => [e, i]));
+            
+            // Transform data for scatter chart with numeric coordinates
+            const scatterData = correlationData.map(item => ({
+              x: distortionIndex.get(item.distortion),
+              y: emotionIndex.get(item.emotion),
+              z: item.count * 100, // Scale up for visibility
+              count: item.count,
+              distortion: item.distortion,
+              emotion: item.emotion,
+            }));
+            
+            return (
+              <>
+                <ResponsiveContainer width="100%" height={400}>
+                  <ScatterChart margin={{ top: 20, right: 20, bottom: 80, left: 100 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      type="number" 
+                      dataKey="x" 
+                      domain={[-0.5, uniqueDistortions.length - 0.5]}
+                      ticks={Array.from({ length: uniqueDistortions.length }, (_, i) => i)}
+                      tickFormatter={(value) => uniqueDistortions[value] || ''}
+                      angle={-45}
+                      textAnchor="end"
+                      height={100}
+                      interval={0}
+                      tick={{ fontSize: 11 }}
+                    />
+                    <YAxis 
+                      type="number" 
+                      dataKey="y"
+                      domain={[-0.5, uniqueEmotions.length - 0.5]}
+                      ticks={Array.from({ length: uniqueEmotions.length }, (_, i) => i)}
+                      tickFormatter={(value) => uniqueEmotions[value] || ''}
+                      width={90}
+                      interval={0}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <ZAxis type="number" dataKey="z" range={[100, 1000]} />
+                    <Tooltip 
+                      cursor={{ strokeDasharray: '3 3' }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-white dark:bg-gray-800 p-3 border rounded shadow-lg">
+                              <p className="font-semibold">{data.distortion}</p>
+                              <p className="text-sm text-muted-foreground">{data.emotion}</p>
+                              <p className="text-sm font-bold mt-1">Frequency: {data.count}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Scatter 
+                      data={scatterData} 
+                      fill="#8884d8"
+                      fillOpacity={0.6}
+                    />
+                  </ScatterChart>
+                </ResponsiveContainer>
+                <div className="mt-4 text-sm text-muted-foreground text-center">
+                  <p>Bubble size represents how often that distortion-emotion combination occurs</p>
+                  <p className="mt-1">Larger bubbles = more frequent pattern</p>
+                </div>
+              </>
+            );
+          })()}
         </CardContent>
       </Card>
 
