@@ -69,7 +69,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Changelog
 
-- October 16, 2025 (latest). Consolidated Reframe Coach navigation into unified 3-tab page
+- October 17, 2025 (latest). Fixed Thought Records Insights ANT Patterns Chart Display
+  - **Critical Bug Fix**: ANT Patterns (Cognitive Distortions) chart now displays correctly by reading from `thoughtCategory` field instead of empty `cognitiveDistortions` field
+  - **Label Mapping**: Added getCategoryLabel() function to convert snake_case values (all_or_nothing, mental_filter, etc.) to readable labels ("All or Nothing Thinking", "Mental Filter", etc.)
+  - **Improved Chart Layout**: Switched from horizontal to vertical bar chart with 45° angled labels for better readability
+  - **Visual Enhancement**: Chart now shows colorful bars sorted by frequency with proper spacing and all 12 CBT distortion types displaying correctly
+  - **Data Field Mapping**: Established that `thoughtCategory` contains actual distortions across the application, not `cognitiveDistortions` which remains empty
+
+- October 16, 2025. Consolidated Reframe Coach navigation into unified 3-tab page
   - **Navigation Cleanup**: Removed separate `/users/:userId/reframe-history` route and ReframeHistoryPage.tsx
   - **Unified Route**: All reframe coach features now accessible through `/reframe-coach` or `/users/:userId/reframe-coach` with tab parameter
   - **Tab Navigation**: History tab accessible via `?tab=history`, Insights via `?tab=insights` query parameters
