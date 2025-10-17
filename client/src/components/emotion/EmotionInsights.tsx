@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp, PieChart as PieChartIcon, Calendar as CalendarIcon, Clock } from "lucide-react";
 import { LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, subDays, parseISO } from "date-fns";
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, subDays, parseISO, startOfDay } from "date-fns";
 
 interface EmotionInsightsProps {
   userId: number;
@@ -89,14 +89,17 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
     });
   };
 
-  // Calculate intensity heatmap data with positive/negative separation
+  // Calculate intensity heatmap data with positive/negative separation - organized by weeks starting Monday
   const getIntensityHeatmap = () => {
-    const last30Days = eachDayOfInterval({ 
-      start: subDays(new Date(), 29), 
-      end: new Date() 
-    });
+    const today = startOfDay(new Date());
+    // Get the Monday of 4 weeks ago
+    const startDate = startOfWeek(subDays(today, 28), { weekStartsOn: 1 }); // 1 = Monday
+    // Get the Sunday of current week
+    const endDate = endOfWeek(today, { weekStartsOn: 1 });
     
-    return last30Days.map(day => {
+    const days = eachDayOfInterval({ start: startDate, end: endDate });
+    
+    return days.map(day => {
       const dayStr = format(day, "yyyy-MM-dd");
       const dayEmotions = emotions.filter(e => 
         format(new Date(e.createdAt), "yyyy-MM-dd") === dayStr
@@ -117,13 +120,16 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
       // Calculate overall intensity as difference (positive - negative)
       const netIntensity = avgPositiveIntensity - avgNegativeIntensity;
       
+      const isFuture = day > today;
+      
       return {
-        date: format(day, "EEE MMM d"), // e.g., "Mon Oct 14"
+        fullDate: format(day, "MMM d"), // e.g., "Oct 14"
         dayName: format(day, "EEE"), // e.g., "Mon"
         positiveIntensity: avgPositiveIntensity,
         negativeIntensity: avgNegativeIntensity,
         netIntensity, // Can be positive or negative
         count: dayEmotions.length,
+        isFuture, // Flag for future dates
       };
     });
   };
@@ -280,19 +286,31 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
         <CardHeader>
           <div className="flex items-center gap-2">
             <CalendarIcon className="h-5 w-5 text-primary" />
-            <CardTitle>30-Day Intensity Calendar</CardTitle>
+            <CardTitle>Weekly Intensity Calendar</CardTitle>
           </div>
-          <CardDescription>Positive (green) vs negative (red) emotional intensity per day</CardDescription>
+          <CardDescription>Positive (green) vs negative (red) emotional intensity - organized by week starting Monday</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-10 gap-1">
+          {/* Day names header */}
+          <div className="grid grid-cols-7 gap-2 mb-2">
+            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+              <div key={day} className="text-center text-xs font-semibold text-muted-foreground">
+                {day}
+              </div>
+            ))}
+          </div>
+          
+          {/* Calendar grid */}
+          <div className="grid grid-cols-7 gap-2">
             {getIntensityHeatmap().map((day, i) => {
-              const { positiveIntensity, negativeIntensity, netIntensity, count, date, dayName } = day;
+              const { positiveIntensity, negativeIntensity, netIntensity, count, fullDate, isFuture } = day;
               
               // Determine color based on net intensity (positive - negative)
               let bgColor = "bg-gray-100 dark:bg-gray-800";
               
-              if (count > 0) {
+              if (isFuture) {
+                bgColor = "bg-gray-50 dark:bg-gray-900 opacity-40";
+              } else if (count > 0) {
                 if (netIntensity > 0) {
                   // More positive emotions
                   if (netIntensity <= 3) bgColor = "bg-green-200 dark:bg-green-900";
@@ -313,20 +331,27 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
               return (
                 <div
                   key={i}
-                  className={`aspect-square rounded ${bgColor} flex items-center justify-center text-[10px] font-medium relative group`}
-                  title={`${date}: Pos ${positiveIntensity.toFixed(1)} / Neg ${negativeIntensity.toFixed(1)} (${count} tracked)`}
+                  className={`aspect-square rounded ${bgColor} flex flex-col items-center justify-center text-[10px] font-medium relative group p-1`}
+                  title={isFuture ? `${fullDate} (Future)` : `${fullDate}: Pos ${positiveIntensity.toFixed(1)} / Neg ${negativeIntensity.toFixed(1)} (${count} tracked)`}
                 >
-                  <span className="opacity-60">{dayName.charAt(0)}</span>
-                  <div className="opacity-0 group-hover:opacity-100 absolute -top-20 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                    {date}<br />
-                    Positive: {positiveIntensity.toFixed(1)}<br />
-                    Negative: {negativeIntensity.toFixed(1)}<br />
-                    ({count} tracked)
-                  </div>
+                  <div className="text-[9px] opacity-70">{fullDate}</div>
+                  {!isFuture && count > 0 && (
+                    <div className="text-[8px] mt-0.5">{count}</div>
+                  )}
+                  {!isFuture && (
+                    <div className="opacity-0 group-hover:opacity-100 absolute -top-20 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                      {fullDate}<br />
+                      Positive: {positiveIntensity.toFixed(1)}<br />
+                      Negative: {negativeIntensity.toFixed(1)}<br />
+                      ({count} tracked)
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
+          
+          {/* Legend */}
           <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground flex-wrap">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-gray-100 dark:bg-gray-800 rounded" />
