@@ -242,10 +242,17 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={getANTPatterns()} layout="horizontal">
+            <BarChart data={getANTPatterns()}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
-              <YAxis dataKey="name" type="category" width={150} />
+              <XAxis 
+                dataKey="name" 
+                angle={-45} 
+                textAnchor="end" 
+                height={120}
+                interval={0}
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis />
               <Tooltip />
               <Bar dataKey="count" fill="#8884d8">
                 {getANTPatterns().map((entry, index) => (
