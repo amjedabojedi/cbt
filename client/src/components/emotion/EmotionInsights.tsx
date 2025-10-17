@@ -99,8 +99,11 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
         ? `${startMonth} ${format(weekStart, 'd')}-${format(weekEnd, 'd')}`
         : `${startMonth} ${format(weekStart, 'd')}-${endMonth} ${format(weekEnd, 'd')}`;
       
+      // Only show week range on Monday
+      const isMonday = format(day, 'EEE') === 'Mon';
+      
       return {
-        date: `${format(day, 'EEE')}\n${weekRange}`, // e.g., "Mon\nOct 7-13"
+        date: isMonday ? `${format(day, 'EEE')}\n${weekRange}` : format(day, 'EEE'), // Show range only on Monday
         dayName: format(day, 'EEE'), // e.g., "Mon"
         weekRange, // e.g., "Oct 7-13"
         positiveIntensity: parseFloat(avgPositiveIntensity.toFixed(1)),
