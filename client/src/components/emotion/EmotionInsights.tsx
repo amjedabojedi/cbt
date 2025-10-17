@@ -20,6 +20,10 @@ const EMOTION_COLORS: Record<string, string> = {
   "Love": "#E91E63",
 };
 
+// Define positive and negative emotions
+const POSITIVE_EMOTIONS = ["Joy", "Love", "Surprise"];
+const NEGATIVE_EMOTIONS = ["Sadness", "Fear", "Anger", "Disgust"];
+
 export default function EmotionInsights({ userId }: EmotionInsightsProps) {
   const [timeRange, setTimeRange] = useState<"week" | "month" | "all">("week");
 
@@ -43,7 +47,7 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
     }));
   };
 
-  // Calculate mood trends over time
+  // Calculate mood trends over time with positive/negative separation
   const getMoodTrends = () => {
     let startDate: Date;
     
@@ -64,19 +68,28 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
         format(new Date(e.createdAt), "yyyy-MM-dd") === dayStr
       );
       
-      const avgIntensity = dayEmotions.length > 0
-        ? dayEmotions.reduce((sum, e) => sum + e.intensity, 0) / dayEmotions.length
+      // Separate positive and negative emotions
+      const positiveEmotions = dayEmotions.filter(e => POSITIVE_EMOTIONS.includes(e.coreEmotion));
+      const negativeEmotions = dayEmotions.filter(e => NEGATIVE_EMOTIONS.includes(e.coreEmotion));
+      
+      const avgPositiveIntensity = positiveEmotions.length > 0
+        ? positiveEmotions.reduce((sum, e) => sum + e.intensity, 0) / positiveEmotions.length
+        : 0;
+      
+      const avgNegativeIntensity = negativeEmotions.length > 0
+        ? negativeEmotions.reduce((sum, e) => sum + e.intensity, 0) / negativeEmotions.length
         : 0;
       
       return {
-        date: format(day, "MMM d"),
-        intensity: parseFloat(avgIntensity.toFixed(1)),
+        date: format(day, "EEE MMM d"), // e.g., "Mon Oct 14"
+        positiveIntensity: parseFloat(avgPositiveIntensity.toFixed(1)),
+        negativeIntensity: parseFloat(avgNegativeIntensity.toFixed(1)),
         count: dayEmotions.length,
       };
     });
   };
 
-  // Calculate intensity heatmap data
+  // Calculate intensity heatmap data with positive/negative separation
   const getIntensityHeatmap = () => {
     const last30Days = eachDayOfInterval({ 
       start: subDays(new Date(), 29), 
@@ -89,13 +102,27 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
         format(new Date(e.createdAt), "yyyy-MM-dd") === dayStr
       );
       
-      const avgIntensity = dayEmotions.length > 0
-        ? dayEmotions.reduce((sum, e) => sum + e.intensity, 0) / dayEmotions.length
+      // Separate positive and negative emotions
+      const positiveEmotions = dayEmotions.filter(e => POSITIVE_EMOTIONS.includes(e.coreEmotion));
+      const negativeEmotions = dayEmotions.filter(e => NEGATIVE_EMOTIONS.includes(e.coreEmotion));
+      
+      const avgPositiveIntensity = positiveEmotions.length > 0
+        ? positiveEmotions.reduce((sum, e) => sum + e.intensity, 0) / positiveEmotions.length
         : 0;
       
+      const avgNegativeIntensity = negativeEmotions.length > 0
+        ? negativeEmotions.reduce((sum, e) => sum + e.intensity, 0) / negativeEmotions.length
+        : 0;
+      
+      // Calculate overall intensity as difference (positive - negative)
+      const netIntensity = avgPositiveIntensity - avgNegativeIntensity;
+      
       return {
-        date: format(day, "MMM d"),
-        intensity: avgIntensity,
+        date: format(day, "EEE MMM d"), // e.g., "Mon Oct 14"
+        dayName: format(day, "EEE"), // e.g., "Mon"
+        positiveIntensity: avgPositiveIntensity,
+        negativeIntensity: avgNegativeIntensity,
+        netIntensity, // Can be positive or negative
         count: dayEmotions.length,
       };
     });
@@ -160,91 +187,93 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
               </TabsList>
             </Tabs>
           </div>
-          <CardDescription>Average emotional intensity over time</CardDescription>
+          <CardDescription>Positive vs negative emotional intensity trends</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={getMoodTrends()}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis domain={[0, 10]} />
+              <XAxis 
+                dataKey="date" 
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis domain={[0, 10]} label={{ value: 'Intensity', angle: -90, position: 'insideLeft' }} />
               <Tooltip />
               <Legend />
               <Line 
                 type="monotone" 
-                dataKey="intensity" 
-                stroke="#8884d8" 
+                dataKey="positiveIntensity" 
+                stroke="#22c55e" 
                 strokeWidth={2}
-                name="Avg Intensity"
+                name="Positive Emotions"
               />
               <Line 
                 type="monotone" 
-                dataKey="count" 
-                stroke="#82ca9d" 
+                dataKey="negativeIntensity" 
+                stroke="#ef4444" 
                 strokeWidth={2}
-                name="# Tracked"
+                name="Negative Emotions"
               />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      {/* Two-column layout for distribution and time patterns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Emotion Distribution */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <PieChartIcon className="h-5 w-5 text-primary" />
-              <CardTitle>Emotion Distribution</CardTitle>
-            </div>
-            <CardDescription>Breakdown of tracked emotions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={getEmotionDistribution()}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {getEmotionDistribution().map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      {/* Emotion Distribution - Full Width */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <PieChartIcon className="h-5 w-5 text-primary" />
+            <CardTitle>Emotion Distribution</CardTitle>
+          </div>
+          <CardDescription>Breakdown of tracked emotions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={getEmotionDistribution()}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {getEmotionDistribution().map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
-        {/* Time of Day Patterns */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              <CardTitle>Time Patterns</CardTitle>
-            </div>
-            <CardDescription>When you track emotions most</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={getTimePatterns()}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Time of Day Patterns - Full Width */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
+            <CardTitle>Time Patterns</CardTitle>
+          </div>
+          <CardDescription>When you track emotions most</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={getTimePatterns()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="count" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
       {/* Intensity Heatmap */}
       <Card>
@@ -253,47 +282,75 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
             <CalendarIcon className="h-5 w-5 text-primary" />
             <CardTitle>30-Day Intensity Calendar</CardTitle>
           </div>
-          <CardDescription>Average emotional intensity per day</CardDescription>
+          <CardDescription>Positive (green) vs negative (red) emotional intensity per day</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-10 gap-1">
             {getIntensityHeatmap().map((day, i) => {
-              const intensity = day.intensity;
-              const bgColor = 
-                intensity === 0 ? "bg-gray-100 dark:bg-gray-800" :
-                intensity <= 3 ? "bg-green-200 dark:bg-green-900" :
-                intensity <= 6 ? "bg-yellow-200 dark:bg-yellow-900" :
-                "bg-red-200 dark:bg-red-900";
+              const { positiveIntensity, negativeIntensity, netIntensity, count, date, dayName } = day;
+              
+              // Determine color based on net intensity (positive - negative)
+              let bgColor = "bg-gray-100 dark:bg-gray-800";
+              
+              if (count > 0) {
+                if (netIntensity > 0) {
+                  // More positive emotions
+                  if (netIntensity <= 3) bgColor = "bg-green-200 dark:bg-green-900";
+                  else if (netIntensity <= 6) bgColor = "bg-green-400 dark:bg-green-700";
+                  else bgColor = "bg-green-600 dark:bg-green-500 text-white";
+                } else if (netIntensity < 0) {
+                  // More negative emotions
+                  const absNet = Math.abs(netIntensity);
+                  if (absNet <= 3) bgColor = "bg-red-200 dark:bg-red-900";
+                  else if (absNet <= 6) bgColor = "bg-red-400 dark:bg-red-700";
+                  else bgColor = "bg-red-600 dark:bg-red-500 text-white";
+                } else {
+                  // Equal positive and negative
+                  bgColor = "bg-yellow-200 dark:bg-yellow-900";
+                }
+              }
               
               return (
                 <div
                   key={i}
-                  className={`aspect-square rounded ${bgColor} flex items-center justify-center text-xs font-medium relative group`}
-                  title={`${day.date}: ${intensity.toFixed(1)} avg intensity (${day.count} tracked)`}
+                  className={`aspect-square rounded ${bgColor} flex items-center justify-center text-[10px] font-medium relative group`}
+                  title={`${date}: Pos ${positiveIntensity.toFixed(1)} / Neg ${negativeIntensity.toFixed(1)} (${count} tracked)`}
                 >
-                  <div className="opacity-0 group-hover:opacity-100 absolute -top-16 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                    {day.date}: {intensity.toFixed(1)} ({day.count})
+                  <span className="opacity-60">{dayName.charAt(0)}</span>
+                  <div className="opacity-0 group-hover:opacity-100 absolute -top-20 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                    {date}<br />
+                    Positive: {positiveIntensity.toFixed(1)}<br />
+                    Negative: {negativeIntensity.toFixed(1)}<br />
+                    ({count} tracked)
                   </div>
                 </div>
               );
             })}
           </div>
-          <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
+          <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground flex-wrap">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-gray-100 dark:bg-gray-800 rounded" />
               <span>None</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-green-200 dark:bg-green-900 rounded" />
-              <span>Low (1-3)</span>
+              <span>Low Positive</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-green-600 text-white rounded" />
+              <span>High Positive</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-yellow-200 dark:bg-yellow-900 rounded" />
-              <span>Med (4-6)</span>
+              <span>Balanced</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-red-200 dark:bg-red-900 rounded" />
-              <span>High (7-10)</span>
+              <span>Low Negative</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-red-600 text-white rounded" />
+              <span>High Negative</span>
             </div>
           </div>
         </CardContent>
