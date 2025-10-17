@@ -292,113 +292,110 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
         </CardContent>
       </Card>
 
-      {/* Two-column layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Challenge Rate */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
-              <CardTitle>Challenge Rate</CardTitle>
+      {/* Challenge Rate */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Target className="h-5 w-5 text-primary" />
+            <CardTitle>Challenge Rate</CardTitle>
+          </div>
+          <CardDescription>Percentage of thoughts you've challenged</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={getChallengeRate()}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percentage }) => `${name}: ${percentage}%`}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                <Cell fill="#82ca9d" />
+                <Cell fill="#e0e0e0" />
+              </Pie>
+              <Tooltip formatter={(value: number, name: string, props: any) => [value, `${props.payload.name} (${props.payload.percentage}%)`]} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="mt-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              {thoughts.length > 0 ? `${getChallengeRate()[0].value} of ${thoughts.length} thoughts challenged` : 'No thoughts recorded yet'}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Belief Shift from Challenging */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <CardTitle>Belief Shift</CardTitle>
+          </div>
+          <CardDescription>How challenging changes your belief in thoughts</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {getBeliefShift().length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={getBeliefShift()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="stage" />
+                <YAxis domain={[0, 100]} label={{ value: 'Belief %', angle: -90, position: 'insideLeft' }} allowDecimals={false} />
+                <Tooltip formatter={(value: number) => [`${value}%`, 'Belief']} />
+                <Bar dataKey="belief" fill="#8884d8">
+                  <Cell fill="#ff7c7c" />
+                  <Cell fill="#82ca9d" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+              Challenge thoughts to see belief shift
             </div>
-            <CardDescription>Percentage of thoughts you've challenged</CardDescription>
-          </CardHeader>
-          <CardContent>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Thought-Emotion Links */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Link2 className="h-5 w-5 text-primary" />
+            <CardTitle>Thought-Emotion Links</CardTitle>
+          </div>
+          <CardDescription>Emotions connected to your thoughts</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {getThoughtEmotionLinks().length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={getChallengeRate()}
+                  data={getThoughtEmotionLinks()}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percentage }) => `${name}: ${percentage}%`}
-                  outerRadius={100}
+                  label={({ emotion, percent }) => `${emotion} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
                   fill="#8884d8"
-                  dataKey="value"
+                  dataKey="count"
                 >
-                  <Cell fill="#82ca9d" />
-                  <Cell fill="#e0e0e0" />
+                  {getThoughtEmotionLinks().map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={ANT_COLORS[index % ANT_COLORS.length]} />
+                  ))}
                 </Pie>
-                <Tooltip formatter={(value: number, name: string, props: any) => [value, `${props.payload.name} (${props.payload.percentage}%)`]} />
+                <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-            <div className="mt-4 text-center">
-              <p className="text-sm text-muted-foreground">
-                {thoughts.length > 0 ? `${getChallengeRate()[0].value} of ${thoughts.length} thoughts challenged` : 'No thoughts recorded yet'}
-              </p>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+              No thought-emotion links yet
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Belief Shift from Challenging */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <CardTitle>Belief Shift</CardTitle>
-            </div>
-            <CardDescription>How challenging changes your belief in thoughts</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {getBeliefShift().length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={getBeliefShift()}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="stage" />
-                  <YAxis domain={[0, 100]} label={{ value: 'Belief %', angle: -90, position: 'insideLeft' }} allowDecimals={false} />
-                  <Tooltip formatter={(value: number) => [`${value}%`, 'Belief']} />
-                  <Bar dataKey="belief" fill="#8884d8">
-                    <Cell fill="#ff7c7c" />
-                    <Cell fill="#82ca9d" />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-                Challenge thoughts to see belief shift
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Thought-Emotion Links */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Link2 className="h-5 w-5 text-primary" />
-              <CardTitle>Thought-Emotion Links</CardTitle>
-            </div>
-            <CardDescription>Emotions connected to your thoughts</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {getThoughtEmotionLinks().length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={getThoughtEmotionLinks()}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ emotion, percent }) => `${emotion} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="count"
-                  >
-                    {getThoughtEmotionLinks().map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={ANT_COLORS[index % ANT_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-                No thought-emotion links yet
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Progress Trends Over Time */}
       <Card>
