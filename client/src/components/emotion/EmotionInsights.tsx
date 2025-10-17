@@ -47,30 +47,37 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
     }));
   };
 
-  // Calculate mood trends over time with positive/negative separation
+  // Calculate mood trends over time with positive/negative separation - grouped by weeks starting Monday
   const getMoodTrends = () => {
-    let startDate: Date;
+    let weeksToShow = 4;
     
     if (timeRange === "week") {
-      startDate = subDays(new Date(), 7);
+      weeksToShow = 1;
     } else if (timeRange === "month") {
-      startDate = subDays(new Date(), 30);
+      weeksToShow = 4;
     } else {
       if (emotions.length === 0) return [];
-      startDate = new Date(Math.min(...emotions.map(e => new Date(e.createdAt).getTime())));
+      const oldestDate = new Date(Math.min(...emotions.map(e => new Date(e.createdAt).getTime())));
+      const now = new Date();
+      weeksToShow = Math.ceil((now.getTime() - oldestDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
     }
 
-    const days = eachDayOfInterval({ start: startDate, end: new Date() });
+    const weeks = [];
+    const today = new Date();
     
-    return days.map(day => {
-      const dayStr = format(day, "yyyy-MM-dd");
-      const dayEmotions = emotions.filter(e => 
-        format(new Date(e.createdAt), "yyyy-MM-dd") === dayStr
-      );
+    for (let i = weeksToShow - 1; i >= 0; i--) {
+      const weekEnd = endOfWeek(subDays(today, i * 7), { weekStartsOn: 1 }); // Sunday
+      const weekStart = startOfWeek(weekEnd, { weekStartsOn: 1 }); // Monday
+      
+      // Get all emotions in this week
+      const weekEmotions = emotions.filter(e => {
+        const emotionDate = new Date(e.createdAt);
+        return emotionDate >= weekStart && emotionDate <= weekEnd;
+      });
       
       // Separate positive and negative emotions
-      const positiveEmotions = dayEmotions.filter(e => POSITIVE_EMOTIONS.includes(e.coreEmotion));
-      const negativeEmotions = dayEmotions.filter(e => NEGATIVE_EMOTIONS.includes(e.coreEmotion));
+      const positiveEmotions = weekEmotions.filter(e => POSITIVE_EMOTIONS.includes(e.coreEmotion));
+      const negativeEmotions = weekEmotions.filter(e => NEGATIVE_EMOTIONS.includes(e.coreEmotion));
       
       const avgPositiveIntensity = positiveEmotions.length > 0
         ? positiveEmotions.reduce((sum, e) => sum + e.intensity, 0) / positiveEmotions.length
@@ -80,13 +87,22 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
         ? negativeEmotions.reduce((sum, e) => sum + e.intensity, 0) / negativeEmotions.length
         : 0;
       
-      return {
-        date: format(day, "EEE MMM d"), // e.g., "Mon Oct 14"
+      // Format date range: "Oct 7-13" or "Sep 30-Oct 6" if spans months
+      const startMonth = format(weekStart, 'MMM');
+      const endMonth = format(weekEnd, 'MMM');
+      const dateRange = startMonth === endMonth 
+        ? `${startMonth} ${format(weekStart, 'd')}-${format(weekEnd, 'd')}`
+        : `${startMonth} ${format(weekStart, 'd')}-${endMonth} ${format(weekEnd, 'd')}`;
+      
+      weeks.push({
+        date: dateRange,
         positiveIntensity: parseFloat(avgPositiveIntensity.toFixed(1)),
         negativeIntensity: parseFloat(avgNegativeIntensity.toFixed(1)),
-        count: dayEmotions.length,
-      };
-    });
+        count: weekEmotions.length,
+      });
+    }
+    
+    return weeks;
   };
 
   // Calculate intensity heatmap data with positive/negative separation - organized by weeks starting Monday
@@ -193,7 +209,7 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
               </TabsList>
             </Tabs>
           </div>
-          <CardDescription>Positive vs negative emotional intensity trends</CardDescription>
+          <CardDescription>Weekly positive vs negative emotional intensity trends (weeks start Monday)</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -201,9 +217,9 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey="date" 
-                angle={-45}
-                textAnchor="end"
-                height={80}
+                angle={0}
+                textAnchor="middle"
+                height={50}
               />
               <YAxis domain={[0, 10]} label={{ value: 'Intensity', angle: -90, position: 'insideLeft' }} />
               <Tooltip />
