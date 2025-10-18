@@ -197,6 +197,11 @@ export default function ThoughtRecordWizard({
   const onSubmit = async (data: ThoughtRecordFormValues) => {
     if (!activeUserId) return;
     
+    // Prevent submission if not on the final step
+    if (currentStep < totalSteps) {
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
