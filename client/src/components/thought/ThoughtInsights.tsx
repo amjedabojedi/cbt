@@ -522,33 +522,61 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
           <CardDescription>Your thought challenging progress over time</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={350}>
             <LineChart data={getProgressTrends()}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis 
+                allowDecimals={false}
+                label={{ value: 'Count / Rating', angle: -90, position: 'insideLeft' }}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                  border: '1px solid #ccc',
+                  borderRadius: '8px',
+                  padding: '12px'
+                }}
+                formatter={(value: number, name: string) => {
+                  if (name === "Avg Rating") {
+                    return [value.toFixed(1), name];
+                  }
+                  return [value, name];
+                }}
+              />
+              <Legend wrapperStyle={{ paddingTop: '10px' }} />
               <Line 
                 type="monotone" 
                 dataKey="total" 
                 stroke="#8884d8" 
                 strokeWidth={2}
                 name="Total Thoughts"
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
               />
               <Line 
                 type="monotone" 
                 dataKey="challenged" 
-                stroke="#82ca9d" 
+                stroke="#22c55e" 
                 strokeWidth={2}
                 name="Challenged"
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
               />
               <Line 
                 type="monotone" 
                 dataKey="avgRating" 
-                stroke="#ffc658" 
+                stroke="#f59e0b" 
                 strokeWidth={2}
                 name="Avg Rating"
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
               />
             </LineChart>
           </ResponsiveContainer>
