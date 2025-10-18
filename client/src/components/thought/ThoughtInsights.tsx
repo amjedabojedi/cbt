@@ -123,11 +123,11 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
   // Calculate progress trends over time
   const getProgressTrends = () => {
     if (timeRange === "week") {
-      // Show daily data for the week
+      // Show daily data for the full week (7 days: Monday to Sunday)
       const today = new Date();
       const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
-      const weekEnd = endOfWeek(currentWeekMonday, { weekStartsOn: 1 });
-      const days = eachDayOfInterval({ start: currentWeekMonday, end: today });
+      const currentWeekSunday = endOfWeek(today, { weekStartsOn: 1 });
+      const days = eachDayOfInterval({ start: currentWeekMonday, end: currentWeekSunday });
       
       return days.map(day => {
         const dayStr = format(day, "yyyy-MM-dd");

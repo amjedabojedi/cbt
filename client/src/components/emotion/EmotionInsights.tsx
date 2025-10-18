@@ -50,10 +50,11 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
   // Calculate mood trends over time with positive/negative separation
   const getMoodTrends = () => {
     if (timeRange === "week") {
-      // Show daily data for the week
+      // Show daily data for the full week (7 days: Monday to Sunday)
       const today = new Date();
       const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
-      const days = eachDayOfInterval({ start: currentWeekMonday, end: today });
+      const currentWeekSunday = endOfWeek(today, { weekStartsOn: 1 });
+      const days = eachDayOfInterval({ start: currentWeekMonday, end: currentWeekSunday });
       
       return days.map(day => {
         const dayStr = format(day, "yyyy-MM-dd");
