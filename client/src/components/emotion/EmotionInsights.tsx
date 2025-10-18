@@ -271,16 +271,14 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
           </div>
           <CardDescription>Weekly positive vs negative emotional intensity trends</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={getMoodTrends()}>
+        <CardContent className="overflow-visible">
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={getMoodTrends()} margin={{ bottom: 40 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey="date"
-                tick={{ fontSize: 11 }}
-                angle={-45}
-                textAnchor="end"
-                height={60}
+                tick={{ fontSize: 12 }}
+                interval={0}
               />
               <YAxis domain={[0, 10]} label={{ value: 'Intensity', angle: -90, position: 'insideLeft' }} />
               <Tooltip 

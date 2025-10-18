@@ -574,16 +574,14 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
           </div>
           <CardDescription>Your thought challenging progress over time</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={getProgressTrends()}>
+        <CardContent className="overflow-visible">
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={getProgressTrends()} margin={{ bottom: 40 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey="date"
-                tick={{ fontSize: 11 }}
-                angle={-45}
-                textAnchor="end"
-                height={60}
+                tick={{ fontSize: 12 }}
+                interval={0}
               />
               <YAxis 
                 allowDecimals={false}
