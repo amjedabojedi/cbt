@@ -166,7 +166,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
         : `${startMonth} ${format(weekStart, 'd')}-${endMonth} ${format(weekEnd, 'd')}`;
       
       return {
-        date: `${format(day, 'EEE')}\n${weekRange}`,
+        date: weekRange,
         total: dayThoughts.length,
         challenged,
         avgRating: parseFloat(avgRating.toFixed(1)),
@@ -546,25 +546,10 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey="date"
-                tick={({ x, y, payload }) => {
-                  const parts = payload.value.split('\n');
-                  const day = parts[0];
-                  const range = parts[1];
-                  
-                  return (
-                    <g transform={`translate(${x},${y})`}>
-                      <text x={0} y={0} dy={8} textAnchor="middle" fill="#666" fontSize="12" fontWeight="600">
-                        {day}
-                      </text>
-                      {range && (
-                        <text x={0} y={0} dy={24} textAnchor="middle" fill="#999" fontSize="10">
-                          {range}
-                        </text>
-                      )}
-                    </g>
-                  );
-                }}
-                height={70}
+                tick={{ fontSize: 11 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
               />
               <YAxis 
                 allowDecimals={false}
