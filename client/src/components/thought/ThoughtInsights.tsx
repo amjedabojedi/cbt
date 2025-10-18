@@ -208,15 +208,12 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
       'Fortune Telling'
     ];
     
-    // All 7 core emotions
+    // Core emotions only (the 4 fundamental emotions)
     const allEmotions = [
       'Fear',
       'Sadness',
       'Anger',
-      'Joy',
-      'Love',
-      'Surprise',
-      'Disgust'
+      'Joy'
     ];
     
     return { allDistortions, allEmotions };
