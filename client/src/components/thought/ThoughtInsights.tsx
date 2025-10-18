@@ -177,17 +177,19 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
         };
       });
     } else {
-      // Show monthly data for the year (12 months)
+      // Show monthly data for the calendar year (January to December)
       const today = new Date();
-      const months = [];
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth(); // 0-11
       
-      for (let i = 11; i >= 0; i--) {
-        const month = subDays(today, i * 30);
-        months.push(month);
+      const months = [];
+      // Generate months from January (0) to current month
+      for (let monthIndex = 0; monthIndex <= currentMonth; monthIndex++) {
+        months.push(new Date(currentYear, monthIndex, 1));
       }
       
       return months.map(monthDate => {
-        const monthStr = format(monthDate, 'MMM yyyy');
+        const monthStr = format(monthDate, 'MMM');
         const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
         const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
         
