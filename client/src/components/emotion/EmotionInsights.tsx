@@ -124,14 +124,13 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
         };
       });
     } else {
-      // Show monthly data for the calendar year (January to December)
+      // Show monthly data for the calendar year (January to December - all 12 months)
       const today = new Date();
       const currentYear = today.getFullYear();
-      const currentMonth = today.getMonth(); // 0-11
       
       const months = [];
-      // Generate months from January (0) to current month
-      for (let monthIndex = 0; monthIndex <= currentMonth; monthIndex++) {
+      // Generate all 12 months from January (0) to December (11)
+      for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
         months.push(new Date(currentYear, monthIndex, 1));
       }
       
