@@ -120,45 +120,48 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
     ];
   };
 
-  // Calculate progress trends over time
+  // Calculate progress trends over time - grouped by week
   const getProgressTrends = () => {
-    let daysToShow = 30;
+    let weeksToShow = 4;
     
     if (timeRange === "week") {
-      daysToShow = 7;
+      weeksToShow = 1;
     } else if (timeRange === "month") {
-      daysToShow = 30;
+      weeksToShow = 4;
     } else {
       if (thoughts.length === 0) return [];
       const oldestDate = new Date(Math.min(...thoughts.map(t => new Date(t.createdAt).getTime())));
       const now = new Date();
-      daysToShow = Math.ceil((now.getTime() - oldestDate.getTime()) / (24 * 60 * 60 * 1000));
+      const daysDiff = Math.ceil((now.getTime() - oldestDate.getTime()) / (24 * 60 * 60 * 1000));
+      weeksToShow = Math.ceil(daysDiff / 7);
     }
 
     // Get the Monday of the current week as the end point
     const today = new Date();
     const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
     
-    // Start from the appropriate Monday in the past
-    const startDate = startOfWeek(subDays(currentWeekMonday, daysToShow - 7), { weekStartsOn: 1 });
-    const endDate = today;
-
-    const days = eachDayOfInterval({ start: startDate, end: endDate });
+    // Generate weeks
+    const weeks = [];
+    for (let i = weeksToShow - 1; i >= 0; i--) {
+      const weekMonday = subDays(currentWeekMonday, i * 7);
+      weeks.push(weekMonday);
+    }
     
-    return days.map(day => {
-      const dayStr = format(day, "yyyy-MM-dd");
-      const dayThoughts = thoughts.filter(t => 
-        format(new Date(t.createdAt), "yyyy-MM-dd") === dayStr
-      );
+    return weeks.map(weekStart => {
+      const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
       
-      const challenged = dayThoughts.filter(t => t.evidenceFor || t.evidenceAgainst).length;
-      const avgRating = dayThoughts.length > 0
-        ? dayThoughts.reduce((sum, t) => sum + (t.reflectionRating || 0), 0) / dayThoughts.length
+      // Get all thoughts in this week
+      const weekThoughts = thoughts.filter(t => {
+        const thoughtDate = new Date(t.createdAt);
+        return thoughtDate >= weekStart && thoughtDate <= weekEnd;
+      });
+      
+      const challenged = weekThoughts.filter(t => t.evidenceFor || t.evidenceAgainst).length;
+      const avgRating = weekThoughts.length > 0
+        ? weekThoughts.reduce((sum, t) => sum + (t.reflectionRating || 0), 0) / weekThoughts.length
         : 0;
       
-      // Get week range for this day
-      const weekStart = startOfWeek(day, { weekStartsOn: 1 });
-      const weekEnd = endOfWeek(day, { weekStartsOn: 1 });
+      // Format week range
       const startMonth = format(weekStart, 'MMM');
       const endMonth = format(weekEnd, 'MMM');
       const weekRange = startMonth === endMonth 
@@ -167,7 +170,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
       
       return {
         date: weekRange,
-        total: dayThoughts.length,
+        total: weekThoughts.length,
         challenged,
         avgRating: parseFloat(avgRating.toFixed(1)),
       };
