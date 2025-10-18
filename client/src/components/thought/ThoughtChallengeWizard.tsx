@@ -45,12 +45,14 @@ interface ThoughtChallengeWizardProps {
   thoughtRecord: ThoughtRecord;
   onComplete: () => void;
   onCancel: () => void;
+  open?: boolean; // Optional: if provided, component manages its own Dialog
 }
 
 export function ThoughtChallengeWizard({
   thoughtRecord,
   onComplete,
   onCancel,
+  open,
 }: ThoughtChallengeWizardProps) {
   const { user } = useAuth();
   const { activeUserId } = useActiveUser();
@@ -150,7 +152,8 @@ export function ThoughtChallengeWizard({
     onCancel();
   };
 
-  return (
+  // Content component that can be used with or without Dialog wrapper
+  const content = (
     <>
       {!showSuccessDialog && (
         <>
@@ -555,4 +558,18 @@ export function ThoughtChallengeWizard({
       </Dialog>
     </>
   );
+
+  // If 'open' prop is provided, wrap content in Dialog
+  // Otherwise, assume parent provides Dialog (e.g., ThoughtRecordsList)
+  if (open !== undefined) {
+    return (
+      <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          {content}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return content;
 }

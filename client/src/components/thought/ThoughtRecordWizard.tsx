@@ -818,11 +818,15 @@ export default function ThoughtRecordWizard({
       {recordedThought && (
         <ThoughtChallengeWizard
           open={showChallengeWizard}
-          onClose={() => {
+          thoughtRecord={recordedThought}
+          onComplete={() => {
             setShowChallengeWizard(false);
             onClose();
           }}
-          thoughtRecord={recordedThought}
+          onCancel={() => {
+            setShowChallengeWizard(false);
+            onClose();
+          }}
         />
       )}
     </>
