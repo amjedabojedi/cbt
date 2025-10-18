@@ -195,13 +195,18 @@ export default function ThoughtRecordWizard({
   const watchedValues = form.watch();
 
   const onSubmit = async (data: ThoughtRecordFormValues) => {
+    console.log("onSubmit called - Current step:", currentStep, "Total steps:", totalSteps);
+    console.log("Form data:", data);
+    
     if (!activeUserId) return;
     
     // Prevent submission if not on the final step
     if (currentStep < totalSteps) {
+      console.log("Blocked submission - not on final step");
       return;
     }
     
+    console.log("Proceeding with submission...");
     setIsSubmitting(true);
     
     try {
@@ -250,6 +255,7 @@ export default function ThoughtRecordWizard({
   };
 
   const handleNext = async () => {
+    console.log("handleNext called - Current step:", currentStep);
     let fieldsToValidate: (keyof ThoughtRecordFormValues)[] = [];
     
     if (currentStep === 1) {
@@ -267,6 +273,7 @@ export default function ThoughtRecordWizard({
     const isValid = await form.trigger(fieldsToValidate);
     
     if (isValid) {
+      console.log("Moving to next step:", currentStep + 1);
       setCurrentStep(currentStep + 1);
     }
   };
