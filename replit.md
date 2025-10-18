@@ -69,11 +69,20 @@ Preferred communication style: Simple, everyday language.
 
 ## Changelog
 
-- October 17, 2025 (latest). Fixed Thought Records Insights ANT Patterns Chart Display
+- October 17, 2025 (latest). Enhanced Thought Records Insights with Distortion-Emotion Correlation Analysis
+  - **New Feature: Distortion-Emotion Patterns Bubble Chart**: Interactive bubble chart showing which cognitive distortions appear with which core emotions
+    - X-axis displays all cognitive distortions (All or Nothing Thinking, Catastrophizing, etc.)
+    - Y-axis shows core emotions from emotion records (Fear, Sadness, Anger, Joy, Love, Surprise, Disgust)
+    - Bubble size represents frequency of that specific distortion-emotion combination
+    - Interactive tooltips show distortion name, emotion name, and exact frequency count
+    - Helps users identify their thinking patterns in context of emotional states (e.g., "When I feel Fear, I catastrophize")
+  - **Chart Layout Improvements**: All charts now display at full width individually (no side-by-side layouts) for better readability on all screen sizes
+  - **Challenge Success Section Redesign**: Split into two separate full-width charts
+    - Challenge Rate pie chart showing percentage of thoughts challenged vs not challenged
+    - Belief Shift bar chart showing how belief changes from original thought to balanced alternative
   - **Critical Bug Fix**: ANT Patterns (Cognitive Distortions) chart now displays correctly by reading from `thoughtCategory` field instead of empty `cognitiveDistortions` field
   - **Label Mapping**: Added getCategoryLabel() function to convert snake_case values (all_or_nothing, mental_filter, etc.) to readable labels ("All or Nothing Thinking", "Mental Filter", etc.)
-  - **Improved Chart Layout**: Switched from horizontal to vertical bar chart with 45° angled labels for better readability
-  - **Visual Enhancement**: Chart now shows colorful bars sorted by frequency with proper spacing and all 12 CBT distortion types displaying correctly
+  - **Visual Enhancement**: All bar charts use vertical orientation with angled labels for better readability; Y-axis displays whole numbers only for count data
   - **Data Field Mapping**: Established that `thoughtCategory` contains actual distortions across the application, not `cognitiveDistortions` which remains empty
 
 - October 16, 2025. Consolidated Reframe Coach navigation into unified 3-tab page
