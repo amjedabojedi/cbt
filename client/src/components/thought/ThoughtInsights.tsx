@@ -165,11 +165,8 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
         ? `${startMonth} ${format(weekStart, 'd')}-${format(weekEnd, 'd')}`
         : `${startMonth} ${format(weekStart, 'd')}-${endMonth} ${format(weekEnd, 'd')}`;
       
-      // Only show week range on Monday
-      const isMonday = format(day, 'EEE') === 'Mon';
-      
       return {
-        date: isMonday ? `${format(day, 'EEE')}\n${weekRange}` : format(day, 'EEE'),
+        date: `${format(day, 'EEE')}\n${weekRange}`,
         total: dayThoughts.length,
         challenged,
         avgRating: parseFloat(avgRating.toFixed(1)),
