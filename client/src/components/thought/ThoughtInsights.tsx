@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, TrendingUp, Target } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ScatterChart, Scatter, ZAxis } from "recharts";
-import { format, subDays, eachDayOfInterval } from "date-fns";
+import { format, subDays, eachDayOfInterval, startOfWeek, endOfWeek } from "date-fns";
 
 interface ThoughtInsightsProps {
   userId: number;
@@ -122,18 +122,28 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
 
   // Calculate progress trends over time
   const getProgressTrends = () => {
-    let startDate: Date;
+    let daysToShow = 30;
     
     if (timeRange === "week") {
-      startDate = subDays(new Date(), 7);
+      daysToShow = 7;
     } else if (timeRange === "month") {
-      startDate = subDays(new Date(), 30);
+      daysToShow = 30;
     } else {
       if (thoughts.length === 0) return [];
-      startDate = new Date(Math.min(...thoughts.map(t => new Date(t.createdAt).getTime())));
+      const oldestDate = new Date(Math.min(...thoughts.map(t => new Date(t.createdAt).getTime())));
+      const now = new Date();
+      daysToShow = Math.ceil((now.getTime() - oldestDate.getTime()) / (24 * 60 * 60 * 1000));
     }
 
-    const days = eachDayOfInterval({ start: startDate, end: new Date() });
+    // Get the Monday of the current week as the end point
+    const today = new Date();
+    const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
+    
+    // Start from the appropriate Monday in the past
+    const startDate = startOfWeek(subDays(currentWeekMonday, daysToShow - 7), { weekStartsOn: 1 });
+    const endDate = today;
+
+    const days = eachDayOfInterval({ start: startDate, end: endDate });
     
     return days.map(day => {
       const dayStr = format(day, "yyyy-MM-dd");
@@ -146,8 +156,20 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
         ? dayThoughts.reduce((sum, t) => sum + (t.reflectionRating || 0), 0) / dayThoughts.length
         : 0;
       
+      // Get week range for this day
+      const weekStart = startOfWeek(day, { weekStartsOn: 1 });
+      const weekEnd = endOfWeek(day, { weekStartsOn: 1 });
+      const startMonth = format(weekStart, 'MMM');
+      const endMonth = format(weekEnd, 'MMM');
+      const weekRange = startMonth === endMonth 
+        ? `${startMonth} ${format(weekStart, 'd')}-${format(weekEnd, 'd')}`
+        : `${startMonth} ${format(weekStart, 'd')}-${endMonth} ${format(weekEnd, 'd')}`;
+      
+      // Only show week range on Monday
+      const isMonday = format(day, 'EEE') === 'Mon';
+      
       return {
-        date: format(day, "MMM d"),
+        date: isMonday ? `${format(day, 'EEE')}\n${weekRange}` : format(day, 'EEE'),
         total: dayThoughts.length,
         challenged,
         avgRating: parseFloat(avgRating.toFixed(1)),
@@ -526,15 +548,30 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
             <LineChart data={getProgressTrends()}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 12 }}
-                angle={-45}
-                textAnchor="end"
-                height={60}
+                dataKey="date"
+                tick={({ x, y, payload }) => {
+                  const parts = payload.value.split('\n');
+                  const day = parts[0];
+                  const range = parts[1];
+                  
+                  return (
+                    <g transform={`translate(${x},${y})`}>
+                      <text x={0} y={0} dy={8} textAnchor="middle" fill="#666" fontSize="12" fontWeight="600">
+                        {day}
+                      </text>
+                      {range && (
+                        <text x={0} y={0} dy={24} textAnchor="middle" fill="#999" fontSize="10">
+                          {range}
+                        </text>
+                      )}
+                    </g>
+                  );
+                }}
+                height={70}
               />
               <YAxis 
                 allowDecimals={false}
-                label={{ value: 'Count / Rating', angle: -90, position: 'insideLeft' }}
+                label={{ value: 'Thought Count', angle: -90, position: 'insideLeft' }}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -542,12 +579,6 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
                   border: '1px solid #ccc',
                   borderRadius: '8px',
                   padding: '12px'
-                }}
-                formatter={(value: number, name: string) => {
-                  if (name === "Avg Rating") {
-                    return [value.toFixed(1), name];
-                  }
-                  return [value, name];
                 }}
               />
               <Legend wrapperStyle={{ paddingTop: '10px' }} />
@@ -566,15 +597,6 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
                 stroke="#22c55e" 
                 strokeWidth={2}
                 name="Challenged"
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="avgRating" 
-                stroke="#f59e0b" 
-                strokeWidth={2}
-                name="Avg Rating"
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}
               />
