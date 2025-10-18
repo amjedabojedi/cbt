@@ -722,6 +722,21 @@ export default function ThoughtRecordWizard({
                     Cancel
                   </Button>
 
+                  {currentStep === totalSteps && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        console.log("Skip button clicked - submitting without emotion");
+                        form.handleSubmit(onSubmit)();
+                      }}
+                      disabled={isSubmitting}
+                      data-testid="button-skip-emotion"
+                    >
+                      Skip & Record
+                    </Button>
+                  )}
+
                   {currentStep < totalSteps ? (
                     <Button
                       type="button"
@@ -734,7 +749,11 @@ export default function ThoughtRecordWizard({
                     </Button>
                   ) : (
                     <Button
-                      type="submit"
+                      type="button"
+                      onClick={() => {
+                        console.log("Record Thought button clicked");
+                        form.handleSubmit(onSubmit)();
+                      }}
                       disabled={isSubmitting}
                       data-testid="button-submit-thought"
                     >
