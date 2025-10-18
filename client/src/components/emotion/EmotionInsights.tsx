@@ -25,7 +25,7 @@ const POSITIVE_EMOTIONS = ["Joy", "Love", "Surprise"];
 const NEGATIVE_EMOTIONS = ["Sadness", "Fear", "Anger", "Disgust"];
 
 export default function EmotionInsights({ userId }: EmotionInsightsProps) {
-  const [timeRange, setTimeRange] = useState<"week" | "month" | "all">("week");
+  const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("week");
 
   // Fetch emotion records
   const { data: emotions = [], isLoading } = useQuery<any[]>({
@@ -47,68 +47,120 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
     }));
   };
 
-  // Calculate mood trends over time with positive/negative separation - grouped by week
+  // Calculate mood trends over time with positive/negative separation
   const getMoodTrends = () => {
-    let weeksToShow = 4;
-    
     if (timeRange === "week") {
-      weeksToShow = 1;
-    } else if (timeRange === "month") {
-      weeksToShow = 4;
-    } else {
-      if (emotions.length === 0) return [];
-      const oldestDate = new Date(Math.min(...emotions.map(e => new Date(e.createdAt).getTime())));
-      const now = new Date();
-      const daysDiff = Math.ceil((now.getTime() - oldestDate.getTime()) / (24 * 60 * 60 * 1000));
-      weeksToShow = Math.ceil(daysDiff / 7);
-    }
-
-    // Get the Monday of the current week as the end point
-    const today = new Date();
-    const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
-    
-    // Generate weeks
-    const weeks = [];
-    for (let i = weeksToShow - 1; i >= 0; i--) {
-      const weekMonday = subDays(currentWeekMonday, i * 7);
-      weeks.push(weekMonday);
-    }
-    
-    return weeks.map(weekStart => {
-      const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+      // Show daily data for the week
+      const today = new Date();
+      const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
+      const days = eachDayOfInterval({ start: currentWeekMonday, end: today });
       
-      // Get all emotions in this week
-      const weekEmotions = emotions.filter(e => {
-        const emotionDate = new Date(e.createdAt);
-        return emotionDate >= weekStart && emotionDate <= weekEnd;
+      return days.map(day => {
+        const dayStr = format(day, "yyyy-MM-dd");
+        const dayEmotions = emotions.filter(e => 
+          format(new Date(e.createdAt), "yyyy-MM-dd") === dayStr
+        );
+        
+        const positiveEmotions = dayEmotions.filter(e => POSITIVE_EMOTIONS.includes(e.coreEmotion));
+        const negativeEmotions = dayEmotions.filter(e => NEGATIVE_EMOTIONS.includes(e.coreEmotion));
+        
+        const avgPositiveIntensity = positiveEmotions.length > 0
+          ? positiveEmotions.reduce((sum, e) => sum + e.intensity, 0) / positiveEmotions.length
+          : 0;
+        
+        const avgNegativeIntensity = negativeEmotions.length > 0
+          ? negativeEmotions.reduce((sum, e) => sum + e.intensity, 0) / negativeEmotions.length
+          : 0;
+        
+        return {
+          date: format(day, 'EEE d'), // e.g., "Mon 14"
+          positiveIntensity: parseFloat(avgPositiveIntensity.toFixed(1)),
+          negativeIntensity: parseFloat(avgNegativeIntensity.toFixed(1)),
+          count: dayEmotions.length,
+        };
       });
+    } else if (timeRange === "month") {
+      // Show weekly data for the month (4 weeks)
+      const today = new Date();
+      const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
       
-      // Separate positive and negative emotions
-      const positiveEmotions = weekEmotions.filter(e => POSITIVE_EMOTIONS.includes(e.coreEmotion));
-      const negativeEmotions = weekEmotions.filter(e => NEGATIVE_EMOTIONS.includes(e.coreEmotion));
+      const weeks = [];
+      for (let i = 3; i >= 0; i--) {
+        const weekMonday = subDays(currentWeekMonday, i * 7);
+        weeks.push(weekMonday);
+      }
       
-      const avgPositiveIntensity = positiveEmotions.length > 0
-        ? positiveEmotions.reduce((sum, e) => sum + e.intensity, 0) / positiveEmotions.length
-        : 0;
+      return weeks.map(weekStart => {
+        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+        
+        const weekEmotions = emotions.filter(e => {
+          const emotionDate = new Date(e.createdAt);
+          return emotionDate >= weekStart && emotionDate <= weekEnd;
+        });
+        
+        const positiveEmotions = weekEmotions.filter(e => POSITIVE_EMOTIONS.includes(e.coreEmotion));
+        const negativeEmotions = weekEmotions.filter(e => NEGATIVE_EMOTIONS.includes(e.coreEmotion));
+        
+        const avgPositiveIntensity = positiveEmotions.length > 0
+          ? positiveEmotions.reduce((sum, e) => sum + e.intensity, 0) / positiveEmotions.length
+          : 0;
+        
+        const avgNegativeIntensity = negativeEmotions.length > 0
+          ? negativeEmotions.reduce((sum, e) => sum + e.intensity, 0) / negativeEmotions.length
+          : 0;
+        
+        const startMonth = format(weekStart, 'MMM');
+        const endMonth = format(weekEnd, 'MMM');
+        const weekRange = startMonth === endMonth 
+          ? `${startMonth} ${format(weekStart, 'd')}-${format(weekEnd, 'd')}`
+          : `${startMonth} ${format(weekStart, 'd')}-${endMonth} ${format(weekEnd, 'd')}`;
+        
+        return {
+          date: weekRange,
+          positiveIntensity: parseFloat(avgPositiveIntensity.toFixed(1)),
+          negativeIntensity: parseFloat(avgNegativeIntensity.toFixed(1)),
+          count: weekEmotions.length,
+        };
+      });
+    } else {
+      // Show monthly data for the year (12 months)
+      const today = new Date();
+      const months = [];
       
-      const avgNegativeIntensity = negativeEmotions.length > 0
-        ? negativeEmotions.reduce((sum, e) => sum + e.intensity, 0) / negativeEmotions.length
-        : 0;
+      for (let i = 11; i >= 0; i--) {
+        const month = subDays(today, i * 30);
+        months.push(month);
+      }
       
-      // Format week range
-      const startMonth = format(weekStart, 'MMM');
-      const endMonth = format(weekEnd, 'MMM');
-      const weekRange = startMonth === endMonth 
-        ? `${startMonth} ${format(weekStart, 'd')}-${format(weekEnd, 'd')}`
-        : `${startMonth} ${format(weekStart, 'd')}-${endMonth} ${format(weekEnd, 'd')}`;
-      
-      return {
-        date: weekRange,
-        positiveIntensity: parseFloat(avgPositiveIntensity.toFixed(1)),
-        negativeIntensity: parseFloat(avgNegativeIntensity.toFixed(1)),
-        count: weekEmotions.length,
-      };
-    });
+      return months.map(monthDate => {
+        const monthStr = format(monthDate, 'MMM yyyy');
+        const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+        const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+        
+        const monthEmotions = emotions.filter(e => {
+          const emotionDate = new Date(e.createdAt);
+          return emotionDate >= monthStart && emotionDate <= monthEnd;
+        });
+        
+        const positiveEmotions = monthEmotions.filter(e => POSITIVE_EMOTIONS.includes(e.coreEmotion));
+        const negativeEmotions = monthEmotions.filter(e => NEGATIVE_EMOTIONS.includes(e.coreEmotion));
+        
+        const avgPositiveIntensity = positiveEmotions.length > 0
+          ? positiveEmotions.reduce((sum, e) => sum + e.intensity, 0) / positiveEmotions.length
+          : 0;
+        
+        const avgNegativeIntensity = negativeEmotions.length > 0
+          ? negativeEmotions.reduce((sum, e) => sum + e.intensity, 0) / negativeEmotions.length
+          : 0;
+        
+        return {
+          date: monthStr,
+          positiveIntensity: parseFloat(avgPositiveIntensity.toFixed(1)),
+          negativeIntensity: parseFloat(avgNegativeIntensity.toFixed(1)),
+          count: monthEmotions.length,
+        };
+      });
+    }
   };
 
   // Calculate intensity heatmap data with positive/negative separation - organized by weeks starting Monday
@@ -211,7 +263,7 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
               <TabsList>
                 <TabsTrigger value="week">Week</TabsTrigger>
                 <TabsTrigger value="month">Month</TabsTrigger>
-                <TabsTrigger value="all">All Time</TabsTrigger>
+                <TabsTrigger value="year">Year</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>

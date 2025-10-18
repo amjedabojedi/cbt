@@ -17,7 +17,7 @@ const ANT_COLORS = [
 ];
 
 export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
-  const [timeRange, setTimeRange] = useState<"week" | "month" | "all">("month");
+  const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("month");
 
   // Fetch thought records
   const { data: thoughts = [], isLoading } = useQuery<any[]>({
@@ -120,61 +120,91 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
     ];
   };
 
-  // Calculate progress trends over time - grouped by week
+  // Calculate progress trends over time
   const getProgressTrends = () => {
-    let weeksToShow = 4;
-    
     if (timeRange === "week") {
-      weeksToShow = 1;
-    } else if (timeRange === "month") {
-      weeksToShow = 4;
-    } else {
-      if (thoughts.length === 0) return [];
-      const oldestDate = new Date(Math.min(...thoughts.map(t => new Date(t.createdAt).getTime())));
-      const now = new Date();
-      const daysDiff = Math.ceil((now.getTime() - oldestDate.getTime()) / (24 * 60 * 60 * 1000));
-      weeksToShow = Math.ceil(daysDiff / 7);
-    }
-
-    // Get the Monday of the current week as the end point
-    const today = new Date();
-    const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
-    
-    // Generate weeks
-    const weeks = [];
-    for (let i = weeksToShow - 1; i >= 0; i--) {
-      const weekMonday = subDays(currentWeekMonday, i * 7);
-      weeks.push(weekMonday);
-    }
-    
-    return weeks.map(weekStart => {
-      const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+      // Show daily data for the week
+      const today = new Date();
+      const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
+      const weekEnd = endOfWeek(currentWeekMonday, { weekStartsOn: 1 });
+      const days = eachDayOfInterval({ start: currentWeekMonday, end: today });
       
-      // Get all thoughts in this week
-      const weekThoughts = thoughts.filter(t => {
-        const thoughtDate = new Date(t.createdAt);
-        return thoughtDate >= weekStart && thoughtDate <= weekEnd;
+      return days.map(day => {
+        const dayStr = format(day, "yyyy-MM-dd");
+        const dayThoughts = thoughts.filter(t => 
+          format(new Date(t.createdAt), "yyyy-MM-dd") === dayStr
+        );
+        
+        const challenged = dayThoughts.filter(t => t.evidenceFor || t.evidenceAgainst).length;
+        
+        return {
+          date: format(day, 'EEE d'), // e.g., "Mon 14"
+          total: dayThoughts.length,
+          challenged,
+        };
       });
+    } else if (timeRange === "month") {
+      // Show weekly data for the month (4 weeks)
+      const today = new Date();
+      const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
       
-      const challenged = weekThoughts.filter(t => t.evidenceFor || t.evidenceAgainst).length;
-      const avgRating = weekThoughts.length > 0
-        ? weekThoughts.reduce((sum, t) => sum + (t.reflectionRating || 0), 0) / weekThoughts.length
-        : 0;
+      const weeks = [];
+      for (let i = 3; i >= 0; i--) {
+        const weekMonday = subDays(currentWeekMonday, i * 7);
+        weeks.push(weekMonday);
+      }
       
-      // Format week range
-      const startMonth = format(weekStart, 'MMM');
-      const endMonth = format(weekEnd, 'MMM');
-      const weekRange = startMonth === endMonth 
-        ? `${startMonth} ${format(weekStart, 'd')}-${format(weekEnd, 'd')}`
-        : `${startMonth} ${format(weekStart, 'd')}-${endMonth} ${format(weekEnd, 'd')}`;
+      return weeks.map(weekStart => {
+        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+        
+        const weekThoughts = thoughts.filter(t => {
+          const thoughtDate = new Date(t.createdAt);
+          return thoughtDate >= weekStart && thoughtDate <= weekEnd;
+        });
+        
+        const challenged = weekThoughts.filter(t => t.evidenceFor || t.evidenceAgainst).length;
+        
+        const startMonth = format(weekStart, 'MMM');
+        const endMonth = format(weekEnd, 'MMM');
+        const weekRange = startMonth === endMonth 
+          ? `${startMonth} ${format(weekStart, 'd')}-${format(weekEnd, 'd')}`
+          : `${startMonth} ${format(weekStart, 'd')}-${endMonth} ${format(weekEnd, 'd')}`;
+        
+        return {
+          date: weekRange,
+          total: weekThoughts.length,
+          challenged,
+        };
+      });
+    } else {
+      // Show monthly data for the year (12 months)
+      const today = new Date();
+      const months = [];
       
-      return {
-        date: weekRange,
-        total: weekThoughts.length,
-        challenged,
-        avgRating: parseFloat(avgRating.toFixed(1)),
-      };
-    });
+      for (let i = 11; i >= 0; i--) {
+        const month = subDays(today, i * 30);
+        months.push(month);
+      }
+      
+      return months.map(monthDate => {
+        const monthStr = format(monthDate, 'MMM yyyy');
+        const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+        const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+        
+        const monthThoughts = thoughts.filter(t => {
+          const thoughtDate = new Date(t.createdAt);
+          return thoughtDate >= monthStart && thoughtDate <= monthEnd;
+        });
+        
+        const challenged = monthThoughts.filter(t => t.evidenceFor || t.evidenceAgainst).length;
+        
+        return {
+          date: monthStr,
+          total: monthThoughts.length,
+          challenged,
+        };
+      });
+    }
   };
 
   // Calculate distortion-emotion correlation for bubble chart
@@ -537,7 +567,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
               <TabsList>
                 <TabsTrigger value="week">Week</TabsTrigger>
                 <TabsTrigger value="month">Month</TabsTrigger>
-                <TabsTrigger value="all">All Time</TabsTrigger>
+                <TabsTrigger value="year">Year</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
