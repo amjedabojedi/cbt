@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, TrendingUp, Target, Link2 } from "lucide-react";
+import { Brain, TrendingUp, Target } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ScatterChart, Scatter, ZAxis } from "recharts";
 import { format, subDays, eachDayOfInterval } from "date-fns";
 
@@ -153,25 +153,6 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
         avgRating: parseFloat(avgRating.toFixed(1)),
       };
     });
-  };
-
-  // Calculate thought-emotion links
-  const getThoughtEmotionLinks = () => {
-    const emotionMap = new Map(emotions.map(e => [e.id, e.coreEmotion]));
-    const linkCounts: Record<string, number> = {};
-    
-    thoughts.forEach(thought => {
-      if (thought.emotionRecordId) {
-        const emotion = emotionMap.get(thought.emotionRecordId);
-        if (emotion) {
-          linkCounts[emotion] = (linkCounts[emotion] || 0) + 1;
-        }
-      }
-    });
-    
-    return Object.entries(linkCounts)
-      .map(([emotion, count]) => ({ emotion, count }))
-      .sort((a, b) => b.count - a.count);
   };
 
   // Calculate distortion-emotion correlation for bubble chart
@@ -389,44 +370,6 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
           ) : (
             <div className="flex items-center justify-center h-[300px] text-muted-foreground">
               Challenge thoughts to see belief shift
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Thought-Emotion Links */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Link2 className="h-5 w-5 text-primary" />
-            <CardTitle>Thought-Emotion Links</CardTitle>
-          </div>
-          <CardDescription>Emotions connected to your thoughts</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {getThoughtEmotionLinks().length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={getThoughtEmotionLinks()}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ emotion, percent }) => `${emotion} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {getThoughtEmotionLinks().map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={ANT_COLORS[index % ANT_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-              No thought-emotion links yet
             </div>
           )}
         </CardContent>
