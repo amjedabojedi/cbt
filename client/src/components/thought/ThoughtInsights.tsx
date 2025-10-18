@@ -190,6 +190,38 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
     return Array.from(correlationMap.values());
   };
 
+  // Get all possible distortions and emotions for axes
+  const getAllDistortionsAndEmotions = () => {
+    // All 12 cognitive distortions
+    const allDistortions = [
+      'All or Nothing Thinking',
+      'Overgeneralization',
+      'Mental Filter',
+      'Disqualifying the Positive',
+      'Jumping to Conclusions',
+      'Magnification/Minimization',
+      'Emotional Reasoning',
+      'Should Statements',
+      'Labeling',
+      'Personalization',
+      'Catastrophizing',
+      'Fortune Telling'
+    ];
+    
+    // All 7 core emotions
+    const allEmotions = [
+      'Fear',
+      'Sadness',
+      'Anger',
+      'Joy',
+      'Love',
+      'Surprise',
+      'Disgust'
+    ];
+    
+    return { allDistortions, allEmotions };
+  };
+
   // Calculate improvement metrics
   const getImprovementMetrics = () => {
     const challengedThoughts = thoughts.filter(t => t.evidenceFor || t.evidenceAgainst);
@@ -387,6 +419,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
         <CardContent>
           {(() => {
             const correlationData = getDistortionEmotionCorrelation();
+            const { allDistortions, allEmotions } = getAllDistortionsAndEmotions();
             
             if (correlationData.length === 0) {
               return (
@@ -396,19 +429,15 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
               );
             }
 
-            // Get unique distortions and emotions
-            const uniqueDistortions = Array.from(new Set(correlationData.map(d => d.distortion)));
-            const uniqueEmotions = Array.from(new Set(correlationData.map(d => d.emotion)));
-            
-            // Create mapping indices
-            const distortionIndex = new Map(uniqueDistortions.map((d, i) => [d, i]));
-            const emotionIndex = new Map(uniqueEmotions.map((e, i) => [e, i]));
+            // Create mapping indices using ALL possible distortions and emotions
+            const distortionIndex = new Map(allDistortions.map((d, i) => [d, i]));
+            const emotionIndex = new Map(allEmotions.map((e, i) => [e, i]));
             
             // Transform data for scatter chart with numeric coordinates
             const scatterData = correlationData.map(item => ({
               x: distortionIndex.get(item.distortion),
               y: emotionIndex.get(item.emotion),
-              z: item.count * 100, // Scale up for visibility
+              z: item.count * 50, // Smaller bubbles
               count: item.count,
               distortion: item.distortion,
               emotion: item.emotion,
@@ -416,32 +445,32 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
             
             return (
               <>
-                <ResponsiveContainer width="100%" height={400}>
-                  <ScatterChart margin={{ top: 20, right: 20, bottom: 80, left: 100 }}>
+                <ResponsiveContainer width="100%" height={500}>
+                  <ScatterChart margin={{ top: 20, right: 20, bottom: 120, left: 100 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
                       type="number" 
                       dataKey="x" 
-                      domain={[-0.5, uniqueDistortions.length - 0.5]}
-                      ticks={Array.from({ length: uniqueDistortions.length }, (_, i) => i)}
-                      tickFormatter={(value) => uniqueDistortions[value] || ''}
+                      domain={[-0.5, allDistortions.length - 0.5]}
+                      ticks={Array.from({ length: allDistortions.length }, (_, i) => i)}
+                      tickFormatter={(value) => allDistortions[value] || ''}
                       angle={-45}
                       textAnchor="end"
-                      height={100}
+                      height={120}
                       interval={0}
-                      tick={{ fontSize: 11 }}
+                      tick={{ fontSize: 10 }}
                     />
                     <YAxis 
                       type="number" 
                       dataKey="y"
-                      domain={[-0.5, uniqueEmotions.length - 0.5]}
-                      ticks={Array.from({ length: uniqueEmotions.length }, (_, i) => i)}
-                      tickFormatter={(value) => uniqueEmotions[value] || ''}
+                      domain={[-0.5, allEmotions.length - 0.5]}
+                      ticks={Array.from({ length: allEmotions.length }, (_, i) => i)}
+                      tickFormatter={(value) => allEmotions[value] || ''}
                       width={90}
                       interval={0}
                       tick={{ fontSize: 12 }}
                     />
-                    <ZAxis type="number" dataKey="z" range={[100, 1000]} />
+                    <ZAxis type="number" dataKey="z" range={[50, 400]} />
                     <Tooltip 
                       cursor={{ strokeDasharray: '3 3' }}
                       content={({ active, payload }) => {
