@@ -42,15 +42,15 @@ const challengeSchema = z.object({
 type ChallengeFormValues = z.infer<typeof challengeSchema>;
 
 interface ThoughtChallengeWizardProps {
-  open: boolean;
-  onClose: () => void;
   thoughtRecord: ThoughtRecord;
+  onComplete: () => void;
+  onCancel: () => void;
 }
 
 export function ThoughtChallengeWizard({
-  open,
-  onClose,
   thoughtRecord,
+  onComplete,
+  onCancel,
 }: ThoughtChallengeWizardProps) {
   const { user } = useAuth();
   const { activeUserId } = useActiveUser();
@@ -141,20 +141,19 @@ export function ThoughtChallengeWizard({
     setShowSuccessDialog(false);
     form.reset();
     setCurrentStep(0);
-    onClose();
+    onComplete();
   };
 
   const handleSkip = () => {
     form.reset();
     setCurrentStep(0);
-    onClose();
+    onCancel();
   };
 
   return (
     <>
-      {/* Main Challenge Dialog */}
-      <Dialog open={open && !showSuccessDialog} onOpenChange={handleSkip} modal={false}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      {!showSuccessDialog && (
+        <>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-purple-600" />
@@ -512,8 +511,8 @@ export function ThoughtChallengeWizard({
               )}
             </form>
           </Form>
-        </DialogContent>
-      </Dialog>
+        </>
+      )}
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={handleCloseSuccess} modal={false}>
