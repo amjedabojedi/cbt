@@ -208,12 +208,14 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
       'Fortune Telling'
     ];
     
-    // Core emotions only (the 4 fundamental emotions)
+    // All 6 core emotions from the emotion wheel (ring 1)
     const allEmotions = [
-      'Fear',
+      'Joy',
       'Sadness',
+      'Fear',
       'Anger',
-      'Joy'
+      'Love',
+      'Surprise'
     ];
     
     return { allDistortions, allEmotions };
