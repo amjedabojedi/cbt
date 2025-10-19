@@ -504,33 +504,40 @@ export default function ThoughtRecordsList({
       {/* Record Details Dialog */}
       {selectedRecord && (
         <Dialog open={!!selectedRecord} onOpenChange={() => setSelectedRecord(null)}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Thought Record Details</DialogTitle>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+            <DialogHeader className="sticky top-0 bg-background z-10 pb-4">
+              <DialogTitle className="flex items-center gap-2 text-lg">
+                <div className="p-2 rounded-full bg-indigo-100">
+                  <Brain className="h-5 w-5 text-indigo-600" />
+                </div>
+                Thought Record Details
+              </DialogTitle>
               <DialogDescription>
                 Created on {formatDate(selectedRecord.createdAt)}
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-4 mt-4">
-              <div>
-                <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
-                  <div className="p-1.5 rounded-full bg-slate-100">
-                    <Calendar className="h-4 w-4 text-slate-500" />
+            <div className="space-y-6 pr-1">
+              <Card className="border-l-4 border-l-indigo-400">
+                <CardContent className="p-4 space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
+                      <div className="p-1.5 rounded-full bg-slate-100">
+                        <Calendar className="h-4 w-4 text-slate-500" />
+                      </div>
+                      Situation
+                    </h3>
+                    <p className="text-sm pl-7">{selectedRecord.situation}</p>
                   </div>
-                  Situation
-                </h3>
-                <p className="text-sm pl-7">{selectedRecord.situation}</p>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
-                  <div className="p-1.5 rounded-full bg-emerald-100">
-                    <Heart className="h-4 w-4 text-emerald-500" />
-                  </div>
-                  Emotions
-                </h3>
-                <div className="pl-7 flex flex-wrap gap-1">
+                  
+                  <div>
+                    <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
+                      <div className="p-1.5 rounded-full bg-emerald-100">
+                        <Heart className="h-4 w-4 text-emerald-500" />
+                      </div>
+                      Emotions
+                    </h3>
+                    <div className="pl-7 flex flex-wrap gap-1">
                   {/* Display emotions directly for record #50 */}
                   {selectedRecord.id === 50 ? (
                     <div className="flex flex-wrap gap-1">
@@ -675,6 +682,8 @@ export default function ThoughtRecordsList({
                   </div>
                 </div>
               )}
+                </CardContent>
+              </Card>
             </div>
             
             <div className="flex justify-end space-x-2 mt-6">
