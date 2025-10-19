@@ -325,7 +325,7 @@ export default function ThoughtRecordsList({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {displayRecords?.map((record) => (
                 <Card key={record.id} className="overflow-hidden border-slate-200 hover:shadow-md transition-shadow duration-200 h-full flex flex-col">
                   <div className="bg-muted/20 px-4 py-3 flex items-center justify-between border-b">
