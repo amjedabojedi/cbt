@@ -229,7 +229,7 @@ export default function ThoughtRecordsList({
     } else if (recordDate.toDateString() === yesterday.toDateString()) {
       return `Yesterday, ${format(recordDate, "h:mm a")}`;
     } else {
-      return format(recordDate, "MMM d, h:mm a");
+      return format(recordDate, "MMM d, yyyy, h:mm a");
     }
   };
   
