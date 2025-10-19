@@ -1245,7 +1245,7 @@ export default function Journal() {
                                   {comment.user?.name || 'User'}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  {format(new Date(comment.createdAt), "MMM d 'at' h:mm a")}
+                                  {format(new Date(comment.createdAt), "MMM d, yyyy 'at' h:mm a")}
                                 </p>
                               </div>
                               <p className="text-sm mt-1">{comment.comment}</p>
