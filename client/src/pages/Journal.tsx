@@ -205,6 +205,7 @@ export default function Journal() {
   const [showEntryDialog, setShowEntryDialog] = useState(false);
   const [showTaggingDialog, setShowTaggingDialog] = useState(false);
   const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
+  const [selectedViewEntry, setSelectedViewEntry] = useState<JournalEntry | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [commentContent, setCommentContent] = useState("");
@@ -615,7 +616,16 @@ export default function Journal() {
   };
   
   const handleViewEntry = (entry: JournalEntry) => {
-    loadEntryWithRelatedRecords(entry);
+    // Fetch related thought records if they exist
+    if (entry.relatedThoughtRecordIds && entry.relatedThoughtRecordIds.length > 0 && userThoughtRecords.length > 0) {
+      const related = userThoughtRecords.filter(tr => 
+        entry.relatedThoughtRecordIds?.includes(tr.id)
+      );
+      setRelatedThoughtRecords(related);
+    } else {
+      setRelatedThoughtRecords([]);
+    }
+    setSelectedViewEntry(entry);
   };
   
   const toggleTagSelection = (tag: string) => {
@@ -2028,6 +2038,142 @@ export default function Journal() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* View Journal Entry Details Dialog */}
+      {selectedViewEntry && (
+        <Dialog open={!!selectedViewEntry} onOpenChange={() => setSelectedViewEntry(null)}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+            <DialogHeader className="sticky top-0 bg-background z-10 pb-4">
+              <DialogTitle className="flex items-center gap-2 text-lg">
+                <div className="p-2 rounded-full bg-blue-100">
+                  <Book className="h-5 w-5 text-blue-600" />
+                </div>
+                {selectedViewEntry.title}
+              </DialogTitle>
+              <DialogDescription>
+                Created on {format(new Date(selectedViewEntry.createdAt), "MMM d, yyyy 'at' h:mm a")}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-6 pr-1">
+              {/* Entry Content */}
+              <Card className="border-l-4 border-l-blue-400">
+                <CardContent className="p-4 space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <MessageCircle className="h-4 w-4 text-blue-500" />
+                      Content
+                    </h3>
+                    <p className="text-sm whitespace-pre-wrap pl-6">{selectedViewEntry.content}</p>
+                  </div>
+
+                  {/* Tags */}
+                  {selectedViewEntry.userSelectedTags && selectedViewEntry.userSelectedTags.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
+                        <Tag className="h-4 w-4 text-blue-500" />
+                        Tags
+                      </h3>
+                      <div className="flex flex-wrap gap-1 pl-6">
+                        {selectedViewEntry.userSelectedTags.map((tag, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* AI Analysis */}
+                  {selectedViewEntry.aiAnalysis && (
+                    <div>
+                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-amber-500" />
+                        AI Insights
+                      </h3>
+                      <p className="text-sm text-muted-foreground pl-6">{selectedViewEntry.aiAnalysis}</p>
+                    </div>
+                  )}
+
+                  {/* Detected Emotions */}
+                  {selectedViewEntry.emotions && selectedViewEntry.emotions.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
+                        <Heart className="h-4 w-4 text-rose-500" />
+                        Detected Emotions
+                      </h3>
+                      <div className="flex flex-wrap gap-1 pl-6">
+                        {selectedViewEntry.emotions.map((emotion, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {emotion}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Detected Topics */}
+                  {selectedViewEntry.topics && selectedViewEntry.topics.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
+                        <Tag className="h-4 w-4 text-blue-500" />
+                        Detected Topics
+                      </h3>
+                      <div className="flex flex-wrap gap-1 pl-6">
+                        {selectedViewEntry.topics.map((topic, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {topic}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Cognitive Distortions */}
+                  {selectedViewEntry.userSelectedDistortions && selectedViewEntry.userSelectedDistortions.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
+                        <BrainCircuit className="h-4 w-4 text-purple-500" />
+                        Cognitive Distortions
+                      </h3>
+                      <div className="space-y-2 pl-6">
+                        {selectedViewEntry.userSelectedDistortions.map((distortion, index) => (
+                          <div key={index} className="text-sm">
+                            <span className="font-medium">{distortion}:</span>{" "}
+                            <span className="text-muted-foreground">{getDistortionDescription(distortion)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Related Thought Records */}
+                  {relatedThoughtRecords.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
+                        <Brain className="h-4 w-4 text-indigo-500" />
+                        Related Thought Records
+                      </h3>
+                      <div className="space-y-2 pl-6">
+                        {relatedThoughtRecords.map((record) => (
+                          <Card key={record.id} className="border">
+                            <CardContent className="p-3">
+                              <p className="text-sm font-medium">{record.situation}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {format(new Date(record.createdAt), "MMM d, yyyy")}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       </div>
       </AppLayout>
   );
