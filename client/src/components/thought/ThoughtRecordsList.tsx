@@ -34,8 +34,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, Trash2, Brain, BrainCircuit, AlertTriangle, Scale, Lightbulb, Sparkles, Calendar, Book, BookText, MessageSquare, Heart, Dumbbell, Plus, CheckCircle, XCircle } from "lucide-react";
+import { Edit, Eye, Trash2, Brain, BrainCircuit, AlertTriangle, Scale, Lightbulb, Sparkles, Calendar, Book, BookText, MessageSquare, Heart, Dumbbell, Plus, CheckCircle, XCircle, MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import CreateReframePracticeForm from "@/components/reframeCoach/CreateReframePracticeForm";
 import { ThoughtChallengeWizard } from "./ThoughtChallengeWizard";
 
@@ -351,6 +358,89 @@ export default function ThoughtRecordsList({
                           <span className="text-xs font-medium">{record.relatedJournalEntryIds.length}</span>
                         </div>
                       )}
+                      
+                      {/* Actions Dropdown */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewDetails(record)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          {!isViewingClientData && (
+                            <>
+                              {!isThoughtChallenged(record) && (
+                                <DropdownMenuItem onClick={() => setThoughtToChallenge(record)}>
+                                  <Brain className="h-4 w-4 mr-2" />
+                                  Challenge This Thought
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem onClick={() => handleEditRecord(record)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              {showPracticeButton && (() => {
+                                const practiceInfo = getLastPracticeInfo(record.id);
+                                const canPractice = !practiceInfo || practiceInfo.canPractice;
+                                
+                                return (
+                                  <DropdownMenuItem 
+                                    onClick={() => {
+                                      if (canPractice) {
+                                        window.location.href = `/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`;
+                                      }
+                                    }}
+                                    disabled={!canPractice}
+                                  >
+                                    {canPractice ? (
+                                      <>
+                                        <Sparkles className="h-4 w-4 mr-2" />
+                                        Practice
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CheckCircle className="h-4 w-4 mr-2" />
+                                        Practiced Today
+                                      </>
+                                    )}
+                                  </DropdownMenuItem>
+                                );
+                              })()}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteClick(record)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {isViewingClientData && (
+                            <>
+                              <DropdownMenuItem onClick={() => {
+                                window.location.href = `/users/${targetUserId}/reframe-coach?tab=history`;
+                              }}>
+                                <BookText className="h-4 w-4 mr-2" />
+                                View Practice History
+                              </DropdownMenuItem>
+                              {user?.role === 'therapist' && (
+                                <DropdownMenuItem onClick={() => {
+                                  setSelectedRecord(record);
+                                  setShowReframeDialog(true);
+                                }}>
+                                  <Book className="h-4 w-4 mr-2" />
+                                  Assign Practice
+                                </DropdownMenuItem>
+                              )}
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                   
@@ -404,143 +494,6 @@ export default function ThoughtRecordsList({
                       </p>
                     </div>
                   </CardContent>
-                  
-                  {/* Actions Footer */}
-                  <div className="flex items-center justify-between px-4 py-3 bg-muted/10 border-t mt-auto">
-                    <div className="flex items-center space-x-2">
-                      {/* View Details Button - Always visible */}
-                      <Button 
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewDetails(record)}
-                        className="text-primary hover:text-primary-dark"
-                        data-testid={`button-view-details-${record.id}`}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        Details
-                      </Button>
-                      
-                      {/* Challenge This Thought Button - Only for unchallenged thoughts (own records only) */}
-                      {!isViewingClientData && !isThoughtChallenged(record) && (
-                        <Button 
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setThoughtToChallenge(record)}
-                          className="text-indigo-600 border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
-                          data-testid={`button-challenge-thought-${record.id}`}
-                        >
-                          <Brain className="h-4 w-4 mr-1" />
-                          Challenge This Thought
-                        </Button>
-                      )}
-                      
-                      {/* Edit Button - Only for own records */}
-                      {!isViewingClientData && (
-                        <Button 
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditRecord(record)}
-                          className="text-primary hover:text-primary-dark"
-                          data-testid={`button-edit-${record.id}`}
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      {/* Delete Button - Only for own records */}
-                      {!isViewingClientData && (
-                        <Button 
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteClick(record)}
-                          className="text-destructive hover:text-destructive/80"
-                          data-testid={`button-delete-${record.id}`}
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
-                        </Button>
-                      )}
-                      
-                      {/* Practice Button for clients only - If enabled */}
-                      {showPracticeButton && !isViewingClientData && (() => {
-                        const practiceInfo = getLastPracticeInfo(record.id);
-                        const canPractice = !practiceInfo || practiceInfo.canPractice;
-                        
-                        return (
-                          <div className="relative group">
-                            <Button 
-                              size="sm"
-                              onClick={() => {
-                                if (canPractice) {
-                                  // Navigate to quick practice with this thought record
-                                  window.location.href = `/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`;
-                                }
-                              }}
-                              disabled={!canPractice}
-                              className={canPractice 
-                                ? "bg-amber-500 hover:bg-amber-600 text-white" 
-                                : "bg-muted text-muted-foreground cursor-not-allowed"}
-                              data-testid={`button-practice-${record.id}`}
-                            >
-                              {canPractice ? (
-                                <>
-                                  <Sparkles className="h-4 w-4 mr-1" />
-                                  Practice
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                  Practiced
-                                </>
-                              )}
-                            </Button>
-                            {!canPractice && practiceInfo && (
-                              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2 bg-slate-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                ✓ Already practiced today. New exercise available in {practiceInfo.hoursUntilNext} hours
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
-                      
-                      {/* View Practice History Button for therapists */}
-                      {isViewingClientData && (
-                        <Button 
-                          size="sm"
-                          onClick={() => {
-                            // Redirect to unified reframe coach page with history tab
-                            const url = `/users/${targetUserId}/reframe-coach?tab=history`;
-                            console.log("Navigating to practice history:", url);
-                            window.location.href = url;
-                          }}
-                          className="bg-blue-500 hover:bg-blue-600 text-white"
-                        >
-                          <BookText className="h-4 w-4 mr-1" />
-                          History
-                        </Button>
-                      )}
-                      
-                      {/* Add Assign Practice button for therapists viewing client data */}
-                      {user?.role === 'therapist' && isViewingClientData && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => {
-                            // Set selected record and show assignment dialog
-                            setSelectedRecord(record);
-                            setShowReframeDialog(true);
-                          }}
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          <Book className="h-4 w-4 mr-1" />
-                          Assign
-                        </Button>
-                      )}
-                    </div>
-                  </div>
                 </Card>
               ))}
             </div>
