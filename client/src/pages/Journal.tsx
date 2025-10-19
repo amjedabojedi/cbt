@@ -791,7 +791,7 @@ export default function Journal() {
           {/* Journal History tab */}
           <TabsContent value="history">
             {isLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <Card key={i} className="animate-pulse">
                   <CardHeader className="h-24 bg-muted/50"></CardHeader>
@@ -803,7 +803,7 @@ export default function Journal() {
               ))}
             </div>
           ) : entries.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               {entries.map((entry: JournalEntry) => (
                 <Card key={entry.id} className="overflow-hidden">
                   <CardHeader className="pb-2">
