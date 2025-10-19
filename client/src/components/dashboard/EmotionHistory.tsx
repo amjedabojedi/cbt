@@ -245,7 +245,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
     } else if (emotionDate.toDateString() === yesterday.toDateString()) {
       return `Yesterday, ${format(emotionDate, "h:mm a")}`;
     } else {
-      return format(emotionDate, "MMM d, h:mm a");
+      return format(emotionDate, "MMM d, yyyy, h:mm a");
     }
   };
   
