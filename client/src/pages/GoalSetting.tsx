@@ -789,18 +789,6 @@ export default function GoalSetting() {
                                   <Target className="h-4 w-4 mr-2" />
                                   View Milestones ({progress.total})
                                 </DropdownMenuItem>
-                                {user?.role === 'client' && (
-                                  <>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem 
-                                      onClick={() => handleDeleteGoal(goal.id)}
-                                      className="text-destructive focus:text-destructive"
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                      Delete
-                                    </DropdownMenuItem>
-                                  </>
-                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
