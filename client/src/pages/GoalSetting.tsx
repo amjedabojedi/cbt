@@ -58,7 +58,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { PlusCircle, Calendar, CheckCircle, Clock, Flag, HelpCircle, Target, TrendingUp } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { PlusCircle, Calendar, CheckCircle, Clock, Flag, HelpCircle, Target, TrendingUp, MoreVertical, Edit, Trash2 } from "lucide-react";
 
 // Schema for goal creation
 const goalSchema = z.object({
@@ -765,7 +772,38 @@ export default function GoalSetting() {
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between mb-2">
                           <CardTitle className="text-lg font-bold">{goal.title}</CardTitle>
-                          <div>{getStatusBadge(goal.status, 'lg')}</div>
+                          <div className="flex items-center gap-2">
+                            <div>{getStatusBadge(goal.status, 'lg')}</div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => setSelectedGoal(goal)}>
+                                  <Flag className="h-4 w-4 mr-2" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSelectedGoal(goal)}>
+                                  <Target className="h-4 w-4 mr-2" />
+                                  View Milestones ({progress.total})
+                                </DropdownMenuItem>
+                                {user?.role === 'client' && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem 
+                                      onClick={() => handleDeleteGoal(goal.id)}
+                                      className="text-destructive focus:text-destructive"
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
                         
                         {/* Milestone Progress */}
@@ -803,29 +841,6 @@ export default function GoalSetting() {
                           <div>
                             <h4 className="text-sm font-medium text-primary">Measurable</h4>
                             <p className="text-sm text-muted-foreground line-clamp-2">{goal.measurable}</p>
-                          </div>
-                          
-                          <div className="flex gap-3 mt-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-auto p-0 text-primary hover:text-primary/80 hover:bg-transparent"
-                              onClick={() => setSelectedGoal(goal)}
-                              data-testid={`button-view-details-${goal.id}`}
-                            >
-                              <Flag className="h-3.5 w-3.5 mr-1" />
-                              View Details
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-auto p-0 text-primary hover:text-primary/80 hover:bg-transparent"
-                              onClick={() => setSelectedGoal(goal)}
-                              data-testid={`button-view-milestones-${goal.id}`}
-                            >
-                              <Target className="h-3.5 w-3.5 mr-1" />
-                              View Milestones ({progress.total})
-                            </Button>
                           </div>
                         </div>
                       </CardContent>
