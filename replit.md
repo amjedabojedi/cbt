@@ -69,7 +69,20 @@ Preferred communication style: Simple, everyday language.
 
 ## Changelog
 
-- October 17, 2025 (latest). Enhanced Thought Records Insights with Distortion-Emotion Correlation Analysis
+- October 19, 2025 (latest). Complete UI Standardization: Card Grid Layout with Dropdown Menus Across All Modules
+  - **Emotion Tracking**: Converted from Table layout to Card Grid (2-3 columns responsive, `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`)
+  - **All Modules Now Unified**: Emotion Tracking, Thought Records, Journal, and Goals all use identical Card Grid layout pattern
+  - **Dropdown Menu Pattern**: Replaced footer/inline action buttons with consistent DropdownMenu component in card headers
+    - Icon: MoreVertical (three vertical dots) positioned in top-right of each card
+    - Alignment: `align="end"` for right-aligned dropdown
+    - Actions: View Details, Edit, Delete (with DropdownMenuSeparator before destructive actions)
+    - Module-specific actions: Add Thought Record (Emotion), Challenge Thought/Practice (Thought Records), View Milestones (Goals)
+  - **Table Retained for Full History Dialog**: Emotion Tracking Full History Dialog intentionally uses Table for comprehensive multi-column data view
+  - **Fixed Runtime Error**: Restored Table component imports for Full History Dialog in EmotionHistory.tsx
+  - **Goals Module**: Removed non-functional Delete option from dropdown menu
+  - **Visual Consistency**: All modules now share identical card styling, grid layout, and action menu patterns for cohesive user experience
+
+- October 17, 2025. Enhanced Thought Records Insights with Distortion-Emotion Correlation Analysis
   - **New Feature: Distortion-Emotion Patterns Bubble Chart**: Interactive bubble chart showing which cognitive distortions appear with which core emotions
     - X-axis displays all cognitive distortions (All or Nothing Thinking, Catastrophizing, etc.)
     - Y-axis shows core emotions from emotion records (Fear, Sadness, Anger, Joy, Love, Surprise, Disgust)
