@@ -22,17 +22,19 @@ import {
   Edit,
   Eye,
   Trash2,
-  HelpCircle
+  HelpCircle,
+  MoreVertical,
+  Calendar
 } from "lucide-react";
 
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -328,86 +330,77 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               </p>
             </div>
           ) : (
-            <div className={`overflow-x-auto ${!limit ? "custom-scrollbar max-h-[400px] overflow-y-auto" : ""}`}>
-              <Table>
-                <TableHeader className="sticky top-0 bg-background z-10">
-                  <TableRow>
-                    <TableHead>Date & Time</TableHead>
-                    <TableHead>Emotion</TableHead>
-                    <TableHead>Intensity</TableHead>
-                    <TableHead>Situation</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {displayEmotions?.map((emotion) => (
-                    <TableRow key={emotion.id}>
-                      <TableCell className="whitespace-nowrap text-sm">
-                        {formatDate(emotion.timestamp)}
-                      </TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion)}`}>
-                          {emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion}
-                        </span>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-sm">
-                        {emotion.intensity}/10
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate text-sm">
-                        {emotion.situation}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          {/* Only show edit button if viewing own data */}
-                          {!isViewingClientData && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => handleEditEmotion(emotion)}
-                              className="text-primary hover:text-primary-dark"
-                              title="Edit emotion"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {/* Only show add thought record option if viewing own data */}
-                          {!isViewingClientData && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => handleAddThoughtRecord(emotion)}
-                              className="text-primary hover:text-primary-dark"
-                              title="Add thought record"
-                            >
-                              <ArrowRight className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {/* Always show view details */}
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => handleViewDetails(emotion)}
-                            className="text-primary hover:text-primary-dark"
-                          >
-                            <Eye className="h-4 w-4" />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {displayEmotions?.map((emotion) => (
+                <Card key={emotion.id} className="overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">{formatDate(emotion.timestamp)}</span>
+                      </div>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
                           </Button>
-                          {/* Only show delete option if viewing own data */}
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewDetails(emotion)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
                           {!isViewingClientData && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => handleDeleteClick(emotion)}
-                              className="text-destructive hover:text-destructive/80"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <>
+                              <DropdownMenuItem onClick={() => handleEditEmotion(emotion)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleAddThoughtRecord(emotion)}>
+                                <ArrowRight className="h-4 w-4 mr-2" />
+                                Add Thought Record
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteClick(emotion)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </>
                           )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="pb-3">
+                    <div className="space-y-3">
+                      {/* Emotion Badge */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Emotion:</span>
+                        <Badge className={getEmotionBadgeColor(emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion)}>
+                          {emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion}
+                        </Badge>
+                      </div>
+                      
+                      {/* Intensity */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Intensity:</span>
+                        <span className="text-sm font-semibold">{emotion.intensity}/10</span>
+                      </div>
+                      
+                      {/* Situation */}
+                      <div>
+                        <span className="text-sm text-muted-foreground block mb-1">Situation:</span>
+                        <p className="text-sm line-clamp-2">{emotion.situation}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </CardContent>
