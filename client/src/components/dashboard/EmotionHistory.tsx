@@ -338,7 +338,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               </p>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               {displayEmotions?.map((emotion) => (
                 <Card key={emotion.id} className="overflow-hidden">
                   <CardHeader className="pb-2">
