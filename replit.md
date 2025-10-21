@@ -69,7 +69,24 @@ Preferred communication style: Simple, everyday language.
 
 ## Changelog
 
-- October 19, 2025 (latest). Complete UI Standardization: Card Grid Layout with Dropdown Menus Across All Modules
+- October 21, 2025 (latest). Detail View Dialog Standardization Across All Modules
+  - **Unified Detail Dialog Pattern**: All three core modules (Emotion Tracking, Thought Records, Journal) now use identical detail view dialog styling
+  - **Standardized Dialog Structure**:
+    - DialogContent: `max-w-3xl max-h-[80vh] overflow-y-auto custom-scrollbar` for consistent size and smooth scrolling
+    - DialogHeader: `sticky top-0 bg-background z-10 pb-4` for header that stays visible while scrolling
+    - DialogTitle: `flex items-center gap-2 text-lg` with icon badge pattern
+  - **Icon Badge Pattern**: Each dialog features colored icon badge (`p-2 rounded-full bg-{color}-100`)
+    - Emotion Tracking: Dynamic icon based on emotion with emotion-specific colors
+    - Thought Records: Brain icon with indigo background (`bg-indigo-100`)
+    - Journal: Book icon with blue background (`bg-blue-100`)
+  - **Card-Based Content Layout**: Main content wrapped in Card with colored left border for visual hierarchy
+    - Thought Records: `border-l-4 border-l-indigo-400`
+    - Journal: `border-l-4 border-l-blue-400`
+  - **Consistent Spacing**: All dialogs use `space-y-6 pr-1` for uniform content spacing and scrollbar padding
+  - **Section Headers**: Each content section includes descriptive icon and label for improved scannability
+  - **Journal Enhancement**: Added new detail view dialog (previously used inline display) to match Emotion and Thought Records patterns
+
+- October 19, 2025. Complete UI Standardization: Card Grid Layout with Dropdown Menus Across All Modules
   - **Emotion Tracking**: Converted from Table layout to Card Grid (2-3 columns responsive, `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`)
   - **All Modules Now Unified**: Emotion Tracking, Thought Records, Journal, and Goals all use identical Card Grid layout pattern
   - **Dropdown Menu Pattern**: Replaced footer/inline action buttons with consistent DropdownMenu component in card headers
