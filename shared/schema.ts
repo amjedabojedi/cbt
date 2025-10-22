@@ -15,6 +15,7 @@ export const subscriptionPlans = pgTable("subscription_plans", {
   isDefault: boolean("is_default").notNull().default(false), // For free/trial plans
   stripePriceId: text("stripe_price_id"), // Stripe price ID for paid plans
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  
 });
 
 // User table with role (therapist or client)
