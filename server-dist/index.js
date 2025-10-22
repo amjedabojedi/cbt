@@ -5999,7 +5999,7 @@ async function registerRoutes(app2) {
         expiresAt,
         used: false
       });
-      const baseUrl = process.env.NODE_ENV === "production" ? `https://${process.env.REPLIT_DOMAINS?.split(",")[0]}` : "http://localhost:5000";
+      const baseUrl = process.env.NODE_ENV === "production" ? `https://${process.env.REPLIT_DOMAINS?.split(",")[0]}` : "http://localhost:5003";
       const resetUrl = `${baseUrl}/reset-password/${token}`;
       const emailSent = await sendPasswordResetEmail(user.email, resetUrl);
       if (emailSent) {

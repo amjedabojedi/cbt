@@ -56,7 +56,7 @@ export async function requestPasswordReset(req: Request, res: Response) {
     // Build the reset URL
     const baseUrl = process.env.NODE_ENV === 'production'
       ? `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`
-      : 'http://localhost:5000';
+      : 'http://localhost:5003';
     
     const resetUrl = `${baseUrl}/reset-password/${token}`;
     
