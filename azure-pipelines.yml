@@ -1,0 +1,115 @@
+# Azure DevOps Pipeline for ResilienceHub (React/Vite + Express)
+# Full-stack mental health application
+
+trigger:
+  branches:
+    include:
+      - main
+      - master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  node_version: '20.x'  # Node.js 20 LTS
+  azureSubscription: 'YOUR_SERVICE_CONNECTION_NAME'  # Replace with your service connection
+  webAppName: 'resiliencehub-app'  # Replace with your Azure App Service name
+  
+stages:
+  - stage: Build
+    displayName: 'Build Application'
+    jobs:
+      - job: BuildJob
+        displayName: 'Build Frontend and Backend'
+        steps:
+          # Install Node.js
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '$(node_version)'
+            displayName: 'Install Node.js $(node_version)'
+
+          # Cache node_modules for faster builds
+          - task: Cache@2
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              path: 'node_modules'
+              cacheHitVar: 'CACHE_RESTORED'
+            displayName: 'Cache npm dependencies'
+
+          # Install dependencies
+          - script: |
+              npm ci
+            displayName: 'Install dependencies (npm ci)'
+
+          # Build Vite frontend
+          - script: |
+              npm run build
+            displayName: 'Build Vite frontend'
+            env:
+              NODE_ENV: production
+              # Add your environment variables here (they'll be set in Azure DevOps)
+              # VITE_POSTHOG_KEY: $(VITE_POSTHOG_KEY)
+              # VITE_POSTHOG_HOST: $(VITE_POSTHOG_HOST)
+
+          # Run database migrations (if needed)
+          # Uncomment if you need to run migrations during build
+          # - script: |
+          #     npm run db:push
+          #   displayName: 'Run database migrations'
+          #   env:
+          #     DATABASE_URL: $(DATABASE_URL)
+
+          # Copy all necessary files to staging
+          - task: CopyFiles@2
+            inputs:
+              sourceFolder: '$(Build.SourcesDirectory)'
+              contents: |
+                **/*
+                !node_modules/**
+                !.git/**
+                !.env*
+                !*.md
+              targetFolder: '$(Build.ArtifactStagingDirectory)'
+              cleanTargetFolder: true
+            displayName: 'Copy files to staging directory'
+
+          # Create archive for deployment
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+              replaceExistingArchive: true
+            displayName: 'Create deployment package'
+
+          # Publish build artifacts
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+              artifactName: 'drop'
+              publishLocation: 'Container'
+            displayName: 'Publish build artifacts'
+
+  - stage: Deploy
+    displayName: 'Deploy to Azure'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: DeployJob
+        displayName: 'Deploy to Azure App Service'
+        environment: 'production'  # You can create this in Azure DevOps
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                # Deploy to Azure Web App
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: '$(azureSubscription)'
+                    appType: 'webAppLinux'
+                    appName: '$(webAppName)'
+                    package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
+                    runtimeStack: 'NODE|20-lts'
+                    startUpCommand: 'npm run dev'  # Your startup command
+                  displayName: 'Deploy to Azure App Service'
