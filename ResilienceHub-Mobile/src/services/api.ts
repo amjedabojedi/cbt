@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
 
 // Get API base URL from your existing backend
-const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || 'http://localhost:5000';
+const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || 'http://localhost:5003';
 
 export interface ApiResponse<T = any> {
   data?: T;
