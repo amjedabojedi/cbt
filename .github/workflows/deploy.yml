@@ -32,7 +32,7 @@ jobs:
         run: >
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{
           secrets.SSH_HOST }} << 'EOF'
-            cd /var/www/cbt
+            cd /var/www/cbt-client/cbt
             echo "Pulling latest code..."
             git pull origin main
             echo "Installing dependencies..."
@@ -40,7 +40,7 @@ jobs:
             echo "Building project..."
             npm run build
             echo "Restarting backend..."
-            pm2 restart 15
+            pm2 restart cbt-backend || pm2 start server-dist/index.js --name "cbt-backend" --env production
             echo "Reloading Nginx..."
             sudo systemctl reload nginx
             echo "Deployment complete!"
