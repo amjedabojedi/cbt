@@ -145,6 +145,8 @@ var init_schema = __esm({
       userId: integer("user_id").notNull().references(() => users.id),
       emotionRecordId: integer("emotion_record_id").references(() => emotionRecords.id),
       automaticThoughts: text("automatic_thoughts").notNull(),
+      thoughtCategory: jsonb("thought_category").$type(),
+      situation: text("situation"),
       cognitiveDistortions: jsonb("cognitive_distortions").notNull().$type(),
       evidenceFor: text("evidence_for"),
       evidenceAgainst: text("evidence_against"),
@@ -388,8 +390,8 @@ var init_schema = __esm({
       tertiaryEmotion: z.string().optional(),
       intensity: z.number(),
       situation: z.string(),
-      location: z.string().optional(),
-      company: z.string().optional(),
+      location: z.string().nullable().optional(),
+      company: z.string().nullable().optional(),
       // Accept any valid date format (string or Date object)
       timestamp: z.any()
     });
@@ -2429,15 +2431,76 @@ async function generateReframePracticeScenarios(automaticThought, cognitiveDisto
       };
     }
     console.log("No cache hit. Generating new practice scenarios via OpenAI...");
+    const thoughtCategoryToDistortion = {
+      all_or_nothing: "All or Nothing Thinking",
+      mental_filter: "Mental Filter",
+      mind_reading: "Mind Reading",
+      fortune_telling: "Fortune Telling",
+      labelling: "Labelling",
+      over_generalising: "Over-Generalising",
+      compare_despair: "Compare and Despair",
+      emotional_thinking: "Emotional Thinking",
+      guilty_thinking: "Guilty Thinking",
+      catastrophising: "Catastrophising",
+      blaming_others: "Blaming Others",
+      personalising: "Personalising",
+      // Also handle kebab-case versions
+      "all-or-nothing": "All or Nothing Thinking",
+      "mental-filter": "Mental Filter",
+      "mind-reading": "Mind Reading",
+      "fortune-telling": "Fortune Telling",
+      "over-generalising": "Over-Generalising",
+      "compare-despair": "Compare and Despair",
+      "emotional-thinking": "Emotional Thinking",
+      "emotional-reasoning": "Emotional Reasoning",
+      "guilty-thinking": "Guilty Thinking",
+      overgeneralization: "Overgeneralization"
+    };
     const formattedDistortions = cognitiveDistortions4.map((distortion) => {
       if (!distortion) return "Unknown";
-      if (distortion === "emotional-reasoning") return "Emotional Reasoning";
-      if (distortion === "mind-reading") return "Mind Reading";
-      if (distortion === "fortune-telling") return "Fortune Telling";
-      if (distortion === "all-or-nothing") return "All or Nothing Thinking";
-      if (distortion === "unknown") return "Cognitive Distortion";
+      const mapped = thoughtCategoryToDistortion[distortion.toLowerCase()];
+      if (mapped) return mapped;
       return distortion.replace(/[-_]/g, " ").split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
     });
+    const distortionDefinitions = `
+    COGNITIVE DISTORTION DEFINITIONS:
+    
+    1. **All or Nothing Thinking**: Seeing things in black-and-white categories. If performance isn't perfect, it's seen as total failure.
+       Example: "If I make ONE mistake, the ENTIRE presentation is ruined" or "Either I do this perfectly or I'm a complete failure"
+    
+    2. **Mental Filter**: Picking out a single negative detail and dwelling on it exclusively, filtering out all positive aspects.
+       Example: "I got 9/10 positive reviews, but that ONE negative comment proves I'm terrible at my job"
+    
+    3. **Mind Reading**: Assuming you know what others are thinking without evidence.
+       Example: "She didn't smile at me, so she must think I'm incompetent"
+    
+    4. **Fortune Telling**: Predicting negative outcomes without evidence.
+       Example: "I know this interview will be a disaster" or "I'm certain I'll fail this exam"
+    
+    5. **Labelling**: Attaching negative labels to yourself or others based on limited information.
+       Example: "I'm a loser" or "I'm worthless" instead of "I made a mistake"
+    
+    6. **Over-Generalising**: Making broad conclusions based on a single event.
+       Example: "I failed once, so I ALWAYS fail" or "NOTHING ever works out for me"
+    
+    7. **Compare and Despair**: Comparing yourself unfavourably to others.
+       Example: "Everyone else is better than me" or "I'll never be as successful as them"
+    
+    8. **Emotional Thinking**: Believing that feelings reflect reality.
+       Example: "I feel stupid, therefore I AM stupid" or "I feel anxious, so something bad WILL happen"
+    
+    9. **Guilty Thinking**: Using "should", "must", "ought to" statements that create guilt and pressure.
+       Example: "I SHOULD be perfect" or "I MUST never make mistakes"
+    
+    10. **Catastrophising**: Expecting disaster or magnifying the importance of negative events.
+        Example: "This small mistake will ruin my entire career" or "If I fail this test, my life is over"
+    
+    11. **Blaming Others**: Always blaming others for problems without taking any responsibility.
+        Example: "It's all their fault I didn't succeed" or "If they hadn't interfered, everything would be fine"
+    
+    12. **Personalising**: Taking personal responsibility for things outside your control or believing everything relates to you.
+        Example: "My boss is in a bad mood - I must have done something wrong" or "The project failed because of me, even though I was just one team member"
+    `;
     const prompt = `
     I need to create a cognitive restructuring practice session based on the following automatic thought:
     "${automaticThought}"
@@ -2446,35 +2509,46 @@ async function generateReframePracticeScenarios(automaticThought, cognitiveDisto
     The primary emotion associated with this thought is: ${emotionCategory}
     ${customInstructions ? `Additional context and instructions: ${customInstructions}` : ""}
 
+    ${distortionDefinitions}
+
+    CRITICAL INSTRUCTIONS FOR SCENARIO CREATION:
+    1. Each scenario MUST explicitly demonstrate the SPECIFIC distortion pattern listed above
+    2. The scenario text should clearly show the distortion in action (e.g., for All or Nothing, show extreme binary thinking)
+    3. DO NOT just mention "I'm not good enough" - show the SPECIFIC distortion pattern happening
+    4. Make scenarios that are obviously teaching about the SPECIFIC distortion type
+    
+    Example of GOOD scenario for All or Nothing Thinking:
+    "During practice, you stumble over ONE word and immediately think: 'If I make even a single mistake during the real presentation, it will be a COMPLETE disaster and everyone will think I'm totally incompetent.'" (This clearly shows the binary, extreme thinking)
+    
+    Example of BAD scenario for All or Nothing Thinking:
+    "You're preparing for a presentation and think 'I'm not good enough'" (This doesn't show the all-or-nothing pattern)
+
     Please generate a cognitive restructuring practice session with 3 different scenarios.
     Each scenario should:
-    1. Present a realistic situation that directly relates to the original thought and distortions
-    2. Ensure the scenarios feel personally relevant to the user's specific situation
-    3. Provide 4 possible reframing options (1 correct, 3 incorrect)
-    4. For each option, include an explanation of why it's helpful or unhelpful
-    5. Make the scenarios progressively more challenging
-    6. Use examples that clearly demonstrate the specific cognitive distortions mentioned
-    
-    IMPORTANT: The scenarios MUST be closely connected to the themes, situations, and content of the original thought.
-    Do NOT create generic scenarios - make them highly specific to the user's thought content.
+    1. EXPLICITLY demonstrate the specific distortion pattern with clear language that shows the distortion
+    2. Relate to the original thought content but CLEARLY show the distortion mechanism
+    3. Use the exact wording patterns that characterize each distortion (see definitions above)
+    4. Provide 4 possible reframing options (1 correct, 3 incorrect)
+    5. For each option, explain why it's helpful or unhelpful
+    6. Make the scenarios progressively more challenging
     
     The correct option should demonstrate effective cognitive restructuring that:
-    - Directly challenges the specific distorted thinking pattern(s) in the original thought
+    - Directly challenges the specific distorted thinking pattern by name
     - Considers the evidence for and against the thought
-    - Uses balanced, realistic thinking based on the alternative perspective provided
+    - Uses balanced, realistic thinking
     - Promotes self-compassion and growth
     
     The incorrect options should:
-    - Show subtle ways people might maintain the exact same distortions present in the original thought
+    - Show subtle ways people might maintain the same distortion
     - Include examples that feel realistic but reinforce unhelpful patterns
-    - Vary in how obviously incorrect they are, with some being subtle traps
+    - Vary in how obviously incorrect they are
     - Feel plausible but ultimately unhelpful
 
     Return the response as a JSON object with this structure:
     {
       "scenarios": [
         {
-          "scenario": "Detailed scenario description",
+          "scenario": "Detailed scenario description that CLEARLY shows the distortion pattern in action",
           "options": [
             {
               "text": "Option text",
@@ -4634,9 +4708,10 @@ function registerReframeCoachRoutes(app2) {
           emotionCategory = emotionRecord.coreEmotion;
         }
       }
+      const distortions = thoughtRecord.thoughtCategory || thoughtRecord.cognitiveDistortions || [];
       const practiceSession = await generateReframePracticeScenarios(
         thoughtRecord.automaticThoughts,
-        thoughtRecord.cognitiveDistortions,
+        distortions,
         emotionCategory,
         validatedData.customInstructions
       );
@@ -4937,13 +5012,16 @@ function registerReframeCoachRoutes(app2) {
           emotionCategory = emotionRecord.coreEmotion;
         }
       }
+      const distortions = thoughtRecord.thoughtCategory || thoughtRecord.cognitiveDistortions || [];
       console.log("Thought record cognitive distortions:", {
-        distortions: thoughtRecord.cognitiveDistortions,
-        type: typeof thoughtRecord.cognitiveDistortions,
-        isArray: Array.isArray(thoughtRecord.cognitiveDistortions),
-        rawValue: JSON.stringify(thoughtRecord.cognitiveDistortions)
+        thoughtCategory: thoughtRecord.thoughtCategory,
+        cognitiveDistortions: thoughtRecord.cognitiveDistortions,
+        distortions,
+        type: typeof distortions,
+        isArray: Array.isArray(distortions),
+        rawValue: JSON.stringify(distortions)
       });
-      const normalizedDistortions = Array.isArray(thoughtRecord.cognitiveDistortions) ? thoughtRecord.cognitiveDistortions : typeof thoughtRecord.cognitiveDistortions === "string" ? [thoughtRecord.cognitiveDistortions] : ["unknown"];
+      const normalizedDistortions = Array.isArray(distortions) ? distortions : typeof distortions === "string" ? [distortions] : ["unknown"];
       console.log("Normalized distortions:", normalizedDistortions);
       console.log("Thought record content being sent to OpenAI:", {
         automaticThoughts: thoughtRecord.automaticThoughts,
@@ -5262,6 +5340,31 @@ if (!process.env.STRIPE_SECRET_KEY) {
 var stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-04-30.basil" }) : null;
 function getEmotionColor2(emotion) {
   return getEmotionColor(emotion);
+}
+async function updateGoalStatusBasedOnMilestones(goalId) {
+  try {
+    const milestones = await db.select().from(goalMilestones).where(eq6(goalMilestones.goalId, goalId));
+    if (milestones.length === 0) {
+      await db.update(goals).set({ status: "pending" }).where(eq6(goals.id, goalId));
+      console.log(`Goal ${goalId} status set to 'pending' (no milestones)`);
+      return;
+    }
+    const completedMilestones = milestones.filter((m) => m.isCompleted).length;
+    const totalMilestones = milestones.length;
+    const completionPercentage = completedMilestones / totalMilestones * 100;
+    let newStatus;
+    if (completionPercentage === 0) {
+      newStatus = "pending";
+    } else if (completionPercentage === 100) {
+      newStatus = "completed";
+    } else {
+      newStatus = "in_progress";
+    }
+    await db.update(goals).set({ status: newStatus }).where(eq6(goals.id, goalId));
+    console.log(`Goal ${goalId} status auto-updated to '${newStatus}' (${completedMilestones}/${totalMilestones} milestones completed)`);
+  } catch (error) {
+    console.error(`Error updating goal status for goal ${goalId}:`, error);
+  }
 }
 async function createInactivityNotification2(userId) {
   try {
@@ -7451,6 +7554,44 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  app2.patch("/api/users/:userId/thoughts/:thoughtId", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const thoughtId = parseInt(req.params.thoughtId);
+      const updateSchema = z3.object({
+        cognitiveDistortions: z3.array(z3.string()).optional(),
+        evidenceFor: z3.string().min(1).optional(),
+        evidenceAgainst: z3.string().min(1).optional(),
+        alternativePerspective: z3.string().min(1).optional(),
+        reflectionRating: z3.number().min(0).max(10).optional(),
+        insightsGained: z3.string().min(1).optional()
+      });
+      const validatedUpdate = updateSchema.parse(req.body);
+      const existingThought = await storage.getThoughtRecordById(thoughtId);
+      if (!existingThought) {
+        return res.status(404).json({ message: "Thought record not found" });
+      }
+      if (existingThought.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      const updateData = {
+        ...validatedUpdate.cognitiveDistortions !== void 0 && { cognitiveDistortions: validatedUpdate.cognitiveDistortions },
+        ...validatedUpdate.evidenceFor !== void 0 && { evidenceFor: validatedUpdate.evidenceFor },
+        ...validatedUpdate.evidenceAgainst !== void 0 && { evidenceAgainst: validatedUpdate.evidenceAgainst },
+        ...validatedUpdate.alternativePerspective !== void 0 && { alternativePerspective: validatedUpdate.alternativePerspective },
+        ...validatedUpdate.reflectionRating !== void 0 && { reflectionRating: validatedUpdate.reflectionRating },
+        ...validatedUpdate.insightsGained !== void 0 && { insightsGained: validatedUpdate.insightsGained }
+      };
+      const [updatedThought] = await db.update(thoughtRecords).set(updateData).where(eq6(thoughtRecords.id, thoughtId)).returning();
+      res.status(200).json(updatedThought);
+    } catch (error) {
+      if (error instanceof z3.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Update thought record error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
   app2.get("/api/users/:userId/thoughts", authenticate, checkUserAccess, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
@@ -7826,6 +7967,26 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+  app2.get("/api/users/:userId/goals/milestones", authenticate, checkUserAccess, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      let targetUserId = userId;
+      if (req.user.role === "therapist" && req.user.currentViewingClientId) {
+        console.log(`Therapist ${req.user.id} is viewing client ${req.user.currentViewingClientId}'s milestones`);
+        targetUserId = req.user.currentViewingClientId;
+      }
+      const goals2 = await storage.getGoalsByUser(targetUserId);
+      const allMilestones = [];
+      for (const goal of goals2) {
+        const milestones = await storage.getGoalMilestonesByGoal(goal.id);
+        allMilestones.push(...milestones);
+      }
+      res.status(200).json(allMilestones);
+    } catch (error) {
+      console.error("Get all milestones error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
   app2.patch("/api/goals/:id/status", authenticate, async (req, res) => {
     try {
       const { status, therapistComments } = req.body;
@@ -7889,6 +8050,7 @@ async function registerRoutes(app2) {
       const validatedData = insertGoalMilestoneSchema.parse(updatedBody);
       console.log("Validated milestone data:", JSON.stringify(validatedData));
       const milestone = await storage.createGoalMilestone(validatedData);
+      await updateGoalStatusBasedOnMilestones(goalId);
       res.status(201).json(milestone);
     } catch (error) {
       if (error instanceof z3.ZodError) {
@@ -7952,9 +8114,30 @@ async function registerRoutes(app2) {
         return res.status(403).json({ message: "Access denied. You can only update milestones for your own goals." });
       }
       const updatedMilestone = await storage.updateGoalMilestoneCompletion(id, isCompleted);
+      await updateGoalStatusBasedOnMilestones(milestone.goalId);
       res.status(200).json(updatedMilestone);
     } catch (error) {
       console.error("Update milestone completion error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.post("/api/admin/recalculate-goal-statuses", authenticate, async (req, res) => {
+    try {
+      if (req.user.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const allGoals = await db.select().from(goals);
+      let updatedCount = 0;
+      for (const goal of allGoals) {
+        await updateGoalStatusBasedOnMilestones(goal.id);
+        updatedCount++;
+      }
+      res.status(200).json({
+        message: `Successfully recalculated status for ${updatedCount} goals`,
+        updatedCount
+      });
+    } catch (error) {
+      console.error("Recalculate goal statuses error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
