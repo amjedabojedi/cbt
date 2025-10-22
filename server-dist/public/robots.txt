@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+Allow: /security.html
+Allow: /site_verification.html
+Allow: /browserconfig.xml
+Allow: /sitemap.xml
+
+User-agent: MicrosoftDefenderATP
+Allow: /
+Allow: /security.html
+Allow: /site_verification.html
+
+User-agent: bingbot
+Allow: /
+Allow: /security.html
+Allow: /site_verification.html
+
+User-agent: Googlebot
+Allow: /
+Allow: /security.html
+Allow: /site_verification.html
+
+Sitemap: https://workspace.dramjedabojedi.repl.co/sitemap.xml

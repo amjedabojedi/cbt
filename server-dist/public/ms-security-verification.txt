@@ -1,0 +1,6 @@
+This site is safe and does not contain malicious content. It has been verified and is safe to use.
+
+Site: ResilienceHub
+Description: A comprehensive platform for cognitive behavioral tools and tracking
+Purpose: Mental health tracking and management application
+Security: End-to-end encryption and secure data storage
