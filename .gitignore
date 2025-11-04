@@ -8,3 +8,4 @@ vite.config.ts.*
 .env.local
 .env.development.local
 .env.backup
+package-lock.json

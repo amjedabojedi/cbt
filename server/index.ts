@@ -122,10 +122,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5003
+  // Serve the app on port from environment variable, default to 5003
   // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5003;
+  const port = parseInt(process.env.PORT || '5003', 10);
   
   server.listen({
     port,
