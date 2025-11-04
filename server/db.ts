@@ -1,15 +1,7 @@
 import 'dotenv/config';
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
-
-// Configure WebSocket for Neon database
-neonConfig.webSocketConstructor = ws;
-// Adding additional options for better reliability
-neonConfig.useSecureWebSocket = true;
-neonConfig.pipelineConnect = "password";
-// Set connection options for reliability
 
 // Ensure DATABASE_URL is available
 if (!process.env.DATABASE_URL) {
@@ -18,15 +10,14 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Create connection pool with optimized settings
+// Create connection pool with optimized settings for Azure PostgreSQL
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
   max: 10, // Increase pool size for better concurrency
   min: 2, // Keep minimum connections alive
   idleTimeoutMillis: 60000, // Longer idle timeout
   connectionTimeoutMillis: 10000, // Faster connection timeout
-  maxUses: 7500, // More uses before recycling
-  allowExitOnIdle: false, // Keep pool alive
+  ssl: process.env.DATABASE_URL?.includes('sslmode=require') ? { rejectUnauthorized: false } : false,
 });
 
 // Add retry mechanism for database operations
