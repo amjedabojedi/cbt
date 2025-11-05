@@ -69,7 +69,22 @@ Preferred communication style: Simple, everyday language.
 
 ## Changelog
 
-- November 5, 2025 (latest). Progress Display Standardization Across All Wizards
+- November 5, 2025 (latest). Reframe Coach Practice Intro Screen and Form Submission Controls
+  - **Reframe Coach Intro Screen**: Added introductory screen to match wizard pattern across all modules
+    - Purple-pink gradient theme with Zap icon consistent with reframing/energy metaphor
+    - 4-card benefits grid: Identify Cognitive Distortions, Practice Reframing Skills, Earn Points & Track Progress, Build Resilience
+    - "What You'll Do Next" section: Read scenarios → Choose reframes → Get feedback → View results
+    - Educational CBT research fact about cognitive reframing effectiveness
+    - "Start Practice" button with showIntro state management
+  - **Enhanced User Experience**: Reframe Coach now provides educational context before practice scenarios, matching the onboarding pattern of other wizards
+  - **Emotion Tracking Submission Controls**: Fixed form submission behavior to require explicit button clicks
+    - Added submission guard to prevent early form submission before Step 4
+    - Changed all buttons to `type="button"` with explicit `onClick` handlers to prevent accidental submission from Select dropdowns
+    - Added "Skip & Record" button at Step 4 to clarify optional nature of location/company/time fields
+    - Ensured all users see Step 4 (context fields) before final submission
+  - **Critical Bug Fix**: Resolved Git merge conflict in server/index.ts preventing workflow startup
+
+- November 5, 2025. Progress Display Standardization Across All Wizards
   - **Unified Progress Format**: All 4 wizards now use identical progress display pattern
   - **Thought Records Fix**: Removed duplicate percentage display ("0% Complete") to match clean format of Emotion, Journal, and Goals
   - **Consistent Display**: All wizards now show "Introduction" at Step 0, then "Step X of Y" for remaining steps in CardDescription
