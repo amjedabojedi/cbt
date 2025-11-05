@@ -791,6 +791,23 @@ export default function ThoughtRecordWizard({
           {/* Progress Bar */}
           <div className="space-y-2" data-testid="progress-wizard">
             <Progress value={progress} className="h-2" />
+            <div className="flex justify-between text-xs text-gray-500">
+              <span className={currentStep >= 1 ? "text-indigo-600 font-medium" : ""}>
+                1. Situation
+              </span>
+              <span className={currentStep >= 2 ? "text-indigo-600 font-medium" : ""}>
+                2. Thought
+              </span>
+              <span className={currentStep >= 3 ? "text-indigo-600 font-medium" : ""}>
+                3. ANTs
+              </span>
+              <span className={currentStep >= 4 ? "text-indigo-600 font-medium" : ""}>
+                4. Link
+              </span>
+              <span className={currentStep >= 5 ? "text-indigo-600 font-medium" : ""}>
+                5. Review
+              </span>
+            </div>
           </div>
         </CardHeader>
 
