@@ -334,14 +334,18 @@ export default function ThoughtRecordsList({
                 return (
                 <Card 
                   key={record.id} 
-                  className={`overflow-hidden border-slate-200 hover:shadow-md transition-shadow duration-200 h-full flex flex-col ${
-                    isPracticeContext && canPractice ? 'cursor-pointer hover:border-purple-300 dark:hover:border-purple-700' : ''
+                  className={`overflow-hidden border-slate-200 transition-all duration-200 h-full flex flex-col ${
+                    isPracticeContext && canPractice 
+                      ? 'cursor-pointer hover:shadow-lg hover:border-purple-400 dark:hover:border-purple-600 hover:scale-[1.02] active:scale-[0.98]' 
+                      : 'hover:shadow-md'
                   }`}
-                  onClick={() => {
+                  onClick={(e) => {
                     if (isPracticeContext && canPractice) {
+                      e.stopPropagation();
                       window.location.href = `/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`;
                     }
                   }}
+                  title={isPracticeContext && canPractice ? 'Click to start practice' : ''}
                   data-testid={`card-thought-${record.id}`}
                 >
                   <div className="bg-muted/20 px-4 py-3 flex items-center justify-between border-b">
