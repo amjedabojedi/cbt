@@ -69,7 +69,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Changelog
 
-- November 5, 2025 (latest). Wizard Intro Step Standardization and Card Grid Spacing Fix
+- November 5, 2025 (latest). Progress Display Standardization Across All Wizards
+  - **Unified Progress Format**: All 4 wizards now use identical progress display pattern
+  - **Thought Records Fix**: Removed duplicate percentage display ("0% Complete") to match clean format of Emotion, Journal, and Goals
+  - **Consistent Display**: All wizards now show "Introduction" at Step 0, then "Step X of Y" for remaining steps in CardDescription
+  - **Progress Bar Only**: Removed redundant percentage text labels - visual progress bar provides sufficient feedback
+  - **User Experience**: Cleaner, more consistent interface across all wizard flows
+
+- November 5, 2025. Wizard Intro Step Standardization and Card Grid Spacing Fix
   - **Universal Intro Steps**: All 4 core module wizards (Emotion Tracking, Thought Records, Journal, Smart Goals) now start with Step 0 intro screen
   - **Wizard Structure Changes**:
     - currentStep initialization: Changed from `useState(1)` to `useState(0)` across all wizards

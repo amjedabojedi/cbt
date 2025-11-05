@@ -780,7 +780,7 @@ export default function ThoughtRecordWizard({
                 Record a Thought
               </CardTitle>
               <CardDescription>
-                Capture and understand your thoughts
+                {currentStep === 0 ? "Introduction" : `Step ${currentStep} of ${totalSteps - 1}`}
               </CardDescription>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose} data-testid="button-close-wizard">
@@ -790,12 +790,6 @@ export default function ThoughtRecordWizard({
 
           {/* Progress Bar */}
           <div className="space-y-2" data-testid="progress-wizard">
-            <div className="flex justify-between items-center text-sm">
-              <span className="font-medium">
-                {currentStep === 0 ? "Introduction" : `Step ${currentStep} of ${totalSteps - 1}`}
-              </span>
-              <span className="text-gray-600">{Math.round(progress)}% Complete</span>
-            </div>
             <Progress value={progress} className="h-2" />
           </div>
         </CardHeader>
