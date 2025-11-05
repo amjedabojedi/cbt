@@ -149,10 +149,10 @@ export default function ReframeCoachPage() {
                         <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
                           <ShieldAlert className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                         </div>
-                        <h4 className="font-semibold text-sm">Identify Distortions</h4>
+                        <h4 className="font-semibold text-sm">Practice with Scenarios</h4>
                       </div>
                       <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Recognize unhelpful thinking patterns
+                        Work through situations based on your recorded thoughts
                       </p>
                     </div>
 
@@ -161,10 +161,10 @@ export default function ReframeCoachPage() {
                         <div className="p-2 bg-pink-100 dark:bg-pink-900 rounded-lg">
                           <Zap className="h-4 w-4 text-pink-600 dark:text-pink-400" />
                         </div>
-                        <h4 className="font-semibold text-sm">Practice Reframing</h4>
+                        <h4 className="font-semibold text-sm">Build Reframing Skills</h4>
                       </div>
                       <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Create balanced, realistic perspectives
+                        Learn to create balanced, helpful perspectives
                       </p>
                     </div>
 
@@ -173,10 +173,10 @@ export default function ReframeCoachPage() {
                         <div className="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
                           <Trophy className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                         </div>
-                        <h4 className="font-semibold text-sm">Track Progress</h4>
+                        <h4 className="font-semibold text-sm">See Your Progress</h4>
                       </div>
                       <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Build streaks and unlock achievements
+                        Track scores and improvement over time
                       </p>
                     </div>
                   </div>
