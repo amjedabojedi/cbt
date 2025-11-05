@@ -58,3 +58,21 @@ The application employs consistent design patterns:
 - **Tailwind CSS**: Utility-first CSS framework for styling.
 - **Lucide Icons**: Consistent icon library.
 - **Recharts**: Utilized for data visualization components.
+
+## Recent Changes
+
+### November 5, 2025 - Reframe Coach: Visual Practice Indicators & Direct Card Selection
+- **Visual Practice Markers**: Added prominent lightning bolt badges to thought record cards showing practice availability
+  - ⚡ **Purple "Practice Ready" badge** - Shows when thought can be practiced (24-hour cooldown passed)
+  - ✓ **Gray "Practiced Today" badge** - Shows when thought was already practiced today
+  - Badges appear at the top of each card, giving users immediate visual feedback
+- **Clickable Cards for Direct Navigation**: Cards are now clickable for instant practice access
+  - Click any card with "Practice Ready" badge → Navigate directly to practice scenarios
+  - Purple border hover effect on available practice cards
+  - Cursor changes to pointer on hover for clear affordance
+  - No extra steps - one click from thought selection to practice
+- **User Control & Flow**: Enhanced UX with immediate visibility and choice
+  - Intro screen → Continue → See ALL thought cards with visual markers → Click to practice
+  - Users see at a glance which thoughts are available for practice
+  - Direct control - select any available thought, no forced step-by-step wizard
+  - Natural flow that feels comfortable and gives user agency
