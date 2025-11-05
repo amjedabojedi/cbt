@@ -326,8 +326,24 @@ export default function ThoughtRecordsList({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {displayRecords?.map((record) => (
-                <Card key={record.id} className="overflow-hidden border-slate-200 hover:shadow-md transition-shadow duration-200 h-full flex flex-col">
+              {displayRecords?.map((record) => {
+                const practiceInfo = getLastPracticeInfo(record.id);
+                const canPractice = !practiceInfo || practiceInfo.canPractice;
+                const isPracticeContext = showPracticeButton && !isViewingClientData;
+                
+                return (
+                <Card 
+                  key={record.id} 
+                  className={`overflow-hidden border-slate-200 hover:shadow-md transition-shadow duration-200 h-full flex flex-col ${
+                    isPracticeContext && canPractice ? 'cursor-pointer hover:border-purple-300 dark:hover:border-purple-700' : ''
+                  }`}
+                  onClick={() => {
+                    if (isPracticeContext && canPractice) {
+                      window.location.href = `/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`;
+                    }
+                  }}
+                  data-testid={`card-thought-${record.id}`}
+                >
                   <div className="bg-muted/20 px-4 py-3 flex items-center justify-between border-b">
                     <div className="flex items-center gap-2">
                       <div className="p-1.5 rounded-full bg-slate-100">
@@ -521,7 +537,8 @@ export default function ThoughtRecordsList({
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
