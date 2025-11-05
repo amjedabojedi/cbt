@@ -348,62 +348,15 @@ export default function ThoughtRecordsList({
                   title={isPracticeContext && canPractice ? 'Click to start practice' : ''}
                   data-testid={`card-thought-${record.id}`}
                 >
-                  <div className="bg-muted/20 px-4 py-3 flex items-center justify-between border-b">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-full bg-slate-100">
-                        <Calendar className="h-3.5 w-3.5 text-slate-500" />
-                      </div>
-                      <span className="text-sm font-medium">{formatDate(record.createdAt)}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      {/* Practice availability badge */}
-                      {showPracticeButton && (() => {
-                        const practiceInfo = getLastPracticeInfo(record.id);
-                        const canPractice = !practiceInfo || practiceInfo.canPractice;
-                        
-                        return canPractice ? (
-                          <Badge 
-                            variant="outline" 
-                            className="gap-1 bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700"
-                            data-testid={`badge-practice-available-${record.id}`}
-                          >
-                            <Zap className="h-3 w-3 fill-current" />
-                            <span className="text-xs font-medium">Practice Ready</span>
-                          </Badge>
-                        ) : (
-                          <Badge 
-                            variant="outline" 
-                            className="gap-1 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-700"
-                            data-testid={`badge-practiced-today-${record.id}`}
-                          >
-                            <CheckCircle className="h-3 w-3" />
-                            <span className="text-xs">Practiced Today</span>
-                          </Badge>
-                        );
-                      })()}
-                      
-                      {/* Challenge status badge */}
-                      {isThoughtChallenged(record) ? (
-                        <Badge variant="outline" className="gap-1 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700">
-                          <CheckCircle className="h-3 w-3" />
-                          <span className="text-xs">Challenged</span>
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="gap-1 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700">
-                          <XCircle className="h-3 w-3" />
-                          <span className="text-xs">Not Challenged</span>
-                        </Badge>
-                      )}
-                      
-                      {/* Journal connections badge */}
-                      {record.relatedJournalEntryIds && record.relatedJournalEntryIds.length > 0 && (
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 text-primary rounded-full" 
-                          title={`${record.relatedJournalEntryIds.length} linked journal ${record.relatedJournalEntryIds.length === 1 ? 'entry' : 'entries'}`}>
-                          <BookText className="h-3.5 w-3.5" />
-                          <span className="text-xs font-medium">{record.relatedJournalEntryIds.length}</span>
+                  <div className="bg-muted/20 px-4 py-3 border-b space-y-2">
+                    {/* First line: Date and Actions */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-full bg-slate-100">
+                          <Calendar className="h-3.5 w-3.5 text-slate-500" />
                         </div>
-                      )}
+                        <span className="text-sm font-medium">{formatDate(record.createdAt)}</span>
+                      </div>
                       
                       {/* Actions Dropdown */}
                       <DropdownMenu>
@@ -487,6 +440,57 @@ export default function ThoughtRecordsList({
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
+                    </div>
+                    
+                    {/* Second line: Badges */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Practice availability badge */}
+                      {showPracticeButton && (() => {
+                        const practiceInfo = getLastPracticeInfo(record.id);
+                        const canPractice = !practiceInfo || practiceInfo.canPractice;
+                        
+                        return canPractice ? (
+                          <Badge 
+                            variant="outline" 
+                            className="gap-1 bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700"
+                            data-testid={`badge-practice-available-${record.id}`}
+                          >
+                            <Zap className="h-3 w-3 fill-current" />
+                            <span className="text-xs font-medium">Practice Ready</span>
+                          </Badge>
+                        ) : (
+                          <Badge 
+                            variant="outline" 
+                            className="gap-1 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-700"
+                            data-testid={`badge-practiced-today-${record.id}`}
+                          >
+                            <CheckCircle className="h-3 w-3" />
+                            <span className="text-xs">Practiced Today</span>
+                          </Badge>
+                        );
+                      })()}
+                      
+                      {/* Challenge status badge */}
+                      {isThoughtChallenged(record) ? (
+                        <Badge variant="outline" className="gap-1 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700">
+                          <CheckCircle className="h-3 w-3" />
+                          <span className="text-xs">Challenged</span>
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="gap-1 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700">
+                          <XCircle className="h-3 w-3" />
+                          <span className="text-xs">Not Challenged</span>
+                        </Badge>
+                      )}
+                      
+                      {/* Journal connections badge */}
+                      {record.relatedJournalEntryIds && record.relatedJournalEntryIds.length > 0 && (
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 text-primary rounded-full" 
+                          title={`${record.relatedJournalEntryIds.length} linked journal ${record.relatedJournalEntryIds.length === 1 ? 'entry' : 'entries'}`}>
+                          <BookText className="h-3.5 w-3.5" />
+                          <span className="text-xs font-medium">{record.relatedJournalEntryIds.length}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
