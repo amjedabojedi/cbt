@@ -43,6 +43,7 @@ import {
   ShieldAlert,
   BadgeCheck,
   ChevronRight,
+  CheckCircle,
   Trophy
 } from "lucide-react";
 import { format } from "date-fns";
