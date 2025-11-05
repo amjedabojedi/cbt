@@ -180,6 +180,11 @@ export default function EmotionTrackingFormWizard({
   
   // Handle form submission
   const onSubmit = async (data: FormValues) => {
+    // Only allow submission at the final step (Step 4)
+    if (currentStep < totalSteps - 1) {
+      return; // Prevent submission if not at final step
+    }
+    
     try {
       if (!user) {
         toast({
