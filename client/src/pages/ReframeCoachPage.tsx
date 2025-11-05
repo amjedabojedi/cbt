@@ -82,7 +82,7 @@ export default function ReframeCoachPage() {
         {/* Module Header */}
         <ModuleHeader
           title="Reframe Coach"
-          description="Practice cognitive reframing with interactive exercises based on your thought records"
+          description="Practice balanced thinking with interactive exercises based on the thoughts and distortions you've already recorded"
         />
         
         {/* Overall Progress Summary */}
@@ -139,7 +139,7 @@ export default function ReframeCoachPage() {
               <CollapsibleContent>
                 <CardContent>
                   <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    Strengthen your ability to challenge negative thoughts and develop healthier thinking patterns through interactive scenarios.
+                    Now that you've recorded your thoughts and identified cognitive distortions, this module helps you practice creating balanced, realistic perspectives through interactive scenarios based on your actual thought records.
                   </p>
 
                   {/* Benefits Grid */}
