@@ -61,22 +61,30 @@ The application employs consistent design patterns:
 
 ## Recent Changes
 
-### November 5, 2025 - Reframe Coach: Visual Practice Indicators & Guided Selection
-- **Step-by-Step Instructions Added**: Following our proven wizard pattern with clear guidance on each screen
-  - "How to Select a Thought" instruction box with 3-step process
-  - Visual examples showing badge meanings with arrows
-  - Matches the instructional approach used in Emotion Tracking, Thought Records, Journal, and Goals modules
-  - Header changed to "Step 1: Select a Thought to Practice" for clarity
-- **Visual Practice Markers**: Added prominent lightning bolt badges to thought record cards showing practice availability
-  - ⚡ **Purple "Practice Ready" badge** - Shows when thought can be practiced (24-hour cooldown passed)
-  - ✓ **Gray "Practiced Today" badge** - Shows when thought was already practiced today
-  - Badges appear at the top of each card, giving users immediate visual feedback
-- **Enhanced Card Interactivity**: Cards provide clear visual feedback for clickability
-  - Hover effects: Card scales up, purple border appears, shows "Click to start practice" tooltip
-  - Click animation: Card scales down for tactile feedback
-  - Only "Practice Ready" cards are clickable (grayed-out cards require 24-hour wait)
-- **User Flow**: Educational intro → Guided selection with instructions → Direct practice
-  - Intro screen explains benefits and what to expect
-  - Selection screen provides step-by-step instructions
-  - Visual badges show availability at a glance
-  - Click any available card to begin practice scenarios
+### November 5, 2025 - Reframe Coach: Major UX Simplification & Unified Timeline
+- **Removed 3-Tab Structure**: Simplified from fragmented tabs (Start Practice, History, Insights) to a single unified timeline view
+  - All thought records now displayed in one scrollable list
+  - No more context switching between tabs
+  - Practice history shown inline with each thought record
+- **Collapsible Introduction Card**: First-time user education made dismissible
+  - "What is Reframe Coach?" intro appears at top of page
+  - Users can collapse/expand or dismiss permanently
+  - Shows key benefits: Identify Distortions, Practice Reframing, Track Progress
+- **Simplified Thought Record Cards**: Reduced visual clutter and cognitive load
+  - Removed multiple status badges (Practice Ready, Practiced Today) from header
+  - Removed clickable card behavior - cards are no longer interactive surfaces themselves
+  - Header now shows only: Date + Challenged status + Journal entry count
+  - Clean two-line header layout for better information hierarchy
+- **Primary Action Button**: Single clear call-to-action at bottom of each card
+  - Prominent purple "Practice This Thought" button when ready (24-hour cooldown passed)
+  - Disabled "Practiced Today" button with hours-until-next indicator when on cooldown
+  - Replaced confusing multiple interaction points with one obvious action
+- **Inline Practice Results**: Last practice session displayed directly on card
+  - Shows time since last practice and score achieved
+  - No need to navigate to separate History tab
+  - Practice context always visible alongside the thought record
+- **Improved Navigation**: Replaced all window.location.href with proper wouter routing
+  - Smoother page transitions
+  - Maintains browser history correctly
+  - Better performance and user experience
+- **Overall Impact**: Reduced from 3 separate views + multiple badges + clickable cards to 1 unified timeline + 1 button per card = significantly simplified user experience

@@ -68,6 +68,7 @@ interface ThoughtRecordsListProps {
   userId?: number;
   thoughtRecords?: ThoughtRecord[];
   showPracticeButton?: boolean;
+  practiceResults?: any[];
 }
 
 export default function ThoughtRecordsList({ 
@@ -75,7 +76,8 @@ export default function ThoughtRecordsList({
   onEditRecord, 
   userId,
   thoughtRecords: providedRecords,
-  showPracticeButton = true
+  showPracticeButton = true,
+  practiceResults: providedPracticeResults
 }: ThoughtRecordsListProps) {
   const { user } = useAuth();
   const { activeUserId, isViewingClientData } = useActiveUser();
@@ -102,11 +104,14 @@ export default function ThoughtRecordsList({
     enabled: !!targetUserId,
   });
   
-  // Fetch reframe practice results to check last practice time
-  const { data: practiceResults } = useQuery<any[]>({
+  // Fetch reframe practice results to check last practice time - only if not provided
+  const { data: fetchedPracticeResults } = useQuery<any[]>({
     queryKey: targetUserId ? [`/api/users/${targetUserId}/reframe-coach/results`] : [],
-    enabled: !!targetUserId && showPracticeButton,
+    enabled: !!targetUserId && showPracticeButton && !providedPracticeResults,
   });
+  
+  // Use provided practice results if available, otherwise use fetched
+  const practiceResults = providedPracticeResults || fetchedPracticeResults;
   
   // Helper function to check if a thought was practiced in the last 24 hours
   const getLastPracticeInfo = (thoughtRecordId: number) => {
@@ -329,23 +334,13 @@ export default function ThoughtRecordsList({
               {displayRecords?.map((record) => {
                 const practiceInfo = getLastPracticeInfo(record.id);
                 const canPractice = !practiceInfo || practiceInfo.canPractice;
-                const isPracticeContext = showPracticeButton && !isViewingClientData;
+                const lastPractice = practiceResults?.filter(p => p.thoughtRecordId === record.id)
+                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
                 
                 return (
                 <Card 
                   key={record.id} 
-                  className={`overflow-hidden border-slate-200 transition-all duration-200 h-full flex flex-col ${
-                    isPracticeContext && canPractice 
-                      ? 'cursor-pointer hover:shadow-lg hover:border-purple-400 dark:hover:border-purple-600 hover:scale-[1.02] active:scale-[0.98]' 
-                      : 'hover:shadow-md'
-                  }`}
-                  onClick={(e) => {
-                    if (isPracticeContext && canPractice) {
-                      e.stopPropagation();
-                      window.location.href = `/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`;
-                    }
-                  }}
-                  title={isPracticeContext && canPractice ? 'Click to start practice' : ''}
+                  className="overflow-hidden border-slate-200 transition-all duration-200 hover:shadow-md h-full flex flex-col"
                   data-testid={`card-thought-${record.id}`}
                 >
                   <div className="bg-muted/20 px-4 py-3 border-b space-y-2">
@@ -390,7 +385,7 @@ export default function ThoughtRecordsList({
                                   <DropdownMenuItem 
                                     onClick={() => {
                                       if (canPractice) {
-                                        window.location.href = `/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`;
+                                        navigate(`/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`);
                                       }
                                     }}
                                     disabled={!canPractice}
@@ -422,7 +417,7 @@ export default function ThoughtRecordsList({
                           {isViewingClientData && (
                             <>
                               <DropdownMenuItem onClick={() => {
-                                window.location.href = `/users/${targetUserId}/reframe-coach?tab=history`;
+                                navigate(`/users/${targetUserId}/reframe-coach`);
                               }}>
                                 <BookText className="h-4 w-4 mr-2" />
                                 View Practice History
@@ -442,54 +437,22 @@ export default function ThoughtRecordsList({
                       </DropdownMenu>
                     </div>
                     
-                    {/* Second line: Badges */}
+                    {/* Second line: Status Info */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      {/* Practice availability badge */}
-                      {showPracticeButton && (() => {
-                        const practiceInfo = getLastPracticeInfo(record.id);
-                        const canPractice = !practiceInfo || practiceInfo.canPractice;
-                        
-                        return canPractice ? (
-                          <Badge 
-                            variant="outline" 
-                            className="gap-1 bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700"
-                            data-testid={`badge-practice-available-${record.id}`}
-                          >
-                            <Zap className="h-3 w-3 fill-current" />
-                            <span className="text-xs font-medium">Practice Ready</span>
-                          </Badge>
-                        ) : (
-                          <Badge 
-                            variant="outline" 
-                            className="gap-1 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-700"
-                            data-testid={`badge-practiced-today-${record.id}`}
-                          >
-                            <CheckCircle className="h-3 w-3" />
-                            <span className="text-xs">Practiced Today</span>
-                          </Badge>
-                        );
-                      })()}
-                      
-                      {/* Challenge status badge */}
-                      {isThoughtChallenged(record) ? (
+                      {/* Challenged status */}
+                      {isThoughtChallenged(record) && (
                         <Badge variant="outline" className="gap-1 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700">
                           <CheckCircle className="h-3 w-3" />
                           <span className="text-xs">Challenged</span>
                         </Badge>
-                      ) : (
-                        <Badge variant="outline" className="gap-1 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700">
-                          <XCircle className="h-3 w-3" />
-                          <span className="text-xs">Not Challenged</span>
-                        </Badge>
                       )}
                       
-                      {/* Journal connections badge */}
+                      {/* Journal connections */}
                       {record.relatedJournalEntryIds && record.relatedJournalEntryIds.length > 0 && (
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 text-primary rounded-full" 
-                          title={`${record.relatedJournalEntryIds.length} linked journal ${record.relatedJournalEntryIds.length === 1 ? 'entry' : 'entries'}`}>
-                          <BookText className="h-3.5 w-3.5" />
-                          <span className="text-xs font-medium">{record.relatedJournalEntryIds.length}</span>
-                        </div>
+                        <Badge variant="outline" className="gap-1">
+                          <BookText className="h-3 w-3" />
+                          <span className="text-xs">{record.relatedJournalEntryIds.length} Journal {record.relatedJournalEntryIds.length === 1 ? 'Entry' : 'Entries'}</span>
+                        </Badge>
                       )}
                     </div>
                   </div>
@@ -543,6 +506,60 @@ export default function ThoughtRecordsList({
                         {record.alternativePerspective}
                       </p>
                     </div>
+                    
+                    {/* Practice Button & Last Practice Info */}
+                    {showPracticeButton && !isViewingClientData && (
+                      <div className="mt-4 pt-4 border-t space-y-3">
+                        {lastPractice && (
+                          <div className="bg-purple-50/50 dark:bg-purple-950/20 rounded-lg p-3 text-sm">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Last practiced</p>
+                                <p className="font-medium text-purple-900 dark:text-purple-100">
+                                  {practiceInfo 
+                                    ? `${Math.floor(practiceInfo.hoursSinceLastPractice)} hours ago` 
+                                    : format(new Date(lastPractice.createdAt), 'MMM d, h:mm a')}
+                                </p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-xs text-muted-foreground mb-1">Score</p>
+                                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                  {lastPractice.score || 0}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {canPractice ? (
+                          <Button 
+                            onClick={() => navigate(`/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`)}
+                            className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                            size="lg"
+                            data-testid={`button-practice-${record.id}`}
+                          >
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Practice This Thought
+                          </Button>
+                        ) : (
+                          <Button 
+                            disabled
+                            variant="secondary"
+                            className="w-full"
+                            size="lg"
+                            data-testid={`button-practiced-today-${record.id}`}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Practiced Today
+                            {practiceInfo && practiceInfo.hoursUntilNext > 0 && (
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                ({practiceInfo.hoursUntilNext}h until next)
+                              </span>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
                 );
@@ -724,7 +741,7 @@ export default function ThoughtRecordsList({
                           variant="outline" 
                           size="sm"
                           className="h-7 px-2 py-0 text-xs"
-                          onClick={() => window.location.href = `/journals/${journalId}`}
+                          onClick={() => navigate(`/journals/${journalId}`)}
                         >
                           Entry #{journalId}
                         </Button>
@@ -754,7 +771,7 @@ export default function ThoughtRecordsList({
               {showPracticeButton && !isViewingClientData && (
                 <Button 
                   onClick={() => {
-                    window.location.href = `/reframe-coach/practice/quick/${selectedRecord.id}?userId=${targetUserId}`;
+                    navigate(`/reframe-coach/practice/quick/${selectedRecord.id}?userId=${targetUserId}`);
                   }}
                   className="bg-amber-500 hover:bg-amber-600 text-white"
                 >
@@ -765,10 +782,7 @@ export default function ThoughtRecordsList({
               {isViewingClientData && (
                 <Button
                   onClick={() => {
-                    // Direct approach with full-page navigation to unified page
-                    const url = `/users/${targetUserId}/reframe-coach?tab=history`;
-                    console.log("Navigating to practice history:", url);
-                    window.location.href = url;
+                    navigate(`/users/${targetUserId}/reframe-coach`);
                   }}
                   className="bg-blue-500 hover:bg-blue-600 text-white"
                 >
