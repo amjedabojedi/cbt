@@ -61,18 +61,22 @@ The application employs consistent design patterns:
 
 ## Recent Changes
 
-### November 5, 2025 - Reframe Coach: Visual Practice Indicators & Direct Card Selection
+### November 5, 2025 - Reframe Coach: Visual Practice Indicators & Guided Selection
+- **Step-by-Step Instructions Added**: Following our proven wizard pattern with clear guidance on each screen
+  - "How to Select a Thought" instruction box with 3-step process
+  - Visual examples showing badge meanings with arrows
+  - Matches the instructional approach used in Emotion Tracking, Thought Records, Journal, and Goals modules
+  - Header changed to "Step 1: Select a Thought to Practice" for clarity
 - **Visual Practice Markers**: Added prominent lightning bolt badges to thought record cards showing practice availability
   - ⚡ **Purple "Practice Ready" badge** - Shows when thought can be practiced (24-hour cooldown passed)
   - ✓ **Gray "Practiced Today" badge** - Shows when thought was already practiced today
   - Badges appear at the top of each card, giving users immediate visual feedback
-- **Clickable Cards for Direct Navigation**: Cards are now clickable for instant practice access
-  - Click any card with "Practice Ready" badge → Navigate directly to practice scenarios
-  - Purple border hover effect on available practice cards
-  - Cursor changes to pointer on hover for clear affordance
-  - No extra steps - one click from thought selection to practice
-- **User Control & Flow**: Enhanced UX with immediate visibility and choice
-  - Intro screen → Continue → See ALL thought cards with visual markers → Click to practice
-  - Users see at a glance which thoughts are available for practice
-  - Direct control - select any available thought, no forced step-by-step wizard
-  - Natural flow that feels comfortable and gives user agency
+- **Enhanced Card Interactivity**: Cards provide clear visual feedback for clickability
+  - Hover effects: Card scales up, purple border appears, shows "Click to start practice" tooltip
+  - Click animation: Card scales down for tactile feedback
+  - Only "Practice Ready" cards are clickable (grayed-out cards require 24-hour wait)
+- **User Flow**: Educational intro → Guided selection with instructions → Direct practice
+  - Intro screen explains benefits and what to expect
+  - Selection screen provides step-by-step instructions
+  - Visual badges show availability at a glance
+  - Click any available card to begin practice scenarios

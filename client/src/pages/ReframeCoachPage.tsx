@@ -329,13 +329,57 @@ export default function ReframeCoachPage() {
               ) : (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Practice Reframing Your Thoughts</CardTitle>
+                    <CardTitle>Step 1: Select a Thought to Practice</CardTitle>
                     <CardDescription>
-                      Select a thought record below to begin reframing practice exercises
+                      Choose a thought record from the list below to begin your reframing practice
                     </CardDescription>
                   </CardHeader>
                   
                   <CardContent>
+                    {/* How to Select - Instructions */}
+                    <div className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-lg p-5 border border-purple-200 dark:border-purple-800">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-3">
+                        <HelpCircle className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                        How to Select a Thought
+                      </h3>
+                      <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-6 h-6 bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center font-semibold text-xs mt-0.5">1</div>
+                          <div>
+                            <strong className="text-gray-900 dark:text-gray-100">Look for the badge</strong> - Each card shows whether it's ready for practice:
+                            <div className="mt-2 space-y-1.5 ml-1">
+                              <div className="flex items-center gap-2">
+                                <Badge className="gap-1 bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700">
+                                  <Zap className="h-3 w-3 fill-current" />
+                                  <span className="text-xs font-medium">Practice Ready</span>
+                                </Badge>
+                                <span className="text-xs">← Click any card with this badge</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge className="gap-1 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-700">
+                                  <CheckCircle className="h-3 w-3" />
+                                  <span className="text-xs">Practiced Today</span>
+                                </Badge>
+                                <span className="text-xs">← Wait 24 hours to practice again</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-6 h-6 bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center font-semibold text-xs mt-0.5">2</div>
+                          <div>
+                            <strong className="text-gray-900 dark:text-gray-100">Click the card</strong> - When you hover over a "Practice Ready" card, it will grow slightly and show a purple border. Click anywhere on the card to start practice.
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-6 h-6 bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center font-semibold text-xs mt-0.5">3</div>
+                          <div>
+                            <strong className="text-gray-900 dark:text-gray-100">Practice scenarios begin</strong> - You'll see 3 scenarios based on your thought, each with multiple reframing options to choose from.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Educational Accordion */}
                     <Accordion type="single" collapsible className="mb-6 bg-blue-50 dark:bg-blue-950/30 rounded-lg px-4">
                       <AccordionItem value="why-practice" className="border-0">
