@@ -306,7 +306,16 @@ export default function EmotionTrackingFormWizard({
         
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form 
+              onSubmit={form.handleSubmit(onSubmit)} 
+              onKeyDown={(e) => {
+                // Prevent Enter key from submitting form unless at final step
+                if (e.key === 'Enter' && currentStep < totalSteps - 1) {
+                  e.preventDefault();
+                }
+              }}
+              className="space-y-6"
+            >
               {/* Step 0: Introduction */}
               {currentStep === 0 && (
                 <div className="space-y-6" data-testid="step-intro">
