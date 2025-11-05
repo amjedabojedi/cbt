@@ -720,8 +720,9 @@ export default function EmotionTrackingFormWizard({
                 <div className="flex gap-2">
                   {currentStep === totalSteps - 1 && (
                     <Button
-                      type="submit"
+                      type="button"
                       variant="outline"
+                      onClick={() => form.handleSubmit(onSubmit)()}
                       disabled={!form.getValues("coreEmotion") || !form.getValues("situation") || form.getValues("situation").length < 10}
                       data-testid="button-skip-context"
                     >
@@ -744,7 +745,8 @@ export default function EmotionTrackingFormWizard({
                     </Button>
                   ) : (
                     <Button
-                      type="submit"
+                      type="button"
+                      onClick={() => form.handleSubmit(onSubmit)()}
                       disabled={!form.getValues("coreEmotion") || !form.getValues("situation") || form.getValues("situation").length < 10}
                       data-testid="button-submit-emotion"
                     >
