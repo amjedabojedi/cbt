@@ -34,7 +34,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, Trash2, Brain, BrainCircuit, AlertTriangle, Scale, Lightbulb, Sparkles, Calendar, Book, BookText, MessageSquare, Heart, Dumbbell, Plus, CheckCircle, XCircle, MoreVertical } from "lucide-react";
+import { Edit, Eye, Trash2, Brain, BrainCircuit, AlertTriangle, Scale, Lightbulb, Sparkles, Calendar, Book, BookText, MessageSquare, Heart, Dumbbell, Plus, CheckCircle, XCircle, MoreVertical, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -337,14 +337,40 @@ export default function ThoughtRecordsList({
                     </div>
                     
                     <div className="flex items-center gap-2">
+                      {/* Practice availability badge */}
+                      {showPracticeButton && (() => {
+                        const practiceInfo = getLastPracticeInfo(record.id);
+                        const canPractice = !practiceInfo || practiceInfo.canPractice;
+                        
+                        return canPractice ? (
+                          <Badge 
+                            variant="outline" 
+                            className="gap-1 bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700"
+                            data-testid={`badge-practice-available-${record.id}`}
+                          >
+                            <Zap className="h-3 w-3 fill-current" />
+                            <span className="text-xs font-medium">Practice Ready</span>
+                          </Badge>
+                        ) : (
+                          <Badge 
+                            variant="outline" 
+                            className="gap-1 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-700"
+                            data-testid={`badge-practiced-today-${record.id}`}
+                          >
+                            <CheckCircle className="h-3 w-3" />
+                            <span className="text-xs">Practiced Today</span>
+                          </Badge>
+                        );
+                      })()}
+                      
                       {/* Challenge status badge */}
                       {isThoughtChallenged(record) ? (
-                        <Badge variant="outline" className="gap-1 bg-green-50 text-green-700 border-green-200">
+                        <Badge variant="outline" className="gap-1 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700">
                           <CheckCircle className="h-3 w-3" />
                           <span className="text-xs">Challenged</span>
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="gap-1 bg-amber-50 text-amber-700 border-amber-200">
+                        <Badge variant="outline" className="gap-1 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700">
                           <XCircle className="h-3 w-3" />
                           <span className="text-xs">Not Challenged</span>
                         </Badge>
