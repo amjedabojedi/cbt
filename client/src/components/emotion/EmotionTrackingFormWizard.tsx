@@ -712,29 +712,42 @@ export default function EmotionTrackingFormWizard({
                   Previous
                 </Button>
                 
-                {currentStep < totalSteps - 1 ? (
-                  <Button
-                    type="button"
-                    onClick={handleNextStep}
-                    disabled={
-                      (currentStep === 1 && !form.getValues("coreEmotion")) ||
-                      (currentStep === 3 && (!form.getValues("situation") || form.getValues("situation").length < 10))
-                    }
-                    data-testid="button-next-step"
-                  >
-                    {currentStep === 0 ? "Get Started" : "Next Step"}
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                ) : (
-                  <Button
-                    type="submit"
-                    disabled={!form.getValues("coreEmotion") || !form.getValues("situation") || form.getValues("situation").length < 10}
-                    data-testid="button-submit-emotion"
-                  >
-                    <Check className="h-4 w-4 mr-1" />
-                    Record Emotion
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  {currentStep === totalSteps - 1 && (
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      disabled={!form.getValues("coreEmotion") || !form.getValues("situation") || form.getValues("situation").length < 10}
+                      data-testid="button-skip-context"
+                    >
+                      Skip & Record
+                    </Button>
+                  )}
+                  
+                  {currentStep < totalSteps - 1 ? (
+                    <Button
+                      type="button"
+                      onClick={handleNextStep}
+                      disabled={
+                        (currentStep === 1 && !form.getValues("coreEmotion")) ||
+                        (currentStep === 3 && (!form.getValues("situation") || form.getValues("situation").length < 10))
+                      }
+                      data-testid="button-next-step"
+                    >
+                      {currentStep === 0 ? "Get Started" : "Next Step"}
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={!form.getValues("coreEmotion") || !form.getValues("situation") || form.getValues("situation").length < 10}
+                      data-testid="button-submit-emotion"
+                    >
+                      <Check className="h-4 w-4 mr-1" />
+                      Record Emotion
+                    </Button>
+                  )}
+                </div>
               </div>
             </form>
           </Form>
