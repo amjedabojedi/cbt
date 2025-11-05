@@ -69,7 +69,31 @@ Preferred communication style: Simple, everyday language.
 
 ## Changelog
 
-- October 21, 2025 (latest). Detail View Dialog Standardization Across All Modules
+- November 5, 2025 (latest). Wizard Intro Step Standardization and Card Grid Spacing Fix
+  - **Universal Intro Steps**: All 4 core module wizards (Emotion Tracking, Thought Records, Journal, Smart Goals) now start with Step 0 intro screen
+  - **Wizard Structure Changes**:
+    - currentStep initialization: Changed from `useState(1)` to `useState(0)` across all wizards
+    - totalSteps increment: Increased by 1 to accommodate intro step (e.g., Emotion 5→6, Thought Records 5→6, Journal 3→4, Smart Goals already had 8)
+    - Step validation: Added `case 0: return true` for intro steps (no validation needed)
+    - Navigation buttons: Previous button disabled at step 0, "Get Started" button text on intro
+    - Progress indicators: Updated to show "Introduction" label at step 0, then "Step X of Y" for remaining steps
+  - **Intro Screen Design Pattern**: All intro screens follow consistent structure
+    - Hero section: Gradient circular icon (80x80), module title, brief description
+    - 4-card feature grid (2x2 responsive): Key benefits with colored icon badges and descriptions
+    - "What You'll Do Next" section: Numbered step-by-step preview of wizard flow
+    - Educational tip/fact: CBT research or best practice insight
+  - **Color Themes by Module**:
+    - Emotion Tracking: Green-teal gradient, nature-themed benefits (emotional awareness, pattern recognition)
+    - Thought Records: Indigo-purple gradient, CBT-focused benefits (notice thoughts, identify ANTs, challenge & balance)
+    - Journal: Blue-teal gradient, reflection-focused benefits (process emotions, AI insights, track patterns, privacy)
+    - Smart Goals: Already had intro with orange-pink gradient, achievement-focused benefits
+  - **Card Grid Spacing Standardization**: Fixed inconsistent gap spacing in history views
+    - Changed ThoughtRecordsList.tsx from `gap-6` to `gap-4` to match other modules
+    - All 4 modules now use `grid grid-cols-1 md:grid-cols-2 gap-4` for consistent 16px spacing
+  - **User Experience Enhancement**: Improved first-time user onboarding with educational context before data entry
+  - **Progressive Learning**: Introduces CBT concepts and module purpose through action before technical terminology
+
+- October 21, 2025. Detail View Dialog Standardization Across All Modules
   - **Unified Detail Dialog Pattern**: All three core modules (Emotion Tracking, Thought Records, Journal) now use identical detail view dialog styling
   - **Standardized Dialog Structure**:
     - DialogContent: `max-w-3xl max-h-[80vh] overflow-y-auto custom-scrollbar` for consistent size and smooth scrolling

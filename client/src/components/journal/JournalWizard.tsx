@@ -74,14 +74,14 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const { activeUserId } = useActiveUser();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [createdEntry, setCreatedEntry] = useState<any>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [customTag, setCustomTag] = useState("");
   
-  const totalSteps = 3;
+  const totalSteps = 4;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -94,6 +94,8 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
   // Validate current step
   const validateStep = async (step: number): Promise<boolean> => {
     switch (step) {
+      case 0:
+        return true; // Intro step - no validation needed
       case 1:
         return await form.trigger("title");
       case 2:
@@ -113,7 +115,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
       if (currentStep === 2) {
         // Before moving to step 3, create entry and analyze
         await createEntryWithAnalysis();
-      } else if (currentStep < totalSteps) {
+      } else if (currentStep < totalSteps - 1) {
         setCurrentStep(currentStep + 1);
       }
     }
@@ -121,7 +123,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
 
   // Handle previous step
   const handlePreviousStep = () => {
-    if (currentStep > 1) {
+    if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -203,7 +205,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
   // Reset wizard
   const handleReset = () => {
     form.reset();
-    setCurrentStep(1);
+    setCurrentStep(0);
     setCreatedEntry(null);
     setSelectedTags([]);
     setShowSuccessDialog(false);
@@ -213,7 +215,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
     }
   };
 
-  const progress = (currentStep / totalSteps) * 100;
+  const progress = (currentStep / (totalSteps - 1)) * 100;
 
   return (
     <>
@@ -223,7 +225,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
             <div>
               <CardTitle>Journal Entry Wizard</CardTitle>
               <CardDescription>
-                Step {currentStep} of {totalSteps}
+                {currentStep === 0 ? "Introduction" : `Step ${currentStep} of ${totalSteps - 1}`}
               </CardDescription>
             </div>
           </div>
@@ -239,7 +241,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                 2. Write
               </span>
               <span className={currentStep >= 3 ? "text-blue-600 font-medium" : ""}>
-                3. Review Tags
+                3. Review
               </span>
             </div>
           </div>
@@ -248,6 +250,106 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
         <CardContent>
           <Form {...form}>
             <div className="space-y-6">
+              {/* Step 0: Introduction */}
+              {currentStep === 0 && (
+                <div className="space-y-6" data-testid="step-intro">
+                  <div className="text-center space-y-4 py-8">
+                    <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-teal-500 rounded-full flex items-center justify-center">
+                      <Send className="h-10 w-10 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">Welcome to Journaling</h2>
+                    <p className="text-gray-600 max-w-md mx-auto">
+                      Express your thoughts and feelings in a safe, private space. Our AI will help identify patterns and provide insights.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Card className="border-blue-200 bg-blue-50/50">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <Heart className="h-4 w-4 text-blue-600" />
+                          </div>
+                          Process Emotions
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="text-sm text-gray-700">
+                        Writing about your feelings helps reduce emotional intensity and provides clarity.
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-teal-200 bg-teal-50/50">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <div className="p-2 bg-teal-100 rounded-lg">
+                            <Sparkles className="h-4 w-4 text-teal-600" />
+                          </div>
+                          AI-Powered Insights
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="text-sm text-gray-700">
+                        Our AI analyzes your entry to detect emotions, topics, and provide helpful insights.
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-purple-200 bg-purple-50/50">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <div className="p-2 bg-purple-100 rounded-lg">
+                            <Tag className="h-4 w-4 text-purple-600" />
+                          </div>
+                          Track Patterns
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="text-sm text-gray-700">
+                        Tags help you organize and discover recurring themes in your mental health journey.
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-amber-200 bg-amber-50/50">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <div className="p-2 bg-amber-100 rounded-lg">
+                            <CheckSquare className="h-4 w-4 text-amber-600" />
+                          </div>
+                          Private & Secure
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="text-sm text-gray-700">
+                        Your journal entries are completely private and only visible to you and your therapist.
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-blue-50 to-teal-50 p-6 rounded-lg border border-blue-200">
+                    <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <HelpCircle className="h-5 w-5 text-blue-600" />
+                      What You'll Do Next
+                    </h3>
+                    <ol className="space-y-2 text-sm text-gray-700">
+                      <li className="flex items-start gap-2">
+                        <span className="font-semibold text-blue-600 mt-0.5">1.</span>
+                        <span>Create a title that captures the main theme of your entry</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="font-semibold text-blue-600 mt-0.5">2.</span>
+                        <span>Write freely about your thoughts, feelings, and experiences</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="font-semibold text-blue-600 mt-0.5">3.</span>
+                        <span>Review AI-detected emotions and topics, customize your tags</span>
+                      </li>
+                    </ol>
+                  </div>
+
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <p className="text-sm text-gray-700">
+                      <strong className="text-blue-900">💡 Tip:</strong> There's no right or wrong way to journal. Write as much or as little as you need. The goal is to express yourself authentically.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
               {/* Step 1: Title */}
               {currentStep === 1 && (
                 <div className="space-y-4">
@@ -513,19 +615,19 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                   type="button"
                   variant="outline"
                   onClick={handlePreviousStep}
-                  disabled={currentStep === 1 || isAnalyzing}
+                  disabled={currentStep === 0 || isAnalyzing}
                 >
                   <ChevronLeft className="mr-2 h-4 w-4" />
                   Previous
                 </Button>
 
-                {currentStep < totalSteps ? (
+                {currentStep < totalSteps - 1 ? (
                   <Button
                     type="button"
                     onClick={handleNextStep}
                     disabled={isAnalyzing}
                   >
-                    {currentStep === 2 ? "Analyze Entry" : "Next"}
+                    {currentStep === 0 ? "Get Started" : currentStep === 2 ? "Analyze Entry" : "Next"}
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                 ) : (

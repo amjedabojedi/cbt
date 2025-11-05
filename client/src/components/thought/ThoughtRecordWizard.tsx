@@ -23,6 +23,10 @@ import {
   RefreshCw,
   ArrowRight,
   X,
+  BrainCircuit,
+  Scale,
+  Lightbulb,
+  HelpCircle,
 } from "lucide-react";
 
 import {
@@ -162,14 +166,14 @@ export default function ThoughtRecordWizard({
   const { toast } = useToast();
   const [, navigate] = useLocation();
   
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showChallengeWizard, setShowChallengeWizard] = useState(false);
   const [recordedThought, setRecordedThought] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const totalSteps = 5;
-  const progress = (currentStep / totalSteps) * 100;
+  const totalSteps = 6;
+  const progress = (currentStep / (totalSteps - 1)) * 100;
 
   // Fetch recent emotions for linking
   const { data: emotions } = useQuery<EmotionRecord[]>({
@@ -198,7 +202,7 @@ export default function ThoughtRecordWizard({
     if (!activeUserId) return;
     
     // Prevent submission if not on the final step
-    if (currentStep < totalSteps) {
+    if (currentStep < totalSteps - 1) {
       return;
     }
     
@@ -252,7 +256,9 @@ export default function ThoughtRecordWizard({
   const handleNext = async () => {
     let fieldsToValidate: (keyof ThoughtRecordFormValues)[] = [];
     
-    if (currentStep === 1) {
+    if (currentStep === 0) {
+      // Step 0 is intro - no validation needed
+    } else if (currentStep === 1) {
       fieldsToValidate = ["automaticThought"];
     } else if (currentStep === 2) {
       // Step 2 is educational slide - no validation needed
@@ -266,7 +272,7 @@ export default function ThoughtRecordWizard({
     
     const isValid = await form.trigger(fieldsToValidate);
     
-    if (isValid) {
+    if (isValid && currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -282,7 +288,7 @@ export default function ThoughtRecordWizard({
       situation: "",
       emotionRecordId: null,
     });
-    setCurrentStep(1);
+    setCurrentStep(0);
     setShowSuccessDialog(false);
     setRecordedThought(null);
   };
@@ -636,8 +642,118 @@ export default function ThoughtRecordWizard({
     </div>
   );
 
+  // Step 0: Introduction
+  const renderStep0 = () => (
+    <div className="space-y-6" data-testid="step-intro">
+      <div className="text-center space-y-4 py-8">
+        <div className="mx-auto w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+          <Brain className="h-10 w-10 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900">Welcome to Thought Records</h2>
+        <p className="text-gray-600 max-w-md mx-auto">
+          Capture and challenge your automatic thoughts using evidence-based Cognitive Behavioral Therapy (CBT) techniques.
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="border-indigo-200 bg-indigo-50/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <Sparkles className="h-4 w-4 text-indigo-600" />
+              </div>
+              Notice Your Thoughts
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-gray-700">
+            Learn to catch automatic thoughts that flash through your mind and influence how you feel.
+          </CardContent>
+        </Card>
+
+        <Card className="border-purple-200 bg-purple-50/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <BrainCircuit className="h-4 w-4 text-purple-600" />
+              </div>
+              Identify Patterns
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-gray-700">
+            Recognize unhelpful thinking patterns (ANTs - Automatic Negative Thoughts) using 12 clinical CBT categories.
+          </CardContent>
+        </Card>
+
+        <Card className="border-blue-200 bg-blue-50/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Scale className="h-4 w-4 text-blue-600" />
+              </div>
+              Challenge & Balance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-gray-700">
+            Question the evidence and develop more balanced, realistic perspectives on situations.
+          </CardContent>
+        </Card>
+
+        <Card className="border-amber-200 bg-amber-50/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <Lightbulb className="h-4 w-4 text-amber-600" />
+              </div>
+              Gain Insights
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-gray-700">
+            Understand the connection between your thoughts, emotions, and behaviors for lasting change.
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-lg border border-indigo-200">
+        <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <HelpCircle className="h-5 w-5 text-indigo-600" />
+          What You'll Do Next
+        </h3>
+        <ol className="space-y-2 text-sm text-gray-700">
+          <li className="flex items-start gap-2">
+            <span className="font-semibold text-indigo-600 mt-0.5">1.</span>
+            <span>Write down the exact thought that went through your mind</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="font-semibold text-indigo-600 mt-0.5">2.</span>
+            <span>Learn what "automatic thoughts" are in CBT terminology</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="font-semibold text-indigo-600 mt-0.5">3.</span>
+            <span>Identify which thinking patterns (ANTs) match your thought</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="font-semibold text-indigo-600 mt-0.5">4.</span>
+            <span>Describe the situation that triggered this thought</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="font-semibold text-indigo-600 mt-0.5">5.</span>
+            <span>Optionally link to an emotion from your emotion tracker</span>
+          </li>
+        </ol>
+      </div>
+
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <p className="text-sm text-gray-700">
+          <strong className="text-blue-900">💡 Did you know?</strong> Research shows that identifying and challenging automatic negative thoughts is one of the most effective techniques in CBT for managing anxiety, depression, and stress.
+        </p>
+      </div>
+    </div>
+  );
+
   const getStepContent = () => {
     switch (currentStep) {
+      case 0:
+        return renderStep0();
       case 1:
         return renderStep1();
       case 2:
@@ -675,7 +791,9 @@ export default function ThoughtRecordWizard({
           {/* Progress Bar */}
           <div className="space-y-2" data-testid="progress-wizard">
             <div className="flex justify-between items-center text-sm">
-              <span className="font-medium">Step {currentStep} of {totalSteps}</span>
+              <span className="font-medium">
+                {currentStep === 0 ? "Introduction" : `Step ${currentStep} of ${totalSteps - 1}`}
+              </span>
               <span className="text-gray-600">{Math.round(progress)}% Complete</span>
             </div>
             <Progress value={progress} className="h-2" />
@@ -691,7 +809,7 @@ export default function ThoughtRecordWizard({
               {/* Navigation Buttons */}
               <div className="flex justify-between items-center pt-6 mt-6 border-t">
                 <div>
-                  {currentStep > 1 && (
+                  {currentStep > 0 && (
                     <Button
                       type="button"
                       variant="outline"
@@ -715,7 +833,7 @@ export default function ThoughtRecordWizard({
                     Cancel
                   </Button>
 
-                  {currentStep === totalSteps && (
+                  {currentStep === totalSteps - 1 && (
                     <Button
                       type="button"
                       variant="outline"
@@ -727,14 +845,14 @@ export default function ThoughtRecordWizard({
                     </Button>
                   )}
 
-                  {currentStep < totalSteps ? (
+                  {currentStep < totalSteps - 1 ? (
                     <Button
                       type="button"
                       onClick={handleNext}
                       disabled={isSubmitting}
                       data-testid="button-next-step"
                     >
-                      Next Step
+                      {currentStep === 0 ? "Get Started" : "Next Step"}
                       <ChevronRight className="h-4 w-4 ml-2" />
                     </Button>
                   ) : (

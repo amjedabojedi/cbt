@@ -17,7 +17,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { ChevronRight, ChevronLeft, Check, ArrowRight, RefreshCw, Home, TrendingUp, Calendar } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check, ArrowRight, RefreshCw, Home, TrendingUp, Calendar, Brain, Target, Sparkles, Heart, HelpCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -95,13 +95,13 @@ export default function EmotionTrackingFormWizard({
   const { user } = useAuth();
   const { toast } = useToast();
   const { refreshAfterOperation } = useRefreshData();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [recordedEmotion, setRecordedEmotion] = useState<any>(null);
   const [, navigate] = useLocation();
   const [showTourComplete, setShowTourComplete] = useState(false);
   
-  const totalSteps = 4;
+  const totalSteps = 5;
   
   // Fetch emotion stats for insights
   const { data: emotions = [] } = useQuery<EmotionRecord[]>({
@@ -148,6 +148,8 @@ export default function EmotionTrackingFormWizard({
   // Validate current step
   const validateStep = async (step: number): Promise<boolean> => {
     switch (step) {
+      case 0:
+        return true; // Intro step - no validation
       case 1:
         return await form.trigger("coreEmotion");
       case 2:
@@ -164,14 +166,14 @@ export default function EmotionTrackingFormWizard({
   // Handle next step
   const handleNextStep = async () => {
     const isValid = await validateStep(currentStep);
-    if (isValid && currentStep < totalSteps) {
+    if (isValid && currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     }
   };
   
   // Handle previous step
   const handlePreviousStep = () => {
-    if (currentStep > 1) {
+    if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -231,7 +233,7 @@ export default function EmotionTrackingFormWizard({
         useCurrentTime: true,
       });
       
-      setCurrentStep(1);
+      setCurrentStep(0);
       setRecordedEmotion(recordedEmotion);
       setShowSuccessDialog(true);
       
@@ -248,7 +250,7 @@ export default function EmotionTrackingFormWizard({
     }
   };
   
-  const progress = (currentStep / totalSteps) * 100;
+  const progress = (currentStep / (totalSteps - 1)) * 100;
   
   // Calculate insights
   const totalEmotions = emotions.length;
@@ -271,7 +273,9 @@ export default function EmotionTrackingFormWizard({
           <div className="space-y-4">
             <div>
               <CardTitle>Track Your Emotion</CardTitle>
-              <CardDescription>Step {currentStep} of {totalSteps}</CardDescription>
+              <CardDescription>
+                {currentStep === 0 ? "Introduction" : `Step ${currentStep} of ${totalSteps - 1}`}
+              </CardDescription>
             </div>
             
             {/* Progress Bar */}
@@ -279,16 +283,16 @@ export default function EmotionTrackingFormWizard({
               <Progress value={progress} className="h-2" data-testid="progress-wizard" />
               <div className="flex justify-between text-xs text-gray-500">
                 <span className={currentStep >= 1 ? "text-blue-600 font-medium" : ""}>
-                  1. Select Emotion
+                  1. Select
                 </span>
                 <span className={currentStep >= 2 ? "text-blue-600 font-medium" : ""}>
-                  2. Rate Intensity
+                  2. Rate
                 </span>
                 <span className={currentStep >= 3 ? "text-blue-600 font-medium" : ""}>
-                  3. Describe Situation
+                  3. Describe
                 </span>
                 <span className={currentStep >= 4 ? "text-blue-600 font-medium" : ""}>
-                  4. Add Details
+                  4. Details
                 </span>
               </div>
             </div>
@@ -298,6 +302,104 @@ export default function EmotionTrackingFormWizard({
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Step 0: Introduction */}
+              {currentStep === 0 && (
+                <div className="space-y-6" data-testid="step-intro">
+                  <div className="text-center space-y-4 py-8">
+                    <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                      <Heart className="h-10 w-10 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">Welcome to Emotion Tracking</h2>
+                    <p className="text-gray-600 max-w-md mx-auto">
+                      Understanding and tracking your emotions is the first step toward better mental health and self-awareness.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Card className="border-blue-200 bg-blue-50/50">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <Sparkles className="h-4 w-4 text-blue-600" />
+                          </div>
+                          Identify Patterns
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="text-sm text-gray-700">
+                        Track when and where specific emotions occur to recognize triggers and patterns in your emotional life.
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-purple-200 bg-purple-50/50">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <div className="p-2 bg-purple-100 rounded-lg">
+                            <TrendingUp className="h-4 w-4 text-purple-600" />
+                          </div>
+                          Track Progress
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="text-sm text-gray-700">
+                        See how your emotional landscape changes over time and celebrate improvements in your well-being.
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-green-200 bg-green-50/50">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <div className="p-2 bg-green-100 rounded-lg">
+                            <Brain className="h-4 w-4 text-green-600" />
+                          </div>
+                          Build Awareness
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="text-sm text-gray-700">
+                        Develop emotional intelligence by understanding the nuances of what you feel and why.
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-amber-200 bg-amber-50/50">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <div className="p-2 bg-amber-100 rounded-lg">
+                            <Target className="h-4 w-4 text-amber-600" />
+                          </div>
+                          Connect Insights
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="text-sm text-gray-700">
+                        Link emotions to thought records and journal entries for deeper therapeutic insights.
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200">
+                    <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <HelpCircle className="h-5 w-5 text-blue-600" />
+                      What You'll Do Next
+                    </h3>
+                    <ol className="space-y-2 text-sm text-gray-700">
+                      <li className="flex items-start gap-2">
+                        <span className="font-semibold text-blue-600 mt-0.5">1.</span>
+                        <span>Select your emotion using our interactive emotion wheel</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="font-semibold text-blue-600 mt-0.5">2.</span>
+                        <span>Rate how intensely you felt this emotion (1-10 scale)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="font-semibold text-blue-600 mt-0.5">3.</span>
+                        <span>Describe the situation that triggered this emotion</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="font-semibold text-blue-600 mt-0.5">4.</span>
+                        <span>Add optional context (location, company, time)</span>
+                      </li>
+                    </ol>
+                  </div>
+                </div>
+              )}
+              
               {/* Step 1: Select Emotion */}
               {currentStep === 1 && (
                 <div className="space-y-4" data-testid="step-select-emotion">
@@ -603,14 +705,14 @@ export default function EmotionTrackingFormWizard({
                   type="button"
                   variant="outline"
                   onClick={handlePreviousStep}
-                  disabled={currentStep === 1}
+                  disabled={currentStep === 0}
                   data-testid="button-previous-step"
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   Previous
                 </Button>
                 
-                {currentStep < totalSteps ? (
+                {currentStep < totalSteps - 1 ? (
                   <Button
                     type="button"
                     onClick={handleNextStep}
@@ -620,7 +722,7 @@ export default function EmotionTrackingFormWizard({
                     }
                     data-testid="button-next-step"
                   >
-                    Next Step
+                    {currentStep === 0 ? "Get Started" : "Next Step"}
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 ) : (
