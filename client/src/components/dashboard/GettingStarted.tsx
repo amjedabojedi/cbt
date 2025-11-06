@@ -4,70 +4,91 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "wouter";
 
 export default function GettingStarted() {
   const { user } = useAuth();
   const [dismissed, setDismissed] = useState(false);
   
-  // Get user's emotions and thoughts to check progress
-  const { data: emotions } = useQuery({
+  // Query all 5 modules to check progress
+  const { data: emotions } = useQuery<any[]>({
     queryKey: user ? [`/api/users/${user.id}/emotions`] : [],
     enabled: !!user,
   });
   
-  const { data: thoughts } = useQuery({
+  const { data: thoughts } = useQuery<any[]>({
     queryKey: user ? [`/api/users/${user.id}/thoughts`] : [],
     enabled: !!user,
   });
   
-  const { data: goals } = useQuery({
+  const { data: reframePractices } = useQuery<any[]>({
+    queryKey: user ? [`/api/users/${user.id}/reframe-coach/results`] : [],
+    enabled: !!user,
+  });
+  
+  const { data: journalEntries } = useQuery<any[]>({
+    queryKey: user ? [`/api/users/${user.id}/journal`] : [],
+    enabled: !!user,
+  });
+  
+  const { data: goals } = useQuery<any[]>({
     queryKey: user ? [`/api/users/${user.id}/goals`] : [],
     enabled: !!user,
   });
   
-  // Determine which tasks are completed
-  const hasRecordedEmotion = emotions && emotions.length > 0;
-  const hasCompletedReflection = thoughts && thoughts.length > 0;
-  const hasSetGoal = goals && goals.length > 0;
-  const hasInvitedOrAccepted = user?.role === 'therapist' || (user?.therapistId !== null && user?.therapistId !== undefined);
+  // Determine which tasks are completed (one per module, sequential flow)
+  const hasTrackedEmotion = !!(emotions && emotions.length > 0);
+  const hasRecordedThought = !!(thoughts && thoughts.length > 0);
+  const hasPracticedReframe = !!(reframePractices && reframePractices.length > 0);
+  const hasWrittenJournal = !!(journalEntries && journalEntries.length > 0);
+  const hasCreatedGoal = !!(goals && goals.length > 0);
   
-  // If all tasks are completed or component is dismissed, don't show
-  if (dismissed || (hasRecordedEmotion && hasCompletedReflection && hasSetGoal && hasInvitedOrAccepted)) {
+  // If all 5 core tasks are completed or component is dismissed, don't show
+  if (dismissed || (hasTrackedEmotion && hasRecordedThought && hasPracticedReframe && hasWrittenJournal && hasCreatedGoal)) {
     return null;
   }
 
   return (
-    <Card className="bg-white rounded-lg shadow-sm mb-6">
+    <Card className="bg-white rounded-lg shadow-sm mb-6" data-testid="getting-started-card">
       <CardContent className="pt-5">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-medium text-lg">Getting Started</h3>
           <button 
             className="text-neutral-400 hover:text-neutral-600"
             onClick={() => setDismissed(true)}
+            data-testid="button-dismiss-getting-started"
           >
             <X size={18} />
           </button>
         </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Complete these steps to explore the full therapeutic toolkit
+        </p>
         <div className="space-y-3">
           <ChecklistItem 
-            label="Record your first emotion" 
-            isCompleted={hasRecordedEmotion} 
+            label="Track an emotion" 
+            isCompleted={hasTrackedEmotion} 
             href="/emotions"
           />
           <ChecklistItem 
-            label="Complete a reflection" 
-            isCompleted={hasCompletedReflection} 
-            href="/thoughts"
+            label="Record a thought" 
+            isCompleted={hasRecordedThought} 
+            href="/thought-records"
           />
           <ChecklistItem 
-            label="Set a SMART goal" 
-            isCompleted={hasSetGoal} 
+            label="Practice a reframe" 
+            isCompleted={hasPracticedReframe} 
+            href="/reframe-coach"
+          />
+          <ChecklistItem 
+            label="Write a journal entry" 
+            isCompleted={hasWrittenJournal} 
+            href="/journal"
+          />
+          <ChecklistItem 
+            label="Create a SMART goal" 
+            isCompleted={hasCreatedGoal} 
             href="/goals"
-          />
-          <ChecklistItem 
-            label={user?.role === 'therapist' ? "Invite a client" : "Accept invitation"} 
-            isCompleted={hasInvitedOrAccepted} 
-            href={user?.role === 'therapist' ? "/clients" : "/settings"}
           />
         </div>
       </CardContent>
@@ -82,11 +103,8 @@ interface ChecklistItemProps {
 }
 
 function ChecklistItem({ label, isCompleted, href }: ChecklistItemProps) {
-  return (
-    <a href={href} className={cn(
-      "flex items-center group",
-      isCompleted ? "cursor-default" : "cursor-pointer hover:bg-neutral-50 rounded-md -mx-1 px-1"
-    )}>
+  const content = (
+    <>
       <div className={cn(
         "w-6 h-6 rounded-full mr-3 flex items-center justify-center",
         isCompleted 
@@ -105,6 +123,24 @@ function ChecklistItem({ label, isCompleted, href }: ChecklistItemProps) {
       )}>
         {label}
       </span>
-    </a>
+    </>
+  );
+
+  if (isCompleted) {
+    return (
+      <div className="flex items-center cursor-default" data-testid={`checklist-item-${label.toLowerCase().replace(/\s+/g, '-')}`}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link href={href}>
+      <div className={cn(
+        "flex items-center group cursor-pointer hover:bg-neutral-50 rounded-md -mx-1 px-1"
+      )} data-testid={`checklist-item-${label.toLowerCase().replace(/\s+/g, '-')}`}>
+        {content}
+      </div>
+    </Link>
   );
 }

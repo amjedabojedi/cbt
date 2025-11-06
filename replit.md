@@ -61,6 +61,28 @@ The application employs consistent design patterns:
 
 ## Recent Changes
 
+### November 6, 2025 - Dashboard Redesign: Module Identity System
+- **Module Identity System**: Introduced visual identity for each of the 5 core modules
+  - **Emotion Tracking**: Blue (#3b82f6), Heart icon, metrics: Total, Avg. Intensity, Most Common emotion
+  - **Thought Records**: Purple (#9333ea), Brain icon, metrics: Total, Challenged %, Top ANT category
+  - **Reframe Coach**: Green (#16a34a), Lightbulb icon, metrics: Practices, Avg. Score, Improvement %
+  - **Journal**: Yellow/Amber (#eab308), BookOpen icon, metrics: Total, Avg. Rating, Emotions detected
+  - **Smart Goals**: Indigo (#6366f1), Target icon, metrics: Total, Completed, Success Rate %
+- **ModuleSummaryCard Component**: New reusable component displays module overview with icon, color-coded metrics, and "View Insights" link
+- **Overall Progress Card**: Shows engagement score (based on total activities), progress bar, and quick stats for all 5 modules
+- **useModuleStats Hook**: Custom hook fetches data from all module APIs and calculates key statistics
+- **Dashboard Structure**: Replaced long list of individual components with:
+  - Overall Progress section showing engagement metrics
+  - Grid of 5 Module Summary Cards with high-level overviews
+  - Detailed analytics remain in each module's Insights tab (no changes to module pages)
+- **Getting Started Checklist Updated**: Aligned with module identity system
+  - Now covers all 5 modules in sequential order: Track emotion → Record thought → Practice reframe → Write journal → Create goal
+  - Uses concrete action verbs matching module names
+  - Removed therapist-specific "Accept invitation" from universal onboarding checklist
+  - Added subtitle: "Complete these steps to explore the full therapeutic toolkit"
+- **Navigation**: Module cards link to module pages using wouter routing; Insights tabs unchanged
+- **Design Philosophy**: Dashboard shows overview (3 key metrics per module), detailed analytics stay in module Insights tabs
+
 ### November 6, 2025 - Sequential Flow Clarity: Module Content Accuracy
 - **Module Headers Updated**: Added sequential flow context to clarify each module's place in the therapeutic process
   - Emotion Tracking: "Start here: identify and track how you're feeling"
