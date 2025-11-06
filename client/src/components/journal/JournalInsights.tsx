@@ -363,6 +363,49 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
         </Card>
       </div>
 
+      {/* Emotion Word Cloud */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-primary" />
+            <CardTitle>Emotion Word Cloud</CardTitle>
+          </div>
+          <CardDescription>Visual representation of emotions tagged in your entries</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {getEmotionDistribution().length > 0 ? (
+            <div className="flex flex-wrap items-center justify-center gap-3 p-6 min-h-[300px]">
+              {getEmotionDistribution().map((emotion, index) => {
+                const maxValue = Math.max(...getEmotionDistribution().map(e => e.value));
+                const minValue = Math.min(...getEmotionDistribution().map(e => e.value));
+                const range = maxValue - minValue || 1;
+                const size = ((emotion.value - minValue) / range) * 3 + 1; // Scale from 1-4rem
+                
+                return (
+                  <div
+                    key={index}
+                    className="inline-block px-3 py-2 rounded-lg transition-all hover:scale-110 cursor-default"
+                    style={{
+                      fontSize: `${size}rem`,
+                      color: EMOTION_COLORS[index % EMOTION_COLORS.length],
+                      fontWeight: 600,
+                      opacity: 0.7 + (size / 8), // More frequent emotions are more opaque
+                    }}
+                    title={`${emotion.name}: ${emotion.value} times`}
+                  >
+                    {emotion.name}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+              No emotions detected yet
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Writing Frequency Calendar */}
       <Card>
         <CardHeader>
