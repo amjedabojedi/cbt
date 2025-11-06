@@ -61,6 +61,21 @@ The application employs consistent design patterns:
 
 ## Recent Changes
 
+### November 6, 2025 - Sequential Flow Clarity: Module Content Accuracy
+- **Module Headers Updated**: Added sequential flow context to clarify each module's place in the therapeutic process
+  - Emotion Tracking: "Start here: identify and track how you're feeling"
+  - Thought Records: "Record and examine your thoughts after tracking emotions"
+  - Journal: "Process your emotions and experiences: Reflect on your thoughts and feelings through daily journaling"
+- **Thought Records Wizard Benefit Card**: Changed "Challenge & Balance" to "Examine the Evidence"
+  - Removed language about "developing balanced perspectives" which is Reframe Coach's role
+  - Now accurately describes examining evidence for/against thoughts within Thought Records
+- **Content Accuracy Principle**: Each module now clearly describes ONLY what it does, not what other modules do
+  - Prevents user confusion about where to practice reframing (Reframe Coach only)
+  - Maintains clear boundaries between identification (Thought Records) and practice (Reframe Coach)
+- **Verified Card Actions**: Confirmed other modules (Emotions, Goals, Journal) appropriately use dropdown menus for CRUD operations
+  - Unlike Reframe Coach's simplified single-action pattern, these modules legitimately need View/Edit/Delete actions
+  - Dropdown pattern is appropriate for secondary CRUD operations
+
 ### November 5, 2025 - Reframe Coach: Major UX Simplification & Unified Timeline
 - **Removed 3-Tab Structure**: Simplified from fragmented tabs (Start Practice, History, Insights) to a single unified timeline view
   - All thought records now displayed in one scrollable list
