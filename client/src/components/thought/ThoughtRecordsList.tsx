@@ -177,7 +177,7 @@ export default function ThoughtRecordsList({
         refreshAfterOperation(
           'thought',
           'delete',
-          null,
+          recordToDelete?.id || 0,
           "The record no longer exists.",
           true  // force a page reload
         );
@@ -711,15 +711,15 @@ export default function ThoughtRecordsList({
                 <p className="text-sm pl-7">{selectedRecord.alternativePerspective}</p>
               </div>
               
-              {selectedRecord.reflectionNotes && (
+              {selectedRecord.insightsGained && (
                 <div>
                   <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
                     <div className="p-1.5 rounded-full bg-gray-100">
                       <MessageSquare className="h-4 w-4 text-gray-500" />
                     </div>
-                    Reflection Notes
+                    Insights Gained
                   </h3>
-                  <p className="text-sm pl-7">{selectedRecord.reflectionNotes}</p>
+                  <p className="text-sm pl-7">{selectedRecord.insightsGained}</p>
                 </div>
               )}
               
@@ -827,7 +827,8 @@ export default function ThoughtRecordsList({
             <CreateReframePracticeForm 
               thoughtRecord={selectedRecord}
               clientId={activeUserId}
-              onSuccess={() => {
+              isOpen={showReframeDialog}
+              onClose={() => {
                 setShowReframeDialog(false);
                 setSelectedRecord(null);
               }}
