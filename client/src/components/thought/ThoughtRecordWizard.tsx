@@ -690,11 +690,11 @@ export default function ThoughtRecordWizard({
               <div className="p-2 bg-blue-100 rounded-lg">
                 <Scale className="h-4 w-4 text-blue-600" />
               </div>
-              Challenge & Balance
+              Examine the Evidence
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-gray-700">
-            Question the evidence and develop more balanced, realistic perspectives on situations.
+            Question your thoughts by looking at evidence for and against them to see the full picture.
           </CardContent>
         </Card>
 
