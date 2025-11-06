@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ThoughtRecord } from "@shared/schema";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
@@ -516,9 +516,7 @@ export default function ThoughtRecordsList({
                               <div>
                                 <p className="text-xs text-muted-foreground mb-1">Last practiced</p>
                                 <p className="font-medium text-purple-900 dark:text-purple-100">
-                                  {practiceInfo 
-                                    ? `${Math.floor(practiceInfo.hoursSinceLastPractice)} hours ago` 
-                                    : format(new Date(lastPractice.createdAt), 'MMM d, h:mm a')}
+                                  {formatDistanceToNow(new Date(lastPractice.createdAt), { addSuffix: true })}
                                 </p>
                               </div>
                               <div className="text-center">
