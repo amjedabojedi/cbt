@@ -696,7 +696,7 @@ export default function Journal() {
         {/* Module Header */}
         <ModuleHeader
           title="Journal"
-          description="Reflect on your thoughts, feelings, and experiences through daily journaling"
+          description="Process your emotions and experiences: Reflect on your thoughts and feelings through daily journaling"
           badges={[]}
         />
         

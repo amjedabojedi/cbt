@@ -101,7 +101,7 @@ export default function ThoughtRecords() {
         {/* Module Header */}
         <ModuleHeader
           title="Thought Records"
-          description="Capture automatic thoughts, identify thinking patterns, and challenge unhelpful beliefs"
+          description="Record your thoughts and identify cognitive distortions to better understand your thinking patterns"
           badges={[]}
         />
         

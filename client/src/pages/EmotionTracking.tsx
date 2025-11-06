@@ -90,7 +90,7 @@ export default function EmotionTracking() {
         {/* Module Header */}
         <ModuleHeader
           title="Emotion Tracking"
-          description="Identify, track, and understand your emotional patterns using an interactive emotion wheel"
+          description="Start your mental health journey: Identify, track, and understand your emotional patterns using an interactive emotion wheel"
           badges={[]}
         />
         
