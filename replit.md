@@ -75,6 +75,12 @@ The application employs consistent design patterns:
   - Overall Progress section showing engagement metrics
   - Grid of 5 Module Summary Cards with high-level overviews
   - Detailed analytics remain in each module's Insights tab (no changes to module pages)
+- **Quick Actions Updated**: Aligned with 5-module system and RECORD modality
+  - Now shows 5 cards: Record Emotion, Record Thought, Practice Reframe, Write Journal, Create Goal
+  - Each card uses module identity color on icon (Heart=Blue, Brain=Purple, Lightbulb=Green, Book=Yellow, Target=Indigo)
+  - Fixed routing: /thought-records instead of /thoughts
+  - Removed generic "View Progress" - users can access Insights via Module Summary Cards
+  - Grid layout: 5 columns on large screens, 2 columns on medium, 1 column on mobile
 - **Getting Started Checklist Updated**: Aligned with module identity system
   - Now covers all 5 modules in sequential order: Track emotion → Record thought → Practice reframe → Write journal → Create goal
   - Uses concrete action verbs matching module names
@@ -82,6 +88,7 @@ The application employs consistent design patterns:
   - Added subtitle: "Complete these steps to explore the full therapeutic toolkit"
 - **Navigation**: Module cards link to module pages using wouter routing; Insights tabs unchanged
 - **Design Philosophy**: Dashboard shows overview (3 key metrics per module), detailed analytics stay in module Insights tabs
+- **Conceptual Flow Model**: RECORD → REVIEW → INSIGHTS (applied consistently across all 5 modules)
 
 ### November 6, 2025 - Sequential Flow Clarity: Module Content Accuracy
 - **Module Headers Updated**: Added sequential flow context to clarify each module's place in the therapeutic process
