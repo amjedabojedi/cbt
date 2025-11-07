@@ -43,17 +43,17 @@ export default function ModuleSummaryCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Metrics Grid */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-3">
           {metrics.map((metric, index) => (
             <div 
               key={index} 
-              className="text-center p-2 rounded-lg bg-muted/50 min-h-[80px] flex flex-col justify-center"
+              className="text-center p-3 rounded-lg bg-muted/50 flex flex-col gap-2"
               data-testid={`metric-${index}`}
             >
-              <div className="text-base font-bold leading-snug" style={{ color }}>
+              <div className="text-sm font-bold leading-tight min-h-[2.5rem] flex items-center justify-center" style={{ color }}>
                 {metric.value}
               </div>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="text-xs text-muted-foreground">
                 {metric.label}
               </div>
               {metric.subtext && (
