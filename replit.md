@@ -1,7 +1,7 @@
 # ResilienceHub
 
 ## Overview
-ResilienceHub is a mental health web application designed to connect mental health professionals with clients through interactive cognitive behavioral therapy (CBT) tools. It aims to facilitate structured therapy and enhance mental well-being by providing features for emotion tracking, thought records, journaling, and goal setting. The project's vision is to offer a comprehensive platform for managing and improving mental health through proven therapeutic techniques.
+ResilienceHub is a mental health web application connecting mental health professionals with clients using interactive cognitive behavioral therapy (CBT) tools. It facilitates structured therapy through emotion tracking, thought records, journaling, and goal setting, aiming to enhance mental well-being and provide a comprehensive platform for mental health management.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -9,49 +9,50 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### Frontend
-The application is a React-based Single Page Application (SPA) utilizing modern React with hooks. UI components are built with `shadcn/ui` and `Radix UI` primitives. State management is handled by `React Query` for server state and the Context API for global application state. Styling is achieved with `Tailwind CSS` for a responsive, mobile-first design, and `Wouter` is used for client-side routing.
+The application is a React-based Single Page Application (SPA) using modern React with hooks. UI components are built with `shadcn/ui` and `Radix UI` primitives. State management is handled by `React Query` for server state and the Context API for global application state. Styling is achieved with `Tailwind CSS` for a responsive, mobile-first design, and `Wouter` for client-side routing.
 
 ### Backend
-The backend is a `Node.js/Express` server providing a RESTful API with middleware. Business logic for services like email, OpenAI integration, and WebSockets is managed through a dedicated service layer. Authentication is session-based with secure cookie management. `Drizzle ORM` is used for type-safe database operations.
+The backend is a `Node.js/Express` server providing a RESTful API. It includes a dedicated service layer for business logic (email, OpenAI, WebSockets) and uses session-based authentication with secure cookie management. `Drizzle ORM` handles type-safe database operations.
 
 ### Database
-`PostgreSQL` serves as the primary database, hosted on Neon (serverless). It utilizes connection pooling for optimized performance. Schema management and migrations are handled by `Drizzle-kit`.
+`PostgreSQL` serves as the primary database, hosted on Neon (serverless) with connection pooling. `Drizzle-kit` manages schema and migrations.
 
 ### Key Features
-- **User Management**: Includes role-based access control (client, therapist, admin) and client-therapist assignment.
+- **User Management**: Role-based access control (client, therapist, admin) and client-therapist assignment.
 - **Core Therapeutic Tools**:
     - **Emotion Tracking**: Interactive emotion wheel, 4-step wizard, onboarding, and intensity tracking.
     - **Thought Records**: 3-step wizard for recording thoughts, linking emotions, and challenging, incorporating 12 clinical CBT ANT categories.
     - **Journaling**: AI-assisted analysis for emotion detection.
     - **Goal Setting**: SMART goals with milestone tracking and automatic status updates.
     - **Reframe Coach**: Interactive cognitive restructuring practice.
-- **Progress Tracking**: Provides cross-component insights and analytics for user progress.
+- **Progress Tracking**: Cross-component insights and analytics for user progress, including evidence-based CBT metrics.
 
 ### UI/UX Design Patterns
-The application employs consistent design patterns:
-- **Wizard-Based Flows**: Step-by-step guidance with progress bars, "Why This Step?" sections, validation, and success dialogs, including first-time user onboarding tours.
-- **Unified Module Pages**: Core modules (Emotion Tracking, Thought Records, Smart Goals, Journal) share a consistent structure: Module Header, Three-Tab Layout ("Creation/Wizard Tab", "History/View Tab", and "Insights Tab"), and Educational Accordion.
+The application utilizes consistent design patterns:
+- **Wizard-Based Flows**: Step-by-step guidance, progress bars, validation, and success dialogs.
+- **Unified Module Pages**: Consistent structure across core modules (Header, Three-Tab Layout for Creation/Wizard, History/View, and Insights, and Educational Accordion).
 - **Visual Consistency**: Adherence to consistent card styles, spacing, typography, and color schemes.
-- **Progressive Learning**: CBT concepts are introduced through action before explicit terminology.
-- **Data-Driven Progress**: Real-time statistics are used to motivate user engagement.
-- **Standardized Dialogs**: Detail views across modules use a unified dialog structure with sticky headers, icon badges, and card-based content.
-- **Card Grid Layout**: All core modules utilize a responsive card grid layout with consistent dropdown menus for actions like "View Details," "Edit," and "Delete."
+- **Progressive Learning**: CBT concepts introduced through action.
+- **Data-Driven Progress**: Real-time statistics to motivate engagement.
+- **Standardized Dialogs**: Unified detail views with sticky headers, icon badges, and card-based content.
+- **Card Grid Layout**: Responsive card grid with consistent dropdown menus for actions.
+- **Module Identity System**: Visual identity for each core module (Emotion Tracking, Thought Records, Reframe Coach, Journal, Smart Goals) with specific colors, icons, and key metrics for dashboard overviews.
 
 ### AI Integration
-`OpenAI` is integrated to power features such as journal analysis, emotion detection, and reframe coaching. The integration includes a caching system for responses and fallback handling for service unavailability.
+`OpenAI` is integrated for journal analysis, emotion detection, and reframe coaching, with caching and fallback handling.
 
 ## External Dependencies
 
 ### Core Services
 - **Neon Database**: Serverless PostgreSQL hosting.
 - **OpenAI API**: Provides AI-powered features.
-- **SparkPost**: Used for email delivery services.
+- **SparkPost**: Email delivery services.
 
 ### Development Tools
 - **Vite**: Build tool and development server.
-- **TypeScript**: Ensures type safety throughout the codebase.
-- **Drizzle**: ORM and migration tool for database interactions.
-- **React Query**: Manages server state and caching.
+- **TypeScript**: Type safety.
+- **Drizzle**: ORM and migration tool.
+- **React Query**: Server state management and caching.
 
 ### UI/UX Libraries
 - **Radix UI**: Provides accessible component primitives.
