@@ -628,7 +628,7 @@ export default function Journal() {
   const handleViewEntry = (entry: JournalEntry) => {
     // Fetch related thought records if they exist
     if (entry.relatedThoughtRecordIds && entry.relatedThoughtRecordIds.length > 0 && userThoughtRecords.length > 0) {
-      const related = userThoughtRecords.filter(tr => 
+      const related = userThoughtRecords.filter((tr: ThoughtRecord) => 
         entry.relatedThoughtRecordIds?.includes(tr.id)
       );
       setRelatedThoughtRecords(related);
@@ -2168,7 +2168,10 @@ export default function Journal() {
                         {relatedThoughtRecords.map((record) => (
                           <Card key={record.id} className="border">
                             <CardContent className="p-3">
-                              <p className="text-sm font-medium">{record.situation}</p>
+                              <p className="text-sm font-medium">{record.automaticThoughts}</p>
+                              {record.situation && (
+                                <p className="text-xs text-muted-foreground mt-1">{record.situation}</p>
+                              )}
                               <p className="text-xs text-muted-foreground mt-1">
                                 {format(new Date(record.createdAt), "MMM d, yyyy")}
                               </p>

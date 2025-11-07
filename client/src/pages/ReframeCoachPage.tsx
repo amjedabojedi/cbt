@@ -5,6 +5,8 @@ import { useLocation } from "wouter";
 import AppLayout from "@/components/layout/AppLayout";
 import ModuleHeader from "@/components/layout/ModuleHeader";
 import ThoughtRecordsList from "@/components/thought/ThoughtRecordsList";
+import ReframePracticeHistory from "@/components/reframeCoach/ReframePracticeHistory";
+import ReframeInsights from "@/components/reframeCoach/ReframeInsights";
 import {
   Card,
   CardContent,
@@ -13,21 +15,27 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { ThoughtRecord } from "@shared/schema";
 import { 
   Loader2, 
   Target,
   Zap,
-  ChevronDown,
-  ChevronUp,
   ShieldAlert,
-  Trophy,
-  BadgeCheck
+  HelpCircle,
+  TrendingUp,
+  History
 } from "lucide-react";
 import useActiveUser from "@/hooks/use-active-user";
 import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
@@ -37,9 +45,10 @@ export default function ReframeCoachPage() {
   const { isViewingClientData, activeUserId } = useActiveUser();
   const userId = activeUserId || user?.id;
   const [location, navigate] = useLocation();
-  const [showIntro, setShowIntro] = useState(
-    typeof window !== 'undefined' ? !localStorage.getItem('hideReframeIntro') : true
-  );
+
+  // Check URL parameters for tab
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
 
   // Fetch thought records
   const { data: thoughtRecords, isLoading: thoughtsLoading } = useQuery<ThoughtRecord[]>({
@@ -66,13 +75,6 @@ export default function ReframeCoachPage() {
     : "0";
   const currentStreak = profileData?.profile?.practiceStreak || 0;
 
-  const handleDismissIntro = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('hideReframeIntro', 'true');
-    }
-    setShowIntro(false);
-  };
-
   return (
     <AppLayout title="Reframe Coach">
       <div className="container mx-auto px-4 py-6">
@@ -91,7 +93,7 @@ export default function ReframeCoachPage() {
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Target className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Your Progress</CardTitle>
+                <CardTitle className="text-lg">Overall Progress</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
@@ -113,136 +115,121 @@ export default function ReframeCoachPage() {
           </Card>
         )}
         
-        {/* Collapsible Intro Card */}
-        {!isViewingClientData && (
-          <Collapsible open={showIntro} onOpenChange={setShowIntro} className="mb-6">
-            <Card className="border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/30 dark:to-pink-950/30">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                      <Zap className="h-6 w-6 text-white" />
+        <Tabs 
+          defaultValue={
+            tabParam === 'insights'
+              ? "insights"
+              : tabParam === 'history'
+                ? "history"
+                : "practice"
+          }
+          className="space-y-4"
+        >
+          <TabsList>
+            <TabsTrigger value="practice" data-testid="tab-practice">
+              <Zap className="h-4 w-4 mr-1.5" />
+              Practice
+            </TabsTrigger>
+            <TabsTrigger value="history" data-testid="tab-history">
+              <History className="h-4 w-4 mr-1.5" />
+              History
+            </TabsTrigger>
+            <TabsTrigger value="insights" data-testid="tab-insights">
+              <TrendingUp className="h-4 w-4 mr-1.5" />
+              Insights
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="practice">
+            {/* Educational Accordion */}
+            <Accordion type="single" collapsible className="mb-6 bg-green-50 dark:bg-green-950/30 rounded-lg px-4">
+              <AccordionItem value="why-reframe" className="border-0">
+                <AccordionTrigger className="text-base font-medium hover:no-underline py-3">
+                  <div className="flex items-center">
+                    <HelpCircle className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
+                    Why Practice Reframing?
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground pb-4">
+                  <p className="mb-3">
+                    Cognitive reframing is a core CBT skill that helps you challenge and change unhelpful thinking patterns. By practicing with scenarios based on your actual thought records, you build the muscle to recognize and reframe distorted thoughts in real-time.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                      <h4 className="font-medium text-foreground mb-1">Practice with Real Thoughts</h4>
+                      <p>Work through interactive scenarios based on your recorded thoughts and distortions.</p>
                     </div>
-                    <div>
-                      <CardTitle className="text-xl">What is Reframe Coach?</CardTitle>
-                      <CardDescription>Learn how cognitive reframing works</CardDescription>
+                    
+                    <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                      <h4 className="font-medium text-foreground mb-1">Build Reframing Skills</h4>
+                      <p>Learn to create balanced, helpful perspectives through guided practice.</p>
+                    </div>
+                    
+                    <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
+                      <h4 className="font-medium text-foreground mb-1">Track Progress</h4>
+                      <p>Monitor your scores and improvement over time in the Insights tab.</p>
                     </div>
                   </div>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" data-testid="button-toggle-intro">
-                      {showIntro ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
-                  </CollapsibleTrigger>
-                </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Thought Records</CardTitle>
+                <CardDescription>
+                  {isViewingClientData 
+                    ? "View client's thought records and practice history"
+                    : "Select a thought record to practice cognitive reframing"}
+                </CardDescription>
               </CardHeader>
               
-              <CollapsibleContent>
-                <CardContent>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    Now that you've recorded your thoughts and identified cognitive distortions, this module helps you practice creating balanced, realistic perspectives through interactive scenarios based on your actual thought records.
-                  </p>
-
-                  {/* Benefits Grid */}
-                  <div className="grid gap-3 md:grid-cols-3 mb-4">
-                    <div className="p-4 bg-white/80 dark:bg-slate-800/80 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                          <ShieldAlert className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <h4 className="font-semibold text-sm">Practice with Scenarios</h4>
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Work through situations based on your recorded thoughts
-                      </p>
-                    </div>
-
-                    <div className="p-4 bg-white/80 dark:bg-slate-800/80 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="p-2 bg-pink-100 dark:bg-pink-900 rounded-lg">
-                          <Zap className="h-4 w-4 text-pink-600 dark:text-pink-400" />
-                        </div>
-                        <h4 className="font-semibold text-sm">Build Reframing Skills</h4>
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Learn to create balanced, helpful perspectives
-                      </p>
-                    </div>
-
-                    <div className="p-4 bg-white/80 dark:bg-slate-800/80 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
-                          <Trophy className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                        </div>
-                        <h4 className="font-semibold text-sm">See Your Progress</h4>
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Track scores and improvement over time
-                      </p>
-                    </div>
+              <CardContent>
+                {thoughtsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
-
-                  <div className="flex justify-end">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={handleDismissIntro}
-                      data-testid="button-dismiss-intro"
-                    >
-                      Got it, don't show this again
-                    </Button>
+                ) : (thoughtRecords && thoughtRecords.length > 0) ? (
+                  <ThoughtRecordsList 
+                    thoughtRecords={thoughtRecords} 
+                    userId={userId}
+                    showPracticeButton={true}
+                    practiceResults={results}
+                  />
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="mb-4 inline-flex items-center justify-center w-16 h-16 bg-muted rounded-full">
+                      <ShieldAlert className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">No Thought Records Yet</h3>
+                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                      {isViewingClientData
+                        ? "This client hasn't created any thought records yet."
+                        : "Create a thought record first to begin practicing cognitive reframing."}
+                    </p>
+                    {!isViewingClientData && (
+                      <Button 
+                        onClick={() => navigate(`/thoughts`)}
+                        data-testid="button-go-to-thoughts"
+                      >
+                        Create Your First Thought Record
+                      </Button>
+                    )}
                   </div>
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
-        )}
-        
-        {/* Main Content: Thought Records with Practice */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Thought Records</CardTitle>
-            <CardDescription>
-              {isViewingClientData 
-                ? "View client's thought records and practice history"
-                : "Select a thought record to practice cognitive reframing"}
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent>
-            {thoughtsLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (thoughtRecords && thoughtRecords.length > 0) ? (
-              <ThoughtRecordsList 
-                thoughtRecords={thoughtRecords} 
-                userId={userId}
-                showPracticeButton={true}
-                practiceResults={results}
-              />
-            ) : (
-              <div className="text-center py-12">
-                <div className="mb-4 inline-flex items-center justify-center w-16 h-16 bg-muted rounded-full">
-                  <ShieldAlert className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">No Thought Records Yet</h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  {isViewingClientData
-                    ? "This client hasn't created any thought records yet."
-                    : "Create a thought record first to begin practicing cognitive reframing."}
-                </p>
-                {!isViewingClientData && (
-                  <Button 
-                    onClick={() => navigate(`/users/${userId}/thoughts`)}
-                    data-testid="button-go-to-thoughts"
-                  >
-                    Create Your First Thought Record
-                  </Button>
                 )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="history">
+            <ReframePracticeHistory userId={userId!} />
+          </TabsContent>
+          
+          <TabsContent value="insights">
+            <ReframeInsights userId={userId!} />
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
   );
