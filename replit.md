@@ -62,74 +62,79 @@ The application utilizes consistent design patterns:
 
 ## Recent Changes
 
-### November 6, 2025 - Dashboard Redesign: Module Identity System
-- **Module Identity System**: Introduced visual identity for each of the 5 core modules
-  - **Emotion Tracking**: Blue (#3b82f6), Heart icon, metrics: Total, Avg. Intensity, Most Common emotion
-  - **Thought Records**: Purple (#9333ea), Brain icon, metrics: Total, Challenged %, Top ANT category
-  - **Reframe Coach**: Green (#16a34a), Lightbulb icon, metrics: Practices, Avg. Score, Improvement %
-  - **Journal**: Yellow/Amber (#eab308), BookOpen icon, metrics: Total, Avg. Rating, Emotions detected
-  - **Smart Goals**: Indigo (#6366f1), Target icon, metrics: Total, Completed, Success Rate %
-- **ModuleSummaryCard Component**: New reusable component displays module overview with icon, color-coded metrics, and "View Insights" link
-- **Overall Progress Card**: Shows engagement score (based on total activities), progress bar, and quick stats for all 5 modules
-- **useModuleStats Hook**: Custom hook fetches data from all module APIs and calculates key statistics
-- **Dashboard Structure**: Replaced long list of individual components with:
-  - Overall Progress section showing engagement metrics
-  - Grid of 5 Module Summary Cards with high-level overviews
-  - Detailed analytics remain in each module's Insights tab (no changes to module pages)
-- **Quick Actions Updated**: Aligned with 5-module system and RECORD modality
-  - Now shows 5 cards: Record Emotion, Record Thought, Practice Reframe, Write Journal, Create Goal
-  - Each card uses module identity color on icon (Heart=Blue, Brain=Purple, Lightbulb=Green, Book=Yellow, Target=Indigo)
-  - Fixed routing: /thought-records instead of /thoughts
-  - Removed generic "View Progress" - users can access Insights via Module Summary Cards
-  - Grid layout: 5 columns on large screens, 2 columns on medium, 1 column on mobile
-- **Getting Started Checklist Updated**: Aligned with module identity system
-  - Now covers all 5 modules in sequential order: Track emotion → Record thought → Practice reframe → Write journal → Create goal
-  - Uses concrete action verbs matching module names
-  - Removed therapist-specific "Accept invitation" from universal onboarding checklist
-  - Added subtitle: "Complete these steps to explore the full therapeutic toolkit"
-- **Navigation**: Module cards link to module pages using wouter routing; Insights tabs unchanged
-- **Design Philosophy**: Dashboard shows overview (3 key metrics per module), detailed analytics stay in module Insights tabs
-- **Conceptual Flow Model**: RECORD → REVIEW → INSIGHTS (applied consistently across all 5 modules)
+### November 7, 2025 - My Progress Page: Clinical CBT Metrics Redesign
+- **Complete Redesign Philosophy**: Shifted from generic charts to clinical metrics based on CBT principles
+  - Metrics informed by evidence-based CBT concepts (behavioral activation, affect monitoring, cognitive restructuring, goal progress)
+  - Focus on cross-module insights NOT available in individual module Insights tabs
+  - Quick Links to module-specific detailed analytics instead of duplicating charts
+- **useProgressInsights Hook**: Centralized data fetching and computation for all 5 modules
+  - Fetches: emotions, thoughts, journals, goals, reframe practice results
+  - Computes clinical metrics with proper time range filtering
+  - Provides unified activity timeline across all modules
+- **CBTProgressSnapshot Component**: 4 Clinical Metric Cards
+  - **Engagement Level**: Total entries across all 5 modules (behavioral activation concept)
+  - **Emotional Balance**: Separate positive/negative emotion intensity tracking with % change trends
+    - Positive affect: Joy, Love families (affect-based)
+    - Negative affect: Sadness, Fear, Anger, Disgust families (affect-based)
+    - Trend indicators show improvement (negative ↓ = good, positive ↑ = good)
+  - **Cognitive Restructuring**: % of thoughts examined with evidence (cognitive restructuring practice)
+  - **Goal Progress**: Completion rate with breakdown (completed/in-progress/pending)
+- **ModuleQuickLinks Component**: Navigation to detailed module Insights tabs
+  - Links to all 5 modules in sidebar order with query parameter `?tab=insights`
+  - Replaces chart duplication with efficient navigation to existing detailed analytics
+- **ActivityTimeline Component**: Unified chronological activity view
+  - Shows last 30 activities from all 5 modules sorted by date (most recent first)
+  - Color-coded icons matching module identity system
+  - Displays relative time ("2 hours ago") and absolute timestamp
+- **CBTTriangleConnections Component**: Cross-module relationship insights
+  - **Thought-Feeling Connection**: % of thought records linked to emotion tracking
+  - **Cognitive Pattern Recognition**: Most common cognitive distortion with frequency
+  - **Activity-Mood Connection**: Behavioral activation tracking
+  - Provides recommendations when connections are weak
+- **ProgressIndicators Component**: Clinical markers and personalized recommendations
+  - **Engagement Level**: Progress bar based on total activities
+  - **Cognitive Restructuring**: Progress bar for thought challenge rate
+  - **Emotional Awareness**: Progress bar for emotion tracking frequency
+  - **Personalized Recommendations**: Context-aware suggestions based on usage patterns
+    - Success messages for positive behaviors
+    - Constructive guidance for improvement areas
+    - CBT best practices integrated into feedback
+- **Page Layout**: Clinical information hierarchy
+  1. Header with time range selector (week/month/all) and PDF export
+  2. CBT Progress Snapshot (4 metrics overview)
+  3. Module Quick Links (navigation to detailed insights)
+  4. Two-column layout: Activity Timeline + CBT Triangle Connections
+  5. Full-width Progress Indicators with recommendations
+- **Removed Legacy Charts**: Eliminated redundant visualizations
+  - Emotion distribution pie chart (available in Emotion Tracking Insights tab)
+  - Intensity trend line chart (available in Emotion Tracking Insights tab)
+  - Cognitive distortions bar chart (available in Thought Records Insights tab)
+  - Goal status pie chart (available in Smart Goals Insights tab)
+  - Replaced with Quick Links to existing detailed module analytics
+- **Clinical Validity**: Metrics based on CBT principles
+  - Engagement Level: Behavioral activation concept from CBT
+  - Emotional Balance: Separate positive/negative affect measurement (affect-based concept)
+  - Cognitive Restructuring: Cognitive restructuring practice tracking
+  - Goal Progress: SMART goals completion tracking
+- **Design Principle**: My Progress shows cross-module connections; module Insights tabs show module-specific deep dives
 
-### November 6, 2025 - Sequential Flow Clarity: Module Content Accuracy
-- **Module Headers Updated**: Added sequential flow context to clarify each module's place in the therapeutic process
-  - Emotion Tracking: "Start here: identify and track how you're feeling"
-  - Thought Records: "Record and examine your thoughts after tracking emotions"
-  - Journal: "Process your emotions and experiences: Reflect on your thoughts and feelings through daily journaling"
-- **Thought Records Wizard Benefit Card**: Changed "Challenge & Balance" to "Examine the Evidence"
-  - Removed language about "developing balanced perspectives" which is Reframe Coach's role
-  - Now accurately describes examining evidence for/against thoughts within Thought Records
-- **Content Accuracy Principle**: Each module now clearly describes ONLY what it does, not what other modules do
-  - Prevents user confusion about where to practice reframing (Reframe Coach only)
-  - Maintains clear boundaries between identification (Thought Records) and practice (Reframe Coach)
-- **Verified Card Actions**: Confirmed other modules (Emotions, Goals, Journal) appropriately use dropdown menus for CRUD operations
-  - Unlike Reframe Coach's simplified single-action pattern, these modules legitimately need View/Edit/Delete actions
-  - Dropdown pattern is appropriate for secondary CRUD operations
-
-### November 5, 2025 - Reframe Coach: Major UX Simplification & Unified Timeline
-- **Removed 3-Tab Structure**: Simplified from fragmented tabs (Start Practice, History, Insights) to a single unified timeline view
-  - All thought records now displayed in one scrollable list
-  - No more context switching between tabs
-  - Practice history shown inline with each thought record
-- **Collapsible Introduction Card**: First-time user education made dismissible
-  - "What is Reframe Coach?" intro appears at top of page
-  - Users can collapse/expand or dismiss permanently
-  - Shows key benefits: Identify Distortions, Practice Reframing, Track Progress
-- **Simplified Thought Record Cards**: Reduced visual clutter and cognitive load
-  - Removed multiple status badges (Practice Ready, Practiced Today) from header
-  - Removed clickable card behavior - cards are no longer interactive surfaces themselves
-  - Header now shows only: Date + Challenged status + Journal entry count
-  - Clean two-line header layout for better information hierarchy
-- **Primary Action Button**: Single clear call-to-action at bottom of each card
-  - Prominent purple "Practice This Thought" button when ready (24-hour cooldown passed)
-  - Disabled "Practiced Today" button with hours-until-next indicator when on cooldown
-  - Replaced confusing multiple interaction points with one obvious action
-- **Inline Practice Results**: Last practice session displayed directly on card
-  - Shows time since last practice and score achieved
-  - No need to navigate to separate History tab
-  - Practice context always visible alongside the thought record
-- **Improved Navigation**: Replaced all window.location.href with proper wouter routing
-  - Smoother page transitions
-  - Maintains browser history correctly
-  - Better performance and user experience
-- **Overall Impact**: Reduced from 3 separate views + multiple badges + clickable cards to 1 unified timeline + 1 button per card = significantly simplified user experience
+### November 7, 2025 - Reframe Coach Module Tabs Redesign & UI Improvements
+- **Reframe Coach Tabs Structure**: Redesigned ReframeCoachPage to match other modules with 3-tab layout
+  - **Practice Tab**: Select thought records for cognitive reframing practice with educational accordion
+  - **History Tab**: View past reframe practice sessions using ReframePracticeHistory component
+  - **Insights Tab**: Detailed analytics and score trends using ReframeInsights component
+  - URL parameter support: `?tab=insights` navigates directly to Insights tab from Module Quick Links
+- **Module Quick Links Navigation**: All 5 modules now properly route to their Insights tabs
+  - Emotion Tracking → `/emotions?tab=insights`
+  - Thought Records → `/thoughts?tab=insights`
+  - Journal → `/journal?tab=insights`
+  - Smart Goals → `/goals?tab=insights`
+  - Reframe Coach → `/reframe-coach?tab=insights`
+- **ModuleSummaryCard Layout Fix**: Improved readability for long distortion names on Dashboard
+  - Added `leading-tight` and `break-words` classes to metric values
+  - Long cognitive distortion names (e.g., "All or Nothing") now wrap gracefully to second line
+  - Prevents text squeezing in Top ANT metric display
+- **Module Consistency**: All 5 therapeutic modules now use identical 3-tab structure
+  - Tab 1: Record/Practice/Create (wizard or form)
+  - Tab 2: History/View (past entries)
+  - Tab 3: Insights (analytics and trends)
