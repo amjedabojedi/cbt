@@ -107,7 +107,7 @@ export default function ProgressIndicators({
           Therapeutic Progress Indicators
         </CardTitle>
         <CardDescription>
-          Evidence-based markers of your CBT progress
+          Clinical markers based on CBT principles
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

@@ -85,28 +85,28 @@ export default function CBTProgressSnapshot({
     <div className="space-y-4 mb-6">
       <div>
         <h2 className="text-xl font-semibold text-neutral-800 mb-1">CBT Progress Snapshot</h2>
-        <p className="text-sm text-neutral-500">Evidence-based metrics tracking your therapeutic journey</p>
+        <p className="text-sm text-neutral-500">Clinical metrics based on CBT principles tracking your therapeutic journey</p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 1. Activity Level (BADS-aligned) */}
+        {/* 1. Engagement Level (Behavioral Activation) */}
         <Card data-testid="metric-activity-level">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-neutral-600">Activity Level</CardTitle>
+              <CardTitle className="text-sm font-medium text-neutral-600">Engagement Level</CardTitle>
               <Activity className="h-5 w-5 text-primary" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-neutral-800 mb-1">{totalActivities}</div>
-            <p className="text-xs text-neutral-500">entries logged</p>
+            <p className="text-xs text-neutral-500">total activities</p>
             <div className="mt-2 text-xs text-neutral-600">
-              Across all 5 therapeutic modules
+              Behavioral activation across all modules
             </div>
           </CardContent>
         </Card>
         
-        {/* 2. Emotional Balance (Evidence-based: positive vs negative) */}
+        {/* 2. Emotional Balance (Affect-based: positive vs negative) */}
         <Card data-testid="metric-emotional-balance">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
@@ -142,19 +142,19 @@ export default function CBTProgressSnapshot({
           </CardContent>
         </Card>
         
-        {/* 3. Thought Challenge Rate (CBT evidence-based) */}
+        {/* 3. Thought Challenge Rate (Cognitive restructuring practice) */}
         <Card data-testid="metric-thought-challenge">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-neutral-600">Thought Challenge Practice</CardTitle>
+              <CardTitle className="text-sm font-medium text-neutral-600">Cognitive Restructuring</CardTitle>
               <Brain className="h-5 w-5 text-purple-600" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-neutral-800 mb-1">{thoughtChallengeRate.rate}%</div>
-            <p className="text-xs text-neutral-500">challenge rate</p>
+            <p className="text-xs text-neutral-500">examined with evidence</p>
             <div className="mt-2 text-xs text-neutral-600">
-              {thoughtChallengeRate.challenged} of {thoughtChallengeRate.total} thoughts challenged
+              {thoughtChallengeRate.challenged} of {thoughtChallengeRate.total} thoughts examined
             </div>
           </CardContent>
         </Card>

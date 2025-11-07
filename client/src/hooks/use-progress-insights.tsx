@@ -2,9 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import type { EmotionRecord, ThoughtRecord, Goal, JournalEntry, ReframePracticeResult } from "@shared/schema";
 import { subDays } from "date-fns";
 
-// Emotion type classification (CBT evidence-based)
-const POSITIVE_EMOTIONS = ["Joy", "Love", "Surprise"];
+// Emotion type classification (CBT evidence-based, aligned with emotion wheel)
+// Based on clinical psychology affect classification
+// Positive affect: Joy and Love families
+const POSITIVE_EMOTIONS = ["Joy", "Love"];
+// Negative affect: Sadness, Fear, Anger, Disgust families
 const NEGATIVE_EMOTIONS = ["Sadness", "Fear", "Anger", "Disgust"];
+// Note: Surprise is context-dependent and excluded from balance calculation
+// to maintain clinical validity
 
 interface ProgressInsights {
   // Activity metrics

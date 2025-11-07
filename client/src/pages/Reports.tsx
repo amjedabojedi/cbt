@@ -38,7 +38,7 @@ export default function Reports() {
           <div>
             <h1 className="text-2xl font-bold text-neutral-800" data-testid="page-title">My Progress</h1>
             <p className="text-neutral-500">
-              Evidence-based insights into your therapeutic journey
+              Clinical insights based on CBT principles tracking your therapeutic journey
             </p>
           </div>
           
