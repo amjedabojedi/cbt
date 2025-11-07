@@ -124,11 +124,13 @@ export default function EmotionTracking() {
         
         <Tabs 
           defaultValue={
-            tabParam === 'history' 
-              ? "history" 
-              : (isViewingClientData || user?.role === 'therapist') 
+            tabParam === 'insights' 
+              ? "insights"
+              : tabParam === 'history' 
                 ? "history" 
-                : "record"
+                : (isViewingClientData || user?.role === 'therapist') 
+                  ? "history" 
+                  : "record"
           } 
           className="space-y-4"
         >

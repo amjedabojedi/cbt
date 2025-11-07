@@ -198,9 +198,19 @@ export default function Journal() {
   // If viewing client data, use client's ID, otherwise use current user's ID
   const userId = activeUserId;
   
-  // Initialize tab based on role - therapists/admins should see history first
+  // Check URL parameters for tab
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  
+  // Initialize tab based on URL param first, then role - therapists/admins should see history first
   const [activeTab, setActiveTab] = useState(
-    user?.role === 'therapist' || user?.role === 'admin' ? "history" : "write"
+    tabParam === 'insights'
+      ? "insights"
+      : tabParam === 'history'
+        ? "history"
+        : tabParam === 'write'
+          ? "write"
+          : user?.role === 'therapist' || user?.role === 'admin' ? "history" : "write"
   );
   const [showEntryDialog, setShowEntryDialog] = useState(false);
   const [showTaggingDialog, setShowTaggingDialog] = useState(false);

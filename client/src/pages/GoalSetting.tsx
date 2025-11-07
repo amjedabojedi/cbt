@@ -100,6 +100,10 @@ export default function GoalSetting() {
   // Check if we have insights from a reflection
   const [reflectionInsights, setReflectionInsights] = useState<string | null>(null);
   
+  // Check URL parameters for tab
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  
   // Fetch goals
   const { data: goals = [], isLoading, error } = useQuery<any[]>({
     queryKey: [`${apiPath}/goals`],
@@ -666,7 +670,13 @@ export default function GoalSetting() {
         
         <Tabs 
           defaultValue={
-            (user?.role === 'therapist' || user?.role === 'admin') ? "goals" : "set"
+            tabParam === 'insights'
+              ? "insights"
+              : tabParam === 'goals'
+                ? "goals"
+                : tabParam === 'set'
+                  ? "set"
+                  : (user?.role === 'therapist' || user?.role === 'admin') ? "goals" : "set"
           }
           className="w-full"
         >

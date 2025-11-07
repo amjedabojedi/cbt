@@ -48,11 +48,13 @@ export default function ThoughtRecords() {
   
   // Controlled tab state
   const [activeTab, setActiveTab] = useState<string>(
-    tabParam === 'history' 
-      ? "history" 
-      : (isViewingClientData || user?.role === 'therapist') 
+    tabParam === 'insights'
+      ? "insights"
+      : tabParam === 'history' 
         ? "history" 
-        : "record"
+        : (isViewingClientData || user?.role === 'therapist') 
+          ? "history" 
+          : "record"
   );
   
   // Re-sync tab when user role or viewing context changes
