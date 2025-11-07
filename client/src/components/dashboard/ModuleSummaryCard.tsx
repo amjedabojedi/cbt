@@ -47,13 +47,13 @@ export default function ModuleSummaryCard({
           {metrics.map((metric, index) => (
             <div 
               key={index} 
-              className="text-center p-2 rounded-lg bg-muted/50"
+              className="text-center p-2 rounded-lg bg-muted/50 min-h-[80px] flex flex-col justify-center"
               data-testid={`metric-${index}`}
             >
-              <div className="text-lg font-bold leading-tight break-words" style={{ color }}>
+              <div className="text-base font-bold leading-snug" style={{ color }}>
                 {metric.value}
               </div>
-              <div className="text-xs text-muted-foreground mt-0.5">
+              <div className="text-xs text-muted-foreground mt-1">
                 {metric.label}
               </div>
               {metric.subtext && (
