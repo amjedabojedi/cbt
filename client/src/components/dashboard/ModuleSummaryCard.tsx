@@ -50,7 +50,7 @@ export default function ModuleSummaryCard({
               className="text-center p-2 rounded-lg bg-muted/50"
               data-testid={`metric-${index}`}
             >
-              <div className="text-xl font-bold" style={{ color }}>
+              <div className="text-xl font-bold leading-tight break-words" style={{ color }}>
                 {metric.value}
               </div>
               <div className="text-xs text-muted-foreground mt-0.5">
