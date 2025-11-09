@@ -100,7 +100,6 @@ export function getRelatedQueryKeys(entityType: string, entityId?: number, userI
       
     case 'client':
       baseKeys.push('/api/users/clients');
-      baseKeys.push('/api/public/clients');
       if (entityId) {
         baseKeys.push(`/api/users/${entityId}`);
       }

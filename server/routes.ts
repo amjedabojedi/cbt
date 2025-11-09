@@ -1501,40 +1501,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Special endpoint to recover a session if cookies were lost but user has localStorage backup
-  app.post("/api/auth/recover-session", async (req, res) => {
-    try {
-      console.log("Session recovery attempt received");
-      const { userId } = req.body;
-      
-      if (!userId) {
-        return res.status(400).json({ message: "User ID is required" });
-      }
-      
-      // Find the user
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // Generate session ID and create a new session
-      const sessionId = crypto.randomUUID();
-      await storage.createSession(sessionId, user.id);
-      
-      // Create a session in the same format as login uses
-      req.session = { id: sessionId, userId: user.id };
-      
-      // Set the session cookie with our standard options
-      const cookieOptions = getSessionCookieOptions();
-      res.cookie('sessionId', sessionId, cookieOptions);
-      
-      console.log(`Session successfully recovered for user ${user.id} (${user.username})`);
-      return res.status(200).json({ message: "Session recovered" });
-    } catch (error) {
-      console.error("Session recovery error:", error);
-      return res.status(500).json({ message: "Server error during session recovery" });
-    }
-  });
+  // REMOVED: Session recovery endpoint was a critical security vulnerability
+  // It allowed anyone to create a session for any user without authentication
+  // Proper authentication flow (login with username/password) must be used
   
   app.post("/api/auth/logout", authenticate, async (req, res) => {
     try {
@@ -1558,8 +1527,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Endpoint to update user status (used by client registration from invitation)
-  app.post("/api/users/:userId/update-status", async (req, res) => {
+  // Endpoint to update user status - SECURED with authentication
+  app.post("/api/users/:userId/update-status", authenticate, ensureAuthenticated, checkUserAccess, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const { status } = req.body;
@@ -1567,10 +1536,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!status) {
         return res.status(400).json({ message: "Status is required" });
       }
-      
-      // For now, allow unauthenticated access to this endpoint
-      // This is needed for the initial client registration from invitation
-      // where they're not yet logged in
       
       // Check if user exists
       const targetUser = await storage.getUser(userId);
@@ -2304,39 +2269,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Create a public endpoint to get clients for a therapist - using database queries
-  app.get("/api/public/clients", async (req, res) => {
-    try {
-      // Get the therapist ID from the request headers as a fallback authentication method
-      const requestTherapistId = req.headers["x-user-id"] ? parseInt(req.headers["x-user-id"] as string) : null;
-      const therapistId = req.user?.id || requestTherapistId;
-      
-      console.log("Public clients request for therapist ID:", therapistId);
-      
-      // Ensure we have a valid therapist ID
-      if (!therapistId) {
-        console.log("No therapist ID found, returning empty list");
-        return res.status(200).json([]);
-      }
-      
-      // Get clients from the database
-      console.log("Fetching clients from database for therapist:", therapistId);
-      const clients = await storage.getClients(therapistId);
-      
-      // Add camelCase versions of snake_case database fields for frontend
-      const formattedClients = clients.map(client => ({
-        ...client,
-        therapistId: client.therapist_id,
-        createdAt: client.created_at
-      }));
-      
-      console.log(`Found ${formattedClients.length} clients for therapist ${therapistId}`);
-      return res.status(200).json(formattedClients);
-    } catch (error) {
-      console.error("Error in public clients endpoint:", error);
-      return res.status(500).json({ message: "Failed to fetch clients" });
-    }
-  });
+  // REMOVED: Public clients endpoint was a security vulnerability
+  // It accepted user ID from headers without verification
+  // Use /api/users/therapist/clients instead with proper authentication
   
   // Sample client data counts endpoints
   app.get("/api/users/:userId/emotions/count", (req, res, next) => {
