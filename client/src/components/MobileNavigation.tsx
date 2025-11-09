@@ -28,7 +28,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
   const navigationItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
-    { href: '/emotion-tracking', icon: Heart, label: 'Track Emotions' },
+    { href: '/emotions', icon: Heart, label: 'Track Emotions' },
     { href: '/thought-records', icon: Brain, label: 'Thought Records' },
     { href: '/journal', icon: BookOpen, label: 'Journal' },
     { href: '/goals', icon: Target, label: 'Goals' },

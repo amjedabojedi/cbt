@@ -102,7 +102,7 @@ export default function ThoughtNew() {
                 <Button onClick={() => setLocation('/thoughts')}>
                   Return to Thought Records
                 </Button>
-                <Button variant="outline" onClick={() => setLocation('/emotion-tracking')}>
+                <Button variant="outline" onClick={() => setLocation('/emotions')}>
                   Go to Emotion Tracking
                 </Button>
               </div>
@@ -140,10 +140,10 @@ export default function ThoughtNew() {
             <CardContent>
               <p className="mb-4">Thought records work best when they're linked to a specific emotion you've experienced.</p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button onClick={() => setLocation('/emotion-tracking?tab=history')}>
+                <Button onClick={() => setLocation('/emotions?tab=history')}>
                   Select from Emotion History
                 </Button>
-                <Button variant="outline" onClick={() => setLocation('/emotion-tracking')}>
+                <Button variant="outline" onClick={() => setLocation('/emotions')}>
                   Record a New Emotion First
                 </Button>
               </div>
