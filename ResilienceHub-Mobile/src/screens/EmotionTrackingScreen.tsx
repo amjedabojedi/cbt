@@ -9,6 +9,8 @@ import {
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as SecureStore from 'expo-secure-store';
+import { ApiService } from '../services/api';
 
 interface EmotionTrackingScreenProps {
   navigation: any;
@@ -38,25 +40,26 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
 
     setLoading(true);
     try {
-      // Save emotion to your backend
-      const response = await fetch('/api/emotions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          coreEmotion: selectedEmotion,
-          intensity: intensity,
-          specificEmotions: [selectedEmotion],
-        }),
+      // Get user ID from secure storage
+      const userId = await SecureStore.getItemAsync('userId');
+      if (!userId) {
+        Alert.alert('Error', 'Please log in again');
+        return;
+      }
+
+      // Save emotion using ApiService
+      const response = await ApiService.createEmotion(parseInt(userId), {
+        coreEmotion: selectedEmotion,
+        intensity: intensity,
+        specificEmotions: [selectedEmotion],
       });
 
-      if (response.ok) {
+      if (response.data) {
         Alert.alert('Success', 'Emotion recorded successfully!', [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       } else {
-        Alert.alert('Error', 'Failed to save emotion');
+        Alert.alert('Error', response.error || 'Failed to save emotion');
       }
     } catch (error) {
       Alert.alert('Error', 'Network error. Please try again.');
