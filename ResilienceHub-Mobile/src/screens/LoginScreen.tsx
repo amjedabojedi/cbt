@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { ApiService } from '../services/api';
 
 interface LoginScreenProps {
@@ -33,13 +33,13 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
       const response = await ApiService.login(email, password);
 
       if (response.data && response.data.user) {
-        // Store user data
-        await AsyncStorage.setItem('userId', response.data.user.id.toString());
-        await AsyncStorage.setItem('userEmail', response.data.user.email);
+        // Store user data securely
+        await SecureStore.setItemAsync('userId', response.data.user.id.toString());
+        await SecureStore.setItemAsync('userEmail', response.data.user.email);
         
-        // Set auth token if provided
+        // Set auth token if provided (stored securely)
         if (response.data.token) {
-          await AsyncStorage.setItem('authToken', response.data.token);
+          await SecureStore.setItemAsync('authToken', response.data.token);
           ApiService.setAuthToken(response.data.token);
         }
         
