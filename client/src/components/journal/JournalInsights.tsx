@@ -487,58 +487,6 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
         </CardContent>
       </Card>
 
-      {/* Original Sentiment Trends (Line Chart) */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <CardTitle>Sentiment Trends</CardTitle>
-            </div>
-            <Tabs value={timeRange} onValueChange={(v: any) => setTimeRange(v)} className="w-auto">
-              <TabsList>
-                <TabsTrigger value="week">Week</TabsTrigger>
-                <TabsTrigger value="month">Month</TabsTrigger>
-                <TabsTrigger value="all">All Time</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-          <CardDescription>AI-detected sentiment in your journal entries</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={getSentimentTrends()}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis domain={[0, 100]} />
-              <Tooltip />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="positive" 
-                stroke="#82ca9d" 
-                strokeWidth={2}
-                name="Positive %"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="negative" 
-                stroke="#ff7c7c" 
-                strokeWidth={2}
-                name="Negative %"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="neutral" 
-                stroke="#8884d8" 
-                strokeWidth={2}
-                name="Neutral %"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
       {/* Two-column layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Emotion Distribution */}
