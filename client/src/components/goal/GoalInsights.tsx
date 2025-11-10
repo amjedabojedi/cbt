@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Target, TrendingUp, Award, BarChart3 } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { format, subDays, eachDayOfInterval, differenceInDays } from "date-fns";
+import { format, subDays, subYears, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, differenceInDays } from "date-fns";
 
 interface GoalInsightsProps {
   userId: number;
@@ -17,7 +17,7 @@ const STATUS_COLORS = {
 };
 
 export default function GoalInsights({ userId }: GoalInsightsProps) {
-  const [timeRange, setTimeRange] = useState<"week" | "month" | "all">("month");
+  const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("month");
 
   // Fetch goals
   const { data: goals = [], isLoading } = useQuery<any[]>({
@@ -79,7 +79,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
     };
   };
 
-  // Calculate goal progress over time
+  // Calculate goal progress over time with unified labeling
   const getProgressTrends = () => {
     let startDate: Date;
     
@@ -88,10 +88,68 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
     } else if (timeRange === "month") {
       startDate = subDays(new Date(), 30);
     } else {
-      if (goals.length === 0) return [];
-      startDate = new Date(Math.min(...goals.map(g => new Date(g.createdAt).getTime())));
+      // year view
+      startDate = subYears(new Date(), 1);
     }
 
+    // For year view, group by months
+    if (timeRange === "year") {
+      const months = eachMonthOfInterval(
+        { start: startDate, end: new Date() }
+      );
+      
+      return months.map(monthStart => {
+        const monthEnd = endOfMonth(monthStart);
+        
+        // Count goals created up to the end of this month
+        const totalGoals = goals.filter(g => 
+          new Date(g.createdAt) <= monthEnd
+        ).length;
+        
+        // Count completed goals up to the end of this month
+        const completedGoals = goals.filter(g => 
+          g.status === 'completed' && new Date(g.createdAt) <= monthEnd
+        ).length;
+        
+        return {
+          date: format(monthStart, "MMM"),
+          total: totalGoals,
+          completed: completedGoals,
+          completionRate: totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 0,
+        };
+      });
+    }
+
+    // For month view, group by weeks
+    if (timeRange === "month") {
+      const weeks = eachWeekOfInterval(
+        { start: startDate, end: new Date() },
+        { weekStartsOn: 0 }
+      );
+      
+      return weeks.map((weekStart, index) => {
+        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 0 });
+        
+        // Count goals created up to the end of this week
+        const totalGoals = goals.filter(g => 
+          new Date(g.createdAt) <= weekEnd
+        ).length;
+        
+        // Count completed goals up to the end of this week
+        const completedGoals = goals.filter(g => 
+          g.status === 'completed' && new Date(g.createdAt) <= weekEnd
+        ).length;
+        
+        return {
+          date: `Week ${index + 1}`,
+          total: totalGoals,
+          completed: completedGoals,
+          completionRate: totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 0,
+        };
+      });
+    }
+
+    // For week view, use daily grouping with day names
     const days = eachDayOfInterval({ start: startDate, end: new Date() });
     
     return days.map(day => {
@@ -108,7 +166,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
       ).length;
       
       return {
-        date: format(day, "MMM d"),
+        date: format(day, "EEE"),
         total: totalGoals,
         completed: completedGoals,
         completionRate: totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 0,
@@ -334,7 +392,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
               <TabsList>
                 <TabsTrigger value="week">Week</TabsTrigger>
                 <TabsTrigger value="month">Month</TabsTrigger>
-                <TabsTrigger value="all">All Time</TabsTrigger>
+                <TabsTrigger value="year">Year</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
