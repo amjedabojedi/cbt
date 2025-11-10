@@ -4,14 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp, BarChart3, Calendar as CalendarIcon, Target } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { format, eachDayOfInterval, subDays } from "date-fns";
+import { format, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, subDays, subYears, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 
 interface ReframeInsightsProps {
   userId: number;
 }
 
 export default function ReframeInsights({ userId }: ReframeInsightsProps) {
-  const [timeRange, setTimeRange] = useState<"week" | "month" | "all">("month");
+  const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("month");
 
   // Fetch practice results
   const { data: results = [], isLoading } = useQuery<any[]>({
@@ -59,7 +59,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
     };
   };
 
-  // Calculate score trends over time
+  // Calculate score trends over time with unified labeling
   const getScoreTrends = () => {
     let startDate: Date;
     
@@ -68,10 +68,64 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
     } else if (timeRange === "month") {
       startDate = subDays(new Date(), 30);
     } else {
-      if (results.length === 0) return [];
-      startDate = new Date(Math.min(...results.map(r => new Date(r.createdAt).getTime())));
+      // year view
+      startDate = subYears(new Date(), 1);
     }
 
+    // For year view, group by months
+    if (timeRange === "year") {
+      const months = eachMonthOfInterval(
+        { start: startDate, end: new Date() }
+      );
+      
+      return months.map(monthStart => {
+        const monthEnd = endOfMonth(monthStart);
+        
+        const monthResults = results.filter(r => {
+          const resultDate = new Date(r.createdAt);
+          return isWithinInterval(resultDate, { start: monthStart, end: monthEnd });
+        });
+        
+        const avgScore = monthResults.length > 0
+          ? monthResults.reduce((sum, r) => sum + (r.score || 0), 0) / monthResults.length
+          : 0;
+        
+        return {
+          date: format(monthStart, "MMM"),
+          score: parseFloat(avgScore.toFixed(1)),
+          sessions: monthResults.length,
+        };
+      });
+    }
+
+    // For month view, group by weeks
+    if (timeRange === "month") {
+      const weeks = eachWeekOfInterval(
+        { start: startDate, end: new Date() },
+        { weekStartsOn: 0 }
+      );
+      
+      return weeks.map((weekStart, index) => {
+        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 0 });
+        
+        const weekResults = results.filter(r => {
+          const resultDate = new Date(r.createdAt);
+          return isWithinInterval(resultDate, { start: weekStart, end: weekEnd });
+        });
+        
+        const avgScore = weekResults.length > 0
+          ? weekResults.reduce((sum, r) => sum + (r.score || 0), 0) / weekResults.length
+          : 0;
+        
+        return {
+          date: `Week ${index + 1}`,
+          score: parseFloat(avgScore.toFixed(1)),
+          sessions: weekResults.length,
+        };
+      });
+    }
+
+    // For week view, use daily grouping with day names
     const days = eachDayOfInterval({ start: startDate, end: new Date() });
     
     return days.map(day => {
@@ -85,14 +139,14 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
         : 0;
       
       return {
-        date: format(day, "MMM d"),
+        date: format(day, "EEE"),
         score: parseFloat(avgScore.toFixed(1)),
         sessions: dayResults.length,
       };
     });
   };
 
-  // Calculate accuracy trends over time
+  // Calculate accuracy trends over time with unified labeling
   const getAccuracyTrends = () => {
     let startDate: Date;
     
@@ -101,10 +155,80 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
     } else if (timeRange === "month") {
       startDate = subDays(new Date(), 30);
     } else {
-      if (results.length === 0) return [];
-      startDate = new Date(Math.min(...results.map(r => new Date(r.createdAt).getTime())));
+      // year view
+      startDate = subYears(new Date(), 1);
     }
 
+    // For year view, group by months
+    if (timeRange === "year") {
+      const months = eachMonthOfInterval(
+        { start: startDate, end: new Date() }
+      );
+      
+      return months.map(monthStart => {
+        const monthEnd = endOfMonth(monthStart);
+        
+        const monthResults = results.filter(r => {
+          const resultDate = new Date(r.createdAt);
+          return isWithinInterval(resultDate, { start: monthStart, end: monthEnd });
+        });
+        
+        if (monthResults.length === 0) {
+          return {
+            date: format(monthStart, "MMM"),
+            accuracy: 0,
+            sessions: 0,
+          };
+        }
+
+        const totalCorrect = monthResults.reduce((sum, r) => sum + (r.correctAnswers || r.correctCount || 0), 0);
+        const totalQuestions = monthResults.reduce((sum, r) => sum + (r.totalQuestions || r.totalCount || 1), 0);
+        const accuracy = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
+        
+        return {
+          date: format(monthStart, "MMM"),
+          accuracy: parseFloat(accuracy.toFixed(1)),
+          sessions: monthResults.length,
+        };
+      });
+    }
+
+    // For month view, group by weeks
+    if (timeRange === "month") {
+      const weeks = eachWeekOfInterval(
+        { start: startDate, end: new Date() },
+        { weekStartsOn: 0 }
+      );
+      
+      return weeks.map((weekStart, index) => {
+        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 0 });
+        
+        const weekResults = results.filter(r => {
+          const resultDate = new Date(r.createdAt);
+          return isWithinInterval(resultDate, { start: weekStart, end: weekEnd });
+        });
+        
+        if (weekResults.length === 0) {
+          return {
+            date: `Week ${index + 1}`,
+            accuracy: 0,
+            sessions: 0,
+          };
+        }
+
+        const totalCorrect = weekResults.reduce((sum, r) => sum + (r.correctAnswers || r.correctCount || 0), 0);
+        const totalQuestions = weekResults.reduce((sum, r) => sum + (r.totalQuestions || r.totalCount || 1), 0);
+        const accuracy = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
+        
+        return {
+          date: `Week ${index + 1}`,
+          accuracy: parseFloat(accuracy.toFixed(1)),
+          sessions: weekResults.length,
+        };
+      });
+    }
+
+    // For week view, use daily grouping with day names
     const days = eachDayOfInterval({ start: startDate, end: new Date() });
     
     return days.map(day => {
@@ -115,7 +239,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
       
       if (dayResults.length === 0) {
         return {
-          date: format(day, "MMM d"),
+          date: format(day, "EEE"),
           accuracy: 0,
           sessions: 0,
         };
@@ -126,7 +250,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
       const accuracy = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
       
       return {
-        date: format(day, "MMM d"),
+        date: format(day, "EEE"),
         accuracy: parseFloat(accuracy.toFixed(1)),
         sessions: dayResults.length,
       };
@@ -275,7 +399,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
                 <TabsList>
                   <TabsTrigger value="week">Week</TabsTrigger>
                   <TabsTrigger value="month">Month</TabsTrigger>
-                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="year">Year</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
