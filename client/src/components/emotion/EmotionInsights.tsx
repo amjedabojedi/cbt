@@ -74,7 +74,7 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
           : 0;
         
         return {
-          date: format(day, 'EEE d'), // e.g., "Mon 14"
+          date: format(day, 'EEE'), // Day name only: "Mon", "Tue", etc.
           positiveIntensity: parseFloat(avgPositiveIntensity.toFixed(1)),
           negativeIntensity: parseFloat(avgNegativeIntensity.toFixed(1)),
           count: dayEmotions.length,
@@ -91,7 +91,7 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
         weeks.push(weekMonday);
       }
       
-      return weeks.map(weekStart => {
+      return weeks.map((weekStart, index) => {
         const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
         
         const weekEmotions = emotions.filter(e => {
@@ -110,14 +110,8 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
           ? negativeEmotions.reduce((sum, e) => sum + e.intensity, 0) / negativeEmotions.length
           : 0;
         
-        const startMonth = format(weekStart, 'MMM');
-        const endMonth = format(weekEnd, 'MMM');
-        const weekRange = startMonth === endMonth 
-          ? `${startMonth} ${format(weekStart, 'd')}-${format(weekEnd, 'd')}`
-          : `${startMonth} ${format(weekStart, 'd')}-${endMonth} ${format(weekEnd, 'd')}`;
-        
         return {
-          date: weekRange,
+          date: `Week ${index + 1}`, // Week number: "Week 1", "Week 2", etc.
           positiveIntensity: parseFloat(avgPositiveIntensity.toFixed(1)),
           negativeIntensity: parseFloat(avgNegativeIntensity.toFixed(1)),
           count: weekEmotions.length,

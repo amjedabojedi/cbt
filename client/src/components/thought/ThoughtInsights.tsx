@@ -138,7 +138,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
         const challenged = dayThoughts.filter(t => t.evidenceFor || t.evidenceAgainst).length;
         
         return {
-          date: format(day, 'EEE d'), // e.g., "Mon 14"
+          date: format(day, 'EEE'), // Day name only: "Mon", "Tue", etc.
           total: dayThoughts.length,
           challenged,
         };
@@ -154,7 +154,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
         weeks.push(weekMonday);
       }
       
-      return weeks.map(weekStart => {
+      return weeks.map((weekStart, index) => {
         const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
         
         const weekThoughts = thoughts.filter(t => {
@@ -164,14 +164,8 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
         
         const challenged = weekThoughts.filter(t => t.evidenceFor || t.evidenceAgainst).length;
         
-        const startMonth = format(weekStart, 'MMM');
-        const endMonth = format(weekEnd, 'MMM');
-        const weekRange = startMonth === endMonth 
-          ? `${startMonth} ${format(weekStart, 'd')}-${format(weekEnd, 'd')}`
-          : `${startMonth} ${format(weekStart, 'd')}-${endMonth} ${format(weekEnd, 'd')}`;
-        
         return {
-          date: weekRange,
+          date: `Week ${index + 1}`, // Week number: "Week 1", "Week 2", etc.
           total: weekThoughts.length,
           challenged,
         };
