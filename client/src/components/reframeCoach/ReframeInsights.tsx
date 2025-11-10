@@ -474,7 +474,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={distortionsData} layout="horizontal">
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
+                <XAxis type="number" domain={[0, 'dataMax']} />
                 <YAxis dataKey="name" type="category" width={150} />
                 <Tooltip />
                 <Bar dataKey="count" fill="#3b82f6" name="Times Practiced" />
