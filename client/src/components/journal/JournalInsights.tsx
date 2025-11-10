@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, TrendingUp, Calendar as CalendarIcon, Tag } from "lucide-react";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, RadialBarChart, RadialBar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { format, subDays, eachDayOfInterval } from "date-fns";
+import { format, subDays, eachDayOfInterval, eachWeekOfInterval, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
 
 interface JournalInsightsProps {
   userId: number;
@@ -24,7 +24,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
     enabled: !!userId,
   });
 
-  // Calculate sentiment trends
+  // Calculate sentiment trends with weekly grouping for month view
   const getSentimentTrends = () => {
     let startDate: Date;
     
@@ -37,6 +37,49 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
       startDate = new Date(Math.min(...entries.map(e => new Date(e.createdAt).getTime())));
     }
 
+    // For month view, group by weeks like the thought tracking chart
+    if (timeRange === "month") {
+      const weeks = eachWeekOfInterval(
+        { start: startDate, end: new Date() },
+        { weekStartsOn: 0 } // Sunday
+      );
+      
+      return weeks.map(weekStart => {
+        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 0 });
+        
+        // Filter entries within this week
+        const weekEntries = entries.filter(e => {
+          const entryDate = new Date(e.createdAt);
+          return isWithinInterval(entryDate, { start: weekStart, end: weekEnd });
+        });
+        
+        // Calculate average sentiment for the week
+        const avgPositive = weekEntries.length > 0
+          ? weekEntries.reduce((sum, e) => sum + (e.sentimentPositive || 0), 0) / weekEntries.length
+          : 0;
+        
+        const avgNegative = weekEntries.length > 0
+          ? weekEntries.reduce((sum, e) => sum + (e.sentimentNegative || 0), 0) / weekEntries.length
+          : 0;
+        
+        const avgNeutral = weekEntries.length > 0
+          ? weekEntries.reduce((sum, e) => sum + (e.sentimentNeutral || 0), 0) / weekEntries.length
+          : 0;
+        
+        // Format date range like "Oct 13-19"
+        const dateLabel = format(weekStart, "MMM d") + "-" + format(weekEnd, "d");
+        
+        return {
+          date: dateLabel,
+          positive: parseFloat(avgPositive.toFixed(1)),
+          negative: parseFloat(avgNegative.toFixed(1)),
+          neutral: parseFloat(avgNeutral.toFixed(1)),
+          count: weekEntries.length,
+        };
+      });
+    }
+
+    // For week and all time views, use daily grouping
     const days = eachDayOfInterval({ start: startDate, end: new Date() });
     
     return days.map(day => {
