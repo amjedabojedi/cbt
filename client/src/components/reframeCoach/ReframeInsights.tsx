@@ -385,75 +385,72 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
         </Card>
       </div>
 
-      {/* Two-column layout for charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Score Trends Chart */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                <CardTitle>Score Trends</CardTitle>
-              </div>
-              <Tabs value={timeRange} onValueChange={(v: any) => setTimeRange(v)} className="w-auto">
-                <TabsList>
-                  <TabsTrigger value="week">Week</TabsTrigger>
-                  <TabsTrigger value="month">Month</TabsTrigger>
-                  <TabsTrigger value="year">Year</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-            <CardDescription>Practice scores over time</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={getScoreTrends()}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis domain={[0, 1]} />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="score" 
-                  stroke="#10b981" 
-                  strokeWidth={2} 
-                  name="Score"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Accuracy Trends Chart */}
-        <Card>
-          <CardHeader>
+      {/* Score Trends Chart */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
-              <CardTitle>Accuracy Trends</CardTitle>
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <CardTitle>Score Trends</CardTitle>
             </div>
-            <CardDescription>Answer accuracy over time</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={getAccuracyTrends()}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis domain={[0, 100]} />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="accuracy" 
-                  stroke="#8b5cf6" 
-                  strokeWidth={2} 
-                  name="Accuracy %"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+            <Tabs value={timeRange} onValueChange={(v: any) => setTimeRange(v)} className="w-auto">
+              <TabsList>
+                <TabsTrigger value="week">Week</TabsTrigger>
+                <TabsTrigger value="month">Month</TabsTrigger>
+                <TabsTrigger value="year">Year</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+          <CardDescription>Practice scores over time</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={getScoreTrends()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis domain={[0, 1]} />
+              <Tooltip />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="score" 
+                stroke="#10b981" 
+                strokeWidth={2} 
+                name="Score"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Accuracy Trends Chart */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Target className="h-5 w-5 text-primary" />
+            <CardTitle>Accuracy Trends</CardTitle>
+          </div>
+          <CardDescription>Answer accuracy over time</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={getAccuracyTrends()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis domain={[0, 100]} />
+              <Tooltip />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="accuracy" 
+                stroke="#8b5cf6" 
+                strokeWidth={2} 
+                name="Accuracy %"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
       {/* Distortions Practiced Chart */}
       <Card>
