@@ -167,39 +167,6 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
       .slice(0, 10); // Top 10 topics
   };
 
-  // Calculate mood trends
-  const getMoodTrends = () => {
-    let startDate: Date;
-    
-    if (timeRange === "week") {
-      startDate = subDays(new Date(), 7);
-    } else if (timeRange === "month") {
-      startDate = subDays(new Date(), 30);
-    } else {
-      if (entries.length === 0) return [];
-      startDate = new Date(Math.min(...entries.map(e => new Date(e.createdAt).getTime())));
-    }
-
-    const days = eachDayOfInterval({ start: startDate, end: new Date() });
-    
-    return days.map(day => {
-      const dayStr = format(day, "yyyy-MM-dd");
-      const dayEntries = entries.filter(e => 
-        format(new Date(e.createdAt), "yyyy-MM-dd") === dayStr && e.mood
-      );
-      
-      const avgMood = dayEntries.length > 0
-        ? dayEntries.reduce((sum, e) => sum + (e.mood || 0), 0) / dayEntries.length
-        : 0;
-      
-      return {
-        date: format(day, "MMM d"),
-        mood: parseFloat(avgMood.toFixed(1)),
-        count: dayEntries.length,
-      };
-    });
-  };
-
   // Calculate overall stats
   const getOverallStats = () => {
     const totalEntries = entries.length;
@@ -216,10 +183,6 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
       ? entries.reduce((sum, e) => sum + (e.sentimentNeutral || 0), 0) / entries.length
       : 0;
     
-    const avgMood = entries.filter(e => e.mood).length > 0
-      ? entries.filter(e => e.mood).reduce((sum, e) => sum + (e.mood || 0), 0) / entries.filter(e => e.mood).length
-      : 0;
-    
     const mostCommonEmotion = getEmotionDistribution()[0]?.name || "None";
     
     return {
@@ -227,7 +190,6 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
       avgPositivity: parseFloat(avgSentimentPositive.toFixed(1)),
       avgNegativity: parseFloat(avgSentimentNegative.toFixed(1)),
       avgNeutrality: parseFloat(avgSentimentNeutral.toFixed(1)),
-      avgMood: parseFloat(avgMood.toFixed(1)),
       mostCommonEmotion,
     };
   };
@@ -277,7 +239,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
   return (
     <div className="space-y-6">
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">Total Entries</CardTitle>
@@ -295,16 +257,6 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats.avgPositivity}%</div>
             <p className="text-xs text-muted-foreground mt-1">Positive sentiment</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Avg Mood</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.avgMood}/10</div>
-            <p className="text-xs text-muted-foreground mt-1">Self-reported mood</p>
           </CardContent>
         </Card>
 
@@ -695,45 +647,6 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
         </CardContent>
       </Card>
 
-      {/* Mood Trends */}
-      {entries.some(e => e.mood) && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                <CardTitle>Mood Trends</CardTitle>
-              </div>
-              <Tabs value={timeRange} onValueChange={(v: any) => setTimeRange(v)} className="w-auto">
-                <TabsList>
-                  <TabsTrigger value="week">Week</TabsTrigger>
-                  <TabsTrigger value="month">Month</TabsTrigger>
-                  <TabsTrigger value="all">All Time</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-            <CardDescription>Your self-reported mood ratings over time</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={getMoodTrends()}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis domain={[0, 10]} />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="mood" 
-                  stroke="#8884d8" 
-                  strokeWidth={2}
-                  name="Mood Rating"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
