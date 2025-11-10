@@ -32,11 +32,9 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
       startDate = subDays(new Date(), 7);
     } else if (timeRange === "month") {
       startDate = subDays(new Date(), 30);
-    } else if (timeRange === "year") {
-      startDate = subYears(new Date(), 1);
     } else {
-      if (entries.length === 0) return [];
-      startDate = new Date(Math.min(...entries.map(e => new Date(e.createdAt).getTime())));
+      // year view
+      startDate = subYears(new Date(), 1);
     }
 
     // For year view, group by months like the thought tracking chart
@@ -122,7 +120,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
       });
     }
 
-    // For week and all time views, use daily grouping
+    // For week view, use daily grouping
     const days = eachDayOfInterval({ start: startDate, end: new Date() });
     
     return days.map(day => {
@@ -447,7 +445,6 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                 <TabsTrigger value="week">Week</TabsTrigger>
                 <TabsTrigger value="month">Month</TabsTrigger>
                 <TabsTrigger value="year">Year</TabsTrigger>
-                <TabsTrigger value="all">All Time</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
