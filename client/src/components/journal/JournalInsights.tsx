@@ -304,7 +304,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                   y="50%"
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-current text-3xl font-bold"
+                  className="fill-current text-2xl font-bold"
                   fill="#22c55e"
                 >
                   {stats.avgPositivity}%
@@ -343,7 +343,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                   y="50%"
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-current text-3xl font-bold"
+                  className="fill-current text-2xl font-bold"
                   fill="#ef4444"
                 >
                   {stats.avgNegativity}%
@@ -382,7 +382,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                   y="50%"
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-current text-3xl font-bold"
+                  className="fill-current text-2xl font-bold"
                   fill="#6b7280"
                 >
                   {stats.avgNeutrality}%
