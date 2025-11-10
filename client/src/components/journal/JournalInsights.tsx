@@ -45,16 +45,17 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
         format(new Date(e.createdAt), "yyyy-MM-dd") === dayStr
       );
       
+      // Sentiment values are already percentages (0-100)
       const avgPositive = dayEntries.length > 0
-        ? (dayEntries.reduce((sum, e) => sum + (e.sentimentPositive || 0), 0) / dayEntries.length) * 100
+        ? dayEntries.reduce((sum, e) => sum + (e.sentimentPositive || 0), 0) / dayEntries.length
         : 0;
       
       const avgNegative = dayEntries.length > 0
-        ? (dayEntries.reduce((sum, e) => sum + (e.sentimentNegative || 0), 0) / dayEntries.length) * 100
+        ? dayEntries.reduce((sum, e) => sum + (e.sentimentNegative || 0), 0) / dayEntries.length
         : 0;
       
       const avgNeutral = dayEntries.length > 0
-        ? (dayEntries.reduce((sum, e) => sum + (e.sentimentNeutral || 0), 0) / dayEntries.length) * 100
+        ? dayEntries.reduce((sum, e) => sum + (e.sentimentNeutral || 0), 0) / dayEntries.length
         : 0;
       
       return {
@@ -159,16 +160,17 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
   // Calculate overall stats
   const getOverallStats = () => {
     const totalEntries = entries.length;
+    // Sentiment values are already stored as percentages (0-100), so no need to multiply by 100
     const avgSentimentPositive = entries.length > 0
-      ? (entries.reduce((sum, e) => sum + (e.sentimentPositive || 0), 0) / entries.length) * 100
+      ? entries.reduce((sum, e) => sum + (e.sentimentPositive || 0), 0) / entries.length
       : 0;
     
     const avgSentimentNegative = entries.length > 0
-      ? (entries.reduce((sum, e) => sum + (e.sentimentNegative || 0), 0) / entries.length) * 100
+      ? entries.reduce((sum, e) => sum + (e.sentimentNegative || 0), 0) / entries.length
       : 0;
     
     const avgSentimentNeutral = entries.length > 0
-      ? (entries.reduce((sum, e) => sum + (e.sentimentNeutral || 0), 0) / entries.length) * 100
+      ? entries.reduce((sum, e) => sum + (e.sentimentNeutral || 0), 0) / entries.length
       : 0;
     
     const avgMood = entries.filter(e => e.mood).length > 0
