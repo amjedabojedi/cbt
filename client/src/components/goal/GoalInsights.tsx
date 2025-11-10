@@ -120,15 +120,19 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
       });
     }
 
-    // For month view, group by weeks
+    // For month view, group by weeks (exactly 4 weeks)
     if (timeRange === "month") {
-      const weeks = eachWeekOfInterval(
-        { start: startDate, end: new Date() },
-        { weekStartsOn: 0 }
-      );
+      const today = new Date();
+      const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
+      
+      const weeks = [];
+      for (let i = 3; i >= 0; i--) {
+        const weekMonday = subDays(currentWeekMonday, i * 7);
+        weeks.push(weekMonday);
+      }
       
       return weeks.map((weekStart, index) => {
-        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 0 });
+        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
         
         // Count goals created up to the end of this week
         const totalGoals = goals.filter(g => 

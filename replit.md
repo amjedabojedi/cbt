@@ -62,6 +62,23 @@ The application utilizes consistent design patterns:
 
 ## Recent Changes
 
+### November 10, 2025 - Chart Labeling & Month View Consistency Fix
+- **Unified Chart Labeling Pattern**: All 5 modules now use consistent labels across all time ranges
+  - **Week view**: Day names only (Mon, Tue, Wed, Thu, Fri, Sat, Sun) - removed date numbers
+  - **Month view**: Week numbers (Week 1, Week 2, Week 3, Week 4) - removed date ranges
+  - **Year view**: Month names (Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec)
+- **Fixed Month View to Show Exactly 4 Weeks**: Changed all modules from dynamic week calculation to explicit 4-week display
+  - **Problem**: Journal, Goals, and Reframe Coach used `eachWeekOfInterval` with 30-day range, creating 4-5 variable weeks
+  - **Solution**: All modules now use `for (let i = 3; i >= 0; i--)` to create exactly 4 weeks (current week + 3 previous weeks)
+  - **Implementation**: Uses `startOfWeek(today, { weekStartsOn: 1 })` and `subDays(currentWeekMonday, i * 7)`
+  - **Consistency**: Emotion Tracking and Thought Records already used this logic; Journal, Goals, and Reframe Coach updated to match
+- **Modules Updated**:
+  - Emotion Tracking: Fixed week/month labels in intensity trends chart
+  - Thought Records: Fixed week/month labels in progress trends chart
+  - Journal: Fixed month view to show exactly 4 weeks in sentiment trends chart
+  - Goals: Fixed month view to show exactly 4 weeks in completion rate chart
+  - Reframe Coach: Fixed month view to show exactly 4 weeks in both score and accuracy charts
+
 ### November 7, 2025 - My Progress Page: Clinical CBT Metrics Redesign
 - **Complete Redesign Philosophy**: Shifted from generic charts to clinical metrics based on CBT principles
   - Metrics informed by evidence-based CBT concepts (behavioral activation, affect monitoring, cognitive restructuring, goal progress)
