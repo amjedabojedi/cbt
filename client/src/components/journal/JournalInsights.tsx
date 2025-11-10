@@ -487,8 +487,8 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
         </CardContent>
       </Card>
 
-      {/* Two-column layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Full-width stacked layout */}
+      <div className="space-y-6">
         {/* Emotion Distribution */}
         <Card>
           <CardHeader>
