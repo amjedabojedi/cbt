@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, TrendingUp, Calendar as CalendarIcon, Tag } from "lucide-react";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, RadialBarChart, RadialBar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { format, subDays, eachDayOfInterval, eachWeekOfInterval, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
+import { format, subDays, subYears, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 
 interface JournalInsightsProps {
   userId: number;
@@ -16,7 +16,7 @@ const EMOTION_COLORS = [
 ];
 
 export default function JournalInsights({ userId }: JournalInsightsProps) {
-  const [timeRange, setTimeRange] = useState<"week" | "month" | "all">("month");
+  const [timeRange, setTimeRange] = useState<"week" | "month" | "year" | "all">("month");
 
   // Fetch journal entries
   const { data: entries = [], isLoading } = useQuery<any[]>({
@@ -24,7 +24,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
     enabled: !!userId,
   });
 
-  // Calculate sentiment trends with weekly grouping for month view
+  // Calculate sentiment trends with weekly grouping for month view and monthly grouping for year view
   const getSentimentTrends = () => {
     let startDate: Date;
     
@@ -32,9 +32,52 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
       startDate = subDays(new Date(), 7);
     } else if (timeRange === "month") {
       startDate = subDays(new Date(), 30);
+    } else if (timeRange === "year") {
+      startDate = subYears(new Date(), 1);
     } else {
       if (entries.length === 0) return [];
       startDate = new Date(Math.min(...entries.map(e => new Date(e.createdAt).getTime())));
+    }
+
+    // For year view, group by months like the thought tracking chart
+    if (timeRange === "year") {
+      const months = eachMonthOfInterval(
+        { start: startDate, end: new Date() }
+      );
+      
+      return months.map(monthStart => {
+        const monthEnd = endOfMonth(monthStart);
+        
+        // Filter entries within this month
+        const monthEntries = entries.filter(e => {
+          const entryDate = new Date(e.createdAt);
+          return isWithinInterval(entryDate, { start: monthStart, end: monthEnd });
+        });
+        
+        // Calculate average sentiment for the month
+        const avgPositive = monthEntries.length > 0
+          ? monthEntries.reduce((sum, e) => sum + (e.sentimentPositive || 0), 0) / monthEntries.length
+          : 0;
+        
+        const avgNegative = monthEntries.length > 0
+          ? monthEntries.reduce((sum, e) => sum + (e.sentimentNegative || 0), 0) / monthEntries.length
+          : 0;
+        
+        const avgNeutral = monthEntries.length > 0
+          ? monthEntries.reduce((sum, e) => sum + (e.sentimentNeutral || 0), 0) / monthEntries.length
+          : 0;
+        
+        // Format month like "Jan", "Feb", "Mar"
+        const dateLabel = format(monthStart, "MMM");
+        
+        return {
+          date: dateLabel,
+          positive: parseFloat(avgPositive.toFixed(1)),
+          negative: parseFloat(avgNegative.toFixed(1)),
+          neutral: parseFloat(avgNeutral.toFixed(1)),
+          count: monthEntries.length,
+        };
+      });
     }
 
     // For month view, group by weeks like the thought tracking chart
@@ -403,6 +446,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
               <TabsList>
                 <TabsTrigger value="week">Week</TabsTrigger>
                 <TabsTrigger value="month">Month</TabsTrigger>
+                <TabsTrigger value="year">Year</TabsTrigger>
                 <TabsTrigger value="all">All Time</TabsTrigger>
               </TabsList>
             </Tabs>
