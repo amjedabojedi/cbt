@@ -78,14 +78,14 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
       });
     }
 
-    // For month view, group by weeks like the thought tracking chart
+    // For month view, group by weeks
     if (timeRange === "month") {
       const weeks = eachWeekOfInterval(
         { start: startDate, end: new Date() },
         { weekStartsOn: 0 } // Sunday
       );
       
-      return weeks.map(weekStart => {
+      return weeks.map((weekStart, index) => {
         const weekEnd = endOfWeek(weekStart, { weekStartsOn: 0 });
         
         // Filter entries within this week
@@ -107,8 +107,8 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
           ? weekEntries.reduce((sum, e) => sum + (e.sentimentNeutral || 0), 0) / weekEntries.length
           : 0;
         
-        // Format date range like "Oct 13-19"
-        const dateLabel = format(weekStart, "MMM d") + "-" + format(weekEnd, "d");
+        // Label as "Week 1", "Week 2", etc.
+        const dateLabel = `Week ${index + 1}`;
         
         return {
           date: dateLabel,
@@ -120,7 +120,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
       });
     }
 
-    // For week view, use daily grouping
+    // For week view, use daily grouping with day names
     const days = eachDayOfInterval({ start: startDate, end: new Date() });
     
     return days.map(day => {
@@ -142,8 +142,9 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
         ? dayEntries.reduce((sum, e) => sum + (e.sentimentNeutral || 0), 0) / dayEntries.length
         : 0;
       
+      // Use day name like "Mon", "Tue", "Wed"
       return {
-        date: format(day, "MMM d"),
+        date: format(day, "EEE"),
         positive: parseFloat(avgPositive.toFixed(1)),
         negative: parseFloat(avgNegative.toFixed(1)),
         neutral: parseFloat(avgNeutral.toFixed(1)),
