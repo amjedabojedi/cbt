@@ -472,10 +472,14 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
         <CardContent>
           {distortionsData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={distortionsData} layout="horizontal">
+              <BarChart 
+                data={distortionsData} 
+                layout="horizontal"
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" domain={[0, 'dataMax']} />
-                <YAxis dataKey="name" type="category" width={150} />
+                <XAxis type="number" />
+                <YAxis dataKey="name" type="category" width={180} />
                 <Tooltip />
                 <Bar dataKey="count" fill="#3b82f6" name="Times Practiced" />
               </BarChart>
