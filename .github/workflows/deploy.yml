@@ -1,4 +1,4 @@
-name: Auto Deploy to Production
+name: CBT Auto Deploy to Production
 
 on:
   push:
