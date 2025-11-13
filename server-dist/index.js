@@ -582,9 +582,8 @@ __export(db_exports, {
   withRetry: () => withRetry
 });
 import "dotenv/config";
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-serverless";
-import ws from "ws";
+import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
 async function withRetry(operation, retries = MAX_RETRIES) {
   try {
     return await operation();
@@ -600,9 +599,6 @@ var init_db = __esm({
   "server/db.ts"() {
     "use strict";
     init_schema();
-    neonConfig.webSocketConstructor = ws;
-    neonConfig.useSecureWebSocket = true;
-    neonConfig.pipelineConnect = "password";
     if (!process.env.DATABASE_URL) {
       throw new Error(
         "DATABASE_URL must be set. Did you forget to provision a database?"
@@ -618,10 +614,7 @@ var init_db = __esm({
       // Longer idle timeout
       connectionTimeoutMillis: 1e4,
       // Faster connection timeout
-      maxUses: 7500,
-      // More uses before recycling
-      allowExitOnIdle: false
-      // Keep pool alive
+      ssl: process.env.DATABASE_URL?.includes("sslmode=require") ? { rejectUnauthorized: false } : false
     });
     MAX_RETRIES = 3;
     RETRY_DELAY_MS = 1e3;
@@ -3172,40 +3165,8 @@ import crypto2 from "crypto";
 var sessionLookupCache = /* @__PURE__ */ new Map();
 var CACHE_TTL = 6e4;
 async function authenticate(req, res, next) {
-  console.log("Authenticating request with cookies:", req.cookies);
   const sessionId = req.cookies?.sessionId;
   if (!sessionId) {
-    console.log("No sessionId cookie found, checking for fallback auth headers");
-    const userId = req.headers["x-auth-user-id"];
-    const timestamp2 = req.headers["x-auth-timestamp"];
-    const isFallback = req.headers["x-auth-fallback"];
-    if (userId && timestamp2 && isFallback) {
-      console.log("Found fallback auth headers:", { userId, timestamp: timestamp2 });
-      const requestTime = parseInt(timestamp2);
-      const currentTime = Date.now();
-      const isRecent = currentTime - requestTime < 5 * 60 * 1e3;
-      if (isRecent) {
-        try {
-          const user = await storage.getUser(parseInt(userId));
-          if (user) {
-            console.log("Fallback authentication successful for user:", user.id, user.username);
-            req.user = user;
-            req.session = {
-              id: `fallback-${Date.now()}`,
-              userId: user.id,
-              expiresAt: new Date(Date.now() + 30 * 60 * 1e3)
-              // 30 minutes
-            };
-            return next();
-          }
-        } catch (error) {
-          console.error("Fallback authentication error:", error);
-        }
-      } else {
-        console.log("Fallback auth timestamp too old:", { requestTime, currentTime, diff: currentTime - requestTime });
-      }
-    }
-    console.log("No valid authentication method found");
     return res.status(401).json({ message: "Authentication required" });
   }
   try {
@@ -3219,33 +3180,24 @@ async function authenticate(req, res, next) {
       };
       return next();
     }
-    console.log("Looking up session ID:", sessionId);
-    console.log("Attempting to fetch session with ID:", sessionId);
     const session = await storage.getSessionById(sessionId);
     if (!session) {
-      console.log("Session not found in database");
       const clearOptions = getSessionCookieOptions();
       delete clearOptions.maxAge;
-      console.log("Clearing invalid session cookie with options:", clearOptions);
       res.clearCookie("sessionId", clearOptions);
       return res.status(401).json({ message: "Invalid session" });
     }
-    console.log("Found session:", session.id, "for user:", session.userId);
     if (new Date(session.expiresAt) < /* @__PURE__ */ new Date()) {
-      console.log("Session expired at:", session.expiresAt);
       await storage.deleteSession(sessionId);
       const clearOptions = getSessionCookieOptions();
       delete clearOptions.maxAge;
-      console.log("Clearing expired session cookie with options:", clearOptions);
       res.clearCookie("sessionId", clearOptions);
       return res.status(401).json({ message: "Session expired" });
     }
     const user = await storage.getUser(session.userId);
     if (!user) {
-      console.log("User not found for session:", session.userId);
       return res.status(401).json({ message: "User not found" });
     }
-    console.log("Authentication successful for user:", user.id, user.username);
     sessionLookupCache.set(sessionId, { user, timestamp: Date.now() });
     req.user = user;
     req.session = session;
@@ -3295,39 +3247,31 @@ function isClientOrAdmin(req, res, next) {
   }
   next();
 }
-function checkResourceCreationPermission(req, res, next) {
+async function checkResourceCreationPermission(req, res, next) {
   if (!req.user) {
     return res.status(401).json({ message: "Authentication required" });
   }
   const requestedUserId = parseInt(req.params.userId);
-  if (req.user.id === requestedUserId) {
-    console.log("User creating resource for themselves - ALLOWED");
+  const currentUser = req.user;
+  if (currentUser.id === requestedUserId) {
     return next();
   }
-  if (req.user.role === "admin") {
-    console.log("Admin creating resource for user", requestedUserId, "- ALWAYS ALLOWED");
+  if (currentUser.role === "admin") {
     return next();
   }
-  if (req.user.role === "therapist") {
-    console.log("Professional creating resource for client - checking relationship");
-    (async () => {
-      try {
-        const client = await storage.getUser(requestedUserId);
-        if (client && client.therapistId === req.user.id) {
-          console.log("This client belongs to the professional - ALLOWED");
-          return next();
-        }
-        console.log("This client does not belong to the professional - DENIED");
-        res.status(403).json({ message: "Access denied. You can only create resources for your own clients." });
-      } catch (error) {
-        console.error("Resource creation permission check error:", error);
-        res.status(500).json({ message: "Internal server error" });
+  if (currentUser.role === "therapist") {
+    try {
+      const client = await storage.getUser(requestedUserId);
+      if (client && client.therapistId === currentUser.id) {
+        return next();
       }
-    })();
-    return;
+      return res.status(403).json({ message: "Access denied. You can only create resources for your own clients." });
+    } catch (error) {
+      console.error("Resource creation permission check error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
   }
-  console.log("Access DENIED - User has no permission");
-  res.status(403).json({ message: "Access denied. You can only create resources for yourself." });
+  return res.status(403).json({ message: "Access denied. You can only create resources for yourself." });
 }
 function ensureAuthenticated(req, res, next) {
   if (!req.user) {
@@ -3335,48 +3279,46 @@ function ensureAuthenticated(req, res, next) {
   }
   next();
 }
-function checkUserAccess(req, res, next) {
+async function checkUserAccess(req, res, next) {
   if (!req.user) {
     return res.status(401).json({ message: "Authentication required" });
   }
   const requestedUserId = parseInt(req.params.userId);
-  console.log(`User Access Check - User ${req.user.id} (${req.user.username}, role: ${req.user.role}) is accessing user ${requestedUserId} data`);
+  const currentUser = req.user;
+  console.log(`User Access Check - User ${currentUser.id} (${currentUser.username}, role: ${currentUser.role}) is accessing user ${requestedUserId} data`);
   console.log(
     "**CHECKING IF USER IS ADMIN**",
     "User role:",
-    req.user.role,
+    currentUser.role,
     "Is admin?",
-    req.user.role === "admin"
+    currentUser.role === "admin"
   );
-  if (req.user.role === "admin") {
+  if (currentUser.role === "admin") {
     console.log("*** ADMIN ACCESS GRANTED *** User is an admin, access ALWAYS ALLOWED for all users");
     return next();
   }
-  if (req.user.id === requestedUserId) {
+  if (currentUser.id === requestedUserId) {
     console.log("User is accessing their own data - ALLOWED");
     return next();
   }
-  if (req.user.role === "therapist") {
+  if (currentUser.role === "therapist") {
     console.log("User is a mental health professional, checking if they are accessing their client");
-    (async () => {
-      try {
-        const client = await storage.getUser(requestedUserId);
-        console.log(`Client ${requestedUserId} lookup result:`, client ? `Found: therapistId = ${client.therapistId}` : "Not found");
-        if (client && client.therapistId === req.user.id) {
-          console.log("This client belongs to the professional - ALLOWED");
-          return next();
-        }
-        console.log("This client does not belong to the professional - DENIED");
-        res.status(403).json({ message: "Access denied. Not your client." });
-      } catch (error) {
-        console.error("Check user access error:", error);
-        res.status(500).json({ message: "Internal server error" });
+    try {
+      const client = await storage.getUser(requestedUserId);
+      console.log(`Client ${requestedUserId} lookup result:`, client ? `Found: therapistId = ${client.therapistId}` : "Not found");
+      if (client && client.therapistId === currentUser.id) {
+        console.log("This client belongs to the professional - ALLOWED");
+        return next();
       }
-    })();
-    return;
+      console.log("This client does not belong to the professional - DENIED");
+      return res.status(403).json({ message: "Access denied. Not your client." });
+    } catch (error) {
+      console.error("Check user access error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
   }
   console.log("Access DENIED - User has no permission");
-  res.status(403).json({ message: "Access denied." });
+  return res.status(403).json({ message: "Access denied." });
 }
 
 // server/routes.ts
@@ -6180,29 +6122,6 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Internal server error during login" });
     }
   });
-  app2.post("/api/auth/recover-session", async (req, res) => {
-    try {
-      console.log("Session recovery attempt received");
-      const { userId } = req.body;
-      if (!userId) {
-        return res.status(400).json({ message: "User ID is required" });
-      }
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      const sessionId = crypto2.randomUUID();
-      await storage.createSession(sessionId, user.id);
-      req.session = { id: sessionId, userId: user.id };
-      const cookieOptions = getSessionCookieOptions();
-      res.cookie("sessionId", sessionId, cookieOptions);
-      console.log(`Session successfully recovered for user ${user.id} (${user.username})`);
-      return res.status(200).json({ message: "Session recovered" });
-    } catch (error) {
-      console.error("Session recovery error:", error);
-      return res.status(500).json({ message: "Server error during session recovery" });
-    }
-  });
   app2.post("/api/auth/logout", authenticate, async (req, res) => {
     try {
       await storage.deleteSession(req.session.id);
@@ -6218,7 +6137,7 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Internal server error" });
     }
   });
-  app2.post("/api/users/:userId/update-status", async (req, res) => {
+  app2.post("/api/users/:userId/update-status", authenticate, ensureAuthenticated, checkUserAccess, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const { status } = req.body;
@@ -6732,29 +6651,6 @@ async function registerRoutes(app2) {
     } catch (error) {
       console.error("Error fetching clients:", error);
       return res.status(200).json([]);
-    }
-  });
-  app2.get("/api/public/clients", async (req, res) => {
-    try {
-      const requestTherapistId = req.headers["x-user-id"] ? parseInt(req.headers["x-user-id"]) : null;
-      const therapistId = req.user?.id || requestTherapistId;
-      console.log("Public clients request for therapist ID:", therapistId);
-      if (!therapistId) {
-        console.log("No therapist ID found, returning empty list");
-        return res.status(200).json([]);
-      }
-      console.log("Fetching clients from database for therapist:", therapistId);
-      const clients = await storage.getClients(therapistId);
-      const formattedClients = clients.map((client) => ({
-        ...client,
-        therapistId: client.therapist_id,
-        createdAt: client.created_at
-      }));
-      console.log(`Found ${formattedClients.length} clients for therapist ${therapistId}`);
-      return res.status(200).json(formattedClients);
-    } catch (error) {
-      console.error("Error in public clients endpoint:", error);
-      return res.status(500).json({ message: "Failed to fetch clients" });
     }
   });
   app2.get("/api/users/:userId/emotions/count", (req, res, next) => {
@@ -11075,7 +10971,10 @@ app.use((req, res, next) => {
   if (req.headers["x-requested-with"]) {
     res.header("X-Requested-With-Response", "verified");
   }
-  res.header("Content-Security-Policy-Report-Only", "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;");
+  res.header(
+    "Content-Security-Policy-Report-Only",
+    "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;"
+  );
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -11120,12 +11019,15 @@ app.use((req, res, next) => {
   } else {
     serveStatic(app);
   }
-  const port = 5003;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  const port = parseInt(process.env.PORT || "5000", 10);
+  server.listen(
+    {
+      port,
+      host: "0.0.0.0",
+      reusePort: true
+    },
+    () => {
+      log(`serving on port ${port}`);
+    }
+  );
 })();
