@@ -93,7 +93,7 @@ export default function AuthPage() {
   }, [invitationParam, emailParam, therapistIdParam]);
 
   // Get invitation data from URL params or localStorage
-  const storedInvitationData = localStorage.getItem('pending_invitation');
+  const storedInvitationData = localStorage.getItem('pending_invitation')s;
   let invitationData = null;
   if (storedInvitationData) {
     try {
