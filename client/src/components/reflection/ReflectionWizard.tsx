@@ -233,11 +233,11 @@ export default function ReflectionWizard({
     defaultValues: isEditMode && existingThoughtRecord ? {
       automaticThoughts: existingThoughtRecord.automaticThoughts,
       cognitiveDistortions: existingThoughtRecord.cognitiveDistortions || [],
-      evidenceFor: existingThoughtRecord.evidenceFor,
-      evidenceAgainst: existingThoughtRecord.evidenceAgainst,
-      alternativePerspective: existingThoughtRecord.alternativePerspective,
-      insightsGained: existingThoughtRecord.insightsGained,
-      reflectionRating: existingThoughtRecord.reflectionRating,
+      evidenceFor: existingThoughtRecord.evidenceFor ?? "",
+      evidenceAgainst: existingThoughtRecord.evidenceAgainst ?? "",
+      alternativePerspective: existingThoughtRecord.alternativePerspective ?? "",
+      insightsGained: existingThoughtRecord.insightsGained ?? "",
+      reflectionRating: existingThoughtRecord.reflectionRating ?? 0,
     } : {
       automaticThoughts: "",
       cognitiveDistortions: [],

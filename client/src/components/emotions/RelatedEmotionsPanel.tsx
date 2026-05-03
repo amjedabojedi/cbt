@@ -59,7 +59,7 @@ export default function RelatedEmotionsPanel({
     data: relatedEmotionsData,
     isLoading: isLoadingEmotions,
     error: emotionsError
-  } = useQuery({
+  } = useQuery<{ relatedEmotions: RelatedEmotionRecord[] }>({
     queryKey: ['/api/users', userId, 'journal', journalEntryId, 'related-emotions'],
     enabled: !!journalEntryId,
   });
@@ -69,7 +69,7 @@ export default function RelatedEmotionsPanel({
     data: relatedJournalData,
     isLoading: isLoadingJournal,
     error: journalError
-  } = useQuery({
+  } = useQuery<{ relatedEntries: RelatedJournalEntry[] }>({
     queryKey: ['/api/users', userId, 'emotions', emotion, 'related-journal'],
     enabled: !!emotion,
   });
@@ -79,7 +79,7 @@ export default function RelatedEmotionsPanel({
     data: relatedThoughtsData,
     isLoading: isLoadingThoughts,
     error: thoughtsError
-  } = useQuery({
+  } = useQuery<{ relatedThoughts: RelatedThoughtRecord[] }>({
     queryKey: ['/api/users', userId, 'emotions', emotion, 'related-thoughts'],
     enabled: !!emotion,
   });
@@ -106,9 +106,9 @@ export default function RelatedEmotionsPanel({
   };
   
   // Determine if we have data to show
-  const hasEmotionData = relatedEmotionsData?.relatedEmotions?.length > 0;
-  const hasJournalData = relatedJournalData?.relatedEntries?.length > 0;
-  const hasThoughtData = relatedThoughtsData?.relatedThoughts?.length > 0;
+  const hasEmotionData = (relatedEmotionsData?.relatedEmotions?.length ?? 0) > 0;
+  const hasJournalData = (relatedJournalData?.relatedEntries?.length ?? 0) > 0;
+  const hasThoughtData = (relatedThoughtsData?.relatedThoughts?.length ?? 0) > 0;
   
   // If we don't have data and we're not loading, show an empty state
   if (

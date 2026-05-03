@@ -344,6 +344,7 @@ export function registerReframeCoachRoutes(app: Express): void {
               type: "therapist_message", 
               isRead: false,
               createdAt: new Date(),
+              expiresAt: null,
               link: null,
               linkPath: "/reframe-coach",
               metadata: {

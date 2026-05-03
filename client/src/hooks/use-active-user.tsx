@@ -62,9 +62,17 @@ export default function useActiveUser() {
     return prefix;
   }
   
+  // Is the user viewing their own data (true for clients, or therapists/admins not viewing a client)
+  const isViewingSelf = !isViewingClientData;
+
+  // The API path prefix for the active user (e.g. "/api/users/26")
+  const apiPath = getPathPrefix();
+
   return {
     activeUserId,
     isViewingClientData,
+    isViewingSelf,
+    apiPath,
     canSwitchUser,
     getPathPrefix,
     currentUser: user

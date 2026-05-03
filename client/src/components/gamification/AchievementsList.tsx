@@ -271,7 +271,7 @@ export default function AchievementsList() {
                       category={achievement.category}
                       isNew={achievement.isNew}
                       isLocked={achievement.isLocked}
-                      level={achievement.level}
+                      level={achievement.level as 1 | 2 | 3}
                     />
                   </motion.div>
                 ))}
@@ -306,7 +306,7 @@ export default function AchievementsList() {
                       type={achievement.type}
                       category={achievement.category}
                       isLocked={achievement.isLocked}
-                      level={achievement.level}
+                      level={achievement.level as 1 | 2 | 3}
                     />
                   </motion.div>
                 ))}

@@ -6,9 +6,9 @@ import { useAuth } from "@/lib/auth";
 import { Loader2 } from "lucide-react";
 
 export default function Gamification() {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
   
-  if (isLoading) {
+  if (loading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-screen">
