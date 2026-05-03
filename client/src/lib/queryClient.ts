@@ -13,7 +13,9 @@ async function throwIfResNotOk(res: Response) {
         // Clone the response since we can only read it once
         const clonedRes = res.clone();
         const errorData = await clonedRes.json();
-        errorMessage = errorData.message || JSON.stringify(errorData);
+        errorMessage = errorData.details
+          ? `${errorData.message || 'Error'} — ${errorData.details}`
+          : errorData.message || JSON.stringify(errorData);
       } else {
         // Fallback to plain text if not JSON
         errorMessage = await res.text();

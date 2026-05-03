@@ -362,7 +362,8 @@ const ReframePracticePage = () => {
                 <div className="space-y-4">
                   <p className="text-muted-foreground">
                     {isQuickPractice 
-                      ? `We couldn't generate practice scenarios for this thought record. It may have insufficient content or no cognitive distortions identified. Try selecting a different thought record with clearer cognitive distortions.`
+                      ? (scenariosError?.message
+                          || `We couldn't generate practice scenarios for this thought record. It may have insufficient content or no cognitive distortions identified. Try selecting a different thought record with clearer cognitive distortions.`)
                       : `We couldn't find practice assignment #${assignmentId}. It may have been deleted or you may not have permission to access it.`
                     }
                   </p>

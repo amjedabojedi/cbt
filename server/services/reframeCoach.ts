@@ -677,12 +677,29 @@ export function registerReframeCoachRoutes(app: Express): void {
       
       // Ensure cognitive distortions is always an array
       const normalizedDistortions = Array.isArray(distortions) 
-        ? distortions 
-        : typeof distortions === 'string'
+        ? distortions.filter(d => d && d.trim() !== "" && d.toLowerCase() !== "unknown")
+        : typeof distortions === 'string' && distortions.trim() !== ""
           ? [distortions] 
-          : ["unknown"];
+          : [];
       
       console.log("Normalized distortions:", normalizedDistortions);
+      
+      // Pre-validate: ensure the thought record has enough content for OpenAI
+      const automaticThought = (thoughtRecord.automaticThoughts || "").trim();
+      if (automaticThought.length < 10) {
+        return res.status(400).json({
+          message: "This thought record needs more detail before you can practice with it.",
+          reason: "insufficient_content",
+          details: "The automatic thought field is empty or too short. Edit the thought record and add a clearer description of the thought you want to practice reframing."
+        });
+      }
+      if (normalizedDistortions.length === 0) {
+        return res.status(400).json({
+          message: "This thought record has no cognitive distortion identified.",
+          reason: "no_distortions",
+          details: "Edit the thought record and select at least one cognitive distortion (e.g. All-or-Nothing, Catastrophising) so we can build relevant practice scenarios."
+        });
+      }
       
       // Add more detailed logging to debug thought content
       console.log("Thought record content being sent to OpenAI:", {
@@ -712,7 +729,12 @@ export function registerReframeCoachRoutes(app: Express): void {
       res.json(practiceSession);
     } catch (error) {
       console.error("Error generating practice scenarios:", error);
-      res.status(500).json({ message: "Failed to generate practice scenarios" });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      res.status(500).json({
+        message: "Failed to generate practice scenarios",
+        reason: "ai_service_error",
+        details: errorMessage
+      });
     }
   });
   
