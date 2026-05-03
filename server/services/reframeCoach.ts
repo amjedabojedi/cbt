@@ -343,7 +343,7 @@ export function registerReframeCoachRoutes(app: Express): void {
               body: `${therapistName} has assigned you a new cognitive restructuring practice exercise based on your thought record.`,
               type: "therapist_message", 
               isRead: false,
-              createdAt: new Date().toISOString(),
+              createdAt: new Date(),
               link: null,
               linkPath: "/reframe-coach",
               metadata: {
