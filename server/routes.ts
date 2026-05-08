@@ -252,6 +252,8 @@ import cookieParser from "cookie-parser";
 import { registerIntegrationRoutes } from "./services/integrationRoutes";
 import { registerReframeCoachRoutes } from "./services/reframeCoach";
 import { eq, or, isNull, desc, and, inArray, sql, gt } from "drizzle-orm";
+import { authRateLimit } from "./middleware/rateLimiter";
+import { verifyOrigin } from "./middleware/csrf";
 
 // Initialize Stripe
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -400,7 +402,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Use a consistent secret key for cookie signing
   const cookieSecret = process.env.COOKIE_SECRET || 'resilience-hub-cookie-secret';
   app.use(cookieParser(cookieSecret));
-  
+
+  // SECURITY: CSRF defense via Origin / Referer verification on all
+  // state-changing requests (POST/PUT/PATCH/DELETE). Safe methods pass through.
+  app.use("/api", verifyOrigin);
+
   // Register cross-component integration routes
   registerIntegrationRoutes(app);
   
@@ -881,7 +887,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Authentication routes
-  app.post("/api/auth/register", async (req, res) => {
+  app.post("/api/auth/register", authRateLimit, async (req, res) => {
     try {
       const validatedData = insertUserSchema.parse(req.body);
       const isInvitation = req.body.isInvitation === true;
@@ -1190,7 +1196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Password reset routes
-  app.post("/api/auth/forgot-password", async (req, res) => {
+  app.post("/api/auth/forgot-password", authRateLimit, async (req, res) => {
     try {
       const { email } = req.body;
       
@@ -1290,7 +1296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Reset password using a valid token
-  app.post("/api/auth/reset-password", async (req, res) => {
+  app.post("/api/auth/reset-password", authRateLimit, async (req, res) => {
     try {
       const { token, newPassword } = req.body;
       
@@ -1351,21 +1357,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/login", async (req, res) => {
+  app.post("/api/auth/login", authRateLimit, async (req, res) => {
     try {
-      console.log("Login attempt:", req.body);
+      // SECURITY: Never log req.body — it contains plaintext passwords.
       const { username, password } = req.body;
-      
+
       if (!username || !password) {
-        console.log("Missing username or password");
         return res.status(400).json({ message: "Username and password are required" });
       }
-      
+
       // Clear any existing session cookie first to prevent conflicts
-      // Use the same cookie options to ensure the clearing works properly
       const clearOptions = getSessionCookieOptions();
-      delete clearOptions.maxAge; // Remove maxAge to ensure cookie gets deleted
-      console.log("Clearing existing cookies with options:", clearOptions);
+      delete clearOptions.maxAge;
       res.clearCookie("sessionId", clearOptions);
       
       // Declare user at a higher scope so it's available in the whole function
@@ -1418,11 +1421,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         session = await withRetry(async () => {
           return await storage.createSession(user.id);
         });
-        console.log("Session created successfully:", session.id);
+        // Session created — id intentionally not logged.
         
         // Set the session cookie using our standardized cookie options
         const cookieOptions = getSessionCookieOptions();
-        console.log("Setting cookie with options:", cookieOptions);
         res.cookie("sessionId", session.id, cookieOptions);
       } catch (sessionError) {
         console.error("Error creating session:", sessionError);
@@ -1441,59 +1443,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Special mobile-friendly login endpoint
-  app.post("/api/auth/mobile-login", async (req, res) => {
+  app.post("/api/auth/mobile-login", authRateLimit, async (req, res) => {
     try {
-      console.log("Mobile login attempt:", req.body);
+      // SECURITY: Never log req.body — it contains plaintext passwords.
       const { username, password } = req.body;
-      
+
       if (!username || !password) {
-        console.log("[Mobile] Missing username or password");
         return res.status(400).json({ message: "Username and password are required" });
       }
-      
-      // Clear any existing session cookie first to prevent conflicts
-      // Use the same cookie options to ensure the clearing works properly
+
       const clearOptions = getSessionCookieOptions();
-      delete clearOptions.maxAge; // Remove maxAge to ensure cookie gets deleted
-      console.log("[Mobile] Clearing existing cookies with options:", clearOptions);
+      delete clearOptions.maxAge;
       res.clearCookie("sessionId", clearOptions);
-      
-      // Find user by username or email
-      console.log("[Mobile] Finding user:", username);
+
       let user = await storage.getUserByUsername(username);
-      
       if (!user) {
         user = await storage.getUserByEmail(username);
       }
-      
       if (!user) {
-        console.log("[Mobile] User not found");
         return res.status(401).json({ message: "Invalid credentials" });
       }
-      
-      // Check password
+
       const passwordMatch = await bcrypt.compare(password, user.password);
-      
       if (!passwordMatch) {
-        console.log("[Mobile] Password does not match");
         return res.status(401).json({ message: "Invalid credentials" });
       }
-      
-      // Create a session
+
       const session = await storage.createSession(user.id);
-      
-      // Use our standardized cookie options, but extend the expiry for mobile
       const cookieOptions = getSessionCookieOptions();
-      // Mobile users typically expect longer sessions
       cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days for mobile
-      
-      console.log("[Mobile] Setting cookie with options:", cookieOptions);
       res.cookie("sessionId", session.id, cookieOptions);
-      
-      // Return the user (without password)
+
       const { password: _, ...userWithoutPassword } = user;
-      
-      console.log("[Mobile] Login successful for user:", user.username);
       res.status(200).json(userWithoutPassword);
     } catch (error) {
       console.error("[Mobile] Login error:", error);
@@ -1574,21 +1555,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Endpoint for checking current user's session (used on page loads and app initialization)
-  app.get("/api/auth/me", (req, res, next) => {
-    // Add detailed logging before authentication
-    console.log("Auth check request received from:", req.headers['user-agent']);
-    console.log("Auth check cookies:", req.cookies);
-    console.log("Auth check headers:", {
-      host: req.headers.host,
-      origin: req.headers.origin,
-      referer: req.headers.referer
-    });
-    next();
-  }, authenticate, ensureAuthenticated, (req, res) => {
-    console.log("Auth check successful for user:", req.user.id, req.user.username);
+  app.get("/api/auth/me", authenticate, ensureAuthenticated, (req, res) => {
     // Omit password from response
     const { password, ...userWithoutPassword } = req.user;
-    console.log("Returning user data");
     res.status(200).json(userWithoutPassword);
   });
   
@@ -2223,13 +2192,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        // Try fallback header authentication as last resort
-        if (!authenticatedUser && req.headers['x-user-id']) {
-          const userId = parseInt(req.headers['x-user-id'] as string);
-          if (!isNaN(userId)) {
-            authenticatedUser = await storage.getUser(userId);
-          }
-        }
+        // SECURITY: Header-based fallback authentication has been removed.
+        // Only the httpOnly session cookie may identify the user.
       }
       
       // If no user was found through any method, return empty array
@@ -2772,89 +2736,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Original current viewing client endpoint (will be replaced by the fixed version in client code)
-  app.get("/api/users/current-viewing-client", async (req, res) => {
-    // Default response structure
+  // SECURITY: Always require an authenticated session. Header/query overrides removed.
+  app.get("/api/users/current-viewing-client", authenticate, async (req, res) => {
     const response = { viewingClient: null, success: true };
-    console.log("Original current-viewing-client endpoint received request");
-    
-    try {
-      // Get user ID using multiple fallback methods
-      let userId = null;
-      
-      // Check query parameters first (most explicit)
-      if (req.query.userId) {
-        const queryId = Number(req.query.userId);
-        if (!isNaN(queryId) && queryId > 0) {
-          userId = queryId;
-          console.log(`Using user ID from query parameter: ${userId}`);
-        }
-      }
-      
-      // Try to get from authenticated user
-      if (!userId && req.user && req.user.id) {
-        userId = Number(req.user.id);
-        if (!isNaN(userId) && userId > 0) {
-          console.log(`Using user ID from authenticated session: ${userId}`);
-        } else {
-          userId = null; // Reset if invalid
-        }
-      }
 
-      // Try to get from backup header
-      if (!userId && req.headers['x-user-id']) {
-        const rawValue = req.headers['x-user-id'];
-        let headerValue = '';
-        
-        if (Array.isArray(rawValue)) {
-          headerValue = String(rawValue[0] || '');
-        } else {
-          headerValue = String(rawValue || '');
-        }
-        
-        // Clean the value and convert to number
-        headerValue = headerValue.trim();
-        const parsedId = parseInt(headerValue, 10);
-        
-        if (!isNaN(parsedId) && parsedId > 0) {
-          userId = parsedId;
-          console.log(`Using user ID from X-User-ID header: ${userId}`);
-        }
+    try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Authentication required" });
       }
-      
-      // Third priority: Try from cookie as last resort
-      if (!userId && req.headers.cookie) {
-        try {
-          const cookies = req.headers.cookie.split(';');
-          let sessionId = null;
-          
-          for (const cookie of cookies) {
-            const parts = cookie.trim().split('=');
-            if (parts.length === 2 && parts[0] === 'sessionId' && parts[1]) {
-              sessionId = parts[1];
-              break;
-            }
-          }
-          
-          if (sessionId) {
-            console.log(`Found sessionId from cookie: ${sessionId}`);
-            const session = await storage.getSession(sessionId);
-            if (session && typeof session.userId === 'number') {
-              userId = session.userId;
-              console.log(`Found user ID from session: ${userId}`);
-            }
-          }
-        } catch (cookieError) {
-          console.log("Error parsing cookie:", cookieError);
-        }
-      }
-      
-      // If we couldn't identify the user from any method, return the default response
-      if (!userId) {
-        console.log("Current viewing client: No valid user ID found");
-        // Return the default response with viewingClient: null
-        return res.status(200).json(response);
-      }
+      const userId = Number(req.user.id);
       
       console.log(`Getting current viewing client for user ID: ${userId}`);
       
@@ -3239,7 +3129,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // ALWAYS use the userId from the URL path - this is the client being viewed
       // The checkUserAccess middleware already verified the therapist has permission to view this client
-      console.log(`Therapist ${req.user?.id} is viewing client ${userId}'s emotions`);
       const emotions = await storage.getEmotionRecordsByUser(userId);
       res.status(200).json(emotions);
     } catch (error) {
@@ -3432,7 +3321,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? parseInt(req.query.emotionRecordId as string) 
         : undefined;
       
-      console.log(`Getting thought records for user ${userId}, requester: ${req.user.id} (${req.user.role})`);
       
       // If the requesting user is a therapist and trying to access a client's data
       if (req.user?.role === 'therapist' && userId !== req.user.id) {
@@ -3912,7 +3800,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If the user is a therapist with a current viewing client, show that client's goals
       if (req.user.role === 'therapist' && req.user.currentViewingClientId) {
-        console.log(`Therapist ${req.user.id} is viewing client ${req.user.currentViewingClientId}'s goals`);
         const clientGoals = await storage.getGoalsByUser(req.user.currentViewingClientId);
         return res.status(200).json(clientGoals);
       }
@@ -3933,7 +3820,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Determine which user's goals/milestones to fetch
       let targetUserId = userId;
       if (req.user.role === 'therapist' && req.user.currentViewingClientId) {
-        console.log(`Therapist ${req.user.id} is viewing client ${req.user.currentViewingClientId}'s milestones`);
         targetUserId = req.user.currentViewingClientId;
       }
       

@@ -40,11 +40,10 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
       const fetchCurrentViewingClient = async () => {
         try {
           // Use our new fixed endpoint that always returns 200
-          const response = await fetch(`/api/users/viewing-client-fixed${user?.id ? `?userId=${user.id}` : ''}`, {
+          const response = await fetch(`/api/users/viewing-client-fixed`, {
             method: 'GET',
-            headers: { 
+            headers: {
               'Content-Type': 'application/json',
-              'X-User-ID': user.id.toString()
             },
             credentials: 'include'
           });

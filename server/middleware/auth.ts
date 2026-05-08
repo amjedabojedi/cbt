@@ -226,46 +226,25 @@ export async function checkUserAccess(req: Request, res: Response, next: NextFun
   const requestedUserId = parseInt(req.params.userId);
   const currentUser = req.user; // Type assertion helper
   
-  console.log(`User Access Check - User ${currentUser.id} (${currentUser.username}, role: ${currentUser.role}) is accessing user ${requestedUserId} data`);
+  // Verbose access-check logging removed for production cleanliness.
   
-  // FIRST check: If user is an admin, always allow
-  console.log('**CHECKING IF USER IS ADMIN**', 
-              'User role:', currentUser.role, 
-              'Is admin?', currentUser.role === 'admin');
-              
-  if (currentUser.role === 'admin') {
-    console.log('*** ADMIN ACCESS GRANTED *** User is an admin, access ALWAYS ALLOWED for all users');
-    return next();
-  }
-  
-  // SECOND check: If user is accessing their own data, allow
-  if (currentUser.id === requestedUserId) {
-    console.log('User is accessing their own data - ALLOWED');
-    return next();
-  }
-  
-  // THIRD check: If user is a professional accessing a client's data
+  // 1) Admins always allowed
+  if (currentUser.role === 'admin') return next();
+
+  // 2) Users may always access their own data
+  if (currentUser.id === requestedUserId) return next();
+
+  // 3) Therapists may access their assigned clients' data
   if (currentUser.role === 'therapist') {
-    console.log('User is a mental health professional, checking if they are accessing their client');
-    
     try {
       const client = await storage.getUser(requestedUserId);
-      console.log(`Client ${requestedUserId} lookup result:`, client ? `Found: therapistId = ${client.therapistId}` : 'Not found');
-      
-      if (client && client.therapistId === currentUser.id) {
-        console.log('This client belongs to the professional - ALLOWED');
-        return next();
-      }
-      
-      console.log('This client does not belong to the professional - DENIED');
+      if (client && client.therapistId === currentUser.id) return next();
       return res.status(403).json({ message: 'Access denied. Not your client.' });
     } catch (error) {
       console.error('Check user access error:', error);
       return res.status(500).json({ message: 'Internal server error' });
     }
   }
-  
-  // If none of the above conditions are met, deny access
-  console.log('Access DENIED - User has no permission');
+
   return res.status(403).json({ message: 'Access denied.' });
 }

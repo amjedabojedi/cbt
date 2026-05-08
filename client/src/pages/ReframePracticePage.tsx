@@ -100,22 +100,11 @@ const ReframePracticePage = () => {
       console.log("Fetching thought record with URL:", url);
       
       try {
-        // Add backup auth headers
-        const headers: HeadersInit = {
-          'Content-Type': 'application/json',
-        };
-        
-        // Add backup auth headers if user is authenticated
-        if (user) {
-          console.log("Adding backup auth headers to thought record query", { userId: user.id });
-          headers['x-auth-user-id'] = String(user.id);
-          headers['x-auth-fallback'] = 'true';
-          headers['x-auth-timestamp'] = String(Date.now());
-        }
-        
-        const response = await fetch(url, { 
+        // SECURITY: Auth via session cookie only — no client-side identity headers.
+        const response = await fetch(url, {
           method: 'GET',
-          headers 
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
         });
         
         if (!response.ok) {

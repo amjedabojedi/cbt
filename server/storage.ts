@@ -385,8 +385,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getSession(sessionId: string): Promise<{ userId: number } | null> {
-    console.log(`Looking up session ID: ${sessionId}`);
-    
+    // SECURITY: Do not log raw session IDs (they are bearer tokens).
     try {
       const [session] = await db
         .select()
@@ -394,14 +393,12 @@ export class DatabaseStorage implements IStorage {
         .where(eq(sessions.id, sessionId));
         
       if (session) {
-        console.log(`Found session: ${sessionId} for user: ${session.userId}`);
         return { userId: session.userId };
       } else {
-        console.log(`No session found with ID ${sessionId}`);
         return null;
       }
     } catch (error) {
-      console.error(`Error in getSession for ID ${sessionId}:`, error);
+      console.error(`Error in getSession:`, error);
       return null;
     }
   }
@@ -881,13 +878,13 @@ export class DatabaseStorage implements IStorage {
       
       // Use the retry mechanism for this critical operation
       const [session] = await withRetry(async () => {
-        console.log(`Attempting to fetch session with ID: ${sessionId}`);
+        // SECURITY: Do not log raw session IDs.
         return await db.select().from(sessions).where(eq(sessions.id, sessionId));
       });
       
       return session;
     } catch (error) {
-      console.error(`Error retrieving session ${sessionId}:`, error);
+      console.error(`Error retrieving session:`, error);
       return undefined;
     }
   }

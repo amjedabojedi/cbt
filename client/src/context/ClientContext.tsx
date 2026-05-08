@@ -51,24 +51,14 @@ export function ClientProvider({ children }: { children: ReactNode }) {
           
           setLoading(true);
           
-          // Add userId to headers as backup authentication method
-          const backupHeaders: Record<string, string> = {
-            "Content-Type": "application/json"
-          };
-          
-          if (user?.id) {
-            console.log("Adding backup auth headers:", { userId: user.id });
-            backupHeaders["X-User-ID"] = user.id.toString();
-          }
-          
-          // IMPORTANT: Use the fixed endpoint that always returns 200 status
-          const url = `/api/users/viewing-client-fixed${user?.id ? `?userId=${user.id}` : ''}`;
-          
+          // SECURITY: Authentication uses the httpOnly session cookie only.
+          // No identifying headers or query parameters are sent from the client.
+          const url = `/api/users/viewing-client-fixed`;
+
           try {
-            // Use the fixed endpoint with 200 status code guarantee
             const response = await fetch(url, {
               method: 'GET',
-              headers: backupHeaders,
+              headers: { "Content-Type": "application/json" },
               credentials: 'include'
             });
             

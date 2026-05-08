@@ -59,9 +59,10 @@ class RateLimiter {
   }
 }
 
-export const createRateLimiter = (config: RateLimitConfig) => new RateLimiter(config);
+export const createRateLimiter = (config: RateLimitConfig) =>
+  new RateLimiter(config).middleware;
 
-// Common rate limiters
+// Common rate limiters (already bound middleware functions)
 export const authRateLimit = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
   maxRequests: 5,

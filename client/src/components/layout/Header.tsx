@@ -51,8 +51,11 @@ export default function Header({ title }: HeaderProps) {
               size="icon"
               className="text-neutral-500 hover:text-primary focus:outline-none"
               onClick={() => setIsLanguageModalOpen(!isLanguageModalOpen)}
+              aria-label="Change language"
+              aria-haspopup="menu"
+              aria-expanded={isLanguageModalOpen}
             >
-              <Globe size={20} />
+              <Globe size={20} aria-hidden="true" />
             </Button>
           </div>
         </div>

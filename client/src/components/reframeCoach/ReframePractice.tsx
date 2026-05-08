@@ -674,18 +674,10 @@ const ReframePractice = ({
       
       while (retryCount < maxRetries) {
         try {
-          // Add authentication headers as backup
+          // SECURITY: Auth via session cookie only — no client-side identity headers.
           const headers: HeadersInit = {
             'Content-Type': 'application/json',
           };
-          
-          // Add backup auth headers if user is authenticated 
-          if (user?.id) {
-            console.log(`Attempt ${retryCount + 1}: Adding backup auth headers to results submission`, { userId: user.id });
-            headers['x-auth-user-id'] = String(user.id);
-            headers['x-auth-fallback'] = 'true';
-            headers['x-auth-timestamp'] = String(Date.now());
-          }
           
           // Back up the results in localStorage before making the request
           try {
