@@ -5361,7 +5361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newEntry = await storage.createJournalEntry(validatedData);
       
       // If there's content, analyze it with OpenAI to suggest tags
-      if (validatedData.content && process.env.OPENAI_API_KEY) {
+      if (validatedData.content && process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
         try {
           const analysis = await analyzeJournalEntry(
             validatedData.title || "",
@@ -5424,7 +5424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If content was updated and there's an OpenAI key, re-analyze the content
       let updatedData = validatedData;
-      if (validatedData.content && process.env.OPENAI_API_KEY) {
+      if (validatedData.content && process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
         try {
           const analysis = await analyzeJournalEntry(
             validatedData.title || entry.title || "",
@@ -5578,7 +5578,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Generate new AI suggestions based on the combined content (entry + comments)
       // This allows tags to evolve as the conversation develops
-      if (process.env.OPENAI_API_KEY && entry.content) {
+      if (process.env.AI_INTEGRATIONS_OPENAI_API_KEY && entry.content) {
         try {
           console.log("Starting AI analysis for comment on entry:", entryId);
           
@@ -5658,7 +5658,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         console.log(
           "Skipping AI analysis:",
-          !process.env.OPENAI_API_KEY ? "No OpenAI API key" : "No entry content"
+          !process.env.AI_INTEGRATIONS_OPENAI_API_KEY ? "No OpenAI API key" : "No entry content"
         );
       }
       
@@ -5872,7 +5872,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Content is required for analysis" });
       }
       
-      if (!process.env.OPENAI_API_KEY) {
+      if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
         return res.status(503).json({ message: "AI analysis is not available" });
       }
       
@@ -5906,7 +5906,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      if (!process.env.OPENAI_API_KEY) {
+      if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
         return res.status(503).json({ message: "AI analysis is not available" });
       }
       
@@ -5949,7 +5949,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      if (!process.env.OPENAI_API_KEY) {
+      if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
         return res.status(503).json({ message: "AI analysis is not available" });
       }
       

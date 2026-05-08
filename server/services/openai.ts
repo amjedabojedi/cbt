@@ -1,8 +1,11 @@
 import OpenAI from "openai";
 import crypto from "crypto";
 
-// Initialize OpenAI client
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Initialize OpenAI client via Replit AI Integrations (managed billing, no manual key)
+const openai = new OpenAI({
+  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+});
 
 // Simple cache for reframing practice scenarios
 const practiceScenarioCache = new Map<string, { data: any, timestamp: number }>();
