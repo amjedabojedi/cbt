@@ -733,11 +733,15 @@ export class DatabaseStorage implements IStorage {
       // Return a minimal valid log object to avoid blocking operations
       return {
         id: 0,
-        action: log.action,
-        performedBy: log.performedBy,
-        details: log.details,
-        ipAddress: log.ipAddress || null,
-        timestamp: new Date().toISOString(),
+        level: log.level ?? "info",
+        message: log.message ?? log.action ?? "",
+        userId: log.userId ?? null,
+        actionType: log.actionType ?? null,
+        ipAddress: log.ipAddress ?? null,
+        userAgent: log.userAgent ?? null,
+        createdAt: new Date(),
+        action: log.action ?? null,
+        details: log.details ?? null,
       } as SystemLog;
     }
   }

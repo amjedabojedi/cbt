@@ -493,14 +493,20 @@ export const notificationPreferences = pgTable("notification_preferences", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// System logs for tracking admin actions and system events
+// System logs for tracking admin actions and system events.
+// Columns mirror the live `system_logs` table to prevent drizzle-kit
+// push prompts. `details` is added by drizzle (jsonb is new in schema).
 export const systemLogs = pgTable("system_logs", {
   id: serial("id").primaryKey(),
-  action: text("action").notNull(), // The action that occurred (user_deleted, user_created, etc.)
-  performedBy: integer("performed_by").references(() => users.id), // The user who performed the action (if applicable)
-  details: jsonb("details").notNull().$type<Record<string, any>>(), // Details about the action
-  ipAddress: text("ip_address"), // IP address of the user who performed the action
-  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  level: varchar("level", { length: 50 }).notNull().default("info"),
+  message: text("message").notNull().default(""),
+  userId: integer("user_id").references(() => users.id),
+  actionType: varchar("action_type", { length: 100 }),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+  action: varchar("action"),
+  details: jsonb("details").$type<Record<string, any>>(),
 });
 
 export const insertNotificationPreferencesSchema = createInsertSchema(notificationPreferences).omit({
@@ -513,7 +519,7 @@ export type InsertNotificationPreferences = z.infer<typeof insertNotificationPre
 
 export const insertSystemLogSchema = createInsertSchema(systemLogs).omit({
   id: true,
-  timestamp: true,
+  createdAt: true,
 });
 export type SystemLog = typeof systemLogs.$inferSelect;
 export type InsertSystemLog = z.infer<typeof insertSystemLogSchema>;
