@@ -556,6 +556,23 @@ export const insertAiRecommendationSchema = createInsertSchema(aiRecommendations
 export type AiRecommendation = typeof aiRecommendations.$inferSelect;
 export type InsertAiRecommendation = z.infer<typeof insertAiRecommendationSchema>;
 
+// Email delivery log — written by server/services/email.ts on every send.
+// Kept in sync with the production table to prevent drizzle-kit push prompts.
+export const emailLogs = pgTable("email_logs", {
+  id: serial("id").primaryKey(),
+  recipientEmail: varchar("recipient_email", { length: 255 }).notNull(),
+  subject: varchar("subject", { length: 500 }).notNull(),
+  emailType: varchar("email_type", { length: 100 }).notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("sent"),
+  sparkpostTransactionId: varchar("sparkpost_transaction_id", { length: 255 }),
+  errorMessage: text("error_message"),
+  sentAt: timestamp("sent_at").defaultNow(),
+  userId: integer("user_id").references(() => users.id),
+  recipient: varchar("recipient", { length: 255 }),
+});
+
+export type EmailLog = typeof emailLogs.$inferSelect;
+
 // Client invitations table for tracking invitations sent to potential clients
 export const clientInvitations = pgTable("client_invitations", {
   id: serial("id").primaryKey(),
