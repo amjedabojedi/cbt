@@ -692,7 +692,10 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowSuccessDialog(false)}>
+              Done
+            </Button>
             <Button onClick={handleReset}>
               Write Another Entry
             </Button>
