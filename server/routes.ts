@@ -942,10 +942,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`🔒 INVITATION REGISTRATION (token verified): ${validatedData.email} -> client for therapist ${validatedData.therapistId}`);
       }
 
-      // If this is an invitation and the email exists with a pending status, update that user instead
+      // If this is an invitation and the email exists, handle based on account status
       if (existingEmail) {
         if ((isInvitation || hasPendingInvitation) && existingEmail.status === "pending") {
-          console.log(`Invitation acceptance: Updating existing user ${existingEmail.id} with new credentials`);
+          console.log(`Invitation acceptance: Updating existing pending user ${existingEmail.id} with new credentials`);
           
           // Update the existing user with the new username and password
           const updatedUser = await storage.updateUser(existingEmail.id, {
@@ -975,6 +975,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Return the user (without password)
           const { password, ...userWithoutPassword } = updatedUser;
           return res.status(200).json(userWithoutPassword);
+        } else if ((isInvitation || hasPendingInvitation) && existingEmail.status === "active" && invitationForEmail) {
+          // Existing active user accepting a therapist invitation:
+          // The token has already been verified above. Link the therapist and mark the invitation accepted.
+          console.log(`Invitation acceptance: Linking existing active user ${existingEmail.id} to therapist ${invitationForEmail.therapistId}`);
+          
+          const updatedUser = await storage.updateUser(existingEmail.id, {
+            therapistId: invitationForEmail.therapistId
+          });
+
+          // Mark the invitation as accepted and clear the one-time token hash
+          try {
+            await db
+              .update(clientInvitations)
+              .set({ status: 'accepted', acceptedAt: new Date(), invitationToken: null })
+              .where(eq(clientInvitations.id, invitationForEmail.id));
+          } catch (invErr) {
+            console.error('Error marking invitation accepted for active user:', invErr);
+          }
+
+          // Notify the client
+          await storage.createNotification({
+            userId: existingEmail.id,
+            title: "Therapist Assignment Accepted",
+            body: `You have been successfully linked to your new therapist. Welcome to the team!`,
+            type: "system",
+            isRead: false
+          });
+
+          // Create a session so the user is logged in after accepting
+          const session = await storage.createSession(updatedUser.id);
+          res.cookie("sessionId", session.id, getSessionCookieOptions());
+
+          const { password, ...userWithoutPassword } = updatedUser;
+          return res.status(200).json(userWithoutPassword);
         } else {
           return res.status(409).json({ message: "Email already exists" });
         }
@@ -983,10 +1017,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // When users register directly (no invitation), they are automatically active
       if (!isInvitation && !hasPendingInvitation) {
         validatedData.status = "active";
+        // Strip sensitive fields: public self-registration must always produce a plain client account.
+        // role, therapistId, and any subscription/billing fields must not be caller-controlled.
+        validatedData.role = "client";
+        validatedData.therapistId = undefined;
+        validatedData.stripeCustomerId = undefined;
+        validatedData.stripeSubscriptionId = undefined;
+        validatedData.subscriptionPlanId = undefined;
+        validatedData.subscriptionStatus = undefined;
       }
       
-      // Create the user - if therapistId is provided, it will be included in validatedData 
-      // due to our schema allowing it in the insertUserSchema
+      // Create the user
       const user = await storage.createUser(validatedData);
       
       console.log(`✅ User created successfully:`, {
@@ -2456,22 +2497,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
-        // If user exists but doesn't have a therapist, assign them to this therapist
+        // If user exists but doesn't have a therapist, send them an invitation rather than
+        // assigning them unilaterally. The client must accept the invitation before the
+        // therapist-client relationship becomes active.
         if (!existingUser.therapistId) {
-          const updatedUser = await storage.updateUserTherapist(existingUser.id, req.user.id);
-          
-          // Create a notification for the client
-          await storage.createNotification({
-            userId: existingUser.id,
-            title: "New Therapist Assignment",
-            body: `You have been assigned to ${req.user.name || req.user.username} as your therapist.`,
-            type: "system",
-            isRead: false
-          });
-          
-          return res.status(200).json({ 
-            message: "Existing user assigned as your client",
-            user: updatedUser
+          // Generate a secure one-time invitation token
+          const cryptoMod = await import('crypto');
+          const plaintextToken = cryptoMod.randomBytes(32).toString('hex');
+          const invitationTokenHash = await bcrypt.hash(plaintextToken, 10);
+
+          const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+          const encodedEmail = encodeURIComponent(existingUser.email);
+          const therapistId = req.user.id;
+          const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodedEmail}&therapistId=${therapistId}&token=${plaintextToken}`;
+          const storedInviteLink = `${baseUrl}/auth?invitation=true&email=${encodedEmail}&therapistId=${therapistId}`;
+
+          // Send invitation email so the client can consent and accept
+          const emailSent = await sendClientInvitation(
+            existingUser.email,
+            req.user.name || req.user.username,
+            inviteLink,
+            req.user.id
+          );
+
+          if (!emailSent) {
+            await storage.createNotification({
+              userId: req.user.id,
+              title: "Email Delivery Issue",
+              body: `We couldn't send an invitation email to ${existingUser.email}. Please use the resend invitation feature to try again.`,
+              type: "alert",
+              isRead: false
+            });
+          }
+
+          // Record the invitation — relationship is not active until accepted.
+          // tempUsername/tempPassword are required by the schema but not used for existing active
+          // users; store safe placeholder values (existing user keeps their real credentials).
+          try {
+            await storage.createClientInvitation({
+              email: existingUser.email,
+              therapistId: req.user.id,
+              status: emailSent ? "email_sent" : "email_failed",
+              tempUsername: existingUser.username,
+              tempPassword: "",
+              inviteLink: storedInviteLink,
+              invitationToken: invitationTokenHash
+            });
+          } catch (error) {
+            console.error("Failed to record invitation for existing user:", error);
+          }
+
+          return res.status(200).json({
+            message: "Invitation sent. The client will need to accept the invitation before being assigned to you.",
+            inviteLink
           });
         } else {
           // User exists but has a different therapist
