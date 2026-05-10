@@ -360,7 +360,9 @@ export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit(
   title: z.string().max(500, "Title must not exceed 500 characters"),
   content: z.string().max(50000, "Content must not exceed 50,000 characters"),
 });
-export const insertJournalCommentSchema = createInsertSchema(journalComments).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertJournalCommentSchema = createInsertSchema(journalComments).omit({ id: true, createdAt: true, updatedAt: true }).extend({
+  comment: z.string().min(1, "Comment cannot be empty").max(2000, "Comment must not exceed 2,000 characters"),
+});
 export const insertReframePracticeResultSchema = createInsertSchema(reframePracticeResults).omit({ id: true, createdAt: true });
 export const insertUserGameProfileSchema = createInsertSchema(userGameProfile).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertSessionSchema = createInsertSchema(sessions);

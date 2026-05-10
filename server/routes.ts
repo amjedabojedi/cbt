@@ -5510,7 +5510,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Generate new AI suggestions based on the combined content (entry + comments)
       // This allows tags to evolve as the conversation develops
-      if (process.env.AI_INTEGRATIONS_OPENAI_API_KEY && entry.content) {
+      const clientId = aiRateLimiter.getClientId(req);
+      if (process.env.AI_INTEGRATIONS_OPENAI_API_KEY && entry.content && aiRateLimiter.tryConsume(clientId)) {
         try {
           console.log("Starting AI analysis for comment on entry:", entryId);
           
@@ -5524,15 +5525,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             throw new Error("Invalid comments data structure");
           }
           
-          // Construct the combined text
-          const combinedText = `
-            ${entry.title || ""}
-            
-            ${entry.content}
-            
-            Additional comments:
-            ${comments.map(c => c.comment || "").join("\n\n")}
-          `;
+          // Construct the combined text, capping total prompt size to prevent quota abuse
+          const MAX_PROMPT_CHARS = 8000;
+          const entryPart = `${entry.title || ""}\n\n${entry.content}`;
+          const commentsPart = comments.map(c => c.comment || "").join("\n\n");
+          const combinedRaw = `${entryPart}\n\nAdditional comments:\n${commentsPart}`;
+          const combinedText = combinedRaw.length > MAX_PROMPT_CHARS
+            ? combinedRaw.slice(0, MAX_PROMPT_CHARS)
+            : combinedRaw;
           
           console.log("Sending combined text for AI analysis");
           
@@ -5590,7 +5590,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         console.log(
           "Skipping AI analysis:",
-          !process.env.AI_INTEGRATIONS_OPENAI_API_KEY ? "No OpenAI API key" : "No entry content"
+          !process.env.AI_INTEGRATIONS_OPENAI_API_KEY ? "No OpenAI API key" :
+          !entry.content ? "No entry content" :
+          "AI rate limit reached for user"
         );
       }
       
