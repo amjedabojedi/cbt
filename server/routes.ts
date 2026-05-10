@@ -4219,7 +4219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Ensure the therapist has access to this client
       if (req.user.role !== 'admin') {
         const isClientOfCurrentTherapist = await isClientOfTherapist(clientId, req.user.id);
-        if (!isClientOfTherapist) {
+        if (!isClientOfCurrentTherapist) {
           return res.status(403).json({
             success: false,
             message: "You don't have permission to send reminders to this client"
@@ -5830,9 +5830,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify the user owns this entry or has access to it
-      if (entry.userId !== req.user?.id && req.user?.role !== 'admin' && 
-          req.user?.role !== 'therapist') {
-        return res.status(403).json({ message: "Access denied" });
+      if (entry.userId !== req.user?.id && req.user?.role !== 'admin') {
+        // For therapists, verify the journal entry belongs to one of their assigned clients
+        if (req.user?.role === 'therapist') {
+          const clientBelongsToTherapist = await isClientOfTherapist(entry.userId, req.user.id);
+          if (!clientBelongsToTherapist) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        } else {
+          return res.status(403).json({ message: "Access denied" });
+        }
       }
       
       if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
@@ -7577,6 +7584,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ 
           message: "Recommendations can only be created for clients with an assigned therapist" 
         });
+      }
+      
+      // Only the assigned therapist or an admin may create recommendations for this client
+      if (req.user!.role !== 'admin' && req.user!.id !== user.therapistId) {
+        return res.status(403).json({ message: "You do not have permission to create recommendations for this client" });
       }
       
       // Validate the recommendation data
