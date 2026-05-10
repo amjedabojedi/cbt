@@ -50,6 +50,7 @@ const registerSchema = z.object({
   therapistId: z.number().optional(),
   status: z.string().optional(),
   isInvitation: z.boolean().optional(),
+  invitationToken: z.string().optional(),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -71,6 +72,7 @@ export default function AuthPage() {
   const invitationParam = searchParams.get("invitation") || hashParams.get("invitation");
   const emailParam = searchParams.get("email") || hashParams.get("email");
   const therapistIdParam = searchParams.get("therapistId") || hashParams.get("therapistId");
+  const tokenParam = searchParams.get("token") || hashParams.get("token");
   
   // Store invitation data if URL parameters are present (before they get lost)
   useEffect(() => {
@@ -82,15 +84,16 @@ export default function AuthPage() {
       const invitationData = {
         email: emailParam,
         therapistId: therapistIdParam,
+        token: tokenParam,
         timestamp: Date.now()
       };
       localStorage.setItem('pending_invitation', JSON.stringify(invitationData));
-      console.log('Mobile invitation data stored:', invitationData);
+      console.log('Mobile invitation data stored:', { email: invitationData.email, therapistId: invitationData.therapistId });
       
       // Force mobile users to signup tab if they have invitation parameters
       setActiveTab("register");
     }
-  }, [invitationParam, emailParam, therapistIdParam]);
+  }, [invitationParam, emailParam, therapistIdParam, tokenParam]);
 
   // Get invitation data from URL params or localStorage
   const storedInvitationData = localStorage.getItem('pending_invitation');
@@ -111,6 +114,7 @@ export default function AuthPage() {
   const isInvitation = invitationParam === "true" || !!emailParam || !!invitationData;
   const finalEmail = emailParam || invitationData?.email || "";
   const finalTherapistId = therapistIdParam ? parseInt(therapistIdParam) : invitationData?.therapistId || undefined;
+  const finalToken = tokenParam || invitationData?.token || undefined;
   const [activeTab, setActiveTab] = useState(isInvitation ? "register" : "login");
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [registerSubmitting, setRegisterSubmitting] = useState(false);
@@ -195,11 +199,14 @@ export default function AuthPage() {
         }
       }
       
-      // If this is coming from an invitation, explicitly set status to active and isInvitation flag
+      // If this is coming from an invitation, explicitly set status to active, isInvitation flag, and token
       if (isInvitation) {
         console.log("Registering from invitation - setting status to active and isInvitation flag");
         registrationData.status = "active";
         registrationData.isInvitation = true;
+        if (finalToken) {
+          registrationData.invitationToken = finalToken;
+        }
       }
       
       const result = await registerUser(registrationData);

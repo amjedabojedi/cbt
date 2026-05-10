@@ -111,13 +111,8 @@ export async function sendProfessionalWelcomeEmail(email: string, name: string):
 }
 
 export async function sendClientInvitation(email: string, therapistName: string, inviteLink?: string, therapistId?: number): Promise<boolean> {
-  // SECURITY CRITICAL: Always use the invitation link provided - never generate a fallback
-  console.log('🔍 DEBUG: inviteLink provided:', inviteLink);
-  console.log('🔍 DEBUG: process.env.APP_URL:', process.env.APP_URL);
-  console.log('🔍 DEBUG: therapistId parameter:', therapistId);
-  
+  // Use the invitation link provided — it contains a one-time token so must not be logged
   const registrationUrl = inviteLink || `FALLBACK_URL_ERROR_CHECK_INVITE_GENERATION`;
-  console.log('🔍 DEBUG: Final registration URL:', registrationUrl);
   
   return sendEmail({
     to: email,
@@ -890,7 +885,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", authRateLimit, async (req, res) => {
     try {
       const validatedData = insertUserSchema.parse(req.body);
-      const isInvitation = req.body.isInvitation === true;
+
+      // Unified invitation detection: strict check on both body and query to avoid truthy-bypass attacks
+      const isInvitation = req.body.isInvitation === true || req.query.invitation === "true";
       
       // Check if user already exists by username
       const existingUser = await storage.getUserByUsername(validatedData.username);
@@ -900,18 +897,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if email exists
       const existingEmail = await storage.getUserByEmail(validatedData.email);
-      
-      // If this is an invitation and the email exists with a pending status, we'll update that user instead
+
+      // Look up pending invitation for this email once — used for all invitation checks below
+      const invitationForEmail = await storage.getClientInvitationByEmail(validatedData.email);
+      const hasPendingInvitation = !!(invitationForEmail &&
+        (invitationForEmail.status === 'pending' || invitationForEmail.status === 'email_sent' || invitationForEmail.status === 'email_failed'));
+
+      // Fail-closed: any invitation signal (body, query, or pending invitation on email) requires
+      // a valid one-time token. This prevents both unauthenticated claim and truthy-bypass attacks.
+      if (isInvitation || hasPendingInvitation) {
+        if (!hasPendingInvitation || !invitationForEmail!.invitationToken) {
+          return res.status(403).json({ message: "Invalid or expired invitation. Please request a new invitation link." });
+        }
+        // Enforce expiry: reject if the invitation has passed its expiry date
+        if (invitationForEmail!.expiresAt && new Date() > new Date(invitationForEmail!.expiresAt)) {
+          return res.status(403).json({ message: "This invitation has expired. Please ask your therapist to send a new invitation." });
+        }
+        const providedToken = req.body.invitationToken as string | undefined;
+        if (!providedToken) {
+          return res.status(403).json({ message: "Invitation token is required. Please use the link sent to your email." });
+        }
+        const tokenValid = await bcrypt.compare(providedToken, invitationForEmail!.invitationToken);
+        if (!tokenValid) {
+          return res.status(403).json({ message: "Invalid invitation token. Please use the original link sent to your email." });
+        }
+        // Token verified — force client role, therapist assignment, and active status unconditionally
+        validatedData.role = "client";
+        validatedData.therapistId = invitationForEmail!.therapistId;
+        validatedData.status = "active";
+        console.log(`🔒 INVITATION REGISTRATION (token verified): ${validatedData.email} -> client for therapist ${validatedData.therapistId}`);
+      }
+
+      // If this is an invitation and the email exists with a pending status, update that user instead
       if (existingEmail) {
-        if (isInvitation && existingEmail.status === "pending") {
+        if ((isInvitation || hasPendingInvitation) && existingEmail.status === "pending") {
           console.log(`Invitation acceptance: Updating existing user ${existingEmail.id} with new credentials`);
           
           // Update the existing user with the new username and password
           const updatedUser = await storage.updateUser(existingEmail.id, {
             username: validatedData.username,
-            password: validatedData.password, // This is already hashed from client
+            password: validatedData.password,
             status: "active"
           });
+
+          // Mark the invitation as accepted and clear the token hash (one-time use)
+          if (invitationForEmail) {
+            try {
+              await db
+                .update(clientInvitations)
+                .set({ status: 'accepted', acceptedAt: new Date(), invitationToken: null })
+                .where(eq(clientInvitations.id, invitationForEmail.id));
+            } catch (invErr) {
+              console.error('Error marking invitation accepted:', invErr);
+            }
+          }
           
           // Create a session
           const session = await storage.createSession(updatedUser.id);
@@ -927,34 +966,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // When users register directly, they are automatically active
-      validatedData.status = "active";
-      
-      // SECURITY CRITICAL: Check if this email has any pending invitations
-      try {
-        const invitation = await storage.getClientInvitationByEmail(validatedData.email);
-        if (invitation && (invitation.status === 'pending' || invitation.status === 'email_sent')) {
-          // If there's a pending invitation, they MUST use the invitation link
-          const isInvitationRegistration = req.body.isInvitation || req.query.invitation;
-          if (!isInvitationRegistration) {
-            return res.status(403).json({ 
-              message: "This email has a pending invitation. Please use the invitation link sent to your email." 
-            });
-          }
-          
-          // FORCE client role and therapist assignment - NO EXCEPTIONS
-          validatedData.role = "client";
-          validatedData.therapistId = invitation.therapistId;
-          console.log(`🔒 INVITATION REGISTRATION: ${validatedData.email} -> client for therapist ${invitation.therapistId}`);
-          console.log(`📋 Full registration data:`, {
-            email: validatedData.email,
-            role: validatedData.role,
-            therapistId: validatedData.therapistId,
-            isInvitation: isInvitationRegistration
-          });
-        }
-      } catch (error) {
-        console.log('⚠️ Invitation check failed, proceeding with registration:', error);
+      // When users register directly (no invitation), they are automatically active
+      if (!isInvitation && !hasPendingInvitation) {
+        validatedData.status = "active";
       }
       
       // Create the user - if therapistId is provided, it will be included in validatedData 
@@ -979,14 +993,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // AUTOMATIC CLEANUP: Mark any pending invitations for this email as accepted
       if (user.email && user.therapistId) {
         try {
-          // Update invitation status from pending to accepted for this email and therapist
+          // Update invitation status from pending to accepted and clear the one-time token hash
           await db
             .update(clientInvitations)
-            .set({ status: 'accepted', acceptedAt: new Date() })
+            .set({ status: 'accepted', acceptedAt: new Date(), invitationToken: null })
             .where(and(
               eq(clientInvitations.email, user.email),
               eq(clientInvitations.therapistId, user.therapistId),
-              inArray(clientInvitations.status, ['pending', 'email_sent'])
+              inArray(clientInvitations.status, ['pending', 'email_sent', 'email_failed'])
             ));
           console.log(`Automatically marked invitation as accepted for ${user.email} with therapist ${user.therapistId}`);
         } catch (invitationError) {
@@ -1149,29 +1163,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ message: "Invitation already pending for this email" });
       }
       
-      // Generate secure invitation token
+      // Generate secure invitation token (plaintext sent in URL, hash stored in DB)
       const crypto = await import('crypto');
-      const invitationToken = crypto.randomBytes(32).toString('hex');
+      const plaintextToken = crypto.randomBytes(32).toString('hex');
+      const invitationTokenHash = await bcrypt.hash(plaintextToken, 10);
       const tempUsername = email.split('@')[0] + Math.floor(Math.random() * 1000);
       const tempPassword = Math.random().toString(36).substring(2, 10);
+      const hashedTempPassword = await bcrypt.hash(tempPassword, 10);
       // Use APP_URL environment variable first, fall back to request headers
       const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
-      const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${req.user.id}`;
+      const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${req.user.id}&token=${plaintextToken}`;
+      // Store a tokenless base link in DB — token hash is stored separately in invitationToken
+      const storedInviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${req.user.id}`;
       
-      // Log the invitation link for debugging
-      console.log(`Generated invitation link: ${inviteLink}`);
-      
-      // Create the invitation
-      const invitation = await storage.createClientInvitation({
+      // Create the invitation — store hashed credentials only, never plaintext token
+      await storage.createClientInvitation({
         email,
         therapistId: req.user.id,
         tempUsername,
-        tempPassword,
-        inviteLink,
-        status: 'pending'
+        tempPassword: hashedTempPassword,
+        inviteLink: storedInviteLink,
+        status: 'pending',
+        invitationToken: invitationTokenHash
       });
       
-      // Send email invitation with the same reliable link
+      // Send email invitation with the secure link (contains one-time token)
       const therapistName = req.user.name || req.user.username;
       const emailSent = await sendClientInvitation(email, therapistName, inviteLink);
       
@@ -1186,7 +1202,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json({ 
         message: "Invitation sent successfully",
-        invitation,
         emailSent 
       });
     } catch (error) {
@@ -2462,27 +2477,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "pending" // Set status to pending for invited users
       });
       
-      // Create a welcome notification for the new client
+      // Create a welcome notification for the new client (no credentials in notification body)
       await storage.createNotification({
         userId: newUser.id,
         title: "Welcome to Resilience CBT",
-        body: `Welcome to Resilience CBT! You have been registered by ${req.user.name || req.user.username}. Your temporary username is ${username} and password is ${tempPassword}. Please change your password after logging in.`,
+        body: `Welcome to Resilience CBT! You have been registered by ${req.user.name || req.user.username}. Please check your email for your invitation link to set up your account.`,
         type: "system",
         isRead: false
       });
       
-      // Generate an invitation link with email parameter and therapist ID
-      // Use APP_URL environment variable first, fall back to request headers
+      // Generate secure invitation token (plaintext goes in URL, hash stored in DB)
+      const cryptoMod = await import('crypto');
+      const plaintextToken = cryptoMod.randomBytes(32).toString('hex');
+      const invitationTokenHash = await bcrypt.hash(plaintextToken, 10);
+      const hashedTempPassword = await bcrypt.hash(tempPassword, 10);
+
+      // Generate an invitation link with email, therapist ID, and one-time token
       const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
-      console.log(`Using base URL for invitation: ${baseUrl}`);
       const encodedEmail = encodeURIComponent(email);
       const therapistId = req.user.id;
-      const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodedEmail}&therapistId=${therapistId}`;
+      const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodedEmail}&therapistId=${therapistId}&token=${plaintextToken}`;
+      // Store a tokenless base link in DB — token hash is stored separately in invitationToken
+      const storedInviteLink = `${baseUrl}/auth?invitation=true&email=${encodedEmail}&therapistId=${therapistId}`;
       
-      // Log the invitation link for debugging
-      console.log(`Generated invitation link: ${inviteLink}`);
-      
-      // Send email with the client's credentials
+      // Send email with the secure invitation link
       const emailSent = await sendClientInvitation(
         email,
         req.user.name || req.user.username,
@@ -2495,25 +2513,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         console.warn(`Failed to send invitation email to ${email}. Check if SPARKPOST_API_KEY is correctly configured.`);
         
-        // Create an additional notification for the therapist about the email failure
+        // Notify therapist of failure — do not expose credentials
         await storage.createNotification({
           userId: req.user.id,
           title: "Email Delivery Issue",
-          body: `We couldn't send an invitation email to ${email}. Please provide this information to your client directly: Username: ${username}, Temporary Password: ${tempPassword}, and the invitation link.`,
+          body: `We couldn't send an invitation email to ${email}. Please use the resend invitation feature to try again, or contact support.`,
           type: "alert",
           isRead: false
         });
       }
       
-      // Create a record of the invitation in the database for tracking
+      // Create a record of the invitation in the database — store tokenless link and hashed credentials only
       try {
         await storage.createClientInvitation({
           email: email,
           therapistId: req.user.id,
           status: emailSent ? "email_sent" : "email_failed",
           tempUsername: username,
-          tempPassword: tempPassword,
-          inviteLink: inviteLink
+          tempPassword: hashedTempPassword,
+          inviteLink: storedInviteLink,
+          invitationToken: invitationTokenHash
         });
       } catch (error) {
         console.error("Failed to record invitation:", error);
@@ -2525,10 +2544,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({
         message: "New client account created successfully",
         user: userWithoutPassword,
-        credentials: {
-          username,
-          tempPassword
-        }
+        inviteLink  // Return secure tokenized link so therapists can copy/share it manually
       });
     } catch (error) {
       console.error("Error inviting client:", error);
@@ -2912,8 +2928,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Check if this email is already a registered user
           const existingUser = await storage.getUserByEmail(invitation.email);
           if (!existingUser) {
-            // No user exists with this email, keep the invitation
-            validInvitations.push(invitation);
+            // No user exists with this email, keep the invitation (strip sensitive hashed fields)
+            const { tempPassword: _tp, invitationToken: _it, ...safeInv } = invitation;
+            validInvitations.push(safeInv);
           } else {
             // User exists - mark invitation as accepted if they're a client of this therapist
             if (existingUser.therapistId === req.user.id) {
@@ -2950,7 +2967,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to view this invitation" });
       }
       
-      res.json(invitation);
+      // Strip sensitive hashed fields before returning
+      const { tempPassword: _tp, invitationToken: _it, ...safeInvitation } = invitation;
+      res.json(safeInvitation);
     } catch (error) {
       console.error("Error fetching invitation:", error);
       res.status(500).json({ message: "Failed to fetch invitation" });
@@ -2980,9 +2999,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Therapist not found" });
       }
       
-      // Generate a fresh invitation link with therapistId for resending
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
-      const freshInviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(invitation.email)}&therapistId=${req.user.id}`;
+      // Generate a fresh secure invitation token for resending
+      const cryptoResend = await import('crypto');
+      const freshPlaintextToken = cryptoResend.randomBytes(32).toString('hex');
+      const freshTokenHash = await bcrypt.hash(freshPlaintextToken, 10);
+
+      // Update the invitation record with the new token hash
+      await db
+        .update(clientInvitations)
+        .set({ invitationToken: freshTokenHash })
+        .where(eq(clientInvitations.id, invitationId));
+
+      const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+      const freshInviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(invitation.email)}&therapistId=${req.user.id}&token=${freshPlaintextToken}`;
       
       const emailSent = await sendClientInvitation(
         invitation.email,
@@ -2991,13 +3020,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.user.id
       );
       
-      // Create a notification for the therapist regardless of email status
+      // Create a notification for the therapist — never expose credentials
       await storage.createNotification({
         userId: req.user.id,
         title: emailSent ? "Invitation Resent" : "Invitation Email Failed",
         body: emailSent 
           ? `Invitation to ${invitation.email} has been resent successfully.`
-          : `Failed to send invitation email to ${invitation.email}. Please provide account details directly: Username: ${invitation.tempUsername}, Password: ${invitation.tempPassword}`,
+          : `Failed to send invitation email to ${invitation.email}. Please try again later or contact support.`,
         type: emailSent ? "system" : "alert",
         isRead: false
       });
@@ -6707,8 +6736,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
     
-    // Test invitation notification endpoint with detailed diagnostics
+    // Test invitation notification endpoint with detailed diagnostics — development only
     app.get("/api/test/invitation-notification", async (req, res) => {
+      if (process.env.NODE_ENV !== "development") {
+        return res.status(404).json({ message: "Not found" });
+      }
       const email = req.query.email as string;
       if (!email) {
         return res.status(400).json({ success: false, message: "Email parameter is required" });
@@ -6753,14 +6785,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           console.log("Step 2: Creating client invitation record...");
           const username = "testuser_" + Math.floor(Math.random() * 1000);
-          const password = "temp" + Math.floor(Math.random() * 10000);
+          const plaintextPw = "temp" + Math.floor(Math.random() * 10000);
+          const hashedPw = await bcrypt.hash(plaintextPw, 10);
           
           const invitation = await storage.createClientInvitation({
             email: email,
             therapistId: 1,
             status: "pending",
             tempUsername: username,
-            tempPassword: password,
+            tempPassword: hashedPw,
             inviteLink: `https://example.com/invite?email=${encodeURIComponent(email)}&code=${Math.random().toString(36).substring(2, 15)}`
           });
           

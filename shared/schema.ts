@@ -590,6 +590,7 @@ export const clientInvitations = pgTable("client_invitations", {
   tempUsername: text("temp_username").notNull(),
   tempPassword: text("temp_password").notNull(),
   inviteLink: text("invite_link").notNull(),
+  invitationToken: text("invitation_token"), // bcrypt hash of one-time token included in invite URL
   createdAt: timestamp("created_at").defaultNow().notNull(),
   acceptedAt: timestamp("accepted_at"), // When the invitation was accepted
   expiresAt: timestamp("expires_at").defaultNow(), // Set to 7 days after creation by default

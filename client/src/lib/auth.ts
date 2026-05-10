@@ -20,6 +20,7 @@ interface AuthContextType {
     therapistId?: number;
     status?: string;
     isInvitation?: boolean;
+    invitationToken?: string;
   }) => Promise<User>;
   logout: () => Promise<void>;
 }
@@ -221,6 +222,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     therapistId?: number;
     status?: string;
     isInvitation?: boolean;
+    invitationToken?: string;
   }) => {
     setLoading(true);
     try {
@@ -375,6 +377,7 @@ export function useAuth(): AuthContextType {
       therapistId?: number;
       status?: string;
       isInvitation?: boolean;
+      invitationToken?: string;
     }) => {
       setLoading(true);
       try {

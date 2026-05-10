@@ -35,12 +35,21 @@ export default function InvitationLinks() {
       return response.json();
     },
     onSuccess: (data) => {
+      if (!data.inviteLink) {
+        toast({
+          title: "Invitation Sent",
+          description: `An invitation email was sent to ${email}. The secure link is included in the email.`,
+        });
+        setEmail("");
+        setName("");
+        return;
+      }
       // Create a new link entry with a unique ID
       const newLink: InvitationLink = {
         id: Date.now(),
         email: email,
         name: name,
-        link: data.inviteLink || `${window.location.origin}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${user?.id}`,
+        link: data.inviteLink,
         copied: false
       };
       
