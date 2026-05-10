@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import DOMPurify from "dompurify";
 
 import {
   Card,
@@ -1574,7 +1575,7 @@ export default function ResourceLibrary() {
                     
                     <div className="border-t pt-4">
                       <h3 className="text-lg font-medium mb-2">Content</h3>
-                      <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: currentResource.content }} />
+                      <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentResource.content) }} />
                     </div>
                     
                     {currentResource.pdfUrl && (
@@ -2253,7 +2254,7 @@ export default function ResourceLibrary() {
                   <p className="text-xs font-medium text-neutral-500 mb-2">Resource Content</p>
                   <div className="bg-white border rounded-md p-4 max-h-[40vh] overflow-y-auto">
                     {viewingAssignment.resource.type === 'article' ? (
-                      <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: viewingAssignment.resource.content }} />
+                      <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(viewingAssignment.resource.content) }} />
                     ) : viewingAssignment.resource.type === 'pdf' && viewingAssignment.resource.fileUrl ? (
                       <div className="text-center">
                         <a 

@@ -5156,7 +5156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Only the resource creator or admin can see all feedback
-      if (resource.createdBy !== req.user.id && req.user.role !== "admin" && req.user.role !== "therapist") {
+      if (resource.createdBy !== req.user.id && req.user.role !== "admin") {
         return res.status(403).json({ message: "Access denied to resource feedback" });
       }
       
