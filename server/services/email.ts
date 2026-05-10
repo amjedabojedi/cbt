@@ -76,12 +76,8 @@ export function isEmailEnabled(): boolean {
  * Generic function to send an email
  */
 export async function sendEmail(params: EmailParams): Promise<boolean> {
-  // If SparkPost integration isn't configured, log the email that would have been sent
+  // If SparkPost integration isn't configured, skip silently
   if (!isEmailEnabled()) {
-    console.log('Email service not configured. Would have sent:');
-    console.log('To:', params.to);
-    console.log('Subject:', params.subject);
-    console.log('Body:', params.text || params.html || '(HTML content)');
     return false;
   }
 
@@ -116,9 +112,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     }
 
     // Send the email through SparkPost
-    console.log(`Sending email to ${params.to} via SparkPost`);
-    const result = await sparkPostClient.transmissions.send(transmission);
-    console.log('Email sent successfully:', result);
+    await sparkPostClient.transmissions.send(transmission);
     
     // Record the email in our database for auditing
     try {

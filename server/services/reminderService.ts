@@ -125,7 +125,7 @@ export async function sendReminderToClient(
       });
       
       if (!emailResult) {
-        console.warn(`Failed to send reminder email to client ${clientId} (${clientEmail})`);
+        console.warn(`Failed to send reminder email to client ${clientId}`);
         success = false;
       }
     }
@@ -183,10 +183,10 @@ export async function processInactivityReminders(config: ReminderConfig = {
       
       if (success) {
         sent++;
-        console.log(`Successfully sent reminder to client ${client.id} (${client.email})`);
+        console.log(`Successfully sent reminder to client ${client.id}`);
       } else {
         failed++;
-        console.warn(`Failed to send reminder to client ${client.id} (${client.email})`);
+        console.warn(`Failed to send reminder to client ${client.id}`);
       }
     }
     

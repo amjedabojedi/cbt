@@ -939,7 +939,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         validatedData.role = "client";
         validatedData.therapistId = invitationForEmail!.therapistId;
         validatedData.status = "active";
-        console.log(`🔒 INVITATION REGISTRATION (token verified): ${validatedData.email} -> client for therapist ${validatedData.therapistId}`);
+        console.log(`🔒 INVITATION REGISTRATION (token verified): client for therapist ${validatedData.therapistId}`);
       }
 
       // If this is an invitation and the email exists, handle based on account status
@@ -1030,13 +1030,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create the user
       const user = await storage.createUser(validatedData);
       
-      console.log(`✅ User created successfully:`, {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        therapistId: user.therapistId,
-        status: user.status
-      });
+      console.log(`User created successfully: id=${user.id} role=${user.role}`);
       
       // SAFETY CHECK: If this was an invitation registration but therapistId is missing, fix it
       if (isInvitation && !user.therapistId && validatedData.therapistId) {
@@ -1057,7 +1051,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               eq(clientInvitations.therapistId, user.therapistId),
               inArray(clientInvitations.status, ['pending', 'email_sent', 'email_failed'])
             ));
-          console.log(`Automatically marked invitation as accepted for ${user.email} with therapist ${user.therapistId}`);
+          console.log(`Automatically marked invitation as accepted for user ${user.id} with therapist ${user.therapistId}`);
         } catch (invitationError) {
           console.error('Error updating invitation status:', invitationError);
           // Don't fail registration if invitation update fails
@@ -1066,7 +1060,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log the registration with therapist information
       if (validatedData.therapistId) {
-        console.log(`User ${user.id} (${user.username}) registered with therapist ID: ${validatedData.therapistId}`);
+        console.log(`User ${user.id} registered with therapist ID: ${validatedData.therapistId}`);
         
         // If therapistId is provided, create a notification for the therapist
         const therapist = await storage.getUser(validatedData.therapistId);
@@ -1099,7 +1093,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If the user is a therapist, automatically assign them to the default (Free) subscription plan
       if (validatedData.role && validatedData.role === "therapist") {
         try {
-          console.log(`Processing subscription plan for new therapist: ${user.id} (${user.email})`);
+          console.log(`Processing subscription plan for new therapist: ${user.id}`);
           
           // Get the default subscription plan (Free plan)
           const defaultPlan = await storage.getDefaultSubscriptionPlan();
@@ -1121,7 +1115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               subscriptionStatus: userWithStatus.subscriptionStatus
             }));
             
-            console.log(`Successfully assigned default subscription plan (${defaultPlan.name}) to therapist: ${user.email}`);
+            console.log(`Successfully assigned default subscription plan (${defaultPlan.name}) to therapist ${user.id}`);
             
             // Send welcome email to the new therapist
             try {
@@ -1168,9 +1162,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 html,
               });
               
-              console.log(`Welcome email to therapist ${user.email}: ${emailSent ? 'Sent successfully' : 'Failed to send'}`);
+              console.log(`Welcome email to therapist ${user.id}: ${emailSent ? 'Sent successfully' : 'Failed to send'}`);
             } catch (emailError) {
-              console.error(`Error sending welcome email to therapist ${user.email}:`, emailError);
+              console.error(`Error sending welcome email to therapist ${user.id}:`, emailError);
             }
           } else {
             console.warn("No default subscription plan found for new therapist");
@@ -1282,7 +1276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // For security, don't reveal if the email exists or not
       if (!user) {
-        console.log(`Password reset requested for non-existent email: ${email}`);
+        console.log(`Password reset requested for non-existent account`);
         // Still return success to prevent email enumeration
         return res.status(200).json({
           success: true,
@@ -1316,10 +1310,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send the reset email
       const emailSent = await sendPasswordResetEmail(user.email, resetUrl);
       
-      if (emailSent) {
-        console.log(`Password reset email sent to ${email}`);
-      } else {
-        console.error(`Failed to send password reset email to ${email}`);
+      if (!emailSent) {
+        console.error(`Failed to send password reset email`);
       }
       
       // Return success regardless of email sending status (for security)
@@ -1473,10 +1465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check the password
-      console.log("Comparing passwords");
-      console.log("User data for password check:", { id: user.id, hasPassword: !!user.password });
       const passwordMatch = await bcrypt.compare(password, user.password);
-      console.log("Password match result:", passwordMatch);
       
       if (!passwordMatch) {
         console.log("Password does not match");
@@ -1504,7 +1493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Return the user (without password)
       const { password: _, ...userWithoutPassword } = user;
       
-      console.log("Login successful for user:", user.username);
+      console.log("Login successful for user:", user.id);
       res.status(200).json(userWithoutPassword);
     } catch (error) {
       console.error("Login error:", error);
@@ -1817,7 +1806,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Update subscription status to trial since this is the Free plan
             await storage.updateSubscriptionStatus(user.id, "trial");
             
-            console.log(`Assigned default subscription plan (${defaultPlan.name}) to therapist: ${email}`);
+            console.log(`Assigned default subscription plan (${defaultPlan.name}) to therapist ${user.id}`);
           } else {
             console.warn("No default subscription plan found for new therapist");
           }
@@ -1856,7 +1845,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             unhashedPassword,
             loginLink
           );
-          console.log(`Welcome email sent to professional: ${email}`);
+          console.log(`Welcome email sent to new professional user ${user.id}`);
         } catch (emailError) {
           console.error("Error sending professional welcome email:", emailError);
           // Continue with the response even if email fails
@@ -2278,7 +2267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(200).json([]);
       }
       
-      console.log("Clients endpoint accessed by user:", authenticatedUser.id, authenticatedUser.username, authenticatedUser.role);
+      console.log("Clients endpoint accessed by user:", authenticatedUser.id, authenticatedUser.role);
       
       // Ensure user has therapist or admin role
       if (authenticatedUser.role !== "therapist" && authenticatedUser.role !== "admin") {
@@ -2606,10 +2595,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.user.id
       );
       
-      if (emailSent) {
-        console.log(`Invitation email sent to ${email}`);
-      } else {
-        console.warn(`Failed to send invitation email to ${email}. Check if SPARKPOST_API_KEY is correctly configured.`);
+      if (!emailSent) {
+        console.warn(`Failed to send invitation email. Check if SPARKPOST_API_KEY is correctly configured.`);
         
         // Notify therapist of failure — do not expose credentials
         await storage.createNotification({
@@ -2842,7 +2829,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(200).json(defaultResponse);
       }
 
-      console.log("Found viewing client:", viewingClient.name);
+      console.log("Found viewing client:", viewingClient.id);
       return res.status(200).json({ 
         viewingClient: {
           id: viewingClient.id,
@@ -2868,8 +2855,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const userId = Number(req.user.id);
       
-      console.log(`Getting current viewing client for user ID: ${userId}`);
-      
       // Create a completely safe user lookup with double validation
       let user = null;
       let viewingClientId = null;
@@ -2881,7 +2866,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If we got a user, check for a viewing client ID
         if (user && typeof user.currentViewingClientId === 'number' && user.currentViewingClientId > 0) {
           viewingClientId = user.currentViewingClientId;
-          console.log(`Found user ${userId} with viewing client ID: ${viewingClientId}`);
           
           // Try to get the client details now that we have valid IDs
           try {
@@ -2890,24 +2874,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             try {
               client = await storage.getClient(viewingClientId);
             } catch (clientFetchError) {
-              console.log(`Error fetching client ${viewingClientId}:`, clientFetchError);
+              console.error(`Error fetching client:`, clientFetchError);
               return res.status(200).json(response);
             }
             
             if (!client) {
-              console.log(`Client ID ${viewingClientId} not found`);
               await storage.updateCurrentViewingClient(userId, null);
               return res.status(200).json(response);
             }
 
             // Re-verify the therapist-client relationship is still active
             if (req.user.role === 'therapist' && client.therapistId !== userId) {
-              console.log(`Stale viewing client: client ${viewingClientId} is no longer assigned to therapist ${userId}`);
               await storage.updateCurrentViewingClient(userId, null);
               return res.status(200).json(response);
             }
-            
-            console.log(`Found current viewing client: ${client.name || 'Unnamed'} for user ${userId}`);
             
             // Update the response with client data
             response.viewingClient = {
@@ -3906,7 +3886,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users/:userId/goals", authenticate, checkUserAccess, isClientOrAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      console.log("Creating goal with data:", JSON.stringify(req.body));
+      console.log("Creating goal for user:", userId);
       
       // Create a new object with all the goal data
       let updatedBody = { ...req.body, userId };
@@ -4045,7 +4025,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/goals/:goalId/milestones", authenticate, async (req, res) => {
     try {
       const goalId = parseInt(req.params.goalId);
-      console.log("Creating milestone with data:", JSON.stringify(req.body));
+      console.log("Creating milestone for goal:", req.body.goalId);
       
       // First, retrieve the goal to check ownership and permissions
       const [goal] = await db
@@ -6630,7 +6610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const emailSent = await sendEmotionTrackingReminder(client.email, client.name);
             if (emailSent) emailsSent++;
           } catch (emailError) {
-            console.error(`Error sending email to ${client.email}:`, emailError);
+            console.error(`Error sending email to client ${client.id}:`, emailError);
           }
         }
       }
@@ -6676,7 +6656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const processedUsers = [];
       
       for (const user of users) {
-        console.log(`Processing weekly digest for: ${user.name} (ID: ${user.id})`);
+        console.log(`Processing weekly digest for user ID: ${user.id}`);
         
         // Get user's weekly summary
         const now = new Date();
@@ -6770,7 +6750,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const emailSent = await sendWeeklyProgressDigest(user.email, user.name, summary);
             if (emailSent) emailsSent++;
           } catch (emailError) {
-            console.error(`Error sending digest email to ${user.email}:`, emailError);
+            console.error(`Error sending digest email to user ${user.id}:`, emailError);
           }
         }
         
@@ -6896,7 +6876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       try {
         console.log(`=== INVITATION SYSTEM TEST ===`);
-        console.log(`Testing with email: ${email}`);
+        console.log(`Testing invitation system`);
         
         // Step 1: Create a test notification
         try {

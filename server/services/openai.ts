@@ -284,8 +284,7 @@ export async function analyzeJournalEntry(
       }
     }
     
-    // For any API error, use fallback analysis - IMPORTANT: Pass the original title and content
-    console.log(`Using fallback analysis for title: "${title}" and content starting with: "${content.substring(0, 50)}..."`);
+    // For any API error, use fallback analysis
     return generateFallbackAnalysis(title, content);
   }
 }
@@ -1009,8 +1008,6 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
       neutral: neutralScore 
     }
   };
-  
-  console.log("FINAL FALLBACK ANALYSIS RESULT:", JSON.stringify(result, null, 2));
   
   return result;
 }

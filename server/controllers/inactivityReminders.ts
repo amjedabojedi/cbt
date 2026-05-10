@@ -68,12 +68,10 @@ export async function findInactiveClients(days: number = 3, therapistId?: number
         // Check if their last activity is before the cutoff date
         const lastActivityDate = new Date(lastActivity);
         isInactive = lastActivityDate < cutoffDate;
-        console.log(`Client ${client.id}: ${client.name} - Last activity: ${lastActivityDate.toISOString()} - Inactive: ${isInactive}`);
       } else {
         // If they have never recorded any activity, check if they registered before the cutoff date
         const createdAt = new Date(client.createdAt);
         isInactive = createdAt < cutoffDate;
-        console.log(`Client ${client.id}: ${client.name} - No activity, created at: ${createdAt.toISOString()} - Inactive: ${isInactive}`);
       }
       
       // If inactive, add to our list
@@ -236,17 +234,10 @@ export async function sendInactivityReminders(req: Request, res: Response) {
       
       // Send email if SparkPost is configured
       if (emailsEnabled) {
-        console.log(`Attempting to send reminder email to ${client.name} (${client.email})`);
         const emailSent = await sendEmotionTrackingReminder(client.email, client.name);
-        
         if (emailSent) {
-          console.log(`✓ Successfully sent email to ${client.email}`);
           emailsSent++;
-        } else {
-          console.log(`✗ Failed to send email to ${client.email}`);
         }
-      } else {
-        console.log(`Email service not enabled - would have sent reminder to ${client.email}`);
       }
     }
     

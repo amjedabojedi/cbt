@@ -29,7 +29,6 @@ export async function requestPasswordReset(req: Request, res: Response) {
     
     // For security, don't reveal if the email exists or not
     if (!user) {
-      console.log(`Password reset requested for non-existent email: ${email}`);
       // Still return success to prevent email enumeration
       return res.status(200).json({
         success: true,
@@ -63,10 +62,8 @@ export async function requestPasswordReset(req: Request, res: Response) {
     // Send the reset email
     const emailSent = await sendPasswordResetEmail(email, resetUrl);
     
-    if (emailSent) {
-      console.log(`Password reset email sent to ${email}`);
-    } else {
-      console.error(`Failed to send password reset email to ${email}`);
+    if (!emailSent) {
+      console.error(`Failed to send password reset email`);
     }
     
     // Return success regardless of email sending status (for security)

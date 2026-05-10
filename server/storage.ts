@@ -243,7 +243,7 @@ export class DatabaseStorage implements IStorage {
       
       // Use the retry mechanism for this critical operation
       const [user] = await withRetry(async () => {
-        console.log(`Attempting to fetch user with username: ${username}`);
+        console.log(`Attempting to fetch user by username`);
         return await db.select().from(users).where(eq(users.username, username));
       });
       
@@ -363,20 +363,11 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getClient(clientId: number): Promise<User | undefined> {
-    console.log(`Getting client by ID: ${clientId}`);
-    
     try {
       const [client] = await db
         .select()
         .from(users)
         .where(eq(users.id, clientId));
-        
-      if (client) {
-        console.log(`Found client: ${client.name} with ID ${clientId}`);
-      } else {
-        console.log(`No client found with ID ${clientId}`);
-      }
-      
       return client;
     } catch (error) {
       console.error(`Error in getClient for ID ${clientId}:`, error);
