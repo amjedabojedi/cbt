@@ -12,6 +12,7 @@ import { Request, Response } from "express";
 import { Express } from "express";
 import { db } from "../db";
 import { authenticate, checkUserAccess } from "../middleware/auth";
+import { aiRateLimit, aiRateLimiter } from "../middleware/rateLimiter";
 import { sql, count, eq, and, desc, isNull, inArray, gte } from "drizzle-orm";
 import { 
   thoughtRecords, 
@@ -190,7 +191,7 @@ async function calculateAchievements(userId: number, result: z.infer<typeof reco
 
 export function registerReframeCoachRoutes(app: Express): void {
   // Create a new reframe practice assignment
-  app.post("/api/reframe-coach/assignments", authenticate, async (req: Request, res: Response) => {
+  app.post("/api/reframe-coach/assignments", authenticate, aiRateLimit, async (req: Request, res: Response) => {
     try {
       // Validate request data
       const validatedData = createReframePracticeSchema.parse(req.body);
@@ -598,7 +599,7 @@ export function registerReframeCoachRoutes(app: Express): void {
   });
   
   // Generate practice scenarios for a specific thought record (without creating an assignment)
-  app.get("/api/users/:userId/thoughts/:thoughtId/practice-scenarios", authenticate, checkUserAccess, async (req: Request, res: Response) => {
+  app.get("/api/users/:userId/thoughts/:thoughtId/practice-scenarios", authenticate, aiRateLimit, checkUserAccess, async (req: Request, res: Response) => {
     try {
       
       // Validate parameters with more robust error handling

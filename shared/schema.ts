@@ -324,7 +324,14 @@ export const insertEmotionRecordSchema = z.object({
   // Accept any valid date format (string or Date object)
   timestamp: z.any()
 });
-export const insertThoughtRecordSchema = createInsertSchema(thoughtRecords).omit({ id: true, createdAt: true });
+export const insertThoughtRecordSchema = createInsertSchema(thoughtRecords).omit({ id: true, createdAt: true }).extend({
+  automaticThoughts: z.string().max(10000, "Automatic thoughts must not exceed 10,000 characters"),
+  situation: z.string().max(5000, "Situation must not exceed 5,000 characters").optional(),
+  evidenceFor: z.string().max(5000, "Evidence for must not exceed 5,000 characters").optional(),
+  evidenceAgainst: z.string().max(5000, "Evidence against must not exceed 5,000 characters").optional(),
+  alternativePerspective: z.string().max(5000, "Alternative perspective must not exceed 5,000 characters").optional(),
+  insightsGained: z.string().max(5000, "Insights gained must not exceed 5,000 characters").optional(),
+});
 export const insertProtectiveFactorSchema = createInsertSchema(protectiveFactors).omit({ id: true, createdAt: true });
 // Custom schema for protective factor usage to better handle validation
 export const insertProtectiveFactorUsageSchema = z.object({
@@ -349,7 +356,10 @@ export const insertActionSchema = createInsertSchema(actions).omit({ id: true, c
 export const insertResourceSchema = createInsertSchema(resources).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertResourceAssignmentSchema = createInsertSchema(resourceAssignments).omit({ id: true, assignedAt: true, completedAt: true });
 export const insertResourceFeedbackSchema = createInsertSchema(resourceFeedback).omit({ id: true, createdAt: true });
-export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit({ id: true, createdAt: true, updatedAt: true }).extend({
+  title: z.string().max(500, "Title must not exceed 500 characters"),
+  content: z.string().max(50000, "Content must not exceed 50,000 characters"),
+});
 export const insertJournalCommentSchema = createInsertSchema(journalComments).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertReframePracticeResultSchema = createInsertSchema(reframePracticeResults).omit({ id: true, createdAt: true });
 export const insertUserGameProfileSchema = createInsertSchema(userGameProfile).omit({ id: true, createdAt: true, updatedAt: true });

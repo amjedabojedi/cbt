@@ -10,41 +10,44 @@ class RateLimiter {
   private requests = new Map<string, number[]>();
   
   constructor(private config: RateLimitConfig) {}
+
+  getClientId(req: Request): string {
+    return req.user?.id?.toString() || req.ip || 'anonymous';
+  }
+
+  tryConsume(clientId: string): boolean {
+    const now = Date.now();
+    const windowStart = now - this.config.windowMs;
+    const clientRequests = this.requests.get(clientId) || [];
+    const recentRequests = clientRequests.filter(time => time > windowStart);
+
+    if (recentRequests.length >= this.config.maxRequests) {
+      return false;
+    }
+
+    recentRequests.push(now);
+    this.requests.set(clientId, recentRequests);
+
+    if (Math.random() < 0.01) {
+      this.cleanup();
+    }
+
+    return true;
+  }
   
   middleware = (req: Request, res: Response, next: NextFunction) => {
     const clientId = this.getClientId(req);
-    const now = Date.now();
-    const windowStart = now - this.config.windowMs;
-    
-    // Get existing requests for this client
-    const clientRequests = this.requests.get(clientId) || [];
-    
-    // Filter out old requests
-    const recentRequests = clientRequests.filter(time => time > windowStart);
-    
-    // Check if limit exceeded
-    if (recentRequests.length >= this.config.maxRequests) {
+    const allowed = this.tryConsume(clientId);
+
+    if (!allowed) {
       return res.status(429).json({
         message: this.config.message || 'Too many requests',
         retryAfter: Math.ceil(this.config.windowMs / 1000)
       });
     }
     
-    // Add current request
-    recentRequests.push(now);
-    this.requests.set(clientId, recentRequests);
-    
-    // Cleanup old entries periodically
-    if (Math.random() < 0.01) {
-      this.cleanup();
-    }
-    
     next();
   };
-  
-  private getClientId(req: Request): string {
-    return req.user?.id?.toString() || req.ip || 'anonymous';
-  }
   
   private cleanup() {
     const now = Date.now();
@@ -74,3 +77,12 @@ export const apiRateLimit = createRateLimiter({
   maxRequests: 100,
   message: 'API rate limit exceeded'
 });
+
+// AI rate limiter instance — exported so routes can use both middleware and tryConsume
+export const aiRateLimiter = new RateLimiter({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  maxRequests: 20,
+  message: 'AI analysis rate limit exceeded. Please wait before making more AI requests.'
+});
+
+export const aiRateLimit = aiRateLimiter.middleware;

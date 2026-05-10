@@ -257,7 +257,7 @@ import cookieParser from "cookie-parser";
 import { registerIntegrationRoutes } from "./services/integrationRoutes";
 import { registerReframeCoachRoutes } from "./services/reframeCoach";
 import { eq, or, isNull, desc, and, inArray, sql, gt } from "drizzle-orm";
-import { authRateLimit } from "./middleware/rateLimiter";
+import { authRateLimit, aiRateLimit, aiRateLimiter } from "./middleware/rateLimiter";
 import { verifyOrigin } from "./middleware/csrf";
 
 // Initialize Stripe
@@ -5287,6 +5287,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If there's content, analyze it with OpenAI to suggest tags
       if (validatedData.content && process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
+        if (!aiRateLimiter.tryConsume(aiRateLimiter.getClientId(req))) {
+          return res.status(201).json({ ...newEntry, _aiSkipped: true, _aiSkipReason: 'rate_limit' });
+        }
         try {
           const analysis = await analyzeJournalEntry(
             validatedData.title || "",
@@ -5349,7 +5352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If content was updated and there's an OpenAI key, re-analyze the content
       let updatedData = validatedData;
-      if (validatedData.content && process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
+      if (validatedData.content && process.env.AI_INTEGRATIONS_OPENAI_API_KEY && aiRateLimiter.tryConsume(aiRateLimiter.getClientId(req))) {
         try {
           const analysis = await analyzeJournalEntry(
             validatedData.title || entry.title || "",
@@ -5789,12 +5792,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Analyze journal text with OpenAI without saving
-  app.post("/api/journal/analyze", authenticate, async (req, res) => {
+  app.post("/api/journal/analyze", authenticate, aiRateLimit, async (req, res) => {
     try {
       const { title, content } = req.body;
       
       if (!content) {
         return res.status(400).json({ message: "Content is required for analysis" });
+      }
+
+      if (typeof content !== "string" || content.length > 50000) {
+        return res.status(400).json({ message: "Content must not exceed 50,000 characters" });
+      }
+
+      if (title !== undefined && (typeof title !== "string" || title.length > 500)) {
+        return res.status(400).json({ message: "Title must not exceed 500 characters" });
       }
       
       if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
@@ -5810,7 +5821,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Re-analyze an existing journal entry to update with cognitive distortions
-  app.post("/api/users/:userId/journal/:entryId/reanalyze", authenticate, checkUserAccess, async (req, res) => {
+  app.post("/api/users/:userId/journal/:entryId/reanalyze", authenticate, aiRateLimit, checkUserAccess, async (req, res) => {
     try {
       const entryId = Number(req.params.entryId);
       if (isNaN(entryId)) {
@@ -5855,7 +5866,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Legacy endpoint for backward compatibility
-  app.post("/api/journal/:id/reanalyze", authenticate, async (req, res) => {
+  app.post("/api/journal/:id/reanalyze", authenticate, aiRateLimit, async (req, res) => {
     try {
       const entryId = Number(req.params.id);
       if (isNaN(entryId)) {
