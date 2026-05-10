@@ -375,6 +375,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                           <Input
                             placeholder="e.g., A Challenging Day at Work, Weekend Reflections..."
                             className="text-base"
+                            voiceInput
                             {...field}
                             data-testid="input-journal-title"
                           />

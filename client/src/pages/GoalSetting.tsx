@@ -531,7 +531,7 @@ export default function GoalSetting() {
                         <FormItem>
                           <FormLabel>Goal Title</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter a title for your goal" {...field} />
+                            <Input placeholder="Enter a title for your goal" voiceInput {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1111,7 +1111,7 @@ export default function GoalSetting() {
                         <FormItem>
                           <FormLabel>Milestone Title</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter a title for this milestone" {...field} />
+                            <Input placeholder="Enter a title for this milestone" voiceInput {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

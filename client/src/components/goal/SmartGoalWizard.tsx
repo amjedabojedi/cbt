@@ -349,6 +349,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                           <Input
                             placeholder="e.g., Run a 5K Marathon, Learn Spanish, Save $5000..."
                             className="text-base"
+                            voiceInput
                             {...field}
                             data-testid="input-goal-title"
                           />
