@@ -326,11 +326,11 @@ export const insertEmotionRecordSchema = z.object({
 });
 export const insertThoughtRecordSchema = createInsertSchema(thoughtRecords).omit({ id: true, createdAt: true }).extend({
   automaticThoughts: z.string().max(10000, "Automatic thoughts must not exceed 10,000 characters"),
-  situation: z.string().max(5000, "Situation must not exceed 5,000 characters").optional(),
-  evidenceFor: z.string().max(5000, "Evidence for must not exceed 5,000 characters").optional(),
-  evidenceAgainst: z.string().max(5000, "Evidence against must not exceed 5,000 characters").optional(),
-  alternativePerspective: z.string().max(5000, "Alternative perspective must not exceed 5,000 characters").optional(),
-  insightsGained: z.string().max(5000, "Insights gained must not exceed 5,000 characters").optional(),
+  situation: z.string().max(5000, "Situation must not exceed 5,000 characters").nullable().optional(),
+  evidenceFor: z.string().max(5000, "Evidence for must not exceed 5,000 characters").nullable().optional(),
+  evidenceAgainst: z.string().max(5000, "Evidence against must not exceed 5,000 characters").nullable().optional(),
+  alternativePerspective: z.string().max(5000, "Alternative perspective must not exceed 5,000 characters").nullable().optional(),
+  insightsGained: z.string().max(5000, "Insights gained must not exceed 5,000 characters").nullable().optional(),
 });
 export const insertProtectiveFactorSchema = createInsertSchema(protectiveFactors).omit({ id: true, createdAt: true });
 // Custom schema for protective factor usage to better handle validation
