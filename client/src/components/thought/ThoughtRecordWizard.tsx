@@ -597,7 +597,7 @@ export default function ThoughtRecordWizard({
                   </SelectItem>
                 ))}
                 {recentEmotions.length === 0 && (
-                  <SelectItem value="none" disabled>
+                  <SelectItem value="__empty" disabled>
                     No recent emotions tracked
                   </SelectItem>
                 )}
