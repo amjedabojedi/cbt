@@ -7,6 +7,16 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 
+function escapeHtml(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 // Helper function to create consistent cookie options for all session cookies
 // This ensures mobile and cross-device compatibility
 export function getSessionCookieOptions(): CookieOptions {
@@ -7402,9 +7412,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Start generating HTML content
       let htmlContent = `
         <h1>Resilience CBT - Data Export</h1>
-        <p><strong>User:</strong> ${user.name} (${user.email})</p>
-        <p><strong>Export Date:</strong> ${new Date().toLocaleString()}</p>
-        <p><strong>Export Type:</strong> ${type}</p>
+        <p><strong>User:</strong> ${escapeHtml(user.name)} (${escapeHtml(user.email)})</p>
+        <p><strong>Export Date:</strong> ${escapeHtml(new Date().toLocaleString())}</p>
+        <p><strong>Export Type:</strong> ${escapeHtml(type)}</p>
         <hr />
       `;
       
@@ -7412,7 +7422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (type === 'emotions' || type === 'all') {
         const emotions = await storage.getEmotionRecordsByUser(targetUserId);
         htmlContent += `
-          <h2>Emotion Records (${emotions?.length || 0})</h2>
+          <h2>Emotion Records (${escapeHtml(emotions?.length || 0)})</h2>
           ${emotions && emotions.length > 0 ? `
             <table>
               <thead>
@@ -7428,12 +7438,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               <tbody>
                 ${emotions.map(record => `
                   <tr>
-                    <td>${new Date(record.timestamp).toLocaleDateString()}</td>
-                    <td>${record.coreEmotion || ''}</td>
-                    <td>${record.primaryEmotion || ''}</td>
-                    <td>${record.tertiaryEmotion || ''}</td>
-                    <td>${record.intensity || ''}</td>
-                    <td>${record.situation || ''}</td>
+                    <td>${escapeHtml(new Date(record.timestamp).toLocaleDateString())}</td>
+                    <td>${escapeHtml(record.coreEmotion)}</td>
+                    <td>${escapeHtml(record.primaryEmotion)}</td>
+                    <td>${escapeHtml(record.tertiaryEmotion)}</td>
+                    <td>${escapeHtml(record.intensity)}</td>
+                    <td>${escapeHtml(record.situation)}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -7445,15 +7455,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (type === 'thoughts' || type === 'all') {
         const thoughts = await storage.getThoughtRecordsByUser(targetUserId);
         htmlContent += `
-          <h2>Thought Records (${thoughts?.length || 0})</h2>
+          <h2>Thought Records (${escapeHtml(thoughts?.length || 0)})</h2>
           ${thoughts && thoughts.length > 0 ? thoughts.map(record => `
             <div style="margin-bottom: 20px; border: 1px solid #eee; padding: 15px; border-radius: 5px;">
-              <h3>Record #${record.id} - ${new Date(record.createdAt).toLocaleDateString()}</h3>
-              <p><strong>Automatic Thoughts:</strong> ${record.automaticThoughts || 'None recorded'}</p>
-              <p><strong>Cognitive Distortions:</strong> ${record.cognitiveDistortions?.join(', ') || 'None identified'}</p>
-              ${record.evidenceFor ? `<p><strong>Evidence For:</strong> ${record.evidenceFor}</p>` : ''}
-              ${record.evidenceAgainst ? `<p><strong>Evidence Against:</strong> ${record.evidenceAgainst}</p>` : ''}
-              ${record.alternativePerspective ? `<p><strong>Alternative Perspective:</strong> ${record.alternativePerspective}</p>` : ''}
+              <h3>Record #${escapeHtml(record.id)} - ${escapeHtml(new Date(record.createdAt).toLocaleDateString())}</h3>
+              <p><strong>Automatic Thoughts:</strong> ${escapeHtml(record.automaticThoughts) || 'None recorded'}</p>
+              <p><strong>Cognitive Distortions:</strong> ${escapeHtml(record.cognitiveDistortions?.join(', ')) || 'None identified'}</p>
+              ${record.evidenceFor ? `<p><strong>Evidence For:</strong> ${escapeHtml(record.evidenceFor)}</p>` : ''}
+              ${record.evidenceAgainst ? `<p><strong>Evidence Against:</strong> ${escapeHtml(record.evidenceAgainst)}</p>` : ''}
+              ${record.alternativePerspective ? `<p><strong>Alternative Perspective:</strong> ${escapeHtml(record.alternativePerspective)}</p>` : ''}
             </div>
           `).join('') : '<p>No thought records found.</p>'}
         `;
@@ -7462,13 +7472,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (type === 'journals' || type === 'all') {
         const journals = await storage.getJournalEntriesByUser(targetUserId);
         htmlContent += `
-          <h2>Journal Entries (${journals?.length || 0})</h2>
+          <h2>Journal Entries (${escapeHtml(journals?.length || 0)})</h2>
           ${journals && journals.length > 0 ? journals.map(entry => `
             <div style="margin-bottom: 20px; border: 1px solid #eee; padding: 15px; border-radius: 5px;">
-              <h3>${entry.title || 'Untitled Entry'} - ${new Date(entry.createdAt).toLocaleDateString()}</h3>
-              <p>${entry.content || 'No content'}</p>
-              ${entry.mood ? `<p><strong>Mood:</strong> ${entry.mood}</p>` : ''}
-              ${entry.selectedTags && entry.selectedTags.length > 0 ? `<p><strong>Tags:</strong> ${entry.selectedTags.join(', ')}</p>` : ''}
+              <h3>${escapeHtml(entry.title) || 'Untitled Entry'} - ${escapeHtml(new Date(entry.createdAt).toLocaleDateString())}</h3>
+              <p>${escapeHtml(entry.content) || 'No content'}</p>
+              ${entry.mood ? `<p><strong>Mood:</strong> ${escapeHtml(entry.mood)}</p>` : ''}
+              ${entry.selectedTags && entry.selectedTags.length > 0 ? `<p><strong>Tags:</strong> ${escapeHtml(entry.selectedTags.join(', '))}</p>` : ''}
             </div>
           `).join('') : '<p>No journal entries found.</p>'}
         `;
@@ -7477,25 +7487,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (type === 'goals' || type === 'all') {
         const goals = await storage.getGoalsByUser(targetUserId);
         htmlContent += `
-          <h2>Goals (${goals?.length || 0})</h2>
+          <h2>Goals (${escapeHtml(goals?.length || 0)})</h2>
           ${goals && goals.length > 0 ? goals.map(goal => `
             <div style="margin-bottom: 20px; border: 1px solid #eee; padding: 15px; border-radius: 5px;">
-              <h3>${goal.title}</h3>
-              <p><strong>Created:</strong> ${new Date(goal.createdAt).toLocaleDateString()}</p>
-              <p><strong>Deadline:</strong> ${goal.deadline ? new Date(goal.deadline).toLocaleDateString() : 'No deadline'}</p>
-              <p><strong>Status:</strong> ${goal.status || 'Not set'}</p>
-              <p><strong>Specific:</strong> ${goal.specific}</p>
-              <p><strong>Measurable:</strong> ${goal.measurable}</p>
-              <p><strong>Achievable:</strong> ${goal.achievable}</p>
-              <p><strong>Relevant:</strong> ${goal.relevant}</p>
-              <p><strong>Time-Bound:</strong> ${goal.timeBound}</p>
-              ${goal.therapistComments ? `<p><strong>Therapist Comments:</strong> ${goal.therapistComments}</p>` : ''}
+              <h3>${escapeHtml(goal.title)}</h3>
+              <p><strong>Created:</strong> ${escapeHtml(new Date(goal.createdAt).toLocaleDateString())}</p>
+              <p><strong>Deadline:</strong> ${goal.deadline ? escapeHtml(new Date(goal.deadline).toLocaleDateString()) : 'No deadline'}</p>
+              <p><strong>Status:</strong> ${escapeHtml(goal.status) || 'Not set'}</p>
+              <p><strong>Specific:</strong> ${escapeHtml(goal.specific)}</p>
+              <p><strong>Measurable:</strong> ${escapeHtml(goal.measurable)}</p>
+              <p><strong>Achievable:</strong> ${escapeHtml(goal.achievable)}</p>
+              <p><strong>Relevant:</strong> ${escapeHtml(goal.relevant)}</p>
+              <p><strong>Time-Bound:</strong> ${escapeHtml(goal.timeBound)}</p>
+              ${goal.therapistComments ? `<p><strong>Therapist Comments:</strong> ${escapeHtml(goal.therapistComments)}</p>` : ''}
             </div>
           `).join('') : '<p>No goals found.</p>'}
         `;
       }
       
-      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'");
+      res.setHeader('X-Content-Type-Options', 'nosniff');
       res.send(htmlContent);
       
     } catch (error) {

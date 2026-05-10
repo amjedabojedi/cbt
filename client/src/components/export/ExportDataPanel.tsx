@@ -113,49 +113,50 @@ export function ExportDataPanel() {
       }
       
       const htmlContent = await response.text();
-      
-      // Create a new window with the HTML content
-      const printWindow = window.open('', '_blank');
+
+      // Build the full printable document entirely on the client side.
+      // All user-supplied data has been HTML-escaped by the server before being
+      // embedded in htmlContent, so it is safe to include in the HTML structure.
+      // A strict Content-Security-Policy meta tag is added as defence-in-depth to
+      // block any script execution even if a future regression were to occur.
+      const fullHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'" />
+  <title>CBT Export</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    h1, h2, h3 { color: #333; }
+    table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+    th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background-color: #f2f2f2; }
+    .instructions { background: #f2f2f2; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+    .print-btn { background: #4F46E5; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+    @media print { .instructions { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="instructions">
+    <h3>Print Instructions</h3>
+    <p>To save as PDF: Use your browser's Print feature (Ctrl+P or Cmd+P) and select "Save as PDF" as the destination.</p>
+    <p>This method avoids antivirus concerns with downloaded PDF files.</p>
+  </div>
+  ${htmlContent}
+</body>
+</html>`;
+
+      // Open the document as a Blob URL so the content is rendered in a fresh
+      // browsing context rather than being injected via document.write().
+      const blob = new Blob([fullHtml], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+      const printWindow = window.open(blobUrl, '_blank');
       if (!printWindow) {
+        URL.revokeObjectURL(blobUrl);
         throw new Error('Pop-up blocked. Please allow pop-ups and try again.');
       }
-      
-      // Write the HTML content to the new window
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>CBT Export - ${exportType}</title>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 40px; }
-              h1, h2 { color: #333; }
-              table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-              th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-              th { background-color: #f2f2f2; }
-              .print-only { display: none; }
-              @media print {
-                .no-print { display: none; }
-                .print-only { display: block; }
-                body { margin: 0; padding: 20px; }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="no-print" style="background: #f2f2f2; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
-              <h3>Print Instructions</h3>
-              <p>To save as PDF: Use your browser's Print feature (Ctrl+P or Cmd+P) and select "Save as PDF" as the destination.</p>
-              <p>This method avoids antivirus concerns with downloaded PDF files.</p>
-              <button onclick="window.print();" style="background: #4F46E5; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
-                Print / Save as PDF
-              </button>
-            </div>
-            ${htmlContent}
-          </body>
-        </html>
-      `);
-      
-      // Close the document writing
-      printWindow.document.close();
+      // Clean up the object URL after a short delay to ensure the window has loaded it.
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
       
     } catch (error) {
       console.error('Printable PDF error:', error);
