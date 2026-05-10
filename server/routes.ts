@@ -724,17 +724,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(503).json({ message: "Payment processing is not available" });
     }
     
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
+    if (!webhookSecret) {
+      console.error("STRIPE_WEBHOOK_SECRET is not configured; rejecting webhook request");
+      return res.status(503).json({ message: "Webhook processing is not available" });
+    }
+
     let event;
     const signature = req.headers["stripe-signature"];
-    
+
     // Verify webhook signature
     try {
-      // Note: In production, we would use a webhook secret
-      // event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret);
       event = stripe.webhooks.constructEvent(
         req.body,
         signature || "",
-        process.env.STRIPE_WEBHOOK_SECRET || "whsec_test"
+        webhookSecret
       );
     } catch (error) {
       console.error("Webhook signature verification failed:", error);
