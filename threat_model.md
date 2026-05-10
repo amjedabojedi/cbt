@@ -11,6 +11,7 @@ ResilienceHub is a mental-health application for clients, therapists, and admins
 - **Invitation and onboarding data** — therapist-issued invitations, temporary credentials, invite links, pending client accounts, and therapist assignment state. Abuse here can let someone claim or redirect a client account.
 - **Billing and integration state** — Stripe customer/subscription identifiers, webhook handling, and subscription status. Compromise can change account entitlements or billing state.
 - **Application secrets and service credentials** — database credentials, OpenAI keys, SparkPost keys, Stripe keys, cookie secret, and any environment-based allowlists. Leakage or weak fallback behavior can expose protected operations.
+- **Operational logs and exports** — API logs, email logs, reminder logs, CSV/PDF/HTML exports, and any centralized log sink receiving stdout/stderr. These copies can expose therapy content and account metadata outside the normal application authorization boundary.
 
 ## Trust Boundaries
 
@@ -19,13 +20,14 @@ ResilienceHub is a mental-health application for clients, therapists, and admins
 - **API to third-party services** — the server sends data to Stripe, OpenAI, and SparkPost. These calls must use validated inputs and strong secret handling.
 - **Public to authenticated to privileged roles** — public registration and login are lower-trust surfaces; therapist/admin routes and therapist-to-client access checks form additional privilege boundaries.
 - **Therapist/admin authored content to client browser** — therapists/admins can create content that is later rendered in client sessions. Stored content must be treated as untrusted at render time.
+- **Application data to logs and exports** — once sensitive records are copied into logs or downloadable exports, they often leave the normal in-app authorization model and may become visible to operators, support tooling, or end-user desktop software.
 - **Development-only to production** — `/api/test/*`, preview helpers, and other dev conveniences are out of scope unless production reachability is demonstrated.
 
 ## Scan Anchors
 
 - **Production entry points**: `server/index.ts`, `server/routes.ts`, `server/middleware/auth.ts`, `server/middleware/csrf.ts`.
-- **Highest-risk code areas**: auth/session logic, invitation creation and acceptance flows, therapist/client authorization checks, Stripe webhook handling, resource-library rendering, printable export generation, AI-triggering routes, and admin/therapist management routes.
-- **Public vs authenticated vs admin surfaces**: `/api/auth/*`, invitation-related registration and invite issuance, webhook routes, export endpoints, and the large authenticated API surface in `server/routes.ts` guarded by `authenticate`, `checkUserAccess`, `isTherapist`, and `isAdmin`.
+- **Highest-risk code areas**: auth/session logic, public registration (`/api/auth/register`), invitation creation and acceptance flows, therapist/client authorization checks, current-viewing-client state, Stripe webhook handling, resource-library rendering, export generation (especially CSV), AI-triggering routes, API/logging middleware, and admin/therapist management routes.
+- **Public vs authenticated vs admin surfaces**: `/api/auth/*`, invitation-related registration and invite issuance, webhook routes, export endpoints, therapist assignment routes, and the large authenticated API surface in `server/routes.ts` guarded by `authenticate`, `checkUserAccess`, `isTherapist`, and `isAdmin`.
 - **Usually dev-only**: `/api/test/*`, Vite/dev helpers, preview/mobile-local fallbacks. Ignore unless shown reachable in production.
 
 ## Threat Categories
@@ -40,12 +42,12 @@ Clients, therapists, admins, and external services can all submit state-changing
 
 ### Information Disclosure
 
-The system stores highly sensitive therapy and account data. API responses, exports, logs, notifications, and rendered content must not expose data beyond the intended user or therapist/admin boundary. Temporary credentials, invite metadata, and third-party service errors should never be exposed more broadly than necessary.
+The system stores highly sensitive therapy and account data. API responses, exports, logs, notifications, and rendered content must not expose data beyond the intended user or therapist/admin boundary. Temporary credentials, invite metadata, log payloads, and third-party service errors should never be exposed more broadly than necessary.
 
 ### Denial of Service
 
-Public auth endpoints, expensive AI operations, export generation, and externally callable routes can be abused to consume compute or third-party quotas. Authentication and password-reset endpoints need rate limiting, and expensive server-side operations should not be triggerable without appropriate controls. Authenticated AI analysis routes also need per-user quotas or input-size limits so a normal account cannot burn shared OpenAI budget.
+Public auth endpoints, expensive AI operations, export generation, and externally callable routes can be abused to consume compute or third-party quotas. Authentication and password-reset endpoints need rate limiting, and expensive server-side operations should not be triggerable without appropriate controls. Authenticated AI analysis routes, including indirect AI triggers on normal feature paths such as comments, need per-user quotas or input-size limits so a normal account cannot burn shared OpenAI budget.
 
 ### Elevation of Privilege
 
-The biggest project-specific risks are broken therapist/client authorization, client-registration flows that create or attach accounts without adequate proof, webhook or integration spoofing that changes subscription state, and stored XSS that lets one user act inside another user’s authenticated browser context. The backend must enforce privilege boundaries independently of frontend behavior.
+The biggest project-specific risks are broken therapist/client authorization, client-registration flows that create or attach accounts without adequate proof, public registration paths that trust caller-controlled role fields, webhook or integration spoofing that changes subscription state, and stored XSS that lets one user act inside another user’s authenticated browser context. The backend must enforce privilege boundaries independently of frontend behavior.
