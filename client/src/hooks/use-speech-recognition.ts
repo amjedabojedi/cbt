@@ -81,7 +81,9 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
     };
     recognition.onerror = (event: any) => {
       const err = event?.error || "unknown";
-      if (err !== "aborted" && err !== "no-speech") {
+      // Silently ignore benign/transient errors that browsers fire frequently
+      const benign = ["aborted", "no-speech", "audio-capture"];
+      if (!benign.includes(err)) {
         errorCbRef.current?.(err);
       }
       setIsListening(false);

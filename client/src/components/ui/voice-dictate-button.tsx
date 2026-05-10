@@ -4,6 +4,15 @@ import { cn } from "@/lib/utils";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { useToast } from "@/hooks/use-toast";
 
+const recentErrors = new Map<string, number>();
+function shouldShowError(key: string, cooldownMs = 8000): boolean {
+  const now = Date.now();
+  const last = recentErrors.get(key) ?? 0;
+  if (now - last < cooldownMs) return false;
+  recentErrors.set(key, now);
+  return true;
+}
+
 export interface VoiceDictateButtonProps {
   onTranscript: (text: string) => void;
   language?: string;
@@ -25,10 +34,24 @@ export const VoiceDictateButton = React.forwardRef<
     language,
     onFinalTranscript: (text) => onTranscript(text),
     onError: (err) => {
+      if (!shouldShowError(err)) return;
       if (err === "not-allowed" || err === "service-not-allowed") {
         toast({
           title: "Microphone blocked",
           description: "Allow microphone access in your browser to use voice typing.",
+          variant: "destructive",
+        });
+      } else if (err === "network") {
+        toast({
+          title: "Voice typing unavailable",
+          description:
+            "Speech recognition couldn't reach the network. Check your internet connection or try again in a moment.",
+          variant: "destructive",
+        });
+      } else if (err === "language-not-supported") {
+        toast({
+          title: "Language not supported",
+          description: "This language isn't available for voice typing in your browser.",
           variant: "destructive",
         });
       } else {
