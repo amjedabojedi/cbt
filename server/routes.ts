@@ -2053,8 +2053,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "This client is not assigned to any therapist" });
       }
       
-      // Update the user to remove therapist assignment
-      const updatedUser = await storage.updateUser(userId, { therapistId: null });
+      const formerTherapistId = user.therapistId;
+
+      // Use removeClientFromTherapist so it also clears the therapist's
+      // currentViewingClientId, preventing stale-pointer access to this client.
+      const updatedUser = await storage.removeClientFromTherapist(userId, formerTherapistId);
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to unassign therapist" });
+      }
       
       // Remove password from response
       const { password, ...userWithoutPassword } = updatedUser;
@@ -2747,6 +2753,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const viewingClient = await storage.getUser(user.currentViewingClientId);
       if (!viewingClient) {
         console.log("Viewing client not found");
+        await storage.updateCurrentViewingClient(user.id, null);
+        return res.status(200).json(defaultResponse);
+      }
+
+      // Re-verify the therapist-client relationship is still active
+      if (viewingClient.therapistId !== user.id) {
+        console.log(`Stale viewing client: client ${viewingClient.id} is no longer assigned to therapist ${user.id}`);
+        await storage.updateCurrentViewingClient(user.id, null);
         return res.status(200).json(defaultResponse);
       }
 
@@ -2804,6 +2818,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             if (!client) {
               console.log(`Client ID ${viewingClientId} not found`);
+              await storage.updateCurrentViewingClient(userId, null);
+              return res.status(200).json(response);
+            }
+
+            // Re-verify the therapist-client relationship is still active
+            if (req.user.role === 'therapist' && client.therapistId !== userId) {
+              console.log(`Stale viewing client: client ${viewingClientId} is no longer assigned to therapist ${userId}`);
+              await storage.updateCurrentViewingClient(userId, null);
               return res.status(200).json(response);
             }
             
@@ -3842,9 +3864,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.userId);
       
       // If the user is a therapist with a current viewing client, show that client's goals
+      // Re-verify the relationship is still active before trusting the stored pointer.
       if (req.user.role === 'therapist' && req.user.currentViewingClientId) {
-        const clientGoals = await storage.getGoalsByUser(req.user.currentViewingClientId);
-        return res.status(200).json(clientGoals);
+        const viewingClient = await storage.getUser(req.user.currentViewingClientId);
+        if (viewingClient && viewingClient.therapistId === req.user.id) {
+          const clientGoals = await storage.getGoalsByUser(req.user.currentViewingClientId);
+          return res.status(200).json(clientGoals);
+        }
+        // Stale pointer — clear it and fall through to return the requested user's goals
+        await storage.updateCurrentViewingClient(req.user.id, null);
       }
       
       const goals = await storage.getGoalsByUser(userId);
@@ -3861,9 +3889,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.userId);
       
       // Determine which user's goals/milestones to fetch
+      // Re-verify the relationship is still active before trusting the stored pointer.
       let targetUserId = userId;
       if (req.user.role === 'therapist' && req.user.currentViewingClientId) {
-        targetUserId = req.user.currentViewingClientId;
+        const viewingClient = await storage.getUser(req.user.currentViewingClientId);
+        if (viewingClient && viewingClient.therapistId === req.user.id) {
+          targetUserId = req.user.currentViewingClientId;
+        } else {
+          // Stale pointer — clear it and fall through to use the requested userId
+          await storage.updateCurrentViewingClient(req.user.id, null);
+        }
       }
       
       // Get all goals for the user
