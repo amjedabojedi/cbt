@@ -7255,6 +7255,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         targetUserId = Number(clientId);
       }
 
+      // Sanitize a CSV field value to prevent spreadsheet formula injection.
+      // Values starting with =, +, -, @, |, or % are formula triggers in Excel/LibreOffice.
+      // Prefix them with a tab character so the spreadsheet treats them as plain text.
+      const sanitizeCsvField = (value: string | null | undefined): string => {
+        if (value == null) return '';
+        const str = String(value);
+        // Check the first non-whitespace/control character for formula triggers.
+        // Some spreadsheet parsers normalize leading whitespace/control chars
+        // (tab, newline, carriage return, space) before formula evaluation.
+        const trimmed = str.trimStart();
+        if (trimmed.length > 0 && ['=', '+', '-', '@', '|', '%'].includes(trimmed[0])) {
+          return '\t' + str;
+        }
+        return str;
+      };
+
       // Prepare the export data based on the requested type
       let csvData = "";
       let filename;
@@ -7269,7 +7285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Add data rows
             emotions.forEach(record => {
               const date = new Date(record.timestamp).toLocaleString();
-              csvData += `${record.id},${date},"${record.coreEmotion}","${record.primaryEmotion || ''}","${record.tertiaryEmotion || ''}",${record.intensity},"${record.situation?.replace(/"/g, '""') || ''}","${record.location?.replace(/"/g, '""') || ''}","${record.company?.replace(/"/g, '""') || ''}"\n`;
+              csvData += `${record.id},${date},"${sanitizeCsvField(record.coreEmotion).replace(/"/g, '""')}","${sanitizeCsvField(record.primaryEmotion).replace(/"/g, '""')}","${sanitizeCsvField(record.tertiaryEmotion).replace(/"/g, '""')}",${record.intensity},"${sanitizeCsvField(record.situation).replace(/"/g, '""')}","${sanitizeCsvField(record.location).replace(/"/g, '""')}","${sanitizeCsvField(record.company).replace(/"/g, '""')}"\n`;
             });
           }
           filename = `emotion-records-${targetUserId}-${Date.now()}.csv`;
@@ -7284,7 +7300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Add data rows
             thoughts.forEach(record => {
               const date = new Date(record.createdAt).toLocaleString();
-              csvData += `${record.id},${date},"${record.automaticThoughts?.replace(/"/g, '""') || ''}","${record.evidenceFor?.replace(/"/g, '""') || ''}","${record.evidenceAgainst?.replace(/"/g, '""') || ''}","${record.alternativePerspective?.replace(/"/g, '""') || ''}","${record.insightsGained?.replace(/"/g, '""') || ''}",${record.reflectionRating || ''}\n`;
+              csvData += `${record.id},${date},"${sanitizeCsvField(record.automaticThoughts).replace(/"/g, '""')}","${sanitizeCsvField(record.evidenceFor).replace(/"/g, '""')}","${sanitizeCsvField(record.evidenceAgainst).replace(/"/g, '""')}","${sanitizeCsvField(record.alternativePerspective).replace(/"/g, '""')}","${sanitizeCsvField(record.insightsGained).replace(/"/g, '""')}",${record.reflectionRating || ''}\n`;
             });
           }
           filename = `thought-records-${targetUserId}-${Date.now()}.csv`;
@@ -7299,10 +7315,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Add data rows
             journals.forEach(record => {
               const date = new Date(record.createdAt).toLocaleString();
-              const selectedTags = record.selectedTags ? JSON.stringify(record.selectedTags).replace(/"/g, '""') : '';
-              const emotions = record.emotions ? JSON.stringify(record.emotions).replace(/"/g, '""') : '';
+              const selectedTags = sanitizeCsvField(record.selectedTags ? JSON.stringify(record.selectedTags) : '').replace(/"/g, '""');
+              const emotions = sanitizeCsvField(record.emotions ? JSON.stringify(record.emotions) : '').replace(/"/g, '""');
               
-              csvData += `${record.id},${date},"${record.title?.replace(/"/g, '""') || ''}","${record.content?.replace(/"/g, '""') || ''}",${record.mood || ''},"${selectedTags}","${emotions}"\n`;
+              csvData += `${record.id},${date},"${sanitizeCsvField(record.title).replace(/"/g, '""')}","${sanitizeCsvField(record.content).replace(/"/g, '""')}",${record.mood || ''},"${selectedTags}","${emotions}"\n`;
             });
           }
           filename = `journal-entries-${targetUserId}-${Date.now()}.csv`;
@@ -7319,7 +7335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const date = new Date(record.createdAt).toLocaleString();
               const deadline = record.deadline ? new Date(record.deadline).toLocaleString() : '';
               
-              csvData += `${record.id},${date},"${record.title?.replace(/"/g, '""') || ''}","${record.specific?.replace(/"/g, '""') || ''}","${record.measurable?.replace(/"/g, '""') || ''}","${record.achievable?.replace(/"/g, '""') || ''}","${record.relevant?.replace(/"/g, '""') || ''}","${record.timebound?.replace(/"/g, '""') || ''}","${deadline}","${record.status || ''}"\n`;
+              csvData += `${record.id},${date},"${sanitizeCsvField(record.title).replace(/"/g, '""')}","${sanitizeCsvField(record.specific).replace(/"/g, '""')}","${sanitizeCsvField(record.measurable).replace(/"/g, '""')}","${sanitizeCsvField(record.achievable).replace(/"/g, '""')}","${sanitizeCsvField(record.relevant).replace(/"/g, '""')}","${sanitizeCsvField(record.timebound).replace(/"/g, '""')}","${deadline}","${sanitizeCsvField(record.status).replace(/"/g, '""')}"\n`;
             });
           }
           filename = `goals-${targetUserId}-${Date.now()}.csv`;
@@ -7338,7 +7354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             csvData += "ID,Date,Core Emotion,Primary Emotion,Tertiary Emotion,Intensity,Situation,Location,Company\n";
             emotionsData.forEach(record => {
               const date = new Date(record.timestamp).toLocaleString();
-              csvData += `${record.id},${date},"${record.coreEmotion}","${record.primaryEmotion || ''}","${record.tertiaryEmotion || ''}",${record.intensity},"${record.situation?.replace(/"/g, '""') || ''}","${record.location?.replace(/"/g, '""') || ''}","${record.company?.replace(/"/g, '""') || ''}"\n`;
+              csvData += `${record.id},${date},"${sanitizeCsvField(record.coreEmotion).replace(/"/g, '""')}","${sanitizeCsvField(record.primaryEmotion).replace(/"/g, '""')}","${sanitizeCsvField(record.tertiaryEmotion).replace(/"/g, '""')}",${record.intensity},"${sanitizeCsvField(record.situation).replace(/"/g, '""')}","${sanitizeCsvField(record.location).replace(/"/g, '""')}","${sanitizeCsvField(record.company).replace(/"/g, '""')}"\n`;
             });
           } else {
             csvData += "No emotion records found.\n";
@@ -7349,7 +7365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             csvData += "ID,Date,Automatic Thoughts,Evidence For,Evidence Against,Alternative Perspective,Insights Gained,Reflection Rating\n";
             thoughtsData.forEach(record => {
               const date = new Date(record.createdAt).toLocaleString();
-              csvData += `${record.id},${date},"${record.automaticThoughts?.replace(/"/g, '""') || ''}","${record.evidenceFor?.replace(/"/g, '""') || ''}","${record.evidenceAgainst?.replace(/"/g, '""') || ''}","${record.alternativePerspective?.replace(/"/g, '""') || ''}","${record.insightsGained?.replace(/"/g, '""') || ''}",${record.reflectionRating || ''}\n`;
+              csvData += `${record.id},${date},"${sanitizeCsvField(record.automaticThoughts).replace(/"/g, '""')}","${sanitizeCsvField(record.evidenceFor).replace(/"/g, '""')}","${sanitizeCsvField(record.evidenceAgainst).replace(/"/g, '""')}","${sanitizeCsvField(record.alternativePerspective).replace(/"/g, '""')}","${sanitizeCsvField(record.insightsGained).replace(/"/g, '""')}",${record.reflectionRating || ''}\n`;
             });
           } else {
             csvData += "No thought records found.\n";
@@ -7360,9 +7376,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             csvData += "ID,Date,Title,Content,Mood,Selected Tags,Emotions\n";
             journalsData.forEach(record => {
               const date = new Date(record.createdAt).toLocaleString();
-              const selectedTags = record.selectedTags ? JSON.stringify(record.selectedTags).replace(/"/g, '""') : '';
-              const emotions = record.emotions ? JSON.stringify(record.emotions).replace(/"/g, '""') : '';
-              csvData += `${record.id},${date},"${record.title?.replace(/"/g, '""') || ''}","${record.content?.replace(/"/g, '""') || ''}",${record.mood || ''},"${selectedTags}","${emotions}"\n`;
+              const selectedTags = sanitizeCsvField(record.selectedTags ? JSON.stringify(record.selectedTags) : '').replace(/"/g, '""');
+              const emotions = sanitizeCsvField(record.emotions ? JSON.stringify(record.emotions) : '').replace(/"/g, '""');
+              csvData += `${record.id},${date},"${sanitizeCsvField(record.title).replace(/"/g, '""')}","${sanitizeCsvField(record.content).replace(/"/g, '""')}",${record.mood || ''},"${selectedTags}","${emotions}"\n`;
             });
           } else {
             csvData += "No journal entries found.\n";
@@ -7374,7 +7390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             goalsData.forEach(record => {
               const date = new Date(record.createdAt).toLocaleString();
               const deadline = record.deadline ? new Date(record.deadline).toLocaleString() : '';
-              csvData += `${record.id},${date},"${record.title?.replace(/"/g, '""') || ''}","${record.specific?.replace(/"/g, '""') || ''}","${record.measurable?.replace(/"/g, '""') || ''}","${record.achievable?.replace(/"/g, '""') || ''}","${record.relevant?.replace(/"/g, '""') || ''}","${record.timebound?.replace(/"/g, '""') || ''}","${deadline}","${record.status || ''}"\n`;
+              csvData += `${record.id},${date},"${sanitizeCsvField(record.title).replace(/"/g, '""')}","${sanitizeCsvField(record.specific).replace(/"/g, '""')}","${sanitizeCsvField(record.measurable).replace(/"/g, '""')}","${sanitizeCsvField(record.achievable).replace(/"/g, '""')}","${sanitizeCsvField(record.relevant).replace(/"/g, '""')}","${sanitizeCsvField(record.timebound).replace(/"/g, '""')}","${deadline}","${sanitizeCsvField(record.status).replace(/"/g, '""')}"\n`;
             });
           } else {
             csvData += "No goals found.\n";
