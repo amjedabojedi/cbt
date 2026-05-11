@@ -1,5 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, LucideIcon } from "lucide-react";
 import { Link } from "wouter";
 
@@ -26,55 +25,58 @@ export default function ModuleSummaryCard({
   backgroundColor,
   metrics,
   linkTo,
-  linkText = "View Insights"
+  linkText = "View Insights",
 }: ModuleSummaryCardProps) {
   return (
-    <Card className="border-2 transition-all hover:shadow-lg" style={{ borderColor: `${color}20` }} data-testid={`module-card-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-3">
-          <div 
-            className="p-3 rounded-lg flex items-center justify-center"
+    <Card
+      className="border transition-all hover:shadow-md"
+      style={{ borderColor: `${color}30` }}
+      data-testid={`module-card-${title.toLowerCase().replace(/\s+/g, "-")}`}
+    >
+      <CardContent className="p-4 space-y-3">
+        {/* Header row */}
+        <div className="flex items-center gap-2.5">
+          <div
+            className="p-2 rounded-lg shrink-0"
             style={{ backgroundColor }}
           >
-            <Icon className="h-6 w-6" style={{ color }} />
+            <Icon className="h-5 w-5" style={{ color }} />
           </div>
-          <CardTitle className="text-lg font-bold">{title}</CardTitle>
+          <span className="font-semibold text-base leading-tight">{title}</span>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-3 gap-3">
+
+        {/* Stats row — horizontal with dividers, no boxes */}
+        <div className="flex items-stretch divide-x divide-border">
           {metrics.map((metric, index) => (
-            <div 
-              key={index} 
-              className="text-center p-3 rounded-lg bg-muted/50 flex flex-col justify-center gap-3 min-h-[90px]"
+            <div
+              key={index}
+              className="flex-1 flex flex-col items-center px-2 py-1 min-w-0"
               data-testid={`metric-${index}`}
             >
-              <div className="text-base font-bold leading-relaxed" style={{ color }}>
+              <span
+                className="text-sm font-bold w-full text-center truncate"
+                style={{ color }}
+                title={String(metric.value)}
+              >
                 {metric.value}
-              </div>
-              <div className="text-xs text-muted-foreground border-t border-muted-foreground/20 pt-2">
+              </span>
+              <span className="text-[11px] text-muted-foreground text-center leading-tight mt-0.5 w-full truncate">
                 {metric.label}
-              </div>
-              {metric.subtext && (
-                <div className="text-xs text-muted-foreground/60">
-                  {metric.subtext}
-                </div>
-              )}
+              </span>
             </div>
           ))}
         </div>
 
-        {/* View Insights Link */}
+        {/* View Insights link */}
         <Link href={linkTo}>
-          <Button 
-            variant="ghost" 
-            className="w-full justify-between group"
-            data-testid={`button-view-insights`}
+          <button
+            className="w-full flex items-center justify-between text-sm font-medium pt-2 border-t border-border hover:opacity-75 transition-opacity"
+            style={{ color }}
+            data-testid="button-view-insights"
           >
             <span>{linkText}</span>
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Button>
+            <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+          </button>
         </Link>
       </CardContent>
     </Card>
