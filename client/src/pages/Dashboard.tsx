@@ -1,7 +1,6 @@
 import { useAuth } from "@/lib/auth";
 import AppLayout from "@/components/layout/AppLayout";
 import GettingStarted from "@/components/dashboard/GettingStarted";
-import QuickActions from "@/components/dashboard/QuickActions";
 import TherapistStats from "@/components/dashboard/TherapistStats";
 import ModuleSummaryCard from "@/components/dashboard/ModuleSummaryCard";
 import { useModuleStats } from "@/hooks/use-module-stats";
@@ -98,15 +97,8 @@ export default function Dashboard() {
           </div>
         )}
         
-        {/* Getting Started Checklist - only for client's own dashboard */}
+        {/* Getting Started — shows module cards with completion tracking until all 5 done */}
         {isClient && !isViewingClientData && <GettingStarted />}
-        
-        {/* Quick Actions - for clients and when a therapist is viewing client data */}
-        {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
-          <div className="mb-6">
-            <QuickActions />
-          </div>
-        )}
         
         {/* Overall Progress Section */}
         {((isClient && !isTherapist) || (isTherapist && isViewingClientData)) && (
