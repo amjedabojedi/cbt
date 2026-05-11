@@ -62,6 +62,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import WizardProgressHeader from "@/components/wizard/WizardProgressHeader";
+import WizardNavButtons from "@/components/wizard/WizardNavButtons";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -772,44 +774,15 @@ export default function ThoughtRecordWizard({
   return (
     <>
       <Card className="max-w-3xl mx-auto">
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-2xl font-bold flex items-center gap-2">
-                <Brain className="h-7 w-7 text-primary" />
-                Record a Thought
-              </CardTitle>
-              <CardDescription>
-                {currentStep === 0 ? "Introduction" : `Step ${currentStep} of ${totalSteps - 1}`}
-              </CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" onClick={onClose} data-testid="button-close-wizard">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="space-y-2" data-testid="progress-wizard">
-            <Progress value={progress} className="h-2" />
-            <div className="flex justify-between text-xs text-gray-500">
-              <span className={currentStep >= 1 ? "text-indigo-600 font-medium" : ""}>
-                1. Situation
-              </span>
-              <span className={currentStep >= 2 ? "text-indigo-600 font-medium" : ""}>
-                2. Thought
-              </span>
-              <span className={currentStep >= 3 ? "text-indigo-600 font-medium" : ""}>
-                3. ANTs
-              </span>
-              <span className={currentStep >= 4 ? "text-indigo-600 font-medium" : ""}>
-                4. Link
-              </span>
-              <span className={currentStep >= 5 ? "text-indigo-600 font-medium" : ""}>
-                5. Review
-              </span>
-            </div>
-          </div>
-        </CardHeader>
+        <WizardProgressHeader
+          title="Record a Thought"
+          icon={Brain}
+          currentStep={currentStep}
+          totalSteps={totalSteps}
+          stepLabels={["1. Situation", "2. Thought", "3. ANTs", "4. Link", "5. Review"]}
+          accentClassName="text-indigo-600"
+          onClose={onClose}
+        />
 
         <CardContent>
           {/* Step Content */}
@@ -817,77 +790,39 @@ export default function ThoughtRecordWizard({
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-4">
               {getStepContent()}
 
-              {/* Navigation Buttons */}
-              <div className="flex justify-between items-center pt-6 mt-6 border-t">
-                <div>
-                  {currentStep > 0 && (
+              <WizardNavButtons
+                currentStep={currentStep}
+                totalSteps={totalSteps}
+                onPrevious={handlePrevious}
+                onNext={handleNext}
+                onSubmit={() => form.handleSubmit(onSubmit)()}
+                isSubmitting={isSubmitting}
+                submitLabel="Record Thought"
+                submitIcon={CheckCircle2}
+                extraActions={
+                  <>
                     <Button
                       type="button"
-                      variant="outline"
-                      onClick={handlePrevious}
+                      variant="ghost"
+                      onClick={onClose}
                       disabled={isSubmitting}
-                      data-testid="button-previous-step"
                     >
-                      <ChevronLeft className="h-4 w-4 mr-2" />
-                      Previous
+                      Cancel
                     </Button>
-                  )}
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={onClose}
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </Button>
-
-                  {currentStep === totalSteps - 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => form.handleSubmit(onSubmit)()}
-                      disabled={isSubmitting}
-                      data-testid="button-skip-emotion"
-                    >
-                      Skip & Record
-                    </Button>
-                  )}
-
-                  {currentStep < totalSteps - 1 ? (
-                    <Button
-                      type="button"
-                      onClick={handleNext}
-                      disabled={isSubmitting}
-                      data-testid="button-next-step"
-                    >
-                      {currentStep === 0 ? "Get Started" : "Next Step"}
-                      <ChevronRight className="h-4 w-4 ml-2" />
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      onClick={() => form.handleSubmit(onSubmit)()}
-                      disabled={isSubmitting}
-                      data-testid="button-submit-thought"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
-                          Recording...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="h-4 w-4 mr-2" />
-                          Record Thought
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </div>
+                    {currentStep === totalSteps - 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => form.handleSubmit(onSubmit)()}
+                        disabled={isSubmitting}
+                        data-testid="button-skip-emotion"
+                      >
+                        Skip & Record
+                      </Button>
+                    )}
+                  </>
+                }
+              />
             </form>
           </Form>
         </CardContent>

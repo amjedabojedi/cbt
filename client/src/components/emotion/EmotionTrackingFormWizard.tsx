@@ -42,6 +42,9 @@ import {
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import EmotionWheelResponsive from "./EmotionWheelResponsive";
 import EmotionOnboardingTour from "./EmotionOnboardingTour";
+import WizardProgressHeader from "@/components/wizard/WizardProgressHeader";
+import WizardNavButtons from "@/components/wizard/WizardNavButtons";
+import WizardSuccessDialog from "@/components/wizard/WizardSuccessDialog";
 import type { EmotionRecord } from "@shared/schema";
 
 // Define schema for the form
@@ -274,36 +277,13 @@ export default function EmotionTrackingFormWizard({
       <EmotionOnboardingTour onComplete={() => setShowTourComplete(true)} />
       
       <Card>
-        <CardHeader>
-          <div className="space-y-4">
-            <div>
-              <CardTitle>Track Your Emotion</CardTitle>
-              <CardDescription>
-                {currentStep === 0 ? "Introduction" : `Step ${currentStep} of ${totalSteps - 1}`}
-              </CardDescription>
-            </div>
-            
-            {/* Progress Bar */}
-            <div className="space-y-2">
-              <Progress value={progress} className="h-2" data-testid="progress-wizard" />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span className={currentStep >= 1 ? "text-blue-600 font-medium" : ""}>
-                  1. Select
-                </span>
-                <span className={currentStep >= 2 ? "text-blue-600 font-medium" : ""}>
-                  2. Rate
-                </span>
-                <span className={currentStep >= 3 ? "text-blue-600 font-medium" : ""}>
-                  3. Describe
-                </span>
-                <span className={currentStep >= 4 ? "text-blue-600 font-medium" : ""}>
-                  4. Details
-                </span>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-        
+        <WizardProgressHeader
+          title="Track Your Emotion"
+          currentStep={currentStep}
+          totalSteps={totalSteps}
+          stepLabels={["1. Select", "2. Rate", "3. Describe", "4. Details"]}
+        />
+
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -704,21 +684,24 @@ export default function EmotionTrackingFormWizard({
                 </div>
               )}
               
-              {/* Navigation Buttons */}
-              <div className="flex justify-between items-center pt-4 border-t">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handlePreviousStep}
-                  disabled={currentStep === 0}
-                  data-testid="button-previous-step"
-                >
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Previous
-                </Button>
-                
-                <div className="flex gap-2">
-                  {currentStep === totalSteps - 1 && (
+              <WizardNavButtons
+                currentStep={currentStep}
+                totalSteps={totalSteps}
+                onPrevious={handlePreviousStep}
+                onNext={handleNextStep}
+                onSubmit={() => form.handleSubmit(onSubmit)()}
+                nextDisabled={
+                  (currentStep === 1 && !form.getValues("coreEmotion")) ||
+                  (currentStep === 3 && (!form.getValues("situation") || form.getValues("situation").length < 10))
+                }
+                submitDisabled={
+                  !form.getValues("coreEmotion") ||
+                  !form.getValues("situation") ||
+                  form.getValues("situation").length < 10
+                }
+                submitLabel="Record Emotion"
+                extraActions={
+                  currentStep === totalSteps - 1 ? (
                     <Button
                       type="button"
                       variant="outline"
@@ -728,55 +711,22 @@ export default function EmotionTrackingFormWizard({
                     >
                       Skip & Record
                     </Button>
-                  )}
-                  
-                  {currentStep < totalSteps - 1 ? (
-                    <Button
-                      type="button"
-                      onClick={handleNextStep}
-                      disabled={
-                        (currentStep === 1 && !form.getValues("coreEmotion")) ||
-                        (currentStep === 3 && (!form.getValues("situation") || form.getValues("situation").length < 10))
-                      }
-                      data-testid="button-next-step"
-                    >
-                      {currentStep === 0 ? "Get Started" : "Next Step"}
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      onClick={() => form.handleSubmit(onSubmit)()}
-                      disabled={!form.getValues("coreEmotion") || !form.getValues("situation") || form.getValues("situation").length < 10}
-                      data-testid="button-submit-emotion"
-                    >
-                      <Check className="h-4 w-4 mr-1" />
-                      Record Emotion
-                    </Button>
-                  )}
-                </div>
-              </div>
+                  ) : null
+                }
+              />
             </form>
           </Form>
         </CardContent>
       </Card>
       
       {/* Success Dialog with Insights */}
-      <Dialog open={showSuccessDialog && !!recordedEmotion} onOpenChange={(open) => !open && setShowSuccessDialog(false)}>
-        <DialogContent className="sm:max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto" data-testid="dialog-success">
-          <DialogHeader>
-            <DialogTitle className="flex items-center text-xl">
-              <div className="bg-green-100 p-2 rounded-full mr-3">
-                <Check className="h-6 w-6 text-green-600" />
-              </div>
-              Emotion Recorded Successfully!
-            </DialogTitle>
-            <DialogDescription className="text-base mt-2">
-              Your emotion has been tracked. Here are your insights:
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6 py-4">
+      <WizardSuccessDialog
+        open={showSuccessDialog && !!recordedEmotion}
+        onOpenChange={(open) => !open && setShowSuccessDialog(false)}
+        title="Emotion Recorded Successfully!"
+        description="Your emotion has been tracked. Here are your insights:"
+      >
+          <>
             {/* Insights Section */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card>
@@ -887,9 +837,8 @@ export default function EmotionTrackingFormWizard({
                 Back to Dashboard
               </Button>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </>
+      </WizardSuccessDialog>
     </>
   );
 }

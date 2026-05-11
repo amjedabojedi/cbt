@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import WizardProgressHeader from "@/components/wizard/WizardProgressHeader";
+import WizardNavButtons from "@/components/wizard/WizardNavButtons";
 import { Badge } from "@/components/ui/badge";
 import {
   ChevronRight,
@@ -220,32 +222,12 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
   return (
     <>
       <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <CardTitle>Journal Entry Wizard</CardTitle>
-              <CardDescription>
-                {currentStep === 0 ? "Introduction" : `Step ${currentStep} of ${totalSteps - 1}`}
-              </CardDescription>
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="space-y-2">
-            <Progress value={progress} className="h-2" />
-            <div className="flex justify-between text-xs text-gray-500">
-              <span className={currentStep >= 1 ? "text-blue-600 font-medium" : ""}>
-                1. Title
-              </span>
-              <span className={currentStep >= 2 ? "text-blue-600 font-medium" : ""}>
-                2. Write
-              </span>
-              <span className={currentStep >= 3 ? "text-blue-600 font-medium" : ""}>
-                3. Review
-              </span>
-            </div>
-          </div>
-        </CardHeader>
+        <WizardProgressHeader
+          title="Journal Entry Wizard"
+          currentStep={currentStep}
+          totalSteps={totalSteps}
+          stepLabels={["1. Title", "2. Write", "3. Review"]}
+        />
 
         <CardContent>
           <Form {...form}>
@@ -610,39 +592,16 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                 </div>
               )}
 
-              {/* Navigation Buttons */}
-              <div className="flex justify-between pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handlePreviousStep}
-                  disabled={currentStep === 0 || isAnalyzing}
-                >
-                  <ChevronLeft className="mr-2 h-4 w-4" />
-                  Previous
-                </Button>
-
-                {currentStep < totalSteps - 1 ? (
-                  <Button
-                    type="button"
-                    onClick={handleNextStep}
-                    disabled={isAnalyzing}
-                  >
-                    {currentStep === 0 ? "Get Started" : currentStep === 2 ? "Analyze Entry" : "Next"}
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    onClick={handleComplete}
-                    disabled={isAnalyzing}
-                    data-testid="button-complete-journal"
-                  >
-                    <Check className="mr-2 h-4 w-4" />
-                    Save Entry
-                  </Button>
-                )}
-              </div>
+              <WizardNavButtons
+                currentStep={currentStep}
+                totalSteps={totalSteps}
+                onPrevious={handlePreviousStep}
+                onNext={handleNextStep}
+                onSubmit={handleComplete}
+                isSubmitting={isAnalyzing}
+                nextLabel={currentStep === 2 ? "Analyze Entry" : "Next"}
+                submitLabel="Save Entry"
+              />
             </div>
           </Form>
         </CardContent>
