@@ -16,8 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { ChevronRight, ChevronLeft, Check, ArrowRight, RefreshCw, Home, TrendingUp, Calendar, Brain, Target, Sparkles, Heart, HelpCircle } from "lucide-react";
+import { Check, ArrowRight, RefreshCw, Home, TrendingUp, Calendar, Brain, Target, Sparkles, Heart, HelpCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -25,13 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Card,
   CardContent,
@@ -257,8 +249,6 @@ export default function EmotionTrackingFormWizard({
       });
     }
   };
-  
-  const progress = (currentStep / (totalSteps - 1)) * 100;
   
   // Calculate insights
   const totalEmotions = emotions.length;

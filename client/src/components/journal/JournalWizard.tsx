@@ -11,13 +11,10 @@ import { getEmotionInfo } from "@/utils/emotionUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import WizardProgressHeader from "@/components/wizard/WizardProgressHeader";
 import WizardNavButtons from "@/components/wizard/WizardNavButtons";
 import { Badge } from "@/components/ui/badge";
 import {
-  ChevronRight,
-  ChevronLeft,
   Check,
   Send,
   Sparkles,
@@ -216,8 +213,6 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
       onEntryCreated();
     }
   };
-
-  const progress = (currentStep / (totalSteps - 1)) * 100;
 
   return (
     <>

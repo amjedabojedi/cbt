@@ -11,13 +11,10 @@ import useActiveUser from "@/hooks/use-active-user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import WizardProgressHeader from "@/components/wizard/WizardProgressHeader";
 import WizardNavButtons from "@/components/wizard/WizardNavButtons";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  ChevronRight,
-  ChevronLeft,
   Check,
   Target,
   Ruler,
@@ -222,8 +219,6 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
       onGoalCreated();
     }
   };
-
-  const progress = (currentStep / (totalSteps - 1)) * 100;
 
   return (
     <>

@@ -14,8 +14,6 @@ import { ThoughtChallengeWizard } from "./ThoughtChallengeWizard";
 
 import {
   Brain,
-  ChevronLeft,
-  ChevronRight,
   CheckCircle2,
   Info,
   Sparkles,
@@ -61,7 +59,6 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import WizardProgressHeader from "@/components/wizard/WizardProgressHeader";
 import WizardNavButtons from "@/components/wizard/WizardNavButtons";
 import { Badge } from "@/components/ui/badge";
@@ -175,7 +172,6 @@ export default function ThoughtRecordWizard({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const totalSteps = 6;
-  const progress = (currentStep / (totalSteps - 1)) * 100;
 
   // Fetch recent emotions for linking
   const { data: emotions } = useQuery<EmotionRecord[]>({
