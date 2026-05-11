@@ -209,7 +209,7 @@ export default function Dashboard() {
                   linkTo="/journal"
                   metrics={[
                     { label: "Total", value: moduleStats.journal.total },
-                    { label: "Avg. Rating", value: moduleStats.journal.averageRating },
+                    { label: "Emotions Found", value: moduleStats.journal.emotionsDetected },
                   ]}
                 />
                 
