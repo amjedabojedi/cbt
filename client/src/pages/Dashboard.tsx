@@ -170,7 +170,6 @@ export default function Dashboard() {
                   linkTo="/emotions"
                   metrics={[
                     { label: "Total", value: moduleStats.emotions.total },
-                    { label: "Avg. Intensity", value: moduleStats.emotions.averageIntensity },
                     { label: "Most Common", value: moduleStats.emotions.mostCommon },
                   ]}
                 />
@@ -184,8 +183,7 @@ export default function Dashboard() {
                   linkTo="/thought-records"
                   metrics={[
                     { label: "Total", value: moduleStats.thoughts.total },
-                    { label: "Challenged", value: `${moduleStats.thoughts.challengedPercentage}%` },
-                    { label: "Top ANT", value: moduleStats.thoughts.topANT },
+                    { label: "Top Pattern", value: moduleStats.thoughts.topANT },
                   ]}
                 />
                 
@@ -199,7 +197,6 @@ export default function Dashboard() {
                   metrics={[
                     { label: "Practices", value: moduleStats.reframe.totalPractices },
                     { label: "Avg. Score", value: moduleStats.reframe.averageScore },
-                    { label: "Improvement", value: `${moduleStats.reframe.improvementPercentage > 0 ? '+' : ''}${moduleStats.reframe.improvementPercentage}%` },
                   ]}
                 />
                 
@@ -213,7 +210,6 @@ export default function Dashboard() {
                   metrics={[
                     { label: "Total", value: moduleStats.journal.total },
                     { label: "Avg. Rating", value: moduleStats.journal.averageRating },
-                    { label: "Emotions", value: moduleStats.journal.emotionsDetected },
                   ]}
                 />
                 
@@ -226,7 +222,6 @@ export default function Dashboard() {
                   linkTo="/goals"
                   metrics={[
                     { label: "Total", value: moduleStats.goals.total },
-                    { label: "Completed", value: moduleStats.goals.completed },
                     { label: "Success Rate", value: `${moduleStats.goals.completedPercentage}%` },
                   ]}
                 />
