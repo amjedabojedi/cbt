@@ -363,8 +363,8 @@ export default function GoalSetting() {
   };
   
   return (
-    <AppLayout>
-      <div className="container py-6">
+    <AppLayout title="Smart Goals">
+      <div className="container mx-auto px-4 py-6">
         {/* Back to Clients button */}
         <BackToClientsButton />
         
@@ -678,7 +678,7 @@ export default function GoalSetting() {
                   ? "set"
                   : (user?.role === 'therapist' || user?.role === 'admin') ? "goals" : "set"
           }
-          className="w-full"
+          className="space-y-4"
         >
           <TabsList>
             {/* Only show Set Goal tab for clients viewing their own data (NOT therapists) */}

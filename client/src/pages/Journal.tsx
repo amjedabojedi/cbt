@@ -700,7 +700,7 @@ export default function Journal() {
   
   return (
     <AppLayout title="Journal">
-      <div className="container py-6 px-8 max-w-6xl ml-4">
+      <div className="container mx-auto px-4 py-6">
         {/* Back to Clients button */}
         <BackToClientsButton />
         
@@ -749,8 +749,9 @@ export default function Journal() {
           defaultValue={
             user?.role === 'therapist' || user?.role === 'admin' ? "history" : "write"
           }
+          className="space-y-4"
         >
-          <TabsList className="mb-4">
+          <TabsList>
             {/* Only show Write Entry tab for clients */}
             {user?.role === 'client' && (
               <TabsTrigger value="write">
