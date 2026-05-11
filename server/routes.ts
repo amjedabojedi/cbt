@@ -1309,10 +1309,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const resetUrl = `${baseUrl}/reset-password/${token}`;
       
       // Send the reset email
+      console.log(`[PasswordReset] Sending reset email to ${user.email}, URL domain: ${baseUrl}`);
       const emailSent = await sendPasswordResetEmail(user.email, resetUrl);
       
       if (!emailSent) {
-        console.error(`Failed to send password reset email`);
+        console.error(`[PasswordReset] FAILED to send reset email to ${user.email} - check email service configuration`);
+      } else {
+        console.log(`[PasswordReset] Reset email sent successfully to ${user.email}`);
       }
       
       // Return success regardless of email sending status (for security)

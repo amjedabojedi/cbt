@@ -30,10 +30,12 @@ export let sparkPostClient: any = null;
 if (EMAIL_ENABLED) {
   try {
     sparkPostClient = new SparkPost(SPARKPOST_API_KEY as string);
-    console.log('SparkPost client initialized successfully');
+    console.log('[Email] SparkPost client initialized successfully - email service ACTIVE');
   } catch (error) {
-    console.error('Failed to initialize SparkPost client:', error);
+    console.error('[Email] Failed to initialize SparkPost client:', error);
   }
+} else {
+  console.warn('[Email] SPARKPOST_API_KEY not set - email service DISABLED. Password reset emails will NOT be sent.');
 }
 
 // Email service configuration
@@ -112,7 +114,8 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     }
 
     // Send the email through SparkPost
-    await sparkPostClient.transmissions.send(transmission);
+    const response = await sparkPostClient.transmissions.send(transmission);
+    console.log(`[Email] Successfully sent "${params.subject}" to ${params.to}`, JSON.stringify(response?.results || {}));
     
     // Record the email in our database for auditing
     try {
@@ -126,8 +129,11 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     }
     
     return true;
-  } catch (error) {
-    console.error('Error sending email via SparkPost:', error);
+  } catch (error: any) {
+    console.error(`[Email] FAILED to send "${params.subject}" to ${params.to}:`, error?.message || error);
+    if (error?.errors) {
+      console.error('[Email] SparkPost errors:', JSON.stringify(error.errors));
+    }
     return false;
   }
 }
