@@ -5934,11 +5934,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const langParam = typeof req.query.language === "string" ? req.query.language : undefined;
         const language = langParam ? langParam.split("-")[0] : undefined;
 
-        const result = await client.audio.transcriptions.create({
-          file: audioFile,
-          model: "whisper-1",
-          ...(language ? { language } : {}),
-        });
+        // Replit AI Integrations supports gpt-4o-(mini-)transcribe; whisper-1 is rejected.
+        // Try the small model first, then fall back to the larger one if unavailable.
+        const tryModels = ["gpt-4o-mini-transcribe", "gpt-4o-transcribe"];
+        let result: { text?: string } | null = null;
+        let lastError: any = null;
+        for (const model of tryModels) {
+          try {
+            result = await client.audio.transcriptions.create({
+              file: audioFile,
+              model,
+              ...(language ? { language } : {}),
+            });
+            break;
+          } catch (modelErr: any) {
+            lastError = modelErr;
+            const msg = String(modelErr?.message || "");
+            if (!/not supported|does not exist|unknown model/i.test(msg)) throw modelErr;
+          }
+        }
+        if (!result) throw lastError || new Error("No transcription model available");
 
         return res.json({ text: result.text || "" });
       } catch (err: any) {
