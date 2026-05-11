@@ -105,28 +105,30 @@ const PracticeScenario = ({
   onNext: () => void;
 }) => {
   return (
-    <Card className="w-full mb-6">
-      <CardHeader>
-        <div className="flex justify-between items-center mb-2">
-          <div className="flex items-center">
-            <span className="text-sm font-medium text-muted-foreground">
-              Scenario {currentIndex + 1} of {totalScenarios}
-            </span>
-          </div>
+    <Card className="w-full mb-6 border-border/60 shadow-sm">
+      <CardHeader className="pb-4">
+        <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Scenario {currentIndex + 1} of {totalScenarios}
+          </span>
           <div className="flex items-center gap-2">
-            <span className="bg-muted px-2 py-1 rounded text-xs font-medium">
+            <span className="bg-muted/70 px-2.5 py-1 rounded-full text-xs font-medium">
               {formatCognitiveDistortion(scenario.cognitiveDistortion)}
             </span>
-            <span className="bg-muted px-2 py-1 rounded text-xs font-medium">
+            <span className="bg-muted/70 px-2.5 py-1 rounded-full text-xs font-medium">
               {formatEmotionCategory(scenario.emotionCategory)}
             </span>
           </div>
         </div>
-        <CardTitle className="text-xl">{scenario.scenario}</CardTitle>
+        <div className="rounded-lg bg-muted/40 border border-border/50 shadow-sm px-4 py-3">
+          <CardTitle className="text-base sm:text-[0.95rem] font-medium leading-relaxed text-foreground">
+            {scenario.scenario}
+          </CardTitle>
+        </div>
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <p className="font-medium mb-4">How would you reframe this thought?</p>
+        <p className="text-sm font-semibold mb-4 text-foreground">How would you reframe this thought?</p>
         
         {scenario.options.map((option, index) => (
           <div 
