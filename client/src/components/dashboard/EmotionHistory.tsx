@@ -403,7 +403,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                       {/* Situation */}
                       <div>
                         <span className="text-sm text-muted-foreground block mb-1">Situation:</span>
-                        <p className="text-sm line-clamp-2">{emotion.situation}</p>
+                        <p className="text-sm line-clamp-1 sm:line-clamp-2">{emotion.situation}</p>
                       </div>
                     </div>
                   </CardContent>

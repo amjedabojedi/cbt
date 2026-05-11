@@ -178,7 +178,7 @@ export default function Sidebar() {
       
       {/* Mobile toggle button */}
       <button
-        className="fixed bottom-4 right-4 md:hidden bg-primary text-white p-3 rounded-full shadow-lg z-50"
+        className="fixed bottom-20 right-4 md:hidden bg-primary text-white p-3 rounded-full shadow-lg z-50"
         onClick={() => setIsMobileExpanded(!isMobileExpanded)}
         aria-label={isMobileExpanded ? "Close menu" : "Open menu"}
       >

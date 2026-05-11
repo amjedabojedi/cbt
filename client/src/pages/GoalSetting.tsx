@@ -820,18 +820,28 @@ export default function GoalSetting() {
                         )}
                       </CardHeader>
                       
-                      <CardContent className="pb-3">
+                      {/* SMART details — collapsed on mobile, expanded on sm+ */}
+                      <CardContent className="pb-3 hidden sm:block">
                         <div className="space-y-2">
                           <div>
                             <h4 className="text-sm font-medium text-primary">Specific</h4>
                             <p className="text-sm text-muted-foreground line-clamp-2">{goal.specific}</p>
                           </div>
-                          
                           <div>
                             <h4 className="text-sm font-medium text-primary">Measurable</h4>
                             <p className="text-sm text-muted-foreground line-clamp-2">{goal.measurable}</p>
                           </div>
                         </div>
+                      </CardContent>
+                      {/* Mobile-only: brief specific summary + tap hint */}
+                      <CardContent className="pb-3 sm:hidden">
+                        <p className="text-sm text-muted-foreground line-clamp-2">{goal.specific}</p>
+                        <button
+                          className="mt-2 text-xs text-primary font-medium"
+                          onClick={() => setSelectedGoal(goal)}
+                        >
+                          View full details →
+                        </button>
                       </CardContent>
                     
                     {user?.role === 'therapist' && (

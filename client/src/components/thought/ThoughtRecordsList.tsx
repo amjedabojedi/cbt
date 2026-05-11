@@ -466,7 +466,7 @@ export default function ThoughtRecordsList({
                         </div>
                         <h4 className="text-sm font-medium text-slate-700">Automatic Thoughts</h4>
                       </div>
-                      <p className="text-sm pl-7 text-slate-600 line-clamp-2">
+                      <p className="text-sm pl-7 text-slate-600 line-clamp-1 sm:line-clamp-2">
                         {record.automaticThoughts}
                       </p>
                     </div>
@@ -482,11 +482,16 @@ export default function ThoughtRecordsList({
                       <div className="pl-7">
                         {record.thoughtCategory && record.thoughtCategory.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
-                            {record.thoughtCategory.map((distortion: string, idx: number) => (
+                            {record.thoughtCategory.slice(0, 2).map((distortion: string, idx: number) => (
                               <span key={idx} className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-xs">
                                 {thoughtCategoryLabels[distortion] || distortion}
                               </span>
                             ))}
+                            {record.thoughtCategory.length > 2 && (
+                              <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-xs">
+                                +{record.thoughtCategory.length - 2} more
+                              </span>
+                            )}
                           </div>
                         ) : (
                           <span className="text-muted-foreground text-xs">None identified</span>
@@ -494,18 +499,20 @@ export default function ThoughtRecordsList({
                       </div>
                     </div>
                     
-                    {/* Alternative Perspective */}
-                    <div className="mb-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="p-1.5 rounded-full bg-blue-100">
-                          <Lightbulb className="h-3.5 w-3.5 text-blue-500" />
+                    {/* Alternative Perspective — hidden on mobile to reduce card height */}
+                    {record.alternativePerspective && (
+                      <div className="mb-3 hidden sm:block">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="p-1.5 rounded-full bg-blue-100">
+                            <Lightbulb className="h-3.5 w-3.5 text-blue-500" />
+                          </div>
+                          <h4 className="text-sm font-medium text-slate-700">Alternative Perspective</h4>
                         </div>
-                        <h4 className="text-sm font-medium text-slate-700">Alternative Perspective</h4>
+                        <p className="text-sm pl-7 text-slate-600 line-clamp-2">
+                          {record.alternativePerspective}
+                        </p>
                       </div>
-                      <p className="text-sm pl-7 text-slate-600 line-clamp-2">
-                        {record.alternativePerspective}
-                      </p>
-                    </div>
+                    )}
                     
                     {/* Practice Button & Last Practice Info */}
                     {showPracticeButton && !isViewingClientData && (

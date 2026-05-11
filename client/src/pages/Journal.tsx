@@ -859,7 +859,7 @@ export default function Journal() {
                   </CardHeader>
                   <CardContent className="pb-2">
                     <div className="cursor-pointer" onClick={() => handleViewEntry(entry)}>
-                      <p className="text-sm line-clamp-3 mb-2">{entry.content}</p>
+                      <p className="text-sm line-clamp-2 sm:line-clamp-3 mb-2">{entry.content}</p>
                     </div>
                     
                     {entry.userSelectedTags && entry.userSelectedTags.length > 0 && (
