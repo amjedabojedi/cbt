@@ -180,8 +180,8 @@ export default function ResourceLibrary() {
     data: protectiveFactors, 
     isLoading: factorsLoading, 
     error: factorsError 
-  } = useQuery({
-    queryKey: user ? [`/api/users/${user.id}/protective-factors`] : [],
+  } = useQuery<any>({
+    queryKey: user ? [`/api/users/${user!.id}/protective-factors`] : [],
     enabled: !!user,
   });
   
@@ -190,8 +190,8 @@ export default function ResourceLibrary() {
     data: copingStrategies, 
     isLoading: strategiesLoading, 
     error: strategiesError 
-  } = useQuery({
-    queryKey: user ? [`/api/users/${user.id}/coping-strategies`] : [],
+  } = useQuery<any>({
+    queryKey: user ? [`/api/users/${user!.id}/coping-strategies`] : [],
     enabled: !!user,
   });
   
@@ -200,7 +200,7 @@ export default function ResourceLibrary() {
     data: educationalResources,
     isLoading: resourcesLoading,
     error: resourcesError
-  } = useQuery({
+  } = useQuery<any>({
     queryKey: ['/api/resources'],
     enabled: !!user,
   });
@@ -210,7 +210,7 @@ export default function ResourceLibrary() {
     data: clients,
     isLoading: clientsLoading,
     error: clientsError
-  } = useQuery({
+  } = useQuery<any>({
     queryKey: ['/api/users/clients'],
     enabled: !!user && user.role === "therapist",
   });
@@ -222,7 +222,7 @@ export default function ResourceLibrary() {
       
       const response = await apiRequest(
         "POST",
-        `/api/users/${user.id}/protective-factors`,
+        `/api/users/${user!.id}/protective-factors`,
         {
           ...data,
           userId: user.id,
@@ -232,7 +232,7 @@ export default function ResourceLibrary() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/protective-factors`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/protective-factors`] });
       setIsAddingFactor(false);
       factorForm.reset();
       toast({
@@ -257,7 +257,7 @@ export default function ResourceLibrary() {
       
       const response = await apiRequest(
         "POST",
-        `/api/users/${user.id}/coping-strategies`,
+        `/api/users/${user!.id}/coping-strategies`,
         {
           ...data,
           userId: user.id,
@@ -267,7 +267,7 @@ export default function ResourceLibrary() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/coping-strategies`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/coping-strategies`] });
       setIsAddingStrategy(false);
       strategyForm.reset();
       toast({
@@ -292,7 +292,7 @@ export default function ResourceLibrary() {
       
       const response = await apiRequest(
         "DELETE",
-        `/api/users/${user.id}/protective-factors/${factorId}`,
+        `/api/users/${user!.id}/protective-factors/${factorId}`,
         null
       );
       
@@ -304,7 +304,7 @@ export default function ResourceLibrary() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/protective-factors`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/protective-factors`] });
       setSelectedFactor(null);
       setIsDeleteFactorDialogOpen(false);
       toast({
@@ -329,7 +329,7 @@ export default function ResourceLibrary() {
       
       const response = await apiRequest(
         "DELETE",
-        `/api/users/${user.id}/coping-strategies/${strategyId}`,
+        `/api/users/${user!.id}/coping-strategies/${strategyId}`,
         null
       );
       
@@ -341,7 +341,7 @@ export default function ResourceLibrary() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/coping-strategies`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/coping-strategies`] });
       setSelectedStrategy(null);
       setIsDeleteStrategyDialogOpen(false);
       toast({
@@ -366,7 +366,7 @@ export default function ResourceLibrary() {
       
       const response = await apiRequest(
         "PUT",
-        `/api/users/${user.id}/protective-factors/${id}`,
+        `/api/users/${user!.id}/protective-factors/${id}`,
         data
       );
       
@@ -378,7 +378,7 @@ export default function ResourceLibrary() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/protective-factors`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/protective-factors`] });
       setIsEditingFactor(false);
       setSelectedFactor(null);
       toast({
@@ -403,7 +403,7 @@ export default function ResourceLibrary() {
       
       const response = await apiRequest(
         "PUT",
-        `/api/users/${user.id}/coping-strategies/${id}`,
+        `/api/users/${user!.id}/coping-strategies/${id}`,
         data
       );
       
@@ -415,7 +415,7 @@ export default function ResourceLibrary() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/coping-strategies`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/coping-strategies`] });
       setIsEditingStrategy(false);
       setSelectedStrategy(null);
       toast({
@@ -655,9 +655,9 @@ export default function ResourceLibrary() {
   
   // Fetch client assignments (for therapists)
   const {
-    data: clientAssignments = [],
+    data: clientAssignments = [] as any[],
     isLoading: assignmentsLoading,
-  } = useQuery({
+  } = useQuery<any>({
     queryKey: ['/api/therapist/assignments'],
     enabled: !!user && user.role === 'therapist',
   });
@@ -706,19 +706,19 @@ export default function ResourceLibrary() {
   
   // Filter functions for personal and global items
   const personalFactors = protectiveFactors?.filter(
-    (factor) => !factor.isGlobal || factor.userId === user?.id
+    (factor: any) => !factor.isGlobal || factor.userId === user?.id
   );
   
   const globalFactors = protectiveFactors?.filter(
-    (factor) => factor.isGlobal && factor.userId !== user?.id
+    (factor: any) => factor.isGlobal && factor.userId !== user?.id
   );
   
   const personalStrategies = copingStrategies?.filter(
-    (strategy) => !strategy.isGlobal || strategy.userId === user?.id
+    (strategy: any) => !strategy.isGlobal || strategy.userId === user?.id
   );
   
   const globalStrategies = copingStrategies?.filter(
-    (strategy) => strategy.isGlobal && strategy.userId !== user?.id
+    (strategy: any) => strategy.isGlobal && strategy.userId !== user?.id
   );
   
   if (factorsLoading || strategiesLoading) {
@@ -976,7 +976,7 @@ export default function ResourceLibrary() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {personalFactors?.map((factor) => (
+                    {personalFactors?.map((factor: any) => (
                       <Card key={factor.id} className="overflow-hidden border border-neutral-200 hover:shadow-md transition-shadow">
                         <CardHeader className="bg-neutral-50 p-4 pb-3">
                           <div className="flex justify-between items-start">
@@ -1020,7 +1020,7 @@ export default function ResourceLibrary() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {globalFactors.map((factor) => (
+                    {globalFactors.map((factor: any) => (
                       <Card key={factor.id} className="overflow-hidden border border-neutral-200 hover:shadow-md transition-shadow">
                         <CardHeader className="bg-neutral-50 p-4 pb-3">
                           <CardTitle className="text-base font-medium">{factor.name}</CardTitle>
@@ -1282,7 +1282,7 @@ export default function ResourceLibrary() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {personalStrategies?.map((strategy) => (
+                    {personalStrategies?.map((strategy: any) => (
                       <Card key={strategy.id} className="overflow-hidden border border-neutral-200 hover:shadow-md transition-shadow">
                         <CardHeader className="bg-neutral-50 p-4 pb-3">
                           <div className="flex justify-between items-start">
@@ -1326,7 +1326,7 @@ export default function ResourceLibrary() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {globalStrategies.map((strategy) => (
+                    {globalStrategies.map((strategy: any) => (
                       <Card key={strategy.id} className="overflow-hidden border border-neutral-200 hover:shadow-md transition-shadow">
                         <CardHeader className="bg-neutral-50 p-4 pb-3">
                           <CardTitle className="text-base font-medium">{strategy.name}</CardTitle>
@@ -1438,9 +1438,9 @@ export default function ResourceLibrary() {
                 </TabsTrigger>
                 
                 {/* Dynamic tabs from resources */}
-                {educationalResources && [...new Set(educationalResources.map((r: any) => r.category))]
-                  .filter((cat: string) => cat && cat !== 'all')
-                  .map((category: string) => (
+                {educationalResources && Array.from(new Set(educationalResources.map((r: any) => r.category)))
+                  .filter((cat: any) => cat && cat !== 'all')
+                  .map((category: any) => (
                     <TabsTrigger
                       key={category}
                       value={category}
@@ -1477,9 +1477,9 @@ export default function ResourceLibrary() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {educationalResources?.filter(resource => 
+                {educationalResources?.filter((resource: any) =>
                   resourceCategory === "all" || resource.category === resourceCategory
-                ).map((resource) => (
+                ).map((resource: any) => (
                   <Card key={resource.id} className="overflow-hidden flex flex-col h-full transition-shadow hover:shadow-md">
                     <CardHeader className="bg-neutral-50 pb-2">
                       <div className="flex justify-between items-start">
@@ -1983,9 +1983,9 @@ export default function ResourceLibrary() {
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             <option value="">-- Select a Category --</option>
-                            {educationalResources && [...new Set(educationalResources.map((r: any) => r.category))]
-                              .filter((cat: string) => cat && cat !== 'all')
-                              .map((category: string) => (
+                            {educationalResources && Array.from(new Set(educationalResources.map((r: any) => r.category)))
+                              .filter((cat: any) => cat && cat !== 'all')
+                              .map((category: any) => (
                                 <option key={category} value={category}>{category}</option>
                               ))
                             }

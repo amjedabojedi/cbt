@@ -22,11 +22,15 @@ const CACHE_TTL = 60000; // 1 minute cache
 //   keysToDelete.forEach(key => sessionLookupCache.delete(key));
 // }, 30000);
 
-// Extend Express Request type to include user information
+// Extend Express Request type to include user information.
+// `user` is typed as non-optional because every route that reads `req.user`
+// is guarded by the `authenticate` middleware (or one of its derivatives),
+// which sets the value before passing control to the handler. The runtime
+// `if (!req.user)` checks remain in this file as defence-in-depth.
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user: User;
       session?: any;
     }
   }

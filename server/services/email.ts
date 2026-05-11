@@ -26,7 +26,7 @@ const SPARKPOST_API_KEY = process.env.SPARKPOST_API_KEY;
 const EMAIL_ENABLED = !!SPARKPOST_API_KEY;
 
 // Initialize SparkPost client if API key is available
-let sparkPostClient: any = null;
+export let sparkPostClient: any = null;
 if (EMAIL_ENABLED) {
   try {
     sparkPostClient = new SparkPost(SPARKPOST_API_KEY as string);

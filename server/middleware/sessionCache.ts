@@ -41,7 +41,7 @@ class SessionCache {
   // Clean expired entries periodically
   cleanup(): void {
     const now = Date.now();
-    for (const [sessionId, cached] of this.cache.entries()) {
+    for (const [sessionId, cached] of Array.from(this.cache.entries())) {
       if (now - cached.timestamp > this.TTL) {
         this.cache.delete(sessionId);
       }

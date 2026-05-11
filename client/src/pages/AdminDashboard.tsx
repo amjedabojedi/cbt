@@ -65,6 +65,7 @@ export default function AdminDashboard() {
     mostActiveTherapist: '',
     mostActiveClient: '',
     mostUsedResource: '',
+    topResources: [] as any[],
   });
   const [loading, setLoading] = useState(true);
 
@@ -287,7 +288,7 @@ export default function AdminDashboard() {
                 <CardContent>
                   <div className="space-y-4">
                     {stats.topResources && stats.topResources.length > 0 ? (
-                      stats.topResources.map((resource, index) => (
+                      stats.topResources.map((resource: any, index: number) => (
                         <div key={index} className="flex items-center space-x-2 rounded-md bg-slate-50 p-2">
                           <BookmarkCheck className="h-4 w-4 text-primary" />
                           <span className="flex-grow text-sm font-medium">{resource.title}</span>

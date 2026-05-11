@@ -826,7 +826,7 @@ export default function ThoughtRecordsList({
             
             <CreateReframePracticeForm 
               thoughtRecord={selectedRecord}
-              clientId={activeUserId}
+              clientId={activeUserId ?? 0}
               isOpen={showReframeDialog}
               onClose={() => {
                 setShowReframeDialog(false);

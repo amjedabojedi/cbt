@@ -1,4 +1,5 @@
 import { processInactivityReminders } from './services/reminderService';
+// @ts-ignore -- send_weekly_digests is a .cjs file with no type declarations
 import { processWeeklyDigests } from '../scripts/send_weekly_digests';
 
 /**
@@ -90,6 +91,7 @@ class EngagementScheduler {
       console.log('[Scheduler] Running weekly progress digests...');
       
       // Import and run the weekly digest processor
+      // @ts-ignore -- send_weekly_digests is a .cjs file with no type declarations
       const { processWeeklyDigests } = await import('../scripts/send_weekly_digests');
       const results = await processWeeklyDigests();
       

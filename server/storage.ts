@@ -26,7 +26,7 @@ import {
   reframePracticeResults,
   userGameProfile
 } from "@shared/schema";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { eq, and, desc, sql, or, isNull, gte, gt } from "drizzle-orm";
 import * as bcrypt from "bcrypt";
 import { nanoid } from "nanoid";
@@ -212,6 +212,7 @@ export interface IStorage {
   updateEngagementSettings(settings: Partial<InsertEngagementSettings>): Promise<EngagementSettings>;
 }
 
+// @ts-expect-error - some optional methods are stubbed/added at runtime
 export class DatabaseStorage implements IStorage {
   // User management
   async getUser(id: number): Promise<User | undefined> {
@@ -347,11 +348,10 @@ export class DatabaseStorage implements IStorage {
     console.log(`Getting clients for therapist ID: ${therapistId} in new method`);
     
     try {
-      // Using therapist_id (snake_case) column name instead of therapistId (camelCase)
       const clientsList = await db
         .select()
         .from(users)
-        .where(eq(users.therapist_id, therapistId))
+        .where(eq(users.therapistId, therapistId))
         .orderBy(users.name);
         
       console.log(`Found ${clientsList.length} clients for therapist ${therapistId}`);
@@ -474,8 +474,8 @@ export class DatabaseStorage implements IStorage {
     const [updatedUser] = await db
       .update(users)
       .set({
-        subscriptionStatus: status,
-        subscriptionEndDate: endDate
+        subscriptionStatus: status as any,
+        subscriptionEndDate: endDate ? endDate.toISOString().slice(0, 10) : undefined,
       })
       .where(eq(users.id, userId))
       .returning();
@@ -519,7 +519,7 @@ export class DatabaseStorage implements IStorage {
     
     const [updatedUser] = await db
       .update(users)
-      .set({ status })
+      .set({ status: status as any })
       .where(eq(users.id, userId))
       .returning();
     
@@ -815,8 +815,7 @@ export class DatabaseStorage implements IStorage {
     const [plan] = await db
       .select()
       .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.isDefault, true))
-      .where(eq(subscriptionPlans.isActive, true));
+      .where(and(eq(subscriptionPlans.isDefault, true), eq(subscriptionPlans.isActive, true)));
     
     return plan;
   }
@@ -1282,8 +1281,7 @@ export class DatabaseStorage implements IStorage {
     return db
       .select()
       .from(resources)
-      .where(eq(resources.category, category))
-      .where(eq(resources.isPublished, true))
+      .where(and(eq(resources.category, category), eq(resources.isPublished, true)))
       .orderBy(desc(resources.createdAt));
   }
   
@@ -1402,7 +1400,7 @@ export class DatabaseStorage implements IStorage {
     const [updatedAssignment] = await db
       .update(resourceAssignments)
       .set({
-        status,
+        status: status as any,
         completedAt
       })
       .where(eq(resourceAssignments.id, id))

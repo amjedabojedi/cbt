@@ -174,6 +174,7 @@ interface ThoughtRecord {
   emotionRecordId: number | null;
   automaticThoughts: string;
   cognitiveDistortions: string[];
+  situation: string | null;
   evidenceFor: string | null;
   evidenceAgainst: string | null;
   alternativePerspective: string | null;

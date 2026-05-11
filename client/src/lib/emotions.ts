@@ -113,7 +113,7 @@ export function getAllEmotions(): string[] {
   });
   
   // Remove duplicates and return
-  return [...new Set(emotions)];
+  return Array.from(new Set(emotions));
 }
 
 /**

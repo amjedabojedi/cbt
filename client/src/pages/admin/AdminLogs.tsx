@@ -11,6 +11,7 @@ import { Loader2, FileText, User, Trash2, AlertTriangle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface SystemLog {
+  details?: any;
   id: number;
   action: string;
   actionType: string;

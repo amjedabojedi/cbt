@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, jsonb, timestamp, boolean, foreignKey, date, varchar, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb, timestamp, boolean, foreignKey, date, varchar, real, type AnyPgColumn } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -25,8 +25,8 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   role: text("role", { enum: ["client", "therapist", "admin"] }).notNull().default("client"),
-  therapistId: integer("therapist_id").references(() => users.id),
-  currentViewingClientId: integer("current_viewing_client_id").references(() => users.id),
+  therapistId: integer("therapist_id").references((): AnyPgColumn => users.id),
+  currentViewingClientId: integer("current_viewing_client_id").references((): AnyPgColumn => users.id),
   // User status for client accounts (pending = invited but not activated yet)
   status: text("status", { enum: ["pending", "active"] }).default("active").notNull(),
   // Subscription related fields
@@ -189,7 +189,7 @@ export const resources = pgTable("resources", {
   fileUrl: text("file_url"), // For uploaded files
   thumbnailUrl: text("thumbnail_url"),
   createdBy: integer("created_by").notNull().references(() => users.id),
-  parentResourceId: integer("parent_resource_id").references(() => resources.id), // For modified resources
+  parentResourceId: integer("parent_resource_id").references((): AnyPgColumn => resources.id), // For modified resources
   isPublished: boolean("is_published").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

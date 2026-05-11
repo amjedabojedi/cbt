@@ -51,14 +51,14 @@ class RateLimiter {
   
   private cleanup() {
     const now = Date.now();
-    for (const [clientId, requests] of this.requests.entries()) {
-      const recentRequests = requests.filter(time => time > now - this.config.windowMs);
+    Array.from(this.requests.entries()).forEach(([clientId, requests]) => {
+      const recentRequests = requests.filter((time: number) => time > now - this.config.windowMs);
       if (recentRequests.length === 0) {
         this.requests.delete(clientId);
       } else {
         this.requests.set(clientId, recentRequests);
       }
-    }
+    });
   }
 }
 

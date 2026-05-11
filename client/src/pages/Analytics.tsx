@@ -11,25 +11,24 @@ import useActiveUser from "@/hooks/use-active-user";
 
 export default function Analytics() {
   const { user } = useAuth();
-  const { activeUser } = useActiveUser();
+  const { activeUserId, isViewingClientData } = useActiveUser();
   const [timeRange, setTimeRange] = useState("week");
 
   // Determine which user data to fetch
-  const targetUserId = activeUser?.id || user?.id;
-  const isViewingClientData = activeUser && activeUser.id !== user?.id;
+  const targetUserId = activeUserId ?? user?.id;
 
   // Fetch analytics data
-  const { data: emotionAnalytics, isLoading: emotionsLoading } = useQuery({
+  const { data: emotionAnalytics, isLoading: emotionsLoading } = useQuery<any>({
     queryKey: ["/api/analytics/emotions", { timeRange, userId: targetUserId }],
     enabled: !!targetUserId,
   });
 
-  const { data: moodTrends, isLoading: trendsLoading } = useQuery({
+  const { data: moodTrends, isLoading: trendsLoading } = useQuery<any>({
     queryKey: ["/api/analytics/mood-trends", { timeRange, userId: targetUserId }],
     enabled: !!targetUserId,
   });
 
-  const { data: progressMetrics, isLoading: progressLoading } = useQuery({
+  const { data: progressMetrics, isLoading: progressLoading } = useQuery<any>({
     queryKey: ["/api/analytics/progress", { timeRange, userId: targetUserId }],
     enabled: !!targetUserId,
   });

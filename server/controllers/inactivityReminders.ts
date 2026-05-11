@@ -208,7 +208,7 @@ export async function sendInactivityReminders(req: Request, res: Response) {
         ${therapistId ? 'AND u.therapist_id = $2' : ''}
       `;
       
-      const params = [specificClientIds];
+      const params: any[] = [specificClientIds];
       if (therapistId) {
         params.push(therapistId);
       }

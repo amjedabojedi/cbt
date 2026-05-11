@@ -67,6 +67,7 @@ import { initializeWebSocketServer, sendNotificationToUser } from "./services/we
 import { sendEmail, sendEmotionTrackingReminder, sendWeeklyProgressDigest, isEmailEnabled } from "./services/email";
 import { checkInactiveClients, sendInactivityReminders } from "./controllers/inactivityReminders";
 import { systemLogs } from "@shared/schema";
+import { sparkPostClient } from "./services/email";
 
 // Function to create system logs for admin actions
 async function createSystemLog(action: string, userId: number | null, ipAddress: string | null, userAgent: string | null = null, actionType: string = 'admin') {
@@ -313,7 +314,7 @@ async function updateGoalStatusBasedOnMilestones(goalId: number): Promise<void> 
     // Update goal status
     await db
       .update(goals)
-      .set({ status: newStatus })
+      .set({ status: newStatus as any })
       .where(eq(goals.id, goalId));
     
     console.log(`Goal ${goalId} status auto-updated to '${newStatus}' (${completedMilestones}/${totalMilestones} milestones completed)`);
@@ -751,8 +752,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const session = event.data.object;
           
           // Get the user and plan from metadata
-          const userId = Number(session.metadata.userId);
-          const planId = Number(session.metadata.planId);
+          const userId = Number(session.metadata?.userId);
+          const planId = Number(session.metadata?.planId);
           
           // Get subscription ID
           const subscriptionId = session.subscription;
@@ -771,17 +772,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         case "invoice.payment_succeeded": {
           // Update subscription status to active
-          const invoice = event.data.object;
+          const invoice = event.data.object as any;
           const subscriptionId = invoice.subscription;
           
           // Find user with this subscription
-          const users = await db
+          const matchingUsers = await db
             .select()
             .from(users)
             .where(eq(users.stripeSubscriptionId, subscriptionId as string));
           
-          if (users.length > 0) {
-            await storage.updateSubscriptionStatus(users[0].id, "active");
+          if (matchingUsers.length > 0) {
+            await storage.updateSubscriptionStatus(matchingUsers[0].id, "active");
           }
           
           break;
@@ -789,17 +790,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         case "invoice.payment_failed": {
           // Update subscription status to past_due
-          const invoice = event.data.object;
+          const invoice = event.data.object as any;
           const subscriptionId = invoice.subscription;
           
           // Find user with this subscription
-          const users = await db
+          const matchingUsers = await db
             .select()
             .from(users)
             .where(eq(users.stripeSubscriptionId, subscriptionId as string));
           
-          if (users.length > 0) {
-            await storage.updateSubscriptionStatus(users[0].id, "past_due");
+          if (matchingUsers.length > 0) {
+            await storage.updateSubscriptionStatus(matchingUsers[0].id, "past_due");
           }
           
           break;
@@ -809,15 +810,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const subscription = event.data.object;
           
           // Find user with this subscription
-          const users = await db
+          const matchingUsers = await db
             .select()
             .from(users)
             .where(eq(users.stripeSubscriptionId, subscription.id));
           
-          if (users.length > 0) {
+          if (matchingUsers.length > 0) {
             // Update status based on subscription status
             await storage.updateSubscriptionStatus(
-              users[0].id,
+              matchingUsers[0].id,
               subscription.status,
               subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : undefined
             );
@@ -830,18 +831,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const subscription = event.data.object;
           
           // Find user with this subscription
-          const users = await db
+          const matchingUsers = await db
             .select()
             .from(users)
             .where(eq(users.stripeSubscriptionId, subscription.id));
           
-          if (users.length > 0) {
-            await storage.updateSubscriptionStatus(users[0].id, "canceled");
+          if (matchingUsers.length > 0) {
+            await storage.updateSubscriptionStatus(matchingUsers[0].id, "canceled");
             
             // Check if there's a default plan to assign
             const defaultPlan = await storage.getDefaultSubscriptionPlan();
             if (defaultPlan && defaultPlan.price === 0) {
-              await storage.assignSubscriptionPlan(users[0].id, defaultPlan.id);
+              await storage.assignSubscriptionPlan(matchingUsers[0].id, defaultPlan.id);
             }
           }
           
@@ -1658,11 +1659,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const clients = await storage.getClients(therapistId);
       
       // Format client data for consistent field names
-      const formattedClients = clients.map(client => ({
+      const formattedClients = clients.map((client: any) => ({
         ...client,
         // Ensure consistent field names for frontend
-        therapistId: client.therapistId || client.therapist_id || null,
-        createdAt: client.createdAt || (client.created_at ? new Date(client.created_at) : null)
+        therapistId: client.therapistId ?? client.therapist_id ?? null,
+        createdAt: client.createdAt ?? (client.created_at ? new Date(client.created_at) : null)
       }));
       
       console.log(`Found ${formattedClients.length} clients for therapist ${therapistId}`);
@@ -1742,7 +1743,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'active'
       };
       
-      const newUser = await storage.createUser(userData);
+      const newUser = await storage.createUser(userData as any);
       
       // Remove password from response
       const { password: _, ...userWithoutPassword } = newUser;
@@ -1838,7 +1839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send welcome email to mental health professional with their credentials
       if (role === "therapist") {
         try {
-          await sendProfessionalWelcomeEmail(
+          await (sendProfessionalWelcomeEmail as any)(
             email,
             name,
             username,
@@ -1901,56 +1902,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const avgEmotionsPerClient = clients.length ? (emotionRecords.length / clients.length) : 0;
       
       // Find most active therapist (therapist with most clients)
-      const therapistClientCounts = {};
-      clients.forEach(client => {
+      const therapistClientCounts: Record<number, number> = {};
+      clients.forEach((client: any) => {
         if (client.therapistId) {
           therapistClientCounts[client.therapistId] = (therapistClientCounts[client.therapistId] || 0) + 1;
         }
       });
       
-      let mostActiveTherapistId = null;
+      let mostActiveTherapistId: number | null = null;
       let maxClientCount = 0;
       
       Object.entries(therapistClientCounts).forEach(([therapistId, count]) => {
-        if (count > maxClientCount) {
+        if ((count as number) > maxClientCount) {
           mostActiveTherapistId = parseInt(therapistId);
-          maxClientCount = count;
+          maxClientCount = count as number;
         }
       });
       
-      const mostActiveTherapist = therapists.find(t => t.id === mostActiveTherapistId)?.name || 'N/A';
+      const mostActiveTherapist = therapists.find((t: any) => t.id === mostActiveTherapistId)?.name || 'N/A';
       
       // Find most active client (client with most emotion records)
-      const clientEmotionCounts = {};
-      emotionRecords.forEach(emotion => {
+      const clientEmotionCounts: Record<number, number> = {};
+      emotionRecords.forEach((emotion: any) => {
         clientEmotionCounts[emotion.userId] = (clientEmotionCounts[emotion.userId] || 0) + 1;
       });
       
-      let mostActiveClientId = null;
+      let mostActiveClientId: number | null = null;
       let maxEmotionCount = 0;
       
       Object.entries(clientEmotionCounts).forEach(([clientId, count]) => {
-        if (count > maxEmotionCount) {
+        if ((count as number) > maxEmotionCount) {
           mostActiveClientId = parseInt(clientId);
-          maxEmotionCount = count;
+          maxEmotionCount = count as number;
         }
       });
       
-      const mostActiveClient = clients.find(c => c.id === mostActiveClientId)?.name || 'N/A';
+      const mostActiveClient = clients.find((c: any) => c.id === mostActiveClientId)?.name || 'N/A';
       
       // Find most used resource
-      const resourceUsageCounts = {};
-      resourceAssignments.forEach(assignment => {
+      const resourceUsageCounts: Record<number, number> = {};
+      resourceAssignments.forEach((assignment: any) => {
         resourceUsageCounts[assignment.resourceId] = (resourceUsageCounts[assignment.resourceId] || 0) + 1;
       });
       
-      let mostUsedResourceId = null;
+      let mostUsedResourceId: number | null = null;
       let maxResourceCount = 0;
       
       Object.entries(resourceUsageCounts).forEach(([resourceId, count]) => {
-        if (count > maxResourceCount) {
+        if ((count as number) > maxResourceCount) {
           mostUsedResourceId = parseInt(resourceId);
-          maxResourceCount = count;
+          maxResourceCount = count as number;
         }
       });
       
@@ -2162,7 +2163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } = req.body;
       
       // Create an object with the fields to update
-      const updateData = {};
+      const updateData: Record<string, any> = {};
       
       // Only add fields that are present in the request
       if (name !== undefined) updateData.name = name;
@@ -2184,11 +2185,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password, ...userWithoutPassword } = updatedUser;
       
       res.status(200).json(userWithoutPassword);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Update user profile error:", error);
       res.status(500).json({ 
         message: "Failed to update user profile",
-        error: error.message 
+        error: error?.message 
       });
     }
   });
@@ -2282,11 +2283,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const clients = await storage.getClients(therapistId);
       
       // Add camelCase versions of snake_case database fields if needed
-      const formattedClients = clients.map(client => ({
+      const formattedClients = clients.map((client: any) => ({
         ...client,
         // Only add these if they're not already present
-        therapistId: client.therapistId || client.therapist_id || null,
-        createdAt: client.createdAt || (client.created_at ? new Date(client.created_at) : null)
+        therapistId: client.therapistId ?? client.therapist_id ?? null,
+        createdAt: client.createdAt ?? (client.created_at ? new Date(client.created_at) : null)
       }));
       
       console.log(`Found ${formattedClients.length} clients for therapist ${therapistId}`);
@@ -2789,7 +2790,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await createSystemLog(
           'Therapist accessed viewing client',
           req.user.id,
-          req.ip,
+          req.ip ?? null,
           req.get('User-Agent'),
           'therapist'
         );
@@ -2890,7 +2891,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             
             // Update the response with client data
-            response.viewingClient = {
+            (response as any).viewingClient = {
               id: client.id,
               name: client.name || "Unknown Client",
               username: client.username || "",
@@ -2931,17 +2932,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get recent emotions, journals, thought records, and goals
       const limit = 10; // Limit to 10 recent activities
-      const emotions = await storage.getEmotionRecordsByUser(userId, limit);
-      const journals = await storage.getJournalEntriesByUser(userId, limit);
-      const thoughts = await storage.getThoughtRecordsByUser(userId, limit);
-      const userGoals = await storage.getGoalsByUser(userId, limit);
+      const storageAny = storage as any;
+      const emotions = await storageAny.getEmotionRecordsByUser(userId, limit);
+      const journals = await storageAny.getJournalEntriesByUser(userId, limit);
+      const thoughts = await storageAny.getThoughtRecordsByUser(userId, limit);
+      const userGoals = await storageAny.getGoalsByUser(userId, limit);
       
       // Format each into a consistent activity format
-      const activities = [];
+      const activities: any[] = [];
       
       // Add emotions
       if (emotions && emotions.length > 0) {
-        emotions.forEach(emotion => {
+        emotions.forEach((emotion: any) => {
           activities.push({
             id: `emotion-${emotion.id}`,
             type: 'emotion',
@@ -2954,7 +2956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Add journals
       if (journals && journals.length > 0) {
-        journals.forEach(journal => {
+        journals.forEach((journal: any) => {
           activities.push({
             id: `journal-${journal.id}`,
             type: 'journal',
@@ -2967,7 +2969,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Add thought records
       if (thoughts && thoughts.length > 0) {
-        thoughts.forEach(thought => {
+        thoughts.forEach((thought: any) => {
           activities.push({
             id: `thought-${thought.id}`,
             type: 'thought_record',
@@ -2980,7 +2982,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Add goals
       if (userGoals && userGoals.length > 0) {
-        userGoals.forEach(goal => {
+        userGoals.forEach((goal: any) => {
           activities.push({
             id: `goal-${goal.id}`,
             type: 'goal',
@@ -3241,7 +3243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Create emotion record error:", error);
       res.status(500).json({ 
         message: "Failed to record emotion",
-        error: error.message
+        error: (error as any)?.message
       });
     }
   });
@@ -3534,7 +3536,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!ratingsByDate[date]) {
           ratingsByDate[date] = [];
         }
-        ratingsByDate[date].push(thought.reflectionRating);
+        ratingsByDate[date].push(thought.reflectionRating as number);
       });
       
       // Calculate average rating per day
@@ -4364,7 +4366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create the notification
-      const notificationCreated = await createInactivityNotification(clientId, message);
+      const notificationCreated = await (createInactivityNotification as any)(clientId, message);
       
       // Send email if SparkPost is configured
       let emailSent = false;
@@ -4448,7 +4450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
       
-      await sendInactivityReminders(modifiedReq, res);
+      await sendInactivityReminders(modifiedReq as any, res);
     } catch (error) {
       console.error("Send emotion reminders error:", error);
       res.status(500).json({ message: "Failed to send emotion tracking reminders" });
@@ -5643,7 +5645,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Merge new tags with existing ones to avoid duplicates
           const existingTags = entry.aiSuggestedTags || [];
-          const allTags = [...new Set([...existingTags, ...analysis.suggestedTags])];
+          const allTags = Array.from(new Set([...existingTags, ...analysis.suggestedTags]));
           
           // Ensure we have a good mix of emotions and topics
           const emotionTags = analysis.emotions || [];
@@ -5671,7 +5673,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // After comment creation, return the comment with the updated entry
           // This ensures the client has the most recent tags
-          newComment.updatedEntry = updatedEntry;
+          (newComment as any).updatedEntry = updatedEntry;
           
           console.log("Successfully updated journal entry with new AI analysis");
         } catch (aiError) {
@@ -6881,12 +6883,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: "Email sending failed. See server logs for details."
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Test email error:", error);
         res.status(500).json({ 
           error: "Failed to send test email", 
-          details: error.message,
-          stack: process.env.NODE_ENV === "development" ? error.stack : undefined 
+          details: error?.message,
+          stack: process.env.NODE_ENV === "development" ? error?.stack : undefined 
         });
       }
     });
@@ -6897,7 +6899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const testEmail = req.query.email?.toString() || "test@example.com";
         console.log(`Attempting to send professional welcome email to: ${testEmail}`);
         
-        const emailSent = await sendProfessionalWelcomeEmail(
+        const emailSent = await (sendProfessionalWelcomeEmail as any)(
           testEmail,
           "Test Therapist",
           "testuser123",
@@ -6919,12 +6921,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: "Email sending failed. Check server logs for details."
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Professional welcome email error:", error);
         res.status(500).json({ 
           error: "Failed to send professional welcome email", 
-          details: error.message,
-          stack: process.env.NODE_ENV === "development" ? error.stack : undefined
+          details: error?.message,
+          stack: process.env.NODE_ENV === "development" ? error?.stack : undefined
         });
       }
     });
@@ -7100,7 +7102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Test primary domain
         console.log(`1. Testing primary domain: Resilience CBT <noreply@send.rcrc.ca>`);
-        let emailSent = await sendProfessionalWelcomeEmail(
+        let emailSent = await (sendProfessionalWelcomeEmail as any)(
           testEmail,
           "Test Professional",
           "testuser123",
@@ -7119,11 +7121,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           for (let i = 0; i < domains.length; i++) {
             // Temporarily override the default domain
-            const originalDefault = DEFAULT_FROM_EMAIL;
+            const originalDefault = (global as any).DEFAULT_FROM_EMAIL;
             (global as any).DEFAULT_FROM_EMAIL = domains[i];
             
             console.log(`${i+2}. Testing alternative domain: ${domains[i]}`);
-            emailSent = await sendProfessionalWelcomeEmail(
+            emailSent = await (sendProfessionalWelcomeEmail as any)(
               testEmail,
               "Test Professional",
               "testuser123",
@@ -7157,8 +7159,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Test therapist email error:", error);
         res.status(500).json({ 
           error: "Failed to send test therapist email", 
-          details: error.message,
-          stack: process.env.NODE_ENV === "development" ? error.stack : undefined
+          details: (error as any)?.message,
+          stack: process.env.NODE_ENV === "development" ? (error as any)?.stack : undefined
         });
       }
     });
@@ -7203,7 +7205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(500).json({
           success: false,
           message: "Failed to send direct email test",
-          error: error.message
+          error: (error as any)?.message
         });
       }
     });
@@ -7240,7 +7242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Check if our domain is verified
             const ourDomain = 'send.rcrc.ca';
-            const domainInfo = apiResponse.results.find(domain => domain.domain === ourDomain);
+            const domainInfo = apiResponse.results.find((domain: any) => domain.domain === ourDomain);
             
             if (domainInfo) {
               console.log(`Domain '${ourDomain}' status:`, JSON.stringify(domainInfo, null, 2));
@@ -7261,13 +7263,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log("Cannot check SparkPost API without API key");
             sparkPostApiStatus = 'Missing API Key';
           }
-        } catch (sparkPostError) {
+        } catch (sparkPostError: any) {
           console.error("Error checking SparkPost API:", sparkPostError);
           sparkPostApiStatus = 'Error';
           sparkPostApiDetails = {
-            error: sparkPostError.message,
-            statusCode: sparkPostError.statusCode,
-            response: sparkPostError.response?.body
+            error: sparkPostError?.message,
+            statusCode: sparkPostError?.statusCode,
+            response: sparkPostError?.response?.body
           };
         }
         
@@ -7291,7 +7293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Test welcome email
         console.log("\n3. Testing professional welcome email...");
-        const welcomeResult = await sendProfessionalWelcomeEmail(
+        const welcomeResult = await (sendProfessionalWelcomeEmail as any)(
           testEmail,
           "Test Professional",
           "testuser123",
@@ -7317,13 +7319,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           message: "Email diagnostics completed. Check server logs for detailed results."
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error("Email diagnostics error:", error);
         res.status(500).json({
           success: false,
           error: "Email diagnostics failed",
-          details: error.message,
-          stack: process.env.NODE_ENV === "development" ? error.stack : undefined
+          details: error?.message,
+          stack: process.env.NODE_ENV === "development" ? error?.stack : undefined
         });
       }
     });
@@ -7697,7 +7699,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               <p><strong>Measurable:</strong> ${escapeHtml(goal.measurable)}</p>
               <p><strong>Achievable:</strong> ${escapeHtml(goal.achievable)}</p>
               <p><strong>Relevant:</strong> ${escapeHtml(goal.relevant)}</p>
-              <p><strong>Time-Bound:</strong> ${escapeHtml(goal.timeBound)}</p>
+              <p><strong>Time-Bound:</strong> ${escapeHtml((goal as any).timeBound ?? goal.timebound)}</p>
               ${goal.therapistComments ? `<p><strong>Therapist Comments:</strong> ${escapeHtml(goal.therapistComments)}</p>` : ''}
             </div>
           `).join('') : '<p>No goals found.</p>'}
@@ -7763,7 +7765,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tempDir,
           requestId
         },
-        storage,
+        storage as any,
         res
       );
       
@@ -7849,9 +7851,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await sendNotificationToUser(user.therapistId, {
         title: "New AI Recommendation",
         content: `There is a new AI recommendation for ${user.name} that requires your review.`,
-        type: "ai_recommendation",
+        type: "ai_recommendation" as any,
         link: `/therapist/recommendations`
-      });
+      } as any);
       
       res.status(201).json(newRecommendation);
     } catch (error) {
@@ -7897,9 +7899,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await sendNotificationToUser(recommendation.userId, {
           title: "New Recommendation Available",
           content: "Your therapist has approved a new recommendation for you.",
-          type: "recommendation",
+          type: "recommendation" as any,
           link: `/recommendations`
-        });
+        } as any);
       }
       
       res.status(200).json(updatedRecommendation);
@@ -7942,9 +7944,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await sendNotificationToUser(recommendation.therapistId, {
         title: "Recommendation Implemented",
         content: `Your client has implemented the recommendation: ${recommendation.title}`,
-        type: "recommendation_implemented",
+        type: "recommendation_implemented" as any,
         link: `/therapist/clients/${recommendation.userId}/recommendations`
-      });
+      } as any);
       
       res.status(200).json(updatedRecommendation);
     } catch (error) {

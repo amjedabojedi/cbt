@@ -232,7 +232,7 @@ export function registerReframeCoachRoutes(app: Express): void {
       
       // Generate practice scenarios using OpenAI
       // Use thoughtCategory as the distortions (where user's selections are stored)
-      const distortions = thoughtRecord.thoughtCategory || thoughtRecord.cognitiveDistortions || [];
+      const distortions: any = thoughtRecord.thoughtCategory || thoughtRecord.cognitiveDistortions || [];
       const practiceSession = await generateReframePracticeScenarios(
         thoughtRecord.automaticThoughts,
         distortions,
@@ -645,7 +645,7 @@ export function registerReframeCoachRoutes(app: Express): void {
       }
       
       // Use thoughtCategory as the distortions (where user's selections are stored)
-      const distortions = thoughtRecord.thoughtCategory || thoughtRecord.cognitiveDistortions || [];
+      const distortions: any = thoughtRecord.thoughtCategory || thoughtRecord.cognitiveDistortions || [];
       
       // Log cognitive distortions for debugging
       console.log("Thought record cognitive distortions:", {
@@ -659,7 +659,7 @@ export function registerReframeCoachRoutes(app: Express): void {
       
       // Ensure cognitive distortions is always an array
       const normalizedDistortions = Array.isArray(distortions) 
-        ? distortions.filter(d => d && d.trim() !== "" && d.toLowerCase() !== "unknown")
+        ? distortions.filter((d: any) => d && String(d).trim() !== "" && String(d).toLowerCase() !== "unknown")
         : typeof distortions === 'string' && distortions.trim() !== ""
           ? [distortions] 
           : [];

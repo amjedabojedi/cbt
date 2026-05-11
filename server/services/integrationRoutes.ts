@@ -245,21 +245,21 @@ export function registerIntegrationRoutes(app: Express): void {
       
       // Post-filter results to find matching records
       const relatedEmotions = emotionResults.filter(record => {
-        return allRelatedEmotions.some(emotion => 
-          record.tertiaryEmotion.toLowerCase() === emotion.toLowerCase() ||
-          record.primaryEmotion.toLowerCase() === emotion.toLowerCase() ||
+        return allRelatedEmotions.some(emotion =>
+          (record.tertiaryEmotion ?? '').toLowerCase() === emotion.toLowerCase() ||
+          (record.primaryEmotion ?? '').toLowerCase() === emotion.toLowerCase() ||
           record.coreEmotion.toLowerCase() === emotion.toLowerCase()
         );
       }).map(record => ({
         ...record,
-        matchingEmotions: entryEmotions.filter(emotion => 
-          emotionMapping.getRelatedEmotions(emotion || '').some(rel => 
-            rel.toLowerCase() === record.tertiaryEmotion.toLowerCase() ||
-            rel.toLowerCase() === record.primaryEmotion.toLowerCase() ||
+        matchingEmotions: entryEmotions.filter(emotion =>
+          emotionMapping.getRelatedEmotions(emotion || '').some(rel =>
+            rel.toLowerCase() === (record.tertiaryEmotion ?? '').toLowerCase() ||
+            rel.toLowerCase() === (record.primaryEmotion ?? '').toLowerCase() ||
             rel.toLowerCase() === record.coreEmotion.toLowerCase()
-          ) || 
-          emotion.toLowerCase() === record.tertiaryEmotion.toLowerCase() ||
-          emotion.toLowerCase() === record.primaryEmotion.toLowerCase() ||
+          ) ||
+          emotion.toLowerCase() === (record.tertiaryEmotion ?? '').toLowerCase() ||
+          emotion.toLowerCase() === (record.primaryEmotion ?? '').toLowerCase() ||
           emotion.toLowerCase() === record.coreEmotion.toLowerCase()
         )
       }));
@@ -327,10 +327,10 @@ export function registerIntegrationRoutes(app: Express): void {
           const emotionRecord = emotionResults.find(e => e.id === thought.emotionRecordId);
           if (emotionRecord) {
             // Check if any of the emotions in this record match our search emotions
-            return searchEmotions.some(searchEmotion => 
+            return searchEmotions.some(searchEmotion =>
               emotionRecord.coreEmotion.toLowerCase() === searchEmotion.toLowerCase() ||
-              emotionRecord.primaryEmotion.toLowerCase() === searchEmotion.toLowerCase() ||
-              emotionRecord.tertiaryEmotion.toLowerCase() === searchEmotion.toLowerCase()
+              (emotionRecord.primaryEmotion ?? '').toLowerCase() === searchEmotion.toLowerCase() ||
+              (emotionRecord.tertiaryEmotion ?? '').toLowerCase() === searchEmotion.toLowerCase()
             );
           }
         }

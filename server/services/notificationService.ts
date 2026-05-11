@@ -37,7 +37,7 @@ export async function getNotificationsByUser(userId: number, limit?: number) {
       .orderBy(desc(notifications.createdAt));
     
     if (limit && limit > 0) {
-      query = query.limit(limit);
+      query = query.limit(limit) as any;
     }
     
     return await query;

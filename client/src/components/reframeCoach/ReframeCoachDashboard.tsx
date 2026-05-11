@@ -18,7 +18,7 @@ import { formatDistanceToNow } from "date-fns";
 const AssignmentsList = ({ userId }: { userId: number }) => {
   const [_, navigate] = useLocation();
   
-  const { data: assignments, isLoading } = useQuery({
+  const { data: assignments, isLoading } = useQuery<any>({
     queryKey: [`/api/users/${userId}/reframe-coach/assignments`],
   });
   
@@ -118,7 +118,7 @@ const AssignmentsList = ({ userId }: { userId: number }) => {
 
 // Component to display practice history and results
 const PracticeHistory = ({ userId }: { userId: number }) => {
-  const { data: results, isLoading } = useQuery({
+  const { data: results, isLoading } = useQuery<any>({
     queryKey: [`/api/users/${userId}/reframe-coach/results`],
   });
   
@@ -188,7 +188,7 @@ const PracticeHistory = ({ userId }: { userId: number }) => {
 const ProfileSummary = ({ userId }: { userId: number }) => {
   const [_, navigate] = useLocation();
   
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading } = useQuery<any>({
     queryKey: [`/api/users/${userId}/reframe-coach/profile`],
   });
   

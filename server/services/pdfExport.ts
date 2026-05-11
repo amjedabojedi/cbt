@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
+// @ts-ignore -- pdfkit ships without TypeScript declarations
 import PDFDocument from 'pdfkit';
 import { IStorage } from '../storage';
 
@@ -74,7 +75,7 @@ export async function exportPDF(
       }
     });
     
-    doc.on('error', (err) => {
+    doc.on('error', (err: any) => {
       console.error(`[${requestId}] PDF document error:`, err);
       if (!res.headersSent) {
         res.status(500).json({ 
@@ -515,7 +516,7 @@ async function generateGoalsContent(
       doc
          .text('Description:')
          
-         .text(goal.description || 'No description', { indent: 20 })
+         .text((goal as any).description || 'No description', { indent: 20 })
          .moveDown(0.5);
       
       // Add a separator between goals
@@ -723,7 +724,7 @@ async function generateAllContent(
       doc
          .text('Description:')
          
-         .text(goal.description || 'No description', { indent: 20 })
+         .text((goal as any).description || 'No description', { indent: 20 })
          .moveDown(0.5);
       
       // Add a separator between goals
