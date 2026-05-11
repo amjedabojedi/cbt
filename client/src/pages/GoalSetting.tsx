@@ -7,12 +7,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
-import AppLayout from "@/components/layout/AppLayout";
-import ModuleHeader from "@/components/layout/ModuleHeader";
+import ModulePageShell from "@/components/layout/ModulePageShell";
 import SmartGoalWizard from "@/components/goal/SmartGoalWizard";
 import GoalInsights from "@/components/goal/GoalInsights";
 import { useToast } from "@/hooks/use-toast";
-import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
 
 import {
   Card,
@@ -363,17 +361,10 @@ export default function GoalSetting() {
   };
   
   return (
-    <AppLayout title="Smart Goals">
-      <div className="container mx-auto px-4 py-6">
-        {/* Back to Clients button */}
-        <BackToClientsButton />
-        
-        {/* Module Header */}
-        <ModuleHeader
-          title="Smart Goals"
-          description="Set structured SMART goals to track your progress and celebrate achievements"
-          badges={[]}
-        />
+    <ModulePageShell
+      title="Smart Goals"
+      description="Set structured SMART goals to track your progress and celebrate achievements"
+    >
         
         {/* Overall Progress Summary */}
         {!isLoading && goals.length > 0 && (
@@ -1166,7 +1157,6 @@ export default function GoalSetting() {
             {activeUserId && <GoalInsights userId={activeUserId} />}
           </TabsContent>
         </Tabs>
-      </div>
-    </AppLayout>
+    </ModulePageShell>
   );
 }

@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
-import AppLayout from "@/components/layout/AppLayout";
-import ModuleHeader from "@/components/layout/ModuleHeader";
+import ModulePageShell from "@/components/layout/ModulePageShell";
 import EmotionTrackingFormWizard from "@/components/emotion/EmotionTrackingFormWizard";
 import EmotionHistory from "@/components/dashboard/EmotionHistory";
 import {
@@ -27,7 +26,6 @@ import {
 import { Globe, ClipboardList, Heart, Activity, BarChart3, HelpCircle, TrendingUp } from "lucide-react";
 import useActiveUser from "@/hooks/use-active-user";
 import { ClientDebug } from "@/components/debug/ClientDebug";
-import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
 import EmotionInsights from "@/components/emotion/EmotionInsights";
 
 export default function EmotionTracking() {
@@ -79,20 +77,12 @@ export default function EmotionTracking() {
   };
   
   return (
-    <AppLayout title="Emotion Tracking">
-      <div className="container mx-auto px-4 py-6">
-        {/* Back to Clients button */}
-        <BackToClientsButton />
-        
+    <ModulePageShell
+      title="Emotion Tracking"
+      description="Start your mental health journey: Identify, track, and understand your emotional patterns using an interactive emotion wheel"
+    >
         {/* Debug Information (Development Only) */}
         <ClientDebug />
-        
-        {/* Module Header */}
-        <ModuleHeader
-          title="Emotion Tracking"
-          description="Start your mental health journey: Identify, track, and understand your emotional patterns using an interactive emotion wheel"
-          badges={[]}
-        />
         
         {/* Overall Progress Summary */}
         {emotions.length > 0 && (
@@ -242,7 +232,6 @@ export default function EmotionTracking() {
             {activeUserId && <EmotionInsights userId={activeUserId} />}
           </TabsContent>
         </Tabs>
-      </div>
-    </AppLayout>
+    </ModulePageShell>
   );
 }

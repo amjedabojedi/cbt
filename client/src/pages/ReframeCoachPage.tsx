@@ -2,8 +2,7 @@ import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useLocation } from "wouter";
-import AppLayout from "@/components/layout/AppLayout";
-import ModuleHeader from "@/components/layout/ModuleHeader";
+import ModulePageShell from "@/components/layout/ModulePageShell";
 import ThoughtRecordsList from "@/components/thought/ThoughtRecordsList";
 import ReframePracticeHistory from "@/components/reframeCoach/ReframePracticeHistory";
 import ReframeInsights from "@/components/reframeCoach/ReframeInsights";
@@ -38,7 +37,6 @@ import {
   History
 } from "lucide-react";
 import useActiveUser from "@/hooks/use-active-user";
-import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
 
 export default function ReframeCoachPage() {
   const { user } = useAuth();
@@ -76,16 +74,10 @@ export default function ReframeCoachPage() {
   const currentStreak = profileData?.profile?.practiceStreak || 0;
 
   return (
-    <AppLayout title="Reframe Coach">
-      <div className="container mx-auto px-4 py-6">
-        {/* Back to Clients button */}
-        <BackToClientsButton />
-        
-        {/* Module Header */}
-        <ModuleHeader
-          title="Reframe Coach"
-          description="Practice balanced thinking with interactive exercises based on the thoughts and distortions you've already recorded"
-        />
+    <ModulePageShell
+      title="Reframe Coach"
+      description="Practice balanced thinking with interactive exercises based on the thoughts and distortions you've already recorded"
+    >
         
         {/* Overall Progress Summary */}
         {totalSessions > 0 && (
@@ -230,7 +222,6 @@ export default function ReframeCoachPage() {
             <ReframeInsights userId={userId!} />
           </TabsContent>
         </Tabs>
-      </div>
-    </AppLayout>
+    </ModulePageShell>
   );
 }

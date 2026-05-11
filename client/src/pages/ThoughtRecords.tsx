@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
-import AppLayout from "@/components/layout/AppLayout";
-import ModuleHeader from "@/components/layout/ModuleHeader";
+import ModulePageShell from "@/components/layout/ModulePageShell";
 import ThoughtRecordsList from "@/components/thought/ThoughtRecordsList";
 import ThoughtRecordWizard from "@/components/thought/ThoughtRecordWizard";
 import { format } from "date-fns";
@@ -10,7 +9,6 @@ import { ThoughtRecord as BaseThoughtRecord } from "@shared/schema";
 import useActiveUser from "@/hooks/use-active-user";
 import { ClientDebug } from "@/components/debug/ClientDebug";
 import { useLocation, Link } from "wouter";
-import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
 
 // Use the schema definition directly
 type ThoughtRecord = BaseThoughtRecord;
@@ -92,20 +90,12 @@ export default function ThoughtRecords() {
   };
 
   return (
-    <AppLayout title="Thought Records">
-      <div className="container mx-auto px-4 py-6">
-        {/* Back to Clients button */}
-        <BackToClientsButton />
-        
+    <ModulePageShell
+      title="Thought Records"
+      description="Record your thoughts and identify cognitive distortions to better understand your thinking patterns"
+    >
         {/* Debug Information (Development Only) */}
         <ClientDebug />
-        
-        {/* Module Header */}
-        <ModuleHeader
-          title="Thought Records"
-          description="Record your thoughts and identify cognitive distortions to better understand your thinking patterns"
-          badges={[]}
-        />
         
         {/* Overall Progress Summary */}
         {thoughtRecords.length > 0 && (
@@ -236,7 +226,6 @@ export default function ThoughtRecords() {
             {activeUserId && <ThoughtInsights userId={activeUserId} />}
           </TabsContent>
         </Tabs>
-      </div>
-    </AppLayout>
+    </ModulePageShell>
   );
 }

@@ -4,12 +4,10 @@ import { useAuth } from "@/lib/auth";
 import { useClientContext } from "@/context/ClientContext";
 import useActiveUser from "@/hooks/use-active-user";
 import { useRefreshData } from "@/hooks/use-refresh-data";
-import ModuleHeader from "@/components/layout/ModuleHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
 import { 
   CalendarIcon, 
   Plus, 
@@ -84,7 +82,7 @@ import { Separator } from "@/components/ui/separator";
 import JournalWordCloud from "@/components/journal/JournalWordCloud";
 import JournalWizard from "@/components/journal/JournalWizard";
 import JournalInsights from "@/components/journal/JournalInsights";
-import AppLayout from "@/components/layout/AppLayout";
+import ModulePageShell from "@/components/layout/ModulePageShell";
 
 import { getEmotionInfo } from '@/utils/emotionUtils';
 
@@ -699,17 +697,10 @@ export default function Journal() {
   const canCreateEntries = isViewingSelf || user?.role === 'client';
   
   return (
-    <AppLayout title="Journal">
-      <div className="container mx-auto px-4 py-6">
-        {/* Back to Clients button */}
-        <BackToClientsButton />
-        
-        {/* Module Header */}
-        <ModuleHeader
-          title="Journal"
-          description="Process your emotions and experiences: Reflect on your thoughts and feelings through daily journaling"
-          badges={[]}
-        />
+    <ModulePageShell
+      title="Journal"
+      description="Process your emotions and experiences: Reflect on your thoughts and feelings through daily journaling"
+    >
         
         {/* Overall Progress Summary */}
         {stats.totalEntries > 0 && (
@@ -2189,7 +2180,6 @@ export default function Journal() {
           </DialogContent>
         </Dialog>
       )}
-      </div>
-      </AppLayout>
+    </ModulePageShell>
   );
 }
