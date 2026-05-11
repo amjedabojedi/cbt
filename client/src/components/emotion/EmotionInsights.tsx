@@ -380,16 +380,16 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
         </CardHeader>
         <CardContent>
           {/* Day names header */}
-          <div className="grid grid-cols-7 gap-2 mb-2">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-2 mb-1 sm:mb-2">
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-              <div key={day} className="text-center text-xs font-semibold text-muted-foreground">
+              <div key={day} className="text-center text-[10px] sm:text-xs font-semibold text-muted-foreground">
                 {day}
               </div>
             ))}
           </div>
           
           {/* Calendar grid */}
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
             {getIntensityHeatmap().map((day, i) => {
               const { positiveIntensity, negativeIntensity, netIntensity, count, fullDate, isFuture } = day;
               

@@ -888,7 +888,7 @@ export default function UserManagement() {
         open={!!userToDelete}
         onOpenChange={(open) => !open && setUserToDelete(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md w-[95vw]">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>

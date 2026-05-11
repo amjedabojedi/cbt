@@ -500,7 +500,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
           <CardDescription>Your practice frequency and performance</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-10 gap-1">
+          <div className="grid grid-cols-10 gap-0.5 sm:gap-1">
             {calendarData.map((day, idx) => (
               <div
                 key={idx}

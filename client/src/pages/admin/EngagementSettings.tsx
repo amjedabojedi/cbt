@@ -277,12 +277,12 @@ Best regards,
         </div>
 
         <Tabs defaultValue="settings" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-            <TabsTrigger value="templates">Email Templates</TabsTrigger>
-            <TabsTrigger value="escalation">Escalation Rules</TabsTrigger>
-            <TabsTrigger value="stats">Statistics</TabsTrigger>
-            <TabsTrigger value="testing">Testing</TabsTrigger>
+          <TabsList className="flex flex-wrap h-auto gap-1">
+            <TabsTrigger value="settings" className="text-xs sm:text-sm">Settings</TabsTrigger>
+            <TabsTrigger value="templates" className="text-xs sm:text-sm">Templates</TabsTrigger>
+            <TabsTrigger value="escalation" className="text-xs sm:text-sm">Escalation</TabsTrigger>
+            <TabsTrigger value="stats" className="text-xs sm:text-sm">Statistics</TabsTrigger>
+            <TabsTrigger value="testing" className="text-xs sm:text-sm">Testing</TabsTrigger>
           </TabsList>
 
           <TabsContent value="settings" className="space-y-6">

@@ -443,7 +443,7 @@ export default function Settings() {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Language</h3>
-                  <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-lg border p-4 gap-3">
                     <div className="space-y-0.5">
                       <p className="text-base font-medium">Application Language</p>
                       <p className="text-sm text-neutral-500">
@@ -454,7 +454,7 @@ export default function Settings() {
                       value={language}
                       onValueChange={handleLanguageChange}
                     >
-                      <SelectTrigger className="w-[180px]">
+                      <SelectTrigger className="w-full sm:w-[180px]">
                         <Globe className="h-4 w-4 mr-2" />
                         <SelectValue placeholder="Select language" />
                       </SelectTrigger>

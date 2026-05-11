@@ -278,7 +278,7 @@ export default function Clients() {
                 Invite Client
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md w-[95vw]">
               <DialogHeader>
                 <DialogTitle>Invite New Client</DialogTitle>
                 <DialogDescription>
@@ -485,42 +485,44 @@ export default function Clients() {
                 {invitationsLoading ? (
                   <div className="text-center py-8">Loading invitations...</div>
                 ) : uniqueInvitations && uniqueInvitations.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Latest Invitation</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {uniqueInvitations.map((invitation: any) => (
-                        <TableRow key={invitation.id}>
-                          <TableCell className="font-medium">{invitation.email}</TableCell>
-                          <TableCell>{invitation.name}</TableCell>
-                          <TableCell>
-                            {invitation.createdAt ? new Date(invitation.createdAt).toLocaleDateString() : 'N/A'}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleResendInvitation(invitation.id)}
-                              disabled={resendingInvitation === invitation.id}
-                            >
-                              {resendingInvitation === invitation.id ? (
-                                <RefreshCw className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Send className="h-4 w-4" />
-                              )}
-                              <span className="ml-2">Resend</span>
-                            </Button>
-                          </TableCell>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Latest Invitation</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {uniqueInvitations.map((invitation: any) => (
+                          <TableRow key={invitation.id}>
+                            <TableCell className="font-medium">{invitation.email}</TableCell>
+                            <TableCell>{invitation.name}</TableCell>
+                            <TableCell>
+                              {invitation.createdAt ? new Date(invitation.createdAt).toLocaleDateString() : 'N/A'}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleResendInvitation(invitation.id)}
+                                disabled={resendingInvitation === invitation.id}
+                              >
+                                {resendingInvitation === invitation.id ? (
+                                  <RefreshCw className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Send className="h-4 w-4" />
+                                )}
+                                <span className="ml-2">Resend</span>
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 ) : (
                   <div className="text-center py-8">
                     <Send className="mx-auto h-12 w-12 text-gray-400 mb-4" />

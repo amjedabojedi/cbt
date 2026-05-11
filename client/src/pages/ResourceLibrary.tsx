@@ -779,7 +779,7 @@ export default function ResourceLibrary() {
                     Add New Factor
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-md w-[95vw]">
                   <DialogHeader>
                     <DialogTitle>Add a Protective Factor</DialogTitle>
                     <DialogDescription>
@@ -866,7 +866,7 @@ export default function ResourceLibrary() {
               
               {/* Edit Protective Factor Dialog */}
               <Dialog open={isEditingFactor} onOpenChange={setIsEditingFactor}>
-                <DialogContent>
+                <DialogContent className="max-w-md w-[95vw]">
                   <DialogHeader>
                     <DialogTitle>Edit Protective Factor</DialogTitle>
                     <DialogDescription>
@@ -1085,7 +1085,7 @@ export default function ResourceLibrary() {
                     Add New Strategy
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-md w-[95vw]">
                   <DialogHeader>
                     <DialogTitle>Add a Coping Strategy</DialogTitle>
                     <DialogDescription>
@@ -1172,7 +1172,7 @@ export default function ResourceLibrary() {
               
               {/* Edit Coping Strategy Dialog */}
               <Dialog open={isEditingStrategy} onOpenChange={setIsEditingStrategy}>
-                <DialogContent>
+                <DialogContent className="max-w-md w-[95vw]">
                   <DialogHeader>
                     <DialogTitle>Edit Coping Strategy</DialogTitle>
                     <DialogDescription>
