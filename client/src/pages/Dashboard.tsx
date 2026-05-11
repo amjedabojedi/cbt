@@ -129,7 +129,7 @@ export default function Dashboard() {
                 </p>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 pt-2">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 pt-2">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">{moduleStats.emotions.total}</div>
                   <div className="text-xs text-muted-foreground">Emotions</div>

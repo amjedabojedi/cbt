@@ -438,7 +438,7 @@ export function ThoughtChallengeWizard({
                           </FormDescription>
                           <div className="space-y-3">
                             <div className="flex items-center gap-4">
-                              <span className="text-sm text-gray-600 min-w-[120px]">Not at all (0%)</span>
+                              <span className="text-sm text-gray-600 min-w-0 text-xs sm:text-sm sm:min-w-[120px]">Not at all (0%)</span>
                               <FormControl>
                                 <Slider
                                   value={[field.value]}
@@ -450,7 +450,7 @@ export function ThoughtChallengeWizard({
                                   data-testid="slider-belief-original"
                                 />
                               </FormControl>
-                              <span className="text-sm text-gray-600 min-w-[120px]">Completely (100%)</span>
+                              <span className="text-sm text-gray-600 min-w-0 text-xs sm:text-sm sm:min-w-[120px]">Completely (100%)</span>
                             </div>
                             <div className="flex justify-center">
                               <span className="px-6 py-3 rounded-full bg-purple-600 text-white text-2xl font-bold">
@@ -476,7 +476,7 @@ export function ThoughtChallengeWizard({
                           </FormDescription>
                           <div className="space-y-3">
                             <div className="flex items-center gap-4">
-                              <span className="text-sm text-gray-600 min-w-[120px]">Not at all (0%)</span>
+                              <span className="text-sm text-gray-600 min-w-0 text-xs sm:text-sm sm:min-w-[120px]">Not at all (0%)</span>
                               <FormControl>
                                 <Slider
                                   value={[field.value]}
@@ -488,7 +488,7 @@ export function ThoughtChallengeWizard({
                                   data-testid="slider-belief-alternative"
                                 />
                               </FormControl>
-                              <span className="text-sm text-gray-600 min-w-[120px]">Completely (100%)</span>
+                              <span className="text-sm text-gray-600 min-w-0 text-xs sm:text-sm sm:min-w-[120px]">Completely (100%)</span>
                             </div>
                             <div className="flex justify-center">
                               <span className="px-6 py-3 rounded-full bg-green-600 text-white text-2xl font-bold">

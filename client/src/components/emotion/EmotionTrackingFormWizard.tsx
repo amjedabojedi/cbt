@@ -483,7 +483,7 @@ export default function EmotionTrackingFormWizard({
                         <FormLabel className="text-lg">How intensely did you feel this emotion?</FormLabel>
                         <div className="mt-4 mb-2 flex flex-col space-y-4">
                           <div className="flex items-center space-x-3 w-full">
-                            <span className="text-sm text-neutral-600 min-w-[80px]">Mild (1)</span>
+                            <span className="text-sm text-neutral-600 min-w-0 text-xs sm:text-sm sm:min-w-[80px]">Mild (1)</span>
                             <FormControl>
                               <Slider
                                 min={1}
@@ -495,7 +495,7 @@ export default function EmotionTrackingFormWizard({
                                 data-testid="slider-intensity"
                               />
                             </FormControl>
-                            <span className="text-sm text-neutral-600 min-w-[120px]">Intense (10)</span>
+                            <span className="text-sm text-neutral-600 min-w-0 text-xs sm:text-sm sm:min-w-[120px]">Intense (10)</span>
                           </div>
                           <div className="flex justify-center">
                             <span className="px-6 py-3 rounded-full bg-blue-600 text-white text-2xl font-bold">

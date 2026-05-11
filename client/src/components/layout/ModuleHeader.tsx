@@ -18,8 +18,8 @@ interface ModuleHeaderProps {
 export default function ModuleHeader({ title, description, badges = [] }: ModuleHeaderProps) {
   return (
     <div className="mb-6">
-      <h1 className="text-3xl font-bold tracking-tight mb-2">{title}</h1>
-      <p className="text-muted-foreground mb-4">{description}</p>
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">{title}</h1>
+      <p className="text-sm sm:text-base text-muted-foreground mb-4">{description}</p>
       
       {badges.length > 0 && (
         <div className="flex flex-wrap gap-2">

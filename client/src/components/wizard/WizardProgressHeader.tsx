@@ -59,7 +59,8 @@ export default function WizardProgressHeader({
         {!(hideProgressOnIntro && currentStep === 0) && (
           <div className="space-y-2" data-testid={testId}>
             <Progress value={progress} className="h-2" />
-            <div className="flex justify-between text-xs text-gray-500">
+            {/* Step labels — hidden on very small screens to prevent overflow with many steps */}
+            <div className="hidden sm:flex justify-between text-xs text-gray-500">
               {stepLabels.map((label, idx) => {
                 const stepIndex = idx + 1;
                 return (
@@ -75,6 +76,14 @@ export default function WizardProgressHeader({
                   </span>
                 );
               })}
+            </div>
+            {/* Mobile: show current step name only */}
+            <div className="flex sm:hidden text-xs text-gray-500 justify-center">
+              {currentStep > 0 && currentStep <= stepLabels.length && (
+                <span className={`${accentClassName} font-medium`}>
+                  {stepLabels[currentStep - 1]}
+                </span>
+              )}
             </div>
           </div>
         )}

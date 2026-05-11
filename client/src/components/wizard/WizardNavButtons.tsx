@@ -35,7 +35,7 @@ export default function WizardNavButtons({
   const isLast = currentStep === totalSteps - 1;
 
   return (
-    <div className="flex justify-between items-center pt-4 border-t">
+    <div className="flex flex-wrap justify-between items-center gap-2 pt-4 border-t">
       <Button
         type="button"
         variant="outline"
@@ -47,7 +47,7 @@ export default function WizardNavButtons({
         Previous
       </Button>
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2 justify-end">
         {extraActions}
 
         {!isLast ? (

@@ -1455,28 +1455,28 @@ export default function Journal() {
                 <CardContent className="p-4">
                   {stats.sentimentPatterns ? (
                     <div className="space-y-4">
-                      <div className="h-40 flex items-center justify-center">
-                        <div className="grid grid-cols-3 gap-3 w-full max-w-md">
+                      <div className="flex items-center justify-center py-2">
+                        <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full max-w-md">
                           {/* Positive Sentiment */}
                           <div className="flex flex-col items-center">
-                            <div className="h-28 w-28 rounded-full border-4 border-green-400 flex items-center justify-center">
-                              <p className="text-2xl font-bold text-green-500">{stats.sentimentPatterns.positive}%</p>
+                            <div className="h-16 w-16 sm:h-28 sm:w-28 rounded-full border-4 border-green-400 flex items-center justify-center">
+                              <p className="text-base sm:text-2xl font-bold text-green-500">{stats.sentimentPatterns.positive}%</p>
                             </div>
-                            <p className="mt-2 text-sm font-medium">Positive</p>
+                            <p className="mt-1 sm:mt-2 text-xs sm:text-sm font-medium">Positive</p>
                           </div>
                           
                           {/* Neutral Sentiment */}
                           <div className="flex flex-col items-center">
-                            <div className="h-28 w-28 rounded-full border-4 border-gray-300 flex items-center justify-center">
-                              <p className="text-2xl font-bold text-gray-500">{stats.sentimentPatterns.neutral}%</p>
+                            <div className="h-16 w-16 sm:h-28 sm:w-28 rounded-full border-4 border-gray-300 flex items-center justify-center">
+                              <p className="text-base sm:text-2xl font-bold text-gray-500">{stats.sentimentPatterns.neutral}%</p>
                             </div>
-                            <p className="mt-2 text-sm font-medium">Neutral</p>
+                            <p className="mt-1 sm:mt-2 text-xs sm:text-sm font-medium">Neutral</p>
                           </div>
                           
                           {/* Negative Sentiment */}
                           <div className="flex flex-col items-center">
-                            <div className="h-28 w-28 rounded-full border-4 border-red-400 flex items-center justify-center">
-                              <p className="text-2xl font-bold text-red-500">{stats.sentimentPatterns.negative}%</p>
+                            <div className="h-16 w-16 sm:h-28 sm:w-28 rounded-full border-4 border-red-400 flex items-center justify-center">
+                              <p className="text-base sm:text-2xl font-bold text-red-500">{stats.sentimentPatterns.negative}%</p>
                             </div>
                             <p className="mt-2 text-sm font-medium">Negative</p>
                           </div>

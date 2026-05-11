@@ -34,21 +34,21 @@ export default function Reports() {
     <AppLayout title="My Progress">
       <div className="container mx-auto px-4 py-6">
         {/* Header with time range selector and export */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-neutral-800" data-testid="page-title">My Progress</h1>
-            <p className="text-neutral-500">
+            <p className="text-sm sm:text-base text-neutral-500">
               Clinical insights based on CBT principles tracking your therapeutic journey
             </p>
           </div>
           
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2">
             <Select 
               value={timeRange} 
               onValueChange={(value) => setTimeRange(value as TimeRange)}
               data-testid="select-timerange"
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Select time range" />
               </SelectTrigger>
               <SelectContent>
