@@ -1,7 +1,7 @@
 import * as React from "react";
-import { Mic, MicOff } from "lucide-react";
+import { Mic, MicOff, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
+import { useVoiceRecorder } from "@/hooks/use-voice-recorder";
 import { useToast } from "@/hooks/use-toast";
 
 const recentErrors = new Map<string, number>();
@@ -26,41 +26,20 @@ export const VoiceDictateButton = React.forwardRef<
   HTMLButtonElement,
   VoiceDictateButtonProps
 >(function VoiceDictateButton(
-  { onTranscript, language = "en-US", className, disabled, size = "md", title },
+  { onTranscript, language, className, disabled, size = "md", title },
   ref,
 ) {
   const { toast } = useToast();
-  const { isListening, isSupported, toggle } = useSpeechRecognition({
+  const { isRecording, isTranscribing, isSupported, toggle } = useVoiceRecorder({
     language,
-    onFinalTranscript: (text) => onTranscript(text),
+    onTranscript,
     onError: (err) => {
       if (!shouldShowError(err)) return;
-      if (err === "not-allowed" || err === "service-not-allowed") {
-        toast({
-          title: "Microphone blocked",
-          description: "Allow microphone access in your browser to use voice typing.",
-          variant: "destructive",
-        });
-      } else if (err === "network") {
-        toast({
-          title: "Voice typing unavailable",
-          description:
-            "Speech recognition couldn't reach the network. Check your internet connection or try again in a moment.",
-          variant: "destructive",
-        });
-      } else if (err === "language-not-supported") {
-        toast({
-          title: "Language not supported",
-          description: "This language isn't available for voice typing in your browser.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Voice typing error",
-          description: err,
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Voice typing",
+        description: err,
+        variant: "destructive",
+      });
     },
   });
 
@@ -68,26 +47,44 @@ export const VoiceDictateButton = React.forwardRef<
 
   const dimensions = size === "sm" ? "h-7 w-7" : "h-8 w-8";
   const iconSize = size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4";
+  const busy = isTranscribing;
+  const active = isRecording;
+
+  const tip =
+    title ??
+    (active
+      ? "Stop and transcribe"
+      : busy
+      ? "Transcribing…"
+      : "Voice typing");
 
   return (
     <button
       ref={ref}
       type="button"
       onClick={toggle}
-      disabled={disabled}
-      aria-label={isListening ? "Stop voice typing" : "Start voice typing"}
-      title={title ?? (isListening ? "Stop voice typing" : "Voice typing")}
+      disabled={disabled || busy}
+      aria-label={tip}
+      title={tip}
       data-testid="button-voice-dictate"
       className={cn(
-        "inline-flex items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-60",
         dimensions,
-        isListening
+        active
           ? "border-red-500 bg-red-500 text-white shadow-md animate-pulse hover:bg-red-600"
+          : busy
+          ? "border-input bg-background text-muted-foreground"
           : "border-input bg-background text-muted-foreground hover:text-foreground hover:bg-accent",
         className,
       )}
     >
-      {isListening ? <MicOff className={iconSize} /> : <Mic className={iconSize} />}
+      {busy ? (
+        <Loader2 className={cn(iconSize, "animate-spin")} />
+      ) : active ? (
+        <MicOff className={iconSize} />
+      ) : (
+        <Mic className={iconSize} />
+      )}
     </button>
   );
 });

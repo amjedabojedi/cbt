@@ -5890,6 +5890,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Speech-to-text transcription via OpenAI Whisper (used by the in-app voice typing button)
+  app.post(
+    "/api/transcribe",
+    authenticate,
+    aiRateLimit,
+    express.raw({ type: () => true, limit: "15mb" }),
+    async (req, res) => {
+      try {
+        const buffer = req.body as Buffer;
+        if (!buffer || !Buffer.isBuffer(buffer) || buffer.length === 0) {
+          return res.status(400).json({ message: "No audio data received" });
+        }
+        if (buffer.length > 15 * 1024 * 1024) {
+          return res.status(413).json({ message: "Audio too large (max 15 MB)" });
+        }
+
+        const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+        if (!apiKey) {
+          return res.status(503).json({ message: "Transcription service is not configured" });
+        }
+
+        const contentType = String(req.headers["content-type"] || "audio/webm").toLowerCase();
+        const ext = contentType.includes("mp4")
+          ? "mp4"
+          : contentType.includes("ogg")
+          ? "ogg"
+          : contentType.includes("wav")
+          ? "wav"
+          : contentType.includes("mpeg") || contentType.includes("mp3")
+          ? "mp3"
+          : "webm";
+
+        const OpenAIModule = await import("openai");
+        const OpenAI = OpenAIModule.default;
+        const { toFile } = OpenAIModule;
+        const client = new OpenAI({
+          apiKey,
+          baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        });
+
+        const audioFile = await toFile(buffer, `voice.${ext}`, { type: contentType });
+        const langParam = typeof req.query.language === "string" ? req.query.language : undefined;
+        const language = langParam ? langParam.split("-")[0] : undefined;
+
+        const result = await client.audio.transcriptions.create({
+          file: audioFile,
+          model: "whisper-1",
+          ...(language ? { language } : {}),
+        });
+
+        return res.json({ text: result.text || "" });
+      } catch (err: any) {
+        console.error("Transcription error:", err?.message || err);
+        return res.status(500).json({ message: "Transcription failed" });
+      }
+    },
+  );
+
   // Analyze journal text with OpenAI without saving
   app.post("/api/journal/analyze", authenticate, aiRateLimit, async (req, res) => {
     try {
