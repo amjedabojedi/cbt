@@ -1302,9 +1302,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Build the reset URL
-      const baseUrl = process.env.NODE_ENV === 'production'
-        ? `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`
-        : 'http://localhost:5003';
+      const appUrl = process.env.APP_URL?.trim();
+      const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0]?.trim();
+      const baseUrl =
+        appUrl ||
+        (replitDomain ? `https://${replitDomain}` : '') ||
+        `${req.protocol}://${req.get('host')}`;
       
       const resetUrl = `${baseUrl}/reset-password/${token}`;
       
