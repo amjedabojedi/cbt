@@ -115,14 +115,28 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
 
     // Send the email through SparkPost
     const response = await sparkPostClient.transmissions.send(transmission);
-    console.log(`[Email] Successfully sent "${params.subject}" to ${params.to}`, JSON.stringify(response?.results || {}));
+    const results = response?.results || {};
+    const transmissionId =
+      results?.id ||
+      results?.transmission_id ||
+      results?.message_id ||
+      "unknown";
+    const totalAccepted = Number(results?.total_accepted_recipients ?? 0);
+    const totalRejected = Number(results?.total_rejected_recipients ?? 0);
+    console.log(
+      `[Email] SENT subject="${params.subject}" to=${params.to} transmissionId=${transmissionId} accepted=${totalAccepted} rejected=${totalRejected}`
+    );
+    if (totalRejected > 0) {
+      console.warn(`[Email] SparkPost reported rejected recipients`, JSON.stringify(results));
+    }
     
     // Record the email in our database for auditing
     try {
+      const emailType = params.templateId ? 'template' : (params.html ? 'html' : 'text');
       await pool.query(
-        `INSERT INTO email_logs (recipient, subject, body_text, sent_at) 
-         VALUES ($1, $2, $3, $4)`,
-        [params.to, params.subject, params.text || '(HTML content)', new Date()]
+        `INSERT INTO email_logs (recipient_email, recipient, subject, email_type, status, sent_at)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [params.to, params.to, params.subject, emailType, 'sent', new Date()]
       );
     } catch (dbError) {
       console.error('Failed to log email to database (non-critical):', dbError);
@@ -130,7 +144,8 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     
     return true;
   } catch (error: any) {
-    console.error(`[Email] FAILED to send "${params.subject}" to ${params.to}:`, error?.message || error);
+    const statusCode = error?.statusCode || error?.status || 'unknown';
+    console.error(`[Email] FAILED subject="${params.subject}" to=${params.to} status=${statusCode}:`, error?.message || error);
     if (error?.errors) {
       console.error('[Email] SparkPost errors:', JSON.stringify(error.errors));
     }
