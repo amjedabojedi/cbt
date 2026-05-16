@@ -5,67 +5,92 @@ import { RefreshCw, AlertCircle } from 'lucide-react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
-  fallback?: ReactNode; // Optional custom fallback UI
-  name?: string; // Optional name for the error boundary for logging purposes
+  fallback?: ReactNode;
+  name?: string;
 }
 
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  isChunkError: boolean;
 }
 
-/**
- * ErrorBoundary component to catch JavaScript errors anywhere in the component tree
- * and display a fallback UI instead of crashing the entire application
- */
+function isChunkLoadError(error: Error): boolean {
+  const msg = error?.message || '';
+  return (
+    msg.includes('Failed to fetch dynamically imported module') ||
+    msg.includes('Importing a module script failed') ||
+    msg.includes('Loading chunk') ||
+    msg.includes('Loading CSS chunk') ||
+    error?.name === 'ChunkLoadError'
+  );
+}
+
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
+      isChunkError: false,
     };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    // Update state so the next render will show the fallback UI
-    return {
-      hasError: true,
-      error,
-      errorInfo: null
-    };
+    const chunkError = isChunkLoadError(error);
+    if (chunkError) {
+      // Auto-reload once for chunk errors — clear reload guard after 10s
+      const reloadKey = 'chunk_reload_at';
+      const last = Number(sessionStorage.getItem(reloadKey) || 0);
+      const now = Date.now();
+      if (now - last > 10_000) {
+        sessionStorage.setItem(reloadKey, String(now));
+        window.location.reload();
+      }
+    }
+    return { hasError: true, error, errorInfo: null, isChunkError: chunkError };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Log the error to console or error tracking service
     console.error(`Error in ${this.props.name || 'component'}:`, error);
     console.error('Component stack:', errorInfo.componentStack);
-    
-    this.setState({
-      error,
-      errorInfo
-    });
+    this.setState({ error, errorInfo });
   }
 
   handleReset = (): void => {
-    // Reset the error boundary state
-    this.setState({
-      hasError: false,
-      error: null,
-      errorInfo: null
-    });
-  }
+    this.setState({ hasError: false, error: null, errorInfo: null, isChunkError: false });
+  };
+
+  handleReload = (): void => {
+    sessionStorage.removeItem('chunk_reload_at');
+    window.location.reload();
+  };
 
   render(): ReactNode {
-    const { hasError, error } = this.state;
+    const { hasError, error, isChunkError } = this.state;
     const { children, fallback, name } = this.props;
 
     if (hasError) {
-      // Render custom fallback UI or default error message
-      if (fallback) {
-        return fallback;
+      if (fallback) return fallback;
+
+      if (isChunkError) {
+        return (
+          <div className="min-h-screen flex items-center justify-center bg-background p-4">
+            <div className="text-center max-w-md">
+              <RefreshCw className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
+              <h2 className="text-xl font-semibold mb-2">App Updated</h2>
+              <p className="text-muted-foreground mb-4">
+                A new version of ResilienceHub was deployed. Reloading to get the latest version…
+              </p>
+              <Button onClick={this.handleReload}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Reload Now
+              </Button>
+            </div>
+          </div>
+        );
       }
 
       return (
@@ -78,9 +103,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             <p className="text-sm mb-2">
               {error?.message || 'An unexpected error occurred'}
             </p>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={this.handleReset}
               className="mt-2"
             >
@@ -92,7 +117,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       );
     }
 
-    // When there's no error, render children normally
     return children;
   }
 }

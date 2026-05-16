@@ -11,45 +11,61 @@ import { ThemeProvider } from "next-themes";
 import { WebSocketProvider } from "@/context/WebSocketContext";
 import ErrorBoundary from "@/components/error/ErrorBoundary";
 
+// Retry lazy imports once on chunk load failure (handles post-deploy cache mismatch)
+function lazyWithRetry(factory: () => Promise<any>) {
+  return lazy(() =>
+    factory().catch((err) => {
+      const reloadKey = 'chunk_reload_at';
+      const last = Number(sessionStorage.getItem(reloadKey) || 0);
+      const now = Date.now();
+      if (now - last > 10_000) {
+        sessionStorage.setItem(reloadKey, String(now));
+        window.location.reload();
+      }
+      return Promise.reject(err);
+    })
+  );
+}
+
 // Lazy load pages
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const Login = lazy(() => import("@/pages/Login"));
-const Register = lazy(() => import("@/pages/Register"));
-const AuthPage = lazy(() => import("@/pages/auth-page"));
-const MobileLogin = lazy(() => import("@/pages/MobileLogin"));
-const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
-const LandingPage = lazy(() => import("@/pages/LandingPage"));
-const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
-const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
-const EmotionTracking = lazy(() => import("@/pages/EmotionTracking"));
-const EmotionMapping = lazy(() => import("@/pages/EmotionMapping"));
-const ThoughtRecords = lazy(() => import("@/pages/ThoughtRecords"));
-const ThoughtNew = lazy(() => import("@/pages/ThoughtNew"));
-const Reflection = lazy(() => import("@/pages/Reflection"));
-const GoalSetting = lazy(() => import("@/pages/GoalSetting"));
-const ResourceLibrary = lazy(() => import("@/pages/ResourceLibrary"));
-const Journal = lazy(() => import("@/pages/Journal"));
-const Reports = lazy(() => import("@/pages/Reports"));
-const Clients = lazy(() => import("@/pages/Clients"));
-const ClientProfile = lazy(() => import("@/pages/ClientProfile"));
-const Settings = lazy(() => import("@/pages/Settings"));
-const ExportPage = lazy(() => import("@/pages/ExportPage"));
-const InvitationLinks = lazy(() => import("@/pages/InvitationLinks"));
+const Dashboard = lazyWithRetry(() => import("@/pages/Dashboard"));
+const Login = lazyWithRetry(() => import("@/pages/Login"));
+const Register = lazyWithRetry(() => import("@/pages/Register"));
+const AuthPage = lazyWithRetry(() => import("@/pages/auth-page"));
+const MobileLogin = lazyWithRetry(() => import("@/pages/MobileLogin"));
+const ForgotPassword = lazyWithRetry(() => import("@/pages/ForgotPassword"));
+const ResetPassword = lazyWithRetry(() => import("@/pages/ResetPassword"));
+const LandingPage = lazyWithRetry(() => import("@/pages/LandingPage"));
+const PrivacyPolicy = lazyWithRetry(() => import("@/pages/PrivacyPolicy"));
+const TermsOfService = lazyWithRetry(() => import("@/pages/TermsOfService"));
+const EmotionTracking = lazyWithRetry(() => import("@/pages/EmotionTracking"));
+const EmotionMapping = lazyWithRetry(() => import("@/pages/EmotionMapping"));
+const ThoughtRecords = lazyWithRetry(() => import("@/pages/ThoughtRecords"));
+const ThoughtNew = lazyWithRetry(() => import("@/pages/ThoughtNew"));
+const Reflection = lazyWithRetry(() => import("@/pages/Reflection"));
+const GoalSetting = lazyWithRetry(() => import("@/pages/GoalSetting"));
+const ResourceLibrary = lazyWithRetry(() => import("@/pages/ResourceLibrary"));
+const Journal = lazyWithRetry(() => import("@/pages/Journal"));
+const Reports = lazyWithRetry(() => import("@/pages/Reports"));
+const Clients = lazyWithRetry(() => import("@/pages/Clients"));
+const ClientProfile = lazyWithRetry(() => import("@/pages/ClientProfile"));
+const Settings = lazyWithRetry(() => import("@/pages/Settings"));
+const ExportPage = lazyWithRetry(() => import("@/pages/ExportPage"));
+const InvitationLinks = lazyWithRetry(() => import("@/pages/InvitationLinks"));
 // Recommendations pages removed - will be added back when feature is ready
 
 // Reframe Coach pages
-const ReframeCoachDashboard = lazy(() => import("@/pages/ReframeCoachPage"));
-const ReframePracticePage = lazy(() => import("@/pages/ReframePracticePage"));
+const ReframeCoachDashboard = lazyWithRetry(() => import("@/pages/ReframeCoachPage"));
+const ReframePracticePage = lazyWithRetry(() => import("@/pages/ReframePracticePage"));
 
 // Admin pages
-const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
-const UserManagement = lazy(() => import("@/pages/UserManagement"));
-const SubscriptionManagement = lazy(() => import("@/pages/SubscriptionManagement"));
-const ReframeAnalytics = lazy(() => import("@/pages/admin/ReframeAnalyticsPage"));
-const EngagementSettings = lazy(() => import("@/pages/admin/EngagementSettings"));
-const AdminNotifications = lazy(() => import("@/pages/admin/AdminNotifications"));
-const AdminLogs = lazy(() => import("@/pages/admin/AdminLogs"));
+const AdminDashboard = lazyWithRetry(() => import("@/pages/AdminDashboard"));
+const UserManagement = lazyWithRetry(() => import("@/pages/UserManagement"));
+const SubscriptionManagement = lazyWithRetry(() => import("@/pages/SubscriptionManagement"));
+const ReframeAnalytics = lazyWithRetry(() => import("@/pages/admin/ReframeAnalyticsPage"));
+const EngagementSettings = lazyWithRetry(() => import("@/pages/admin/EngagementSettings"));
+const AdminNotifications = lazyWithRetry(() => import("@/pages/admin/AdminNotifications"));
+const AdminLogs = lazyWithRetry(() => import("@/pages/admin/AdminLogs"));
 
 // Import the ProtectedRoute component
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
