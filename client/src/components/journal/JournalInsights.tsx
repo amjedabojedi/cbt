@@ -177,6 +177,64 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
     });
   };
 
+  // Normalize emotion labels: merge noun forms, synonyms, and near-duplicates into a single canonical adjective form
+  const normalizeEmotion = (raw: string): string => {
+    const emotion = raw.toLowerCase().trim();
+    const normalizationMap: Record<string, string> = {
+      // Noun → adjective conversions
+      confusion: "confused",
+      uncertainty: "uncertain",
+      anxiety: "anxious",
+      sadness: "sad",
+      anger: "angry",
+      frustration: "frustrated",
+      excitement: "excited",
+      happiness: "happy",
+      loneliness: "lonely",
+      overwhelm: "overwhelmed",
+      worry: "worried",
+      hopelessness: "hopeless",
+      grief: "grieving",
+      stress: "stressed",
+      fear: "fearful",
+      guilt: "guilty",
+      shame: "ashamed",
+      pride: "proud",
+      irritation: "irritated",
+      irritability: "irritated",
+      nervousness: "nervous",
+      embarrassment: "embarrassed",
+      disappointment: "disappointed",
+      // Near-synonyms → canonical form
+      "unsure": "uncertain",
+      "unsettled": "uncertain",
+      "doubtful": "uncertain",
+      "bewildered": "confused",
+      "perplexed": "confused",
+      "baffled": "confused",
+      "joyful": "happy",
+      "joyous": "happy",
+      "glad": "happy",
+      "content": "content",
+      "pleased": "happy",
+      "upset": "sad",
+      "unhappy": "sad",
+      "gloomy": "sad",
+      "sorrowful": "sad",
+      "distressed": "stressed",
+      "panicked": "anxious",
+      "uneasy": "anxious",
+      "apprehensive": "anxious",
+      "mad": "angry",
+      "furious": "angry",
+      "enraged": "angry",
+      "annoyed": "irritated",
+      "agitated": "irritated",
+    };
+    const normalized = normalizationMap[emotion] || emotion;
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  };
+
   // Calculate emotion distribution
   const getEmotionDistribution = () => {
     const emotionCounts: Record<string, number> = {};
@@ -184,7 +242,8 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
     entries.forEach(entry => {
       if (entry.emotions && Array.isArray(entry.emotions)) {
         entry.emotions.forEach((emotion: string) => {
-          emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
+          const normalized = normalizeEmotion(emotion);
+          emotionCounts[normalized] = (emotionCounts[normalized] || 0) + 1;
         });
       }
     });
