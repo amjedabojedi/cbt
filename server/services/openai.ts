@@ -225,9 +225,15 @@ export async function analyzeJournalEntry(
        - DO NOT include emotions that are negated (e.g., "I'm not excited" does NOT mean the person feels "excited")
        - Pay careful attention to context and the full meaning of sentences to accurately identify true emotional states
        - Look for indicators of genuine emotional experience rather than just emotional words
-       - ALWAYS use the adjective form of the emotion, never the noun form. Examples: use "confused" not "confusion", "anxious" not "anxiety", "sad" not "sadness", "angry" not "anger", "uncertain" not "uncertainty", "frustrated" not "frustration", "excited" not "excitement", "hopeful" not "hope" (when used as an emotion state)
-       - Use lowercase single-word emotion labels only (e.g., "confused", "anxious", "overwhelmed", "sad", "happy")
-       - Do NOT repeat near-synonyms — pick the single most accurate word for each distinct emotional state felt
+       - ALWAYS classify each emotion into one of these 6 core categories: "Anger", "Sadness", "Fear", "Joy", "Love", "Surprise"
+       - Use the exact core category name (capitalised) as the emotion label — for example "Fear" not "anxious", "Sadness" not "sad", "Anger" not "frustrated"
+       - You may list the same core category only once. If multiple emotions map to the same category, list it once
+       - Anger covers: rage, frustration, irritation, annoyance, envy, disgust, resentment
+       - Sadness covers: grief, hurt, loneliness, guilt, shame, hopelessness, despair, disappointment
+       - Fear covers: anxiety, worry, nervousness, stress, insecurity, dread, overwhelm, uncertainty
+       - Joy covers: happiness, excitement, pride, optimism, gratitude, contentment, enthusiasm
+       - Love covers: affection, care, compassion, peace, calm, tenderness, belonging
+       - Surprise covers: confusion, shock, bewilderment, disbelief, amazement, being caught off guard
     4. topics: Up to 5 main topics or themes discussed
     5. cognitiveDistortions: Identify any cognitive distortions present, such as:
        - All-or-nothing thinking (black-and-white thinking)

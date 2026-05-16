@@ -177,81 +177,105 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
     });
   };
 
-  // Normalize emotion labels: merge noun forms, synonyms, and near-duplicates into a single canonical adjective form
-  const normalizeEmotion = (raw: string): string => {
-    const emotion = raw.toLowerCase().trim();
-    const normalizationMap: Record<string, string> = {
-      // Noun → adjective conversions
-      confusion: "confused",
-      uncertainty: "uncertain",
-      anxiety: "anxious",
-      sadness: "sad",
-      anger: "angry",
-      frustration: "frustrated",
-      excitement: "excited",
-      happiness: "happy",
-      loneliness: "lonely",
-      overwhelm: "overwhelmed",
-      worry: "worried",
-      hopelessness: "hopeless",
-      grief: "grieving",
-      stress: "stressed",
-      fear: "fearful",
-      guilt: "guilty",
-      shame: "ashamed",
-      pride: "proud",
-      irritation: "irritated",
-      irritability: "irritated",
-      nervousness: "nervous",
-      embarrassment: "embarrassed",
-      disappointment: "disappointed",
-      // Near-synonyms → canonical form
-      "unsure": "uncertain",
-      "unsettled": "uncertain",
-      "doubtful": "uncertain",
-      "bewildered": "confused",
-      "perplexed": "confused",
-      "baffled": "confused",
-      "joyful": "happy",
-      "joyous": "happy",
-      "glad": "happy",
-      "content": "content",
-      "pleased": "happy",
-      "upset": "sad",
-      "unhappy": "sad",
-      "gloomy": "sad",
-      "sorrowful": "sad",
-      "distressed": "stressed",
-      "panicked": "anxious",
-      "uneasy": "anxious",
-      "apprehensive": "anxious",
-      "mad": "angry",
-      "furious": "angry",
-      "enraged": "angry",
-      "annoyed": "irritated",
-      "agitated": "irritated",
-    };
-    const normalized = normalizationMap[emotion] || emotion;
-    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  // The 6 core emotion categories matching the emotion wheel, with their exact colors
+  const CORE_EMOTIONS: Record<string, { color: string; keywords: string[] }> = {
+    Anger: {
+      color: "#E53E3E",
+      keywords: [
+        "anger","angry","rage","furious","enraged","mad","hostile","hate","hatred",
+        "exasperated","agitated","frustrated","frustration","irritable","irritated",
+        "irritation","annoyed","annoyance","aggravated","envy","resentful","resentment",
+        "jealous","jealousy","disgust","disgusted","contempt","contemptuous","revolted",
+        "bitter","bitterness","outraged","livid","irate","wrathful","wrath",
+      ],
+    },
+    Sadness: {
+      color: "#3182CE",
+      keywords: [
+        "sadness","sad","unhappy","depressed","depression","sorrow","sorrowful",
+        "grief","grieving","suffering","agony","hurt","disappointed","disappointment",
+        "dismayed","displeased","shameful","shame","ashamed","regretful","regret",
+        "guilty","guilt","neglected","isolated","isolation","lonely","loneliness",
+        "despair","powerless","hopeless","hopelessness","dejected","miserable",
+        "gloomy","melancholy","heartbroken","devastated","broken","crushed","lost",
+        "empty","hollow","numb","worthless","down","blue","low","upset",
+      ],
+    },
+    Fear: {
+      color: "#38A169",
+      keywords: [
+        "fear","fearful","afraid","scared","frightened","helpless","terror","terrified",
+        "panic","panicked","hysterical","insecure","insecurity","inferior","inadequate",
+        "nervous","nervousness","worried","worry","anxious","anxiety","horror","mortified",
+        "dread","dreading","apprehensive","apprehension","stressed","stress","overwhelmed",
+        "overwhelm","uneasy","unease","tense","tension","alarmed","threatened",
+        "vulnerable","uncertain","uncertainty","unsure","unsettled","doubtful",
+        "on edge","distressed",
+      ],
+    },
+    Surprise: {
+      color: "#6B46C1",
+      keywords: [
+        "surprise","surprised","stunned","shocked","dismayed","confused","confusion",
+        "disillusioned","perplexed","amazed","astonished","awe","awe-struck","overcome",
+        "speechless","astounded","moved","stimulated","touched","bewildered","baffled",
+        "disbelief","startled","unexpected","caught off guard","taken aback",
+      ],
+    },
+    Joy: {
+      color: "#D69E2E",
+      keywords: [
+        "joy","joyful","joyous","happy","happiness","glad","content","contentment",
+        "pleased","satisfied","satisfaction","amused","amusement","delighted","delight",
+        "cheerful","jovial","blissful","bliss","proud","pride","triumphant","optimistic",
+        "optimism","eager","eagerness","hopeful","hope","enthusiastic","enthusiasm",
+        "excited","excitement","euphoric","euphoria","jubilant","jubilation","enchanted",
+        "rapture","grateful","gratitude","thankful","elated","elation","thrilled",
+        "ecstatic","wonderful","great","good","positive","upbeat","energetic",
+      ],
+    },
+    Love: {
+      color: "#E6338F",
+      keywords: [
+        "love","loving","affectionate","affection","romantic","romance","fondness",
+        "fond","longing","sentimental","attracted","desire","passion","passionate",
+        "infatuation","tenderness","tender","caring","care","compassionate","compassion",
+        "peaceful","peace","calm","calming","relieved","relief","connected","warmth",
+        "warm","cherished","appreciated","appreciated","adoring","adore","devoted",
+        "devotion","nurturing","trusting","trust","safe","secure","belonging",
+      ],
+    },
   };
 
-  // Calculate emotion distribution
+  // Map any detected emotion word to its core emotion category
+  const mapToCoreEmotion = (raw: string): string => {
+    const word = raw.toLowerCase().trim();
+    for (const [coreName, { keywords }] of Object.entries(CORE_EMOTIONS)) {
+      if (keywords.includes(word)) return coreName;
+    }
+    // Partial match fallback — check if the word contains or is contained in any keyword
+    for (const [coreName, { keywords }] of Object.entries(CORE_EMOTIONS)) {
+      if (keywords.some(k => word.includes(k) || k.includes(word))) return coreName;
+    }
+    return "Surprise"; // default unmapped emotions to Surprise (unexpected/unknown)
+  };
+
+  // Calculate emotion distribution grouped by core emotion category
   const getEmotionDistribution = () => {
-    const emotionCounts: Record<string, number> = {};
-    
+    const coreCounts: Record<string, number> = {};
+
     entries.forEach(entry => {
       if (entry.emotions && Array.isArray(entry.emotions)) {
         entry.emotions.forEach((emotion: string) => {
-          const normalized = normalizeEmotion(emotion);
-          emotionCounts[normalized] = (emotionCounts[normalized] || 0) + 1;
+          const core = mapToCoreEmotion(emotion);
+          coreCounts[core] = (coreCounts[core] || 0) + 1;
         });
       }
     });
-    
-    return Object.entries(emotionCounts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 8); // Top 8 emotions
+
+    return Object.entries(coreCounts)
+      .map(([name, value]) => ({ name, value, color: CORE_EMOTIONS[name]?.color || "#8884d8" }))
+      .sort((a, b) => b.value - a.value);
   };
 
   // Calculate topic analysis
@@ -613,7 +637,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                     dataKey="value"
                   >
                     {getEmotionDistribution().map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={EMOTION_COLORS[index % EMOTION_COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -680,7 +704,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                     className="inline-block px-3 py-2 rounded-lg transition-all hover:scale-110 cursor-default"
                     style={{
                       fontSize: `${size}rem`,
-                      color: EMOTION_COLORS[index % EMOTION_COLORS.length],
+                      color: emotion.color,
                       fontWeight: 600,
                       opacity: 0.7 + (size / 8), // More frequent emotions are more opaque
                     }}
