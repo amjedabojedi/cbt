@@ -227,13 +227,7 @@ export default function Journal() {
   
   // Get journal entries
   const { data: entries = [], isLoading } = useQuery({ 
-    queryKey: ['/api/users/:userId/journal', userId],
-    queryFn: async () => {
-      if (!userId) return [];
-      const response = await apiRequest('GET', `/api/users/${userId}/journal`);
-      const data = await response.json();
-      return data;
-    },
+    queryKey: [`/api/users/${userId}/journal`],
     enabled: !!userId,
   });
   
@@ -246,32 +240,13 @@ export default function Journal() {
     tagsFrequency: {},
     sentimentPatterns: null
   }} = useQuery<JournalStats>({
-    queryKey: ['/api/users/:userId/journal/stats', userId],
-    queryFn: async () => {
-      if (!userId) return {
-        totalEntries: 0,
-        emotions: {},
-        topics: {},
-        sentimentOverTime: [],
-        tagsFrequency: {},
-        sentimentPatterns: null
-      };
-      const response = await apiRequest('GET', `/api/users/${userId}/journal/stats`);
-      const data = await response.json();
-      return data;
-    },
+    queryKey: [`/api/users/${userId}/journal/stats`],
     enabled: !!userId,
   });
   
   // Get available thought records for linking
   const { data: userThoughtRecords = [] } = useQuery({ 
-    queryKey: ['/api/users/:userId/thoughts', userId],
-    queryFn: async () => {
-      if (!userId) return [];
-      const response = await apiRequest('GET', `/api/users/${userId}/thoughts`);
-      const data = await response.json();
-      return data;
-    },
+    queryKey: [`/api/users/${userId}/thoughts`],
     enabled: !!userId,
   });
   
@@ -432,7 +407,7 @@ export default function Journal() {
         setCurrentEntry(data);
         
         // Invalidate the stats queries
-        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal/stats', userId] });
+        queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/journal/stats`] });
         if (activeTab === "stats") {
           setActiveTab("view");
           setTimeout(() => setActiveTab("stats"), 100);
@@ -476,7 +451,7 @@ export default function Journal() {
         setCurrentEntry(data);
         
         // Invalidate the stats queries
-        queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/journal/stats', userId] });
+        queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/journal/stats`] });
       }
     },
     onError: (error: Error) => {
@@ -515,7 +490,7 @@ export default function Journal() {
       loadEntryWithRelatedRecords(data);
       
       // Also invalidate thought records queries
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/thoughts', userId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/thoughts`] });
       
       setShowThoughtRecordDialog(false);
     },
@@ -556,7 +531,7 @@ export default function Journal() {
       loadEntryWithRelatedRecords(data);
       
       // Also invalidate thought records queries
-      queryClient.invalidateQueries({ queryKey: ['/api/users/:userId/thoughts', userId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/thoughts`] });
     },
     onError: (error: Error) => {
       console.error("Error unlinking thought record:", error);
