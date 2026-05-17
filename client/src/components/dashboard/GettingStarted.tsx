@@ -47,7 +47,7 @@ export default function GettingStarted() {
       icon: Brain,
       color: "#9333ea",
       bg: "#f3e8ff",
-      href: "/thought-records",
+      href: "/thoughts",
       done: !!(thoughts && thoughts.length > 0),
       testId: "quick-action-thought",
     },
