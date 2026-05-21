@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
-import { VoiceDictateButton } from "@/components/ui/voice-dictate-button"
+import { VoiceDictateButton } from "@/components/shared/voice-dictate-button"
 
 export interface InputProps extends React.ComponentProps<"input"> {
   voiceInput?: boolean

@@ -1,6 +1,6 @@
 import AppLayout from "@/components/layout/AppLayout";
 import ModuleHeader from "@/components/layout/ModuleHeader";
-import { BackToClientsButton } from "@/components/navigation/BackToClientsButton";
+import { BackToClientsButton } from "@/features/dashboard/components/navigation/BackToClientsButton";
 import { LucideIcon } from "lucide-react";
 
 interface ProgressBadge {

@@ -1,6 +1,6 @@
 import RoleIndicator from "./RoleIndicator";
 import { useClientContext } from "@/context/ClientContext";
-import NotificationBell from "@/components/ui/notification-bell";
+import NotificationBell from "@/components/layout/notification-bell";
 import MobileNavigation from "@/components/MobileNavigation";
 
 interface HeaderProps {

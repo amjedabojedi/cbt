@@ -28,48 +28,48 @@ function lazyWithRetry(factory: () => Promise<any>) {
 }
 
 // Lazy load pages
-const Dashboard = lazyWithRetry(() => import("@/pages/Dashboard"));
-const Login = lazyWithRetry(() => import("@/pages/Login"));
-const Register = lazyWithRetry(() => import("@/pages/Register"));
-const AuthPage = lazyWithRetry(() => import("@/pages/auth-page"));
-const MobileLogin = lazyWithRetry(() => import("@/pages/MobileLogin"));
-const ForgotPassword = lazyWithRetry(() => import("@/pages/ForgotPassword"));
-const ResetPassword = lazyWithRetry(() => import("@/pages/ResetPassword"));
+const Dashboard = lazyWithRetry(() => import("@/features/dashboard/pages/Dashboard"));
+const Login = lazyWithRetry(() => import("@/features/auth/pages/Login"));
+const Register = lazyWithRetry(() => import("@/features/auth/pages/Register"));
+const AuthPage = lazyWithRetry(() => import("@/features/auth/pages/auth-page"));
+const MobileLogin = lazyWithRetry(() => import("@/features/auth/pages/MobileLogin"));
+const ForgotPassword = lazyWithRetry(() => import("@/features/auth/pages/ForgotPassword"));
+const ResetPassword = lazyWithRetry(() => import("@/features/auth/pages/ResetPassword"));
 const LandingPage = lazyWithRetry(() => import("@/pages/LandingPage"));
 const PrivacyPolicy = lazyWithRetry(() => import("@/pages/PrivacyPolicy"));
 const TermsOfService = lazyWithRetry(() => import("@/pages/TermsOfService"));
-const EmotionTracking = lazyWithRetry(() => import("@/pages/EmotionTracking"));
-const EmotionMapping = lazyWithRetry(() => import("@/pages/EmotionMapping"));
-const ThoughtRecords = lazyWithRetry(() => import("@/pages/ThoughtRecords"));
-const ThoughtNew = lazyWithRetry(() => import("@/pages/ThoughtNew"));
-const Reflection = lazyWithRetry(() => import("@/pages/Reflection"));
-const GoalSetting = lazyWithRetry(() => import("@/pages/GoalSetting"));
-const ResourceLibrary = lazyWithRetry(() => import("@/pages/ResourceLibrary"));
-const Journal = lazyWithRetry(() => import("@/pages/Journal"));
-const Reports = lazyWithRetry(() => import("@/pages/Reports"));
-const Clients = lazyWithRetry(() => import("@/pages/Clients"));
-const ClientProfile = lazyWithRetry(() => import("@/pages/ClientProfile"));
-const Settings = lazyWithRetry(() => import("@/pages/Settings"));
-const ExportPage = lazyWithRetry(() => import("@/pages/ExportPage"));
-const InvitationLinks = lazyWithRetry(() => import("@/pages/InvitationLinks"));
+const EmotionTracking = lazyWithRetry(() => import("@/features/therapy/pages/EmotionTracking"));
+const EmotionMapping = lazyWithRetry(() => import("@/features/therapy/pages/EmotionMapping"));
+const ThoughtRecords = lazyWithRetry(() => import("@/features/therapy/pages/ThoughtRecords"));
+const ThoughtNew = lazyWithRetry(() => import("@/features/therapy/pages/ThoughtNew"));
+const Reflection = lazyWithRetry(() => import("@/features/therapy/pages/Reflection"));
+const GoalSetting = lazyWithRetry(() => import("@/features/goals/pages/GoalSetting"));
+const ResourceLibrary = lazyWithRetry(() => import("@/features/resources/pages/ResourceLibrary"));
+const Journal = lazyWithRetry(() => import("@/features/journal/pages/Journal"));
+const Reports = lazyWithRetry(() => import("@/features/dashboard/pages/Reports"));
+const Clients = lazyWithRetry(() => import("@/features/dashboard/pages/Clients"));
+const ClientProfile = lazyWithRetry(() => import("@/features/dashboard/pages/ClientProfile"));
+const Settings = lazyWithRetry(() => import("@/features/dashboard/pages/Settings"));
+const ExportPage = lazyWithRetry(() => import("@/features/dashboard/pages/ExportPage"));
+const InvitationLinks = lazyWithRetry(() => import("@/features/admin/pages/InvitationLinks"));
 // Recommendations pages removed - will be added back when feature is ready
 
 // Reframe Coach pages
-const ReframeCoachDashboard = lazyWithRetry(() => import("@/pages/ReframeCoachPage"));
-const ReframePracticePage = lazyWithRetry(() => import("@/pages/ReframePracticePage"));
+const ReframeCoachDashboard = lazyWithRetry(() => import("@/features/reframe/pages/ReframeCoachPage"));
+const ReframePracticePage = lazyWithRetry(() => import("@/features/reframe/pages/ReframePracticePage"));
 
 // Admin pages
-const AdminDashboard = lazyWithRetry(() => import("@/pages/AdminDashboard"));
-const UserManagement = lazyWithRetry(() => import("@/pages/UserManagement"));
-const SubscriptionManagement = lazyWithRetry(() => import("@/pages/SubscriptionManagement"));
-const ReframeAnalytics = lazyWithRetry(() => import("@/pages/admin/ReframeAnalyticsPage"));
-const EngagementSettings = lazyWithRetry(() => import("@/pages/admin/EngagementSettings"));
-const AdminNotifications = lazyWithRetry(() => import("@/pages/admin/AdminNotifications"));
-const AdminLogs = lazyWithRetry(() => import("@/pages/admin/AdminLogs"));
+const AdminDashboard = lazyWithRetry(() => import("@/features/admin/pages/AdminDashboard"));
+const UserManagement = lazyWithRetry(() => import("@/features/admin/pages/UserManagement"));
+const SubscriptionManagement = lazyWithRetry(() => import("@/features/admin/pages/SubscriptionManagement"));
+const ReframeAnalytics = lazyWithRetry(() => import("@/features/admin/pages/ReframeAnalyticsPage"));
+const EngagementSettings = lazyWithRetry(() => import("@/features/admin/pages/EngagementSettings"));
+const AdminNotifications = lazyWithRetry(() => import("@/features/admin/pages/AdminNotifications"));
+const AdminLogs = lazyWithRetry(() => import("@/features/admin/pages/AdminLogs"));
 
 // Import the ProtectedRoute component
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { MobileRedirector } from "@/components/auth/MobileRedirector";
+import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
+import { MobileRedirector } from "@/features/auth/components/MobileRedirector";
 import { useAuth } from "@/lib/auth";
 import PostHogPageTracker from "@/components/PostHogPageTracker";
 
