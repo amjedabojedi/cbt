@@ -3,20 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Lightbulb, TrendingUp, Brain, AlertCircle, Check, Heart } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-// Define the ThoughtRecord interface here to avoid schema compatibility issues
-interface ThoughtRecord {
-  id: number;
-  userId: number;
-  emotionRecordId: number | null;
-  automaticThoughts: string;
-  cognitiveDistortions: string[];
-  rationalThoughts?: string;
-  createdAt: string;
-  updatedAt?: string;
-  emotionIntensityBefore?: number;
-  emotionIntensityAfter?: number;
-  relatedJournalEntryIds?: number[];
-}
+import type { ThoughtRecord } from "../types";
 
 interface EmotionalTone {
   positive?: number;

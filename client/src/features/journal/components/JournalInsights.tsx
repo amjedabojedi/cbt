@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useJournalEntries } from "../hooks/useJournal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, TrendingUp, Calendar as CalendarIcon, Tag } from "lucide-react";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, RadialBarChart, RadialBar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
@@ -19,10 +19,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
   const [timeRange, setTimeRange] = useState<"week" | "month" | "year" | "all">("month");
 
   // Fetch journal entries
-  const { data: entries = [], isLoading } = useQuery<any[]>({
-    queryKey: [`/api/users/${userId}/journal`],
-    enabled: !!userId,
-  });
+  const { data: entries = [], isLoading } = useJournalEntries(userId);
 
   // Calculate sentiment trends with weekly grouping for month view and monthly grouping for year view
   const getSentimentTrends = () => {

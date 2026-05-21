@@ -10,14 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import type { EducationalResource } from "@/features/resources/types";
 
 interface CreatorPanelProps {
   mode: "create" | "edit";
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  resource?: any;
-  onResourceChange?: (resource: any) => void;
-  educationalResources: any[];
+  resource?: EducationalResource;
+  onResourceChange?: (resource: EducationalResource) => void;
+  educationalResources: EducationalResource[];
   onSubmitCreate: (e: React.FormEvent<HTMLFormElement>) => void;
   onSubmitEdit: () => void;
   isPending: boolean;
@@ -69,9 +70,9 @@ export default function CreatorPanel({
                     <select id="category" name="category" className={selectClass}>
                       <option value="">-- Select a Category --</option>
                       {educationalResources &&
-                        Array.from(new Set(educationalResources.map((r: any) => r.category)))
-                          .filter((cat: any) => cat && cat !== "all")
-                          .map((category: any) => (
+                        Array.from(new Set(educationalResources.map((r: EducationalResource) => r.category)))
+                          .filter((cat: string) => cat && cat !== "all")
+                          .map((category: string) => (
                             <option key={category} value={category}>
                               {category}
                             </option>

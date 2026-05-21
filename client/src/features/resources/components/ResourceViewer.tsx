@@ -9,9 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
+import type { EducationalResource } from "@/features/resources/types";
 
 interface ResourceViewerProps {
-  resource: any | null;
+  resource: EducationalResource | null;
   user: any;
   open: boolean;
   onClose: () => void;

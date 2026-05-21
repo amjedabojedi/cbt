@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import AppLayout from "@/components/layout/AppLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -60,6 +60,31 @@ import ResourceViewer from "@/features/resources/components/ResourceViewer";
 import CreatorPanel from "@/features/resources/components/CreatorPanel";
 import FeedbackDialog from "@/features/resources/components/FeedbackDialog";
 
+import type {
+  ProtectiveFactor,
+  CopingStrategy,
+  EducationalResource,
+  ResourceAssignment,
+} from "@/features/resources/types";
+import {
+  useProtectiveFactors,
+  useCopingStrategies,
+  useEducationalResources,
+  useTherapistClients,
+  useResourceAssignments,
+  useCreateProtectiveFactor,
+  useUpdateProtectiveFactor,
+  useDeleteProtectiveFactor,
+  useCreateCopingStrategy,
+  useUpdateCopingStrategy,
+  useDeleteCopingStrategy,
+  useCreateResource,
+  useUpdateResource,
+  useDeleteResource,
+  useAssignResource,
+  useCloneResource,
+} from "@/features/resources/hooks/useResources";
+
 // Define schema for protective factors
 const protectiveFactorSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -85,13 +110,13 @@ export default function ResourceLibrary() {
   // Protective factors state
   const [isAddingFactor, setIsAddingFactor] = useState(false);
   const [isEditingFactor, setIsEditingFactor] = useState(false);
-  const [selectedFactor, setSelectedFactor] = useState<any>(null);
+  const [selectedFactor, setSelectedFactor] = useState<ProtectiveFactor | null>(null);
   const [isDeleteFactorDialogOpen, setIsDeleteFactorDialogOpen] = useState(false);
 
   // Coping strategies state
   const [isAddingStrategy, setIsAddingStrategy] = useState(false);
   const [isEditingStrategy, setIsEditingStrategy] = useState(false);
-  const [selectedStrategy, setSelectedStrategy] = useState<any>(null);
+  const [selectedStrategy, setSelectedStrategy] = useState<CopingStrategy | null>(null);
   const [isDeleteStrategyDialogOpen, setIsDeleteStrategyDialogOpen] = useState(false);
 
   // Educational resource states
@@ -101,22 +126,10 @@ export default function ResourceLibrary() {
   const [isDeleteResourceDialogOpen, setIsDeleteResourceDialogOpen] = useState(false);
   const [selectedClients, setSelectedClients] = useState<number[]>([]);
   const [assignmentNotes, setAssignmentNotes] = useState("");
-  const [currentResource, setCurrentResource] = useState<{
-    id: number;
-    title: string;
-    description: string;
-    content: string;
-    type: string;
-    category: string;
-    createdBy?: number;
-    isPublished?: boolean;
-    tags?: string[];
-    isEditing?: boolean;
-    pdfUrl?: string;
-  } | null>(null);
+  const [currentResource, setCurrentResource] = useState<EducationalResource | null>(null);
 
   // Assignment viewing state
-  const [viewingAssignment, setViewingAssignment] = useState<any>(null);
+  const [viewingAssignment, setViewingAssignment] = useState<ResourceAssignment | null>(null);
   const [isViewingAssignment, setIsViewingAssignment] = useState(false);
 
   // Resource categories (default list)
@@ -155,341 +168,94 @@ export default function ResourceLibrary() {
     defaultValues: { name: "", description: "", isGlobal: false },
   });
 
-  // Fetch protective factors
+  // Queries
   const {
     data: protectiveFactors,
     isLoading: factorsLoading,
     error: factorsError,
-  } = useQuery<any>({
-    queryKey: user ? [`/api/users/${user!.id}/protective-factors`] : [],
-    enabled: !!user,
-  });
+  } = useProtectiveFactors(user?.id);
 
-  // Fetch coping strategies
   const {
     data: copingStrategies,
     isLoading: strategiesLoading,
     error: strategiesError,
-  } = useQuery<any>({
-    queryKey: user ? [`/api/users/${user!.id}/coping-strategies`] : [],
-    enabled: !!user,
-  });
+  } = useCopingStrategies(user?.id);
 
-  // Fetch educational resources
-  const {
-    data: educationalResources,
-    isLoading: resourcesLoading,
-  } = useQuery<any>({
-    queryKey: ["/api/resources"],
-    enabled: !!user,
-  });
+  const { data: educationalResources, isLoading: resourcesLoading } =
+    useEducationalResources(!!user);
 
-  // Fetch therapist's clients (only if user is a therapist)
-  const {
-    data: clients,
-    isLoading: clientsLoading,
-  } = useQuery<any>({
-    queryKey: ["/api/users/clients"],
-    enabled: !!user && user.role === "therapist",
-  });
+  const { data: clients, isLoading: clientsLoading } = useTherapistClients(
+    !!user && user.role === "therapist"
+  );
 
-  // Create protective factor mutation
-  const createFactorMutation = useMutation({
-    mutationFn: async (data: ProtectiveFactorFormValues) => {
-      if (!user) throw new Error("User not authenticated");
-      const response = await apiRequest("POST", `/api/users/${user!.id}/protective-factors`, {
-        ...data,
-        userId: user.id,
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/protective-factors`] });
-      setIsAddingFactor(false);
-      factorForm.reset();
-      toast({ title: "Protective Factor Added", description: "Your protective factor has been added to your library." });
-    },
-    onError: (error) => {
-      console.error("Error creating protective factor:", error);
-      toast({ title: "Error", description: "Failed to add protective factor. Please try again.", variant: "destructive" });
-    },
-  });
+  const { data: clientAssignments = [], isLoading: assignmentsLoading } =
+    useResourceAssignments(!!user && user.role === "therapist");
 
-  // Create coping strategy mutation
-  const createStrategyMutation = useMutation({
-    mutationFn: async (data: CopingStrategyFormValues) => {
-      if (!user) throw new Error("User not authenticated");
-      const response = await apiRequest("POST", `/api/users/${user!.id}/coping-strategies`, {
-        ...data,
-        userId: user.id,
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/coping-strategies`] });
-      setIsAddingStrategy(false);
-      strategyForm.reset();
-      toast({ title: "Coping Strategy Added", description: "Your coping strategy has been added to your library." });
-    },
-    onError: (error) => {
-      console.error("Error creating coping strategy:", error);
-      toast({ title: "Error", description: "Failed to add coping strategy. Please try again.", variant: "destructive" });
-    },
-  });
+  // Mutations — protective factors
+  const createFactorMutation = useCreateProtectiveFactor(user?.id);
+  const updateFactorMutation = useUpdateProtectiveFactor(user?.id);
+  const deleteFactorMutation = useDeleteProtectiveFactor(user?.id);
 
-  // Delete protective factor mutation
-  const deleteFactorMutation = useMutation({
-    mutationFn: async (factorId: number) => {
-      if (!user) throw new Error("User not authenticated");
-      const response = await apiRequest("DELETE", `/api/users/${user!.id}/protective-factors/${factorId}`, null);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to delete protective factor");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/protective-factors`] });
-      setSelectedFactor(null);
-      setIsDeleteFactorDialogOpen(false);
-      toast({ title: "Protective Factor Deleted", description: "The protective factor has been removed from your library." });
-    },
-    onError: (error) => {
-      console.error("Error deleting protective factor:", error);
-      toast({ title: "Error", description: "Failed to delete protective factor. Please try again.", variant: "destructive" });
-    },
-  });
+  // Mutations — coping strategies
+  const createStrategyMutation = useCreateCopingStrategy(user?.id);
+  const updateStrategyMutation = useUpdateCopingStrategy(user?.id);
+  const deleteStrategyMutation = useDeleteCopingStrategy(user?.id);
 
-  // Delete coping strategy mutation
-  const deleteStrategyMutation = useMutation({
-    mutationFn: async (strategyId: number) => {
-      if (!user) throw new Error("User not authenticated");
-      const response = await apiRequest("DELETE", `/api/users/${user!.id}/coping-strategies/${strategyId}`, null);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to delete coping strategy");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/coping-strategies`] });
-      setSelectedStrategy(null);
-      setIsDeleteStrategyDialogOpen(false);
-      toast({ title: "Coping Strategy Deleted", description: "The coping strategy has been removed from your library." });
-    },
-    onError: (error) => {
-      console.error("Error deleting coping strategy:", error);
-      toast({ title: "Error", description: "Failed to delete coping strategy. Please try again.", variant: "destructive" });
-    },
-  });
-
-  // Update protective factor mutation
-  const updateFactorMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: ProtectiveFactorFormValues }) => {
-      if (!user) throw new Error("User not authenticated");
-      const response = await apiRequest("PUT", `/api/users/${user!.id}/protective-factors/${id}`, data);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update protective factor");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/protective-factors`] });
-      setIsEditingFactor(false);
-      setSelectedFactor(null);
-      toast({ title: "Protective Factor Updated", description: "Your protective factor has been updated." });
-    },
-    onError: (error) => {
-      console.error("Error updating protective factor:", error);
-      toast({ title: "Error", description: "Failed to update protective factor. Please try again.", variant: "destructive" });
-    },
-  });
-
-  // Update coping strategy mutation
-  const updateStrategyMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: CopingStrategyFormValues }) => {
-      if (!user) throw new Error("User not authenticated");
-      const response = await apiRequest("PUT", `/api/users/${user!.id}/coping-strategies/${id}`, data);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update coping strategy");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/coping-strategies`] });
-      setIsEditingStrategy(false);
-      setSelectedStrategy(null);
-      toast({ title: "Coping Strategy Updated", description: "Your coping strategy has been updated." });
-    },
-    onError: (error) => {
-      console.error("Error updating coping strategy:", error);
-      toast({ title: "Error", description: "Failed to update coping strategy. Please try again.", variant: "destructive" });
-    },
-  });
-
-  // Create resource mutation
-  const createResourceMutation = useMutation({
-    mutationFn: async (resourceData: any) => {
-      if (!user) throw new Error("User not authenticated");
-      const response = await apiRequest("POST", "/api/resources", resourceData);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
-      setIsAddingResource(false);
-      toast({ title: "Resource Added", description: "Your educational resource has been added to the library." });
-    },
-    onError: (error) => {
-      console.error("Error creating resource:", error);
-      toast({ title: "Error", description: "Failed to add educational resource. Please try again.", variant: "destructive" });
-    },
-  });
-
-  // Delete resource mutation
-  const deleteResourceMutation = useMutation({
-    mutationFn: async (resourceId: number) => {
-      if (!user) throw new Error("User not authenticated");
-      const response = await apiRequest("DELETE", `/api/resources/${resourceId}`, null);
-      if (response.status === 404) return { success: true };
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: "Failed to delete resource" }));
-        throw new Error(errorData.message || "Failed to delete resource");
-      }
-      if (response.status === 204) return { success: true };
-      return response.json().catch(() => ({ success: true }));
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
-      setCurrentResource(null);
-      setIsDeleteResourceDialogOpen(false);
-      toast({ title: "Resource Deleted", description: "The educational resource has been removed from the library." });
-    },
-    onError: (error) => {
-      console.error("Error deleting resource:", error);
-      if (error.message === "Resource not found") {
-        queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
-        setCurrentResource(null);
-        setIsDeleteResourceDialogOpen(false);
-        toast({ title: "Resource Deleted", description: "The educational resource has been removed from the library." });
-        return;
-      }
-      toast({ title: "Error", description: "Failed to delete resource. Please try again.", variant: "destructive" });
-    },
-  });
-
-  // Update resource mutation
-  const updateResourceMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      if (!user) throw new Error("User not authenticated");
-      const response = await apiRequest("PATCH", `/api/resources/${id}`, data);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update resource");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
-      if (currentResource) {
-        setCurrentResource({ ...currentResource, isEditing: false });
-      }
-      toast({ title: "Resource Updated", description: "The educational resource has been updated." });
-    },
-    onError: (error) => {
-      console.error("Error updating resource:", error);
-      toast({ title: "Error", description: "Failed to update resource. Please try again.", variant: "destructive" });
-    },
-  });
-
-  // Assign resource to client mutation
-  const assignResourceMutation = useMutation({
-    mutationFn: async ({ resourceId, clientIds, notes }: { resourceId: number; clientIds: number[]; notes: string }) => {
-      if (!user) throw new Error("User not authenticated");
-      if (clientIds.length === 0) throw new Error("Please select at least one client");
-      const promises = clientIds.map((clientId) =>
-        apiRequest("POST", "/api/resources/assign", { resourceId, clientId, notes })
-      );
-      const results = await Promise.all(promises);
-      for (const response of results) {
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to assign resource to one or more clients");
-        }
-      }
-      return results.map((r) => r.json());
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/therapist/assignments"] });
-      setIsAssigningResource(false);
-      setSelectedClients([]);
-      setAssignmentNotes("");
-      setCurrentResource(null);
-      toast({ title: "Resource Assigned", description: "The resource has been assigned to the selected client(s)." });
-    },
-    onError: (error) => {
-      console.error("Error assigning resource:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to assign resource. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Clone resource mutation (for therapists)
-  const cloneResourceMutation = useMutation({
-    mutationFn: async (resourceId: number) => {
-      if (!user) throw new Error("User not authenticated");
-      const response = await apiRequest("POST", `/api/resources/${resourceId}/clone`, null);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to clone resource");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
-      toast({ title: "Resource Cloned", description: "You can now customize this resource before assigning it to clients." });
-    },
-    onError: (error) => {
-      console.error("Error cloning resource:", error);
-      toast({ title: "Error", description: "Failed to clone resource. Please try again.", variant: "destructive" });
-    },
-  });
-
-  // Fetch client assignments (for therapists)
-  const {
-    data: clientAssignments = [] as any[],
-    isLoading: assignmentsLoading,
-  } = useQuery<any>({
-    queryKey: ["/api/therapist/assignments"],
-    enabled: !!user && user.role === "therapist",
-  });
+  // Mutations — educational resources
+  const createResourceMutation = useCreateResource();
+  const updateResourceMutation = useUpdateResource();
+  const deleteResourceMutation = useDeleteResource();
+  const assignResourceMutation = useAssignResource();
+  const cloneResourceMutation = useCloneResource();
 
   // Handle form submissions
   const onSubmitFactor = (data: ProtectiveFactorFormValues) => {
-    createFactorMutation.mutate(data);
+    createFactorMutation.mutate(data, {
+      onSuccess: () => {
+        setIsAddingFactor(false);
+        factorForm.reset();
+      },
+    });
   };
 
   const onSubmitStrategy = (data: CopingStrategyFormValues) => {
-    createStrategyMutation.mutate(data);
+    createStrategyMutation.mutate(data, {
+      onSuccess: () => {
+        setIsAddingStrategy(false);
+        strategyForm.reset();
+      },
+    });
   };
 
   const onUpdateFactor = (data: ProtectiveFactorFormValues) => {
     if (selectedFactor) {
-      updateFactorMutation.mutate({ id: selectedFactor.id, data });
+      updateFactorMutation.mutate(
+        { id: selectedFactor.id, data },
+        {
+          onSuccess: () => {
+            setIsEditingFactor(false);
+            setSelectedFactor(null);
+          },
+        }
+      );
     }
   };
 
   const onUpdateStrategy = (data: CopingStrategyFormValues) => {
     if (selectedStrategy) {
-      updateStrategyMutation.mutate({ id: selectedStrategy.id, data });
+      updateStrategyMutation.mutate(
+        { id: selectedStrategy.id, data },
+        {
+          onSuccess: () => {
+            setIsEditingStrategy(false);
+            setSelectedStrategy(null);
+          },
+        }
+      );
     }
   };
 
-  const handleEditFactor = (factor: any) => {
+  const handleEditFactor = (factor: ProtectiveFactor) => {
     setSelectedFactor(factor);
     editFactorForm.reset({
       name: factor.name,
@@ -499,7 +265,7 @@ export default function ResourceLibrary() {
     setIsEditingFactor(true);
   };
 
-  const handleEditStrategy = (strategy: any) => {
+  const handleEditStrategy = (strategy: CopingStrategy) => {
     setSelectedStrategy(strategy);
     editStrategyForm.reset({
       name: strategy.name,
@@ -533,7 +299,11 @@ export default function ResourceLibrary() {
       pdfUrl: (formData.get("pdfUrl") as string) || undefined,
       createdBy: user?.id,
     };
-    createResourceMutation.mutate(data);
+    createResourceMutation.mutate(data, {
+      onSuccess: () => {
+        setIsAddingResource(false);
+      },
+    });
   };
 
   const handleSubmitEdit = () => {
@@ -548,25 +318,34 @@ export default function ResourceLibrary() {
         isPublished: currentResource.isPublished,
         pdfUrl: currentResource.pdfUrl,
       };
-      updateResourceMutation.mutate({ id: currentResource.id, data });
+      updateResourceMutation.mutate(
+        { id: currentResource.id, data },
+        {
+          onSuccess: () => {
+            if (currentResource) {
+              setCurrentResource({ ...currentResource, isEditing: false });
+            }
+          },
+        }
+      );
     }
   };
 
   // Filter functions for personal and global items
   const personalFactors = protectiveFactors?.filter(
-    (factor: any) => !factor.isGlobal || factor.userId === user?.id
+    (factor: ProtectiveFactor) => !factor.isGlobal || factor.userId === user?.id
   );
 
   const globalFactors = protectiveFactors?.filter(
-    (factor: any) => factor.isGlobal && factor.userId !== user?.id
+    (factor: ProtectiveFactor) => factor.isGlobal && factor.userId !== user?.id
   );
 
   const personalStrategies = copingStrategies?.filter(
-    (strategy: any) => !strategy.isGlobal || strategy.userId === user?.id
+    (strategy: CopingStrategy) => !strategy.isGlobal || strategy.userId === user?.id
   );
 
   const globalStrategies = copingStrategies?.filter(
-    (strategy: any) => strategy.isGlobal && strategy.userId !== user?.id
+    (strategy: CopingStrategy) => strategy.isGlobal && strategy.userId !== user?.id
   );
 
   if (factorsLoading || strategiesLoading) {
@@ -798,7 +577,7 @@ export default function ResourceLibrary() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {personalFactors?.map((factor: any) => (
+                    {personalFactors?.map((factor: ProtectiveFactor) => (
                       <Card key={factor.id} className="overflow-hidden border border-neutral-200 hover:shadow-md transition-shadow">
                         <CardHeader className="bg-neutral-50 p-4 pb-3">
                           <div className="flex justify-between items-start">
@@ -832,7 +611,7 @@ export default function ResourceLibrary() {
             </Card>
 
             {/* Global Protective Factors */}
-            {globalFactors?.length > 0 && (
+            {globalFactors && globalFactors.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Shared Protective Factors</CardTitle>
@@ -842,7 +621,7 @@ export default function ResourceLibrary() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {globalFactors.map((factor: any) => (
+                    {globalFactors.map((factor: ProtectiveFactor) => (
                       <Card key={factor.id} className="overflow-hidden border border-neutral-200 hover:shadow-md transition-shadow">
                         <CardHeader className="bg-neutral-50 p-4 pb-3">
                           <CardTitle className="text-base font-medium">{factor.name}</CardTitle>
@@ -874,8 +653,12 @@ export default function ResourceLibrary() {
                     variant="destructive"
                     onClick={() => {
                       if (selectedFactor) {
-                        deleteFactorMutation.mutate(selectedFactor.id);
-                        setIsDeleteFactorDialogOpen(false);
+                        deleteFactorMutation.mutate(selectedFactor.id, {
+                          onSuccess: () => {
+                            setSelectedFactor(null);
+                            setIsDeleteFactorDialogOpen(false);
+                          },
+                        });
                       }
                     }}
                     disabled={deleteFactorMutation.isPending}
@@ -1075,7 +858,7 @@ export default function ResourceLibrary() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {personalStrategies?.map((strategy: any) => (
+                    {personalStrategies?.map((strategy: CopingStrategy) => (
                       <Card key={strategy.id} className="overflow-hidden border border-neutral-200 hover:shadow-md transition-shadow">
                         <CardHeader className="bg-neutral-50 p-4 pb-3">
                           <div className="flex justify-between items-start">
@@ -1109,7 +892,7 @@ export default function ResourceLibrary() {
             </Card>
 
             {/* Global Coping Strategies */}
-            {globalStrategies?.length > 0 && (
+            {globalStrategies && globalStrategies.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Shared Coping Strategies</CardTitle>
@@ -1119,7 +902,7 @@ export default function ResourceLibrary() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {globalStrategies.map((strategy: any) => (
+                    {globalStrategies.map((strategy: CopingStrategy) => (
                       <Card key={strategy.id} className="overflow-hidden border border-neutral-200 hover:shadow-md transition-shadow">
                         <CardHeader className="bg-neutral-50 p-4 pb-3">
                           <CardTitle className="text-base font-medium">{strategy.name}</CardTitle>
@@ -1151,8 +934,12 @@ export default function ResourceLibrary() {
                     variant="destructive"
                     onClick={() => {
                       if (selectedStrategy) {
-                        deleteStrategyMutation.mutate(selectedStrategy.id);
-                        setIsDeleteStrategyDialogOpen(false);
+                        deleteStrategyMutation.mutate(selectedStrategy.id, {
+                          onSuccess: () => {
+                            setSelectedStrategy(null);
+                            setIsDeleteStrategyDialogOpen(false);
+                          },
+                        });
                       }
                     }}
                     disabled={deleteStrategyMutation.isPending}
@@ -1180,8 +967,12 @@ export default function ResourceLibrary() {
                     variant="destructive"
                     onClick={() => {
                       if (currentResource) {
-                        deleteResourceMutation.mutate(currentResource.id);
-                        setIsDeleteResourceDialogOpen(false);
+                        deleteResourceMutation.mutate(currentResource.id, {
+                          onSuccess: () => {
+                            setCurrentResource(null);
+                            setIsDeleteResourceDialogOpen(false);
+                          },
+                        });
                       }
                     }}
                     disabled={deleteResourceMutation.isPending}
@@ -1219,9 +1010,9 @@ export default function ResourceLibrary() {
                 </TabsTrigger>
 
                 {educationalResources &&
-                  Array.from(new Set(educationalResources.map((r: any) => r.category)))
-                    .filter((cat: any) => cat && cat !== "all")
-                    .map((category: any) => (
+                  Array.from(new Set(educationalResources.map((r: EducationalResource) => r.category)))
+                    .filter((cat: string) => cat && cat !== "all")
+                    .map((category: string) => (
                       <TabsTrigger key={category} value={category} onClick={() => setResourceCategory(category)}>
                         {category}
                       </TabsTrigger>
@@ -1231,7 +1022,7 @@ export default function ResourceLibrary() {
                   .filter(
                     (cat: string) =>
                       cat !== "all" &&
-                      (!educationalResources || !educationalResources.some((r: any) => r.category === cat))
+                      (!educationalResources || !educationalResources.some((r: EducationalResource) => r.category === cat))
                   )
                   .map((category: string) => (
                     <TabsTrigger key={category} value={category} onClick={() => setResourceCategory(category)}>
@@ -1249,8 +1040,8 @@ export default function ResourceLibrary() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {educationalResources
-                  ?.filter((resource: any) => resourceCategory === "all" || resource.category === resourceCategory)
-                  .map((resource: any) => (
+                  ?.filter((resource: EducationalResource) => resourceCategory === "all" || resource.category === resourceCategory)
+                  .map((resource: EducationalResource) => (
                     <ResourceCard
                       key={resource.id}
                       resource={resource}
@@ -1277,11 +1068,22 @@ export default function ResourceLibrary() {
               open={!!currentResource && !currentResource.isEditing}
               onClose={() => setCurrentResource(null)}
               onEdit={() => currentResource && setCurrentResource({ ...currentResource, isEditing: true })}
-              onDelete={() => currentResource && deleteResourceMutation.mutate(currentResource.id)}
+              onDelete={() => {
+                if (currentResource) {
+                  deleteResourceMutation.mutate(currentResource.id, {
+                    onSuccess: () => {
+                      setCurrentResource(null);
+                    },
+                  });
+                }
+              }}
               onClone={() => {
                 if (currentResource) {
-                  cloneResourceMutation.mutate(currentResource.id);
-                  setCurrentResource(null);
+                  cloneResourceMutation.mutate(currentResource.id, {
+                    onSuccess: () => {
+                      setCurrentResource(null);
+                    },
+                  });
                 }
               }}
               isDeleting={deleteResourceMutation.isPending}
@@ -1324,18 +1126,28 @@ export default function ResourceLibrary() {
                 }
               }}
               clients={clients ?? []}
-              clientsLoading={clientsLoading}
+              clientsLoading={clientsLoading ?? false}
               selectedClients={selectedClients}
               onClientsChange={setSelectedClients}
               assignmentNotes={assignmentNotes}
               onNotesChange={setAssignmentNotes}
               onAssign={() => {
                 if (currentResource) {
-                  assignResourceMutation.mutate({
-                    resourceId: currentResource.id,
-                    clientIds: selectedClients,
-                    notes: assignmentNotes,
-                  });
+                  assignResourceMutation.mutate(
+                    {
+                      resourceId: currentResource.id,
+                      clientIds: selectedClients,
+                      notes: assignmentNotes,
+                    },
+                    {
+                      onSuccess: () => {
+                        setIsAssigningResource(false);
+                        setSelectedClients([]);
+                        setAssignmentNotes("");
+                        setCurrentResource(null);
+                      },
+                    }
+                  );
                 }
               }}
               isPending={assignResourceMutation.isPending}
@@ -1359,7 +1171,7 @@ export default function ResourceLibrary() {
                 </div>
               ) : clientAssignments.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {clientAssignments.map((assignment: any) => (
+                  {clientAssignments.map((assignment: ResourceAssignment) => (
                     <Card key={assignment.id} className="overflow-hidden">
                       <CardHeader className="bg-neutral-50 p-4 pb-3">
                         <div className="flex justify-between items-start">
@@ -1489,10 +1301,10 @@ export default function ResourceLibrary() {
                           __html: DOMPurify.sanitize(viewingAssignment.resource.content),
                         }}
                       />
-                    ) : viewingAssignment.resource.type === "pdf" && viewingAssignment.resource.fileUrl ? (
+                    ) : viewingAssignment.resource.type === "pdf" && viewingAssignment.resource.pdfUrl ? (
                       <div className="text-center">
                         <a
-                          href={viewingAssignment.resource.fileUrl}
+                          href={viewingAssignment.resource.pdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center text-blue-600 hover:text-blue-800"
