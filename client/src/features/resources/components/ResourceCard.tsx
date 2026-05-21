@@ -8,14 +8,15 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, UserCheck } from "lucide-react";
+import type { EducationalResource } from "@/features/resources/types";
 
 interface ResourceCardProps {
-  resource: any;
+  resource: EducationalResource;
   user: any;
-  onView: (resource: any) => void;
-  onEdit: (resource: any) => void;
-  onDelete: (resource: any) => void;
-  onAssign: (resource: any) => void;
+  onView: (resource: EducationalResource) => void;
+  onEdit: (resource: EducationalResource) => void;
+  onDelete: (resource: EducationalResource) => void;
+  onAssign: (resource: EducationalResource) => void;
 }
 
 export default function ResourceCard({

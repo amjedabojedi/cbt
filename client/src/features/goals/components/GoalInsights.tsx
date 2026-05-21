@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Goal, Milestone } from "@/features/goals/types";
+import { useGoals, useAllMilestones } from "@/features/goals/hooks/useGoals";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Target, TrendingUp, Award, BarChart3 } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
@@ -19,33 +20,20 @@ const STATUS_COLORS = {
 export default function GoalInsights({ userId }: GoalInsightsProps) {
   const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("month");
 
-  // Fetch goals
-  const { data: goals = [], isLoading } = useQuery<any[]>({
-    queryKey: [`/api/users/${userId}/goals`],
-    enabled: !!userId,
-  });
+  const { data: goals = [], isLoading } = useGoals(`/api/users/${userId}`, userId);
 
-  // Fetch all milestones for all goals
-  const { data: allMilestones = [] } = useQuery<any[]>({
-    queryKey: [`/api/users/${userId}/goals/milestones`],
-    enabled: !!userId && goals.length > 0,
-    queryFn: async () => {
-      const milestonePromises = goals.map(async (goal) => {
-        const response = await fetch(`/api/goals/${goal.id}/milestones`);
-        const milestones = await response.json();
-        return milestones.map((m: any) => ({ ...m, goalId: goal.id }));
-      });
-      const results = await Promise.all(milestonePromises);
-      return results.flat();
-    },
-  });
+  const { data: allMilestones = [] } = useAllMilestones(
+    `/api/users/${userId}`,
+    userId,
+    goals.length,
+  );
 
   // Calculate completion rate
   const getCompletionRate = () => {
     const total = goals.length;
-    const completed = goals.filter(g => g.status === 'completed').length;
-    const inProgress = goals.filter(g => g.status === 'in_progress').length;
-    const pending = goals.filter(g => g.status === 'pending').length;
+    const completed = goals.filter((g: Goal) => g.status === 'completed').length;
+    const inProgress = goals.filter((g: Goal) => g.status === 'in_progress').length;
+    const pending = goals.filter((g: Goal) => g.status === 'pending').length;
     
     return {
       total,
@@ -69,8 +57,8 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
 
   // Calculate milestone completion count
   const getMilestoneStats = () => {
-    const completedMilestones = allMilestones.filter(m => m.isCompleted);
-    const pendingMilestones = allMilestones.filter(m => !m.isCompleted);
+    const completedMilestones = allMilestones.filter((m: Milestone) => m.isCompleted);
+    const pendingMilestones = allMilestones.filter((m: Milestone) => !m.isCompleted);
     
     return {
       totalCompleted: completedMilestones.length,
@@ -102,12 +90,12 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
         const monthEnd = endOfMonth(monthStart);
         
         // Count goals created up to the end of this month
-        const totalGoals = goals.filter(g => 
+        const totalGoals = goals.filter((g: Goal) =>
           new Date(g.createdAt) <= monthEnd
         ).length;
-        
+
         // Count completed goals up to the end of this month
-        const completedGoals = goals.filter(g => 
+        const completedGoals = goals.filter((g: Goal) =>
           g.status === 'completed' && new Date(g.createdAt) <= monthEnd
         ).length;
         
@@ -135,12 +123,12 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
         const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
         
         // Count goals created up to the end of this week
-        const totalGoals = goals.filter(g => 
+        const totalGoals = goals.filter((g: Goal) =>
           new Date(g.createdAt) <= weekEnd
         ).length;
-        
+
         // Count completed goals up to the end of this week
-        const completedGoals = goals.filter(g => 
+        const completedGoals = goals.filter((g: Goal) =>
           g.status === 'completed' && new Date(g.createdAt) <= weekEnd
         ).length;
         
@@ -160,12 +148,12 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
       const dayStr = format(day, "yyyy-MM-dd");
       
       // Count goals created up to this day
-      const totalGoals = goals.filter(g => 
+      const totalGoals = goals.filter((g: Goal) =>
         new Date(g.createdAt) <= day
       ).length;
-      
+
       // Count completed goals up to this day
-      const completedGoals = goals.filter(g => 
+      const completedGoals = goals.filter((g: Goal) =>
         g.status === 'completed' && new Date(g.createdAt) <= day
       ).length;
       
@@ -180,14 +168,14 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
 
   // Calculate milestone completion calendar
   const getMilestoneCalendar = () => {
-    const last30Days = eachDayOfInterval({ 
-      start: subDays(new Date(), 29), 
-      end: new Date() 
+    const last30Days = eachDayOfInterval({
+      start: subDays(new Date(), 29),
+      end: new Date()
     });
-    
+
     return last30Days.map(day => {
       const dayStr = format(day, "yyyy-MM-dd");
-      const dayMilestones = allMilestones.filter(m => 
+      const dayMilestones = allMilestones.filter((m: Milestone) =>
         m.isCompleted && format(new Date(m.createdAt), "yyyy-MM-dd") === dayStr
       );
       
@@ -200,8 +188,8 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
 
   // Calculate SMART completion patterns
   const getSMARTPatterns = () => {
-    const completedGoals = goals.filter(g => g.status === 'completed');
-    const incompleteGoals = goals.filter(g => g.status !== 'completed');
+    const completedGoals = goals.filter((g: Goal) => g.status === 'completed');
+    const incompleteGoals = goals.filter((g: Goal) => g.status !== 'completed');
     
     return [
       {
@@ -219,16 +207,16 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
 
   // Calculate timeline analysis
   const getTimelineAnalysis = () => {
-    const goalsWithDeadline = goals.filter(g => g.deadline);
-    
-    const onTime = goalsWithDeadline.filter(g => {
+    const goalsWithDeadline = goals.filter((g: Goal) => g.deadline);
+
+    const onTime = goalsWithDeadline.filter((g: Goal) => {
       if (g.status !== 'completed') return false;
-      return new Date(g.updatedAt || g.createdAt) <= new Date(g.deadline);
+      return new Date(g.updatedAt || g.createdAt) <= new Date(g.deadline!);
     }).length;
-    
-    const late = goalsWithDeadline.filter(g => {
+
+    const late = goalsWithDeadline.filter((g: Goal) => {
       if (g.status !== 'completed') return false;
-      return new Date(g.updatedAt || g.createdAt) > new Date(g.deadline);
+      return new Date(g.updatedAt || g.createdAt) > new Date(g.deadline!);
     }).length;
     
     return [
@@ -392,7 +380,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
               <TrendingUp className="h-5 w-5 text-primary" />
               <CardTitle>Progress Trends</CardTitle>
             </div>
-            <Tabs value={timeRange} onValueChange={(v: any) => setTimeRange(v)} className="w-auto">
+            <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as "week" | "month" | "year")} className="w-auto">
               <TabsList>
                 <TabsTrigger value="week">Week</TabsTrigger>
                 <TabsTrigger value="month">Month</TabsTrigger>

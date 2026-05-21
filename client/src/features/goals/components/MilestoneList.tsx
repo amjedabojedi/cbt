@@ -1,13 +1,14 @@
 import { format, parseISO } from "date-fns";
+import type { Goal, Milestone } from "@/features/goals/types";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar, CheckCircle, Clock, PlusCircle, Target } from "lucide-react";
 
 interface MilestoneListProps {
-  milestones: any[];
+  milestones: Milestone[];
   isLoading: boolean;
-  user: any;
-  selectedGoal: any;
+  user: { role?: string } | null;
+  selectedGoal: Goal | null;
   isAddingMilestone: boolean;
   onSetAddingMilestone: (v: boolean) => void;
   onToggleCompletion: (args: { milestoneId: number; isCompleted: boolean }) => void;

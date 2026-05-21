@@ -9,11 +9,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import type { EducationalResource } from "@/features/resources/types";
+
+interface Client {
+  id: number;
+  name?: string;
+  username: string;
+}
 
 interface FeedbackDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  clients: any[];
+  clients: Client[];
   clientsLoading: boolean;
   selectedClients: number[];
   onClientsChange: (ids: number[]) => void;
@@ -21,7 +28,7 @@ interface FeedbackDialogProps {
   onNotesChange: (notes: string) => void;
   onAssign: () => void;
   isPending: boolean;
-  currentResource: any | null;
+  currentResource: EducationalResource | null;
 }
 
 export default function FeedbackDialog({
@@ -60,7 +67,7 @@ export default function FeedbackDialog({
         ) : clients && clients.length > 0 ? (
           <div className="py-2 space-y-4">
             <div className="border rounded-md p-3 space-y-3">
-              {clients.map((client: any) => (
+              {clients.map((client: Client) => (
                 <div key={client.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`client-${client.id}`}

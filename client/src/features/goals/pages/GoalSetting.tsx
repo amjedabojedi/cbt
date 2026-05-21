@@ -1,18 +1,26 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import useActiveUser from "@/hooks/use-active-user";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format, parseISO } from "date-fns";
-import { apiRequest } from "@/lib/queryClient";
 import ModulePageShell from "@/components/layout/ModulePageShell";
 import SmartGoalWizard from "@/features/goals/components/SmartGoalWizard";
 import GoalInsights from "@/features/goals/components/GoalInsights";
 import GoalCard from "@/features/goals/components/GoalCard";
 import GoalForm, { goalSchema, GoalFormValues, milestoneSchema, MilestoneFormValues } from "@/features/goals/components/GoalForm";
 import MilestoneList from "@/features/goals/components/MilestoneList";
-import { useToast } from "@/hooks/use-toast";
+import type { Goal, Milestone, MilestoneProgress } from "@/features/goals/types";
+import {
+  useGoals,
+  useAllMilestones,
+  useGoalMilestones,
+  useCreateGoal,
+  useCreateMilestone,
+  useUpdateGoalStatus,
+  useToggleMilestoneCompletion,
+} from "@/features/goals/hooks/useGoals";
 
 import {
   Card,
@@ -58,11 +66,10 @@ import { PlusCircle, Calendar, CheckCircle, Clock, Flag, HelpCircle, Target, Tre
 
 export default function GoalSetting() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { activeUserId, apiPath } = useActiveUser();
   const queryClient = useQueryClient();
   const [isCreatingGoal, setIsCreatingGoal] = useState(false);
-  const [selectedGoal, setSelectedGoal] = useState<any>(null);
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [isAddingMilestone, setIsAddingMilestone] = useState(false);
 
   const [reflectionInsights, setReflectionInsights] = useState<string | null>(null);
@@ -70,26 +77,19 @@ export default function GoalSetting() {
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
 
-  const { data: goals = [], isLoading, error } = useQuery<any[]>({
-    queryKey: [`${apiPath}/goals`],
-    enabled: !!activeUserId,
-  });
+  const { data: goals = [], isLoading, error } = useGoals(apiPath, activeUserId);
 
-  const { data: allMilestones = [] } = useQuery<any[]>({
-    queryKey: [`${apiPath}/goals/milestones`],
-    enabled: !!activeUserId && goals.length > 0,
-  });
+  const { data: allMilestones = [] } = useAllMilestones(apiPath, activeUserId, goals.length);
 
-  const { data: milestones = [], isLoading: milestonesLoading } = useQuery<any[]>({
-    queryKey: selectedGoal ? [`/api/goals/${selectedGoal.id}/milestones`] : [],
-    enabled: !!selectedGoal,
-  });
+  const { data: milestones = [], isLoading: milestonesLoading } = useGoalMilestones(
+    selectedGoal?.id,
+  );
 
-  const getMilestoneProgress = (goalId: number) => {
-    const goalMilestones = allMilestones.filter((m: any) => m.goalId === goalId);
+  const getMilestoneProgress = (goalId: number): MilestoneProgress => {
+    const goalMilestones = allMilestones.filter((m: Milestone) => m.goalId === goalId);
     if (goalMilestones.length === 0) return { completed: 0, total: 0, percentage: 0 };
 
-    const completed = goalMilestones.filter((m: any) => m.isCompleted).length;
+    const completed = goalMilestones.filter((m: Milestone) => m.isCompleted).length;
     const total = goalMilestones.length;
     const percentage = Math.round((completed / total) * 100);
 
@@ -105,9 +105,9 @@ export default function GoalSetting() {
 
   const overallStats = {
     totalGoals: goals.length,
-    completedGoals: goals.filter((g: any) => g.status === 'completed').length,
-    inProgressGoals: goals.filter((g: any) => g.status === 'in_progress' || g.status === 'approved').length,
-    pendingGoals: goals.filter((g: any) => g.status === 'pending').length,
+    completedGoals: goals.filter((g: Goal) => g.status === 'completed').length,
+    inProgressGoals: goals.filter((g: Goal) => g.status === 'in_progress' || g.status === 'approved').length,
+    pendingGoals: goals.filter((g: Goal) => g.status === 'pending').length,
   };
 
   const goalForm = useForm<GoalFormValues>({
@@ -147,130 +147,31 @@ export default function GoalSetting() {
     },
   });
 
-  const createGoalMutation = useMutation({
-    mutationFn: async (data: GoalFormValues) => {
-      if (!user) throw new Error("User not authenticated");
-      if (!activeUserId) throw new Error("No active user");
-
-      const response = await apiRequest(
-        "POST",
-        `${apiPath}/goals`,
-        {
-          ...data,
-          userId: activeUserId,
-        }
-      );
-
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`${apiPath}/goals`] });
-      goalForm.reset();
-      setIsCreatingGoal(false);
-      toast({
-        title: "Goal Created",
-        description: "Your goal has been created successfully.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: `Failed to create goal: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const createMilestoneMutation = useMutation({
-    mutationFn: async (data: MilestoneFormValues) => {
-      if (!selectedGoal) throw new Error("No goal selected");
-
-      const response = await apiRequest(
-        "POST",
-        `/api/goals/${selectedGoal.id}/milestones`,
-        {
-          ...data,
-          goalId: selectedGoal.id,
-        }
-      );
-
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/goals/${selectedGoal?.id}/milestones`] });
-      queryClient.invalidateQueries({ queryKey: [`${apiPath}/goals`] });
-      queryClient.invalidateQueries({ queryKey: [`${apiPath}/goals/milestones`] });
-      milestoneForm.reset();
-      setIsAddingMilestone(false);
-      toast({
-        title: "Milestone Added",
-        description: "Milestone has been added to your goal.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: `Failed to add milestone: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateGoalStatusMutation = useMutation({
-    mutationFn: async ({ goalId, status, comments }: { goalId: number, status: string, comments?: string }) => {
-      const response = await apiRequest(
-        "PATCH",
-        `/api/goals/${goalId}/status`,
-        { status, therapistComments: comments }
-      );
-
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`${apiPath}/goals`] });
-      toast({
-        title: "Goal Updated",
-        description: "Goal status has been updated successfully.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: `Failed to update goal: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const toggleMilestoneCompletionMutation = useMutation({
-    mutationFn: async ({ milestoneId, isCompleted }: { milestoneId: number, isCompleted: boolean }) => {
-      const response = await apiRequest(
-        "PATCH",
-        `/api/milestones/${milestoneId}/completion`,
-        { isCompleted }
-      );
-
-      return await response.json();
-    },
-    onSuccess: () => {
-      if (selectedGoal) {
-        queryClient.invalidateQueries({ queryKey: [`/api/goals/${selectedGoal.id}/milestones`] });
-      }
-      queryClient.invalidateQueries({ queryKey: [`${apiPath}/goals`] });
-      queryClient.invalidateQueries({ queryKey: [`${apiPath}/goals/milestones`] });
-      toast({
-        title: "Milestone Updated",
-        description: "Milestone completion status has been updated.",
-      });
-    },
-  });
+  const createGoalMutation = useCreateGoal(apiPath);
+  const createMilestoneMutation = useCreateMilestone(apiPath, selectedGoal?.id);
+  const updateGoalStatusMutation = useUpdateGoalStatus(apiPath);
+  const toggleMilestoneCompletionMutation = useToggleMilestoneCompletion(apiPath, selectedGoal?.id);
 
   const onSubmitGoal = (data: GoalFormValues) => {
-    createGoalMutation.mutate(data);
+    if (!user || !activeUserId) return;
+    createGoalMutation.mutate(
+      { data, userId: user.id as number, activeUserId },
+      {
+        onSuccess: () => {
+          goalForm.reset();
+          setIsCreatingGoal(false);
+        },
+      },
+    );
   };
 
   const onSubmitMilestone = (data: MilestoneFormValues) => {
-    createMilestoneMutation.mutate(data);
+    createMilestoneMutation.mutate(data, {
+      onSuccess: () => {
+        milestoneForm.reset();
+        setIsAddingMilestone(false);
+      },
+    });
   };
 
   const getStatusBadge = (status: string, size: 'sm' | 'lg' = 'sm') => {

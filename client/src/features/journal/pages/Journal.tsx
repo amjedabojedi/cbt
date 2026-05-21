@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { useClientContext } from "@/context/ClientContext";
 import useActiveUser from "@/hooks/use-active-user";
@@ -41,9 +40,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { format } from "date-fns";
-import { apiRequest } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
 import {
   Accordion,
   AccordionContent,
@@ -58,7 +55,20 @@ import { JournalList } from "@/features/journal/components/JournalList";
 import { JournalEntryForm } from "@/features/journal/components/JournalEntryForm";
 import { JournalComments } from "@/features/journal/components/JournalComments";
 import { JournalEntryCard } from "@/features/journal/components/JournalEntryCard";
-import type { JournalEntry } from "@/features/journal/types";
+import type { JournalEntry, ThoughtRecord } from "@/features/journal/types";
+import {
+  useJournalEntries,
+  useJournalStats,
+  useThoughtRecords,
+  useCreateJournalEntry,
+  useUpdateJournalEntry,
+  useDeleteJournalEntry,
+  useAddJournalComment,
+  useUpdateJournalTags,
+  useUpdateJournalDistortions,
+  useLinkThoughtRecord,
+  useUnlinkThoughtRecord,
+} from "@/features/journal/hooks/useJournal";
 
 import { getEmotionInfo } from '@/utils/emotionUtils';
 
@@ -80,65 +90,25 @@ function getDistortionDescription(distortion: string): string {
     "jumping to conclusions": "Making negative interpretations without supporting facts.",
     "minimization": "Downplaying or dismissing your positive qualities or achievements."
   };
-  
+
   // Return the description if found, otherwise return a default message
-  return distortions[distortion.toLowerCase()] || 
+  return distortions[distortion.toLowerCase()] ||
     "A pattern of thought that may distort your perception of reality or situations.";
 }
 
-interface JournalStats {
-  totalEntries: number;
-  emotions: Record<string, number>;
-  topics: Record<string, number>;
-  sentimentOverTime: Array<{
-    date: string;
-    positive: number;
-    negative: number;
-    neutral: number;
-  }>;
-  tagsFrequency: Record<string, number>;
-  sentimentPatterns: {
-    positive: number;
-    neutral: number;
-    negative: number;
-  } | null;
-}
-
-interface ThoughtRecord {
-  id: number;
-  userId: number;
-  emotionRecordId: number | null;
-  automaticThoughts: string;
-  cognitiveDistortions: string[];
-  situation: string | null;
-  evidenceFor: string | null;
-  evidenceAgainst: string | null;
-  alternativePerspective: string | null;
-  insightsGained: string | null;
-  reflectionRating: number | null;
-  rationalThoughts?: string;
-  createdAt: string;
-  updatedAt?: string;
-  emotionIntensityBefore?: number;
-  emotionIntensityAfter?: number;
-  relatedJournalEntryIds?: number[];
-}
-
 export default function Journal() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { viewingClientId } = useClientContext();
   const { activeUserId, isViewingSelf } = useActiveUser();
   const { refreshAfterOperation } = useRefreshData();
-  
+
   // If viewing client data, use client's ID, otherwise use current user's ID
   const userId = activeUserId;
-  
+
   // Check URL parameters for tab
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
-  
+
   // Initialize tab based on URL param first, then role - therapists/admins should see history first
   const [activeTab, setActiveTab] = useState(
     tabParam === 'insights'
@@ -162,342 +132,49 @@ export default function Journal() {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showThoughtRecordDialog, setShowThoughtRecordDialog] = useState(false);
   const [relatedThoughtRecords, setRelatedThoughtRecords] = useState<ThoughtRecord[]>([]);
-  
+
   // Get journal entries
-  const { data: entries = [], isLoading } = useQuery<JournalEntry[]>({ 
-    queryKey: [`/api/users/${userId}/journal`],
-    enabled: !!userId,
-  });
-  
+  const { data: entries = [], isLoading } = useJournalEntries(userId);
+
   // Get journal stats
-  const { data: stats = { 
-    totalEntries: 0, 
-    emotions: {}, 
-    topics: {}, 
+  const { data: stats = {
+    totalEntries: 0,
+    emotions: {},
+    topics: {},
     sentimentOverTime: [],
     tagsFrequency: {},
     sentimentPatterns: null
-  }} = useQuery<JournalStats>({
-    queryKey: [`/api/users/${userId}/journal/stats`],
-    enabled: !!userId,
-  });
-  
+  }} = useJournalStats(userId);
+
   // Get available thought records for linking
-  const { data: userThoughtRecords = [] } = useQuery<ThoughtRecord[]>({ 
-    queryKey: [`/api/users/${userId}/thoughts`],
-    enabled: !!userId,
-  });
-  
-  const createEntryMutation = useMutation({
-    mutationFn: async (newEntry: { title: string; content: string }) => {
-      if (!userId) throw new Error("User not authenticated");
-      const response = await apiRequest('POST', `/api/journal`, newEntry);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      // Use the refreshAfterOperation utility for consistent data refreshing
-      refreshAfterOperation(
-        'journal',
-        'create',
-        data.id,
-        "Journal entry created successfully! You can view it in your journal history.",
-        false // don't force a page reload
-      );
-      
-      // Clear form after successful creation
-      setTitle("");
-      setContent("");
-      
-      // Switch to history tab to show the new entry
-      setActiveTab("history");
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error Creating Entry",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-  
-  const updateEntryMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: number, updates: Partial<JournalEntry> }) => {
-      if (!userId) throw new Error("User not authenticated");
-      const response = await apiRequest('PATCH', `/api/journal/${id}`, updates);
-      return response.json();
-    },
-    onSuccess: (_data, params) => {
-      // Use the refreshAfterOperation utility for consistent data refreshing
-      refreshAfterOperation(
-        'journal',
-        'update',
-        params.id,
-        "Your journal entry has been updated.",
-        false // don't force a page reload
-      );
-      
-      setShowEntryDialog(false);
-      setTitle("");
-      setContent("");
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error Updating Entry",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-  
-  const deleteEntryMutation = useMutation({
-    mutationFn: async (id: number) => {
-      if (!userId) throw new Error("User not authenticated");
-      await apiRequest('DELETE', `/api/journal/${id}`);
-    },
-    onSuccess: (_data, id) => {
-      // Use the refreshAfterOperation utility for consistent data refreshing
-      refreshAfterOperation(
-        'journal',
-        'delete',
-        id,
-        "Your journal entry has been deleted.",
-        false // don't force a page reload
-      );
-      
-      setShowEntryDialog(false);
-      setShowConfirmDelete(false);
-      setCurrentEntry(null);
-      setActiveTab("list"); // Switch back to list view after delete
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error Deleting Entry",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-  
-  const addCommentMutation = useMutation({
-    mutationFn: async ({ entryId, comment }: { entryId: number, comment: string }) => {
-      if (!userId) throw new Error("User not authenticated");
-      console.log("Sending comment API request to:", `/api/journal/${entryId}/comments`);
-      // Use correct endpoint from server routes and parameter name (content instead of comment)
-      const response = await apiRequest('POST', `/api/journal/${entryId}/comments`, { content: comment });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      console.log("Comment added successfully:", data);
-      
-      // Use the refreshAfterOperation utility for consistent data refreshing
-      refreshAfterOperation(
-        'journal_comment',
-        'create',
-        currentEntry?.id,
-        "Your comment has been added to the journal entry.",
-        false // don't force a page reload
-      );
-      
-      // Update the current entry with the new comment
-      if (currentEntry) {
-        // Ensure we're properly handling the comments array
-        const currentComments = Array.isArray(currentEntry.comments) ? currentEntry.comments : [];
-        const updatedComments = [...currentComments, data];
-        
-        setCurrentEntry({
-          ...currentEntry,
-          comments: updatedComments
-        });
-        
-        setCommentContent("");
-      }
-    },
-    onError: (error: Error) => {
-      console.error("Error adding comment:", error);
-      toast({
-        title: "Error Adding Comment",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-  
-  const updateTagsMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentEntry || !userId) return null;
-      
-      const response = await apiRequest('PATCH', `/api/journal/${currentEntry.id}`, {
-        userSelectedTags: selectedTags
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data) {
-        // Use the refreshAfterOperation utility for consistent data refreshing
-        refreshAfterOperation(
-          'journal_tags',
-          'update',
-          data.id,
-          "Tags have been updated successfully.",
-          false // don't force a page reload
-        );
-        
-        setCurrentEntry(data);
-        
-        // Invalidate the stats queries
-        queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/journal/stats`] });
-        if (activeTab === "stats") {
-          setActiveTab("view");
-          setTimeout(() => setActiveTab("stats"), 100);
-        }
-        
-        toast({
-          title: "Tags Updated",
-          description: "Your tags have been updated."
-        });
-      }
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error Updating Tags",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-  
-  const updateDistortionsMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentEntry || !userId) return null;
-      
-      const response = await apiRequest('PATCH', `/api/journal/${currentEntry.id}`, {
-        userSelectedDistortions: selectedDistortions
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data) {
-        // Use the refreshAfterOperation utility for consistent data refreshing
-        refreshAfterOperation(
-          'journal_distortions',
-          'update',
-          data.id,
-          "Your selected cognitive distortions have been updated.",
-          false // don't force a page reload
-        );
-        
-        setCurrentEntry(data);
-        
-        // Invalidate the stats queries
-        queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/journal/stats`] });
-      }
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error Updating Distortions",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-  
-  const linkThoughtRecordMutation = useMutation({
-    mutationFn: async (thoughtRecordId: number) => {
-      if (!currentEntry || !userId) {
-        console.error("Missing currentEntry or userId", { currentEntry, userId });
-        throw new Error("Missing required data for linking");
-      }
-      
-      console.log("Linking thought record:", thoughtRecordId, "to journal entry:", currentEntry.id);
-      // Fix endpoint to match server-side implementation
-      const response = await apiRequest('POST', `/api/users/${userId}/journal/${currentEntry.id}/link-thought`, { thoughtRecordId });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      console.log("Record linked successfully:", data);
-      
-      // Use the refreshAfterOperation utility for consistent data refreshing
-      refreshAfterOperation(
-        'journal_link_thought',
-        'update',
-        data.id,
-        "Thought record has been linked to this journal entry.",
-        false // don't force a page reload
-      );
-      
-      loadEntryWithRelatedRecords(data);
-      
-      // Also invalidate thought records queries
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/thoughts`] });
-      
-      setShowThoughtRecordDialog(false);
-    },
-    onError: (error: Error) => {
-      console.error("Error linking thought record:", error);
-      toast({
-        title: "Error Linking Record",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-  
-  const unlinkThoughtRecordMutation = useMutation({
-    mutationFn: async (thoughtRecordId: number) => {
-      if (!currentEntry || !userId) {
-        console.error("Missing currentEntry or userId", { currentEntry, userId });
-        throw new Error("Missing required data for unlinking");
-      }
-      
-      console.log("Unlinking thought record:", thoughtRecordId, "from journal entry:", currentEntry.id);
-      // Fix endpoint to match server-side implementation
-      const response = await apiRequest('DELETE', `/api/users/${userId}/journal/${currentEntry.id}/link-thought/${thoughtRecordId}`);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      console.log("Record unlinked successfully:", data);
-      
-      // Use the refreshAfterOperation utility for consistent data refreshing
-      refreshAfterOperation(
-        'journal_unlink_thought',
-        'update',
-        data.id,
-        "Thought record has been unlinked from this journal entry.",
-        false // don't force a page reload
-      );
-      
-      loadEntryWithRelatedRecords(data);
-      
-      // Also invalidate thought records queries
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/thoughts`] });
-    },
-    onError: (error: Error) => {
-      console.error("Error unlinking thought record:", error);
-      toast({
-        title: "Error Unlinking Record",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-  
+  const { data: userThoughtRecords = [] } = useThoughtRecords(userId);
+
+  const createEntryMutation = useCreateJournalEntry();
+  const updateEntryMutation = useUpdateJournalEntry();
+  const deleteEntryMutation = useDeleteJournalEntry();
+  const addCommentMutation = useAddJournalComment();
+  const updateTagsMutation = useUpdateJournalTags(userId, currentEntry?.id, selectedTags);
+  const updateDistortionsMutation = useUpdateJournalDistortions(userId, currentEntry?.id, selectedDistortions);
+  const linkThoughtRecordMutation = useLinkThoughtRecord(currentEntry?.id, userId);
+  const unlinkThoughtRecordMutation = useUnlinkThoughtRecord(currentEntry?.id, userId);
+
   const loadEntryWithRelatedRecords = async (entry: JournalEntry, showTagging = false) => {
     setCurrentEntry(entry);
-    
+
     // Set the suggested tags from the entry
     setSelectedTags(entry.userSelectedTags || entry.emotions || []);
     setSelectedDistortions(entry.userSelectedDistortions || entry.detectedDistortions || []);
-    
+
     // If showTagging is true, show the tagging dialog
     if (showTagging) {
       setShowTaggingDialog(true);
     }
     // Note: View tab has been removed in favor of 2-tab layout
     // Detailed viewing functionality to be implemented via dialog if needed
-    
+
     // Fetch related thought records if they exist
     if (entry.relatedThoughtRecordIds && entry.relatedThoughtRecordIds.length > 0 && userThoughtRecords.length > 0) {
-      const recordsToShow = userThoughtRecords.filter((record: ThoughtRecord) => 
+      const recordsToShow = userThoughtRecords.filter((record: ThoughtRecord) =>
         entry.relatedThoughtRecordIds?.includes(record.id)
       );
       setRelatedThoughtRecords(recordsToShow);
@@ -505,42 +182,85 @@ export default function Journal() {
       setRelatedThoughtRecords([]);
     }
   };
-  
+
   const handleSubmit = () => {
     if (!title.trim() || !content.trim()) return;
-    
+
     if (currentEntry) {
-      updateEntryMutation.mutate({
-        id: currentEntry.id,
-        updates: { title, content }
-      });
+      updateEntryMutation.mutate(
+        { id: currentEntry.id, updates: { title, content } },
+        {
+          onSuccess: (_data) => {
+            refreshAfterOperation(
+              'journal',
+              'update',
+              currentEntry.id,
+              "Your journal entry has been updated.",
+              false
+            );
+            setShowEntryDialog(false);
+            setTitle("");
+            setContent("");
+          },
+        }
+      );
     } else {
-      createEntryMutation.mutate({ title, content });
+      createEntryMutation.mutate(
+        { title, content },
+        {
+          onSuccess: (data) => {
+            refreshAfterOperation(
+              'journal',
+              'create',
+              data.id,
+              "Journal entry created successfully! You can view it in your journal history.",
+              false
+            );
+            setTitle("");
+            setContent("");
+            setActiveTab("history");
+          },
+        }
+      );
     }
   };
-  
+
   const handleEdit = (entry: JournalEntry) => {
     setCurrentEntry(entry);
     setTitle(entry.title);
     setContent(entry.content);
     setShowEntryDialog(true);
   };
-  
+
   const handleDelete = (entry: JournalEntry) => {
     setCurrentEntry(entry);
     setShowConfirmDelete(true);
   };
-  
+
   const confirmDelete = () => {
     if (currentEntry) {
-      deleteEntryMutation.mutate(currentEntry.id);
+      deleteEntryMutation.mutate(currentEntry.id, {
+        onSuccess: (_data, id) => {
+          refreshAfterOperation(
+            'journal',
+            'delete',
+            id,
+            "Your journal entry has been deleted.",
+            false
+          );
+          setShowEntryDialog(false);
+          setShowConfirmDelete(false);
+          setCurrentEntry(null);
+          setActiveTab("list");
+        },
+      });
     }
   };
-  
+
   const handleViewEntry = (entry: JournalEntry) => {
     // Fetch related thought records if they exist
     if (entry.relatedThoughtRecordIds && entry.relatedThoughtRecordIds.length > 0 && userThoughtRecords.length > 0) {
-      const related = userThoughtRecords.filter((tr: ThoughtRecord) => 
+      const related = userThoughtRecords.filter((tr: ThoughtRecord) =>
         entry.relatedThoughtRecordIds?.includes(tr.id)
       );
       setRelatedThoughtRecords(related);
@@ -549,72 +269,160 @@ export default function Journal() {
     }
     setSelectedViewEntry(entry);
   };
-  
+
   const toggleTagSelection = (tag: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tag) 
-        ? prev.filter(t => t !== tag) 
+    setSelectedTags(prev =>
+      prev.includes(tag)
+        ? prev.filter(t => t !== tag)
         : [...prev, tag]
     );
   };
-  
+
   const toggleDistortionSelection = (distortion: string) => {
-    setSelectedDistortions(prev => 
-      prev.includes(distortion) 
-        ? prev.filter(d => d !== distortion) 
+    setSelectedDistortions(prev =>
+      prev.includes(distortion)
+        ? prev.filter(d => d !== distortion)
         : [...prev, distortion]
     );
   };
-  
+
   const handleUpdateTags = (e: React.FormEvent) => {
     e.preventDefault();
-    updateTagsMutation.mutate();
+    updateTagsMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        if (data) {
+          refreshAfterOperation(
+            'journal_tags',
+            'update',
+            data.id,
+            "Tags have been updated successfully.",
+            false
+          );
+          setCurrentEntry(data);
+          if (activeTab === "stats") {
+            setActiveTab("view");
+            setTimeout(() => setActiveTab("stats"), 100);
+          }
+        }
+      },
+    });
   };
-  
+
   // Handler for saving or skipping tags from the tagging dialog
   const handleTaggingComplete = (shouldSaveTags: boolean) => {
     if (shouldSaveTags && currentEntry) {
-      updateTagsMutation.mutate();
+      updateTagsMutation.mutate(undefined, {
+        onSuccess: (data) => {
+          if (data) {
+            refreshAfterOperation(
+              'journal_tags',
+              'update',
+              data.id,
+              "Tags have been updated successfully.",
+              false
+            );
+            setCurrentEntry(data);
+          }
+        },
+      });
     }
     setShowTaggingDialog(false);
     setActiveTab("view");
   };
-  
+
   const handleUpdateDistortions = (e: React.FormEvent) => {
     e.preventDefault();
-    updateDistortionsMutation.mutate();
+    updateDistortionsMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        if (data) {
+          refreshAfterOperation(
+            'journal_distortions',
+            'update',
+            data.id,
+            "Your selected cognitive distortions have been updated.",
+            false
+          );
+          setCurrentEntry(data);
+        }
+      },
+    });
   };
-  
+
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentContent.trim() || !currentEntry) return;
-    
+
     console.log("Adding comment:", commentContent, "to entry:", currentEntry.id);
-    
-    addCommentMutation.mutate({
-      entryId: currentEntry.id,
-      comment: commentContent
+
+    addCommentMutation.mutate(
+      { entryId: currentEntry.id, comment: commentContent },
+      {
+        onSuccess: (data) => {
+          console.log("Comment added successfully:", data);
+          refreshAfterOperation(
+            'journal_comment',
+            'create',
+            currentEntry?.id,
+            "Your comment has been added to the journal entry.",
+            false
+          );
+          if (currentEntry) {
+            const currentComments = Array.isArray(currentEntry.comments) ? currentEntry.comments : [];
+            const updatedComments = [...currentComments, data];
+            setCurrentEntry({
+              ...currentEntry,
+              comments: updatedComments
+            });
+            setCommentContent("");
+          }
+        },
+      }
+    );
+  };
+
+  const handleLinkThoughtRecord = (recordId: number) => {
+    linkThoughtRecordMutation.mutate(recordId, {
+      onSuccess: (data) => {
+        console.log("Record linked successfully:", data);
+        refreshAfterOperation(
+          'journal_link_thought',
+          'update',
+          data.id,
+          "Thought record has been linked to this journal entry.",
+          false
+        );
+        loadEntryWithRelatedRecords(data);
+        setShowThoughtRecordDialog(false);
+      },
     });
   };
-  
-  const handleLinkThoughtRecord = (recordId: number) => {
-    linkThoughtRecordMutation.mutate(recordId);
-  };
-  
+
   const handleUnlinkThoughtRecord = (recordId: number) => {
-    unlinkThoughtRecordMutation.mutate(recordId);
+    unlinkThoughtRecordMutation.mutate(recordId, {
+      onSuccess: (data) => {
+        console.log("Record unlinked successfully:", data);
+        refreshAfterOperation(
+          'journal_unlink_thought',
+          'update',
+          data.id,
+          "Thought record has been unlinked from this journal entry.",
+          false
+        );
+        loadEntryWithRelatedRecords(data);
+      },
+    });
   };
-  
+
   // Determine if user can create new entries (only clients can create their own entries)
   // If viewing another user's data and current user is a therapist, they should only view
   const canCreateEntries = isViewingSelf || user?.role === 'client';
-  
+
   return (
     <ModulePageShell
       title="Journal"
       description="Process your emotions and experiences: Reflect on your thoughts and feelings through daily journaling"
     >
-        
+
         {/* Overall Progress Summary */}
         {stats.totalEntries > 0 && (
           <Card className="mb-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
@@ -632,8 +440,8 @@ export default function Journal() {
                 </div>
                 <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
                   <div className="text-2xl font-bold text-teal-600">
-                    {Object.keys(stats.emotions).length > 0 
-                      ? Object.entries(stats.emotions).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0] 
+                    {Object.keys(stats.emotions).length > 0
+                      ? Object.entries(stats.emotions).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0]
                       : "None"}
                   </div>
                   <div className="text-sm text-muted-foreground">Most Common Emotion</div>
@@ -646,9 +454,9 @@ export default function Journal() {
             </CardContent>
           </Card>
         )}
-        
-        <Tabs 
-          value={activeTab} 
+
+        <Tabs
+          value={activeTab}
           onValueChange={setActiveTab}
           defaultValue={
             user?.role === 'therapist' || user?.role === 'admin' ? "history" : "write"
@@ -672,7 +480,7 @@ export default function Journal() {
               Insights
             </TabsTrigger>
           </TabsList>
-        
+
           {/* Write Entry tab - only for clients */}
           {user?.role === 'client' && (
             <TabsContent value="write">
@@ -689,18 +497,18 @@ export default function Journal() {
                     <p className="mb-3">
                       Journaling is a powerful tool for self-reflection and emotional processing. It helps you understand patterns in your thoughts and feelings, track your progress, and gain valuable insights into your mental well-being.
                     </p>
-                    
+
                     <div className="space-y-3">
                       <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
                         <h4 className="font-medium text-foreground mb-1">Process Emotions</h4>
                         <p>Writing about your feelings helps you make sense of them and reduces emotional intensity. It's a safe space to express yourself without judgment.</p>
                       </div>
-                      
+
                       <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
                         <h4 className="font-medium text-foreground mb-1">Track Patterns</h4>
                         <p>Over time, your journal entries reveal patterns in your mood, triggers, and coping strategies, helping you understand yourself better.</p>
                       </div>
-                      
+
                       <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
                         <h4 className="font-medium text-foreground mb-1">Support Growth</h4>
                         <p>Regular journaling documents your journey, celebrates progress, and provides insights that support your ongoing mental health and personal growth.</p>
@@ -713,7 +521,7 @@ export default function Journal() {
               <JournalWizard onEntryCreated={() => setActiveTab("history")} />
             </TabsContent>
           )}
-        
+
           {/* Journal History tab */}
           <TabsContent value="history">
             <JournalList
@@ -726,7 +534,7 @@ export default function Journal() {
               onDeleteEntry={handleDelete}
             />
           </TabsContent>
-        
+
           {/* Single Entry Detailed View */}
           <TabsContent value="view">
             {currentEntry && (
@@ -750,11 +558,11 @@ export default function Journal() {
                         )}
                       </div>
                     </div>
-                    
+
                     {canCreateEntries && (
                       <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => {
                             setTitle(currentEntry.title);
@@ -765,8 +573,8 @@ export default function Journal() {
                           <Edit size={16} className="mr-1" />
                           Edit
                         </Button>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
                           onClick={() => setShowConfirmDelete(true)}
                         >
@@ -776,7 +584,7 @@ export default function Journal() {
                     )}
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-6">
                   {/* Journal Content */}
                   <div className="whitespace-pre-wrap p-4 border rounded-md bg-white shadow-sm">
@@ -800,13 +608,13 @@ export default function Journal() {
                         </h5>
                         <div className="flex flex-wrap gap-1">
                           {currentEntry.emotions?.map((emotion, i) => (
-                            <Badge 
+                            <Badge
                               key={`emotion-${i}`}
-                              variant="outline" 
+                              variant="outline"
                               className={`
                                 cursor-pointer
-                                ${selectedTags.includes(emotion) 
-                                  ? 'bg-red-100 border-red-200' 
+                                ${selectedTags.includes(emotion)
+                                  ? 'bg-red-100 border-red-200'
                                   : 'bg-white hover:bg-red-50'}
                               `}
                               onClick={() => toggleTagSelection(emotion)}
@@ -828,13 +636,13 @@ export default function Journal() {
                         </h5>
                         <div className="flex flex-wrap gap-1">
                           {currentEntry.topics?.map((topic, i) => (
-                            <Badge 
+                            <Badge
                               key={`topic-${i}`}
-                              variant="outline" 
+                              variant="outline"
                               className={`
                                 cursor-pointer
-                                ${selectedTags.includes(topic) 
-                                  ? 'bg-amber-100 border-amber-200' 
+                                ${selectedTags.includes(topic)
+                                  ? 'bg-amber-100 border-amber-200'
                                   : 'bg-white hover:bg-amber-50'}
                               `}
                               onClick={() => toggleTagSelection(topic)}
@@ -857,15 +665,15 @@ export default function Journal() {
                         <div className="flex flex-wrap gap-1">
                           {selectedTags.length > 0 ? (
                             selectedTags.map((tag, i) => (
-                              <Badge 
+                              <Badge
                                 key={`selected-${i}`}
-                                variant="outline" 
+                                variant="outline"
                                 className="bg-blue-100 border-blue-200"
                               >
                                 {tag}
-                                <X 
-                                  size={12} 
-                                  className="ml-1 cursor-pointer" 
+                                <X
+                                  size={12}
+                                  className="ml-1 cursor-pointer"
                                   onClick={() => toggleTagSelection(tag)}
                                 />
                               </Badge>
@@ -894,7 +702,7 @@ export default function Journal() {
                               }
                             }}
                           />
-                          <Button 
+                          <Button
                             size="sm"
                             onClick={() => {
                               if (customTag.trim()) {
@@ -919,7 +727,7 @@ export default function Journal() {
                       </>
                     )}
                   </div>
-                  
+
                   {/* Cognitive Distortions Section */}
                   {currentEntry.detectedDistortions && currentEntry.detectedDistortions.length > 0 && (
                     <div className="p-4 border rounded-md bg-orange-50/50">
@@ -927,18 +735,18 @@ export default function Journal() {
                         <BrainCircuit size={16} className="text-orange-500" />
                         Detected Cognitive Distortions
                       </h4>
-                      
+
                       <div className="flex flex-wrap gap-2 mb-4">
                         {currentEntry.detectedDistortions.map((distortion) => (
                           <TooltipProvider key={distortion}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Badge 
-                                  variant="outline" 
+                                <Badge
+                                  variant="outline"
                                   className={`
                                     cursor-pointer
-                                    ${selectedDistortions.includes(distortion) 
-                                      ? 'bg-orange-200 border-orange-300' 
+                                    ${selectedDistortions.includes(distortion)
+                                      ? 'bg-orange-200 border-orange-300'
                                       : 'bg-orange-50 border-orange-100 hover:bg-orange-100'}
                                   `}
                                   onClick={() => toggleDistortionSelection(distortion)}
@@ -956,7 +764,7 @@ export default function Journal() {
                           </TooltipProvider>
                         ))}
                       </div>
-                      
+
                       {canCreateEntries && (
                         <Button
                           onClick={handleUpdateDistortions}
@@ -981,7 +789,7 @@ export default function Journal() {
                       <p className="text-sm whitespace-pre-wrap">{currentEntry.aiAnalysis}</p>
                     </div>
                   )}
-                  
+
                   {/* Related Thought Records Section */}
                   <div className="p-4 border rounded-md">
                     <div className="flex justify-between items-center mb-3">
@@ -990,8 +798,8 @@ export default function Journal() {
                         Related Thought Records
                       </h4>
                       {canCreateEntries && (
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => setShowThoughtRecordDialog(true)}
                         >
@@ -1000,7 +808,7 @@ export default function Journal() {
                         </Button>
                       )}
                     </div>
-                    
+
                     {relatedThoughtRecords.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {relatedThoughtRecords.map((record) => (
@@ -1011,9 +819,9 @@ export default function Journal() {
                                   Thought Record
                                 </CardTitle>
                                 {canCreateEntries && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
                                     className="h-6 w-6"
                                     onClick={() => handleUnlinkThoughtRecord(record.id)}
                                   >
@@ -1028,7 +836,7 @@ export default function Journal() {
                             <CardContent className="p-3 pt-0">
                               <p className="text-xs font-medium mb-1">Automatic Thoughts:</p>
                               <p className="text-xs line-clamp-2 mb-2">{record.automaticThoughts}</p>
-                              
+
                               {record.cognitiveDistortions && record.cognitiveDistortions.length > 0 && (
                                 <div className="flex flex-wrap gap-1 mb-2">
                                   {record.cognitiveDistortions.slice(0, 2).map((d, i) => (
@@ -1045,8 +853,8 @@ export default function Journal() {
                               )}
                             </CardContent>
                             <CardFooter className="p-3 pt-0">
-                              <Button 
-                                variant="link" 
+                              <Button
+                                variant="link"
                                 className="p-0 h-auto text-xs"
                                 asChild
                               >
@@ -1065,8 +873,8 @@ export default function Journal() {
                           No thought records linked to this journal entry yet.
                         </p>
                         {canCreateEntries && (
-                          <Button 
-                            variant="link" 
+                          <Button
+                            variant="link"
                             onClick={() => setShowThoughtRecordDialog(true)}
                             className="mt-2"
                           >
@@ -1076,7 +884,7 @@ export default function Journal() {
                       </div>
                     )}
                   </div>
-                  
+
                   <JournalComments
                     comments={currentEntry.comments}
                     user={user}
@@ -1090,7 +898,7 @@ export default function Journal() {
             </div>
           )}
         </TabsContent>
-        
+
         {/* Stats and Insights Tab */}
         <TabsContent value="stats">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -1110,7 +918,7 @@ export default function Journal() {
                         <p className="text-2xl font-bold">{stats.totalEntries}</p>
                       </div>
                   </div>
-                  
+
                     <div className="flex items-center gap-2 p-4 border rounded-md">
                       <div className="bg-orange-100 p-3 rounded-md">
                         <BrainCircuit className="h-5 w-5 text-orange-600" />
@@ -1119,14 +927,14 @@ export default function Journal() {
                         <p className="text-sm text-muted-foreground">Identified Cognitive Patterns</p>
                         <p className="text-2xl font-bold">
                           {/* Count entries that have detected or user-selected distortions */}
-                          {entries.filter((entry: JournalEntry) => 
-                            (entry.detectedDistortions && entry.detectedDistortions.length > 0) || 
+                          {entries.filter((entry: JournalEntry) =>
+                            (entry.detectedDistortions && entry.detectedDistortions.length > 0) ||
                             (entry.userSelectedDistortions && entry.userSelectedDistortions.length > 0)
                           ).length}
                         </p>
                       </div>
                     </div>
-                  
+
                     <div className="flex items-center gap-2 p-4 border rounded-md">
                       <div className="bg-green-100 p-3 rounded-md">
                         <Activity className="h-5 w-5 text-green-600" />
@@ -1134,8 +942,8 @@ export default function Journal() {
                       <div>
                         <p className="text-sm text-muted-foreground">Avg. Entry Length</p>
                         <p className="text-2xl font-bold">
-                          {entries.length > 0 
-                            ? Math.round(entries.reduce((sum: number, entry: JournalEntry) => sum + entry.content.length, 0) / entries.length) 
+                          {entries.length > 0
+                            ? Math.round(entries.reduce((sum: number, entry: JournalEntry) => sum + entry.content.length, 0) / entries.length)
                             : 0}
                         </p>
                       </div>
@@ -1143,7 +951,7 @@ export default function Journal() {
                   </div>
               </CardContent>
             </Card>
-            
+
             {/* Word Cloud */}
               <Card className="lg:col-span-12">
                 <CardHeader>
@@ -1162,7 +970,7 @@ export default function Journal() {
                   </div>
                 </CardContent>
             </Card>
-            
+
             {/* Emotional Patterns */}
               <Card className="lg:col-span-6">
                 <CardHeader>
@@ -1183,10 +991,10 @@ export default function Journal() {
                                 <p className="text-sm text-muted-foreground">{count}</p>
                               </div>
                               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-blue-500 rounded-full" 
-                                  style={{ 
-                                    width: `${Math.min(100, count / Math.max(...Object.values(stats.emotions)) * 100)}%` 
+                                <div
+                                  className="h-full bg-blue-500 rounded-full"
+                                  style={{
+                                    width: `${Math.min(100, count / Math.max(...Object.values(stats.emotions)) * 100)}%`
                                   }}
                                 ></div>
                               </div>
@@ -1201,7 +1009,7 @@ export default function Journal() {
                   )}
                 </CardContent>
             </Card>
-            
+
             {/* Sentiment Distribution */}
             <Card className="lg:col-span-6">
                 <CardHeader>
@@ -1220,7 +1028,7 @@ export default function Journal() {
                             </div>
                             <p className="mt-1 sm:mt-2 text-xs sm:text-sm font-medium">Positive</p>
                           </div>
-                          
+
                           {/* Neutral Sentiment */}
                           <div className="flex flex-col items-center">
                             <div className="h-16 w-16 sm:h-28 sm:w-28 rounded-full border-4 border-gray-300 flex items-center justify-center">
@@ -1228,7 +1036,7 @@ export default function Journal() {
                             </div>
                             <p className="mt-1 sm:mt-2 text-xs sm:text-sm font-medium">Neutral</p>
                           </div>
-                          
+
                           {/* Negative Sentiment */}
                           <div className="flex flex-col items-center">
                             <div className="h-16 w-16 sm:h-28 sm:w-28 rounded-full border-4 border-red-400 flex items-center justify-center">
@@ -1260,7 +1068,7 @@ export default function Journal() {
                   )}
                 </CardContent>
             </Card>
-            
+
             {/* Topics */}
               <Card className="lg:col-span-6">
                 <CardHeader>
@@ -1281,10 +1089,10 @@ export default function Journal() {
                                 <p className="text-sm text-muted-foreground">{count}</p>
                               </div>
                               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-amber-500 rounded-full" 
-                                  style={{ 
-                                    width: `${Math.min(100, count / Math.max(...Object.values(stats.topics)) * 100)}%` 
+                                <div
+                                  className="h-full bg-amber-500 rounded-full"
+                                  style={{
+                                    width: `${Math.min(100, count / Math.max(...Object.values(stats.topics)) * 100)}%`
                                   }}
                                 ></div>
                               </div>
@@ -1299,7 +1107,7 @@ export default function Journal() {
                   )}
                 </CardContent>
             </Card>
-            
+
             {/* Cognitive Distortion Patterns */}
               <Card className="lg:col-span-12">
                 <CardHeader>
@@ -1316,13 +1124,13 @@ export default function Journal() {
                         ...(entry.detectedDistortions || []),
                         ...(entry.userSelectedDistortions || [])
                       ];
-                      
+
                       // Count unique distortions (no duplicates)
                       new Set(distortions).forEach(distortion => {
                         distortionMap[distortion] = (distortionMap[distortion] || 0) + 1;
                       });
                     });
-                    
+
                     if (Object.keys(distortionMap).length > 0) {
                       return (
                         <div className="space-y-3">
@@ -1336,10 +1144,10 @@ export default function Journal() {
                                     <p className="text-sm text-muted-foreground">{count}</p>
                                   </div>
                                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                    <div 
-                                      className="h-full bg-orange-500 rounded-full" 
-                                      style={{ 
-                                        width: `${Math.min(100, count / Math.max(...Object.values(distortionMap)) * 100)}%` 
+                                    <div
+                                      className="h-full bg-orange-500 rounded-full"
+                                      style={{
+                                        width: `${Math.min(100, count / Math.max(...Object.values(distortionMap)) * 100)}%`
                                       }}
                                     ></div>
                                   </div>
@@ -1359,7 +1167,7 @@ export default function Journal() {
                   })()}
                 </CardContent>
             </Card>
-            
+
             {/* Sentiment Over Time */}
               <Card className="lg:col-span-12">
                 <CardHeader>
@@ -1377,18 +1185,18 @@ export default function Journal() {
                               {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </div>
                             <div className="flex-1 flex h-6 rounded-md overflow-hidden">
-                              <div 
-                                className="bg-green-400" 
+                              <div
+                                className="bg-green-400"
                                 style={{ width: `${day.positive * 100}%` }}
                                 title={`Positive: ${Math.round(day.positive * 100)}%`}
                               ></div>
-                              <div 
-                                className="bg-gray-300" 
+                              <div
+                                className="bg-gray-300"
                                 style={{ width: `${day.neutral * 100}%` }}
                                 title={`Neutral: ${Math.round(day.neutral * 100)}%`}
                               ></div>
-                              <div 
-                                className="bg-red-400" 
+                              <div
+                                className="bg-red-400"
                                 style={{ width: `${day.negative * 100}%` }}
                                 title={`Negative: ${Math.round(day.negative * 100)}%`}
                               ></div>
@@ -1426,7 +1234,7 @@ export default function Journal() {
           {userId && <JournalInsights userId={userId} />}
         </TabsContent>
       </Tabs>
-      
+
       <JournalEntryForm
         open={showEntryDialog}
         onOpenChange={setShowEntryDialog}
@@ -1439,7 +1247,7 @@ export default function Journal() {
         isCreating={createEntryMutation.isPending}
         isUpdating={updateEntryMutation.isPending}
       />
-      
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={showConfirmDelete} onOpenChange={setShowConfirmDelete}>
         <DialogContent className="max-w-md">
@@ -1453,8 +1261,8 @@ export default function Journal() {
             <Button variant="outline" onClick={() => setShowConfirmDelete(false)}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={confirmDelete}
               disabled={deleteEntryMutation.isPending}
             >
@@ -1465,7 +1273,7 @@ export default function Journal() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Link Thought Record Dialog */}
       <Dialog open={showThoughtRecordDialog} onOpenChange={setShowThoughtRecordDialog}>
         <DialogContent className="max-w-2xl">
@@ -1475,7 +1283,7 @@ export default function Journal() {
               Select a thought record to link to this journal entry.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4">
             {userThoughtRecords.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto p-1">
@@ -1494,7 +1302,7 @@ export default function Journal() {
                       <CardContent className="p-3 pt-0">
                         <p className="text-xs font-medium mb-1">Automatic Thoughts:</p>
                         <p className="text-xs line-clamp-2 mb-2">{record.automaticThoughts}</p>
-                        
+
                         {record.cognitiveDistortions && record.cognitiveDistortions.length > 0 && (
                           <div className="flex flex-wrap gap-1">
                             {record.cognitiveDistortions.slice(0, 2).map((d: string, i: number) => (
@@ -1522,7 +1330,7 @@ export default function Journal() {
               </div>
             )}
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowThoughtRecordDialog(false)}>
               Cancel
@@ -1553,7 +1361,7 @@ export default function Journal() {
               )}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="overflow-y-auto flex-1 pr-6 my-3">
             {currentEntry && (
               <div className="space-y-6">
@@ -1568,7 +1376,7 @@ export default function Journal() {
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Emotions Section */}
                   <Card>
@@ -1586,7 +1394,7 @@ export default function Journal() {
                             <TooltipProvider key={`${emotion}-${i}`}>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Badge 
+                                  <Badge
                                     variant={selectedTags.includes(emotion) ? "default" : "outline"}
                                     className={`cursor-pointer hover:opacity-80 transition-colors ${
                                       selectedTags.includes(emotion) ? "" : color
@@ -1612,7 +1420,7 @@ export default function Journal() {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   {/* Topics Section */}
                   <Card>
                     <CardHeader className="py-3">
@@ -1629,7 +1437,7 @@ export default function Journal() {
                             <TooltipProvider key={`${topic}-${i}`}>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Badge 
+                                  <Badge
                                     variant={selectedTags.includes(topic) ? "default" : "outline"}
                                     className={`cursor-pointer hover:opacity-80 transition-colors ${
                                       selectedTags.includes(topic) ? "" : color
@@ -1656,7 +1464,7 @@ export default function Journal() {
                     </CardContent>
                   </Card>
                 </div>
-                
+
                 {/* Custom Tag Input */}
                 <Card>
                   <CardHeader className="py-3">
@@ -1673,14 +1481,14 @@ export default function Journal() {
                         setCustomTag("");
                       }
                     }} className="flex gap-2">
-                      <Input 
+                      <Input
                         value={customTag}
                         onChange={(e) => setCustomTag(e.target.value)}
                         placeholder="Enter a custom tag"
                         className="flex-1"
                       />
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         disabled={!customTag.trim()}
                         size="sm"
                       >
@@ -1689,7 +1497,7 @@ export default function Journal() {
                     </form>
                   </CardContent>
                 </Card>
-                
+
                 {/* Selected Tags Summary */}
                 <Card>
                   <CardHeader className="py-3">
@@ -1707,7 +1515,7 @@ export default function Journal() {
                             <TooltipProvider key={`selected-${tag}-${i}`}>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Badge 
+                                  <Badge
                                     className="bg-primary/20 text-primary border-primary/30 hover:bg-primary/30 cursor-pointer flex items-center gap-1"
                                     onClick={() => toggleTagSelection(tag)}
                                   >
@@ -1733,15 +1541,15 @@ export default function Journal() {
               </div>
             )}
           </div>
-          
+
           <DialogFooter className="gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => handleTaggingComplete(false)}
             >
               Skip
             </Button>
-            <Button 
+            <Button
               onClick={() => handleTaggingComplete(true)}
               disabled={updateTagsMutation.isPending}
             >
@@ -1779,7 +1587,7 @@ export default function Journal() {
                 Created on {format(new Date(selectedViewEntry.createdAt), "MMM d, yyyy 'at' h:mm a")}
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-6 pr-1">
               {/* Entry Content */}
               <Card className="border-l-4 border-l-blue-400">

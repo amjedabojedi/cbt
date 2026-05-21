@@ -1,4 +1,5 @@
 import { format, parseISO } from "date-fns";
+import type { Goal, MilestoneProgress } from "@/features/goals/types";
 import {
   Card,
   CardContent,
@@ -18,11 +19,11 @@ import { Progress } from "@/components/ui/progress";
 import { Calendar, Flag, MoreVertical, Target } from "lucide-react";
 
 interface GoalCardProps {
-  goal: any;
-  user: any;
-  progress: { completed: number; total: number; percentage: number };
+  goal: Goal;
+  user: { role?: string } | null;
+  progress: MilestoneProgress;
   getStatusBadge: (status: string, size?: "sm" | "lg") => React.ReactNode;
-  onSelect: (goal: any) => void;
+  onSelect: (goal: Goal) => void;
   onUpdateStatus: (args: { goalId: number; status: string; comments?: string }) => void;
 }
 
