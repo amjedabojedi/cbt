@@ -1,0 +1,286 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Heart, Search, Link, Network } from "lucide-react";
+import RelatedEmotionsPanel from "@/features/therapy/components/emotions/RelatedEmotionsPanel";
+import AppLayout from "@/components/layout/AppLayout";
+
+// Types for the API responses
+interface EmotionTaxonomyResponse {
+  coreEmotions: string[];
+  emotionFamilies: Record<string, string[]>;
+  relationships: Record<string, string>;
+  completeTaxonomy?: Record<string, {
+    variants: string[];
+    secondaryEmotions: Record<string, {
+      tertiaryEmotions: string[];
+    }>;
+  }>;
+}
+
+interface RelatedEmotionsResponse {
+  emotion: string;
+  coreEmotion: string;
+  relatedEmotions: string[];
+}
+
+export default function EmotionMapping() {
+  const { user } = useAuth();
+  const [searchEmotion, setSearchEmotion] = useState("");
+  const [selectedEmotion, setSelectedEmotion] = useState("");
+  const [activeTab, setActiveTab] = useState("taxonomy");
+  
+  // Get the emotion taxonomy
+  const { data: taxonomyData, isLoading: isLoadingTaxonomy } = useQuery<EmotionTaxonomyResponse>({
+    queryKey: ['/api/emotions/taxonomy'],
+  });
+  
+  // Get related emotions when an emotion is selected
+  const { data: relatedData, isLoading: isLoadingRelated } = useQuery<RelatedEmotionsResponse>({
+    queryKey: ['/api/emotions/related', selectedEmotion],
+    enabled: !!selectedEmotion,
+  });
+  
+  // Handle search submit
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchEmotion) {
+      setSelectedEmotion(searchEmotion);
+    }
+  };
+  
+  // Handle selecting an emotion from the taxonomy
+  const handleSelectEmotion = (emotion: string) => {
+    setSelectedEmotion(emotion);
+    setSearchEmotion(emotion);
+    setActiveTab("related");
+  };
+  
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Authentication Required</CardTitle>
+            <CardDescription>Please log in to access this feature.</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+  
+  if (user.role !== "admin") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Admin Access Required</CardTitle>
+            <CardDescription>This feature is only available to administrators.</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+  
+  const content = (
+    <div className="container py-6 space-y-6">
+      <div className="flex flex-col space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Emotion Mapping & Integration</h1>
+        <p className="text-muted-foreground">
+          Admin configuration tool to manage emotion taxonomy and connections across the application.
+        </p>
+        <div className="flex items-center mt-2 bg-amber-50 border border-amber-200 p-3 rounded-md">
+          <div className="text-amber-600 mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shield-alert">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="M12 8v4" />
+              <path d="M12 16h.01" />
+            </svg>
+          </div>
+          <div className="text-sm text-amber-800">
+            Changes made here will affect emotion relationships throughout the entire application.
+          </div>
+        </div>
+      </div>
+      
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Search className="h-5 w-5" />
+              Search Emotions
+            </CardTitle>
+            <CardDescription>
+              Search for an emotion to see its classification and related content.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSearchSubmit} className="flex gap-2">
+              <Input
+                placeholder="Type an emotion (e.g., anxiety, joy, frustration)"
+                value={searchEmotion}
+                onChange={(e) => setSearchEmotion(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit">Search</Button>
+            </form>
+          </CardContent>
+        </Card>
+        
+        <div className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="w-full">
+              <TabsTrigger value="taxonomy">Emotion Taxonomy</TabsTrigger>
+              <TabsTrigger value="related" disabled={!selectedEmotion}>
+                Related Emotions
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="taxonomy" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-primary" />
+                    Emotion Classification
+                  </CardTitle>
+                  <CardDescription>
+                    All emotions are organized into families based on core emotions.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingTaxonomy ? (
+                    <div className="flex justify-center p-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  ) : (
+                    <Accordion type="single" collapsible className="w-full">
+                      {taxonomyData && taxonomyData.coreEmotions ? (
+                        taxonomyData.coreEmotions.map((coreEmotion: string) => (
+                          <AccordionItem key={coreEmotion} value={coreEmotion}>
+                            <AccordionTrigger className="text-lg font-medium">
+                              {coreEmotion}
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="flex flex-wrap gap-2 pt-2">
+                                {taxonomyData.emotionFamilies && taxonomyData.emotionFamilies[coreEmotion] ? (
+                                  taxonomyData.emotionFamilies[coreEmotion].map((emotion: string) => (
+                                    <Badge 
+                                      key={emotion}
+                                      variant="outline"
+                                      className="cursor-pointer hover:bg-accent"
+                                      onClick={() => handleSelectEmotion(emotion)}
+                                    >
+                                      {emotion}
+                                    </Badge>
+                                  ))
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">No emotion variants found.</p>
+                                )}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground py-4">No emotion data available.</p>
+                      )}
+                    </Accordion>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="related" className="space-y-4 mt-4">
+              {selectedEmotion && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Link className="h-5 w-5 text-primary" />
+                      Emotion Relationships
+                    </CardTitle>
+                    <CardDescription>
+                      Showing emotions related to "{selectedEmotion}"
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingRelated ? (
+                      <div className="flex justify-center p-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Core Emotion:</h3>
+                          <Badge variant="default" className="text-base py-1.5">
+                            {relatedData?.coreEmotion}
+                          </Badge>
+                        </div>
+                        
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Related Emotions:</h3>
+                          <div className="flex flex-wrap gap-2">
+                            {relatedData && relatedData.relatedEmotions ? (
+                              relatedData.relatedEmotions.map((emotion: string) => (
+                                <Badge 
+                                  key={emotion}
+                                  variant={emotion === selectedEmotion ? "default" : "outline"}
+                                  className={`${
+                                    emotion === selectedEmotion 
+                                      ? "ring-2 ring-offset-1" 
+                                      : "hover:bg-accent cursor-pointer"
+                                  }`}
+                                  onClick={() => emotion !== selectedEmotion && handleSelectEmotion(emotion)}
+                                >
+                                  {emotion}
+                                </Badge>
+                              ))
+                            ) : (
+                              <p className="text-sm text-muted-foreground">No related emotions found.</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
+        
+        <div>
+          {selectedEmotion && user?.id && (
+            <RelatedEmotionsPanel
+              emotion={selectedEmotion}
+              userId={user.id}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <AppLayout title="Emotion Mapping & Integration">
+      {content}
+    </AppLayout>
+  );
+}
