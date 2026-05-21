@@ -326,3 +326,100 @@ Resilience Counseling Research and Consultation Team
     html
   });
 }
+
+/**
+ * Send welcome email to a new professional user
+ */
+export async function sendProfessionalWelcomeEmail(email: string, name: string): Promise<boolean> {
+  return sendEmail({
+    to: email,
+    subject: "Welcome to ResilienceHub™",
+    html: `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 5px;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h1 style="color: #4A6FA5; margin-bottom: 10px;">ResilienceHub™</h1>
+        <p style="color: #666; font-size: 16px;">Resilience Counseling Research and Consultation</p>
+      </div>
+      
+      <div style="background-color: #f8f9fa; border-left: 4px solid #4A6FA5; padding: 15px; margin-bottom: 20px;">
+        <h2 style="color: #4A6FA5; margin-top: 0;">Welcome to ResilienceHub™</h2>
+        <p style="color: #333; line-height: 1.5;">Hello ${name},</p>
+        <p style="color: #333; line-height: 1.5;">Thank you for joining ResilienceHub™, your comprehensive platform for therapy support and emotional well-being.</p>
+      </div>
+      
+      <div style="margin-bottom: 25px;">
+        <p style="color: #333; line-height: 1.5;">As a professional on our platform, you now have access to:</p>
+        <ul style="color: #333; line-height: 1.5;">
+          <li>Comprehensive client management tools</li>
+          <li>Secure messaging and communication</li>
+          <li>Advanced emotion and thought tracking analytics</li>
+          <li>Goal setting and progress monitoring</li>
+        </ul>
+        <p style="color: #333; line-height: 1.5;">You can access your account by logging in to the platform using your credentials.</p>
+      </div>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e1e1e1; text-align: center;">
+        <p style="color: #666; font-size: 14px;">
+          &copy; ${new Date().getFullYear()} Resilience Counseling Research and Consultation<br>
+          <em>Supporting your emotional well-being journey</em>
+        </p>
+      </div>
+    </div>
+    `
+  });
+}
+
+/**
+ * Send an invitation email to a client
+ */
+export async function sendClientInvitation(email: string, therapistName: string, inviteLink?: string, therapistId?: number): Promise<boolean> {
+  // Use the invitation link provided — it contains a one-time token so must not be logged
+  const registrationUrl = inviteLink || `FALLBACK_URL_ERROR_CHECK_INVITE_GENERATION`;
+  
+  return sendEmail({
+    to: email,
+    subject: "You've been invited to ResilienceHub™",
+    html: `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 5px;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h1 style="color: #4A6FA5; margin-bottom: 10px;">ResilienceHub™</h1>
+        <p style="color: #666; font-size: 16px;">Resilience Counseling Research and Consultation</p>
+      </div>
+      
+      <div style="background-color: #f8f9fa; border-left: 4px solid #4A6FA5; padding: 15px; margin-bottom: 20px;">
+        <h2 style="color: #4A6FA5; margin-top: 0;">You've Been Invited</h2>
+        <p style="color: #333; line-height: 1.5;">${therapistName} has invited you to join ResilienceHub™, a comprehensive platform designed to support your therapy journey and emotional well-being.</p>
+      </div>
+      
+      <div style="margin-bottom: 25px;">
+        <p style="color: #333; line-height: 1.5;">With ResilienceHub™, you can:</p>
+        <ul style="color: #333; line-height: 1.5;">
+          <li>Track your emotions and moods over time</li>
+          <li>Record thoughts and behaviors using evidence-based CBT tools</li>
+          <li>Set and monitor personal goals</li>
+          <li>Journal your experiences</li>
+          <li>Securely share information with your therapist</li>
+        </ul>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${registrationUrl}" style="background-color: #4A6FA5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">Create Your Account</a>
+        </div>
+        
+        <p style="color: #333; line-height: 1.5;">Click the button above to create your account and get started with ResilienceHub™. Your email address (${email}) will be pre-filled to make the process easier.</p>
+      </div>
+      
+      <div style="border-top: 1px solid #e1e1e1; padding-top: 20px; font-size: 14px; color: #666; line-height: 1.5;">
+        <p>If you're having trouble with the button above, copy and paste the URL below into your web browser:</p>
+        <p style="word-break: break-all;">${registrationUrl}</p>
+      </div>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e1e1e1; text-align: center;">
+        <p style="color: #666; font-size: 14px;">
+          &copy; ${new Date().getFullYear()} Resilience Counseling Research and Consultation<br>
+          <em>Supporting your emotional well-being journey</em>
+        </p>
+      </div>
+    </div>
+    `
+  });
+}
