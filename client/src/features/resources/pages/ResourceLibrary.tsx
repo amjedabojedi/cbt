@@ -51,17 +51,14 @@ import {
   Sparkles,
   Trash2,
   Edit,
-  Brain,
-  Heart,
-  Flag,
-  BookmarkCheck,
-  Share2,
-  UserCheck,
-  FileText,
   BookOpen,
-  Star,
-  MessageCircle
+  FileText,
 } from "lucide-react";
+
+import ResourceCard from "@/features/resources/components/ResourceCard";
+import ResourceViewer from "@/features/resources/components/ResourceViewer";
+import CreatorPanel from "@/features/resources/components/CreatorPanel";
+import FeedbackDialog from "@/features/resources/components/FeedbackDialog";
 
 // Define schema for protective factors
 const protectiveFactorSchema = z.object({
@@ -84,27 +81,26 @@ export default function ResourceLibrary() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   // Protective factors state
   const [isAddingFactor, setIsAddingFactor] = useState(false);
   const [isEditingFactor, setIsEditingFactor] = useState(false);
   const [selectedFactor, setSelectedFactor] = useState<any>(null);
   const [isDeleteFactorDialogOpen, setIsDeleteFactorDialogOpen] = useState(false);
-  
+
   // Coping strategies state
   const [isAddingStrategy, setIsAddingStrategy] = useState(false);
   const [isEditingStrategy, setIsEditingStrategy] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<any>(null);
   const [isDeleteStrategyDialogOpen, setIsDeleteStrategyDialogOpen] = useState(false);
-  
+
   // Educational resource states
   const [isAddingResource, setIsAddingResource] = useState(false);
-  const [isViewingResource, setIsViewingResource] = useState(false);
   const [resourceCategory, setResourceCategory] = useState<string>("all");
   const [isAssigningResource, setIsAssigningResource] = useState(false);
   const [isDeleteResourceDialogOpen, setIsDeleteResourceDialogOpen] = useState(false);
   const [selectedClients, setSelectedClients] = useState<number[]>([]);
-  const [assignmentNotes, setAssignmentNotes] = useState('');
+  const [assignmentNotes, setAssignmentNotes] = useState("");
   const [currentResource, setCurrentResource] = useState<{
     id: number;
     title: string;
@@ -118,493 +114,319 @@ export default function ResourceLibrary() {
     isEditing?: boolean;
     pdfUrl?: string;
   } | null>(null);
-  
+
   // Assignment viewing state
   const [viewingAssignment, setViewingAssignment] = useState<any>(null);
   const [isViewingAssignment, setIsViewingAssignment] = useState(false);
-  
+
   // Resource categories (default list)
   const defaultCategories = [
     "all",
     "CBT Basics",
-    "Anxiety", 
+    "Anxiety",
     "Depression",
     "Stress Management",
     "Mindfulness",
     "Emotional Regulation",
     "Relationships",
     "Trauma",
-    "Self Care"
+    "Self Care",
   ];
-  
+
   // Forms for adding new items
   const factorForm = useForm<ProtectiveFactorFormValues>({
     resolver: zodResolver(protectiveFactorSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      isGlobal: false,
-    },
+    defaultValues: { name: "", description: "", isGlobal: false },
   });
-  
+
   const strategyForm = useForm<CopingStrategyFormValues>({
     resolver: zodResolver(copingStrategySchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      isGlobal: false,
-    },
+    defaultValues: { name: "", description: "", isGlobal: false },
   });
-  
+
   // Forms for editing existing items
   const editFactorForm = useForm<ProtectiveFactorFormValues>({
     resolver: zodResolver(protectiveFactorSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      isGlobal: false,
-    },
+    defaultValues: { name: "", description: "", isGlobal: false },
   });
-  
+
   const editStrategyForm = useForm<CopingStrategyFormValues>({
     resolver: zodResolver(copingStrategySchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      isGlobal: false,
-    },
+    defaultValues: { name: "", description: "", isGlobal: false },
   });
-  
+
   // Fetch protective factors
-  const { 
-    data: protectiveFactors, 
-    isLoading: factorsLoading, 
-    error: factorsError 
+  const {
+    data: protectiveFactors,
+    isLoading: factorsLoading,
+    error: factorsError,
   } = useQuery<any>({
     queryKey: user ? [`/api/users/${user!.id}/protective-factors`] : [],
     enabled: !!user,
   });
-  
+
   // Fetch coping strategies
-  const { 
-    data: copingStrategies, 
-    isLoading: strategiesLoading, 
-    error: strategiesError 
+  const {
+    data: copingStrategies,
+    isLoading: strategiesLoading,
+    error: strategiesError,
   } = useQuery<any>({
     queryKey: user ? [`/api/users/${user!.id}/coping-strategies`] : [],
     enabled: !!user,
   });
-  
+
   // Fetch educational resources
   const {
     data: educationalResources,
     isLoading: resourcesLoading,
-    error: resourcesError
   } = useQuery<any>({
-    queryKey: ['/api/resources'],
+    queryKey: ["/api/resources"],
     enabled: !!user,
   });
-  
+
   // Fetch therapist's clients (only if user is a therapist)
   const {
     data: clients,
     isLoading: clientsLoading,
-    error: clientsError
   } = useQuery<any>({
-    queryKey: ['/api/users/clients'],
+    queryKey: ["/api/users/clients"],
     enabled: !!user && user.role === "therapist",
   });
-  
+
   // Create protective factor mutation
   const createFactorMutation = useMutation({
     mutationFn: async (data: ProtectiveFactorFormValues) => {
       if (!user) throw new Error("User not authenticated");
-      
-      const response = await apiRequest(
-        "POST",
-        `/api/users/${user!.id}/protective-factors`,
-        {
-          ...data,
-          userId: user.id,
-        }
-      );
-      
+      const response = await apiRequest("POST", `/api/users/${user!.id}/protective-factors`, {
+        ...data,
+        userId: user.id,
+      });
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/protective-factors`] });
       setIsAddingFactor(false);
       factorForm.reset();
-      toast({
-        title: "Protective Factor Added",
-        description: "Your protective factor has been added to your library.",
-      });
+      toast({ title: "Protective Factor Added", description: "Your protective factor has been added to your library." });
     },
     onError: (error) => {
       console.error("Error creating protective factor:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add protective factor. Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to add protective factor. Please try again.", variant: "destructive" });
     },
   });
-  
+
   // Create coping strategy mutation
   const createStrategyMutation = useMutation({
     mutationFn: async (data: CopingStrategyFormValues) => {
       if (!user) throw new Error("User not authenticated");
-      
-      const response = await apiRequest(
-        "POST",
-        `/api/users/${user!.id}/coping-strategies`,
-        {
-          ...data,
-          userId: user.id,
-        }
-      );
-      
+      const response = await apiRequest("POST", `/api/users/${user!.id}/coping-strategies`, {
+        ...data,
+        userId: user.id,
+      });
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/coping-strategies`] });
       setIsAddingStrategy(false);
       strategyForm.reset();
-      toast({
-        title: "Coping Strategy Added",
-        description: "Your coping strategy has been added to your library.",
-      });
+      toast({ title: "Coping Strategy Added", description: "Your coping strategy has been added to your library." });
     },
     onError: (error) => {
       console.error("Error creating coping strategy:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add coping strategy. Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to add coping strategy. Please try again.", variant: "destructive" });
     },
   });
-  
+
   // Delete protective factor mutation
   const deleteFactorMutation = useMutation({
     mutationFn: async (factorId: number) => {
       if (!user) throw new Error("User not authenticated");
-      
-      const response = await apiRequest(
-        "DELETE",
-        `/api/users/${user!.id}/protective-factors/${factorId}`,
-        null
-      );
-      
+      const response = await apiRequest("DELETE", `/api/users/${user!.id}/protective-factors/${factorId}`, null);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to delete protective factor");
       }
-      
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/protective-factors`] });
       setSelectedFactor(null);
       setIsDeleteFactorDialogOpen(false);
-      toast({
-        title: "Protective Factor Deleted",
-        description: "The protective factor has been removed from your library.",
-      });
+      toast({ title: "Protective Factor Deleted", description: "The protective factor has been removed from your library." });
     },
     onError: (error) => {
       console.error("Error deleting protective factor:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete protective factor. Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to delete protective factor. Please try again.", variant: "destructive" });
     },
   });
-  
+
   // Delete coping strategy mutation
   const deleteStrategyMutation = useMutation({
     mutationFn: async (strategyId: number) => {
       if (!user) throw new Error("User not authenticated");
-      
-      const response = await apiRequest(
-        "DELETE",
-        `/api/users/${user!.id}/coping-strategies/${strategyId}`,
-        null
-      );
-      
+      const response = await apiRequest("DELETE", `/api/users/${user!.id}/coping-strategies/${strategyId}`, null);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to delete coping strategy");
       }
-      
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/coping-strategies`] });
       setSelectedStrategy(null);
       setIsDeleteStrategyDialogOpen(false);
-      toast({
-        title: "Coping Strategy Deleted",
-        description: "The coping strategy has been removed from your library.",
-      });
+      toast({ title: "Coping Strategy Deleted", description: "The coping strategy has been removed from your library." });
     },
     onError: (error) => {
       console.error("Error deleting coping strategy:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete coping strategy. Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to delete coping strategy. Please try again.", variant: "destructive" });
     },
   });
-  
+
   // Update protective factor mutation
   const updateFactorMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: ProtectiveFactorFormValues }) => {
       if (!user) throw new Error("User not authenticated");
-      
-      const response = await apiRequest(
-        "PUT",
-        `/api/users/${user!.id}/protective-factors/${id}`,
-        data
-      );
-      
+      const response = await apiRequest("PUT", `/api/users/${user!.id}/protective-factors/${id}`, data);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to update protective factor");
       }
-      
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/protective-factors`] });
       setIsEditingFactor(false);
       setSelectedFactor(null);
-      toast({
-        title: "Protective Factor Updated",
-        description: "Your protective factor has been updated.",
-      });
+      toast({ title: "Protective Factor Updated", description: "Your protective factor has been updated." });
     },
     onError: (error) => {
       console.error("Error updating protective factor:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update protective factor. Please try again.",
-        variant: "destructive",
-      });
-    }
+      toast({ title: "Error", description: "Failed to update protective factor. Please try again.", variant: "destructive" });
+    },
   });
-  
+
   // Update coping strategy mutation
   const updateStrategyMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: CopingStrategyFormValues }) => {
       if (!user) throw new Error("User not authenticated");
-      
-      const response = await apiRequest(
-        "PUT",
-        `/api/users/${user!.id}/coping-strategies/${id}`,
-        data
-      );
-      
+      const response = await apiRequest("PUT", `/api/users/${user!.id}/coping-strategies/${id}`, data);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to update coping strategy");
       }
-      
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user!.id}/coping-strategies`] });
       setIsEditingStrategy(false);
       setSelectedStrategy(null);
-      toast({
-        title: "Coping Strategy Updated",
-        description: "Your coping strategy has been updated.",
-      });
+      toast({ title: "Coping Strategy Updated", description: "Your coping strategy has been updated." });
     },
     onError: (error) => {
       console.error("Error updating coping strategy:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update coping strategy. Please try again.",
-        variant: "destructive",
-      });
-    }
+      toast({ title: "Error", description: "Failed to update coping strategy. Please try again.", variant: "destructive" });
+    },
   });
-  
+
   // Create resource mutation
   const createResourceMutation = useMutation({
     mutationFn: async (resourceData: any) => {
       if (!user) throw new Error("User not authenticated");
-      
-      const response = await apiRequest(
-        "POST",
-        "/api/resources",
-        resourceData
-      );
-      
+      const response = await apiRequest("POST", "/api/resources", resourceData);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
       setIsAddingResource(false);
-      toast({
-        title: "Resource Added",
-        description: "Your educational resource has been added to the library.",
-      });
+      toast({ title: "Resource Added", description: "Your educational resource has been added to the library." });
     },
     onError: (error) => {
       console.error("Error creating resource:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add educational resource. Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to add educational resource. Please try again.", variant: "destructive" });
     },
   });
-  
+
   // Delete resource mutation
   const deleteResourceMutation = useMutation({
     mutationFn: async (resourceId: number) => {
       if (!user) throw new Error("User not authenticated");
-      
-      const response = await apiRequest(
-        "DELETE",
-        `/api/resources/${resourceId}`,
-        null
-      );
-      
-      // If the resource was not found (404), consider it a success since it's already gone
-      if (response.status === 404) {
-        return { success: true };
-      }
-      
+      const response = await apiRequest("DELETE", `/api/resources/${resourceId}`, null);
+      if (response.status === 404) return { success: true };
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: "Failed to delete resource" }));
         throw new Error(errorData.message || "Failed to delete resource");
       }
-      
-      // For 204 No Content responses
-      if (response.status === 204) {
-        return { success: true };
-      }
-      
+      if (response.status === 204) return { success: true };
       return response.json().catch(() => ({ success: true }));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
       setCurrentResource(null);
       setIsDeleteResourceDialogOpen(false);
-      toast({
-        title: "Resource Deleted",
-        description: "The educational resource has been removed from the library.",
-      });
+      toast({ title: "Resource Deleted", description: "The educational resource has been removed from the library." });
     },
     onError: (error) => {
       console.error("Error deleting resource:", error);
-      
-      // Don't show error toast if the resource is already gone
       if (error.message === "Resource not found") {
-        queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
+        queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
         setCurrentResource(null);
         setIsDeleteResourceDialogOpen(false);
-        toast({
-          title: "Resource Deleted",
-          description: "The educational resource has been removed from the library.",
-        });
+        toast({ title: "Resource Deleted", description: "The educational resource has been removed from the library." });
         return;
       }
-      
-      toast({
-        title: "Error",
-        description: "Failed to delete resource. Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to delete resource. Please try again.", variant: "destructive" });
     },
   });
-  
+
   // Update resource mutation
   const updateResourceMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
       if (!user) throw new Error("User not authenticated");
-      
-      const response = await apiRequest(
-        "PATCH",
-        `/api/resources/${id}`,
-        data
-      );
-      
+      const response = await apiRequest("PATCH", `/api/resources/${id}`, data);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to update resource");
       }
-      
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
       if (currentResource) {
-        setCurrentResource({...currentResource, isEditing: false});
+        setCurrentResource({ ...currentResource, isEditing: false });
       }
-      toast({
-        title: "Resource Updated",
-        description: "The educational resource has been updated.",
-      });
+      toast({ title: "Resource Updated", description: "The educational resource has been updated." });
     },
     onError: (error) => {
       console.error("Error updating resource:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update resource. Please try again.",
-        variant: "destructive",
-      });
-    }
+      toast({ title: "Error", description: "Failed to update resource. Please try again.", variant: "destructive" });
+    },
   });
-  
+
   // Assign resource to client mutation
   const assignResourceMutation = useMutation({
     mutationFn: async ({ resourceId, clientIds, notes }: { resourceId: number; clientIds: number[]; notes: string }) => {
       if (!user) throw new Error("User not authenticated");
-      
-      if (clientIds.length === 0) {
-        throw new Error("Please select at least one client");
-      }
-      
-      const promises = clientIds.map(clientId => 
-        apiRequest(
-          "POST",
-          "/api/resources/assign",
-          {
-            resourceId,
-            clientId,
-            notes
-          }
-        )
+      if (clientIds.length === 0) throw new Error("Please select at least one client");
+      const promises = clientIds.map((clientId) =>
+        apiRequest("POST", "/api/resources/assign", { resourceId, clientId, notes })
       );
-      
       const results = await Promise.all(promises);
-      
-      // Check if any requests failed
       for (const response of results) {
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to assign resource to one or more clients");
         }
       }
-      
-      return results.map(r => r.json());
+      return results.map((r) => r.json());
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/therapist/assignments'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/therapist/assignments"] });
       setIsAssigningResource(false);
       setSelectedClients([]);
-      setAssignmentNotes('');
+      setAssignmentNotes("");
       setCurrentResource(null);
-      toast({
-        title: "Resource Assigned",
-        description: "The resource has been assigned to the selected client(s).",
-      });
+      toast({ title: "Resource Assigned", description: "The resource has been assigned to the selected client(s)." });
     },
     onError: (error) => {
       console.error("Error assigning resource:", error);
@@ -613,77 +435,60 @@ export default function ResourceLibrary() {
         description: error instanceof Error ? error.message : "Failed to assign resource. Please try again.",
         variant: "destructive",
       });
-    }
+    },
   });
-  
+
   // Clone resource mutation (for therapists)
   const cloneResourceMutation = useMutation({
     mutationFn: async (resourceId: number) => {
       if (!user) throw new Error("User not authenticated");
-      
-      const response = await apiRequest(
-        "POST",
-        `/api/resources/${resourceId}/clone`,
-        null
-      );
-      
+      const response = await apiRequest("POST", `/api/resources/${resourceId}/clone`, null);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to clone resource");
       }
-      
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/resources'] });
-      toast({
-        title: "Resource Cloned",
-        description: "You can now customize this resource before assigning it to clients.",
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
+      toast({ title: "Resource Cloned", description: "You can now customize this resource before assigning it to clients." });
     },
     onError: (error) => {
       console.error("Error cloning resource:", error);
-      toast({
-        title: "Error",
-        description: "Failed to clone resource. Please try again.",
-        variant: "destructive",
-      });
-    }
+      toast({ title: "Error", description: "Failed to clone resource. Please try again.", variant: "destructive" });
+    },
   });
-  
 
-  
   // Fetch client assignments (for therapists)
   const {
     data: clientAssignments = [] as any[],
     isLoading: assignmentsLoading,
   } = useQuery<any>({
-    queryKey: ['/api/therapist/assignments'],
-    enabled: !!user && user.role === 'therapist',
+    queryKey: ["/api/therapist/assignments"],
+    enabled: !!user && user.role === "therapist",
   });
-  
+
   // Handle form submissions
   const onSubmitFactor = (data: ProtectiveFactorFormValues) => {
     createFactorMutation.mutate(data);
   };
-  
+
   const onSubmitStrategy = (data: CopingStrategyFormValues) => {
     createStrategyMutation.mutate(data);
   };
-  
+
   const onUpdateFactor = (data: ProtectiveFactorFormValues) => {
     if (selectedFactor) {
       updateFactorMutation.mutate({ id: selectedFactor.id, data });
     }
   };
-  
+
   const onUpdateStrategy = (data: CopingStrategyFormValues) => {
     if (selectedStrategy) {
       updateStrategyMutation.mutate({ id: selectedStrategy.id, data });
     }
   };
-  
-  // Handle edit resource actions
+
   const handleEditFactor = (factor: any) => {
     setSelectedFactor(factor);
     editFactorForm.reset({
@@ -693,7 +498,7 @@ export default function ResourceLibrary() {
     });
     setIsEditingFactor(true);
   };
-  
+
   const handleEditStrategy = (strategy: any) => {
     setSelectedStrategy(strategy);
     editStrategyForm.reset({
@@ -703,24 +508,67 @@ export default function ResourceLibrary() {
     });
     setIsEditingStrategy(true);
   };
-  
+
+  const handleSubmitCreate = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const dropdownCategory = formData.get("category") as string;
+    const customCategory = formData.get("custom-category") as string;
+    let categoryToUse = "other";
+    if (dropdownCategory && dropdownCategory.trim()) {
+      categoryToUse = dropdownCategory.trim();
+    } else if (customCategory && customCategory.trim()) {
+      categoryToUse = customCategory.trim();
+    }
+    const data = {
+      title: formData.get("title") as string,
+      description: formData.get("description") as string,
+      content: formData.get("content") as string,
+      type: formData.get("type") as string,
+      category: categoryToUse,
+      tags: formData.get("tags")
+        ? (formData.get("tags") as string).split(",").map((t) => t.trim())
+        : [],
+      isPublished: formData.get("published") === "on",
+      pdfUrl: (formData.get("pdfUrl") as string) || undefined,
+      createdBy: user?.id,
+    };
+    createResourceMutation.mutate(data);
+  };
+
+  const handleSubmitEdit = () => {
+    if (currentResource) {
+      const data = {
+        title: currentResource.title,
+        description: currentResource.description,
+        content: currentResource.content,
+        type: currentResource.type,
+        category: currentResource.category,
+        tags: currentResource.tags || [],
+        isPublished: currentResource.isPublished,
+        pdfUrl: currentResource.pdfUrl,
+      };
+      updateResourceMutation.mutate({ id: currentResource.id, data });
+    }
+  };
+
   // Filter functions for personal and global items
   const personalFactors = protectiveFactors?.filter(
     (factor: any) => !factor.isGlobal || factor.userId === user?.id
   );
-  
+
   const globalFactors = protectiveFactors?.filter(
     (factor: any) => factor.isGlobal && factor.userId !== user?.id
   );
-  
+
   const personalStrategies = copingStrategies?.filter(
     (strategy: any) => !strategy.isGlobal || strategy.userId === user?.id
   );
-  
+
   const globalStrategies = copingStrategies?.filter(
     (strategy: any) => strategy.isGlobal && strategy.userId !== user?.id
   );
-  
+
   if (factorsLoading || strategiesLoading) {
     return (
       <AppLayout title="Resource Library">
@@ -732,7 +580,7 @@ export default function ResourceLibrary() {
       </AppLayout>
     );
   }
-  
+
   if (factorsError || strategiesError) {
     return (
       <AppLayout title="Resource Library">
@@ -748,7 +596,7 @@ export default function ResourceLibrary() {
       </AppLayout>
     );
   }
-  
+
   return (
     <AppLayout title="Resource Library">
       <div className="container mx-auto px-4 py-6">
@@ -761,7 +609,7 @@ export default function ResourceLibrary() {
               <TabsTrigger value="client-assignments">Client Assignments</TabsTrigger>
             )}
           </TabsList>
-          
+
           {/* Protective Factors Tab */}
           <TabsContent value="protective-factors">
             <div className="flex justify-between items-center mb-4">
@@ -771,7 +619,7 @@ export default function ResourceLibrary() {
                   Elements in your life that contribute to resilience and wellbeing
                 </p>
               </div>
-              
+
               <Dialog open={isAddingFactor} onOpenChange={setIsAddingFactor}>
                 <DialogTrigger asChild>
                   <Button>
@@ -786,7 +634,7 @@ export default function ResourceLibrary() {
                       Protective factors are personal strengths or resources that help you overcome challenges
                     </DialogDescription>
                   </DialogHeader>
-                  
+
                   <Form {...factorForm}>
                     <form onSubmit={factorForm.handleSubmit(onSubmitFactor)} className="space-y-4">
                       <FormField
@@ -802,7 +650,7 @@ export default function ResourceLibrary() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={factorForm.control}
                         name="description"
@@ -820,7 +668,7 @@ export default function ResourceLibrary() {
                           </FormItem>
                         )}
                       />
-                      
+
                       {user?.role === "therapist" && (
                         <FormField
                           control={factorForm.control}
@@ -828,10 +676,7 @@ export default function ResourceLibrary() {
                           render={({ field }) => (
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                               <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                               </FormControl>
                               <div className="space-y-1 leading-none">
                                 <FormLabel>Share with all clients</FormLabel>
@@ -843,19 +688,12 @@ export default function ResourceLibrary() {
                           )}
                         />
                       )}
-                      
+
                       <DialogFooter>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => setIsAddingFactor(false)}
-                        >
+                        <Button type="button" variant="outline" onClick={() => setIsAddingFactor(false)}>
                           Cancel
                         </Button>
-                        <Button 
-                          type="submit"
-                          disabled={createFactorMutation.isPending}
-                        >
+                        <Button type="submit" disabled={createFactorMutation.isPending}>
                           {createFactorMutation.isPending ? "Adding..." : "Add Factor"}
                         </Button>
                       </DialogFooter>
@@ -863,17 +701,15 @@ export default function ResourceLibrary() {
                   </Form>
                 </DialogContent>
               </Dialog>
-              
+
               {/* Edit Protective Factor Dialog */}
               <Dialog open={isEditingFactor} onOpenChange={setIsEditingFactor}>
                 <DialogContent className="max-w-md w-[95vw]">
                   <DialogHeader>
                     <DialogTitle>Edit Protective Factor</DialogTitle>
-                    <DialogDescription>
-                      Update your protective factor details
-                    </DialogDescription>
+                    <DialogDescription>Update your protective factor details</DialogDescription>
                   </DialogHeader>
-                  
+
                   <Form {...editFactorForm}>
                     <form onSubmit={editFactorForm.handleSubmit(onUpdateFactor)} className="space-y-4">
                       <FormField
@@ -889,7 +725,7 @@ export default function ResourceLibrary() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={editFactorForm.control}
                         name="description"
@@ -907,7 +743,7 @@ export default function ResourceLibrary() {
                           </FormItem>
                         )}
                       />
-                      
+
                       {user?.role === "therapist" && (
                         <FormField
                           control={editFactorForm.control}
@@ -915,10 +751,7 @@ export default function ResourceLibrary() {
                           render={({ field }) => (
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                               <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                               </FormControl>
                               <div className="space-y-1 leading-none">
                                 <FormLabel>Share with all clients</FormLabel>
@@ -930,19 +763,12 @@ export default function ResourceLibrary() {
                           )}
                         />
                       )}
-                      
+
                       <DialogFooter>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => setIsEditingFactor(false)}
-                        >
+                        <Button type="button" variant="outline" onClick={() => setIsEditingFactor(false)}>
                           Cancel
                         </Button>
-                        <Button 
-                          type="submit"
-                          disabled={updateFactorMutation.isPending}
-                        >
+                        <Button type="submit" disabled={updateFactorMutation.isPending}>
                           {updateFactorMutation.isPending ? "Updating..." : "Update Factor"}
                         </Button>
                       </DialogFooter>
@@ -951,14 +777,12 @@ export default function ResourceLibrary() {
                 </DialogContent>
               </Dialog>
             </div>
-            
+
             {/* My Protective Factors */}
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle className="text-lg">My Protective Factors</CardTitle>
-                <CardDescription>
-                  Factors you've personally identified or created
-                </CardDescription>
+                <CardDescription>Factors you've personally identified or created</CardDescription>
               </CardHeader>
               <CardContent>
                 {personalFactors?.length === 0 ? (
@@ -970,9 +794,7 @@ export default function ResourceLibrary() {
                     <p className="text-neutral-500 max-w-md mx-auto mb-6">
                       Add your personal protective factors to help identify strengths you can rely on during difficult times.
                     </p>
-                    <Button onClick={() => setIsAddingFactor(true)}>
-                      Add Your First Protective Factor
-                    </Button>
+                    <Button onClick={() => setIsAddingFactor(true)}>Add Your First Protective Factor</Button>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1008,7 +830,7 @@ export default function ResourceLibrary() {
                 )}
               </CardContent>
             </Card>
-            
+
             {/* Global Protective Factors */}
             {globalFactors?.length > 0 && (
               <Card>
@@ -1034,7 +856,7 @@ export default function ResourceLibrary() {
                 </CardContent>
               </Card>
             )}
-            
+
             {/* Delete Confirmation Dialog */}
             <Dialog open={isDeleteFactorDialogOpen} onOpenChange={setIsDeleteFactorDialogOpen}>
               <DialogContent>
@@ -1045,13 +867,10 @@ export default function ResourceLibrary() {
                   </div>
                 </DialogHeader>
                 <div className="flex justify-end space-x-2 pt-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsDeleteFactorDialogOpen(false)}
-                  >
+                  <Button variant="outline" onClick={() => setIsDeleteFactorDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     variant="destructive"
                     onClick={() => {
                       if (selectedFactor) {
@@ -1067,7 +886,7 @@ export default function ResourceLibrary() {
               </DialogContent>
             </Dialog>
           </TabsContent>
-          
+
           {/* Coping Strategies Tab */}
           <TabsContent value="coping-strategies">
             <div className="flex justify-between items-center mb-4">
@@ -1077,7 +896,7 @@ export default function ResourceLibrary() {
                   Techniques and approaches to manage stress and difficult emotions
                 </p>
               </div>
-              
+
               <Dialog open={isAddingStrategy} onOpenChange={setIsAddingStrategy}>
                 <DialogTrigger asChild>
                   <Button>
@@ -1092,7 +911,7 @@ export default function ResourceLibrary() {
                       Coping strategies help you deal with stress, anxiety, and other difficult emotions
                     </DialogDescription>
                   </DialogHeader>
-                  
+
                   <Form {...strategyForm}>
                     <form onSubmit={strategyForm.handleSubmit(onSubmitStrategy)} className="space-y-4">
                       <FormField
@@ -1108,7 +927,7 @@ export default function ResourceLibrary() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={strategyForm.control}
                         name="description"
@@ -1126,7 +945,7 @@ export default function ResourceLibrary() {
                           </FormItem>
                         )}
                       />
-                      
+
                       {user?.role === "therapist" && (
                         <FormField
                           control={strategyForm.control}
@@ -1134,10 +953,7 @@ export default function ResourceLibrary() {
                           render={({ field }) => (
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                               <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                               </FormControl>
                               <div className="space-y-1 leading-none">
                                 <FormLabel>Share with all clients</FormLabel>
@@ -1149,19 +965,12 @@ export default function ResourceLibrary() {
                           )}
                         />
                       )}
-                      
+
                       <DialogFooter>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => setIsAddingStrategy(false)}
-                        >
+                        <Button type="button" variant="outline" onClick={() => setIsAddingStrategy(false)}>
                           Cancel
                         </Button>
-                        <Button 
-                          type="submit"
-                          disabled={createStrategyMutation.isPending}
-                        >
+                        <Button type="submit" disabled={createStrategyMutation.isPending}>
                           {createStrategyMutation.isPending ? "Adding..." : "Add Strategy"}
                         </Button>
                       </DialogFooter>
@@ -1169,17 +978,15 @@ export default function ResourceLibrary() {
                   </Form>
                 </DialogContent>
               </Dialog>
-              
+
               {/* Edit Coping Strategy Dialog */}
               <Dialog open={isEditingStrategy} onOpenChange={setIsEditingStrategy}>
                 <DialogContent className="max-w-md w-[95vw]">
                   <DialogHeader>
                     <DialogTitle>Edit Coping Strategy</DialogTitle>
-                    <DialogDescription>
-                      Update your coping strategy details
-                    </DialogDescription>
+                    <DialogDescription>Update your coping strategy details</DialogDescription>
                   </DialogHeader>
-                  
+
                   <Form {...editStrategyForm}>
                     <form onSubmit={editStrategyForm.handleSubmit(onUpdateStrategy)} className="space-y-4">
                       <FormField
@@ -1195,7 +1002,7 @@ export default function ResourceLibrary() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={editStrategyForm.control}
                         name="description"
@@ -1213,7 +1020,7 @@ export default function ResourceLibrary() {
                           </FormItem>
                         )}
                       />
-                      
+
                       {user?.role === "therapist" && (
                         <FormField
                           control={editStrategyForm.control}
@@ -1221,10 +1028,7 @@ export default function ResourceLibrary() {
                           render={({ field }) => (
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                               <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                               </FormControl>
                               <div className="space-y-1 leading-none">
                                 <FormLabel>Share with all clients</FormLabel>
@@ -1236,19 +1040,12 @@ export default function ResourceLibrary() {
                           )}
                         />
                       )}
-                      
+
                       <DialogFooter>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => setIsEditingStrategy(false)}
-                        >
+                        <Button type="button" variant="outline" onClick={() => setIsEditingStrategy(false)}>
                           Cancel
                         </Button>
-                        <Button 
-                          type="submit"
-                          disabled={updateStrategyMutation.isPending}
-                        >
+                        <Button type="submit" disabled={updateStrategyMutation.isPending}>
                           {updateStrategyMutation.isPending ? "Updating..." : "Update Strategy"}
                         </Button>
                       </DialogFooter>
@@ -1257,14 +1054,12 @@ export default function ResourceLibrary() {
                 </DialogContent>
               </Dialog>
             </div>
-            
+
             {/* My Coping Strategies */}
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle className="text-lg">My Coping Strategies</CardTitle>
-                <CardDescription>
-                  Strategies you've personally identified or created
-                </CardDescription>
+                <CardDescription>Strategies you've personally identified or created</CardDescription>
               </CardHeader>
               <CardContent>
                 {personalStrategies?.length === 0 ? (
@@ -1276,9 +1071,7 @@ export default function ResourceLibrary() {
                     <p className="text-neutral-500 max-w-md mx-auto mb-6">
                       Add your personal coping strategies to build a toolkit for managing difficult situations.
                     </p>
-                    <Button onClick={() => setIsAddingStrategy(true)}>
-                      Add Your First Coping Strategy
-                    </Button>
+                    <Button onClick={() => setIsAddingStrategy(true)}>Add Your First Coping Strategy</Button>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1314,7 +1107,7 @@ export default function ResourceLibrary() {
                 )}
               </CardContent>
             </Card>
-            
+
             {/* Global Coping Strategies */}
             {globalStrategies?.length > 0 && (
               <Card>
@@ -1340,8 +1133,8 @@ export default function ResourceLibrary() {
                 </CardContent>
               </Card>
             )}
-            
-            {/* Delete Confirmation Dialog */}
+
+            {/* Delete Coping Strategy Dialog */}
             <Dialog open={isDeleteStrategyDialogOpen} onOpenChange={setIsDeleteStrategyDialogOpen}>
               <DialogContent>
                 <DialogHeader>
@@ -1351,13 +1144,10 @@ export default function ResourceLibrary() {
                   </div>
                 </DialogHeader>
                 <div className="flex justify-end space-x-2 pt-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsDeleteStrategyDialogOpen(false)}
-                  >
+                  <Button variant="outline" onClick={() => setIsDeleteStrategyDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     variant="destructive"
                     onClick={() => {
                       if (selectedStrategy) {
@@ -1372,7 +1162,7 @@ export default function ResourceLibrary() {
                 </div>
               </DialogContent>
             </Dialog>
-            
+
             {/* Delete Resource Confirmation Dialog */}
             <Dialog open={isDeleteResourceDialogOpen} onOpenChange={setIsDeleteResourceDialogOpen}>
               <DialogContent>
@@ -1383,13 +1173,10 @@ export default function ResourceLibrary() {
                   </div>
                 </DialogHeader>
                 <div className="flex justify-end space-x-2 pt-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsDeleteResourceDialogOpen(false)}
-                  >
+                  <Button variant="outline" onClick={() => setIsDeleteResourceDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     variant="destructive"
                     onClick={() => {
                       if (currentResource) {
@@ -1405,7 +1192,7 @@ export default function ResourceLibrary() {
               </DialogContent>
             </Dialog>
           </TabsContent>
-          
+
           {/* Educational Resources Tab */}
           <TabsContent value="educational-resources">
             <div className="flex justify-between items-center mb-4">
@@ -1415,7 +1202,7 @@ export default function ResourceLibrary() {
                   Materials to help you learn about mental health concepts and techniques
                 </p>
               </div>
-              
+
               {(user?.role === "admin" || user?.role === "therapist") && (
                 <Button onClick={() => setIsAddingResource(true)}>
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -1423,53 +1210,37 @@ export default function ResourceLibrary() {
                 </Button>
               )}
             </div>
-            
+
             {/* Resource Category Tabs */}
             <Tabs defaultValue="all" className="mb-6">
               <TabsList className="mb-6 flex flex-wrap h-auto p-1">
-                {/* Default 'all' category tab */}
-                <TabsTrigger 
-                  key="all" 
-                  value="all"
-                  onClick={() => setResourceCategory('all')}
-                  className="capitalize"
-                >
+                <TabsTrigger key="all" value="all" onClick={() => setResourceCategory("all")} className="capitalize">
                   All Categories
                 </TabsTrigger>
-                
-                {/* Dynamic tabs from resources */}
-                {educationalResources && Array.from(new Set(educationalResources.map((r: any) => r.category)))
-                  .filter((cat: any) => cat && cat !== 'all')
-                  .map((category: any) => (
-                    <TabsTrigger
-                      key={category}
-                      value={category}
-                      onClick={() => setResourceCategory(category)}
-                    >
-                      {category}
-                    </TabsTrigger>
-                  ))
-                }
-                
-                {/* Hard-coded default categories */}
+
+                {educationalResources &&
+                  Array.from(new Set(educationalResources.map((r: any) => r.category)))
+                    .filter((cat: any) => cat && cat !== "all")
+                    .map((category: any) => (
+                      <TabsTrigger key={category} value={category} onClick={() => setResourceCategory(category)}>
+                        {category}
+                      </TabsTrigger>
+                    ))}
+
                 {defaultCategories
-                  .filter((cat: string) => 
-                    cat !== 'all' && 
-                    (!educationalResources || !educationalResources.some((r: any) => r.category === cat))
+                  .filter(
+                    (cat: string) =>
+                      cat !== "all" &&
+                      (!educationalResources || !educationalResources.some((r: any) => r.category === cat))
                   )
                   .map((category: string) => (
-                    <TabsTrigger
-                      key={category}
-                      value={category}
-                      onClick={() => setResourceCategory(category)}
-                    >
+                    <TabsTrigger key={category} value={category} onClick={() => setResourceCategory(category)}>
                       {category}
                     </TabsTrigger>
-                  ))
-                }
+                  ))}
               </TabsList>
             </Tabs>
-            
+
             {/* Resource Cards Grid */}
             {resourcesLoading ? (
               <div className="flex justify-center items-center h-64">
@@ -1477,650 +1248,111 @@ export default function ResourceLibrary() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {educationalResources?.filter((resource: any) =>
-                  resourceCategory === "all" || resource.category === resourceCategory
-                ).map((resource: any) => (
-                  <Card key={resource.id} className="overflow-hidden flex flex-col h-full transition-shadow hover:shadow-md">
-                    <CardHeader className="bg-neutral-50 pb-2">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg font-medium">{resource.title}</CardTitle>
-                        {(resource.createdBy === user?.id || user?.role === "admin") && (
-                          <div className="flex gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8"
-                              onClick={() => setCurrentResource({...resource, isEditing: true})}
-                            >
-                              <Edit className="h-4 w-4 text-neutral-500" />
-                            </Button>
-                            {user?.role === "admin" && resource.createdBy !== user?.id && (
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => {
-                                  setCurrentResource(resource);
-                                  setIsDeleteResourceDialogOpen(true);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <CardDescription className="flex items-center gap-2 mt-1">
-                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                          {resource.type.charAt(0).toUpperCase() + resource.type.slice(1)}
-                        </span>
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
-                          {resource.category}
-                        </span>
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pb-2 flex-grow">
-                      <p className="text-sm text-neutral-600">{resource.description}</p>
-                    </CardContent>
-                    <CardFooter className="flex justify-between">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setCurrentResource({...resource, isEditing: false})}
-                      >
-                        View Resource
-                      </Button>
-                      {user?.role === "therapist" && (
-                        <Button 
-                          variant="default" 
-                          size="sm"
-                          onClick={() => {
-                            setCurrentResource(resource);
-                            setIsAssigningResource(true);
-                          }}
-                        >
-                          <UserCheck className="mr-1 h-4 w-4" />
-                          Assign to Client
-                        </Button>
-                      )}
-                    </CardFooter>
-                  </Card>
-                ))}
+                {educationalResources
+                  ?.filter((resource: any) => resourceCategory === "all" || resource.category === resourceCategory)
+                  .map((resource: any) => (
+                    <ResourceCard
+                      key={resource.id}
+                      resource={resource}
+                      user={user}
+                      onView={(r) => setCurrentResource({ ...r, isEditing: false })}
+                      onEdit={(r) => setCurrentResource({ ...r, isEditing: true })}
+                      onDelete={(r) => {
+                        setCurrentResource(r);
+                        setIsDeleteResourceDialogOpen(true);
+                      }}
+                      onAssign={(r) => {
+                        setCurrentResource(r);
+                        setIsAssigningResource(true);
+                      }}
+                    />
+                  ))}
               </div>
             )}
-            
+
             {/* Resource Viewing Dialog */}
-            {currentResource && !currentResource.isEditing && (
-              <Dialog open={!!currentResource} onOpenChange={(open) => !open && setCurrentResource(null)}>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>{currentResource.title}</DialogTitle>
-                    <DialogDescription>
-                      <div className="flex space-x-2 mt-1">
-                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                          {currentResource.type.charAt(0).toUpperCase() + currentResource.type.slice(1)}
-                        </span>
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
-                          {currentResource.category}
-                        </span>
-                      </div>
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <div className="mt-4 space-y-4">
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Description</h3>
-                      <p className="text-neutral-700">{currentResource.description}</p>
-                    </div>
-                    
-                    <div className="border-t pt-4">
-                      <h3 className="text-lg font-medium mb-2">Content</h3>
-                      <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentResource.content) }} />
-                    </div>
-                    
-                    {currentResource.pdfUrl && (
-                      <div className="border-t pt-4">
-                        <h3 className="text-lg font-medium mb-2">Attached PDF</h3>
-                        <Button asChild>
-                          <a href={currentResource.pdfUrl} target="_blank" rel="noopener noreferrer">
-                            <FileText className="mr-2 h-4 w-4" />
-                            View PDF
-                          </a>
-                        </Button>
-                      </div>
-                    )}
-                    
-                    {currentResource.tags && currentResource.tags.length > 0 && (
-                      <div className="border-t pt-4">
-                        <h3 className="text-sm font-medium mb-2">Tags</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {currentResource.tags.map((tag, idx) => (
-                            <span key={idx} className="inline-flex items-center rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <DialogFooter className="border-t mt-6 pt-4 flex justify-between">
-                    <div className="flex gap-2">
-                      {/* Delete button for resource creators or admins */}
-                      {(currentResource.createdBy === user?.id || user?.role === "admin") && (
-                        <Button 
-                          variant="destructive" 
-                          onClick={() => {
-                            deleteResourceMutation.mutate(currentResource.id);
-                          }}
-                          disabled={deleteResourceMutation.isPending}
-                        >
-                          {deleteResourceMutation.isPending ? "Deleting..." : "Delete Resource"}
-                        </Button>
-                      )}
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      {/* Edit button for resource creators or admins */}
-                      {(currentResource.createdBy === user?.id || user?.role === "admin") && (
-                        <Button 
-                          onClick={() => setCurrentResource({...currentResource, isEditing: true})}
-                        >
-                          Edit Resource
-                        </Button>
-                      )}
-                      
-                      {/* Clone button for therapists who didn't create the resource */}
-                      {user?.role === "therapist" && currentResource.createdBy !== user?.id && (
-                        <Button 
-                          onClick={() => {
-                            cloneResourceMutation.mutate(currentResource.id);
-                            setCurrentResource(null);
-                          }}
-                          disabled={cloneResourceMutation.isPending}
-                        >
-                          {cloneResourceMutation.isPending ? "Cloning..." : "Clone to My Resources"}
-                        </Button>
-                      )}
-                    </div>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            )}
-            
-            {/* Resource Edit Dialog */}
-            {currentResource && currentResource.isEditing && (
-              <Dialog open={!!currentResource} onOpenChange={(open) => !open && setCurrentResource(null)}>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Edit Resource</DialogTitle>
-                    <DialogDescription>
-                      Update this educational resource
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <form 
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      if (currentResource) {
-                        const data = {
-                          title: currentResource.title,
-                          description: currentResource.description,
-                          content: currentResource.content,
-                          type: currentResource.type,
-                          category: currentResource.category,
-                          tags: currentResource.tags || [],
-                          isPublished: currentResource.isPublished,
-                          pdfUrl: currentResource.pdfUrl,
-                        };
-                        updateResourceMutation.mutate({ id: currentResource.id, data });
-                      }
-                    }} 
-                    className="space-y-4 mt-4"
-                  >
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            Title
-                          </label>
-                          <Input 
-                            value={currentResource.title} 
-                            onChange={(e) => setCurrentResource({...currentResource, title: e.target.value})}
-                            placeholder="Enter title"
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            Category
-                          </label>
-                          <div className="relative">
-                            <Input 
-                              value={currentResource.category}
-                              onChange={(e) => {
-                                const value = e.target.value.trim();
-                                if (value) {
-                                  setCurrentResource({...currentResource, category: value});
-                                }
-                              }}
-                              placeholder="Enter your custom category name"
-                            />
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Type the name of your custom category
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Description
-                        </label>
-                        <Textarea 
-                          value={currentResource.description} 
-                          onChange={(e) => setCurrentResource({...currentResource, description: e.target.value})}
-                          placeholder="Enter a brief description"
-                          rows={2}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Content
-                        </label>
-                        <Textarea 
-                          value={currentResource.content} 
-                          onChange={(e) => setCurrentResource({...currentResource, content: e.target.value})}
-                          placeholder="Enter the main content (supports HTML for formatting)"
-                          rows={8}
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            Resource Type
-                          </label>
-                          <select 
-                            value={currentResource.type}
-                            onChange={(e) => setCurrentResource({...currentResource, type: e.target.value})}
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            <option value="article">Article</option>
-                            <option value="worksheet">Worksheet</option>
-                            <option value="guide">Guide</option>
-                            <option value="exercise">Exercise</option>
-                            <option value="video">Video</option>
-                          </select>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            PDF URL (Optional)
-                          </label>
-                          <Input 
-                            value={currentResource.pdfUrl || ''} 
-                            onChange={(e) => setCurrentResource({...currentResource, pdfUrl: e.target.value})}
-                            placeholder="https://example.com/document.pdf"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Tags (comma-separated)
-                        </label>
-                        <Input 
-                          value={(currentResource.tags || []).join(', ')} 
-                          onChange={(e) => {
-                            const tagsString = e.target.value;
-                            const tags = tagsString.split(',').map(tag => tag.trim()).filter(Boolean);
-                            setCurrentResource({...currentResource, tags});
-                          }}
-                          placeholder="anxiety, relaxation, mindfulness"
-                        />
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="published" 
-                          checked={currentResource.isPublished} 
-                          onCheckedChange={(checked) => 
-                            setCurrentResource({...currentResource, isPublished: !!checked})
-                          }
-                        />
-                        <label
-                          htmlFor="published"
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          Published (visible to others)
-                        </label>
-                      </div>
-                    </div>
-                    
-                    <DialogFooter>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={() => setCurrentResource({...currentResource, isEditing: false})}
-                      >
-                        Cancel
-                      </Button>
-                      <Button 
-                        type="submit"
-                        disabled={updateResourceMutation.isPending}
-                      >
-                        {updateResourceMutation.isPending ? "Saving..." : "Save Changes"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            )}
-            
+            <ResourceViewer
+              resource={currentResource && !currentResource.isEditing ? currentResource : null}
+              user={user}
+              open={!!currentResource && !currentResource.isEditing}
+              onClose={() => setCurrentResource(null)}
+              onEdit={() => currentResource && setCurrentResource({ ...currentResource, isEditing: true })}
+              onDelete={() => currentResource && deleteResourceMutation.mutate(currentResource.id)}
+              onClone={() => {
+                if (currentResource) {
+                  cloneResourceMutation.mutate(currentResource.id);
+                  setCurrentResource(null);
+                }
+              }}
+              isDeleting={deleteResourceMutation.isPending}
+              isCloning={cloneResourceMutation.isPending}
+            />
+
+            {/* Resource Edit / Add Dialogs */}
+            <CreatorPanel
+              mode="edit"
+              open={!!currentResource && !!currentResource.isEditing}
+              onOpenChange={(open) => {
+                if (!open && currentResource) setCurrentResource({ ...currentResource, isEditing: false });
+              }}
+              resource={currentResource ?? undefined}
+              onResourceChange={setCurrentResource}
+              educationalResources={educationalResources ?? []}
+              onSubmitCreate={handleSubmitCreate}
+              onSubmitEdit={handleSubmitEdit}
+              isPending={updateResourceMutation.isPending}
+            />
+
+            <CreatorPanel
+              mode="create"
+              open={isAddingResource}
+              onOpenChange={setIsAddingResource}
+              educationalResources={educationalResources ?? []}
+              onSubmitCreate={handleSubmitCreate}
+              onSubmitEdit={handleSubmitEdit}
+              isPending={createResourceMutation.isPending}
+            />
+
             {/* Client Assignment Dialog */}
-            <Dialog open={isAssigningResource} onOpenChange={(open) => {
-              if (!open) {
-                setIsAssigningResource(false);
-                setSelectedClients([]);
-                setAssignmentNotes('');
-              }
-            }}>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Assign Resource to Clients</DialogTitle>
-                  <DialogDescription>
-                    Select the clients you want to assign this resource to
-                  </DialogDescription>
-                </DialogHeader>
-                
-                {clientsLoading ? (
-                  <div className="py-6 flex justify-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
-                  </div>
-                ) : clients && clients.length > 0 ? (
-                  <div className="py-2 space-y-4">
-                    <div className="border rounded-md p-3 space-y-3">
-                      {clients.map((client: any) => (
-                        <div key={client.id} className="flex items-center space-x-2">
-                          <Checkbox 
-                            id={`client-${client.id}`}
-                            checked={selectedClients.includes(client.id)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedClients([...selectedClients, client.id]);
-                              } else {
-                                setSelectedClients(selectedClients.filter(id => id !== client.id));
-                              }
-                            }}
-                          />
-                          <label
-                            htmlFor={`client-${client.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {client.name || client.username}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium leading-none">
-                        Notes for Client (Optional)
-                      </label>
-                      <Textarea
-                        placeholder="Add instructions or context for this resource..."
-                        value={assignmentNotes}
-                        onChange={(e) => setAssignmentNotes(e.target.value)}
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="py-6 text-center text-muted-foreground">
-                    <p>You don't have any clients to assign resources to.</p>
-                  </div>
-                )}
-                
-                <DialogFooter>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => {
-                      setIsAssigningResource(false);
-                      setSelectedClients([]);
-                      setAssignmentNotes('');
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    disabled={selectedClients.length === 0 || !currentResource}
-                    onClick={() => {
-                      if (currentResource) {
-                        assignResourceMutation.mutate({
-                          resourceId: currentResource.id,
-                          clientIds: selectedClients,
-                          notes: assignmentNotes
-                        });
-                      }
-                    }}
-                  >
-                    {assignResourceMutation.isPending ? "Assigning..." : "Assign Resource"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            
-            {/* Add Resource Dialog */}
-            <Dialog open={isAddingResource} onOpenChange={setIsAddingResource}>
-              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Add Educational Resource</DialogTitle>
-                  <DialogDescription>
-                    Create a new resource to share knowledge with clients
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <form 
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const formData = new FormData(e.currentTarget);
-                    
-                    // Check if dropdown category is being used or custom category
-                    const dropdownCategory = formData.get('category') as string;
-                    const customCategory = formData.get('custom-category') as string;
-                    
-                    // Use dropdown if selected, otherwise use custom category if provided, or default to 'other'
-                    let categoryToUse = 'other';
-                    
-                    if (dropdownCategory && dropdownCategory.trim()) {
-                      categoryToUse = dropdownCategory.trim();
-                    } else if (customCategory && customCategory.trim()) {
-                      categoryToUse = customCategory.trim();
-                    }
-                    
-                    const data = {
-                      title: formData.get('title') as string,
-                      description: formData.get('description') as string,
-                      content: formData.get('content') as string,
-                      type: formData.get('type') as string,
-                      category: categoryToUse,
-                      tags: formData.get('tags') ? (formData.get('tags') as string).split(',').map(t => t.trim()) : [],
-                      isPublished: formData.get('published') === 'on',
-                      pdfUrl: formData.get('pdfUrl') as string || undefined,
-                      createdBy: user?.id,
-                    };
-                    
-                    createResourceMutation.mutate(data);
-                  }} 
-                  className="space-y-4 mt-4"
-                >
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label htmlFor="title" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Title
-                        </label>
-                        <Input 
-                          id="title"
-                          name="title"
-                          placeholder="Enter title"
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <label htmlFor="category" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Category
-                        </label>
-                        <div className="grid grid-cols-1 gap-2">
-                          <select 
-                            id="category"
-                            name="category"
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            <option value="">-- Select a Category --</option>
-                            {educationalResources && Array.from(new Set(educationalResources.map((r: any) => r.category)))
-                              .filter((cat: any) => cat && cat !== 'all')
-                              .map((category: any) => (
-                                <option key={category} value={category}>{category}</option>
-                              ))
-                            }
-                          </select>
-                          
-                          <div className="relative">
-                            <Input 
-                              id="custom-category"
-                              name="custom-category"
-                              placeholder="Or enter a new category name"
-                              defaultValue=""
-                            />
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Select an existing category or create a new one
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label htmlFor="description" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        Description
-                      </label>
-                      <Textarea 
-                        id="description"
-                        name="description"
-                        placeholder="Enter a brief description"
-                        rows={2}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label htmlFor="content" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        Content
-                      </label>
-                      <Textarea 
-                        id="content"
-                        name="content"
-                        placeholder="Enter the main content (supports HTML for formatting)"
-                        rows={8}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label htmlFor="type" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Resource Type
-                        </label>
-                        <select 
-                          id="type"
-                          name="type"
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          required
-                        >
-                          <option value="article">Article</option>
-                          <option value="worksheet">Worksheet</option>
-                          <option value="guide">Guide</option>
-                          <option value="exercise">Exercise</option>
-                          <option value="video">Video</option>
-                        </select>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <label htmlFor="pdfUrl" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          PDF URL (Optional)
-                        </label>
-                        <Input 
-                          id="pdfUrl"
-                          name="pdfUrl"
-                          placeholder="https://example.com/document.pdf"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label htmlFor="tags" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        Tags (comma-separated)
-                      </label>
-                      <Input 
-                        id="tags"
-                        name="tags"
-                        placeholder="anxiety, relaxation, mindfulness"
-                      />
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="published"
-                        name="published"
-                        defaultChecked={true}
-                      />
-                      <label
-                        htmlFor="published"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Published (visible to others)
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <DialogFooter>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsAddingResource(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit"
-                      disabled={createResourceMutation.isPending}
-                    >
-                      {createResourceMutation.isPending ? "Creating..." : "Create Resource"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <FeedbackDialog
+              open={isAssigningResource}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setIsAssigningResource(false);
+                  setSelectedClients([]);
+                  setAssignmentNotes("");
+                }
+              }}
+              clients={clients ?? []}
+              clientsLoading={clientsLoading}
+              selectedClients={selectedClients}
+              onClientsChange={setSelectedClients}
+              assignmentNotes={assignmentNotes}
+              onNotesChange={setAssignmentNotes}
+              onAssign={() => {
+                if (currentResource) {
+                  assignResourceMutation.mutate({
+                    resourceId: currentResource.id,
+                    clientIds: selectedClients,
+                    notes: assignmentNotes,
+                  });
+                }
+              }}
+              isPending={assignResourceMutation.isPending}
+              currentResource={currentResource}
+            />
           </TabsContent>
-          
+
           {/* Client Assignments Tab (for therapists) */}
           {user?.role === "therapist" && (
             <TabsContent value="client-assignments">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h1 className="text-2xl font-bold text-neutral-800">Client Assignments</h1>
-                  <p className="text-neutral-500">
-                    View and manage resources assigned to your clients
-                  </p>
+                  <p className="text-neutral-500">View and manage resources assigned to your clients</p>
                 </div>
               </div>
-              
+
               {assignmentsLoading ? (
                 <div className="flex justify-center items-center h-64">
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
@@ -2134,7 +1366,10 @@ export default function ResourceLibrary() {
                           <div>
                             <CardTitle className="text-lg">{assignment.resource.title}</CardTitle>
                             <CardDescription>
-                              Assigned to: {assignment.client && (assignment.client.name || assignment.client.username) || 'Client information unavailable'}
+                              Assigned to:{" "}
+                              {(assignment.client &&
+                                (assignment.client.name || assignment.client.username)) ||
+                                "Client information unavailable"}
                             </CardDescription>
                           </div>
                           <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
@@ -2154,8 +1389,8 @@ export default function ResourceLibrary() {
                         )}
                       </CardContent>
                       <CardFooter className="p-4 pt-2 flex justify-between">
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => {
                             setViewingAssignment(assignment);
@@ -2175,7 +1410,7 @@ export default function ResourceLibrary() {
                   <p className="text-neutral-500 mb-4">
                     You haven't assigned any resources to your clients yet.
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => {
                       const tabsList = document.querySelector('button[value="educational-resources"]');
                       if (tabsList) {
@@ -2191,21 +1426,17 @@ export default function ResourceLibrary() {
           )}
         </Tabs>
       </div>
-      
+
       {/* Assignment Viewing Dialog */}
       <Dialog open={isViewingAssignment} onOpenChange={setIsViewingAssignment}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           {viewingAssignment && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-2xl font-bold">
-                  Assignment Details
-                </DialogTitle>
-                <DialogDescription>
-                  View details about this resource assignment
-                </DialogDescription>
+                <DialogTitle className="text-2xl font-bold">Assignment Details</DialogTitle>
+                <DialogDescription>View details about this resource assignment</DialogDescription>
               </DialogHeader>
-              
+
               <div className="my-4 p-4 bg-neutral-50 rounded-md border">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-lg font-semibold">{viewingAssignment.resource.title}</h3>
@@ -2213,25 +1444,23 @@ export default function ResourceLibrary() {
                     {viewingAssignment.status}
                   </span>
                 </div>
-                <p className="text-sm text-neutral-600 mb-4">
-                  {viewingAssignment.resource.description}
-                </p>
-                
+                <p className="text-sm text-neutral-600 mb-4">{viewingAssignment.resource.description}</p>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <p className="text-xs font-medium text-neutral-500 mb-1">Assigned To</p>
                     <p className="text-sm font-medium">
-                      {viewingAssignment.client && (viewingAssignment.client.name || viewingAssignment.client.username) || 'Client information unavailable'}
+                      {(viewingAssignment.client &&
+                        (viewingAssignment.client.name || viewingAssignment.client.username)) ||
+                        "Client information unavailable"}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-neutral-500 mb-1">Assigned On</p>
-                    <p className="text-sm">
-                      {new Date(viewingAssignment.assignedAt).toLocaleDateString()}
-                    </p>
+                    <p className="text-sm">{new Date(viewingAssignment.assignedAt).toLocaleDateString()}</p>
                   </div>
                 </div>
-                
+
                 {viewingAssignment.notes && (
                   <div className="mb-4">
                     <p className="text-xs font-medium text-neutral-500 mb-1">Your Notes</p>
@@ -2240,7 +1469,7 @@ export default function ResourceLibrary() {
                     </div>
                   </div>
                 )}
-                
+
                 <div className="mb-4">
                   <p className="text-xs font-medium text-neutral-500 mb-1">Resource Category</p>
                   <div className="flex">
@@ -2249,17 +1478,22 @@ export default function ResourceLibrary() {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="pt-4 border-t">
                   <p className="text-xs font-medium text-neutral-500 mb-2">Resource Content</p>
                   <div className="bg-white border rounded-md p-4 max-h-[40vh] overflow-y-auto">
-                    {viewingAssignment.resource.type === 'article' ? (
-                      <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(viewingAssignment.resource.content) }} />
-                    ) : viewingAssignment.resource.type === 'pdf' && viewingAssignment.resource.fileUrl ? (
+                    {viewingAssignment.resource.type === "article" ? (
+                      <div
+                        className="prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(viewingAssignment.resource.content),
+                        }}
+                      />
+                    ) : viewingAssignment.resource.type === "pdf" && viewingAssignment.resource.fileUrl ? (
                       <div className="text-center">
-                        <a 
-                          href={viewingAssignment.resource.fileUrl} 
-                          target="_blank" 
+                        <a
+                          href={viewingAssignment.resource.fileUrl}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center text-blue-600 hover:text-blue-800"
                         >
@@ -2273,13 +1507,10 @@ export default function ResourceLibrary() {
                   </div>
                 </div>
               </div>
-              
+
               <DialogFooter className="flex justify-between">
                 <div>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsViewingAssignment(false)}
-                  >
+                  <Button variant="outline" onClick={() => setIsViewingAssignment(false)}>
                     Close
                   </Button>
                 </div>
@@ -2288,25 +1519,13 @@ export default function ResourceLibrary() {
                     variant="destructive"
                     onClick={async () => {
                       try {
-                        await apiRequest(
-                          "DELETE",
-                          `/api/resource-assignments/${viewingAssignment.id}`,
-                          null
-                        );
-                        
-                        queryClient.invalidateQueries({ queryKey: ['/api/therapist/assignments'] });
+                        await apiRequest("DELETE", `/api/resource-assignments/${viewingAssignment.id}`, null);
+                        queryClient.invalidateQueries({ queryKey: ["/api/therapist/assignments"] });
                         setIsViewingAssignment(false);
-                        toast({
-                          title: "Assignment Deleted",
-                          description: "The resource assignment has been removed.",
-                        });
+                        toast({ title: "Assignment Deleted", description: "The resource assignment has been removed." });
                       } catch (error) {
                         console.error("Error deleting assignment:", error);
-                        toast({
-                          title: "Error",
-                          description: "Failed to delete assignment. Please try again.",
-                          variant: "destructive",
-                        });
+                        toast({ title: "Error", description: "Failed to delete assignment. Please try again.", variant: "destructive" });
                       }
                     }}
                   >

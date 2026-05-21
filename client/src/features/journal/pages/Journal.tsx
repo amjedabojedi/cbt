@@ -6,53 +6,34 @@ import useActiveUser from "@/hooks/use-active-user";
 import { useRefreshData } from "@/hooks/use-refresh-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { 
-  CalendarIcon, 
-  Plus, 
-  Trash2, 
-  MessageCircle, 
+import {
+  CalendarIcon,
+  Plus,
+  Trash2,
   MessageSquarePlus,
-  Tag, 
-  ChevronDown, 
-  Edit, 
-  User, 
+  Tag,
+  Edit,
   HelpCircle,
   Sparkles,
   Heart,
   Check,
-  InfoIcon,
   X,
   CheckSquare,
   Lightbulb,
-  Info,
   Link2,
   ExternalLink,
   BrainCircuit,
   Brain,
-  Send,
   Unlink,
-  BarChart,
-  PieChart,
-  BarChart3,
-  LineChart,
-  ArrowUpDown,
   Activity,
   CheckCircle,
   Book,
   TrendingUp,
-  MoreVertical
+  MessageCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -69,20 +50,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import JournalWordCloud from "@/features/journal/components/JournalWordCloud";
 import JournalWizard from "@/features/journal/components/JournalWizard";
 import JournalInsights from "@/features/journal/components/JournalInsights";
 import ModulePageShell from "@/components/layout/ModulePageShell";
+import { JournalList } from "@/features/journal/components/JournalList";
+import { JournalEntryForm } from "@/features/journal/components/JournalEntryForm";
+import { JournalComments } from "@/features/journal/components/JournalComments";
+import { JournalEntryCard } from "@/features/journal/components/JournalEntryCard";
+import type { JournalEntry } from "@/features/journal/types";
 
 import { getEmotionInfo } from '@/utils/emotionUtils';
 
@@ -108,44 +84,6 @@ function getDistortionDescription(distortion: string): string {
   // Return the description if found, otherwise return a default message
   return distortions[distortion.toLowerCase()] || 
     "A pattern of thought that may distort your perception of reality or situations.";
-}
-
-interface JournalEntry {
-  id: number;
-  userId: number;
-  title: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  mood?: number | null;
-  aiSuggestedTags?: string[];
-  initialAiTags?: string[];
-  aiAnalysis?: string;
-  userSelectedTags?: string[];
-  emotions?: string[];
-  topics?: string[];
-  detectedDistortions?: string[];
-  userSelectedDistortions?: string[];
-  sentimentPositive?: number;
-  sentimentNegative?: number;
-  sentimentNeutral?: number;
-  isPrivate?: boolean;
-  comments?: JournalComment[];
-  relatedThoughtRecordIds?: number[];
-}
-
-interface JournalComment {
-  id: number;
-  journalEntryId: number;
-  userId: number;
-  comment: string;
-  createdAt: string;
-  updatedAt: string;
-  user?: {
-    id: number;
-    name: string;
-    username: string;
-  }
 }
 
 interface JournalStats {
@@ -778,114 +716,16 @@ export default function Journal() {
         
           {/* Journal History tab */}
           <TabsContent value="history">
-            {isLoading ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardHeader className="h-24 bg-muted/50"></CardHeader>
-                  <CardContent className="h-40 space-y-2">
-                    <div className="h-4 w-3/4 bg-muted rounded"></div>
-                    <div className="h-20 bg-muted rounded"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : entries.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {entries.map((entry: JournalEntry) => (
-                <Card key={entry.id} className="overflow-hidden">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg">{entry.title}</CardTitle>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewEntry(entry)}>
-                            <Info className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          {canCreateEntries && (
-                            <>
-                              <DropdownMenuItem onClick={() => handleEdit(entry)}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem 
-                                onClick={() => handleDelete(entry)}
-                                className="text-destructive focus:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                    <CardDescription className="flex items-center text-xs">
-                      <CalendarIcon className="mr-1 h-3 w-3" />
-                      {format(new Date(entry.createdAt), "MMM d, yyyy")}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pb-2">
-                    <div className="cursor-pointer" onClick={() => handleViewEntry(entry)}>
-                      <p className="text-sm line-clamp-2 sm:line-clamp-3 mb-2">{entry.content}</p>
-                    </div>
-                    
-                    {entry.userSelectedTags && entry.userSelectedTags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {entry.userSelectedTags.slice(0, 3).map((tag, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {entry.userSelectedTags.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{entry.userSelectedTags.length - 3} more
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                  <CardFooter className="pt-0">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs text-muted-foreground p-0 h-auto"
-                      onClick={() => handleViewEntry(entry)}
-                    >
-                      <Info className="mr-1 h-3 w-3" />
-                      View Details
-                    </Button>
-                    
-                    {entry.comments && entry.comments.length > 0 && (
-                      <div className="ml-auto flex items-center text-xs text-muted-foreground">
-                        <MessageCircle className="mr-1 h-3 w-3" />
-                        {entry.comments.length}
-                      </div>
-                    )}
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>No Journal Entries</CardTitle>
-                <CardDescription>
-                  {user?.role === 'client' 
-                    ? "You haven't created any journal entries yet. Switch to the 'Write Entry' tab to get started."
-                    : "This client hasn't created any journal entries yet."}
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          )}
-        </TabsContent>
+            <JournalList
+              entries={entries}
+              isLoading={isLoading}
+              user={user}
+              canCreateEntries={canCreateEntries}
+              onViewEntry={handleViewEntry}
+              onEditEntry={handleEdit}
+              onDeleteEntry={handleDelete}
+            />
+          </TabsContent>
         
           {/* Single Entry Detailed View */}
           <TabsContent value="view">
@@ -1237,73 +1077,14 @@ export default function Journal() {
                     )}
                   </div>
                   
-                  {/* Comments Section */}
-                  <div className="p-4 border rounded-md">
-                    <h4 className="text-sm font-semibold mb-4 flex items-center gap-2">
-                      <MessageCircle size={16} />
-                      Comments
-                    </h4>
-                    
-                    {/* Comment List */}
-                    {currentEntry.comments && currentEntry.comments.length > 0 ? (
-                      <div className="space-y-4 mb-4">
-                        {currentEntry.comments.map((comment) => (
-                          <div key={comment.id} className="flex gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="text-xs bg-primary/10">
-                                {comment.user?.name?.substring(0, 2) || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <div className="flex items-baseline gap-2">
-                                <p className="text-sm font-medium">
-                                  {comment.user?.name || 'User'}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {format(new Date(comment.createdAt), "MMM d, yyyy 'at' h:mm a")}
-                                </p>
-                              </div>
-                              <p className="text-sm mt-1">{comment.comment}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-4 mb-4">
-                        <p className="text-sm text-muted-foreground">
-                          No comments yet. Be the first to comment.
-                        </p>
-                      </div>
-                    )}
-                    
-                    {/* Add Comment Form */}
-                    <form onSubmit={handleAddComment} className="flex gap-2 items-start">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="text-xs bg-primary/10">
-                          {user?.username?.substring(0, 2) || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 flex gap-2">
-                        <Textarea
-                          placeholder="Add a comment..."
-                          value={commentContent}
-                          onChange={(e) => setCommentContent(e.target.value)}
-                          className="min-h-0 h-10 resize-none"
-                        />
-                        <Button 
-                          type="submit" 
-                          size="icon"
-                          disabled={!commentContent.trim() || addCommentMutation.isPending}
-                        >
-                          {addCommentMutation.isPending ? (
-                            <div className="animate-spin h-4 w-4 border-2 border-background border-t-transparent rounded-full" />
-                          ) : (
-                            <Send size={16} />
-                          )}
-                        </Button>
-                      </div>
-                    </form>
-                  </div>
+                  <JournalComments
+                    comments={currentEntry.comments}
+                    user={user}
+                    commentContent={commentContent}
+                    onCommentChange={setCommentContent}
+                    onAddComment={handleAddComment}
+                    isPending={addCommentMutation.isPending}
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -1646,52 +1427,18 @@ export default function Journal() {
         </TabsContent>
       </Tabs>
       
-      {/* New/Edit Entry Dialog */}
-      <Dialog open={showEntryDialog} onOpenChange={setShowEntryDialog}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>{currentEntry ? "Edit Journal Entry" : "Create Journal Entry"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="title" className="block text-sm font-medium">
-                Title
-              </label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Entry title"
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="content" className="block text-sm font-medium">
-                Content
-              </label>
-              <Textarea
-                id="content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Write about your thoughts, feelings, or experiences..."
-                className="min-h-[200px]"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEntryDialog(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSubmit}
-              disabled={!title.trim() || !content.trim() || createEntryMutation.isPending || updateEntryMutation.isPending}
-            >
-              {createEntryMutation.isPending || updateEntryMutation.isPending ? (
-                <div className="animate-spin h-4 w-4 border-2 border-background border-t-transparent rounded-full" />
-              ) : currentEntry ? "Save Changes" : "Create Entry"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <JournalEntryForm
+        open={showEntryDialog}
+        onOpenChange={setShowEntryDialog}
+        currentEntry={currentEntry}
+        title={title}
+        content={content}
+        onTitleChange={setTitle}
+        onContentChange={setContent}
+        onSubmit={handleSubmit}
+        isCreating={createEntryMutation.isPending}
+        isUpdating={updateEntryMutation.isPending}
+      />
       
       {/* Delete Confirmation Dialog */}
       <Dialog open={showConfirmDelete} onOpenChange={setShowConfirmDelete}>
