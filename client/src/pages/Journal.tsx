@@ -226,7 +226,7 @@ export default function Journal() {
   const [relatedThoughtRecords, setRelatedThoughtRecords] = useState<ThoughtRecord[]>([]);
   
   // Get journal entries
-  const { data: entries = [], isLoading } = useQuery({ 
+  const { data: entries = [], isLoading } = useQuery<JournalEntry[]>({ 
     queryKey: [`/api/users/${userId}/journal`],
     enabled: !!userId,
   });
@@ -245,7 +245,7 @@ export default function Journal() {
   });
   
   // Get available thought records for linking
-  const { data: userThoughtRecords = [] } = useQuery({ 
+  const { data: userThoughtRecords = [] } = useQuery<ThoughtRecord[]>({ 
     queryKey: [`/api/users/${userId}/thoughts`],
     enabled: !!userId,
   });

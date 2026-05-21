@@ -2,9 +2,44 @@ import { Request, Response, NextFunction, CookieOptions } from 'express';
 import { storage } from '../storage';
 import { User } from '@shared/schema';
 
-// Import the getSessionCookieOptions function from routes
-// This ensures consistent cookie handling across the application
-import { getSessionCookieOptions } from '../routes';
+// Helper function to create consistent cookie options for all session cookies
+// This ensures mobile and cross-device compatibility
+export function getSessionCookieOptions(): CookieOptions {
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const isProduction = !isDevelopment;
+  
+  // Define the base cookie settings
+  const cookieOptions: CookieOptions = {
+    httpOnly: true, // Protect cookie from JS access
+    path: "/", // Ensure cookie is available on all paths
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  };
+  
+  // Try a different approach for Replit environment
+  cookieOptions.path = "/";
+  
+  // For Replit's proxied environment, we need to ensure cookies
+  // are accessible across subdomains and HTTPS is required
+  cookieOptions.secure = true;
+  cookieOptions.sameSite = 'none';
+  
+  // Make the cookie more persistent with a longer expiration
+  cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days instead of 7
+  
+  // Handle special override for different environments
+  if (process.env.REPLIT_DOMAINS) {
+    cookieOptions.secure = true;
+    cookieOptions.sameSite = 'none';
+    console.log('Using Replit-compatible cookie settings');
+  } else if (process.env.FORCE_INSECURE_COOKIES === 'true') {
+    cookieOptions.secure = false;
+    cookieOptions.sameSite = 'lax';
+    console.log('Using insecure cookies for local testing (not recommended)');
+  }
+  
+  console.log(`Cookie options: secure=${cookieOptions.secure}, sameSite=${cookieOptions.sameSite}, domain=${cookieOptions.domain || 'not set'}`);
+  return cookieOptions;
+}
 
 // Simple in-memory cache for session lookups (fixed implementation)
 const sessionLookupCache = new Map<string, { user: User; timestamp: number }>();
@@ -40,7 +75,23 @@ declare global {
  * Authenticate the user based on their session cookie
  */
 export async function authenticate(req: Request, res: Response, next: NextFunction) {
-  const sessionId = req.cookies?.sessionId;
+  let sessionId = req.cookies?.sessionId;
+  
+  // Try to parse manually from headers if it's missing from req.cookies
+  if (!sessionId && req.headers.cookie) {
+    const cookieString = req.headers.cookie;
+    // Look for sessionId cookie
+    const match = cookieString.match(/(?:^|;)\s*sessionId=([^;]+)/);
+    if (match) {
+      sessionId = decodeURIComponent(match[1].trim());
+      // Handle potential signing prefix s: from cookie-parser
+      if (sessionId.startsWith('s:')) {
+        const signedMatch = sessionId.match(/^s:([^.]+)/);
+        sessionId = signedMatch ? signedMatch[1] : sessionId.slice(2);
+      }
+      console.log("Manually parsed sessionId from headers:", sessionId);
+    }
+  }
   
   // SECURITY: Only session-based authentication is allowed
   if (!sessionId) {

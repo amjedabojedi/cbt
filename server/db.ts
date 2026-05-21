@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
-
+console.log("Process env", process.env.DATABASE_URL);
 // Ensure DATABASE_URL is available
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,7 +11,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 // Create connection pool with optimized settings for Azure PostgreSQL
-export const pool = new Pool({ 
+export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10, // Increase pool size for better concurrency
   min: 2, // Keep minimum connections alive
@@ -30,7 +30,7 @@ export async function withRetry<T>(operation: () => Promise<T>, retries = MAX_RE
     return await operation();
   } catch (error) {
     if (retries <= 0) throw error;
-    
+
     console.log(`Database operation failed, retrying in ${RETRY_DELAY_MS}ms... (${retries} attempts left)`);
     await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
     return withRetry(operation, retries - 1);

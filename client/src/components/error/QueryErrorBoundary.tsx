@@ -30,7 +30,7 @@ export function QueryErrorBoundary({
           onReset={reset}
           fallbackRender={({ error, resetErrorBoundary }) => (
             <ApiErrorFallback
-              error={error}
+              error={error instanceof Error ? error : new Error(String(error))}
               resetError={resetErrorBoundary}
               title={title}
               description={description}
