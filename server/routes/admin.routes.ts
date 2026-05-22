@@ -23,14 +23,14 @@ const router = Router({ mergeParams: true });
 router.get("/admin/stats", authenticate, isAdmin, getAdminStats);
 
 // Admin-specific viewing client endpoint (always returns null for admins)
-router.get("/admin/viewing-client-status", authenticate, getAdminViewingClientStatus);
+router.get("/admin/viewing-client-status", authenticate, isAdmin, getAdminViewingClientStatus);
 
 // Admin endpoint to recalculate all goal statuses
-router.post("/admin/recalculate-goal-statuses", authenticate, recalculateGoalStatuses);
+router.post("/admin/recalculate-goal-statuses", authenticate, isAdmin, recalculateGoalStatuses);
 
 // Scheduler management endpoints
-router.post("/admin/scheduler/trigger-daily-reminders", isAdmin, triggerDailyReminders);
-router.post("/admin/scheduler/trigger-weekly-digests", isAdmin, triggerWeeklyDigests);
+router.post("/admin/scheduler/trigger-daily-reminders", authenticate, isAdmin, triggerDailyReminders);
+router.post("/admin/scheduler/trigger-weekly-digests", authenticate, isAdmin, triggerWeeklyDigests);
 
 // Admin endpoint to get all notifications
 router.get("/admin/notifications", authenticate, isAdmin, getAdminNotifications);
@@ -47,12 +47,12 @@ router.post("/admin/engagement-settings", authenticate, isAdmin, updateEngagemen
 router.get("/admin/engagement-stats", authenticate, isAdmin, getEngagementStats);
 
 // Admin section endpoints for client inactivity detection
-router.get('/admin/inactivity/check', authenticate, checkInactiveClients);
+router.get('/admin/inactivity/check', authenticate, isAdmin, checkInactiveClients);
 
 // Endpoint to send reminders to inactive clients
-router.post('/admin/inactivity/send-reminders', authenticate, sendInactivityReminders);
+router.post('/admin/inactivity/send-reminders', authenticate, isAdmin, sendInactivityReminders);
 
 // Endpoint to trigger weekly digest creation and sending
-router.post('/admin/weekly-digests/send', isAdmin, sendWeeklyDigests);
+router.post('/admin/weekly-digests/send', authenticate, isAdmin, sendWeeklyDigests);
 
 export default router;

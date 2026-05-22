@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import Sidebar from "./Sidebar";
@@ -12,6 +12,17 @@ interface AppLayoutProps {
 export default function AppLayout({ children, title = "Dashboard" }: AppLayoutProps) {
   const { user, loading } = useAuth();
   const [location, navigate] = useLocation();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try { return localStorage.getItem("sidebarCollapsed") === "true"; } catch { return false; }
+  });
+
+  const handleSidebarToggle = () => {
+    setSidebarCollapsed(v => {
+      const next = !v;
+      try { localStorage.setItem("sidebarCollapsed", String(next)); } catch {}
+      return next;
+    });
+  };
   
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -47,9 +58,8 @@ export default function AppLayout({ children, title = "Dashboard" }: AppLayoutPr
   // Regular app layout with sidebar for authenticated users
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      {/* Improved mobile responsiveness with dynamic spacing */}
-      <div className="flex-1 flex flex-col overflow-hidden md:ml-2 border-l border-gray-200">
+      <Sidebar isCollapsed={sidebarCollapsed} onToggle={handleSidebarToggle} />
+      <div className="flex-1 flex flex-col overflow-hidden border-l border-gray-200">
         <Header title={title} />
         <main className="flex-1 overflow-y-auto bg-neutral-50 px-2 sm:px-4 pb-16 md:pb-4">
           {children}

@@ -31,7 +31,7 @@ export function getSessionCookieOptions(): CookieOptions {
     cookieOptions.secure = true;
     cookieOptions.sameSite = 'none';
     console.log('Using Replit-compatible cookie settings');
-  } else if (process.env.FORCE_INSECURE_COOKIES === 'true') {
+  } else if (isDevelopment && process.env.FORCE_INSECURE_COOKIES === 'true') {
     cookieOptions.secure = false;
     cookieOptions.sameSite = 'lax';
     console.log('Using insecure cookies for local testing (not recommended)');
@@ -89,7 +89,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
         const signedMatch = sessionId.match(/^s:([^.]+)/);
         sessionId = signedMatch ? signedMatch[1] : sessionId.slice(2);
       }
-      console.log("Manually parsed sessionId from headers:", sessionId);
+      console.log("Manually parsed sessionId from headers");
     }
   }
   
