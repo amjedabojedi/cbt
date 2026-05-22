@@ -1,3 +1,4 @@
+import { useAuth } from "@/lib/auth";
 import RoleIndicator from "./RoleIndicator";
 import { useClientContext } from "@/context/ClientContext";
 import NotificationBell from "@/components/layout/notification-bell";
@@ -7,36 +8,72 @@ interface HeaderProps {
   title: string;
 }
 
-export default function Header({ title }: HeaderProps) {
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .filter(Boolean)
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+export default function Header({ title: _title }: HeaderProps) {
   const { viewingClientName } = useClientContext();
+  const { user } = useAuth();
 
   const handleClientChange = (_clientId: number | null) => {};
 
-  const displayTitle = viewingClientName
-    ? `${viewingClientName}'s Dashboard`
-    : title;
+  const firstName = user?.name?.split(" ")[0] || "there";
+  const greeting = getGreeting();
+  const dateStr = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 
   return (
-    <header className="bg-white shadow-sm">
-      <div className="flex items-center justify-between px-2 sm:px-4 py-3">
-        <div className="flex items-center">
-          <MobileNavigation className="mr-2" />
-          <h2 className="text-lg font-medium truncate max-w-[180px] sm:max-w-xs md:max-w-full">
-            {displayTitle}
-          </h2>
+    <header className="bg-white border-b border-slate-100">
+      <div className="flex items-center justify-between px-3 sm:px-5 py-3">
+        {/* Left: mobile menu + greeting */}
+        <div className="flex items-center gap-3">
+          <MobileNavigation className="md:hidden flex-shrink-0" />
+          <div>
+            <p className="text-sm sm:text-base font-semibold text-slate-800 leading-tight">
+              {greeting},{" "}
+              <span className="text-[#090514]">{firstName}</span>
+            </p>
+            <p className="text-[11px] text-slate-400 hidden sm:block">{dateStr}</p>
+          </div>
         </div>
-        <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
+
+        {/* Right: role indicator + bell + avatar */}
+        <div className="flex items-center gap-1 sm:gap-2">
           <div className="hidden sm:block">
             <RoleIndicator onClientChange={handleClientChange} />
           </div>
-          <div className="relative">
-            <NotificationBell />
-          </div>
+          <NotificationBell />
+          {user && (
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 ring-2 ring-purple-950/10"
+              style={{ background: "linear-gradient(135deg, #090514 0%, #1e0a36 100%)" }}
+              title={user.name}
+            >
+              {getInitials(user.name || "")}
+            </div>
+          )}
         </div>
       </div>
 
       {viewingClientName && (
-        <div className="bg-yellow-100 text-yellow-800 px-4 py-1 text-sm text-center">
+        <div className="bg-yellow-100 text-yellow-800 px-4 py-1 text-sm text-center border-t border-yellow-200">
           You are viewing {viewingClientName}'s data in read-only mode
         </div>
       )}

@@ -32,6 +32,8 @@ export function useEducationalResources(enabled: boolean) {
   return useQuery<EducationalResource[]>({
     queryKey: ["/api/resources"],
     enabled,
+    retry: 1,
+    retryDelay: 500,
   });
 }
 
@@ -46,6 +48,8 @@ export function useResourceAssignments(enabled: boolean) {
   return useQuery<ResourceAssignment[]>({
     queryKey: ["/api/therapist/assignments"],
     enabled,
+    retry: 1,
+    retryDelay: 500,
   });
 }
 

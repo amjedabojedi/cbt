@@ -1,19 +1,16 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
-import { Badge } from "@/components/ui/badge";
-import { Users } from "lucide-react";
+import { Users, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useClientContext } from "@/context/ClientContext";
 
-// Client interface from schema
 interface Client {
   id: number;
   name: string;
@@ -27,6 +24,16 @@ interface ClientSelectorProps {
   onClientChange?: (clientId: number | null) => void;
 }
 
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .filter(Boolean)
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -34,76 +41,49 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch the current viewing client from the database
   useEffect(() => {
     if (user?.role === "therapist") {
       const fetchCurrentViewingClient = async () => {
         try {
-          // Use our new fixed endpoint that always returns 200
           const response = await fetch(`/api/users/viewing-client-fixed`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include'
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
           });
-          
           const data = await response.json();
-          
           if (data.viewingClient) {
-            // Set the viewing client in context
             setViewingClient(data.viewingClient.id, data.viewingClient.name);
           } else {
-            // Try to use localStorage as fallback
-            const storedClientId = localStorage.getItem('viewingClientId');
-            const storedClientName = localStorage.getItem('viewingClientName');
-            
-            if (storedClientId && storedClientName) {
-              const parsedId = parseInt(storedClientId);
-              if (!isNaN(parsedId)) {
-                setViewingClient(parsedId, storedClientName);
-                console.log("Used localStorage fallback for viewing client:", storedClientName);
-              }
+            const storedId = localStorage.getItem("viewingClientId");
+            const storedName = localStorage.getItem("viewingClientName");
+            if (storedId && storedName) {
+              const parsed = parseInt(storedId);
+              if (!isNaN(parsed)) setViewingClient(parsed, storedName);
             }
           }
-        } catch (error) {
-          // Silent error handling - don't show errors to user
-          console.log("Using fallback for client viewing data");
-          
-          // Try to use localStorage as fallback
-          const storedClientId = localStorage.getItem('viewingClientId');
-          const storedClientName = localStorage.getItem('viewingClientName');
-          
-          if (storedClientId && storedClientName) {
-            const parsedId = parseInt(storedClientId);
-            if (!isNaN(parsedId)) {
-              setViewingClient(parsedId, storedClientName);
-            }
+        } catch {
+          const storedId = localStorage.getItem("viewingClientId");
+          const storedName = localStorage.getItem("viewingClientName");
+          if (storedId && storedName) {
+            const parsed = parseInt(storedId);
+            if (!isNaN(parsed)) setViewingClient(parsed, storedName);
           }
         }
       };
-      
       fetchCurrentViewingClient();
     }
   }, [user, setViewingClient]);
-  
-  // Fetch clients if user is a therapist, or all users if admin
+
   useEffect(() => {
     if (user?.role === "therapist" || user?.role === "admin") {
       const fetchUsers = async () => {
         try {
           setLoading(true);
-          
-          // Different endpoints for therapists and admins
-          const endpoint = user.role === "admin" 
-            ? "/api/users" // Admin sees all users
-            : "/api/users/clients"; // Therapist sees only their clients
-          
+          const endpoint = user.role === "admin" ? "/api/users" : "/api/users/clients";
           const response = await apiRequest("GET", endpoint);
           const data = await response.json();
           setClients(data);
-        } catch (error) {
-          console.error(`Error fetching ${user.role === "admin" ? "users" : "clients"}:`, error);
+        } catch {
           toast({
             title: "Error",
             description: `Failed to load ${user.role === "admin" ? "users" : "clients"} list`,
@@ -113,184 +93,187 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
           setLoading(false);
         }
       };
-
       fetchUsers();
     }
   }, [user, toast]);
 
-  // Handle client selection
   const handleClientSelect = async (clientId: number, clientName: string) => {
     try {
-      // First update the viewing client in the database
-      const response = await apiRequest("POST", "/api/users/current-viewing-client", { clientId });
-      const result = await response.json();
-      
-      // Update the client context (client-side)
+      await apiRequest("POST", "/api/users/current-viewing-client", { clientId });
       setViewingClient(clientId, clientName);
-      
-      if (onClientChange) {
-        onClientChange(clientId);
-      }
-      
-      // Show toast to confirm client selection
-      toast({
-        title: "Client Selected",
-        description: `You are now viewing ${clientName}'s data`,
-      });
-      
-      // Force a reload to refresh all queries with the new client
+      if (onClientChange) onClientChange(clientId);
+      toast({ title: "Client Selected", description: `You are now viewing ${clientName}'s data` });
       window.location.reload();
-    } catch (error) {
-      console.error("Error setting current viewing client:", error);
-      toast({
-        title: "Error",
-        description: "Failed to select client",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Error", description: "Failed to select client", variant: "destructive" });
     }
   };
 
-  // Handle returning to own view
   const handleReturnToSelf = async () => {
     try {
-      // Update viewing client to null in the database
-      const response = await apiRequest("POST", "/api/users/current-viewing-client", { clientId: null });
-      const result = await response.json();
-      
-      // Clear localStorage (legacy support)
-      localStorage.removeItem('viewingClientId');
-      localStorage.removeItem('viewingClientName');
-      
-      // Update context
+      await apiRequest("POST", "/api/users/current-viewing-client", { clientId: null });
+      localStorage.removeItem("viewingClientId");
+      localStorage.removeItem("viewingClientName");
       setViewingClient(null, null);
-      
-      if (onClientChange) {
-        onClientChange(null);
-      }
-      
-      toast({
-        title: "Returned to Self", 
-        description: "You are now viewing your own dashboard",
-      });
-      
-      // Force a reload to refresh all queries
+      if (onClientChange) onClientChange(null);
+      toast({ title: "Returned to Self", description: "You are now viewing your own dashboard" });
       window.location.reload();
-    } catch (error) {
-      console.error("Error clearing current viewing client:", error);
-      toast({
-        title: "Error",
-        description: "Failed to return to your dashboard",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Error", description: "Failed to return to your dashboard", variant: "destructive" });
     }
   };
 
-  // Don't render anything if user is not logged in
   if (!user) return null;
 
-  // For clients, just show the role badge
+  // Client role
   if (user.role === "client") {
     return (
-      <div className="flex items-center">
-        <Badge variant="outline" className="mr-2 bg-blue-50 text-blue-700 border-blue-200">
-          Client
-        </Badge>
-      </div>
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+        Client
+      </span>
     );
   }
 
-  // For therapists, show role badge and client selector
-  if (user.role === "therapist") {
-    return (
-      <div className="flex items-center">
-        {viewingClientId ? (
-          <div className="flex items-center">
-            <Badge variant="outline" className="mr-2 bg-yellow-50 text-yellow-700 border-yellow-200">
-              Viewing Client
-            </Badge>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 border-dashed">
-                  <span className="truncate max-w-[150px]">{viewingClientName}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px]">
-                <DropdownMenuItem onClick={handleReturnToSelf}>
-                  Return to my dashboard
-                </DropdownMenuItem>
-                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                  Switch Client
-                </div>
-                {clients.map((client) => (
-                  <DropdownMenuItem 
-                    key={client.id}
-                    onClick={() => handleClientSelect(client.id, client.name)}
-                  >
-                    {client.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        ) : (
-          <div className="flex items-center">
-            <Badge variant="outline" className="mr-2 bg-green-50 text-green-700 border-green-200">
-              Therapist
-            </Badge>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8">
-                  <Users className="mr-1 h-4 w-4" />
-                  <span>My Clients</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px]">
-                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                  View Client Data
-                </div>
-                {loading ? (
-                  <div className="flex justify-center p-2">
-                    <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
-                  </div>
-                ) : clients.length > 0 ? (
-                  clients.map((client) => (
-                    <DropdownMenuItem 
-                      key={client.id}
-                      onClick={() => handleClientSelect(client.id, client.name)}
-                    >
-                      {client.name}
-                    </DropdownMenuItem>
-                  ))
-                ) : (
-                  <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                    No clients found
-                  </div>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // For admins, show admin badge only (no client viewing functionality)
+  // Admin role
   if (user.role === "admin") {
     return (
-      <div className="flex items-center">
-        <Badge variant="outline" className="mr-2 bg-purple-50 text-purple-700 border-purple-200">
-          Administrator
-        </Badge>
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-[#090514] border border-purple-200">
+        Administrator
+      </span>
+    );
+  }
+
+  // Therapist — viewing a client
+  if (user.role === "therapist" && viewingClientId) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+          Viewing Client
+        </span>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:border-[#090514] hover:text-[#090514] transition-colors shadow-sm outline-none">
+              <span
+                className="w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, #090514 0%, #1e0a36 100%)" }}
+              >
+                {getInitials(viewingClientName || "")}
+              </span>
+              <span className="truncate max-w-[110px]">{viewingClientName}</span>
+              <ChevronDown size={12} className="text-slate-400 flex-shrink-0" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[230px] p-1.5 rounded-2xl shadow-xl border border-slate-100">
+            {/* Active client header */}
+            <div className="flex items-center gap-2.5 px-3 py-2.5 mb-1 rounded-xl bg-slate-50 border border-slate-100">
+              <span
+                className="w-8 h-8 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, #090514 0%, #1e0a36 100%)" }}
+              >
+                {getInitials(viewingClientName || "")}
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs text-slate-400 font-medium">Active client</p>
+                <p className="text-sm font-semibold text-slate-800 truncate">{viewingClientName}</p>
+              </div>
+            </div>
+
+            <DropdownMenuItem
+              onClick={handleReturnToSelf}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 hover:bg-slate-50 cursor-pointer"
+            >
+              <span className="w-5 h-5 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">
+                ←
+              </span>
+              Return to my dashboard
+            </DropdownMenuItem>
+
+            {clients.length > 0 && (
+              <>
+                <div className="px-3 pt-2 pb-1 mt-1 border-t border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Switch Client</p>
+                </div>
+                {clients.map((client) => (
+                  <DropdownMenuItem
+                    key={client.id}
+                    onClick={() => handleClientSelect(client.id, client.name)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-[#090514]/5 cursor-pointer"
+                  >
+                    <span className="w-7 h-7 rounded-full bg-purple-50 border border-purple-200 text-[#090514] text-xs font-bold flex items-center justify-center flex-shrink-0">
+                      {getInitials(client.name)}
+                    </span>
+                    <span className="text-slate-700 font-medium">{client.name}</span>
+                    {client.id === viewingClientId && (
+                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#090514]" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     );
   }
 
-  // Fallback for unknown roles
+  // Therapist — no client selected
+  if (user.role === "therapist") {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-[#090514] border border-purple-200">
+          Therapist
+        </span>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:border-[#090514] hover:text-[#090514] transition-colors shadow-sm outline-none">
+              <Users size={14} className="text-slate-400 flex-shrink-0" />
+              <span>My Clients</span>
+              <ChevronDown size={12} className="text-slate-400" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[230px] p-1.5 rounded-2xl shadow-xl border border-slate-100">
+            {/* Header */}
+            <div className="flex items-center gap-2 px-3 py-2 mb-0.5">
+              <div className="w-6 h-6 rounded-lg bg-[#090514]/8 flex items-center justify-center">
+                <Users size={12} className="text-[#090514]" />
+              </div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">View Client Data</p>
+            </div>
+            <div className="h-px bg-slate-100 mx-1 mb-1" />
+
+            {loading ? (
+              <div className="flex justify-center p-4">
+                <div className="animate-spin h-4 w-4 border-2 border-[#090514] border-t-transparent rounded-full" />
+              </div>
+            ) : clients.length > 0 ? (
+              clients.map((client) => (
+                <DropdownMenuItem
+                  key={client.id}
+                  onClick={() => handleClientSelect(client.id, client.name)}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-[#090514]/5 cursor-pointer mx-0.5"
+                >
+                  <span className="w-7 h-7 rounded-full bg-purple-50 border border-purple-200 text-[#090514] text-xs font-bold flex items-center justify-center flex-shrink-0">
+                    {getInitials(client.name)}
+                  </span>
+                  <span className="text-slate-700 font-medium">{client.name}</span>
+                </DropdownMenuItem>
+              ))
+            ) : (
+              <div className="px-3 py-5 text-center">
+                <Users size={20} className="mx-auto text-slate-300 mb-1.5" />
+                <p className="text-sm text-slate-400">No clients found</p>
+              </div>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-center">
-      <Badge variant="outline" className="mr-2 bg-gray-50 text-gray-700 border-gray-200">
-        {user.role || "User"}
-      </Badge>
-    </div>
+    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-200">
+      {user.role || "User"}
+    </span>
   );
 }
