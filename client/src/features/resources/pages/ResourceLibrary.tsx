@@ -8,6 +8,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import DOMPurify from "dompurify";
+import { cn } from "@/lib/utils";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
@@ -60,15 +67,15 @@ type CopingStrategyFormValues = z.infer<typeof copingStrategySchema>;
 
 // ─── Category accent map (light tokens) ───
 const categoryMap: Record<string, { pill: string; dot: string }> = {
-  "CBT Basics":           { pill: "bg-violet-50  text-violet-700  ring-violet-200",  dot: "bg-violet-500"  },
-  "Anxiety":              { pill: "bg-amber-50   text-amber-700   ring-amber-200",   dot: "bg-amber-500"   },
-  "Depression":           { pill: "bg-blue-50    text-blue-700    ring-blue-200",    dot: "bg-blue-500"    },
-  "Stress Management":    { pill: "bg-emerald-50 text-emerald-700 ring-emerald-200", dot: "bg-emerald-500" },
-  "Mindfulness":          { pill: "bg-teal-50    text-teal-700    ring-teal-200",    dot: "bg-teal-500"    },
-  "Emotional Regulation": { pill: "bg-violet-50  text-violet-700  ring-violet-200",  dot: "bg-violet-500"  },
-  "Relationships":        { pill: "bg-purple-50  text-purple-800  ring-purple-200",  dot: "bg-purple-700"  },
-  "Trauma":               { pill: "bg-orange-50  text-orange-700  ring-orange-200",  dot: "bg-orange-500"  },
-  "Self Care":            { pill: "bg-lime-50    text-lime-700    ring-lime-200",    dot: "bg-lime-500"    },
+  "CBT Basics":           { pill: "bg-purple-50 text-purple-700 ring-purple-200", dot: "bg-purple-500" },
+  "Anxiety":              { pill: "bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-200", dot: "bg-fuchsia-500" },
+  "Depression":           { pill: "bg-indigo-50 text-indigo-700 ring-indigo-200", dot: "bg-indigo-500" },
+  "Stress Management":    { pill: "bg-violet-50 text-violet-700 ring-violet-200", dot: "bg-violet-500" },
+  "Mindfulness":          { pill: "bg-teal-50 text-teal-700 ring-teal-200", dot: "bg-teal-500" },
+  "Emotional Regulation": { pill: "bg-pink-50 text-pink-700 ring-pink-200", dot: "bg-pink-500" },
+  "Relationships":        { pill: "bg-rose-50 text-rose-700 ring-rose-200", dot: "bg-rose-500" },
+  "Trauma":               { pill: "bg-slate-50 text-slate-700 ring-slate-200", dot: "bg-slate-500" },
+  "Self Care":            { pill: "bg-emerald-50 text-emerald-700 ring-emerald-200", dot: "bg-emerald-500" },
 };
 function getCat(cat: string) {
   return categoryMap[cat] ?? { pill: "bg-purple-50 text-purple-900 ring-purple-200", dot: "bg-purple-800" };
@@ -212,30 +219,7 @@ function ItemCard({
   );
 }
 
-// ─── Tab Button ───
-function TabButton({
-  active, onClick, icon, label, count,
-}: {
-  active: boolean; onClick: () => void;
-  icon: React.ReactNode; label: string; count?: number;
-}) {
-  return (
-    <button onClick={onClick}
-      className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
-        active
-          ? "bg-[#090514] text-white shadow-sm"
-          : "text-slate-500 hover:text-slate-700 hover:bg-slate-100"
-      }`}>
-      <span className={active ? "text-purple-200" : "text-slate-400"}>{icon}</span>
-      {label}
-      {count !== undefined && (
-        <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
-          active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
-        }`}>{count}</span>
-      )}
-    </button>
-  );
-}
+// TabButton was removed in favor of Radix Tabs integration
 
 // ─── Section header divider ───
 function SectionLabel({ icon, label, count, extra }: { icon: React.ReactNode; label: string; count?: number; extra?: string }) {
@@ -254,7 +238,6 @@ export default function ResourceLibrary() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   const [activeTab, setActiveTab] = useState<"educational-resources" | "protective-factors" | "coping-strategies" | "client-assignments">("educational-resources");
   const [searchQuery, setSearchQuery] = useState("");
   const [resourceCategory, setResourceCategory] = useState("all");
@@ -399,58 +382,156 @@ export default function ResourceLibrary() {
     <AppLayout title="Resource Library">
       <div className="min-h-full bg-slate-50">
 
-        {/* ── Hero ── */}
-        <div className="bg-white border-b border-slate-100 px-6 py-8">
-          <div className="max-w-6xl mx-auto">
+                {/* Premium Hero Banner */}
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden transition-all duration-300 border-b border-purple-900/30">
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="max-w-6xl mx-auto relative">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div className="flex items-center gap-4">
-                {/* Purple icon badge */}
-                <div className="p-3 rounded-2xl bg-[#090514] shadow-lg shadow-purple-950/20">
-                  <BookOpen className="h-7 w-7 text-white" />
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-4 w-4 text-purple-400" />
+                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                    Resource Library
+                  </span>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-purple-900 uppercase tracking-widest mb-0.5">Resource Library</p>
-                  <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Clinical Resource Hub</h1>
-                  <p className="text-sm text-slate-500 mt-0.5">Therapeutic tools for admins and therapists</p>
-                </div>
+                <h1 className="font-bold text-white tracking-tight text-3xl md:text-4xl mb-2">
+                  Clinical Resource Hub
+                </h1>
+                <p className="text-purple-300/70 text-base max-w-md leading-relaxed">
+                  Therapeutic tools, protective factors, and coping strategies for recovery and growth
+                </p>
               </div>
 
               {/* Stats */}
-              <div className="flex items-center gap-5">
+              <div className="flex items-center gap-6 shrink-0 flex-wrap">
                 {[
                   { value: educationalResources?.length ?? "—", label: "Resources" },
                   { value: protectiveFactors?.length ?? "—",    label: "Factors" },
                   { value: copingStrategies?.length ?? "—",     label: "Strategies" },
                 ].map((s, i) => (
                   <div key={i} className="text-center">
-                    <div className="text-xl font-bold text-[#090514]">{s.value}</div>
-                    <div className="text-[11px] text-slate-400 font-medium">{s.label}</div>
+                    <div className="text-2xl font-bold text-white">{s.value}</div>
+                    <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* ── Tab Nav ── */}
-        <div className="sticky top-0 z-10 bg-white border-b border-slate-100 shadow-sm">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="flex items-center gap-1.5 py-2.5 overflow-x-auto no-scrollbar">
-              <TabButton active={activeTab === "educational-resources"} onClick={() => setActiveTab("educational-resources")} icon={<BookOpen className="h-4 w-4" />} label="Educational Resources" count={educationalResources?.length} />
-              <TabButton active={activeTab === "protective-factors"} onClick={() => setActiveTab("protective-factors")} icon={<Shield className="h-4 w-4" />} label="Protective Factors" count={personalFactors?.length} />
-              <TabButton active={activeTab === "coping-strategies"} onClick={() => setActiveTab("coping-strategies")} icon={<Brain className="h-4 w-4" />} label="Coping Strategies" count={personalStrategies?.length} />
-              {user?.role === "therapist" && (
-                <TabButton active={activeTab === "client-assignments"} onClick={() => setActiveTab("client-assignments")} icon={<Users className="h-4 w-4" />} label="Client Assignments" count={clientAssignments?.length} />
-              )}
+            {/* Library Overview strip */}
+            <div className="mt-6 bg-white/5 rounded-xl border border-white/10 p-4">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-3.5 w-3.5 text-teal-400" />
+                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">Library Overview</span>
+                </div>
+                <span className="text-xs text-purple-400">{(educationalResources?.length ?? 0) + (protectiveFactors?.length ?? 0) + (copingStrategies?.length ?? 0)} total resources</span>
+              </div>
+              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-teal-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: "100%" }} />
+              </div>
+              <p className="text-[11px] text-purple-400/60 mt-1.5">Evidence-based CBT tools, exercises, and strategies to support your recovery journey.</p>
             </div>
           </div>
         </div>
 
-        {/* ── Body ── */}
+        {/* Main Body Layout */}
         <div className="max-w-6xl mx-auto px-4 py-8">
+          <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as any)} className="space-y-6">
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-1.5">
+              <TabsList className="w-full h-auto bg-transparent p-0 gap-1 grid grid-cols-2 sm:flex">
+                <TabsTrigger
+                  value="educational-resources"
+                  className={cn(
+                    "sm:flex-1 min-w-0 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-all",
+                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                  )}
+                >
+                  <BookOpen className="h-4 w-4 mr-2 inline" />
+                  Educational Resources
+                  {educationalResources && educationalResources.length > 0 && (
+                    <span className={cn(
+                      "ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-bold transition-all",
+                      activeTab === "educational-resources"
+                        ? "bg-white/20 text-white"
+                        : "bg-slate-100 text-slate-500"
+                    )}>
+                      {educationalResources.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="protective-factors"
+                  className={cn(
+                    "sm:flex-1 min-w-0 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-all",
+                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                  )}
+                >
+                  <Shield className="h-4 w-4 mr-2 inline" />
+                  Protective Factors
+                  {personalFactors && personalFactors.length > 0 && (
+                    <span className={cn(
+                      "ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-bold transition-all",
+                      activeTab === "protective-factors"
+                        ? "bg-white/20 text-white"
+                        : "bg-slate-100 text-slate-500"
+                    )}>
+                      {personalFactors.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="coping-strategies"
+                  className={cn(
+                    "sm:flex-1 min-w-0 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-all",
+                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                  )}
+                >
+                  <Brain className="h-4 w-4 mr-2 inline" />
+                  Coping Strategies
+                  {personalStrategies && personalStrategies.length > 0 && (
+                    <span className={cn(
+                      "ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-bold transition-all",
+                      activeTab === "coping-strategies"
+                        ? "bg-white/20 text-white"
+                        : "bg-slate-100 text-slate-500"
+                    )}>
+                      {personalStrategies.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+                {user?.role === "therapist" && (
+                  <TabsTrigger
+                    value="client-assignments"
+                    className={cn(
+                      "sm:flex-1 min-w-0 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-all",
+                      "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                    )}
+                  >
+                    <Users className="h-4 w-4 mr-2 inline" />
+                    Client Assignments
+                    {clientAssignments && clientAssignments.length > 0 && (
+                      <span className={cn(
+                        "ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-bold transition-all",
+                        activeTab === "client-assignments"
+                          ? "bg-white/20 text-white"
+                          : "bg-slate-100 text-slate-500"
+                      )}>
+                        {clientAssignments.length}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                )}
+              </TabsList>
+            </div>
 
           {/* ══ EDUCATIONAL RESOURCES ══ */}
-          {activeTab === "educational-resources" && (
+          <TabsContent value="educational-resources" className="mt-0 focus-visible:outline-none">
             <div>
               {/* Toolbar */}
               <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -572,10 +653,10 @@ export default function ResourceLibrary() {
                 </div>
               )}
             </div>
-          )}
+          </TabsContent>
 
           {/* ══ PROTECTIVE FACTORS ══ */}
-          {activeTab === "protective-factors" && (
+          <TabsContent value="protective-factors" className="mt-0 focus-visible:outline-none">
             <div>
               <div className="flex items-start justify-between mb-7 gap-4">
                 <div>
@@ -715,10 +796,10 @@ export default function ResourceLibrary() {
                 </DialogContent>
               </Dialog>
             </div>
-          )}
+          </TabsContent>
 
           {/* ══ COPING STRATEGIES ══ */}
-          {activeTab === "coping-strategies" && (
+          <TabsContent value="coping-strategies" className="mt-0 focus-visible:outline-none">
             <div>
               <div className="flex items-start justify-between mb-7 gap-4">
                 <div>
@@ -852,11 +933,12 @@ export default function ResourceLibrary() {
                 </DialogContent>
               </Dialog>
             </div>
-          )}
+          </TabsContent>
 
           {/* ══ CLIENT ASSIGNMENTS ══ */}
-          {activeTab === "client-assignments" && user?.role === "therapist" && (
-            <div>
+          {user?.role === "therapist" && (
+            <TabsContent value="client-assignments" className="mt-0 focus-visible:outline-none">
+              <div>
               <div className="mb-7">
                 <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
                   <Users className="h-5 w-5 text-purple-900" /> Client Assignments
@@ -933,8 +1015,10 @@ export default function ResourceLibrary() {
                 </div>
               )}
             </div>
+          </TabsContent>
           )}
-        </div>
+        </Tabs>
+      </div>
 
         {/* ── Global dialogs ── */}
         <ResourceViewer

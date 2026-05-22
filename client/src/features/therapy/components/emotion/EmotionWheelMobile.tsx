@@ -22,6 +22,7 @@ import {
 interface EmotionWheelMobileProps {
   language?: string;
   direction?: "ltr" | "rtl";
+  compact?: boolean;
   onEmotionSelect?: (selection: {
     coreEmotion: string;
     primaryEmotion: string;
@@ -32,8 +33,14 @@ interface EmotionWheelMobileProps {
 export default function EmotionWheelMobile({
   language = "en",
   direction = "ltr",
+  compact = false,
   onEmotionSelect,
 }: EmotionWheelMobileProps) {
+  const panelPad = compact ? "p-3" : "p-4";
+  const headingClass = compact ? "text-center text-base font-medium mb-2" : "text-center text-lg font-medium mb-4";
+  const gridGap = compact ? "gap-2" : "gap-3";
+  const btnPad = compact ? "p-3" : "p-4";
+  const hintMt = compact ? "mt-2" : "mt-4";
   // State for tracking selected emotions
   const [selectedCoreGroup, setSelectedCoreGroup] = useState<number | null>(null);
   const [selectedPrimaryGroup, setSelectedPrimaryGroup] = useState<number | null>(null);
@@ -169,18 +176,18 @@ export default function EmotionWheelMobile({
   const renderCoreWheel = () => {
     return (
       <motion.div 
-        className="p-4 rounded-xl bg-white shadow-sm"
+        className={`${panelPad} rounded-xl bg-white shadow-sm`}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <h3 className="text-center text-lg font-medium mb-4">Select a Core Emotion</h3>
-        <div className="grid grid-cols-2 gap-3">
+        <h3 className={headingClass}>Select a Core Emotion</h3>
+        <div className={`grid grid-cols-2 ${gridGap}`}>
           {emotionGroups.map((group: any, index: number) => (
             <motion.button
               key={group.core}
               className={cn(
-                "p-4 rounded-lg text-center font-medium transition-colors",
+                `${btnPad} rounded-lg text-center font-medium transition-colors`,
                 getEmotionColor(group.core),
                 selectedCoreGroup === index ? "ring-2 ring-offset-2 ring-blue-500" : ""
               )}
@@ -191,7 +198,7 @@ export default function EmotionWheelMobile({
             </motion.button>
           ))}
         </div>
-        <div className="text-center mt-4 text-sm text-gray-500">
+        <div className={`text-center ${hintMt} text-sm text-gray-500`}>
           Tap a core emotion to continue
         </div>
       </motion.div>
@@ -206,31 +213,31 @@ export default function EmotionWheelMobile({
     
     return (
       <motion.div 
-        className="p-4 rounded-xl bg-white shadow-sm"
+        className={`${panelPad} rounded-xl bg-white shadow-sm`}
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="flex justify-between items-center mb-4">
+        <div className={`flex justify-between items-center ${compact ? "mb-2" : "mb-4"}`}>
           <button 
             onClick={handleBack}
             className="text-blue-600 text-sm flex items-center"
           >
             ← Back
           </button>
-          <h3 className="text-center text-lg font-medium">
+          <h3 className={compact ? "text-center text-base font-medium" : "text-center text-lg font-medium"}>
             Variations of <span className={cn("px-2 py-1 rounded", getEmotionColor(coreGroup.core))}>
               {coreGroup.core}
             </span>
           </h3>
         </div>
         
-        <div className="grid grid-cols-2 gap-3">
+        <div className={`grid grid-cols-2 ${gridGap}`}>
           {coreGroup.primary.map((primaryEmotion: string, primaryIndex: number) => (
             <motion.button
               key={primaryEmotion}
               className={cn(
-                "p-3 rounded-lg text-center transition-colors",
+                `${compact ? "p-2.5" : "p-3"} rounded-lg text-center transition-colors`,
                 getEmotionColor(coreGroup.core),
                 selectedPrimaryGroup === primaryIndex ? "ring-2 ring-offset-2 ring-blue-500" : ""
               )}
@@ -242,7 +249,7 @@ export default function EmotionWheelMobile({
           ))}
         </div>
         
-        <div className="text-center mt-4 text-sm text-gray-500">
+        <div className={`text-center ${hintMt} text-sm text-gray-500`}>
           Tap to select a more specific emotion
         </div>
       </motion.div>
@@ -259,19 +266,19 @@ export default function EmotionWheelMobile({
     
     return (
       <motion.div 
-        className="p-4 rounded-xl bg-white shadow-sm"
+        className={`${panelPad} rounded-xl bg-white shadow-sm`}
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="flex justify-between items-center mb-4">
+        <div className={`flex justify-between items-center ${compact ? "mb-2" : "mb-4"}`}>
           <button 
             onClick={handleBack}
             className="text-blue-600 text-sm flex items-center"
           >
             ← Back
           </button>
-          <h3 className="text-center text-lg font-medium">
+          <h3 className={compact ? "text-center text-base font-medium" : "text-center text-lg font-medium"}>
             Specific forms of <span className={cn("px-2 py-1 rounded", getEmotionColor(primaryEmotion))}>
               {primaryEmotion}
             </span>
@@ -298,7 +305,7 @@ export default function EmotionWheelMobile({
           ))}
         </div>
         
-        <div className="text-center mt-4 text-sm text-gray-500">
+        <div className={`text-center ${hintMt} text-sm text-gray-500`}>
           Tap to make your final selection
         </div>
       </motion.div>
@@ -306,14 +313,67 @@ export default function EmotionWheelMobile({
   };
   
   // Render the final selection preview
+  const renderCompactStatusBar = () => {
+    const { core, primary, tertiary } = getSelectedEmotions();
+
+    return (
+      <div className="flex items-center gap-2 min-h-[2.5rem] px-3 py-2 mb-2 rounded-xl border border-slate-100 bg-slate-50/90 overflow-hidden">
+        <span className="shrink-0 text-xs font-semibold text-slate-500 whitespace-nowrap">Emotion path</span>
+        <div className="flex-1 min-w-0 overflow-x-auto">
+          {core ? (
+            <span className="flex items-center gap-1 text-xs text-slate-700">
+              {[core, primary, tertiary].filter(Boolean).map((part, i) => (
+                <span key={String(part)} className="flex items-center gap-1 shrink-0">
+                  {i > 0 && <span className="text-slate-300">→</span>}
+                  <span className="font-medium">{part}</span>
+                </span>
+              ))}
+            </span>
+          ) : (
+            <span className="text-xs text-slate-400 italic">Select on the wheel</span>
+          )}
+        </div>
+        <span className="shrink-0 text-slate-200" aria-hidden>
+          |
+        </span>
+        <span className="shrink-0 text-xs font-semibold text-emerald-700 whitespace-nowrap">Selected</span>
+        <div className="shrink-0 max-w-[45%] overflow-x-auto">
+          {core ? (
+            <span className="flex items-center gap-1">
+              <span className={cn("px-2 py-0.5 rounded text-xs font-medium", getEmotionColor(core))}>{core}</span>
+              {primary && (
+                <>
+                  <span className="text-slate-300 text-xs">→</span>
+                  <span className={cn("px-2 py-0.5 rounded text-xs font-medium opacity-90", getEmotionColor(core))}>
+                    {primary}
+                  </span>
+                </>
+              )}
+              {tertiary && (
+                <>
+                  <span className="text-slate-300 text-xs">→</span>
+                  <span className={cn("px-2 py-0.5 rounded text-xs font-medium opacity-75", getEmotionColor(core))}>
+                    {tertiary}
+                  </span>
+                </>
+              )}
+            </span>
+          ) : (
+            <span className="text-xs text-amber-600">—</span>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderSelectionPreview = () => {
     const { core, primary, tertiary } = getSelectedEmotions();
     
-    if (!core) return null;
+    if (!core || compact) return null;
     
     return (
-      <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-        <div className="text-sm font-medium text-gray-600 mb-2">Your selection:</div>
+      <div className={`${compact ? "mt-2 p-2.5" : "mt-4 p-3"} bg-gray-50 rounded-lg border border-gray-200`}>
+        <div className="text-sm font-medium text-gray-600 mb-1.5">Your selection:</div>
         <div className="flex flex-wrap gap-2 items-center">
           {core && (
             <span className={cn("px-2 py-1 rounded text-sm", getEmotionColor(core))}>
@@ -346,7 +406,7 @@ export default function EmotionWheelMobile({
   // Render the main component
   return (
     <div 
-      className="relative overflow-hidden rounded-xl bg-gray-50 py-4"
+      className={`relative overflow-hidden rounded-xl bg-gray-50 ${compact ? "py-2" : "py-4"}`}
       ref={wheelContainerRef}
     >
       <TooltipProvider>
@@ -364,7 +424,8 @@ export default function EmotionWheelMobile({
         </div>
       </TooltipProvider>
       
-      <div className="px-4">
+      <div className={compact ? "px-3" : "px-4"}>
+        {compact && renderCompactStatusBar()}
         {/* Show the appropriate wheel based on selection state */}
         {viewMode === "core" && renderCoreWheel()}
         {viewMode === "primary" && renderPrimaryWheel()}
@@ -375,7 +436,7 @@ export default function EmotionWheelMobile({
         
         {/* Confirm button for mobile users - show at any selection level */}
         {selectedCoreGroup !== null && (
-          <div className="mt-4 flex gap-2">
+          <div className={`${compact ? "mt-2" : "mt-4"} flex gap-2`}>
             {(viewMode !== "core") && (
               <button
                 onClick={handleBack}

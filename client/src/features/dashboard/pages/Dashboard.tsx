@@ -1,13 +1,11 @@
 import { useAuth } from "@/lib/auth";
 import AppLayout from "@/components/layout/AppLayout";
-import GettingStarted from "@/features/dashboard/components/GettingStarted";
-import ModuleSummaryCard from "@/features/dashboard/components/ModuleSummaryCard";
 import { useModuleStats } from "@/hooks/use-module-stats";
 import useActiveUser from "@/hooks/use-active-user";
 import { useClientContext } from "@/context/ClientContext";
 import { ClientDebug } from "@/features/admin/components/debug/ClientDebug";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { motion } from "framer-motion";
 import {
   Heart, Brain, Lightbulb, BookOpen, Target,
@@ -15,9 +13,10 @@ import {
   LayoutDashboard, Activity, TrendingUp, ChevronRight,
   Settings, Library, Sparkles, Shield, BarChart3,
   Clock, Calendar, Bell, FileText, Zap, ArrowUpRight,
-  ArrowLeft, User,
+  ArrowLeft, User, CheckCircle2, Star, Flame,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 // ── Quick-action card used in both Admin and Therapist views ──
 function QuickActionCard({
@@ -572,58 +571,306 @@ export default function Dashboard() {
   }
 
   // ═══════════════════════════════════════
-  //  CLIENT VIEW (client's own dashboard — unchanged)
+  //  CLIENT DASHBOARD
   // ═══════════════════════════════════════
+  const hour = new Date().getHours();
+  const timeGreeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const motivationalLines = [
+    "Every small step forward is progress worth celebrating.",
+    "Your mental wellness journey is uniquely yours.",
+    "Today is a new opportunity to understand yourself better.",
+    "You're making time for what matters — that's powerful.",
+    "Consistency is the foundation of lasting change.",
+    "Awareness is the first step to transformation.",
+    "You have the strength to face what comes.",
+  ];
+  const motivationalLine = motivationalLines[new Date().getDay() % motivationalLines.length];
+
+  const todayFocus = [
+    { Icon: Heart,     label: "Track Emotion",  href: "/emotions",      done: moduleStats.emotions.total > 0,         color: "text-rose-500",    bg: "bg-rose-50",    border: "border-rose-200"   },
+    { Icon: Brain,     label: "Record Thought", href: "/thoughts",      done: moduleStats.thoughts.total > 0,         color: "text-purple-600",  bg: "bg-purple-50",  border: "border-purple-200" },
+    { Icon: Lightbulb, label: "Reframe Coach",  href: "/reframe-coach", done: moduleStats.reframe.totalPractices > 0, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200"},
+    { Icon: BookOpen,  label: "Write Journal",  href: "/journal",       done: moduleStats.journal.total > 0,          color: "text-amber-600",   bg: "bg-amber-50",   border: "border-amber-200"  },
+    { Icon: Target,    label: "Set a Goal",     href: "/goals",         done: moduleStats.goals.total > 0,            color: "text-indigo-600",  bg: "bg-indigo-50",  border: "border-indigo-200" },
+  ];
+  const completedSteps = todayFocus.filter((f) => f.done).length;
+
+  const clientModules = [
+    {
+      Icon: Heart,
+      label: "Emotion Tracking",
+      description: "Track your moods, triggers, and emotional patterns over time.",
+      href: "/emotions",
+      stat: moduleStats.emotions.total,
+      statLabel: "logs recorded",
+      insight: moduleStats.emotions.mostCommon !== "None" ? `Most common: ${moduleStats.emotions.mostCommon}` : "Start logging to see patterns",
+      iconColor: "text-rose-500",
+      bg: "bg-rose-50",
+      border: "border-rose-100",
+      barColor: "bg-rose-400",
+    },
+    {
+      Icon: Brain,
+      label: "Thought Records",
+      description: "Identify and challenge unhelpful thinking patterns.",
+      href: "/thoughts",
+      stat: moduleStats.thoughts.total,
+      statLabel: "records logged",
+      insight: moduleStats.thoughts.topANT !== "None" ? `Top pattern: ${moduleStats.thoughts.topANT}` : "Log thoughts to find patterns",
+      iconColor: "text-purple-600",
+      bg: "bg-purple-50",
+      border: "border-purple-100",
+      barColor: "bg-purple-500",
+    },
+    {
+      Icon: Lightbulb,
+      label: "Reframe Coach",
+      description: "Practice cognitive restructuring with guided exercises.",
+      href: "/reframe-coach",
+      stat: moduleStats.reframe.totalPractices,
+      statLabel: "sessions done",
+      insight: moduleStats.reframe.averageScore > 0 ? `Avg. score: ${moduleStats.reframe.averageScore}` : "Start your first session",
+      iconColor: "text-emerald-600",
+      bg: "bg-emerald-50",
+      border: "border-emerald-100",
+      barColor: "bg-emerald-500",
+    },
+    {
+      Icon: BookOpen,
+      label: "Journal",
+      description: "Reflect daily and process your thoughts through writing.",
+      href: "/journal",
+      stat: moduleStats.journal.total,
+      statLabel: "entries written",
+      insight: moduleStats.journal.emotionsDetected > 0 ? `${moduleStats.journal.emotionsDetected} emotions detected` : "Start writing today",
+      iconColor: "text-amber-600",
+      bg: "bg-amber-50",
+      border: "border-amber-100",
+      barColor: "bg-amber-400",
+    },
+    {
+      Icon: Target,
+      label: "SMART Goals",
+      description: "Set meaningful goals and track your milestones.",
+      href: "/goals",
+      stat: moduleStats.goals.total,
+      statLabel: "goals created",
+      insight: moduleStats.goals.total > 0 ? `${moduleStats.goals.completedPercentage}% success rate` : "Set your first goal",
+      iconColor: "text-indigo-600",
+      bg: "bg-indigo-50",
+      border: "border-indigo-100",
+      barColor: "bg-indigo-500",
+    },
+    {
+      Icon: Library,
+      label: "Resource Library",
+      description: "Access curated CBT exercises, guides, and reading material.",
+      href: "/library",
+      stat: null,
+      statLabel: "resources",
+      insight: "Explore techniques & tools",
+      iconColor: "text-teal-600",
+      bg: "bg-teal-50",
+      border: "border-teal-100",
+      barColor: "bg-teal-500",
+    },
+  ];
+
   return (
-    <AppLayout title="Dashboard">
-      <div className="container mx-auto px-4 py-6">
+    <AppLayout title="My Dashboard">
+      <div className="min-h-screen bg-slate-50">
         <ClientDebug />
 
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-neutral-800">Welcome back, {displayName}</h1>
-          <p className="text-neutral-500">Track your emotions, thoughts, and progress on your journey to clarity.</p>
-        </div>
+        {/* ── Hero banner — negative margins cancel the main element's px-2 sm:px-4 padding ── */}
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden">
+          {/* Decorative glows */}
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
 
-        <GettingStarted />
-
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Target className="h-5 w-5 text-[#090514]" />
-            <h2 className="text-base font-bold text-slate-700">Your Progress</h2>
-          </div>
-          <div className="mb-4">
-            <div className="flex justify-between mb-2">
-              <span className="text-sm font-medium text-slate-600">Engagement Score</span>
-              <span className="text-sm font-bold text-[#090514]">{engagementScore}%</span>
-            </div>
-            <Progress value={engagementScore} className="h-2" />
-            <p className="text-xs text-slate-400 mt-2">{totalActivities} total activities completed across all modules</p>
-          </div>
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 pt-2 border-t border-slate-100">
-            {[
-              { val: moduleStats.emotions.total,          label: "Emotions",  color: "text-blue-600"   },
-              { val: moduleStats.thoughts.total,          label: "Thoughts",  color: "text-purple-600" },
-              { val: moduleStats.reframe.totalPractices,  label: "Practices", color: "text-green-600"  },
-              { val: moduleStats.journal.total,           label: "Entries",   color: "text-amber-600"  },
-              { val: moduleStats.goals.total,             label: "Goals",     color: "text-indigo-600" },
-            ].map((s, i) => (
-              <div key={i} className="text-center">
-                <div className={`text-2xl font-bold ${s.color}`}>{s.val}</div>
-                <div className="text-xs text-slate-400">{s.label}</div>
+          <div className="max-w-5xl mx-auto relative">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+              {/* Greeting */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="h-4 w-4 text-purple-400" />
+                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">Your Wellness Space</span>
+                </div>
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
+                  {timeGreeting}, {displayName}
+                </h1>
+                <p className="text-purple-300/70 text-base max-w-md leading-relaxed">
+                  {motivationalLine}
+                </p>
               </div>
-            ))}
+
+              {/* Top-level stats */}
+              <div className="flex items-center gap-6 shrink-0 flex-wrap">
+                {[
+                  { value: `${engagementScore}%`, label: "Engagement" },
+                  { value: totalActivities,        label: "Activities"  },
+                  { value: moduleStats.goals.total, label: "Goals Set"  },
+                ].map((s, i) => (
+                  <div key={i} className="text-center">
+                    <div className="text-2xl font-bold text-white">{s.value}</div>
+                    <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Journey progress strip */}
+            <div className="mt-6 bg-white/5 rounded-xl border border-white/10 p-4">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <Flame className="h-3.5 w-3.5 text-orange-400" />
+                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">Journey Milestone</span>
+                </div>
+                <span className="text-xs text-purple-400">{engagementScore}% of first milestone</span>
+              </div>
+              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full transition-all duration-700"
+                  style={{ width: `${engagementScore}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-purple-400/60 mt-1.5">{totalActivities} of 50 activities logged — keep going!</p>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-6 mb-6">
-          <h2 className="text-xl font-bold">Your Modules</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <ModuleSummaryCard title="Emotion Tracking"  icon={Heart}     color="#3b82f6" backgroundColor="#dbeafe" linkTo="/emotions"       metrics={[{ label: "Total", value: moduleStats.emotions.total }, { label: "Most Common", value: moduleStats.emotions.mostCommon }]} />
-            <ModuleSummaryCard title="Thought Records"   icon={Brain}     color="#9333ea" backgroundColor="#f3e8ff" linkTo="/thought-records" metrics={[{ label: "Total", value: moduleStats.thoughts.total }, { label: "Top Pattern", value: moduleStats.thoughts.topANT }]} />
-            <ModuleSummaryCard title="Reframe Coach"     icon={Lightbulb} color="#16a34a" backgroundColor="#dcfce7" linkTo="/reframe-coach"   metrics={[{ label: "Practices", value: moduleStats.reframe.totalPractices }, { label: "Avg. Score", value: moduleStats.reframe.averageScore }]} />
-            <ModuleSummaryCard title="Journal"           icon={BookOpen}  color="#eab308" backgroundColor="#fef9c3" linkTo="/journal"         metrics={[{ label: "Total", value: moduleStats.journal.total }, { label: "Emotions Found", value: moduleStats.journal.emotionsDetected }]} />
-            <ModuleSummaryCard title="Smart Goals"       icon={Target}    color="#6366f1" backgroundColor="#e0e7ff" linkTo="/goals"           metrics={[{ label: "Total", value: moduleStats.goals.total }, { label: "Success Rate", value: `${moduleStats.goals.completedPercentage}%` }]} />
+        {/* ── Body ── */}
+        <div className="max-w-5xl mx-auto pt-6 pb-10 space-y-5">
+
+          {/* Today's Focus */}
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-purple-900" />
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Today's Focus</span>
+              </div>
+              <span className="text-xs font-semibold text-slate-400">{completedSteps}/5 done</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              {todayFocus.map(({ Icon, label, href, done, color, bg, border }) => (
+                <Link key={href} href={href}>
+                  <div className={cn(
+                    "relative flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
+                    done
+                      ? "border-emerald-200 bg-emerald-50/60"
+                      : cn(border, bg, "hover:border-purple-200 hover:bg-white")
+                  )}>
+                    {done && (
+                      <CheckCircle2 className="absolute top-2 right-2 h-3 w-3 text-emerald-500" />
+                    )}
+                    <div className={cn("p-1.5 rounded-lg shrink-0", done ? "bg-emerald-100" : bg)}>
+                      <Icon className={cn("h-4 w-4", done ? "text-emerald-500" : color)} />
+                    </div>
+                    <span className={cn(
+                      "text-xs font-semibold leading-tight",
+                      done ? "text-emerald-600" : "text-slate-600"
+                    )}>
+                      {label}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
+
+          {/* Progress snapshot */}
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-purple-900" />
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">My Progress</span>
+              </div>
+              <button
+                onClick={() => navigate("/reports")}
+                className="flex items-center gap-1 text-xs font-semibold text-purple-900 hover:text-[#090514] transition-colors"
+              >
+                Full report <ArrowUpRight className="h-3 w-3" />
+              </button>
+            </div>
+
+            <div className="mb-5">
+              <div className="flex justify-between mb-2">
+                <span className="text-sm font-medium text-slate-600">Engagement Score</span>
+                <span className="text-sm font-bold text-[#090514]">{engagementScore}%</span>
+              </div>
+              <Progress value={engagementScore} className="h-2" />
+              <p className="text-xs text-slate-400 mt-1.5">{totalActivities} total activities across all modules</p>
+            </div>
+
+            <div className="grid grid-cols-5 gap-3 pt-4 border-t border-slate-100">
+              {[
+                { val: moduleStats.emotions.total,          label: "Emotions",  color: "text-rose-500",    bg: "bg-rose-50"    },
+                { val: moduleStats.thoughts.total,          label: "Thoughts",  color: "text-purple-600",  bg: "bg-purple-50"  },
+                { val: moduleStats.reframe.totalPractices,  label: "Reframes",  color: "text-emerald-600", bg: "bg-emerald-50" },
+                { val: moduleStats.journal.total,           label: "Journal",   color: "text-amber-600",   bg: "bg-amber-50"   },
+                { val: moduleStats.goals.total,             label: "Goals",     color: "text-indigo-600",  bg: "bg-indigo-50"  },
+              ].map((s, i) => (
+                <div key={i} className={cn("rounded-xl p-2.5 text-center", s.bg)}>
+                  <div className={cn("text-xl font-bold", s.color)}>{s.val}</div>
+                  <div className="text-[10px] text-slate-500 font-medium mt-0.5">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Module cards */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <LayoutDashboard className="h-4 w-4 text-purple-900" />
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Your Modules</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {clientModules.map(({ Icon, label, description, href, stat, statLabel, insight, iconColor, bg, border }) => (
+                <Link key={href} href={href}>
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 cursor-pointer hover:border-purple-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group h-full flex flex-col">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={cn("p-2.5 rounded-xl border", bg, border)}>
+                        <Icon className={cn("h-5 w-5", iconColor)} />
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-purple-500 group-hover:translate-x-0.5 transition-all mt-0.5" />
+                    </div>
+                    <h3 className="font-bold text-slate-700 text-sm mb-1">{label}</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed flex-1">{description}</p>
+                    <div className="flex items-end justify-between mt-4 pt-4 border-t border-slate-100">
+                      <div>
+                        <div className={cn("text-2xl font-bold", stat !== null ? iconColor : "text-slate-300")}>
+                          {stat !== null ? stat : "—"}
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-medium">{statLabel}</div>
+                      </div>
+                      <div className="text-[10px] text-slate-400 text-right max-w-[130px] leading-relaxed italic">
+                        {insight}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Motivational footer nudge */}
+          <div className="bg-gradient-to-r from-[#090514] via-purple-950 to-indigo-950 rounded-2xl p-5 flex items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Star className="h-3.5 w-3.5 text-purple-400" />
+                <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Insight</span>
+              </div>
+              <p className="text-white text-sm font-medium max-w-md leading-relaxed">
+                You've completed <span className="text-purple-300 font-bold">{totalActivities} activities</span>. Keep going — consistency builds resilience.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/reports")}
+              className="shrink-0 h-9 px-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold rounded-xl text-xs transition-all duration-200 flex items-center gap-1.5"
+            >
+              View Report <ArrowUpRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
         </div>
       </div>
     </AppLayout>

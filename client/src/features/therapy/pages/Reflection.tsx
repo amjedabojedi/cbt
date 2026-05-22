@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
@@ -15,76 +15,74 @@ export default function Reflection() {
   const { user } = useAuth();
   const { activeUserId } = useActiveUser();
   const { toast } = useToast();
-  const [location, setLocation] = useLocation();
-  const [thoughtRecordId, setThoughtRecordId] = useState<number | null>(null);
-  const [thoughtRecord, setThoughtRecord] = useState<ThoughtRecord | null>(null);
-  const [relatedEmotion, setRelatedEmotion] = useState<EmotionRecord | null>(null);
-  const [loading, setLoading] = useState(true);
-  
-  // On mount, check URL for edit parameter
+  const [, setLocation] = useLocation();
+
+  // Parse the edit ID synchronously — no useEffect delay
+  const editParam = new URLSearchParams(window.location.search).get('edit');
+  const thoughtRecordId = editParam ? parseInt(editParam, 10) : null;
+
+  // Redirect on mount if no ID
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const recordId = params.get('edit');
-    
-    if (recordId) {
-      setThoughtRecordId(parseInt(recordId, 10));
-    } else {
-      // If no edit parameter, go back to thought records page
+    if (!thoughtRecordId) {
       setLocation('/thoughts');
-      toast({
-        title: "No record selected",
-        description: "Please select a thought record to edit.",
-      });
+      toast({ title: "No record selected", description: "Please select a thought record to edit." });
     }
-  }, [setLocation, toast]);
-  
-  // Fetch the specific thought record
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch thoughts and emotions in parallel — not sequentially
   const { data: thoughtRecords, isLoading: isLoadingThoughts } = useQuery<ThoughtRecord[]>({
-    queryKey: activeUserId && thoughtRecordId ? [`/api/users/${activeUserId}/thoughts`] : [],
-    enabled: !!(activeUserId && thoughtRecordId)
+    queryKey: activeUserId ? [`/api/users/${activeUserId}/thoughts`] : [],
+    enabled: !!(activeUserId && thoughtRecordId),
   });
-  
-  // Process thought records when they change
-  useEffect(() => {
-    if (thoughtRecords && Array.isArray(thoughtRecords) && thoughtRecordId) {
-      const record = thoughtRecords.find(r => r.id === thoughtRecordId);
-      if (record) {
-        setThoughtRecord(record);
-      } else {
-        toast({
-          title: "Record not found",
-          description: "The thought record you're trying to edit was not found.",
-          variant: "destructive",
-        });
-        setLocation('/thoughts');
-      }
-    }
-  }, [thoughtRecords, thoughtRecordId, toast, setLocation]);
-  
-  // Fetch emotions to find the related emotion
+
   const { data: emotions, isLoading: isLoadingEmotions } = useQuery<EmotionRecord[]>({
     queryKey: activeUserId ? [`/api/users/${activeUserId}/emotions`] : [],
-    enabled: !!(activeUserId && thoughtRecord)
+    enabled: !!(activeUserId && thoughtRecordId),
   });
-  
-  // Process emotions when they change
-  useEffect(() => {
-    if (emotions && Array.isArray(emotions) && thoughtRecord && thoughtRecord.emotionRecordId) {
-      const emotion = emotions.find(e => e.id === thoughtRecord.emotionRecordId);
-      if (emotion) {
-        setRelatedEmotion(emotion);
-      }
-      setLoading(false);
-    }
-  }, [emotions, thoughtRecord]);
-  
-  // Handle wizard close
-  const handleClose = () => {
-    setLocation('/thoughts');
+
+  // Derive records synchronously from query results — no useEffect processing
+  const thoughtRecord = thoughtRecords?.find(r => r.id === thoughtRecordId) ?? null;
+  const relatedEmotion = (thoughtRecord?.emotionRecordId && emotions)
+    ? (emotions.find(e => e.id === thoughtRecord.emotionRecordId) ?? null)
+    : null;
+
+  // Stub emotion for thought records that have no linked emotion.
+  // ReflectionWizard requires an EmotionRecord prop; in edit mode it uses
+  // existingThoughtRecord.emotionRecordId for submission, so the stub is display-only.
+  const emotionForWizard: EmotionRecord = relatedEmotion ?? {
+    id: 0,
+    userId: activeUserId ?? 0,
+    coreEmotion: "",
+    primaryEmotion: null,
+    tertiaryEmotion: null,
+    intensity: 5,
+    situation: "",
+    location: null,
+    company: null,
+    timestamp: new Date(),
+    createdAt: new Date(),
   };
-  
-  // Show loading state
-  if (loading || isLoadingThoughts || isLoadingEmotions) {
+
+  // Navigate away only when the thought record itself is missing after load
+  useEffect(() => {
+    if (!isLoadingThoughts && thoughtRecords && !thoughtRecord) {
+      toast({
+        title: "Record not found",
+        description: "The thought record you're trying to edit was not found.",
+        variant: "destructive",
+      });
+      setLocation('/thoughts');
+    }
+  }, [isLoadingThoughts, thoughtRecords, thoughtRecord, toast, setLocation]);
+
+  const handleClose = () => setLocation('/thoughts');
+
+  // Wait for thoughts; only also wait for emotions if the record has a linked emotion
+  const needsEmotion = !!thoughtRecord?.emotionRecordId;
+  const isLoading = isLoadingThoughts || (needsEmotion && isLoadingEmotions);
+
+  if (!thoughtRecordId || isLoading) {
     return (
       <AppLayout title="Edit Thought Record">
         <div className="container mx-auto px-4 py-6">
@@ -99,20 +97,14 @@ export default function Reflection() {
     );
   }
 
-  // If no record or related emotion found
-  if (!thoughtRecord || !relatedEmotion) {
+  if (!thoughtRecord) {
     return (
       <AppLayout title="Edit Thought Record">
         <div className="container mx-auto px-4 py-6">
-          <Button 
-            variant="outline" 
-            onClick={() => setLocation('/thoughts')}
-            className="mb-4"
-          >
+          <Button variant="outline" onClick={() => setLocation('/thoughts')} className="mb-4">
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back to Thought Records
           </Button>
-          
           <Card>
             <CardHeader>
               <CardTitle>Record Not Found</CardTitle>
@@ -122,10 +114,7 @@ export default function Reflection() {
             </CardHeader>
             <CardContent>
               <p>The record may have been deleted or you may not have permission to view it.</p>
-              <Button 
-                className="mt-4" 
-                onClick={() => setLocation('/thoughts')}
-              >
+              <Button className="mt-4" onClick={() => setLocation('/thoughts')}>
                 Return to Thought Records
               </Button>
             </CardContent>
@@ -138,15 +127,11 @@ export default function Reflection() {
   return (
     <AppLayout title="Edit Thought Record">
       <div className="container mx-auto px-4 py-6">
-        <Button 
-          variant="outline" 
-          onClick={() => setLocation('/thoughts')}
-          className="mb-4"
-        >
+        <Button variant="outline" onClick={() => setLocation('/thoughts')} className="mb-4">
           <ChevronLeft className="h-4 w-4 mr-2" />
           Back to Thought Records
         </Button>
-        
+
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -158,16 +143,14 @@ export default function Reflection() {
             </CardDescription>
           </CardHeader>
         </Card>
-        
-        {relatedEmotion && thoughtRecord && (
-          <ReflectionWizard
-            emotion={relatedEmotion}
-            open={true}
-            onClose={handleClose}
-            existingThoughtRecord={thoughtRecord}
-            isEditMode={true}
-          />
-        )}
+
+        <ReflectionWizard
+          emotion={emotionForWizard}
+          open={true}
+          onClose={handleClose}
+          existingThoughtRecord={thoughtRecord}
+          isEditMode={true}
+        />
       </div>
     </AppLayout>
   );
