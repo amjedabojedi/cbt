@@ -74,7 +74,7 @@ router.get("/viewing-client-fixed", authenticate, getViewingClientFixed);
 router.get("/current-viewing-client", authenticate, getCurrentViewingClient);
 
 // Get single user details
-router.get("/:userId", authenticate, getUserDetails);
+router.get("/:userId", authenticate, checkUserAccess, getUserDetails);
 
 // Register user by admin
 router.post("/register-by-admin", authenticate, isAdmin, registerByAdmin);
@@ -89,7 +89,7 @@ router.patch("/:userId/unassign-therapist", authenticate, isAdmin, unassignThera
 router.post("/:userId/reset-password", authenticate, isAdmin, resetPassword);
 
 // Update user profile
-router.patch("/:userId", authenticate, updateUserProfile);
+router.patch("/:userId", authenticate, checkUserAccess, updateUserProfile);
 
 // Assign subscription plan
 router.post("/:userId/subscription-plan", authenticate, isAdmin, assignSubscriptionPlan);

@@ -10,6 +10,46 @@ import { getSessionCookieOptions } from "../middleware/auth";
 import { sendPasswordResetEmail, sendEmail, sendProfessionalWelcomeEmail, sendClientInvitation } from "../services/email";
 
 /**
+ * Get a safe base URL for link generation to prevent Host-Header poisoning
+ */
+function getSafeBaseUrl(req: Request): string {
+  if (process.env.APP_URL) {
+    return process.env.APP_URL.trim();
+  }
+  
+  if (process.env.REPLIT_DOMAINS) {
+    const domain = process.env.REPLIT_DOMAINS.split(',')[0]?.trim();
+    if (domain) return `https://${domain}`;
+  }
+  
+  const host = req.get('host') || '';
+  
+  // Validate host format to ensure no malicious injections
+  if (!host || !/^[a-zA-Z0-9.-]+(:\d+)?$/.test(host)) {
+    throw new Error("Invalid Host header");
+  }
+  
+  const isDev = process.env.NODE_ENV !== 'production';
+  const isLocal = /^localhost(:\d+)?$/.test(host) || /^127\.0\.0\.1(:\d+)?$/.test(host);
+  
+  if (isDev && isLocal) {
+    return `${req.protocol}://${host}`;
+  }
+  
+  if (process.env.ALLOWED_HOSTS) {
+    const allowedHosts = process.env.ALLOWED_HOSTS.split(',').map(h => h.trim().toLowerCase());
+    const hostname = host.split(':')[0].toLowerCase();
+    if (allowedHosts.includes(hostname)) {
+      return `${req.protocol}://${host}`;
+    }
+  }
+  
+  // Safety Fallback for Production to block arbitrary host routing
+  console.error(`🚨 Host-Header Poisoning Blocked: Incoming Host '${host}' is unverified and APP_URL is missing. Defaulting to localhost fallback.`);
+  return `http://localhost:5000`;
+}
+
+/**
  * Handle user registration (direct or via invitation)
  */
 export async function registerUser(req: Request, res: Response) {
@@ -330,7 +370,7 @@ export async function inviteClient(req: Request, res: Response) {
     const tempPassword = Math.random().toString(36).substring(2, 10);
     const hashedTempPassword = await bcrypt.hash(tempPassword, 10);
     
-    const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+    const baseUrl = getSafeBaseUrl(req);
     const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${req.user!.id}&token=${plaintextToken}`;
     const storedInviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${req.user!.id}`;
     
@@ -395,30 +435,25 @@ export async function requestForgotPassword(req: Request, res: Response) {
     }
     
     // Generate unique token
-    const token = crypto.randomBytes(32).toString('hex');
+    const plaintextToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(plaintextToken).digest('hex');
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 1); // 1 hour expiry
     
     // Delete existing reset tokens
     await db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, user.id));
     
-    // Save the new token
+    // Save the new token (hashed at rest)
     await db.insert(passwordResetTokens).values({
       userId: user.id,
-      token,
+      token: hashedToken,
       expiresAt,
       used: false
     });
     
     // Build reset URL
-    const appUrl = process.env.APP_URL?.trim();
-    const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0]?.trim();
-    const baseUrl =
-      appUrl ||
-      (replitDomain ? `https://${replitDomain}` : '') ||
-      `${req.protocol}://${req.get('host')}`;
-    
-    const resetUrl = `${baseUrl}/reset-password/${token}`;
+    const baseUrl = getSafeBaseUrl(req);
+    const resetUrl = `${baseUrl}/reset-password/${plaintextToken}`;
     
     // Send reset email
     console.log(`[PasswordReset] Sending reset email to ${user.email}, URL domain: ${baseUrl}`);
@@ -454,12 +489,14 @@ export async function verifyResetToken(req: Request, res: Response) {
       return res.status(400).json({ valid: false });
     }
     
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    
     const [resetToken] = await db
       .select()
       .from(passwordResetTokens)
       .where(
         and(
-          eq(passwordResetTokens.token, token),
+          eq(passwordResetTokens.token, hashedToken),
           eq(passwordResetTokens.used, false),
           gt(passwordResetTokens.expiresAt, new Date())
         )
@@ -486,12 +523,14 @@ export async function executePasswordReset(req: Request, res: Response) {
       });
     }
     
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    
     const [resetToken] = await db
       .select()
       .from(passwordResetTokens)
       .where(
         and(
-          eq(passwordResetTokens.token, token),
+          eq(passwordResetTokens.token, hashedToken),
           eq(passwordResetTokens.used, false),
           gt(passwordResetTokens.expiresAt, new Date())
         )

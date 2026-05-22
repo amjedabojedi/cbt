@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
-console.log("Process env", process.env.DATABASE_URL);
+console.log("Database connection pool initialized");
 // Ensure DATABASE_URL is available
 if (!process.env.DATABASE_URL) {
   throw new Error(
