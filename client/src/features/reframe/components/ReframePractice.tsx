@@ -24,8 +24,9 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
-import { Loader2, CheckCircle2, AlertCircle, Trophy, Flame, Zap, BarChart3, ChevronRight, ShieldAlert, BadgeCheck } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, Trophy, Flame, Zap, BarChart3, ChevronRight, ShieldAlert, BadgeCheck, Sparkles } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { cn } from "@/lib/utils";
 
 // Helper function to format cognitive distortion names for display
 function formatCognitiveDistortion(distortion: string): string {
@@ -105,82 +106,112 @@ const PracticeScenario = ({
   onNext: () => void;
 }) => {
   return (
-    <Card className="w-full mb-6 border-border/60 shadow-sm">
-      <CardHeader className="pb-4">
+    <Card className="w-full mb-6 border border-slate-100 shadow-lg rounded-2xl bg-white overflow-hidden">
+      <CardHeader className="pb-4 bg-slate-50/50 border-b border-slate-100">
         <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          <span className="text-xs font-bold text-purple-600 uppercase tracking-widest">
             Scenario {currentIndex + 1} of {totalScenarios}
           </span>
           <div className="flex items-center gap-2">
-            <span className="bg-muted/70 px-2.5 py-1 rounded-full text-xs font-medium">
+            <span className="bg-purple-50 text-purple-700 border border-purple-100 px-3 py-1 rounded-full text-xxs font-bold uppercase tracking-wider shadow-2xs">
               {formatCognitiveDistortion(scenario.cognitiveDistortion)}
             </span>
-            <span className="bg-muted/70 px-2.5 py-1 rounded-full text-xs font-medium">
+            <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full text-xxs font-bold uppercase tracking-wider shadow-2xs">
               {formatEmotionCategory(scenario.emotionCategory)}
             </span>
           </div>
         </div>
-        <div className="rounded-lg bg-muted/40 border border-border/50 shadow-sm px-4 py-3">
-          <CardTitle className="text-base sm:text-[0.95rem] font-medium leading-relaxed text-foreground">
-            {scenario.scenario}
+        <div className="rounded-xl bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 border border-purple-900/20 shadow-md px-5 py-4 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-purple-600/10 rounded-full blur-xl pointer-events-none" />
+          <CardTitle className="text-sm md:text-[0.95rem] font-semibold leading-relaxed italic text-purple-50">
+            "{scenario.scenario}"
           </CardTitle>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <p className="text-sm font-semibold mb-4 text-foreground">How would you reframe this thought?</p>
+      <CardContent className="space-y-4 pt-6">
+        <p className="text-xs md:text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+          <Sparkles className="h-4 w-4 text-purple-600 animate-pulse animate-duration-2000" />
+          How would you reframe this thought?
+        </p>
         
-        {scenario.options.map((option, index) => (
-          <div 
-            key={index} 
-            className={`p-4 border rounded-md cursor-pointer transition-all ${
-              selectedOptionIndex === index
-                ? option.isCorrect 
-                  ? "border-green-500 bg-green-50 dark:bg-green-950/30"
-                  : showFeedback
-                    ? "border-red-500 bg-red-50 dark:bg-red-950/30"
-                    : "border-primary bg-primary/5"
-                : "hover:border-primary/50"
-            } ${showFeedback && option.isCorrect ? "border-green-500 bg-green-50 dark:bg-green-950/30" : ""}`}
-            onClick={() => !showFeedback && onSelectOption(index)}
-          >
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5">
-                {showFeedback ? (
-                  option.isCorrect ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  ) : (
-                    selectedOptionIndex === index ? (
-                      <AlertCircle className="h-5 w-5 text-red-500" />
-                    ) : null
-                  )
-                ) : (
-                  <div className={`h-5 w-5 rounded-full border ${selectedOptionIndex === index ? "bg-primary border-primary" : "border-muted-foreground"}`}></div>
+        <div className="space-y-3">
+          {scenario.options.map((option, index) => {
+            const isSelected = selectedOptionIndex === index;
+            const isCorrect = option.isCorrect;
+            
+            return (
+              <div 
+                key={index} 
+                className={cn(
+                  "p-4 border rounded-xl cursor-pointer transition-all duration-300 shadow-sm",
+                  isSelected
+                    ? isCorrect 
+                      ? "border-emerald-500 bg-emerald-50/60 text-emerald-900"
+                      : showFeedback
+                        ? "border-rose-500 bg-rose-50/60 text-rose-900"
+                        : "border-purple-600 bg-purple-50/40 text-purple-900"
+                    : showFeedback && isCorrect
+                      ? "border-emerald-500 bg-emerald-50/60 text-emerald-900"
+                      : "border-slate-100 hover:border-purple-200 hover:bg-slate-50/40"
                 )}
-              </div>
-              <div>
-                <p className="font-medium">{option.text}</p>
-                
-                {showFeedback && (selectedOptionIndex === index || option.isCorrect) && (
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    <p>{option.explanation}</p>
+                onClick={() => !showFeedback && onSelectOption(index)}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 shrink-0">
+                    {showFeedback ? (
+                      isCorrect ? (
+                        <div className="h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-sm">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                        </div>
+                      ) : isSelected ? (
+                        <div className="h-5 w-5 rounded-full bg-rose-500 flex items-center justify-center text-white shadow-sm">
+                          <AlertCircle className="h-3.5 w-3.5" />
+                        </div>
+                      ) : (
+                        <div className="h-5 w-5 rounded-full border border-slate-200" />
+                      )
+                    ) : (
+                      <div className={cn(
+                        "h-5 w-5 rounded-full border flex items-center justify-center transition-all duration-300",
+                        isSelected 
+                          ? "border-purple-600 bg-purple-600 text-white shadow-xs" 
+                          : "border-slate-300 hover:border-purple-400"
+                      )}>
+                        {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                      </div>
+                    )}
                   </div>
-                )}
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-800 text-sm leading-snug">{option.text}</p>
+                    
+                    {showFeedback && (isSelected || isCorrect) && (
+                      <div className={cn(
+                        "mt-2 text-xs md:text-sm rounded-lg p-2.5 border transition-all duration-300",
+                        isCorrect 
+                          ? "bg-emerald-100/35 text-emerald-800 border-emerald-200/50" 
+                          : "bg-rose-100/35 text-rose-800 border-rose-200/50"
+                      )}>
+                        <p className="font-medium">{option.explanation}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </CardContent>
       
-      <CardFooter className="flex justify-between">
+      <CardFooter className="pb-6 pt-2 px-6">
         <div className="w-full">
           {showFeedback && (
             <Button 
-              className="mt-4 w-full" 
+              className="w-full bg-[#090514] hover:bg-purple-950 text-white font-bold py-5 rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-2" 
               onClick={onNext}
             >
               {currentIndex < totalScenarios - 1 ? "Next Scenario" : "See Results"}
-              <ChevronRight className="ml-2 h-4 w-4" />
+              <ChevronRight className="h-4.5 w-4.5" />
             </Button>
           )}
         </div>
@@ -189,7 +220,6 @@ const PracticeScenario = ({
   );
 };
 
-// Game profile component to show achievements and stats
 const GameProfile = ({ 
   userId, 
   newAchievements = [] 
@@ -203,8 +233,8 @@ const GameProfile = ({
   
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center p-12 bg-white border border-slate-100 rounded-2xl shadow-sm">
+        <Loader2 className="h-7 w-7 animate-spin text-purple-600" />
       </div>
     );
   }
@@ -235,70 +265,80 @@ const GameProfile = ({
   };
   
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Trophy className="mr-2 h-5 w-5 text-yellow-500" />
+    <Card className="border border-slate-100 shadow-lg bg-white overflow-hidden rounded-2xl">
+      <CardHeader className="bg-gradient-to-br from-[#090514] to-purple-950 text-white pb-6 relative">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/20 rounded-full blur-2xl pointer-events-none" />
+        <CardTitle className="flex items-center text-xl font-bold">
+          <Trophy className="mr-2.5 h-6 w-6 text-amber-400 animate-pulse" />
           Your Reframe Coach Profile
         </CardTitle>
-        <CardDescription>Track your progress and achievements</CardDescription>
+        <CardDescription className="text-purple-200/70">
+          Track your cognitive reframing mastery, streaks, and awards
+        </CardDescription>
       </CardHeader>
       
-      <CardContent>
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Level</p>
-            <p className="text-2xl font-bold">Level {level}</p>
-            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-primary rounded-full" 
-                style={{ 
-                  width: `${(totalScore % 500) / 5}%` 
-                }}
-              ></div>
+      <CardContent className="pt-6 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Level card */}
+          <div className="p-4 rounded-xl border border-purple-100 bg-purple-50/30 flex flex-col justify-between space-y-3">
+            <div>
+              <p className="text-[10px] font-bold text-purple-700 uppercase tracking-widest">Skill Level</p>
+              <p className="text-2xl font-extrabold text-slate-800">Level {level}</p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {500 - (totalScore % 500)} points to next level
-            </p>
+            <div className="space-y-1.5">
+              <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-purple-600 rounded-full transition-all duration-500" 
+                  style={{ 
+                    width: `${(totalScore % 500) / 5}%` 
+                  }}
+                ></div>
+              </div>
+              <div className="flex justify-between text-[10px] font-bold text-slate-500">
+                <span>{(totalScore % 500)} / 500 XP</span>
+                <span>{500 - (totalScore % 500)} XP to level up</span>
+              </div>
+            </div>
           </div>
           
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Current Streak</p>
-            <div className="flex items-center">
-              <Flame className="h-6 w-6 text-orange-500 mr-2" />
-              <span className="text-2xl font-bold">{practiceStreak} days</span>
+          {/* Streak card */}
+          <div className="p-4 rounded-xl border border-amber-100 bg-amber-50/20 flex flex-col justify-between">
+            <div>
+              <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Current Streak</p>
+              <div className="flex items-center mt-1">
+                <Flame className="h-7 w-7 text-amber-500 fill-amber-500 animate-bounce mr-2 shrink-0 animate-duration-1000" />
+                <span className="text-2xl font-extrabold text-slate-800">{practiceStreak} Days</span>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Practice daily to maintain your streak
+            <p className="text-xs font-semibold text-amber-600/80 mt-3">
+              Practice daily to keep the restructuring fire burning!
             </p>
           </div>
         </div>
         
-        <div className="space-y-4 mb-6">
-          <h3 className="font-medium text-sm">Stats</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col">
-              <span className="text-muted-foreground text-xs">Practice Sessions</span>
-              <span className="font-semibold">{totalPractices || 0}</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-muted-foreground text-xs">Avg. Score</span>
-              <span className="font-semibold">{avgScore ? Math.round(avgScore) : 0}</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-muted-foreground text-xs">Accuracy</span>
-              <span className="font-semibold">{accuracyRate || 0}%</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-muted-foreground text-xs">Best At</span>
-              <span className="font-semibold">{strongestDistortion ? formatCognitiveDistortion(strongestDistortion) : "N/A"}</span>
-            </div>
+        <div className="space-y-3">
+          <h3 className="font-bold text-sm text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+            <BarChart3 className="h-4 w-4 text-purple-600" />
+            Cognitive Statistics
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: "Sessions", value: totalPractices || 0, color: "bg-slate-50 border-slate-100" },
+              { label: "Avg Score", value: avgScore ? Math.round(avgScore) : 0, color: "bg-purple-50/30 border-purple-50" },
+              { label: "Accuracy", value: `${accuracyRate || 0}%`, color: "bg-emerald-50/20 border-emerald-50" },
+              { label: "Best Distortion Mastery", value: strongestDistortion ? formatCognitiveDistortion(strongestDistortion) : "N/A", color: "bg-indigo-50/20 border-indigo-50", isWide: true },
+            ].map((s, idx) => (
+              <div key={idx} className={cn("border p-3.5 rounded-xl text-center flex flex-col justify-center", s.color, s.isWide && "col-span-2 sm:col-span-1")}>
+                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{s.label}</span>
+                <span className="font-extrabold text-slate-800 text-base mt-1 truncate">{s.value}</span>
+              </div>
+            ))}
           </div>
         </div>
         
-        <div className="space-y-4">
-          <h3 className="font-medium text-sm">Achievements</h3>
-          <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-3">
+          <h3 className="font-bold text-sm text-slate-800 uppercase tracking-wider">Achievements</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {Object.entries(achievementLabels).map(([key, label]) => {
               const isEarned = achievements.includes(key);
               const isNew = newAchievements.includes(key);
@@ -306,17 +346,26 @@ const GameProfile = ({
               return (
                 <div 
                   key={key}
-                  className={`border rounded-md p-2 ${isEarned 
-                    ? isNew 
-                      ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-950/30" 
-                      : "border-primary bg-primary/5" 
-                    : "border-muted bg-muted/20 opacity-50"}`}
+                  className={cn(
+                    "border rounded-xl p-3 flex items-center gap-3 transition-all duration-300",
+                    isEarned 
+                      ? isNew 
+                        ? "border-amber-400 bg-amber-50/50 shadow-sm" 
+                        : "border-purple-100 bg-purple-50/20" 
+                      : "border-slate-100 bg-slate-50/50 opacity-40"
+                  )}
                 >
-                  <div className="flex items-center">
-                    <div className={`rounded-full p-1 mr-2 ${isEarned ? "bg-primary/10" : "bg-muted"}`}>
-                      <Trophy className={`h-4 w-4 ${isEarned ? "text-yellow-500" : "text-muted-foreground"}`} />
-                    </div>
-                    <span className={`text-sm font-medium ${isNew ? "text-yellow-700 dark:text-yellow-400" : ""}`}>
+                  <div className={cn(
+                    "rounded-full p-2 shrink-0",
+                    isEarned ? "bg-amber-100 text-amber-600 animate-pulse animate-duration-3000" : "bg-slate-200 text-slate-400"
+                  )}>
+                    <Trophy className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className={cn(
+                      "text-sm font-semibold truncate block",
+                      isEarned ? "text-slate-800 font-bold" : "text-slate-500"
+                    )}>
                       {label}
                       {isNew && " 🎉"}
                     </span>
@@ -331,7 +380,6 @@ const GameProfile = ({
   );
 };
 
-// Results component to show after completing all scenarios
 const PracticeResults = ({ 
   userChoices, 
   scenarios, 
@@ -354,110 +402,99 @@ const PracticeResults = ({
   isQuickPractice?: boolean;
 }) => {
   const correctAnswers = userChoices.filter(choice => choice.isCorrect).length;
+  const accuracy = scenarios.length > 0 ? Math.round((correctAnswers / scenarios.length) * 100) : 0;
   
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <BarChart3 className="mr-2 h-5 w-5" />
-            Practice Results
+    <div className="space-y-6 animate-fade-in-up duration-300">
+      <Card className="border border-slate-100 shadow-xl rounded-2xl overflow-hidden bg-white">
+        <CardHeader className="bg-gradient-to-br from-[#090514] to-purple-950 text-white pb-6 relative text-center">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="mx-auto bg-purple-600/20 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-3">
+            <Trophy className="h-7 w-7 text-amber-400" />
+          </div>
+          <CardTitle className="text-xl md:text-2xl font-bold">
+            Practice Complete!
           </CardTitle>
+          <CardDescription className="text-purple-200/80">
+            Fantastic job challenging and reframing these scenarios!
+          </CardDescription>
         </CardHeader>
         
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div className="text-center p-4 bg-muted/20 rounded-md">
-              <p className="text-muted-foreground text-sm">Score</p>
-              <p className="text-2xl font-bold">{totalScore}</p>
+        <CardContent className="pt-8 px-6 space-y-6">
+          {/* Stats Ring/Cards Grid */}
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { label: "Points Earned", value: totalScore, color: "text-purple-600 bg-purple-50/50 border-purple-100" },
+              { label: "Accuracy", value: `${accuracy}%`, color: "text-emerald-600 bg-emerald-50/50 border-emerald-100" },
+              { label: "Answers", value: `${correctAnswers}/${scenarios.length}`, color: "text-indigo-600 bg-indigo-50/50 border-indigo-100" }
+            ].map((s, idx) => (
+              <div key={idx} className={cn("text-center p-4 border rounded-xl flex flex-col justify-center shadow-xs", s.color)}>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{s.label}</p>
+                <p className="text-xl sm:text-2xl font-extrabold mt-1">{s.value}</p>
+              </div>
+            ))}
+          </div>
+          
+          {/* Alerts for achievements */}
+          {gameUpdates?.newAchievements?.length > 0 && (
+            <div className="border border-amber-200 bg-amber-50/60 rounded-xl p-4 flex gap-3.5 shadow-xs">
+              <Trophy className="h-5 w-5 text-amber-500 fill-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-bold text-amber-800">New Achievements Unlocked!</h4>
+                <ul className="mt-1.5 list-disc pl-5 text-xs text-amber-700 font-semibold space-y-1">
+                  {gameUpdates.newAchievements.map((achievement: any, idx: number) => (
+                    <li key={idx}>
+                      {typeof achievement === 'string' 
+                        ? achievement.replace(/_/g, ' ') 
+                        : (achievement.name || 'New Trophy')}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-            <div className="text-center p-4 bg-muted/20 rounded-md">
-              <p className="text-muted-foreground text-sm">Correct</p>
-              <p className="text-2xl font-bold">{correctAnswers} / {scenarios.length}</p>
+          )}
+          
+          {gameUpdates?.newLevel > gameUpdates?.prevLevel && (
+            <div className="border border-purple-200 bg-purple-50/60 rounded-xl p-4 flex gap-3.5 shadow-xs">
+              <Zap className="h-5 w-5 text-purple-600 fill-purple-600 shrink-0 mt-0.5 animate-bounce" />
+              <div>
+                <h4 className="text-sm font-bold text-purple-800">Level Up!</h4>
+                <p className="text-xs text-purple-700 font-medium mt-0.5">
+                  You reached <span className="font-extrabold">Level {gameUpdates.newLevel}</span>! Keep practicing to unlock more advanced exercises.
+                </p>
+              </div>
             </div>
-            <div className="text-center p-4 bg-muted/20 rounded-md">
-              <p className="text-muted-foreground text-sm">Accuracy</p>
-              <p className="text-2xl font-bold">
-                {scenarios.length > 0 ? Math.round((correctAnswers / scenarios.length) * 100) : 0}%
+          )}
+          
+          <div className="border border-emerald-100 bg-emerald-50/30 rounded-xl p-4 flex gap-3.5 shadow-xs items-center">
+            <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <h4 className="text-xs font-bold text-emerald-800">Progress Recorded</h4>
+              <p className="text-[10px] text-emerald-700 font-semibold mt-0.5">
+                Your restructuring statistics have been committed to your secure profile.
               </p>
             </div>
           </div>
           
-          {gameUpdates?.newAchievements?.length > 0 && (
-            <Alert className="bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800">
-              <Trophy className="h-4 w-4 text-yellow-500" />
-              <AlertTitle>New Achievements!</AlertTitle>
-              <AlertDescription>
-                You earned {gameUpdates.newAchievements.length} new {gameUpdates.newAchievements.length === 1 ? 'achievement' : 'achievements'}:
-                <ul className="mt-2 list-disc pl-5">
-                  {gameUpdates.newAchievements.map((achievement: string) => (
-                    <li key={achievement}>{achievement.replace(/_/g, ' ')}</li>
-                  ))}
-                </ul>
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          {gameUpdates?.newLevel > gameUpdates?.prevLevel && (
-            <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-              <Zap className="h-4 w-4 text-blue-500" />
-              <AlertTitle>Level Up!</AlertTitle>
-              <AlertDescription>
-                You've reached level {gameUpdates.newLevel}! Keep practicing to unlock more achievements.
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          <div className="flex justify-center flex-col items-center">
-            <Alert className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 mb-4">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <AlertTitle>Results Saved</AlertTitle>
-              <AlertDescription>
-                Your practice results have been saved successfully. Your progress is being tracked!
-              </AlertDescription>
-            </Alert>
+          {/* Navigation Actions */}
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100">
+            <Button 
+              onClick={() => window.location.href = `/users/${userId}/thoughts`} 
+              variant="outline" 
+              className="flex-1 py-5 rounded-xl border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition-all duration-300"
+            >
+              Return to Thought Records
+            </Button>
             
-            <div className="flex gap-4">
-              <Button 
-                onClick={() => window.location.href = `/users/${userId}/thoughts`} 
-                variant="outline" 
-                className="mt-2 px-6 py-2 text-base"
-              >
-                Return to Thought Records
-              </Button>
-              
-              <Button 
-                onClick={() => window.location.href = `/users/${userId}/reframe-coach?tab=history`} 
-                className="mt-2 px-6 py-2 text-base"
-              >
-                View Practice History
-              </Button>
-            </div>
+            <Button 
+              onClick={() => window.location.href = `/users/${userId}/reframe-coach?tab=history`} 
+              className="flex-1 py-5 rounded-xl bg-[#090514] hover:bg-purple-950 text-white font-semibold shadow-md transition-all duration-300"
+            >
+              View Practice History
+            </Button>
           </div>
         </CardContent>
       </Card>
-      
-      {/* Simplified game profile - no userId required */}
-      {gameUpdates && gameUpdates.newAchievements && gameUpdates.newAchievements.length > 0 && (
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle>New Achievements</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-2">
-              {gameUpdates.newAchievements.map((achievement: any, idx: number) => (
-                <Alert key={idx} className="bg-green-50 border-green-200">
-                  <BadgeCheck className="h-5 w-5 text-green-600" />
-                  <AlertTitle className="text-green-800">Achievement Unlocked!</AlertTitle>
-                  <AlertDescription className="text-green-700">
-                    {achievement.name} - {achievement.description}
-                  </AlertDescription>
-                </Alert>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
@@ -927,15 +964,15 @@ const ReframePractice = ({
   const progress = ((currentScenarioIndex + (showFeedback ? 0.5 : 0)) / scenariosCount) * 100;
   
   return (
-    <div className="space-y-4">
-      <div className="mb-4">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-sm font-medium text-muted-foreground">Progress</h3>
-          <span className="text-sm text-muted-foreground">
+    <div className="space-y-5 animate-fade-in duration-300">
+      <div className="bg-white border border-slate-100 shadow-xs rounded-2xl p-4 sm:p-5">
+        <div className="flex justify-between items-center mb-2.5">
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Practice Progress</h3>
+          <span className="text-xs font-extrabold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-100/60 shadow-xxs">
             {currentScenarioIndex + 1} of {scenarios.length}
           </span>
         </div>
-        <Progress value={progress} className="h-2" />
+        <Progress value={progress} className="h-2.5 bg-slate-100 rounded-full [&>div]:bg-purple-600 shadow-inner transition-all duration-300" />
       </div>
       
       <PracticeScenario
@@ -950,12 +987,12 @@ const ReframePractice = ({
       
       {/* Original thought display */}
       {sessionData.thoughtContent && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-sm">Original Thought</CardTitle>
+        <Card className="border border-slate-100 shadow-sm rounded-2xl bg-white overflow-hidden">
+          <CardHeader className="bg-slate-50/50 pb-2 border-b border-slate-100">
+            <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-wider">Original Cognitive Material</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm italic">{sessionData.thoughtContent}</p>
+          <CardContent className="pt-4">
+            <p className="text-sm italic font-semibold text-slate-600 leading-relaxed">"{sessionData.thoughtContent}"</p>
           </CardContent>
         </Card>
       )}

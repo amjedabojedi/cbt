@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
+import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -222,7 +223,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
 
   return (
     <>
-      <Card>
+      <Card className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
         <WizardProgressHeader
           title="SMART Goal Wizard"
           currentStep={currentStep}
@@ -230,74 +231,48 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
           stepLabels={["Title", "Specific", "Measurable", "Achievable", "Relevant", "Time-bound", "Milestones"]}
         />
 
-        <CardContent>
+        <CardContent className="pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Intro Step */}
               {currentStep === 0 && (
                 <div className="space-y-4">
-                  <div className="text-center py-6">
-                    <Target className="h-16 w-16 mx-auto mb-4 text-primary" />
-                    <h2 className="text-2xl font-bold mb-3">Welcome to SMART Goal Setting</h2>
-                    <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
+                  <div className="text-center py-4">
+                    <div className="inline-flex p-3 rounded-full bg-purple-50 text-purple-600 mb-3">
+                      <Target className="h-10 w-10" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-[#090514] mb-2">Welcome to SMART Goal Setting</h2>
+                    <p className="text-slate-600 text-base max-w-2xl mx-auto">
                       SMART goals are Specific, Measurable, Achievable, Relevant, and Time-bound. This framework helps you create clear, actionable goals that you can actually achieve.
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm flex items-center gap-2">
-                            <Target className="h-4 w-4" />
-                            Specific
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground">Clear and well-defined</p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm flex items-center gap-2">
-                            <Ruler className="h-4 w-4" />
-                            Measurable
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground">Track your progress</p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4" />
-                            Achievable
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground">Realistic and attainable</p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm flex items-center gap-2">
-                            <LinkIcon className="h-4 w-4" />
-                            Relevant
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground">Matters to you</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="md:col-span-2">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            Time-bound
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground">Has a clear deadline</p>
-                        </CardContent>
-                      </Card>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-6">
+                      {[
+                        { title: "Specific", desc: "Clear, precise and well-defined roadmap", icon: Target, color: "text-purple-600 bg-purple-50" },
+                        { title: "Measurable", desc: "Concrete metrics to track your daily progress", icon: Ruler, color: "text-indigo-600 bg-indigo-50" },
+                        { title: "Achievable", desc: "Realistic and attainable within your reach", icon: TrendingUp, color: "text-emerald-600 bg-emerald-50" },
+                        { title: "Relevant", desc: "Aligned with your life values and core priorities", icon: LinkIcon, color: "text-amber-600 bg-amber-50" },
+                        { title: "Time-bound", desc: "Set clear target deadlines to maintain focus", icon: Clock, color: "text-rose-600 bg-rose-50" },
+                      ].map((item, idx) => {
+                        const Icon = item.icon;
+                        return (
+                          <Card key={idx} className="h-full flex flex-col border border-slate-100 hover:border-purple-200 transition-all duration-300 shadow-sm hover:shadow-md">
+                            <CardHeader className="pb-2 pt-4 px-3 flex flex-col items-center text-center">
+                              <div className={cn("p-2 rounded-xl mb-2", item.color)}>
+                                <Icon className="h-5 w-5" />
+                              </div>
+                              <CardTitle className="text-base font-bold text-[#090514]">
+                                {item.title}
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="px-3 pb-4 pt-1 flex-1 flex flex-col justify-center text-center">
+                              <p className="text-sm font-medium text-slate-600 leading-snug">
+                                {item.desc}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -305,402 +280,461 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
 
               {/* Step 1: Title */}
               {currentStep === 1 && (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <h3 className="font-medium text-sm mb-2 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4" />
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                  <div className="md:col-span-2 bg-purple-50/50 p-5 rounded-2xl border border-purple-100/80 flex flex-col justify-center">
+                    <div className="inline-flex p-2.5 rounded-xl bg-purple-100 text-purple-700 w-fit mb-3">
+                      <HelpCircle className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-bold text-base text-[#090514] mb-2">
                       Start with a Clear Vision
                     </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <p className="text-sm text-slate-600 leading-relaxed">
                       Give your goal a memorable title that captures what you want to achieve. This will help you stay focused and motivated.
                     </p>
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-lg flex items-center gap-2">
-                          Goal Title <span className="text-red-500 text-xl">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g., Run a 5K Marathon, Learn Spanish, Save $5000..."
-                            className="text-base"
-                            voiceInput
-                            {...field}
-                            data-testid="input-goal-title"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          A clear, motivating title for your goal (at least 5 characters)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="md:col-span-3 flex flex-col justify-center space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-bold text-[#090514] flex items-center gap-2">
+                            Goal Title <span className="text-red-500 text-sm">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g., Run a 5K Marathon, Learn Spanish, Save $5000..."
+                              className="text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl py-5"
+                              voiceInput
+                              {...field}
+                              data-testid="input-goal-title"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs text-slate-400">
+                            A clear, motivating title for your goal (at least 5 characters)
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               )}
 
               {/* Step 2: Specific */}
               {currentStep === 2 && (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <h3 className="font-medium text-sm mb-2 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4" />
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                  <div className="md:col-span-2 bg-purple-50/50 p-5 rounded-2xl border border-purple-100/80 flex flex-col justify-center">
+                    <div className="inline-flex p-2.5 rounded-xl bg-purple-100 text-purple-700 w-fit mb-3">
+                      <Target className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-bold text-base text-[#090514] mb-2">
                       Be Specific
                     </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <p className="text-sm text-slate-600 leading-relaxed mb-3">
                       Define exactly what you want to accomplish. Answer: What will I do? How will I do it? Where? With whom?
                     </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-                      Example: "I will exercise 3 times per week at the gym" instead of "I want to be healthier"
-                    </p>
+                    <div className="bg-white/80 p-3 rounded-xl border border-purple-100">
+                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">Example</span>
+                      <p className="text-xs italic text-slate-600">
+                        "I will exercise 3 times per week at the gym" instead of "I want to be healthier"
+                      </p>
+                    </div>
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="specific"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-lg flex items-center gap-2">
-                          What Specifically Will You Do? <span className="text-red-500 text-xl">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            value={watchedValues.specific}
-                            onChange={(e) => form.setValue("specific", e.target.value)}
-                            placeholder="Describe your goal in detail. What exactly will you accomplish? Be as specific as possible..."
-                            className="resize-none min-h-[120px] text-base"
-                            data-testid="textarea-goal-specific"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Be detailed and clear about what you'll do (at least 20 characters)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="md:col-span-3 flex flex-col justify-center space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="specific"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-bold text-[#090514] flex items-center gap-2">
+                            What Specifically Will You Do? <span className="text-red-500 text-sm">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Textarea
+                              value={watchedValues.specific}
+                              onChange={(e) => form.setValue("specific", e.target.value)}
+                              placeholder="Describe your goal in detail. What exactly will you accomplish? Be as specific as possible..."
+                              className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
+                              data-testid="textarea-goal-specific"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs text-slate-400">
+                            Be detailed and clear about what you'll do (at least 20 characters)
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               )}
 
               {/* Step 3: Measurable */}
               {currentStep === 3 && (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <h3 className="font-medium text-sm mb-2 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4" />
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                  <div className="md:col-span-2 bg-purple-50/50 p-5 rounded-2xl border border-purple-100/80 flex flex-col justify-center">
+                    <div className="inline-flex p-2.5 rounded-xl bg-purple-100 text-purple-700 w-fit mb-3">
+                      <Ruler className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-bold text-base text-[#090514] mb-2">
                       Make It Measurable
                     </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <p className="text-sm text-slate-600 leading-relaxed mb-3">
                       How will you know when you've achieved your goal? Define concrete criteria to track your progress.
                     </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-                      Example: "Complete 12 workout sessions" or "Save $100 per week"
-                    </p>
+                    <div className="bg-white/80 p-3 rounded-xl border border-purple-100">
+                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">Example</span>
+                      <p className="text-xs italic text-slate-600">
+                        "Complete 12 workout sessions" or "Save $100 per week"
+                      </p>
+                    </div>
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="measurable"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-lg flex items-center gap-2">
-                          How Will You Measure Progress? <span className="text-red-500 text-xl">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            value={watchedValues.measurable}
-                            onChange={(e) => form.setValue("measurable", e.target.value)}
-                            placeholder="What metrics or milestones will show your progress? How will you know you've succeeded?"
-                            className="resize-none min-h-[120px] text-base"
-                            data-testid="textarea-goal-measurable"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Define clear metrics to track progress (at least 20 characters)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="md:col-span-3 flex flex-col justify-center space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="measurable"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-bold text-[#090514] flex items-center gap-2">
+                            How Will You Measure Progress? <span className="text-red-500 text-sm">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Textarea
+                              value={watchedValues.measurable}
+                              onChange={(e) => form.setValue("measurable", e.target.value)}
+                              placeholder="What metrics or milestones will show your progress? How will you know you've succeeded?"
+                              className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
+                              data-testid="textarea-goal-measurable"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs text-slate-400">
+                            Define clear metrics to track progress (at least 20 characters)
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               )}
 
               {/* Step 4: Achievable */}
               {currentStep === 4 && (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <h3 className="font-medium text-sm mb-2 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4" />
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                  <div className="md:col-span-2 bg-purple-50/50 p-5 rounded-2xl border border-purple-100/80 flex flex-col justify-center">
+                    <div className="inline-flex p-2.5 rounded-xl bg-purple-100 text-purple-700 w-fit mb-3">
+                      <TrendingUp className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-bold text-base text-[#090514] mb-2">
                       Keep It Achievable
                     </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <p className="text-sm text-slate-600 leading-relaxed mb-3">
                       Is this goal realistic given your current resources, skills, and time? Challenge yourself, but stay practical.
                     </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-                      Example: "I have gym membership and can commit 3 hours/week" or "I currently save $50/week and can increase to $100"
-                    </p>
+                    <div className="bg-white/80 p-3 rounded-xl border border-purple-100">
+                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">Example</span>
+                      <p className="text-xs italic text-slate-600">
+                        "I have gym membership and can commit 3 hours/week"
+                      </p>
+                    </div>
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="achievable"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-lg flex items-center gap-2">
-                          Why Is This Achievable? <span className="text-red-500 text-xl">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            value={watchedValues.achievable}
-                            onChange={(e) => form.setValue("achievable", e.target.value)}
-                            placeholder="What resources, skills, or support do you have? What makes this goal realistic for you?"
-                            className="resize-none min-h-[120px] text-base"
-                            data-testid="textarea-goal-achievable"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Explain why this goal is realistic for you (at least 20 characters)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="md:col-span-3 flex flex-col justify-center space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="achievable"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-bold text-[#090514] flex items-center gap-2">
+                            Why Is This Achievable? <span className="text-red-500 text-sm">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Textarea
+                              value={watchedValues.achievable}
+                              onChange={(e) => form.setValue("achievable", e.target.value)}
+                              placeholder="What resources, skills, or support do you have? What makes this goal realistic for you?"
+                              className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
+                              data-testid="textarea-goal-achievable"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs text-slate-400">
+                            Explain why this goal is realistic for you (at least 20 characters)
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               )}
 
               {/* Step 5: Relevant */}
               {currentStep === 5 && (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <h3 className="font-medium text-sm mb-2 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4" />
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                  <div className="md:col-span-2 bg-purple-50/50 p-5 rounded-2xl border border-purple-100/80 flex flex-col justify-center">
+                    <div className="inline-flex p-2.5 rounded-xl bg-purple-100 text-purple-700 w-fit mb-3">
+                      <LinkIcon className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-bold text-base text-[#090514] mb-2">
                       Make It Relevant
                     </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <p className="text-sm text-slate-600 leading-relaxed mb-3">
                       Why does this goal matter to you? How does it align with your values and life priorities?
                     </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-                      Example: "Better health will give me energy to play with my kids" or "Financial security reduces my stress"
-                    </p>
+                    <div className="bg-white/80 p-3 rounded-xl border border-purple-100">
+                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">Example</span>
+                      <p className="text-xs italic text-slate-600">
+                        "Better health will give me energy to play with my kids"
+                      </p>
+                    </div>
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="relevant"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-lg flex items-center gap-2">
-                          Why Does This Matter to You? <span className="text-red-500 text-xl">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            value={watchedValues.relevant}
-                            onChange={(e) => form.setValue("relevant", e.target.value)}
-                            placeholder="How will achieving this goal improve your life? Why is it important to you right now?"
-                            className="resize-none min-h-[120px] text-base"
-                            data-testid="textarea-goal-relevant"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Explain the personal meaning behind this goal (at least 20 characters)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="md:col-span-3 flex flex-col justify-center space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="relevant"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-bold text-[#090514] flex items-center gap-2">
+                            Why Does This Matter to You? <span className="text-red-500 text-sm">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Textarea
+                              value={watchedValues.relevant}
+                              onChange={(e) => form.setValue("relevant", e.target.value)}
+                              placeholder="How will achieving this goal improve your life? Why is it important to you right now?"
+                              className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
+                              data-testid="textarea-goal-relevant"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs text-slate-400">
+                            Explain the personal meaning behind this goal (at least 20 characters)
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               )}
 
               {/* Step 6: Time-bound */}
               {currentStep === 6 && (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <h3 className="font-medium text-sm mb-2 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4" />
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                  <div className="md:col-span-2 bg-purple-50/50 p-5 rounded-2xl border border-purple-100/80 flex flex-col justify-center">
+                    <div className="inline-flex p-2.5 rounded-xl bg-purple-100 text-purple-700 w-fit mb-3">
+                      <Clock className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-bold text-base text-[#090514] mb-2">
                       Set a Timeline
                     </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <p className="text-sm text-slate-600 leading-relaxed mb-3">
                       When will you achieve this goal? A deadline creates urgency and helps you stay on track.
                     </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-                      Example: "Complete by end of Q3" or "Achieve within 3 months"
-                    </p>
+                    <div className="bg-white/80 p-3 rounded-xl border border-purple-100">
+                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">Example</span>
+                      <p className="text-xs italic text-slate-600">
+                        "Complete within 3 months, tracking weekly milestones"
+                      </p>
+                    </div>
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="timebound"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-lg flex items-center gap-2">
-                          What's Your Timeframe? <span className="text-red-500 text-xl">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            value={watchedValues.timebound}
-                            onChange={(e) => form.setValue("timebound", e.target.value)}
-                            placeholder="By when will you achieve this? Describe your timeline..."
-                            className="resize-none min-h-[100px] text-base"
-                            data-testid="textarea-goal-timebound"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Specify when you'll complete this goal (at least 10 characters)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="deadline"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-lg">Target Deadline (Optional)</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className="w-full justify-start text-left font-normal"
-                                data-testid="button-select-deadline"
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) => date < new Date()}
-                              initialFocus
+                  <div className="md:col-span-3 flex flex-col justify-center space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="timebound"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-bold text-[#090514] flex items-center gap-2">
+                            What's Your Timeframe? <span className="text-red-500 text-sm">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Textarea
+                              value={watchedValues.timebound}
+                              onChange={(e) => form.setValue("timebound", e.target.value)}
+                              placeholder="By when will you achieve this? Describe your timeline..."
+                              className="resize-none min-h-[90px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
+                              data-testid="textarea-goal-timebound"
                             />
-                          </PopoverContent>
-                        </Popover>
-                        <FormDescription>
-                          Optional: Select a specific target date
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          </FormControl>
+                          <FormDescription className="text-xs text-slate-400">
+                            Specify when you'll complete this goal (at least 10 characters)
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="deadline"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-bold text-[#090514]">Target Deadline (Optional)</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start text-left font-normal bg-white border-slate-200 hover:bg-slate-50 rounded-xl"
+                                  data-testid="button-select-deadline"
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4 text-purple-500" />
+                                  {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => date < new Date()}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormDescription className="text-xs text-slate-400">
+                            Optional: Select a specific target date
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               )}
 
               {/* Step 7: Milestones */}
               {currentStep === 7 && (
                 <div className="space-y-4">
-                  <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <h3 className="font-medium text-sm mb-2 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4" />
-                      Break It Down (Optional)
-                    </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      Milestones are smaller checkpoints that help you track progress toward your main goal. They keep you motivated and on track.
-                    </p>
-                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Left Column: Form */}
+                    <div className="space-y-4">
+                      <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+                        <h3 className="font-bold text-sm text-[#090514] mb-1 flex items-center gap-2">
+                          <HelpCircle className="h-4 w-4 text-purple-600" />
+                          Break It Down
+                        </h3>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          Milestones are smaller checkpoints that help you track progress toward your main goal.
+                        </p>
+                      </div>
 
-                  {/* Add Milestone Form */}
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        Add Milestone
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <Input
-                        placeholder="Milestone title"
-                        value={newMilestone.title}
-                        onChange={(e) => setNewMilestone({ ...newMilestone, title: e.target.value })}
-                        data-testid="input-milestone-title"
-                      />
-                      <Textarea
-                        placeholder="Description (optional)"
-                        value={newMilestone.description}
-                        onChange={(e) => setNewMilestone({ ...newMilestone, description: e.target.value })}
-                        className="resize-none"
-                        rows={2}
-                      />
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full justify-start text-left font-normal">
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {newMilestone.dueDate ? format(newMilestone.dueDate, "PPP") : <span>Due date (optional)</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={newMilestone.dueDate}
-                            onSelect={(date) => setNewMilestone({ ...newMilestone, dueDate: date })}
-                            disabled={(date) => date < new Date()}
-                            initialFocus
+                      {/* Add Milestone Form */}
+                      <Card className="border border-slate-100 shadow-sm">
+                        <CardHeader className="pb-3 pt-4">
+                          <CardTitle className="text-sm font-bold text-[#090514] flex items-center gap-2">
+                            <Plus className="h-4 w-4 text-purple-600" />
+                            Add Milestone
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3 pb-4">
+                          <Input
+                            placeholder="Milestone title"
+                            value={newMilestone.title}
+                            onChange={(e) => setNewMilestone({ ...newMilestone, title: e.target.value })}
+                            className="bg-white border-slate-200 rounded-xl"
+                            data-testid="input-milestone-title"
                           />
-                        </PopoverContent>
-                      </Popover>
-                      <Button
-                        type="button"
-                        onClick={handleAddMilestone}
-                        disabled={!newMilestone.title.trim()}
-                        className="w-full"
-                        data-testid="button-add-milestone"
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Milestone
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  {/* Milestones List */}
-                  {milestones.length > 0 && (
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          <ListChecks className="h-4 w-4" />
-                          Your Milestones ({milestones.length})
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {milestones.map((milestone, index) => (
-                            <div
-                              key={index}
-                              className="flex items-start justify-between p-3 bg-muted rounded-lg"
+                          <Textarea
+                            placeholder="Description (optional)"
+                            value={newMilestone.description}
+                            onChange={(e) => setNewMilestone({ ...newMilestone, description: e.target.value })}
+                            className="resize-none bg-white border-slate-200 rounded-xl"
+                            rows={2}
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline" className="justify-start text-left font-normal bg-white border-slate-200 hover:bg-slate-50 rounded-xl text-xs">
+                                  <CalendarIcon className="mr-1.5 h-3.5 w-3.5 text-purple-500" />
+                                  {newMilestone.dueDate ? format(newMilestone.dueDate, "MMM d") : <span>Due date</span>}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={newMilestone.dueDate}
+                                  onSelect={(date) => setNewMilestone({ ...newMilestone, dueDate: date })}
+                                  disabled={(date) => date < new Date()}
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <Button
+                              type="button"
+                              onClick={handleAddMilestone}
+                              disabled={!newMilestone.title.trim()}
+                              className="w-full bg-[#090514] hover:bg-purple-950 text-white rounded-xl text-xs"
+                              data-testid="button-add-milestone"
                             >
-                              <div className="flex-1">
-                                <p className="font-medium">{milestone.title}</p>
-                                {milestone.description && (
-                                  <p className="text-sm text-muted-foreground mt-1">{milestone.description}</p>
-                                )}
-                                {milestone.dueDate && (
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    Due: {format(milestone.dueDate, "PPP")}
-                                  </p>
-                                )}
-                              </div>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveMilestone(index)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
+                              <Plus className="mr-1.5 h-3.5 w-3.5" />
+                              Add
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Right Column: List */}
+                    <div className="flex flex-col h-full justify-between">
+                      <Card className="border border-slate-100 shadow-sm flex-1 flex flex-col min-h-[300px]">
+                        <CardHeader className="pb-3 pt-4">
+                          <CardTitle className="text-sm font-bold text-[#090514] flex items-center gap-2">
+                            <ListChecks className="h-4 w-4 text-purple-600" />
+                            Your Milestones ({milestones.length})
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex-1 flex flex-col">
+                          {milestones.length === 0 ? (
+                            <div className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-100">
+                              <ListChecks className="h-8 w-8 text-slate-300 mb-2" />
+                              <p className="text-xs font-semibold text-slate-500">No Milestones Added Yet</p>
+                              <p className="text-[11px] text-slate-400 mt-1 max-w-[200px]">
+                                Add checkpoints on the left to break down your main goal.
+                              </p>
                             </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
+                          ) : (
+                            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                              {milestones.map((milestone, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-start justify-between p-3 bg-slate-50 border border-slate-100 hover:border-purple-100 rounded-xl transition-all duration-200"
+                                >
+                                  <div className="flex-1 min-w-0 pr-2">
+                                    <p className="font-semibold text-sm text-[#090514] truncate">{milestone.title}</p>
+                                    {milestone.description && (
+                                      <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{milestone.description}</p>
+                                    )}
+                                    {milestone.dueDate && (
+                                      <p className="text-[10px] text-purple-600 font-medium mt-1 inline-flex items-center">
+                                        <CalendarIcon className="h-3 w-3 mr-1" />
+                                        Due: {format(milestone.dueDate, "MMM d, yyyy")}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveMilestone(index)}
+                                    className="h-7 w-7 p-0 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -712,6 +746,8 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                 onSubmit={() => form.handleSubmit(onSubmit)()}
                 nextLabel="Next"
                 submitLabel="Create Goal"
+                nextButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl"
+                submitButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl"
               />
             </form>
           </Form>
@@ -725,10 +761,10 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
           handleReset();
         }
       }}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-green-600">
-              <Check className="h-5 w-5" />
+            <DialogTitle className="flex items-center gap-2 text-purple-600 text-xl font-bold">
+              <Check className="h-6 w-6 bg-purple-50 p-1 rounded-full text-purple-600" />
               Goal Created Successfully!
             </DialogTitle>
             <DialogDescription>
@@ -737,14 +773,14 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
           </DialogHeader>
 
           <div className="space-y-4">
-            <Card>
+            <Card className="border border-slate-100 shadow-sm bg-slate-50/50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Goal Summary</CardTitle>
+                <CardTitle className="text-xs text-slate-400 font-bold uppercase tracking-wider">Goal Summary</CardTitle>
               </CardHeader>
               <CardContent>
-                <h3 className="font-bold text-lg">{form.getValues("title")}</h3>
-                <div className="mt-3 space-y-2 text-sm">
-                  <p><strong>Specific:</strong> {form.getValues("specific").substring(0, 100)}...</p>
+                <h3 className="font-bold text-lg text-[#090514]">{form.getValues("title")}</h3>
+                <div className="mt-3 space-y-2 text-sm text-slate-600">
+                  <p><strong>Specific:</strong> {form.getValues("specific") ? form.getValues("specific").substring(0, 100) : ""}...</p>
                   {form.getValues("deadline") && (
                     <p><strong>Deadline:</strong> {format(form.getValues("deadline")!, "PPP")}</p>
                   )}
@@ -754,7 +790,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
           </div>
 
           <DialogFooter>
-            <Button onClick={handleReset}>
+            <Button onClick={handleReset} className="w-full bg-[#090514] hover:bg-purple-950 text-white rounded-xl">
               Create Another Goal
             </Button>
           </DialogFooter>

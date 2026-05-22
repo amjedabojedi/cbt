@@ -298,452 +298,437 @@ export default function ThoughtRecordWizard({
 
   // Step 1: Write your thought (simple language)
   const renderStep1 = () => (
-    <div className="space-y-6" data-testid="step-write-thought">
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-md">
-        <div className="flex items-start">
-          <Info className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
-          <div>
-            <h4 className="font-semibold text-blue-900 mb-1">💡 Why This Step?</h4>
-            <p className="text-sm text-blue-800">
-              The first step is simply capturing what went through your mind. Don't worry about getting it "right" - just write what you were thinking.
-            </p>
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-4" data-testid="step-write-thought">
+      <div className="md:col-span-7 space-y-3">
+        <div className="space-y-1.5">
+          <label className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+            <Brain className="h-4.5 w-4.5 text-purple-600" />
+            What thought went through your mind? <span className="text-red-500">*</span>
+          </label>
+          <p className="text-xs text-slate-500">
+            Write down the exact thought that popped into your head. Be as specific as possible.
+          </p>
+          <Textarea
+            placeholder="e.g., I'm going to embarrass myself in front of everyone..."
+            className="resize-none w-full min-h-[90px] text-sm py-2 px-3 rounded-xl"
+            rows={3}
+            value={watchedValues.automaticThought || ""}
+            onChange={(e) => {
+              form.setValue("automaticThought", e.target.value, { shouldValidate: true });
+            }}
+            data-testid="textarea-thought"
+          />
+          <div className="flex justify-between items-center text-xs mt-1">
+            {form.formState.errors.automaticThought ? (
+              <p className="text-red-500 text-xs">{form.formState.errors.automaticThought.message}</p>
+            ) : (
+              <span />
+            )}
+            <span className={`font-medium ${(watchedValues.automaticThought || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
+              {(watchedValues.automaticThought || "").length}/10 characters minimum
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <label className="text-base font-semibold flex items-center gap-2">
-          <Brain className="h-5 w-5" />
-          What thought went through your mind? <span className="text-red-500">*</span>
-        </label>
-        <p className="text-sm text-muted-foreground">
-          Write down the exact thought that popped into your head. Be as specific as possible.
-        </p>
-        <Textarea
-          placeholder="e.g., I'm going to embarrass myself in front of everyone..."
-          className="resize-none w-full min-h-[120px] text-base"
-          rows={5}
-          value={watchedValues.automaticThought || ""}
-          onChange={(e) => {
-            form.setValue("automaticThought", e.target.value, { shouldValidate: true });
-          }}
-          data-testid="textarea-thought"
-        />
-        <div className="flex justify-between items-center text-sm">
-          {form.formState.errors.automaticThought && (
-            <p className="text-red-500 text-sm">{form.formState.errors.automaticThought.message}</p>
-          )}
-          <span className={`${(watchedValues.automaticThought || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
-            {(watchedValues.automaticThought || "").length}/10 characters minimum
-          </span>
+      <div className="md:col-span-5">
+        <div className="bg-purple-50/40 border border-purple-100 p-3.5 rounded-xl space-y-3 shadow-2xs">
+          <div className="flex items-start">
+            <Info className="h-4.5 w-4.5 text-purple-600 mt-0.5 mr-2 shrink-0" />
+            <div>
+              <h4 className="font-bold text-purple-900 text-xs mb-0.5">💡 Why This Step?</h4>
+              <p className="text-[11px] text-purple-800/80 leading-relaxed">
+                Simply capture what went through your mind exactly as you thought it. Don't worry about accuracy yet.
+              </p>
+            </div>
+          </div>
+          <div className="border-t border-purple-100/50 pt-2.5">
+            <h4 className="font-bold text-purple-950 text-xs mb-1.5">Common Examples:</h4>
+            <ul className="text-[11px] text-purple-900/70 space-y-1">
+              <li>• "I'm not good enough"</li>
+              <li>• "Everyone will judge me"</li>
+              <li>• "I'll never succeed"</li>
+              <li>• "This is going to be a disaster"</li>
+            </ul>
+          </div>
         </div>
-      </div>
-
-      <div className="bg-gray-50 p-4 rounded-md">
-        <h4 className="font-medium mb-2">Examples of Common Thoughts:</h4>
-        <ul className="text-sm space-y-1 text-gray-700">
-          <li>• "I'm not good enough"</li>
-          <li>• "Everyone will judge me"</li>
-          <li>• "I'll never succeed"</li>
-          <li>• "This is going to be a disaster"</li>
-          <li>• "I always mess things up"</li>
-        </ul>
       </div>
     </div>
   );
 
   // Step 2: Educational slide about automatic thoughts
   const renderStep2 = () => (
-    <div className="space-y-6" data-testid="step-learn-automatic-thoughts">
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 p-6 rounded-lg">
-        <div className="flex items-start gap-3">
-          <Sparkles className="h-8 w-8 text-purple-600 mt-1 flex-shrink-0" />
-          <div>
-            <h3 className="text-xl font-bold text-purple-900 mb-3">
-              What Are "Automatic Thoughts"?
-            </h3>
-            <p className="text-base text-gray-800 mb-3">
-              The thought you just wrote is called an <strong>automatic thought</strong> in therapy. These are the immediate thoughts that pop into your mind in response to a situation - often so quick you barely notice them!
-            </p>
-            <p className="text-base text-gray-800 mb-3">
-              Automatic thoughts can be:
-            </p>
-            <ul className="text-base text-gray-800 space-y-2 ml-4">
-              <li>• <strong>Lightning fast</strong> - They happen in a split second</li>
-              <li>• <strong>Believable</strong> - They feel like absolute truth</li>
-              <li>• <strong>Powerful</strong> - They strongly affect how you feel</li>
-              <li>• <strong>Sometimes unhelpful</strong> - They can be inaccurate or exaggerated</li>
-            </ul>
-            <p className="text-base text-gray-800 mt-4">
-              <strong>The good news:</strong> Once you notice these thoughts, you can question them and develop more balanced perspectives. That's what CBT (Cognitive Behavioral Therapy) is all about!
-            </p>
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-4" data-testid="step-learn-automatic-thoughts">
+      <div className="md:col-span-6">
+        <div className="bg-gradient-to-br from-purple-50 to-blue-50/30 border border-purple-100 p-3.5 rounded-xl shadow-2xs">
+          <div className="flex items-start gap-2.5">
+            <Sparkles className="h-5 w-5 text-purple-600 mt-0.5 shrink-0" />
+            <div>
+              <h3 className="text-sm font-bold text-purple-900 mb-1.5">
+                What Are "Automatic Thoughts"?
+              </h3>
+              <p className="text-[11px] text-slate-600 leading-relaxed mb-2">
+                These are immediate, lightning-fast thoughts that pop into your mind in response to situations - often so quick you barely notice them!
+              </p>
+              <p className="text-[11px] font-semibold text-slate-800 mb-1">
+                Automatic thoughts are:
+              </p>
+              <ul className="text-[11px] text-slate-600 space-y-1 ml-2.5 leading-relaxed">
+                <li>• <strong>Lightning fast</strong> - split-second occurrences</li>
+                <li>• <strong>Believable</strong> - they feel like absolute truth</li>
+                <li>• <strong>Powerful</strong> - strongly affect how you feel</li>
+                <li>• <strong>Sometimes unhelpful</strong> - can be inaccurate</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-gray-50 p-4 rounded-md">
-        <h4 className="font-medium mb-2">Why this matters:</h4>
-        <p className="text-sm text-gray-700">
-          By learning to recognize automatic thoughts, you're taking the first step toward understanding and improving your mental well-being. You're building awareness!
-        </p>
+      <div className="md:col-span-6 space-y-2">
+        <h4 className="font-semibold text-slate-800 text-xs">The 3-Step CBT Method:</h4>
+        <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
+          <h4 className="font-bold text-slate-900 text-xs mb-0.5 flex items-center gap-1.5">
+            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-purple-100 text-[10px] font-bold text-purple-700">1</span>
+            Catch the Thought
+          </h4>
+          <p className="text-[10px] text-slate-500 leading-normal">Notice immediate negative thoughts exactly as they occur.</p>
+        </div>
+        
+        <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
+          <h4 className="font-bold text-slate-900 text-xs mb-0.5 flex items-center gap-1.5">
+            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-purple-100 text-[10px] font-bold text-purple-700">2</span>
+            Identify the Pattern
+          </h4>
+          <p className="text-[10px] text-slate-500 leading-normal">Categorize which unhelpful thinking pattern (ANT) it represents.</p>
+        </div>
+        
+        <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
+          <h4 className="font-bold text-slate-900 text-xs mb-0.5 flex items-center gap-1.5">
+            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-purple-100 text-[10px] font-bold text-purple-700">3</span>
+            Challenge & Reframe
+          </h4>
+          <p className="text-[10px] text-slate-500 leading-normal">Examine evidence and develop a balanced, healthy perspective.</p>
+        </div>
       </div>
     </div>
   );
 
   // Step 3: Categorize the thought
   const renderStep3 = () => (
-    <div className="space-y-6" data-testid="step-categorize-thought">
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-md">
-        <div className="flex items-start">
-          <Info className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
-          <div>
-            <h4 className="font-semibold text-blue-900 mb-2">💡 What Are Automatic Thoughts?</h4>
-            <p className="text-sm text-blue-800 mb-2">
-              Automatic thoughts are the immediate thoughts that pop into your mind in response to a situation. They're called "automatic" because they happen so quickly you barely notice them. Sometimes these thoughts are unhelpful and can be called ANTs (Automatic Negative Thoughts).
-            </p>
-            <p className="text-sm text-blue-800 mb-2">
-              <strong>Why categorize them?</strong> Recognizing which type of unhelpful thinking pattern your thought follows helps you understand your patterns over time. Once you can spot these patterns, you can challenge them and develop more balanced ways of thinking.
-            </p>
-            <p className="text-sm text-blue-800">
-              Below are common types of unhelpful thinking styles. Read each definition and example, then select which ones match your thought. Your thought might fit into more than one category.
-            </p>
-          </div>
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-4" data-testid="step-categorize-thought">
+      <div className="md:col-span-8 space-y-3 flex flex-col">
+        <div className="bg-purple-50/70 border border-purple-100/50 p-2.5 rounded-xl shadow-2xs">
+          <p className="text-[10.5px] font-semibold text-purple-900 mb-0.5">Your automatic thought:</p>
+          <p className="text-[11px] italic text-slate-700">"{watchedValues.automaticThought}"</p>
         </div>
-      </div>
 
-      <div className="bg-purple-50 border border-purple-200 p-4 rounded-md">
-        <p className="text-sm font-medium text-purple-900 mb-2">Your automatic thought:</p>
-        <p className="text-sm italic text-gray-700">"{watchedValues.automaticThought}"</p>
-      </div>
-
-      <FormField
-        control={form.control}
-        name="thoughtCategory"
-        render={() => (
-          <FormItem>
-            <FormLabel className="text-base font-semibold">
-              Read each definition and example, then select which ones match your thought <span className="text-red-500">*</span>
-            </FormLabel>
-            <FormDescription>
-              Your thought might fit multiple categories - select all that apply
-            </FormDescription>
-            <div className="space-y-3 mt-3">
-              {thoughtCategories.map((category) => (
-                <FormField
-                  key={category.value}
-                  control={form.control}
-                  name="thoughtCategory"
-                  render={({ field }) => (
-                    <div className={`group relative p-5 rounded-xl border-2 transition-all duration-200 cursor-pointer ${
-                      field.value?.includes(category.value) 
-                        ? 'border-blue-500 bg-blue-50 shadow-md' 
-                        : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
-                    }`}>
-                      <div className="flex items-start space-x-4">
-                        <Checkbox
-                          checked={field.value?.includes(category.value)}
-                          onCheckedChange={(checked) => {
-                            return checked
-                              ? field.onChange([...field.value, category.value])
-                              : field.onChange(
-                                  field.value?.filter((value) => value !== category.value)
-                                );
-                          }}
-                          data-testid={`checkbox-${category.value}`}
-                          className="mt-1"
-                        />
-                        <div className="flex-1">
-                          <Label className="text-base font-bold text-gray-900 cursor-pointer block mb-2">
-                            {category.label}
-                          </Label>
-                          <p className="text-sm text-gray-700 leading-relaxed mb-3">
-                            {category.description}
-                          </p>
-                          <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
-                              Examples:
+        <FormField
+          control={form.control}
+          name="thoughtCategory"
+          render={() => (
+            <FormItem className="flex-1 flex flex-col">
+              <FormLabel className="text-sm font-semibold text-slate-900">
+                Read definitions, then select matches <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormDescription className="text-xxs">
+                Select all unhelpful thinking styles that match your thought (scroll to view all 12)
+              </FormDescription>
+              <div className="space-y-1.5 mt-1.5 flex-1 overflow-y-auto pr-1 max-h-[220px] border border-slate-100 rounded-xl p-1.5 bg-slate-50/50 custom-scrollbar">
+                {thoughtCategories.map((category) => (
+                  <FormField
+                    key={category.value}
+                    control={form.control}
+                    name="thoughtCategory"
+                    render={({ field }) => (
+                      <div className={`group relative p-2.5 rounded-lg border transition-all duration-200 cursor-pointer ${
+                        field.value?.includes(category.value) 
+                          ? 'border-purple-500 bg-purple-50/60 shadow-2xs' 
+                          : 'border-slate-200 bg-white hover:border-purple-300 hover:shadow-3xs'
+                      }`}>
+                        <div className="flex items-start space-x-2.5">
+                          <Checkbox
+                            checked={field.value?.includes(category.value)}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...field.value, category.value])
+                                : field.onChange(
+                                    field.value?.filter((value) => value !== category.value)
+                                  );
+                            }}
+                            data-testid={`checkbox-${category.value}`}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1">
+                            <Label className="text-xs font-bold text-slate-900 cursor-pointer block mb-0.5">
+                              {category.label}
+                            </Label>
+                            <p className="text-[10.5px] text-slate-500 leading-normal">
+                              {category.description}
                             </p>
-                            <div className="space-y-1.5">
-                              {category.examples.map((ex, idx) => (
-                                <div key={idx} className="flex items-start">
-                                  <span className="text-blue-500 mr-2 mt-0.5">•</span>
-                                  <p className="text-sm text-gray-600 italic flex-1">
-                                    "{ex}"
-                                  </p>
-                                </div>
-                              ))}
-                            </div>
+                            <span className="block mt-1 text-[10px] text-purple-600 font-medium italic">
+                              Example: "{category.examples[0]}"
+                            </span>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                />
-              ))}
+                    )}
+                  />
+                ))}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="md:col-span-4">
+        <div className="bg-purple-50/40 border border-purple-100 p-3.5 rounded-xl shadow-2xs">
+          <div className="flex items-start">
+            <Info className="h-4.5 w-4.5 text-purple-600 mt-0.5 mr-2 shrink-0" />
+            <div>
+              <h4 className="font-bold text-purple-900 text-xs mb-0.5">💡 What are ANTs?</h4>
+              <p className="text-[11px] text-purple-800/80 leading-relaxed mb-2">
+                Automatic thoughts can be unhelpful patterns called ANTs (Automatic Negative Thoughts).
+              </p>
+              <p className="text-[11px] text-purple-800/80 leading-relaxed font-medium">
+                Recognizing these styles is half the battle to reframing your mind!
+              </p>
             </div>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+          </div>
+        </div>
+      </div>
     </div>
   );
 
   // Step 4: Describe Situation
   const renderStep4 = () => (
-    <div className="space-y-6" data-testid="step-describe-situation">
-      <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-md">
-        <div className="flex items-start">
-          <Info className="h-5 w-5 text-amber-500 mt-0.5 mr-3 flex-shrink-0" />
-          <div>
-            <h4 className="font-semibold text-amber-900 mb-1">💡 Why Describe the Situation?</h4>
-            <p className="text-sm text-amber-800">
-              Understanding the context helps you identify triggers and patterns. What was happening when you had this thought?
-            </p>
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-4" data-testid="step-describe-situation">
+      <div className="md:col-span-7 space-y-3">
+        <div className="space-y-1.5">
+          <label className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+            What was happening when you had this thought? <span className="text-red-500">*</span>
+          </label>
+          <p className="text-xs text-slate-500">
+            Describe the situation objectively - who, what, when, where
+          </p>
+          <Textarea
+            placeholder="e.g., I was preparing for my presentation tomorrow and my manager asked to review my slides..."
+            className="resize-none w-full min-h-[90px] text-sm py-2 px-3 rounded-xl"
+            rows={3}
+            value={watchedValues.situation || ""}
+            onChange={(e) => {
+              form.setValue("situation", e.target.value, { shouldValidate: true });
+            }}
+            data-testid="textarea-situation"
+          />
+          <div className="flex justify-between items-center text-xs mt-1">
+            {form.formState.errors.situation ? (
+              <p className="text-red-500 text-xs">{form.formState.errors.situation.message}</p>
+            ) : (
+              <span />
+            )}
+            <span className={`font-medium ${(watchedValues.situation || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
+              {(watchedValues.situation || "").length}/10 characters minimum
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <label className="text-base font-semibold">
-          What was happening when you had this thought? <span className="text-red-500">*</span>
-        </label>
-        <p className="text-sm text-muted-foreground">
-          Describe the situation objectively - who, what, when, where, why
-        </p>
-        <Textarea
-          placeholder="e.g., I was preparing for my presentation tomorrow and my manager asked to review my slides..."
-          className="resize-none w-full min-h-[120px] text-base"
-          rows={5}
-          value={watchedValues.situation || ""}
-          onChange={(e) => {
-            form.setValue("situation", e.target.value, { shouldValidate: true });
-          }}
-          data-testid="textarea-situation"
-        />
-        <div className="flex justify-between items-center text-sm">
-          {form.formState.errors.situation && (
-            <p className="text-red-500 text-sm">{form.formState.errors.situation.message}</p>
-          )}
-          <span className={`${(watchedValues.situation || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
-            {(watchedValues.situation || "").length}/10 characters minimum
-          </span>
+      <div className="md:col-span-5">
+        <div className="bg-amber-50/40 border border-amber-100 p-3.5 rounded-xl space-y-3 shadow-2xs">
+          <div className="flex items-start">
+            <Info className="h-4.5 w-4.5 text-amber-600 mt-0.5 mr-2 shrink-0" />
+            <div>
+              <h4 className="font-bold text-amber-900 text-xs mb-0.5">💡 Why Describe Situation?</h4>
+              <p className="text-[11px] text-amber-800/80 leading-relaxed">
+                Context helps identify triggers. Try to stick completely to objective observable facts.
+              </p>
+            </div>
+          </div>
+          <div className="border-t border-amber-100/50 pt-2.5">
+            <h4 className="font-bold text-amber-950 text-xs mb-1.5">Observable Tips:</h4>
+            <ul className="text-[11px] text-amber-900/70 space-y-1">
+              <li>• Stick to objective facts (who, what, when, where)</li>
+              <li>• Avoid subjective judgment words (e.g., "terrible")</li>
+              <li>• Keep descriptions concise and trigger-focused</li>
+            </ul>
+          </div>
         </div>
-      </div>
-
-      <div className="bg-gray-50 p-4 rounded-md">
-        <h4 className="font-medium mb-2">Tips for Describing Situations:</h4>
-        <ul className="text-sm space-y-1 text-gray-700">
-          <li>• Stick to observable facts, not interpretations</li>
-          <li>• Include who was there, what was said/done</li>
-          <li>• Note the time and place if relevant</li>
-          <li>• Avoid judgment words like "terrible" or "unfair"</li>
-        </ul>
       </div>
     </div>
   );
 
   // Step 5: Link to Emotion (Optional)
   const renderStep5 = () => (
-    <div className="space-y-6" data-testid="step-link-emotion">
-      <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-r-md">
-        <div className="flex items-start">
-          <Info className="h-5 w-5 text-purple-500 mt-0.5 mr-3 flex-shrink-0" />
-          <div>
-            <h4 className="font-semibold text-purple-900 mb-1">💡 Why Link to an Emotion?</h4>
-            <p className="text-sm text-purple-800">
-              Connecting your thought to a specific emotion you tracked helps you see patterns between what you think and how you feel. This is <strong>optional</strong> but can provide valuable insights.
-            </p>
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-4" data-testid="step-link-emotion">
+      <div className="md:col-span-7 space-y-3">
+        <FormField
+          control={form.control}
+          name="emotionRecordId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-semibold text-slate-900">
+                Link to a Recent Emotion (Optional)
+              </FormLabel>
+              <FormDescription className="text-xs">
+                Select an emotion you tracked recently, or skip this step
+              </FormDescription>
+              <Select
+                value={field.value?.toString() || "none"}
+                onValueChange={(value) => {
+                  field.onChange(value === "none" ? null : parseInt(value));
+                }}
+              >
+                <FormControl>
+                  <SelectTrigger data-testid="select-emotion-link" className="rounded-xl">
+                    <SelectValue placeholder="No emotion linked" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">No emotion linked</SelectItem>
+                  {recentEmotions.map((emotion) => (
+                    <SelectItem key={emotion.id} value={emotion.id.toString()}>
+                      <div className="flex items-center gap-1.5">
+                        <span>{emotion.primaryEmotion || emotion.coreEmotion}</span>
+                        {emotion.tertiaryEmotion && (
+                          <span className="text-slate-500">({emotion.tertiaryEmotion})</span>
+                        )}
+                        <span className="text-xs text-slate-400">
+                          - {format(new Date(emotion.timestamp), "MMM d, h:mm a")}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                  {recentEmotions.length === 0 && (
+                    <SelectItem value="__empty" disabled>
+                      No recent emotions tracked
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {selectedEmotion && (
+          <div className="bg-green-50/40 border border-green-200/60 p-3 rounded-xl shadow-2xs mt-3">
+            <h4 className="font-bold text-green-950 text-xs mb-1.5 flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+              Linked Emotion
+            </h4>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Badge variant="secondary" className="text-[10px] px-2 py-0">
+                {selectedEmotion.coreEmotion}
+              </Badge>
+              {selectedEmotion.primaryEmotion && (
+                <Badge variant="outline" className="text-[10px] px-2 py-0">
+                  {selectedEmotion.primaryEmotion}
+                </Badge>
+              )}
+              {selectedEmotion.tertiaryEmotion && (
+                <Badge variant="outline" className="text-[10px] px-2 py-0">
+                  {selectedEmotion.tertiaryEmotion}
+                </Badge>
+              )}
+              <span className="text-[10px] font-medium text-slate-600">
+                Intensity: {selectedEmotion.intensity}/10
+              </span>
+            </div>
+            {selectedEmotion.situation && (
+              <p className="text-[10px] text-slate-650 mt-1.5 leading-normal">
+                <strong>Situation:</strong> {selectedEmotion.situation}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="md:col-span-5">
+        <div className="bg-purple-50/40 border border-purple-100 p-3.5 rounded-xl shadow-2xs">
+          <div className="flex items-start">
+            <Info className="h-4.5 w-4.5 text-purple-600 mt-0.5 mr-2 shrink-0" />
+            <div>
+              <h4 className="font-bold text-purple-900 text-xs mb-0.5">💡 Why Link to Emotion?</h4>
+              <p className="text-[11px] text-purple-800/80 leading-relaxed">
+                Connecting thoughts to your tracked emotions reveals patterns between what you think and how you feel.
+              </p>
+            </div>
           </div>
         </div>
       </div>
-
-      <FormField
-        control={form.control}
-        name="emotionRecordId"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-base font-semibold">
-              Link to a Recent Emotion (Optional)
-            </FormLabel>
-            <FormDescription>
-              Select an emotion you tracked recently, or skip this step
-            </FormDescription>
-            <Select
-              value={field.value?.toString() || "none"}
-              onValueChange={(value) => {
-                field.onChange(value === "none" ? null : parseInt(value));
-              }}
-            >
-              <FormControl>
-                <SelectTrigger data-testid="select-emotion-link">
-                  <SelectValue placeholder="No emotion linked" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="none">No emotion linked</SelectItem>
-                {recentEmotions.map((emotion) => (
-                  <SelectItem key={emotion.id} value={emotion.id.toString()}>
-                    <div className="flex items-center gap-2">
-                      <span>{emotion.primaryEmotion || emotion.coreEmotion}</span>
-                      {emotion.tertiaryEmotion && (
-                        <span className="text-gray-500">({emotion.tertiaryEmotion})</span>
-                      )}
-                      <span className="text-xs text-gray-400">
-                        - {format(new Date(emotion.timestamp), "MMM d, h:mm a")}
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-                {recentEmotions.length === 0 && (
-                  <SelectItem value="__empty" disabled>
-                    No recent emotions tracked
-                  </SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      {selectedEmotion && (
-        <div className="bg-green-50 border border-green-200 p-4 rounded-md">
-          <h4 className="font-medium mb-2 flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
-            Linked Emotion
-          </h4>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="secondary" className="text-sm">
-              {selectedEmotion.coreEmotion}
-            </Badge>
-            {selectedEmotion.primaryEmotion && (
-              <Badge variant="outline" className="text-sm">
-                {selectedEmotion.primaryEmotion}
-              </Badge>
-            )}
-            {selectedEmotion.tertiaryEmotion && (
-              <Badge variant="outline" className="text-sm">
-                {selectedEmotion.tertiaryEmotion}
-              </Badge>
-            )}
-            <span className="text-sm text-gray-600">
-              Intensity: {selectedEmotion.intensity}/10
-            </span>
-          </div>
-          {selectedEmotion.situation && (
-            <p className="text-sm text-gray-700 mt-2">
-              <strong>Situation:</strong> {selectedEmotion.situation}
-            </p>
-          )}
-        </div>
-      )}
     </div>
   );
 
   // Step 0: Introduction
   const renderStep0 = () => (
-    <div className="space-y-6" data-testid="step-intro">
-      <div className="text-center space-y-4 py-8">
-        <div className="mx-auto w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
-          <Brain className="h-10 w-10 text-white" />
+    <div className="space-y-4" data-testid="step-intro">
+      {/* Title & Description on separate line */}
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-xs shrink-0">
+          <Brain className="h-5 w-5 text-white" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Welcome to Thought Records</h2>
-        <p className="text-gray-600 max-w-md mx-auto">
-          Capture and challenge your automatic thoughts using evidence-based Cognitive Behavioral Therapy (CBT) techniques.
-        </p>
+        <div className="space-y-0.5">
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Record a Thought</h2>
+          <p className="text-[11px] text-slate-500 leading-relaxed">
+            Capture and challenge automatic negative thoughts (ANTs) using clinical CBT techniques to improve mental well-being.
+          </p>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border-indigo-200 bg-indigo-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <div className="p-2 bg-indigo-100 rounded-lg">
-                <Sparkles className="h-4 w-4 text-indigo-600" />
-              </div>
-              Notice Your Thoughts
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-gray-700">
-            Learn to catch automatic thoughts that flash through your mind and influence how you feel.
-          </CardContent>
-        </Card>
+      {/* Two columns underneath */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Left column: What You'll Do Next */}
+        <div className="bg-gradient-to-br from-indigo-50/20 to-purple-50/20 p-3.5 rounded-xl border border-indigo-100/30 shadow-xs flex flex-col justify-center">
+          <h3 className="font-semibold text-slate-900 text-xs mb-2 flex items-center gap-1.5">
+            <HelpCircle className="h-3.5 w-3.5 text-indigo-600" />
+            What You'll Do Next
+          </h3>
+          <ol className="space-y-1.5 text-xxs text-slate-650 leading-normal">
+            <li className="flex items-start gap-1.5">
+              <span className="font-bold text-indigo-600">1.</span>
+              <span>Write down the automatic negative thought</span>
+            </li>
+            <li className="flex items-start gap-1.5">
+              <span className="font-bold text-indigo-600">2.</span>
+              <span>Learn about automatic thoughts in CBT</span>
+            </li>
+            <li className="flex items-start gap-1.5">
+              <span className="font-bold text-indigo-600">3.</span>
+              <span>Categorize matching thinking patterns (ANTs)</span>
+            </li>
+            <li className="flex items-start gap-1.5">
+              <span className="font-bold text-indigo-600">4.</span>
+              <span>Describe the situation that triggered the thought</span>
+            </li>
+            <li className="flex items-start gap-1.5">
+              <span className="font-bold text-indigo-600">5.</span>
+              <span>Optionally link to a tracked emotion</span>
+            </li>
+          </ol>
+        </div>
 
-        <Card className="border-purple-200 bg-purple-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <BrainCircuit className="h-4 w-4 text-purple-600" />
-              </div>
-              Identify Patterns
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-gray-700">
-            Recognize unhelpful thinking patterns (ANTs - Automatic Negative Thoughts) using 12 clinical CBT categories.
-          </CardContent>
-        </Card>
-
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Scale className="h-4 w-4 text-blue-600" />
-              </div>
-              Examine the Evidence
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-gray-700">
-            Question your thoughts by looking at evidence for and against them to see the full picture.
-          </CardContent>
-        </Card>
-
-        <Card className="border-amber-200 bg-amber-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <Lightbulb className="h-4 w-4 text-amber-600" />
-              </div>
-              Gain Insights
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-gray-700">
-            Understand the connection between your thoughts, emotions, and behaviors for lasting change.
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-lg border border-indigo-200">
-        <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-          <HelpCircle className="h-5 w-5 text-indigo-600" />
-          What You'll Do Next
-        </h3>
-        <ol className="space-y-2 text-sm text-gray-700">
-          <li className="flex items-start gap-2">
-            <span className="font-semibold text-indigo-600 mt-0.5">1.</span>
-            <span>Write down the exact thought that went through your mind</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="font-semibold text-indigo-600 mt-0.5">2.</span>
-            <span>Learn what "automatic thoughts" are in CBT terminology</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="font-semibold text-indigo-600 mt-0.5">3.</span>
-            <span>Identify which thinking patterns (ANTs) match your thought</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="font-semibold text-indigo-600 mt-0.5">4.</span>
-            <span>Describe the situation that triggered this thought</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="font-semibold text-indigo-600 mt-0.5">5.</span>
-            <span>Optionally link to an emotion from your emotion tracker</span>
-          </li>
-        </ol>
-      </div>
-
-      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <p className="text-sm text-gray-700">
-          <strong className="text-blue-900">💡 Did you know?</strong> Research shows that identifying and challenging automatic negative thoughts is one of the most effective techniques in CBT for managing anxiety, depression, and stress.
-        </p>
+        {/* Right column: Concept cards */}
+        <div className="grid grid-cols-2 gap-2.5 h-full">
+          {[
+            { icon: Sparkles, color: "text-indigo-600 bg-indigo-50", title: "Notice Thoughts", desc: "Catch thoughts triggering moods." },
+            { icon: BrainCircuit, color: "text-purple-600 bg-purple-50", title: "Identify Patterns", desc: "Recognize ANTs categories." },
+            { icon: Scale, color: "text-blue-600 bg-blue-50", title: "Examine Evidence", desc: "Examine facts for & against." },
+            { icon: Lightbulb, color: "text-amber-600 bg-amber-50", title: "Gain Insights", desc: "Develop healthy reframes." }
+          ].map((item, idx) => (
+            <Card key={idx} className="border-slate-100 bg-white p-3 shadow-2xs rounded-lg h-full flex flex-col justify-center">
+              <CardHeader className="p-0 pb-1.5 flex flex-row items-center gap-2">
+                <div className={`p-1.5 rounded-md ${item.color} shrink-0`}>
+                  <item.icon className="h-4 w-4" />
+                </div>
+                <span className="text-xs sm:text-sm font-bold text-slate-800 leading-tight">{item.title}</span>
+              </CardHeader>
+              <CardContent className="p-0 mt-0.5">
+                <p className="text-[11px] sm:text-xs text-slate-500 leading-normal sm:leading-relaxed">{item.desc}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -769,7 +754,7 @@ export default function ThoughtRecordWizard({
 
   return (
     <>
-      <Card className="max-w-3xl mx-auto">
+      <Card className="max-w-3xl mx-auto shadow-sm border-slate-100/80 overflow-hidden">
         <WizardProgressHeader
           title="Record a Thought"
           icon={Brain}
@@ -780,10 +765,10 @@ export default function ThoughtRecordWizard({
           onClose={onClose}
         />
 
-        <CardContent>
+        <CardContent className="p-4 sm:p-5 pt-0">
           {/* Step Content */}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-2">
               {getStepContent()}
 
               <WizardNavButtons
@@ -795,16 +780,10 @@ export default function ThoughtRecordWizard({
                 isSubmitting={isSubmitting}
                 submitLabel="Record Thought"
                 submitIcon={CheckCircle2}
+                nextButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl border-0 transition-all shadow-md"
+                submitButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl border-0 transition-all shadow-md"
                 extraActions={
                   <>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={onClose}
-                      disabled={isSubmitting}
-                    >
-                      Cancel
-                    </Button>
                     {currentStep === totalSteps - 1 && (
                       <Button
                         type="button"

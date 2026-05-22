@@ -577,224 +577,239 @@ export default function ThoughtRecordsList({
       {/* Record Details Dialog */}
       {selectedRecord && (
         <Dialog open={!!selectedRecord} onOpenChange={() => setSelectedRecord(null)}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto custom-scrollbar">
-            <DialogHeader className="sticky top-0 bg-background z-10 pb-4">
-              <DialogTitle className="flex items-center gap-2 text-lg">
-                <div className="p-2 rounded-full bg-indigo-100">
-                  <Brain className="h-5 w-5 text-indigo-600" />
+          <DialogContent aria-describedby={undefined} className="max-w-3xl p-0 rounded-2xl border-0">
+            <DialogTitle className="sr-only">Thought Record</DialogTitle>
+            {/* ── Luxury gradient header ── */}
+            <div
+              className="relative overflow-hidden px-7 py-5"
+              style={{ background: 'linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)' }}
+            >
+              {/* Glowing orb backdrops */}
+              <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-purple-600/25 blur-3xl pointer-events-none" />
+              <div className="absolute -left-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/20 blur-2xl pointer-events-none" />
+              <div className="relative z-10 flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-purple-900/40 shrink-0">
+                  <Brain className="h-5 w-5 text-purple-300" />
                 </div>
-                Thought Record Details
-              </DialogTitle>
-              <DialogDescription>
-                Created on {formatDate(selectedRecord.createdAt)}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-6 pr-1">
+                <div>
+                  <h2 className="text-lg font-bold text-white tracking-tight">Thought Record Details</h2>
+                  <p className="text-purple-300/80 text-xs mt-0.5">Created on {formatDate(selectedRecord.createdAt)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Scrollable body ── */}
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-100px)] custom-scrollbar">
               <Card className="border-l-4 border-l-indigo-400">
                 <CardContent className="p-4 space-y-4">
+
+                  {/* Situation */}
                   <div>
-                    <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
-                      <div className="p-1.5 rounded-full bg-slate-100">
-                        <Calendar className="h-4 w-4 text-slate-500" />
+                    <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                        <Calendar className="h-3.5 w-3.5 text-slate-500" />
                       </div>
                       Situation
                     </h3>
-                    <p className="text-sm pl-7">{selectedRecord.situation}</p>
+                    <p className="text-sm pl-9 text-slate-700">{selectedRecord.situation}</p>
                   </div>
-                  
+
+                  {/* Emotions */}
                   <div>
-                    <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
-                      <div className="p-1.5 rounded-full bg-emerald-100">
-                        <Heart className="h-4 w-4 text-emerald-500" />
+                    <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                        <Heart className="h-3.5 w-3.5 text-emerald-500" />
                       </div>
                       Emotions
                     </h3>
-                    <div className="pl-7 flex flex-wrap gap-1">
-                  {/* Display emotions directly for record #50 */}
-                  {selectedRecord.id === 50 ? (
-                    <div className="flex flex-wrap gap-1">
-                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">
-                        Fear
-                      </span>
-                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">
-                        Insecure
-                      </span>
-                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">
-                        Inadequate
-                      </span>
-                    </div>
-                  ) : (
-                    // For other records, try to find the emotions from the linked emotion record
-                    <>
-                      {selectedRecord.emotionRecordId && emotions && emotions.length > 0 ? (
-                        (() => {
-                          const linkedEmotion = emotions.find(e => e.id === selectedRecord.emotionRecordId);
-                          return (
-                            <div className="flex flex-wrap gap-1">
-                              {linkedEmotion?.coreEmotion && (
-                                <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">
-                                  {linkedEmotion.coreEmotion}
-                                </span>
-                              )}
-                              {linkedEmotion?.primaryEmotion && (
-                                <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">
-                                  {linkedEmotion.primaryEmotion}
-                                </span>
-                              )}
-                              {linkedEmotion?.tertiaryEmotion && (
-                                <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">
-                                  {linkedEmotion.tertiaryEmotion}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })()
+                    <div className="pl-9 flex flex-wrap gap-1">
+                      {selectedRecord.id === 50 ? (
+                        <div className="flex flex-wrap gap-1">
+                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">Fear</span>
+                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">Insecure</span>
+                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">Inadequate</span>
+                        </div>
                       ) : (
-                        <span className="text-muted-foreground text-xs">No emotions linked</span>
+                        <>
+                          {selectedRecord.emotionRecordId && emotions && emotions.length > 0 ? (
+                            (() => {
+                              const linkedEmotion = emotions.find(e => e.id === selectedRecord.emotionRecordId);
+                              return (
+                                <div className="flex flex-wrap gap-1">
+                                  {linkedEmotion?.coreEmotion && (
+                                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">{linkedEmotion.coreEmotion}</span>
+                                  )}
+                                  {linkedEmotion?.primaryEmotion && (
+                                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">{linkedEmotion.primaryEmotion}</span>
+                                  )}
+                                  {linkedEmotion?.tertiaryEmotion && (
+                                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">{linkedEmotion.tertiaryEmotion}</span>
+                                  )}
+                                </div>
+                              );
+                            })()
+                          ) : (
+                            <span className="text-muted-foreground text-xs">No emotions linked</span>
+                          )}
+                        </>
                       )}
-                    </>
+                    </div>
+                  </div>
+
+                  {/* Automatic Thoughts */}
+                  <div>
+                    <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
+                        <BrainCircuit className="h-3.5 w-3.5 text-indigo-500" />
+                      </div>
+                      Automatic Thoughts
+                    </h3>
+                    <div className="pl-9">
+                      <div className="bg-amber-50/60 rounded-xl border border-amber-200 p-3">
+                        <p className="text-sm italic text-amber-900">{selectedRecord.automaticThoughts}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cognitive Distortions */}
+                  <div>
+                    <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                        <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                      </div>
+                      Cognitive Distortions
+                    </h3>
+                    <div className="pl-9 flex flex-wrap gap-1.5">
+                      {selectedRecord.cognitiveDistortions && selectedRecord.cognitiveDistortions.length > 0 ? (
+                        selectedRecord.cognitiveDistortions.map((distortion, idx) => (
+                          <span key={idx} className="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                            {distortion}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground text-xs">None identified</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Evidence For */}
+                  <div>
+                    <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center shrink-0">
+                        <Scale className="h-3.5 w-3.5 text-rose-500" />
+                      </div>
+                      Evidence For
+                    </h3>
+                    <p className="text-sm pl-9 text-slate-700">{selectedRecord.evidenceFor || "None provided"}</p>
+                  </div>
+
+                  {/* Evidence Against */}
+                  <div>
+                    <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                        <Scale className="h-3.5 w-3.5 text-emerald-500" />
+                      </div>
+                      Evidence Against
+                    </h3>
+                    <p className="text-sm pl-9 text-slate-700">{selectedRecord.evidenceAgainst || "None provided"}</p>
+                  </div>
+
+                  {/* Alternative Perspective */}
+                  <div>
+                    <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                        <Lightbulb className="h-3.5 w-3.5 text-blue-500" />
+                      </div>
+                      Alternative Perspective
+                    </h3>
+                    <div className="pl-9">
+                      <div className="bg-emerald-50/60 rounded-xl border border-emerald-200 p-3">
+                        <p className="text-sm italic text-emerald-900">{selectedRecord.alternativePerspective}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Insights Gained (conditional) */}
+                  {selectedRecord.insightsGained && (
+                    <div>
+                      <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                          <MessageSquare className="h-3.5 w-3.5 text-gray-500" />
+                        </div>
+                        Insights Gained
+                      </h3>
+                      <p className="text-sm pl-9 text-slate-700">{selectedRecord.insightsGained}</p>
+                    </div>
                   )}
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
-                  <div className="p-1.5 rounded-full bg-indigo-100">
-                    <BrainCircuit className="h-4 w-4 text-indigo-500" />
-                  </div>
-                  Automatic Thoughts
-                </h3>
-                <p className="text-sm pl-7">{selectedRecord.automaticThoughts}</p>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
-                  <div className="p-1.5 rounded-full bg-amber-100">
-                    <AlertTriangle className="h-4 w-4 text-amber-500" />
-                  </div>
-                  Cognitive Distortions
-                </h3>
-                <div className="pl-7 flex flex-wrap gap-1">
-                  {selectedRecord.cognitiveDistortions && selectedRecord.cognitiveDistortions.length > 0 ? (
-                    selectedRecord.cognitiveDistortions.map((distortion, idx) => (
-                      <span key={idx} className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-xs">
-                        {distortion}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-muted-foreground text-xs">None identified</span>
+
+                  {/* Connected Journal Entries (conditional) */}
+                  {selectedRecord.relatedJournalEntryIds && selectedRecord.relatedJournalEntryIds.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <BookText className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                        Connected Journal Entries
+                      </h3>
+                      <div className="pl-9 flex flex-wrap gap-1">
+                        {selectedRecord.relatedJournalEntryIds.map((journalId) => (
+                          <Button
+                            key={journalId}
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 py-0 text-xs"
+                            onClick={() => navigate(`/journals/${journalId}`)}
+                          >
+                            Entry #{journalId}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
-                  <div className="p-1.5 rounded-full bg-purple-100">
-                    <Scale className="h-4 w-4 text-purple-500" />
-                  </div>
-                  Evidence For
-                </h3>
-                <p className="text-sm pl-7">{selectedRecord.evidenceFor || "None provided"}</p>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
-                  <div className="p-1.5 rounded-full bg-purple-100">
-                    <Scale className="h-4 w-4 text-purple-500" />
-                  </div>
-                  Evidence Against
-                </h3>
-                <p className="text-sm pl-7">{selectedRecord.evidenceAgainst || "None provided"}</p>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
-                  <div className="p-1.5 rounded-full bg-blue-100">
-                    <Lightbulb className="h-4 w-4 text-blue-500" />
-                  </div>
-                  Alternative Perspective
-                </h3>
-                <p className="text-sm pl-7">{selectedRecord.alternativePerspective}</p>
-              </div>
-              
-              {selectedRecord.insightsGained && (
-                <div>
-                  <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
-                    <div className="p-1.5 rounded-full bg-gray-100">
-                      <MessageSquare className="h-4 w-4 text-gray-500" />
-                    </div>
-                    Insights Gained
-                  </h3>
-                  <p className="text-sm pl-7">{selectedRecord.insightsGained}</p>
-                </div>
-              )}
-              
-              {selectedRecord.relatedJournalEntryIds && selectedRecord.relatedJournalEntryIds.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium mb-1 flex items-center gap-2">
-                    <div className="p-1.5 rounded-full bg-primary/10">
-                      <BookText className="h-4 w-4 text-primary" />
-                    </div>
-                    Connected Journal Entries
-                  </h3>
-                  <div className="pl-7">
-                    <div className="flex flex-wrap gap-1">
-                      {selectedRecord.relatedJournalEntryIds.map((journalId) => (
-                        <Button 
-                          key={journalId}
-                          variant="outline" 
-                          size="sm"
-                          className="h-7 px-2 py-0 text-xs"
-                          onClick={() => navigate(`/journals/${journalId}`)}
-                        >
-                          Entry #{journalId}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
+
                 </CardContent>
               </Card>
-            </div>
-            
-            <div className="flex justify-end space-x-2 mt-6">
-              {!isViewingClientData && (
-                <Button 
-                  onClick={() => {
-                    handleEditRecord(selectedRecord);
-                    setSelectedRecord(null);
-                  }}
-                  className="text-primary hover:text-primary-dark"
-                  variant="outline"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Record
-                </Button>
-              )}
-              {showPracticeButton && !isViewingClientData && (
-                <Button 
-                  onClick={() => {
-                    navigate(`/reframe-coach/practice/quick/${selectedRecord.id}?userId=${targetUserId}`);
-                  }}
-                  className="bg-amber-500 hover:bg-amber-600 text-white"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Practice Reframing
-                </Button>
-              )}
-              {isViewingClientData && (
-                <Button
-                  onClick={() => {
-                    navigate(`/users/${targetUserId}/reframe-coach`);
-                  }}
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
-                >
-                  <BookText className="h-4 w-4 mr-2" />
-                  View Practice History
-                </Button>
-              )}
+
+              {/* ── Footer buttons ── */}
+              <div className="flex justify-end gap-2 pt-1">
+                {!isViewingClientData && (
+                  <Button
+                    onClick={() => {
+                      handleEditRecord(selectedRecord);
+                      setSelectedRecord(null);
+                    }}
+                    variant="outline"
+                    className="rounded-xl h-9 text-xs gap-1.5"
+                  >
+                    <Edit className="h-3.5 w-3.5" />
+                    Edit Record
+                  </Button>
+                )}
+                {showPracticeButton && !isViewingClientData && (
+                  <Button
+                    onClick={() => {
+                      navigate(`/reframe-coach/practice/quick/${selectedRecord.id}?userId=${targetUserId}`);
+                    }}
+                    className="rounded-xl h-9 text-xs px-5 gap-1.5 text-white border-0"
+                    style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' }}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Practice Reframing
+                  </Button>
+                )}
+                {isViewingClientData && (
+                  <Button
+                    onClick={() => {
+                      navigate(`/users/${targetUserId}/reframe-coach`);
+                    }}
+                    className="rounded-xl h-9 text-xs px-5 gap-1.5 text-white border-0"
+                    style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' }}
+                  >
+                    <BookText className="h-3.5 w-3.5" />
+                    View Practice History
+                  </Button>
+                )}
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -847,7 +862,8 @@ export default function ThoughtRecordsList({
       {/* Thought Challenge Wizard Dialog */}
       {thoughtToChallenge && (
         <Dialog open={!!thoughtToChallenge} onOpenChange={() => setThoughtToChallenge(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent aria-describedby={undefined} className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogTitle className="sr-only">Thought Challenge</DialogTitle>
             <ThoughtChallengeWizard
               thoughtRecord={thoughtToChallenge}
               onComplete={() => {

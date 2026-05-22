@@ -21,9 +21,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useQuery } from "@tanstack/react-query";
 import ReframePractice from "@/features/reframe/components/ReframePractice";
 import ReframePracticeHistory from "@/features/reframe/components/ReframePracticeHistory";
-import { Loader2, ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Loader2, ArrowLeft, AlertCircle, CheckCircle2, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import AppLayout from "@/components/layout/AppLayout";
+import { cn } from "@/lib/utils";
 
 // Helper function to format cognitive distortion names for display
 function formatCognitiveDistortion(distortion: string): string {
@@ -265,35 +266,58 @@ const ReframePracticePage = () => {
     ? "Reframe Practice Assignment" 
     : (thoughtRecordData.automaticThoughts && thoughtRecordData.automaticThoughts !== "No thought content available")
       ? `Practice: ${thoughtRecordData.automaticThoughts.slice(0, 50)}${thoughtRecordData.automaticThoughts.length > 50 ? '...' : ''}`
-      : "Cognitive Restructuring Practice";
-
-  return (
+      : "Cognitive Restructuring Practice";  return (
     <AppLayout title={title}>
-      <div className="container max-w-4xl py-6">
-        <div className="mb-6">
-          <Button
-            variant="outline"
-            className="mb-4"
-            onClick={() => window.history.back()}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
+      <div className="min-h-screen bg-slate-50">
+        {/* Premium Hero Banner */}
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-8 relative overflow-hidden transition-all duration-300 border-b border-purple-900/30">
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
           
+          <div className="max-w-5xl mx-auto relative">
+            <div className="flex flex-col gap-4">
+              <div>
+                <Button
+                  variant="ghost"
+                  className="text-purple-300 hover:text-white hover:bg-white/10 -ml-2 mb-2 font-medium"
+                  onClick={() => window.history.back()}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Coach
+                </Button>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-4 w-4 text-purple-400 animate-pulse" />
+                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                    Interactive Restructuring
+                  </span>
+                </div>
+                <h1 className="font-extrabold text-white tracking-tight text-2xl md:text-3xl mb-2">
+                  {title}
+                </h1>
+                <p className="text-purple-200/70 text-sm md:text-base max-w-2xl leading-relaxed">
+                  Challenge unhelpful automatic patterns, identify cognitive distortions, and practice building balanced reframes.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main body layout */}
+        <div className="max-w-5xl mx-auto pb-10 pt-6 px-4 space-y-6">
           {/* Practice History Component - Shows practice history for this thought record */}
           {thoughtId && userId && !isLoadingScenarios && !isLoadingThought && (
-            <div className="mb-6">
-              <ReframePracticeHistory 
-                userId={userId} 
-                thoughtId={thoughtId} 
-              />
-            </div>
+            <ReframePracticeHistory 
+              userId={userId} 
+              thoughtId={thoughtId} 
+            />
           )}
           
           {isLoading || isLoadingScenarios ? (
-            <div className="flex flex-col justify-center items-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground text-center font-medium">
+            <div className="flex flex-col justify-center items-center py-16 bg-white border border-slate-100 shadow-sm rounded-2xl p-8">
+              <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
+              <p className="text-slate-600 text-center font-semibold text-sm">
                 {isLoadingScenarios ? (
                   isFromCache ? 
                     "Retrieving practice scenarios from cache..." : 
@@ -301,127 +325,120 @@ const ReframePracticePage = () => {
                 ) : "Loading..."}
               </p>
               {isLoadingScenarios && !isFromCache && (
-                <div className="max-w-md mt-6 w-full bg-muted rounded-full h-3 dark:bg-gray-700 overflow-hidden">
-                  <div className="bg-primary h-3 rounded-full animate-progress"></div>
+                <div className="max-w-md mt-6 w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                  <div className="bg-purple-600 h-2.5 rounded-full animate-progress"></div>
                 </div>
               )}
               {isLoadingScenarios && isFromCache && (
                 <>
-                  <div className="max-w-md mt-4 w-full bg-emerald-100 dark:bg-emerald-900/30 rounded-full h-3 overflow-hidden">
-                    <div className="bg-emerald-500 h-3 rounded-full animate-quick-progress"></div>
+                  <div className="max-w-md mt-4 w-full bg-emerald-100/50 rounded-full h-2.5 overflow-hidden">
+                    <div className="bg-emerald-500 h-2.5 rounded-full animate-quick-progress"></div>
                   </div>
-                  <div className="max-w-md mt-2 flex items-center gap-2 justify-center animate-pulse-slow">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                    <span className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Using cached results for faster loading</span>
+                  <div className="max-w-md mt-3 flex items-center gap-2 justify-center animate-pulse-slow">
+                    <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500" />
+                    <span className="text-xs text-emerald-600 font-semibold">Using cached results for faster loading</span>
                   </div>
                 </>
               )}
             </div>
           ) : navigateToThoughts ? (
-            <Card className="bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 mb-6">
+            <Card className="bg-amber-50/50 border-amber-200/60 shadow-sm mb-6 rounded-2xl">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-amber-800 font-bold">
                   <AlertCircle className="h-5 w-5 text-amber-500" />
                   Redirecting to Thought Records
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
+                <p className="text-slate-600 font-medium text-sm">
                   The Reframe Coach practice feature must be started from a thought record. You are being redirected to your thought records.
                 </p>
                 <div className="flex justify-center my-4">
-                  <div className="h-2 w-full max-w-sm bg-amber-100 dark:bg-amber-900 rounded-full overflow-hidden">
+                  <div className="h-2 w-full max-w-sm bg-amber-100/50 rounded-full overflow-hidden">
                     <div className="h-full bg-amber-500 animate-pulse rounded-full"></div>
                   </div>
                 </div>
               </CardContent>
             </Card>
           ) : hasError ? (
-            <Card className="bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 mb-6">
+            <Card className="bg-rose-50/50 border-rose-200/60 shadow-sm mb-6 rounded-2xl">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-red-500" />
+                <CardTitle className="flex items-center gap-2 text-rose-800 font-bold">
+                  <AlertCircle className="h-5 w-5 text-rose-500" />
                   {isQuickPractice ? "Failed to Load Practice Scenarios" : "Practice Assignment Not Found"}
                 </CardTitle>
-                <CardDescription className="text-red-700 dark:text-red-400">
+                <CardDescription className="text-rose-700/80 font-medium">
                   Error encountered at {new Date().toLocaleTimeString()}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <p className="text-muted-foreground">
+              <CardContent className="space-y-4">
+                <p className="text-slate-600 font-medium text-sm">
+                  {isQuickPractice 
+                    ? (scenariosError?.message
+                        || `We couldn't generate practice scenarios for this thought record. It may have insufficient content or no cognitive distortions identified. Try selecting a different thought record with clearer cognitive distortions.`)
+                    : `We couldn't find practice assignment #${assignmentId}. It may have been deleted or you may not have permission to access it.`
+                  }
+                </p>
+                
+                <div className="bg-rose-100/30 p-3.5 rounded-xl border border-rose-200/40">
+                  <p className="text-xs font-bold text-rose-800">Error Details:</p>
+                  <pre className="text-xxs mt-1 bg-white/60 p-2 rounded-lg overflow-auto max-h-24 text-rose-900 font-mono">
                     {isQuickPractice 
-                      ? (scenariosError?.message
-                          || `We couldn't generate practice scenarios for this thought record. It may have insufficient content or no cognitive distortions identified. Try selecting a different thought record with clearer cognitive distortions.`)
-                      : `We couldn't find practice assignment #${assignmentId}. It may have been deleted or you may not have permission to access it.`
+                      ? (scenariosError?.message || "Failed to generate practice scenarios") 
+                      : (assignmentError?.message || "Assignment not found")
                     }
-                  </p>
-                  
-                  <div className="bg-red-100 dark:bg-red-900/30 p-3 rounded-md border border-red-200 dark:border-red-800">
-                    <p className="text-sm font-medium text-red-800 dark:text-red-300">Error Details:</p>
-                    <pre className="text-xs mt-1 bg-white/50 dark:bg-black/20 p-2 rounded overflow-auto max-h-24">
-                      {isQuickPractice 
-                        ? (scenariosError?.message || "Failed to generate practice scenarios") 
-                        : (assignmentError?.message || "Assignment not found")
-                      }
-                    </pre>
-                  </div>
-                  
-                  <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-                    <Button
-                      variant="outline"
-                      onClick={() => window.location.reload()}
-                      className="flex items-center"
-                    >
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                      Try Again
-                    </Button>
-                    <Button
-                      variant="default"
-                      onClick={() => window.location.href = isQuickPractice ? `/users/${userId}/thoughts` : '/reframe-coach'}
-                    >
-                      Return to {isQuickPractice ? "Thought Records" : "Reframe Coach"}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => window.history.back()}
-                    >
-                      Go Back
-                    </Button>
-                  </div>
+                  </pre>
+                </div>
+                
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => window.location.reload()}
+                    className="flex items-center rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Try Again
+                  </Button>
+                  <Button
+                    variant="default"
+                    className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl font-semibold shadow-xs"
+                    onClick={() => window.location.href = isQuickPractice ? `/users/${userId}/thoughts` : '/reframe-coach'}
+                  >
+                    Return to {isQuickPractice ? "Thought Records" : "Reframe Coach"}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           ) : (
             <>
               {/* Introduction card */}
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>Cognitive Restructuring Practice</CardTitle>
-                  {isQuickPractice && (
-                    <CardDescription>
-                      Working with your thought: <span className="font-medium">
-                        {thoughtRecord && (thoughtRecord as any).automaticThoughts && (thoughtRecord as any).automaticThoughts !== "No thought content available"
-                          ? `${(thoughtRecord as any).automaticThoughts.substring(0, 80)}${(thoughtRecord as any).automaticThoughts.length > 80 ? '...' : ''}` 
-                          : practiceScenarios && Array.isArray((practiceScenarios as any)?.scenarios) && (practiceScenarios as any).scenarios.length > 0
-                            ? "Practice scenarios based on cognitive distortions found in your thought record" 
-                            : 'Please select a thought record'}
-                      </span>
-                    </CardDescription>
+              <Card className="border border-slate-100 shadow-sm rounded-2xl bg-white">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-bold text-[#090514]">Cognitive Restructuring Practice</CardTitle>
+                  {isQuickPractice && thoughtRecordData.automaticThoughts && thoughtRecordData.automaticThoughts !== "No thought content available" && (
+                    <div className="mt-3">
+                      <p className="text-xxs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Original Automatic Thought:</p>
+                      <div className="rounded-xl bg-purple-50/40 border border-purple-100/50 p-4 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-purple-600/5 rounded-full blur-lg pointer-events-none" />
+                        <p className="text-slate-700 italic font-semibold text-sm leading-relaxed">
+                          "{thoughtRecordData.automaticThoughts}"
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    This interactive exercise will help you practice identifying and challenging unhelpful thinking patterns.
-                    You'll be presented with scenarios and asked to select the most helpful reframing option.
+                <CardContent className="space-y-4">
+                  <p className="text-slate-500 font-medium text-sm leading-relaxed">
+                    This interactive restructuring exercise will help you practice identifying and challenging unhelpful thinking patterns in real-time.
+                    You will be presented with specific scenarios and asked to select the most balanced, healthy reframing option.
                   </p>
                   
                   {isQuickPractice && practiceScenarios && Array.isArray((practiceScenarios as any)?.scenarios) && (practiceScenarios as any).scenarios.length > 0 ? (
-                    <div className="mt-3 p-3 rounded-md bg-amber-50 border border-amber-100">
-                      <h4 className="text-sm font-medium text-amber-800 mb-1">Cognitive Distortions Identified:</h4>
-                      <div className="flex flex-wrap gap-1">
+                    <div className="mt-4 p-4 rounded-2xl bg-purple-50/20 border border-purple-100/50">
+                      <h4 className="text-xs font-bold text-purple-800 uppercase tracking-wider mb-2">Cognitive Distortions Identified:</h4>
+                      <div className="flex flex-wrap gap-1.5">
                         {(() => {
                           // Create a set of unique distortions
                           const uniqueDistortions = new Set<string>();
@@ -442,7 +459,10 @@ const ReframePracticePage = () => {
                           
                           // Return array of JSX elements with unique distortions
                           return Array.from(uniqueDistortions).map((distortion, idx) => (
-                            <span key={`distortion-${idx}`} className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800">
+                            <span 
+                              key={`distortion-${idx}`} 
+                              className="px-2.5 py-1 text-xs rounded-lg bg-purple-50 text-purple-700 border border-purple-100/60 font-semibold shadow-2xs"
+                            >
                               {distortion}
                             </span>
                           ));
@@ -451,8 +471,8 @@ const ReframePracticePage = () => {
                     </div>
                   ) : null}
                   
-                  <p className="mt-2 text-muted-foreground">
-                    Each correct answer earns points, and you can track your progress over time.
+                  <p className="text-slate-400 font-medium text-xs">
+                    Each successful restructuring earns you points towards your Coach Level. Your stats are tracked securely in your clinical profile.
                   </p>
                 </CardContent>
               </Card>
@@ -470,9 +490,9 @@ const ReframePracticePage = () => {
                   />
                 ) : (
                   // Show loading state while waiting for scenarios to be generated
-                  <div className="flex justify-center items-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <span className="ml-3 text-muted-foreground">Generating relevant practice scenarios...</span>
+                  <div className="flex justify-center items-center py-16 bg-white border border-slate-100 shadow-sm rounded-2xl p-8">
+                    <Loader2 className="h-7 w-7 animate-spin text-purple-600" />
+                    <span className="ml-3 text-slate-600 font-semibold text-sm">Generating relevant practice scenarios...</span>
                   </div>
                 )
               ) : (

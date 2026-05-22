@@ -14,9 +14,7 @@ import { useLocation } from "wouter";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -32,7 +30,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { ResearchTooltip } from "@/components/shared/research-tooltip";
 import {
@@ -497,16 +494,18 @@ export default function ReflectionWizard({
     
     try {
       // Format data for API using form values directly
-      const thoughtRecordData = {
+      // Server schema uses z.string().min(1).optional() — empty strings fail validation.
+      // Only include optional text fields when they have actual content.
+      const thoughtRecordData: Record<string, unknown> = {
         userId: user.id,
         emotionRecordId: isEditMode && existingThoughtRecord ? existingThoughtRecord.emotionRecordId : emotion.id,
         automaticThoughts: data.automaticThoughts,
         cognitiveDistortions: data.cognitiveDistortions || [],
-        evidenceFor: data.evidenceFor || "",
-        evidenceAgainst: data.evidenceAgainst || "",
-        alternativePerspective: data.alternativePerspective || "",
-        insightsGained: data.insightsGained || "",
         reflectionRating: data.reflectionRating || 5,
+        ...(data.evidenceFor?.trim()           && { evidenceFor: data.evidenceFor }),
+        ...(data.evidenceAgainst?.trim()        && { evidenceAgainst: data.evidenceAgainst }),
+        ...(data.alternativePerspective?.trim() && { alternativePerspective: data.alternativePerspective }),
+        ...(data.insightsGained?.trim()         && { insightsGained: data.insightsGained }),
       };
       
       let thoughtRecord;
@@ -688,13 +687,14 @@ export default function ReflectionWizard({
                     <FormControl>
                       <Checkbox
                         checked={isChecked}
+                        className="border-purple-400 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
                         onCheckedChange={(checked) => {
                           const current = form.getValues("cognitiveDistortions") || [];
                           const updated = checked
                             ? [...current, distortion.value]
                             : current.filter((value) => value !== distortion.value);
                           form.setValue("cognitiveDistortions", updated);
-                          
+
                           // Set the selected distortion for the info panel
                           if (checked) {
                             setSelectedDistortion(distortion.value);
@@ -706,7 +706,7 @@ export default function ReflectionWizard({
                     </FormControl>
                     <div className="space-y-1">
                       <FormLabel 
-                        className={`font-medium cursor-pointer ${isChecked ? "text-primary" : ""}`}
+                        className={`font-medium cursor-pointer ${isChecked ? "text-purple-600" : ""}`}
                         onClick={() => setSelectedDistortion(selectedDistortion === distortion.value ? null : distortion.value)}
                       >
                         {distortion.label}
@@ -820,7 +820,7 @@ export default function ReflectionWizard({
             variant="ghost" 
             size="sm"
             type="button"
-            className="text-primary hover:text-primary/80"
+            className="text-purple-600 hover:text-purple-700"
             onClick={(e) => {
               // Prevent default button behavior that might submit forms
               e.preventDefault();
@@ -846,8 +846,8 @@ export default function ReflectionWizard({
                 key={factor.id}
                 className={`px-3 py-2 text-sm border rounded-full cursor-pointer transition-colors ${
                   selectedProtectiveFactors.includes(factor.id)
-                    ? "bg-primary text-white border-primary"
-                    : "bg-white text-neutral-700 border-neutral-300 hover:border-primary"
+                    ? "bg-purple-600 text-white border-purple-600"
+                    : "bg-white text-neutral-700 border-neutral-300 hover:border-purple-400"
                 }`}
                 onClick={() => toggleProtectiveFactor(factor.id)}
               >
@@ -863,9 +863,10 @@ export default function ReflectionWizard({
                   value={newProtectiveFactor}
                   onChange={(e) => setNewProtectiveFactor(e.target.value)}
                 />
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   type="button"
+                  className="bg-purple-600 hover:bg-purple-700 border-0 text-white"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -924,6 +925,7 @@ export default function ReflectionWizard({
                         min={1}
                         max={10}
                         step={1}
+                        className="[&>span>span]:bg-purple-600 [&>[role=slider]]:border-purple-600"
                         onValueChange={(values) => updateProtectiveFactorRating(factorId, values[0])}
                       />
                     </div>
@@ -997,7 +999,7 @@ export default function ReflectionWizard({
             variant="ghost" 
             size="sm"
             type="button"
-            className="text-primary hover:text-primary/80"
+            className="text-purple-600 hover:text-purple-700"
             onClick={(e) => {
               // Prevent default button behavior that might submit forms
               e.preventDefault();
@@ -1023,8 +1025,8 @@ export default function ReflectionWizard({
                 key={strategy.id}
                 className={`px-3 py-2 text-sm border rounded-full cursor-pointer transition-colors ${
                   selectedCopingStrategies.includes(strategy.id)
-                    ? "bg-primary text-white border-primary"
-                    : "bg-white text-neutral-700 border-neutral-300 hover:border-primary"
+                    ? "bg-purple-600 text-white border-purple-600"
+                    : "bg-white text-neutral-700 border-neutral-300 hover:border-purple-400"
                 }`}
                 onClick={() => toggleCopingStrategy(strategy.id)}
               >
@@ -1040,9 +1042,10 @@ export default function ReflectionWizard({
                   value={newCopingStrategy}
                   onChange={(e) => setNewCopingStrategy(e.target.value)}
                 />
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   type="button"
+                  className="bg-purple-600 hover:bg-purple-700 border-0 text-white"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1101,6 +1104,7 @@ export default function ReflectionWizard({
                         min={1}
                         max={10}
                         step={1}
+                        className="[&>span>span]:bg-purple-600 [&>[role=slider]]:border-purple-600"
                         onValueChange={(values) => updateCopingStrategyRating(strategyId, values[0])}
                       />
                     </div>
@@ -1180,6 +1184,7 @@ export default function ReflectionWizard({
                   max={10}
                   step={1}
                   defaultValue={[5]}
+                  className="[&>span>span]:bg-purple-600 [&>[role=slider]]:border-purple-600"
                   onValueChange={(values) => {
                     field.onChange(values[0]);
                     form.setValue("reflectionRating", values[0], {
@@ -1194,7 +1199,7 @@ export default function ReflectionWizard({
                   <span>Somewhat helpful</span>
                   <span>Very helpful</span>
                 </div>
-                <div className="text-center text-lg font-medium text-primary">
+                <div className="text-center text-lg font-medium text-purple-600">
                   {field.value || 5}/10
                 </div>
               </div>
@@ -1306,35 +1311,82 @@ export default function ReflectionWizard({
     }
   };
   
+  const stepLabels = ["Thoughts", "Evidence", "Perspective", "Insights"];
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl flex items-center">
-            <div 
-              className="w-3 h-3 rounded-full mr-2"
-              style={{ backgroundColor: getEmotionColor(emotion.primaryEmotion || emotion.coreEmotion || "") }}
-            ></div>
-            {isEditMode ? "Edit" : "Reflect on"} {emotion.tertiaryEmotion ? 
-              `${emotion.primaryEmotion || emotion.coreEmotion || "Emotion"} (${emotion.tertiaryEmotion})` : 
-              (emotion.primaryEmotion || emotion.coreEmotion || "Emotion")
-            }
-          </DialogTitle>
-          <div className="text-sm text-neutral-500 mt-1">
-            {new Date(emotion.timestamp).toLocaleString()}
+      <DialogContent aria-describedby={undefined} className="max-w-4xl max-h-[90vh] flex flex-col p-0 rounded-2xl border-0 overflow-hidden">
+        <DialogTitle className="sr-only">Reflection Wizard</DialogTitle>
+
+        {/* ── Dark gradient header ── */}
+        <div
+          className="relative overflow-hidden px-7 py-5 shrink-0"
+          style={{ background: "linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)" }}
+        >
+          <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+          <div className="absolute -left-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/15 blur-2xl pointer-events-none" />
+
+          <div className="relative z-10 flex items-center gap-3.5">
+            <div
+              className="w-10 h-10 rounded-xl border border-white/20 backdrop-blur-sm flex items-center justify-center shrink-0"
+              style={{ backgroundColor: emotion.coreEmotion ? getEmotionColor(emotion.primaryEmotion || emotion.coreEmotion) + "33" : "rgba(255,255,255,0.1)" }}
+            >
+              <HelpCircle className="h-5 w-5 text-purple-200" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg font-bold text-white tracking-tight leading-tight">
+                {isEditMode ? "Edit Thought Record" : `Reflect on ${emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion || "Emotion"}`}
+              </h2>
+              <p className="text-purple-300/80 text-xs mt-0.5 font-medium">
+                {emotion.timestamp ? new Date(emotion.timestamp).toLocaleString() : ""}
+                {" · "}Step {step} of {totalSteps}
+              </p>
+            </div>
           </div>
-        </DialogHeader>
-        
-        <div className="mt-2">
-          <Progress value={progress} className="h-2 mb-4" />
+
+          {/* Step progress track */}
+          <div className="relative z-10 mt-4">
+            <div className="flex items-center gap-0">
+              {stepLabels.map((label, idx) => {
+                const isCompleted = step > idx + 1;
+                const isActive = step === idx + 1;
+                return (
+                  <div key={label} className="flex items-center flex-1">
+                    <div className="flex flex-col items-center">
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
+                        isCompleted ? "bg-purple-400 text-white" :
+                        isActive    ? "bg-white text-[#090514]" :
+                                      "bg-white/20 text-white/40"
+                      }`}>
+                        {isCompleted ? "✓" : idx + 1}
+                      </div>
+                      <span className={`text-[10px] font-medium mt-1 transition-colors ${
+                        isActive || isCompleted ? "text-purple-300" : "text-white/30"
+                      }`}>
+                        {label}
+                      </span>
+                    </div>
+                    {idx < stepLabels.length - 1 && (
+                      <div className={`flex-1 h-px mx-1 mb-4 transition-colors ${isCompleted ? "bg-purple-400" : "bg-white/15"}`} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Scrollable body ── */}
+        <div className="flex-1 overflow-y-auto px-7 py-6 bg-white">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {getStepContent()}
             </form>
           </Form>
         </div>
-        
-        <DialogFooter className="flex justify-between items-center pt-4 border-t">
+
+        {/* ── Footer ── */}
+        <div className="flex items-center justify-between px-7 py-4 border-t border-slate-100 bg-white shrink-0">
           <div>
             {step > 1 && (
               <Button
@@ -1342,27 +1394,30 @@ export default function ReflectionWizard({
                 variant="outline"
                 onClick={handleBack}
                 disabled={isSubmitting}
+                className="rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 h-9 px-5"
               >
                 Back
               </Button>
             )}
           </div>
-          
-          <div className="flex space-x-2">
+
+          <div className="flex items-center gap-2.5">
             <Button
               type="button"
               variant="ghost"
               onClick={onClose}
               disabled={isSubmitting}
+              className="rounded-xl text-slate-500 hover:bg-slate-50 h-9 px-5"
             >
               Cancel
             </Button>
-            
+
             {step < totalSteps ? (
               <Button
                 type="button"
                 onClick={handleNext}
                 disabled={isSubmitting}
+                className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-9 px-5"
               >
                 Next
               </Button>
@@ -1371,34 +1426,33 @@ export default function ReflectionWizard({
                 type="submit"
                 onClick={() => {
                   const formValues = form.getValues();
-                  // Validate required fields before submitting
                   if (!formValues.automaticThoughts || formValues.automaticThoughts.trim().length < 3) {
                     toast({
                       title: "Error",
                       description: "Please enter your automatic thoughts",
                       variant: "destructive",
                     });
-                    setStep(1); // Return to the first step
+                    setStep(1);
                     return;
                   }
                   form.handleSubmit(onSubmit)();
                 }}
                 disabled={isSubmitting}
-                className="bg-primary hover:bg-primary/90"
+                className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-9 px-5 gap-2"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
-                    Submitting...
+                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    Submitting…
                   </>
                 ) : (
                   isEditMode ? "Update Reflection" : "Complete Reflection"
-                )
-                }
+                )}
               </Button>
             )}
           </div>
-        </DialogFooter>
+        </div>
+
       </DialogContent>
     </Dialog>
   );

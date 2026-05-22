@@ -59,7 +59,7 @@ export default function AppLayout({ children, title = "Dashboard" }: AppLayoutPr
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar isCollapsed={sidebarCollapsed} onToggle={handleSidebarToggle} />
-      <div className="flex-1 flex flex-col overflow-hidden border-l border-gray-200">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <Header title={title} />
         <main className="flex-1 overflow-y-auto bg-neutral-50 px-2 sm:px-4 pb-16 md:pb-4">
           {children}

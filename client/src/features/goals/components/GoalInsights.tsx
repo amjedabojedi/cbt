@@ -1,20 +1,19 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Goal, Milestone } from "@/features/goals/types";
 import { useGoals, useAllMilestones } from "@/features/goals/hooks/useGoals";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Target, TrendingUp, Award, BarChart3 } from "lucide-react";
-import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { format, subDays, subYears, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, differenceInDays } from "date-fns";
+import { Target, TrendingUp, Award, BarChart3, CheckCircle, Clock, Calendar as CalendarIcon, AlertCircle } from "lucide-react";
+import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { format, subDays, subYears, eachDayOfInterval, eachMonthOfInterval, startOfWeek, endOfWeek, endOfMonth, isWithinInterval } from "date-fns";
 
 interface GoalInsightsProps {
   userId: number;
 }
 
 const STATUS_COLORS = {
-  completed: "#22c55e",
-  in_progress: "#eab308",
-  pending: "#94a3b8",
+  completed: "#10b981", // Emerald
+  in_progress: "#f59e0b", // Amber
+  pending: "#6366f1", // Indigo
 };
 
 export default function GoalInsights({ userId }: GoalInsightsProps) {
@@ -67,7 +66,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
     };
   };
 
-  // Calculate goal progress over time with unified labeling
+  // Calculate goal progress over time
   const getProgressTrends = () => {
     let startDate: Date;
     
@@ -76,25 +75,19 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
     } else if (timeRange === "month") {
       startDate = subDays(new Date(), 30);
     } else {
-      // year view
       startDate = subYears(new Date(), 1);
     }
 
-    // For year view, group by months
     if (timeRange === "year") {
-      const months = eachMonthOfInterval(
-        { start: startDate, end: new Date() }
-      );
+      const months = eachMonthOfInterval({ start: startDate, end: new Date() });
       
       return months.map(monthStart => {
         const monthEnd = endOfMonth(monthStart);
         
-        // Count goals created up to the end of this month
         const totalGoals = goals.filter((g: Goal) =>
           new Date(g.createdAt) <= monthEnd
         ).length;
 
-        // Count completed goals up to the end of this month
         const completedGoals = goals.filter((g: Goal) =>
           g.status === 'completed' && new Date(g.createdAt) <= monthEnd
         ).length;
@@ -108,7 +101,6 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
       });
     }
 
-    // For month view, group by weeks (exactly 4 weeks)
     if (timeRange === "month") {
       const today = new Date();
       const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
@@ -122,12 +114,10 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
       return weeks.map((weekStart, index) => {
         const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
         
-        // Count goals created up to the end of this week
         const totalGoals = goals.filter((g: Goal) =>
           new Date(g.createdAt) <= weekEnd
         ).length;
 
-        // Count completed goals up to the end of this week
         const completedGoals = goals.filter((g: Goal) =>
           g.status === 'completed' && new Date(g.createdAt) <= weekEnd
         ).length;
@@ -141,18 +131,13 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
       });
     }
 
-    // For week view, use daily grouping with day names
     const days = eachDayOfInterval({ start: startDate, end: new Date() });
     
     return days.map(day => {
-      const dayStr = format(day, "yyyy-MM-dd");
-      
-      // Count goals created up to this day
       const totalGoals = goals.filter((g: Goal) =>
         new Date(g.createdAt) <= day
       ).length;
 
-      // Count completed goals up to this day
       const completedGoals = goals.filter((g: Goal) =>
         g.status === 'completed' && new Date(g.createdAt) <= day
       ).length;
@@ -186,25 +171,6 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
     });
   };
 
-  // Calculate SMART completion patterns
-  const getSMARTPatterns = () => {
-    const completedGoals = goals.filter((g: Goal) => g.status === 'completed');
-    const incompleteGoals = goals.filter((g: Goal) => g.status !== 'completed');
-    
-    return [
-      {
-        category: 'Completed Goals',
-        count: completedGoals.length,
-        avgFields: completedGoals.length > 0 ? 5 : 0, // All SMART goals have 5 fields
-      },
-      {
-        category: 'Incomplete Goals',
-        count: incompleteGoals.length,
-        avgFields: incompleteGoals.length > 0 ? 5 : 0,
-      },
-    ];
-  };
-
   // Calculate timeline analysis
   const getTimelineAnalysis = () => {
     const goalsWithDeadline = goals.filter((g: Goal) => g.deadline);
@@ -220,93 +186,102 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
     }).length;
     
     return [
-      { name: 'On Time', value: onTime, color: '#22c55e' },
+      { name: 'On Time', value: onTime, color: '#10b981' },
       { name: 'Late', value: late, color: '#ef4444' },
     ].filter(item => item.value > 0);
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="flex items-center justify-center py-16 bg-white/60 backdrop-blur border border-slate-100 rounded-3xl shadow-sm">
+        <div className="animate-spin h-10 w-10 border-4 border-purple-600 border-t-transparent rounded-full" />
       </div>
     );
   }
 
   if (goals.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <p className="text-muted-foreground">No goals yet. Start setting goals to see insights!</p>
-        </CardContent>
-      </Card>
+      <div className="bg-white/60 backdrop-blur rounded-3xl border border-slate-100 shadow-sm py-16 text-center px-6">
+        <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Target className="h-8 w-8" />
+        </div>
+        <h3 className="font-bold text-slate-800 text-lg mb-1">SMART Goals Tracker</h3>
+        <p className="text-slate-500 max-w-sm mx-auto text-sm">No structured goals recorded yet. Begin setting SMART goals and key milestones to unlock visual trackers.</p>
+      </div>
     );
   }
 
   const stats = getCompletionRate();
   const milestoneStats = getMilestoneStats();
+  const insightCardClass = "bg-white/90 backdrop-blur-md rounded-2xl border border-slate-100/80 shadow-sm overflow-hidden hover:shadow-md hover:border-purple-200/60 transition-all duration-300";
 
   return (
     <div className="space-y-6">
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.completionRate.toFixed(1)}%</div>
-            <p className="text-xs text-muted-foreground mt-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white/90 backdrop-blur border border-slate-100/80 hover:border-emerald-200/60 hover:shadow-md transition-all duration-300 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+          <div className="p-3.5 rounded-xl bg-emerald-50 text-emerald-600">
+            <CheckCircle className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Completion</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{stats.completionRate.toFixed(1)}%</h4>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
               {stats.completed} of {stats.total} goals
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Active Goals</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.inProgress}</div>
-            <p className="text-xs text-muted-foreground mt-1">Currently in progress</p>
-          </CardContent>
-        </Card>
+        <div className="bg-white/90 backdrop-blur border border-slate-100/80 hover:border-amber-200/60 hover:shadow-md transition-all duration-300 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+          <div className="p-3.5 rounded-xl bg-amber-50 text-amber-600">
+            <Clock className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Goals</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{stats.inProgress}</h4>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Currently working</p>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Milestones Completed</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{milestoneStats.totalCompleted}</div>
-            <p className="text-xs text-muted-foreground mt-1">Total achieved</p>
-          </CardContent>
-        </Card>
+        <div className="bg-white/90 backdrop-blur border border-slate-100/80 hover:border-blue-200/60 hover:shadow-md transition-all duration-300 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+          <div className="p-3.5 rounded-xl bg-blue-50 text-blue-600">
+            <Award className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-semibold">Achieved Milestones</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{milestoneStats.totalCompleted}</h4>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Steps completed</p>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Pending Milestones</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{milestoneStats.totalPending}</div>
-            <p className="text-xs text-muted-foreground mt-1">Still in progress</p>
-          </CardContent>
-        </Card>
+        <div className="bg-white/90 backdrop-blur border border-slate-100/80 hover:border-purple-200/60 hover:shadow-md transition-all duration-300 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+          <div className="p-3.5 rounded-xl bg-purple-50 text-purple-600">
+            <Target className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining Tasks</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{milestoneStats.totalPending}</h4>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Pending milestones</p>
+          </div>
+        </div>
       </div>
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Goal Status Distribution */}
-        <Card>
-          <CardHeader>
+        <div className={insightCardClass}>
+          <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
             <div className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
-              <CardTitle>Goal Status Distribution</CardTitle>
+              <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+                <Target className="h-4 w-4" />
+              </div>
+              <h3 className="font-bold text-slate-800 text-base">Goal Status Distribution</h3>
             </div>
-            <CardDescription>Breakdown of your goal statuses</CardDescription>
-          </CardHeader>
-          <CardContent>
+            <p className="text-xs text-slate-500 mt-1">Breakdown of active, pending, and completed SMART goals</p>
+          </div>
+          <div className="p-6 flex items-center justify-center min-h-[260px]">
             {getStatusDistribution().length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
                     data={getStatusDistribution()}
@@ -314,37 +289,53 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
                     cy="50%"
                     labelLine={false}
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
+                    innerRadius={50}
+                    outerRadius={75}
+                    paddingAngle={3}
                     dataKey="value"
                   >
                     {getStatusDistribution().map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(255,255,255,0.8)" strokeWidth={2} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip 
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0];
+                        return (
+                          <div className="bg-white/95 backdrop-blur-md py-1.5 px-3 border border-purple-50 rounded-xl shadow-lg text-xs font-semibold text-slate-800">
+                            {data.name}: <span className="font-extrabold text-indigo-600">{data.value} goals</span>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-                No status data available
+              <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
+                <AlertCircle className="h-6 w-6 text-slate-300 mb-2" />
+                <p className="text-xs text-slate-400 font-semibold">No status data available.</p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Timeline Performance */}
-        <Card>
-          <CardHeader>
+        <div className={insightCardClass}>
+          <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
             <div className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-primary" />
-              <CardTitle>Timeline Performance</CardTitle>
+              <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+                <Award className="h-4 w-4" />
+              </div>
+              <h3 className="font-bold text-slate-800 text-base">Timeline Performance</h3>
             </div>
-            <CardDescription>Goals completed on time vs late</CardDescription>
-          </CardHeader>
-          <CardContent>
+            <p className="text-xs text-slate-500 mt-1">Review of completed goals completed relative to targets</p>
+          </div>
+          <div className="p-6 flex items-center justify-center min-h-[260px]">
             {getTimelineAnalysis().length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
                     data={getTimelineAnalysis()}
@@ -352,123 +343,191 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
                     cy="50%"
                     labelLine={false}
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
+                    innerRadius={50}
+                    outerRadius={75}
+                    paddingAngle={3}
                     dataKey="value"
                   >
                     {getTimelineAnalysis().map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(255,255,255,0.8)" strokeWidth={2} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip 
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0];
+                        return (
+                          <div className="bg-white/95 backdrop-blur-md py-1.5 px-3 border border-purple-50 rounded-xl shadow-lg text-xs font-semibold text-slate-800">
+                            {data.name}: <span className="font-extrabold text-slate-700">{data.value} goals</span>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-                No deadline data available
+              <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
+                <AlertCircle className="h-6 w-6 text-slate-300 mb-2" />
+                <p className="text-xs text-slate-400 font-semibold max-w-[200px]">Goals must be completed with specified deadlines to analyze target shifts.</p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Progress Trends Over Time */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+      <div className={insightCardClass}>
+        <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <CardTitle>Progress Trends</CardTitle>
+              <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600">
+                <TrendingUp className="h-4 w-4" />
+              </div>
+              <h3 className="font-bold text-slate-800 text-base">Progress Trends</h3>
             </div>
-            <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as "week" | "month" | "year")} className="w-auto">
-              <TabsList>
-                <TabsTrigger value="week">Week</TabsTrigger>
-                <TabsTrigger value="month">Month</TabsTrigger>
-                <TabsTrigger value="year">Year</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <p className="text-xs text-slate-500 mt-1">Review net goals created vs absolute completions</p>
           </div>
-          <CardDescription>Your goal completion progress over time</CardDescription>
-        </CardHeader>
-        <CardContent>
+          <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as "week" | "month" | "year")} className="w-auto">
+            <TabsList className="bg-slate-100 p-0.5 rounded-xl h-auto">
+              <TabsTrigger value="week" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">Week</TabsTrigger>
+              <TabsTrigger value="month" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">Month</TabsTrigger>
+              <TabsTrigger value="year" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">Year</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        <div className="p-6 overflow-visible">
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={getProgressTrends()}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
+            <LineChart data={getProgressTrends()} margin={{ left: -10, right: 10, bottom: 5, top: 10 }}>
+              <CartesianGrid strokeDasharray="4 4" stroke="#f1f5f9" vertical={false} />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis 
+                allowDecimals={false}
+                tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip 
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-white/95 backdrop-blur-md p-3 border border-purple-100 rounded-xl shadow-xl">
+                        <p className="font-bold text-slate-800 text-xs mb-1.5">{data.date}</p>
+                        <div className="space-y-1 text-[11px] font-semibold">
+                          <div className="flex items-center gap-2 justify-between">
+                            <span className="text-purple-600">Total Goals:</span>
+                            <span className="text-slate-800 font-extrabold">{data.total}</span>
+                          </div>
+                          <div className="flex items-center gap-2 justify-between">
+                            <span className="text-emerald-600">Completed:</span>
+                            <span className="text-slate-800 font-extrabold">{data.completed}</span>
+                          </div>
+                          <div className="flex items-center gap-2 justify-between pt-1 border-t border-slate-100">
+                            <span className="text-indigo-600">Completion Rate:</span>
+                            <span className="text-[#090514] font-extrabold">{data.completionRate.toFixed(1)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Legend 
+                verticalAlign="top" 
+                height={36} 
+                iconType="circle" 
+                iconSize={8}
+                wrapperStyle={{ fontSize: '11px', fontWeight: 600, color: '#475569' }} 
+              />
               <Line 
                 type="monotone" 
                 dataKey="total" 
-                stroke="#8884d8" 
-                strokeWidth={2}
-                name="Total Goals"
+                stroke="#6366f1" 
+                strokeWidth={3}
+                name="Total SMART Goals"
+                dot={{ r: 4, strokeWidth: 1, fill: '#fff' }}
+                activeDot={{ r: 6, strokeWidth: 0 }}
               />
               <Line 
                 type="monotone" 
                 dataKey="completed" 
-                stroke="#22c55e" 
-                strokeWidth={2}
-                name="Completed"
+                stroke="#10b981" 
+                strokeWidth={3}
+                name="Completed Goals"
+                dot={{ r: 4, strokeWidth: 1, fill: '#fff' }}
+                activeDot={{ r: 6, strokeWidth: 0 }}
               />
             </LineChart>
           </ResponsiveContainer>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* 30-Day Milestone Calendar */}
-      <Card>
-        <CardHeader>
+      <div className={insightCardClass}>
+        <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-primary" />
-            <CardTitle>30-Day Milestone Activity</CardTitle>
+            <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
+              <BarChart3 className="h-4 w-4" />
+            </div>
+            <h3 className="font-bold text-slate-800 text-base">30-Day Milestone Activity</h3>
           </div>
-          <CardDescription>Milestones completed in the past month</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-10 gap-1">
+          <p className="text-xs text-slate-500 mt-1">Calendar tracing of sub-tasks and milestones achieved over the past month</p>
+        </div>
+        <div className="p-6">
+          <div className="grid grid-cols-10 gap-2">
             {getMilestoneCalendar().map((day, i) => {
               const count = day.count;
-              const bgColor = 
-                count === 0 ? "bg-gray-100 dark:bg-gray-800" :
-                count === 1 ? "bg-blue-200 dark:bg-blue-900" :
-                count === 2 ? "bg-blue-400 dark:bg-blue-700" :
-                "bg-blue-600 dark:bg-blue-500";
+              
+              let cellClass = "bg-slate-50 text-slate-300 border border-slate-100/50";
+              if (count === 1) {
+                cellClass = "bg-indigo-50 border border-indigo-100 text-indigo-700 shadow-sm";
+              } else if (count === 2) {
+                cellClass = "bg-indigo-100 border border-indigo-200 text-indigo-800 shadow-sm";
+              } else if (count >= 3) {
+                cellClass = "bg-indigo-600 text-white border border-indigo-700 shadow-md shadow-indigo-100/40";
+              }
               
               return (
                 <div
                   key={i}
-                  className={`aspect-square rounded ${bgColor} flex items-center justify-center text-xs font-medium relative group`}
-                  title={`${day.date}: ${count} milestones`}
+                  className={`aspect-square rounded-xl ${cellClass} flex items-center justify-center text-[10px] font-bold relative group transition-all duration-300 hover:scale-105 cursor-default`}
                 >
-                  <div className="opacity-0 group-hover:opacity-100 absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                    {day.date}: {count} {count === 1 ? 'milestone' : 'milestones'}
+                  <span className="opacity-80">{day.date.split(' ')[1]}</span>
+                  <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-slate-900/95 backdrop-blur-sm text-white text-[10px] rounded-xl px-2.5 py-1.5 whitespace-nowrap z-10 shadow-xl border border-slate-800 pointer-events-none transition-all duration-200 font-medium">
+                    {day.date}: {count} {count === 1 ? 'milestone' : 'milestones'} achieved
                   </div>
                 </div>
               );
             })}
           </div>
-          <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-gray-100 dark:bg-gray-800 rounded" />
+          <div className="flex items-center justify-center gap-4 mt-6 text-xs text-slate-500 font-semibold">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3.5 h-3.5 bg-slate-50 border border-slate-100 rounded-md" />
               <span>None</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-blue-200 dark:bg-blue-900 rounded" />
-              <span>1</span>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3.5 h-3.5 bg-indigo-50 border border-indigo-100 rounded-md" />
+              <span>1 Milestone</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-blue-400 dark:bg-blue-700 rounded" />
-              <span>2</span>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3.5 h-3.5 bg-indigo-100 border border-indigo-200 rounded-md" />
+              <span>2 Milestones</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-blue-600 dark:bg-blue-500 rounded" />
-              <span>3+</span>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3.5 h-3.5 bg-indigo-600 rounded-md shadow-sm" />
+              <span>3+ Milestones</span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

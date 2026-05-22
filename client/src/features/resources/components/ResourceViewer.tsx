@@ -1,5 +1,5 @@
 import DOMPurify from "dompurify";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   FileText, Edit, Trash2, Copy, X,
@@ -56,7 +56,8 @@ export default function ResourceViewer({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="!p-0 !gap-0 max-w-2xl !rounded-2xl border border-slate-100 shadow-2xl overflow-hidden bg-white max-h-[90vh] flex flex-col [&>button:last-child]:hidden">
+      <DialogContent aria-describedby={undefined} className="!p-0 !gap-0 max-w-2xl !rounded-2xl border-0 shadow-2xl overflow-hidden bg-white max-h-[90vh] flex flex-col [&>button:last-child]:hidden">
+        <DialogTitle className="sr-only">Resource</DialogTitle>
 
         {/* ── Dark gradient header ── */}
         <div className="relative bg-gradient-to-r from-[#090514] via-purple-950 to-indigo-950 px-6 pt-6 pb-5 shrink-0">

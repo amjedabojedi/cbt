@@ -5,7 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format, parseISO } from "date-fns";
-import ModulePageShell from "@/components/layout/ModulePageShell";
+import AppLayout from "@/components/layout/AppLayout";
+import { cn } from "@/lib/utils";
 import SmartGoalWizard from "@/features/goals/components/SmartGoalWizard";
 import GoalInsights from "@/features/goals/components/GoalInsights";
 import GoalCard from "@/features/goals/components/GoalCard";
@@ -49,20 +50,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { PlusCircle, Calendar, CheckCircle, Clock, Flag, HelpCircle, Target, TrendingUp, MoreVertical } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { PlusCircle, Calendar as CalendarIcon, CheckCircle, Clock, Flag, HelpCircle, Target, TrendingUp, MoreVertical, Sparkles, BarChart3, MessageSquare } from "lucide-react";
 
 export default function GoalSetting() {
   const { user } = useAuth();
@@ -76,6 +75,16 @@ export default function GoalSetting() {
 
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
+
+  const defaultTab = tabParam === 'insights'
+    ? "insights"
+    : tabParam === 'goals'
+      ? "goals"
+      : tabParam === 'set'
+        ? "set"
+        : (user?.role === 'therapist' || user?.role === 'admin') ? "goals" : "set";
+
+  const [activeTab, setActiveTab] = useState(defaultTab);
 
   const { data: goals = [], isLoading, error } = useGoals(apiPath, activeUserId);
 
@@ -94,13 +103,6 @@ export default function GoalSetting() {
     const percentage = Math.round((completed / total) * 100);
 
     return { completed, total, percentage };
-  };
-
-  const getProgressColor = (percentage: number) => {
-    if (percentage === 0) return "bg-gray-300";
-    if (percentage < 30) return "bg-red-500";
-    if (percentage < 70) return "bg-yellow-500";
-    return "bg-green-500";
   };
 
   const overallStats = {
@@ -211,335 +213,481 @@ export default function GoalSetting() {
     }
   };
 
+  const isSetTab = activeTab === "set";
+  const showStats = goals.length > 0;
+
   return (
-    <ModulePageShell
-      title="Smart Goals"
-      description="Set structured SMART goals to track your progress and celebrate achievements"
-    >
-
-      {!isLoading && goals.length > 0 && (
-        <Card className="mb-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Overall Progress</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg" data-testid="stat-total-goals">
-                <div className="text-2xl font-bold text-primary">{overallStats.totalGoals}</div>
-                <div className="text-sm text-muted-foreground">Total Goals</div>
+    <AppLayout title="Smart Goals">
+      <div className="min-h-screen bg-slate-50">
+        {/* Premium Hero Banner */}
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden transition-all duration-300">
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="max-w-5xl mx-auto relative">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-4 w-4 text-purple-400" />
+                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                    Personal Growth
+                  </span>
+                </div>
+                <h1 className="font-bold text-white tracking-tight text-3xl md:text-4xl mb-2">
+                  Smart Goals
+                </h1>
+                <p className="text-purple-300/70 text-base max-w-md leading-relaxed">
+                  Set structured SMART goals to track your progress and celebrate achievements
+                </p>
               </div>
-              <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg" data-testid="stat-completed-goals">
-                <div className="text-2xl font-bold text-green-600">{overallStats.completedGoals}</div>
-                <div className="text-sm text-muted-foreground">Completed</div>
-              </div>
-              <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg" data-testid="stat-in-progress-goals">
-                <div className="text-2xl font-bold text-blue-600">{overallStats.inProgressGoals}</div>
-                <div className="text-sm text-muted-foreground">In Progress</div>
-              </div>
-              <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg" data-testid="stat-pending-goals">
-                <div className="text-2xl font-bold text-yellow-600">{overallStats.pendingGoals}</div>
-                <div className="text-sm text-muted-foreground">Pending</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {user?.role === 'client' && (
-        <>
-          <Button size="sm" className="gap-1 hidden" data-testid="button-new-goal" onClick={() => setIsCreatingGoal(true)}>
-            <PlusCircle className="h-4 w-4" />
-            New Goal
-          </Button>
-          <GoalForm
-            open={isCreatingGoal}
-            onOpenChange={setIsCreatingGoal}
-            form={goalForm}
-            onSubmit={onSubmitGoal}
-            isPending={createGoalMutation.isPending}
-            reflectionInsights={reflectionInsights}
-          />
-        </>
-      )}
-
-      <Tabs
-        defaultValue={
-          tabParam === 'insights'
-            ? "insights"
-            : tabParam === 'goals'
-              ? "goals"
-              : tabParam === 'set'
-                ? "set"
-                : (user?.role === 'therapist' || user?.role === 'admin') ? "goals" : "set"
-        }
-        className="space-y-4"
-      >
-        <TabsList>
-          {user?.role === 'client' && (
-            <TabsTrigger value="set">Set Goal</TabsTrigger>
-          )}
-          <TabsTrigger value="goals">
-            {user?.role === 'therapist' || user?.role === 'admin' ? "Client's Goals" : "My Goals"}
-          </TabsTrigger>
-          <TabsTrigger value="insights">
-            <TrendingUp className="h-4 w-4 mr-1.5" />
-            Insights
-          </TabsTrigger>
-        </TabsList>
-
-        {user?.role === 'client' && (
-          <TabsContent value="set">
-            <Accordion type="single" collapsible className="mb-6 bg-blue-50 dark:bg-blue-950/30 rounded-lg px-4">
-              <AccordionItem value="why-smart-goals" className="border-0">
-                <AccordionTrigger className="text-base font-medium hover:no-underline py-3">
-                  <div className="flex items-center">
-                    <HelpCircle className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
-                    Why SMART Goals?
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground pb-4">
-                  <p className="mb-3">
-                    SMART goals provide structure and direction to your personal growth journey. Research shows that well-defined goals are significantly more likely to be achieved than vague intentions.
-                  </p>
-
-                  <div className="space-y-3">
-                    <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                      <h4 className="font-medium text-foreground mb-1">For Mental Health</h4>
-                      <ul className="list-disc pl-5 space-y-1 text-xs">
-                        <li>Provides a sense of purpose and direction</li>
-                        <li>Creates structure and routine</li>
-                        <li>Builds confidence through achievement</li>
-                        <li>Reduces anxiety by breaking down challenges</li>
-                      </ul>
+              
+              {showStats && (
+                <div className="flex items-center gap-6 shrink-0 flex-wrap">
+                  {[
+                    { value: overallStats.totalGoals, label: "Total Goals" },
+                    { value: overallStats.completedGoals, label: "Completed", color: "text-emerald-400" },
+                    { value: overallStats.inProgressGoals, label: "In Progress", color: "text-purple-400" },
+                    { value: overallStats.pendingGoals, label: "Pending", color: "text-amber-400" },
+                  ].map((s, i) => (
+                    <div key={i} className="text-center">
+                      <div className={cn("text-2xl font-bold", s.color || "text-white")}>{s.value}</div>
+                      <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
                     </div>
-
-                    <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                      <h4 className="font-medium text-foreground mb-1">For Personal Growth</h4>
-                      <ul className="list-disc pl-5 space-y-1 text-xs">
-                        <li>Helps identify important values and priorities</li>
-                        <li>Develops self-discipline and focus</li>
-                        <li>Creates a roadmap for steady improvement</li>
-                        <li>Provides objective measures of progress</li>
-                      </ul>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-
-            <SmartGoalWizard onGoalCreated={() => {
-              queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/goals`] });
-            }} />
-          </TabsContent>
-        )}
-
-        <TabsContent value="goals" className="space-y-4">
-          {isLoading ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-            </div>
-          ) : error ? (
-            <div className="bg-destructive/10 p-4 rounded-md text-center">
-              <p className="text-destructive font-medium">Error loading goals</p>
-              <p className="text-sm text-muted-foreground mt-1">Please try again later</p>
-            </div>
-          ) : goals.length === 0 ? (
-            <div className="text-center p-8 border border-dashed rounded-lg">
-              <h3 className="font-medium text-lg">No Goals Yet</h3>
-              <p className="text-muted-foreground mt-1">
-                {user?.role === 'client'
-                  ? "Create your first goal to start tracking your progress."
-                  : "Your client hasn't created any goals yet."}
-              </p>
-              {user?.role === 'client' && (
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  onClick={() => setIsCreatingGoal(true)}
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Create Your First Goal
-                </Button>
+                  ))}
+                </div>
               )}
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {goals.map((goal) => {
-                const progress = getMilestoneProgress(goal.id);
 
-                return (
-                  <GoalCard
-                    key={goal.id}
-                    goal={goal}
-                    user={user}
-                    progress={progress}
-                    getStatusBadge={getStatusBadge}
-                    onSelect={setSelectedGoal}
-                    onUpdateStatus={({ goalId, status, comments }) =>
-                      updateGoalStatusMutation.mutate({ goalId, status, comments })
-                    }
-                  />
-                );
-              })}
+            {/* Goal Achievement strip */}
+            <div className="mt-6 bg-white/5 rounded-xl border border-white/10 p-4">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <Target className="h-3.5 w-3.5 text-indigo-400" />
+                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">Goal Achievement</span>
+                </div>
+                <span className="text-xs text-purple-400">{overallStats.completedGoals} of {overallStats.totalGoals} completed</span>
+              </div>
+              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: `${overallStats.totalGoals > 0 ? Math.round((overallStats.completedGoals / overallStats.totalGoals) * 100) : 0}%` }} />
+              </div>
+              <p className="text-[11px] text-purple-400/60 mt-1.5">Breaking big goals into milestones makes achievement feel attainable and sustainable.</p>
             </div>
+          </div>
+        </div>
+
+        {/* Main Body Layout */}
+        <div className="max-w-5xl mx-auto pb-10 pt-6 space-y-5">
+          {/* Goal form dialog for manual additions if needed */}
+          {user?.role === 'client' && (
+            <GoalForm
+              open={isCreatingGoal}
+              onOpenChange={setIsCreatingGoal}
+              form={goalForm}
+              onSubmit={onSubmitGoal}
+              isPending={createGoalMutation.isPending}
+              reflectionInsights={reflectionInsights}
+            />
           )}
 
-          {/* Goal Details Dialog */}
-          <Dialog open={!!selectedGoal} onOpenChange={(open) => !open && setSelectedGoal(null)}>
-            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="text-2xl">{selectedGoal?.title}</DialogTitle>
-                <DialogDescription className="flex items-center gap-3 flex-wrap">
-                  {getStatusBadge(selectedGoal?.status || 'pending', 'lg')}
-                  {selectedGoal?.deadline && (
-                    <span className="inline-flex items-center text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      Target: {format(parseISO(selectedGoal?.deadline), "MMM d, yyyy")}
-                    </span>
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-5"
+          >
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-1.5">
+              <TabsList className="w-full h-auto bg-transparent p-0 gap-1 flex flex-wrap">
+                {user?.role === 'client' && (
+                  <TabsTrigger
+                    value="set"
+                    className={cn(
+                      "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
+                      "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                    )}
+                  >
+                    <PlusCircle className="h-4 w-4 mr-1.5 inline" />
+                    Set Goal
+                  </TabsTrigger>
+                )}
+                <TabsTrigger
+                  value="goals"
+                  className={cn(
+                    "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
+                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                   )}
-                  {(() => {
-                    const progress = getMilestoneProgress(selectedGoal?.id || 0);
-                    return progress.total > 0 ? (
-                      <span className="inline-flex items-center text-sm font-medium text-primary">
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        {progress.completed}/{progress.total} milestones completed
-                      </span>
-                    ) : null;
-                  })()}
-                </DialogDescription>
-              </DialogHeader>
+                >
+                  <Target className="h-4 w-4 mr-1.5 inline" />
+                  {user?.role === 'therapist' || user?.role === 'admin' ? "Client's Goals" : "My Goals"}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="insights"
+                  className={cn(
+                    "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
+                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                  )}
+                >
+                  <TrendingUp className="h-4 w-4 mr-1.5 inline" />
+                  Insights
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div>
-                  <h3 className="font-medium text-lg mb-3">Goal Details</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-sm font-medium">Specific</h4>
-                      <p className="text-sm text-muted-foreground mt-1">{selectedGoal?.specific}</p>
-                    </div>
+            {user?.role === 'client' && (
+              <TabsContent value="set" className="mt-0">
+                <SmartGoalWizard onGoalCreated={() => {
+                  queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/goals`] });
+                  setActiveTab("goals");
+                }} />
+              </TabsContent>
+            )}
 
-                    <div>
-                      <h4 className="text-sm font-medium">Measurable</h4>
-                      <p className="text-sm text-muted-foreground mt-1">{selectedGoal?.measurable}</p>
-                    </div>
+            <TabsContent value="goals" className="space-y-4 mt-0">
+              {isLoading ? (
+                <div className="flex justify-center items-center h-40">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+                </div>
+              ) : error ? (
+                <div className="bg-destructive/10 p-4 rounded-md text-center">
+                  <p className="text-destructive font-medium">Error loading goals</p>
+                  <p className="text-sm text-muted-foreground mt-1">Please try again later</p>
+                </div>
+              ) : goals.length === 0 ? (
+                <div className="text-center p-8 border border-dashed rounded-lg">
+                  <h3 className="font-medium text-lg">No Goals Yet</h3>
+                  <p className="text-muted-foreground mt-1">
+                    {user?.role === 'client'
+                      ? "Create your first goal to start tracking your progress."
+                      : "Your client hasn't created any goals yet."}
+                  </p>
+                  {user?.role === 'client' && (
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => setIsCreatingGoal(true)}
+                    >
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      Create Your First Goal
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {goals.map((goal) => {
+                    const progress = getMilestoneProgress(goal.id);
 
-                    <div>
-                      <h4 className="text-sm font-medium">Achievable</h4>
-                      <p className="text-sm text-muted-foreground mt-1">{selectedGoal?.achievable}</p>
-                    </div>
+                    return (
+                      <GoalCard
+                        key={goal.id}
+                        goal={goal}
+                        user={user}
+                        progress={progress}
+                        getStatusBadge={getStatusBadge}
+                        onSelect={setSelectedGoal}
+                        onUpdateStatus={({ goalId, status, comments }) =>
+                          updateGoalStatusMutation.mutate({ goalId, status, comments })
+                        }
+                      />
+                    );
+                  })}
+                </div>
+              )}
 
-                    <div>
-                      <h4 className="text-sm font-medium">Relevant</h4>
-                      <p className="text-sm text-muted-foreground mt-1">{selectedGoal?.relevant}</p>
-                    </div>
-
-                    <div>
-                      <h4 className="text-sm font-medium">Time-bound</h4>
-                      <p className="text-sm text-muted-foreground mt-1">{selectedGoal?.timebound}</p>
+              {/* Goal Details Dialog */}
+              <Dialog open={!!selectedGoal} onOpenChange={(open) => !open && setSelectedGoal(null)}>
+                <DialogContent aria-describedby={undefined} className="max-w-5xl max-h-[90vh] overflow-y-auto p-0 rounded-2xl border-0">
+                  <DialogTitle className="sr-only">Goal Details</DialogTitle>
+                  {/* ── Luxury Header ── */}
+                  <div
+                    className="relative overflow-hidden px-7 py-5"
+                    style={{ background: 'linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)' }}
+                  >
+                    <div className="absolute -right-12 -top-12 w-40 h-40 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+                    <div className="absolute -left-10 -bottom-10 w-32 h-32 rounded-full bg-indigo-700/15 blur-2xl pointer-events-none" />
+                    <div className="relative z-10">
+                      <div className="flex items-start gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 mt-0.5">
+                          <Target className="h-5 w-5 text-purple-300" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-xl font-bold text-white tracking-tight leading-tight">{selectedGoal?.title}</h2>
+                          <div className="flex items-center gap-3 mt-2 flex-wrap">
+                            {getStatusBadge(selectedGoal?.status || 'pending', 'lg')}
+                            {selectedGoal?.deadline && (
+                              <span className="inline-flex items-center text-xs text-purple-300/80 gap-1">
+                                <CalendarIcon className="h-3.5 w-3.5" />
+                                Target: {format(parseISO(selectedGoal?.deadline), "MMM d, yyyy")}
+                              </span>
+                            )}
+                            {(() => {
+                              const progress = getMilestoneProgress(selectedGoal?.id || 0);
+                              return progress.total > 0 ? (
+                                <span className="inline-flex items-center text-xs text-emerald-400 gap-1">
+                                  <CheckCircle className="h-3.5 w-3.5" />
+                                  {progress.completed}/{progress.total} milestones
+                                </span>
+                              ) : null;
+                            })()}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {selectedGoal?.therapistComments && (
-                    <div className="mt-6">
-                      <h4 className="text-sm font-medium">Therapist Feedback</h4>
-                      <p className="text-sm italic bg-muted/50 p-3 rounded-md mt-1">
-                        {selectedGoal.therapistComments}
-                      </p>
+                  {/* ── Body ── */}
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                      {/* Left column — SMART Breakdown */}
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">SMART Breakdown</h3>
+                        <div className="space-y-3">
+
+                          {/* Specific */}
+                          <div className="rounded-xl border border-slate-200 bg-slate-50/40 p-4">
+                            <div className="flex items-center gap-2.5 mb-2">
+                              <div className="w-7 h-7 rounded-lg bg-purple-100 border border-purple-200 flex items-center justify-center shrink-0">
+                                <Target className="h-3.5 w-3.5 text-purple-600" />
+                              </div>
+                              <span className="text-xs font-bold text-purple-700 uppercase tracking-wider">S &mdash; Specific</span>
+                            </div>
+                            <p className="text-sm text-slate-600 leading-relaxed">{selectedGoal?.specific}</p>
+                          </div>
+
+                          {/* Measurable */}
+                          <div className="rounded-xl border border-slate-200 bg-slate-50/40 p-4">
+                            <div className="flex items-center gap-2.5 mb-2">
+                              <div className="w-7 h-7 rounded-lg bg-blue-100 border border-blue-200 flex items-center justify-center shrink-0">
+                                <BarChart3 className="h-3.5 w-3.5 text-blue-600" />
+                              </div>
+                              <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">M &mdash; Measurable</span>
+                            </div>
+                            <p className="text-sm text-slate-600 leading-relaxed">{selectedGoal?.measurable}</p>
+                          </div>
+
+                          {/* Achievable */}
+                          <div className="rounded-xl border border-slate-200 bg-slate-50/40 p-4">
+                            <div className="flex items-center gap-2.5 mb-2">
+                              <div className="w-7 h-7 rounded-lg bg-emerald-100 border border-emerald-200 flex items-center justify-center shrink-0">
+                                <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+                              </div>
+                              <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">A &mdash; Achievable</span>
+                            </div>
+                            <p className="text-sm text-slate-600 leading-relaxed">{selectedGoal?.achievable}</p>
+                          </div>
+
+                          {/* Relevant */}
+                          <div className="rounded-xl border border-slate-200 bg-slate-50/40 p-4">
+                            <div className="flex items-center gap-2.5 mb-2">
+                              <div className="w-7 h-7 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
+                                <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+                              </div>
+                              <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">R &mdash; Relevant</span>
+                            </div>
+                            <p className="text-sm text-slate-600 leading-relaxed">{selectedGoal?.relevant}</p>
+                          </div>
+
+                          {/* Time-bound */}
+                          <div className="rounded-xl border border-slate-200 bg-slate-50/40 p-4">
+                            <div className="flex items-center gap-2.5 mb-2">
+                              <div className="w-7 h-7 rounded-lg bg-rose-100 border border-rose-200 flex items-center justify-center shrink-0">
+                                <Clock className="h-3.5 w-3.5 text-rose-600" />
+                              </div>
+                              <span className="text-xs font-bold text-rose-700 uppercase tracking-wider">T &mdash; Time-bound</span>
+                            </div>
+                            <p className="text-sm text-slate-600 leading-relaxed">{selectedGoal?.timebound}</p>
+                          </div>
+
+                        </div>
+
+                        {/* Therapist Feedback */}
+                        {selectedGoal?.therapistComments && (
+                          <div className="mt-4 rounded-xl border border-indigo-200 bg-indigo-50/60 p-4">
+                            <div className="flex items-center gap-2.5 mb-2">
+                              <div className="w-7 h-7 rounded-lg bg-indigo-100 border border-indigo-200 flex items-center justify-center shrink-0">
+                                <MessageSquare className="h-3.5 w-3.5 text-indigo-600" />
+                              </div>
+                              <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Therapist Feedback</span>
+                            </div>
+                            <p className="text-sm italic text-indigo-800 leading-relaxed">{selectedGoal.therapistComments}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right column — Milestones (unchanged) */}
+                      <MilestoneList
+                        milestones={milestones}
+                        isLoading={milestonesLoading}
+                        user={user}
+                        selectedGoal={selectedGoal}
+                        isAddingMilestone={isAddingMilestone}
+                        onSetAddingMilestone={setIsAddingMilestone}
+                        onToggleCompletion={({ milestoneId, isCompleted }) =>
+                          toggleMilestoneCompletionMutation.mutate({ milestoneId, isCompleted })
+                        }
+                      />
+
                     </div>
-                  )}
-                </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
-                <MilestoneList
-                  milestones={milestones}
-                  isLoading={milestonesLoading}
-                  user={user}
-                  selectedGoal={selectedGoal}
-                  isAddingMilestone={isAddingMilestone}
-                  onSetAddingMilestone={setIsAddingMilestone}
-                  onToggleCompletion={({ milestoneId, isCompleted }) =>
-                    toggleMilestoneCompletionMutation.mutate({ milestoneId, isCompleted })
-                  }
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
+              {/* Add Milestone Dialog */}
+              <Dialog open={isAddingMilestone} onOpenChange={setIsAddingMilestone}>
+                <DialogContent aria-describedby={undefined} className="max-w-md p-0 rounded-2xl border-0 overflow-hidden">
+                  <DialogTitle className="sr-only">Add Milestone</DialogTitle>
 
-          {/* Add Milestone Dialog */}
-          <Dialog open={isAddingMilestone} onOpenChange={setIsAddingMilestone}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Milestone</DialogTitle>
-                <DialogDescription>
-                  Break down your goal into smaller, achievable steps.
-                </DialogDescription>
-              </DialogHeader>
+                  {/* Dark gradient header */}
+                  <div
+                    className="relative overflow-hidden px-7 py-5"
+                    style={{ background: "linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)" }}
+                  >
+                    <div className="absolute -right-10 -top-10 w-32 h-32 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+                    <div className="absolute -left-8 -bottom-8 w-24 h-24 rounded-full bg-indigo-700/15 blur-2xl pointer-events-none" />
+                    <div className="relative z-10 flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
+                        <Flag className="h-5 w-5 text-purple-300" />
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-bold text-white tracking-tight leading-tight">Add Milestone</h2>
+                        <p className="text-purple-300/80 text-xs mt-0.5 font-medium">
+                          Break your goal into smaller, achievable steps
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-              <Form {...milestoneForm}>
-                <form onSubmit={milestoneForm.handleSubmit(onSubmitMilestone)} className="space-y-4">
-                  <FormField
-                    control={milestoneForm.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Milestone Title</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter a title for this milestone" voiceInput {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Form body */}
+                  <Form {...milestoneForm}>
+                    <form onSubmit={milestoneForm.handleSubmit(onSubmitMilestone)}>
+                      <div className="px-7 py-6 space-y-5 bg-white">
 
-                  <FormField
-                    control={milestoneForm.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description (Optional)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Add details about this milestone..."
-                            rows={3}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <FormField
+                          control={milestoneForm.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                Milestone Title
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="e.g. Complete first chapter…"
+                                  className="rounded-xl border-slate-200 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 bg-slate-50/60 h-11"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                  <FormField
-                    control={milestoneForm.control}
-                    name="dueDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Due Date (Optional)</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <FormField
+                          control={milestoneForm.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                Description <span className="text-slate-400 normal-case font-normal">(optional)</span>
+                              </FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Add details about this milestone…"
+                                  rows={3}
+                                  className="rounded-xl border-slate-200 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 bg-slate-50/60 resize-none"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                  <DialogFooter>
-                    <Button type="submit" disabled={createMilestoneMutation.isPending}>
-                      {createMilestoneMutation.isPending ? "Adding..." : "Add Milestone"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </TabsContent>
+                        <FormField
+                          control={milestoneForm.control}
+                          name="dueDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                Due Date <span className="text-slate-400 normal-case font-normal">(optional)</span>
+                              </FormLabel>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      className={cn(
+                                        "w-full justify-start text-left font-normal rounded-xl border-slate-200 bg-slate-50/60 hover:bg-slate-100 h-11",
+                                        !field.value && "text-slate-400"
+                                      )}
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4 text-purple-500" />
+                                      {field.value
+                                        ? format(parseISO(field.value), "PPP")
+                                        : "Pick a date"}
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={field.value ? parseISO(field.value) : undefined}
+                                    onSelect={(date) =>
+                                      field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                                    }
+                                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
-        <TabsContent value="insights">
-          {activeUserId && <GoalInsights userId={activeUserId} />}
-        </TabsContent>
-      </Tabs>
-    </ModulePageShell>
+                      {/* Footer */}
+                      <div className="flex items-center justify-end gap-2.5 px-7 py-4 border-t border-slate-100 bg-white">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsAddingMilestone(false)}
+                          className="rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 h-9 px-5"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={createMilestoneMutation.isPending}
+                          className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-9 px-5 gap-2"
+                        >
+                          {createMilestoneMutation.isPending ? (
+                            <>
+                              <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              Adding…
+                            </>
+                          ) : (
+                            <>
+                              <Flag className="h-4 w-4" />
+                              Add Milestone
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+
+                </DialogContent>
+              </Dialog>
+            </TabsContent>
+
+            <TabsContent value="insights" className="mt-0">
+              {activeUserId && <GoalInsights userId={activeUserId} />}
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    </AppLayout>
   );
 }

@@ -50,7 +50,10 @@ import {
 import JournalWordCloud from "@/features/journal/components/JournalWordCloud";
 import JournalWizard from "@/features/journal/components/JournalWizard";
 import JournalInsights from "@/features/journal/components/JournalInsights";
-import ModulePageShell from "@/components/layout/ModulePageShell";
+import AppLayout from "@/components/layout/AppLayout";
+import { BackToClientsButton } from "@/features/dashboard/components/navigation/BackToClientsButton";
+import { ClientDebug } from "@/features/admin/components/debug/ClientDebug";
+import { cn } from "@/lib/utils";
 import { JournalList } from "@/features/journal/components/JournalList";
 import { JournalEntryForm } from "@/features/journal/components/JournalEntryForm";
 import { JournalComments } from "@/features/journal/components/JournalComments";
@@ -101,7 +104,6 @@ export default function Journal() {
   const { viewingClientId } = useClientContext();
   const { activeUserId, isViewingSelf } = useActiveUser();
   const { refreshAfterOperation } = useRefreshData();
-
   // If viewing client data, use client's ID, otherwise use current user's ID
   const userId = activeUserId;
 
@@ -417,110 +419,134 @@ export default function Journal() {
   // If viewing another user's data and current user is a therapist, they should only view
   const canCreateEntries = isViewingSelf || user?.role === 'client';
 
+  const pageTitle = isViewingSelf || user?.role === 'client' ? "Journal" : "Client's Journal";
+  const pageSubtitle = "Process your emotions and experiences: Reflect on your thoughts and feelings through daily journaling";
+  const isWriteTab = activeTab === "write";
+
+  const mostCommonEmotion = Object.keys(stats.emotions).length > 0
+    ? Object.entries(stats.emotions).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0]
+    : "None";
+  const uniqueEmotionsCount = Object.keys(stats.emotions).length;
+
   return (
-    <ModulePageShell
-      title="Journal"
-      description="Process your emotions and experiences: Reflect on your thoughts and feelings through daily journaling"
-    >
+    <AppLayout title={pageTitle}>
+      <div className="min-h-screen bg-slate-50">
+        <ClientDebug />
 
-        {/* Overall Progress Summary */}
-        {stats.totalEntries > 0 && (
-          <Card className="mb-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Book className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Overall Progress</CardTitle>
+        {/* Premium Hero Banner */}
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 relative overflow-hidden transition-all duration-300 pt-8 pb-10">
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="max-w-5xl mx-auto relative">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="h-4 w-4 text-purple-400" />
+                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                    {isViewingSelf || user?.role === 'client' ? "Self Reflection" : "Clinical Review"}
+                  </span>
+                </div>
+                <h1 className="font-bold text-white tracking-tight text-3xl md:text-4xl mb-2">
+                  {pageTitle}
+                </h1>
+                <p className="text-purple-300/70 text-base max-w-md leading-relaxed">
+                  {pageSubtitle}
+                </p>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                  <div className="text-2xl font-bold text-primary">{stats.totalEntries}</div>
-                  <div className="text-sm text-muted-foreground">Total Entries</div>
+              
+              {stats.totalEntries > 0 && (
+                <div className="flex items-center gap-6 shrink-0 flex-wrap">
+                  {[
+                    { value: stats.totalEntries, label: "Total Entries" },
+                    { value: mostCommonEmotion, label: "Common Emotion" },
+                    { value: uniqueEmotionsCount, label: "Unique Emotions" },
+                  ].map((s, i) => (
+                    <div key={i} className="text-center">
+                      <div className="text-2xl font-bold text-white">{s.value}</div>
+                      <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
+                    </div>
+                  ))}
                 </div>
-                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                  <div className="text-2xl font-bold text-teal-600">
-                    {Object.keys(stats.emotions).length > 0
-                      ? Object.entries(stats.emotions).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0]
-                      : "None"}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Most Common Emotion</div>
-                </div>
-                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                  <div className="text-2xl font-bold text-rose-600">{Object.keys(stats.emotions).length}</div>
-                  <div className="text-sm text-muted-foreground">Unique Emotions</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              )}
+            </div>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          defaultValue={
-            user?.role === 'therapist' || user?.role === 'admin' ? "history" : "write"
-          }
-          className="space-y-4"
-        >
-          <TabsList>
-            {/* Only show Write Entry tab for clients */}
+            {/* Journaling Habit strip */}
+            <div className="mt-6 bg-white/5 rounded-xl border border-white/10 p-4">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <Book className="h-3.5 w-3.5 text-amber-400" />
+                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">Journaling Habit</span>
+                </div>
+                <span className="text-xs text-purple-400">{stats.totalEntries} of 30 entries</span>
+              </div>
+              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-amber-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.round((stats.totalEntries / 30) * 100))}%` }} />
+              </div>
+              <p className="text-[11px] text-purple-400/60 mt-1.5">Regular journaling deepens self-awareness and supports emotional processing and healing.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Body Layout */}
+        <div className="max-w-5xl mx-auto pb-10 pt-6 space-y-5">
+          <BackToClientsButton />
+
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            defaultValue={
+              user?.role === 'therapist' || user?.role === 'admin' ? "history" : "write"
+            }
+            className="space-y-5"
+          >
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-1.5">
+              <TabsList className="w-full h-auto bg-transparent p-0 gap-1 flex flex-wrap">
+                {/* Only show Write Entry tab for clients */}
+                {user?.role === 'client' && (
+                  <TabsTrigger
+                    value="write"
+                    className={cn(
+                      "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
+                      "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                    )}
+                  >
+                    <MessageSquarePlus className="h-4 w-4 mr-1.5 inline" />
+                    Write Entry
+                  </TabsTrigger>
+                )}
+                <TabsTrigger
+                  value="history"
+                  className={cn(
+                    "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
+                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                  )}
+                >
+                  <Tag className="h-4 w-4 mr-1.5 inline" />
+                  {user?.role === 'therapist' || user?.role === 'admin' ? "Client's Journal" : "My Journal"}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="insights"
+                  className={cn(
+                    "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
+                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                  )}
+                >
+                  <TrendingUp className="h-4 w-4 mr-1.5 inline" />
+                  Insights
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Write Entry tab - only for clients */}
             {user?.role === 'client' && (
-              <TabsTrigger value="write">
-                <MessageSquarePlus className="mr-2 h-4 w-4" />
-                Write Entry
-              </TabsTrigger>
+              <TabsContent value="write" className="mt-0">
+                <JournalWizard onEntryCreated={() => setActiveTab("history")} />
+              </TabsContent>
             )}
-            <TabsTrigger value="history">
-              <Tag className="mr-2 h-4 w-4" />
-              {user?.role === 'therapist' || user?.role === 'admin' ? "Client's Journal" : "My Journal"}
-            </TabsTrigger>
-            <TabsTrigger value="insights">
-              <TrendingUp className="mr-2 h-4 w-4" />
-              Insights
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Write Entry tab - only for clients */}
-          {user?.role === 'client' && (
-            <TabsContent value="write">
-              {/* Educational Accordion */}
-              <Accordion type="single" collapsible className="mb-6 bg-teal-50 dark:bg-teal-950/30 rounded-lg px-4">
-                <AccordionItem value="why-journal" className="border-0">
-                  <AccordionTrigger className="text-base font-medium hover:no-underline py-3">
-                    <div className="flex items-center">
-                      <HelpCircle className="h-5 w-5 mr-2 text-teal-600 dark:text-teal-400" />
-                      Why Journal?
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-sm text-muted-foreground pb-4">
-                    <p className="mb-3">
-                      Journaling is a powerful tool for self-reflection and emotional processing. It helps you understand patterns in your thoughts and feelings, track your progress, and gain valuable insights into your mental well-being.
-                    </p>
-
-                    <div className="space-y-3">
-                      <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                        <h4 className="font-medium text-foreground mb-1">Process Emotions</h4>
-                        <p>Writing about your feelings helps you make sense of them and reduces emotional intensity. It's a safe space to express yourself without judgment.</p>
-                      </div>
-
-                      <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                        <h4 className="font-medium text-foreground mb-1">Track Patterns</h4>
-                        <p>Over time, your journal entries reveal patterns in your mood, triggers, and coping strategies, helping you understand yourself better.</p>
-                      </div>
-
-                      <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                        <h4 className="font-medium text-foreground mb-1">Support Growth</h4>
-                        <p>Regular journaling documents your journey, celebrates progress, and provides insights that support your ongoing mental health and personal growth.</p>
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-
-              <JournalWizard onEntryCreated={() => setActiveTab("history")} />
-            </TabsContent>
-          )}
 
           {/* Journal History tab */}
           <TabsContent value="history">
@@ -1575,141 +1601,181 @@ export default function Journal() {
       {/* View Journal Entry Details Dialog */}
       {selectedViewEntry && (
         <Dialog open={!!selectedViewEntry} onOpenChange={() => setSelectedViewEntry(null)}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto custom-scrollbar">
-            <DialogHeader className="sticky top-0 bg-background z-10 pb-4">
-              <DialogTitle className="flex items-center gap-2 text-lg">
-                <div className="p-2 rounded-full bg-blue-100">
-                  <Book className="h-5 w-5 text-blue-600" />
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0 rounded-2xl border-0">
+            {/* Luxury gradient header */}
+            <div
+              className="relative overflow-hidden px-7 py-5"
+              style={{ background: 'linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)' }}
+            >
+              <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+              <div className="absolute -left-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/20 blur-2xl pointer-events-none" />
+              <div className="relative z-10 flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Book className="h-5 w-5 text-purple-300" />
                 </div>
-                {selectedViewEntry.title}
-              </DialogTitle>
-              <DialogDescription>
-                Created on {format(new Date(selectedViewEntry.createdAt), "MMM d, yyyy 'at' h:mm a")}
-              </DialogDescription>
-            </DialogHeader>
+                <div>
+                  <h2 className="text-lg font-bold text-white truncate max-w-sm">{selectedViewEntry.title}</h2>
+                  <p className="text-blue-300/80 text-xs mt-0.5">
+                    Created on {format(new Date(selectedViewEntry.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                  </p>
+                </div>
+              </div>
+            </div>
 
-            <div className="space-y-6 pr-1">
-              {/* Entry Content */}
-              <Card className="border-l-4 border-l-blue-400">
-                <CardContent className="p-4 space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4 text-blue-500" />
-                      Content
-                    </h3>
-                    <p className="text-sm whitespace-pre-wrap pl-6">{selectedViewEntry.content}</p>
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              <Card className="border-l-4 border-l-blue-400 rounded-2xl shadow-sm">
+                <CardContent className="p-5 space-y-5">
+
+                  {/* Content */}
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                      <MessageCircle className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-slate-800 mb-2">Content</h3>
+                      <div className="bg-slate-50/60 rounded-xl border border-slate-200 p-4 text-sm leading-relaxed whitespace-pre-wrap text-slate-700">
+                        {selectedViewEntry.content}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Tags */}
                   {selectedViewEntry.userSelectedTags && selectedViewEntry.userSelectedTags.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <Tag className="h-4 w-4 text-blue-500" />
-                        Tags
-                      </h3>
-                      <div className="flex flex-wrap gap-1 pl-6">
-                        {selectedViewEntry.userSelectedTags.map((tag, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Tag className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">Tags</h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedViewEntry.userSelectedTags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="px-2.5 py-1 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-200 font-medium"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
 
-                  {/* AI Analysis */}
+                  {/* AI Insights */}
                   {selectedViewEntry.aiAnalysis && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-amber-500" />
-                        AI Insights
-                      </h3>
-                      <p className="text-sm text-muted-foreground pl-6">{selectedViewEntry.aiAnalysis}</p>
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Sparkles className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">AI Insights</h3>
+                        <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-3.5 text-sm leading-relaxed text-amber-900">
+                          {selectedViewEntry.aiAnalysis}
+                        </div>
+                      </div>
                     </div>
                   )}
 
                   {/* Detected Emotions */}
                   {selectedViewEntry.emotions && selectedViewEntry.emotions.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <Heart className="h-4 w-4 text-rose-500" />
-                        Detected Emotions
-                      </h3>
-                      <div className="flex flex-wrap gap-1 pl-6">
-                        {selectedViewEntry.emotions.map((emotion, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {emotion}
-                          </Badge>
-                        ))}
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Heart className="h-4 w-4 text-rose-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">Detected Emotions</h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedViewEntry.emotions.map((emotion, index) => (
+                            <span
+                              key={index}
+                              className="bg-rose-50 text-rose-700 border border-rose-200 rounded-full px-2.5 py-1 text-xs font-medium"
+                            >
+                              {emotion}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {/* Detected Topics */}
                   {selectedViewEntry.topics && selectedViewEntry.topics.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <Tag className="h-4 w-4 text-blue-500" />
-                        Detected Topics
-                      </h3>
-                      <div className="flex flex-wrap gap-1 pl-6">
-                        {selectedViewEntry.topics.map((topic, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {topic}
-                          </Badge>
-                        ))}
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Tag className="h-4 w-4 text-indigo-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">Detected Topics</h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedViewEntry.topics.map((topic, index) => (
+                            <span
+                              key={index}
+                              className="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full px-2.5 py-1 text-xs font-medium"
+                            >
+                              {topic}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {/* Cognitive Distortions */}
                   {selectedViewEntry.userSelectedDistortions && selectedViewEntry.userSelectedDistortions.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <BrainCircuit className="h-4 w-4 text-purple-500" />
-                        Cognitive Distortions
-                      </h3>
-                      <div className="space-y-2 pl-6">
-                        {selectedViewEntry.userSelectedDistortions.map((distortion, index) => (
-                          <div key={index} className="text-sm">
-                            <span className="font-medium">{distortion}:</span>{" "}
-                            <span className="text-muted-foreground">{getDistortionDescription(distortion)}</span>
-                          </div>
-                        ))}
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <BrainCircuit className="h-4 w-4 text-purple-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">Cognitive Distortions</h3>
+                        <div className="space-y-2">
+                          {selectedViewEntry.userSelectedDistortions.map((distortion, index) => (
+                            <div key={index} className="text-sm bg-purple-50/60 border border-purple-100 rounded-xl px-3.5 py-2.5">
+                              <span className="font-semibold text-purple-800">{distortion}:</span>{" "}
+                              <span className="text-purple-700">{getDistortionDescription(distortion)}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {/* Related Thought Records */}
                   {relatedThoughtRecords.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <Brain className="h-4 w-4 text-indigo-500" />
-                        Related Thought Records
-                      </h3>
-                      <div className="space-y-2 pl-6">
-                        {relatedThoughtRecords.map((record) => (
-                          <Card key={record.id} className="border">
-                            <CardContent className="p-3">
-                              <p className="text-sm font-medium">{record.automaticThoughts}</p>
-                              {record.situation && (
-                                <p className="text-xs text-muted-foreground mt-1">{record.situation}</p>
-                              )}
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {format(new Date(record.createdAt), "MMM d, yyyy")}
-                              </p>
-                            </CardContent>
-                          </Card>
-                        ))}
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Brain className="h-4 w-4 text-indigo-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">Related Thought Records</h3>
+                        <div className="space-y-2">
+                          {relatedThoughtRecords.map((record) => (
+                            <Card key={record.id} className="border border-indigo-100 rounded-xl bg-indigo-50/30 shadow-none">
+                              <CardContent className="p-3">
+                                <p className="text-sm font-medium text-indigo-900">{record.automaticThoughts}</p>
+                                {record.situation && (
+                                  <p className="text-xs text-indigo-600/80 mt-1">{record.situation}</p>
+                                )}
+                                <p className="text-xs text-indigo-500/70 mt-1">
+                                  {format(new Date(record.createdAt), "MMM d, yyyy")}
+                                </p>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
+
                 </CardContent>
               </Card>
             </div>
           </DialogContent>
         </Dialog>
       )}
-    </ModulePageShell>
+      </div>
+    </div>
+    </AppLayout>
   );
 }

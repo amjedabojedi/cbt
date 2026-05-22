@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, Brain, BookOpen, Target, Lightbulb, Clock } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface TimelineItem {
   id: string;
@@ -24,18 +25,32 @@ const iconMap = {
   Lightbulb,
 };
 
+const timelineStyleMap = {
+  emotion: { bg: "bg-indigo-50/60 border-indigo-100/40", text: "text-indigo-600" },
+  thought: { bg: "bg-purple-50/60 border-purple-100/40", text: "text-purple-600" },
+  journal: { bg: "bg-violet-50/60 border-violet-100/40", text: "text-violet-600" },
+  goal: { bg: "bg-fuchsia-50/60 border-fuchsia-100/40", text: "text-fuchsia-600" },
+  reframe: { bg: "bg-purple-100/25 border-purple-200/20", text: "text-purple-700" },
+};
+
 export default function ActivityTimeline({ timeline, isLoading }: ActivityTimelineProps) {
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="bg-white border border-slate-100 shadow-sm rounded-2xl overflow-hidden h-full flex flex-col justify-between">
+        <CardHeader className="pb-4 pt-5 px-6">
+          <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-800 animate-pulse">
+            <Clock className="h-4.5 w-4.5 text-purple-600" />
+            Activity Timeline
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-6 pb-6 pt-0">
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex gap-4 animate-pulse">
-                <div className="w-10 h-10 rounded-full bg-neutral-200" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-neutral-200 rounded w-3/4" />
-                  <div className="h-3 bg-neutral-200 rounded w-1/2" />
+                <div className="w-9 h-9 rounded-full bg-slate-100 shrink-0" />
+                <div className="flex-1 space-y-2 pt-1">
+                  <div className="h-3.5 bg-slate-100 rounded-md w-3/4" />
+                  <div className="h-2.5 bg-slate-100 rounded-md w-1/2" />
                 </div>
               </div>
             ))}
@@ -47,20 +62,23 @@ export default function ActivityTimeline({ timeline, isLoading }: ActivityTimeli
   
   if (timeline.length === 0) {
     return (
-      <Card data-testid="activity-timeline">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-primary" />
+      <Card data-testid="activity-timeline" className="bg-white border border-slate-100 shadow-sm rounded-2xl overflow-hidden h-full flex flex-col justify-between">
+        <CardHeader className="pb-4 pt-5 px-6">
+          <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-800">
+            <Clock className="h-4.5 w-4.5 text-purple-600" />
             Activity Timeline
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-slate-400 font-semibold text-xs mt-0.5">
             Your recent therapeutic activities across all modules
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-neutral-500">
-            <Clock className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p>No activities yet. Start by tracking your emotions or creating a goal.</p>
+        <CardContent className="px-6 pb-12 pt-6">
+          <div className="text-center py-6 text-slate-500">
+            <div className="bg-slate-50 p-4 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-4 border border-slate-100/50">
+              <Clock className="h-7 w-7 text-slate-300" />
+            </div>
+            <p className="text-sm font-semibold text-slate-700 mb-1">No activities logged yet</p>
+            <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">Start your wellness journey by tracking emotions, recording thoughts, or setting goals.</p>
           </div>
         </CardContent>
       </Card>
@@ -68,42 +86,48 @@ export default function ActivityTimeline({ timeline, isLoading }: ActivityTimeli
   }
   
   return (
-    <Card data-testid="activity-timeline">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-5 w-5 text-primary" />
+    <Card data-testid="activity-timeline" className="bg-white border border-slate-100 shadow-sm rounded-2xl overflow-hidden h-full flex flex-col justify-between">
+      <CardHeader className="pb-4 pt-5 px-6">
+        <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-800">
+          <Clock className="h-4.5 w-4.5 text-purple-600" />
           Activity Timeline
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-slate-400 font-semibold text-xs mt-0.5">
           Your recent therapeutic activities across all modules
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4 max-h-96 overflow-y-auto">
-          {timeline.map((item, index) => {
+      <CardContent className="px-6 pb-6 pt-0 flex-1">
+        <div className="space-y-3.5 pr-2 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-200/60 scrollbar-track-transparent hover:scrollbar-thumb-purple-300 transition-colors">
+          {timeline.map((item) => {
             const Icon = iconMap[item.icon as keyof typeof iconMap];
+            const customStyle = timelineStyleMap[item.type as keyof typeof timelineStyleMap];
+            
             return (
               <div 
                 key={item.id} 
-                className="flex gap-4 items-start pb-4 border-b border-neutral-100 last:border-0"
+                className="flex gap-3.5 items-start pb-3.5 border-b border-slate-50 last:border-0 last:pb-0"
                 data-testid={`timeline-item-${item.type}`}
               >
                 <div 
-                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: item.color + '20', color: item.color }}
+                  className={cn(
+                    "w-9 h-9 rounded-full flex items-center justify-center shrink-0 border",
+                    customStyle ? customStyle.bg : "bg-purple-50 border-purple-100/30",
+                    customStyle ? customStyle.text : "text-purple-600"
+                  )}
+                  style={!customStyle ? { backgroundColor: item.color + '15', color: item.color } : undefined}
                 >
-                  <Icon className="h-5 w-5" />
+                  {Icon ? <Icon className="h-4.5 w-4.5" /> : <Clock className="h-4.5 w-4.5" />}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-neutral-800 truncate">
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <p className="text-sm font-bold text-slate-700 truncate leading-snug group-hover:text-purple-700 transition-colors">
                     {item.title}
                   </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-neutral-500">
+                  <div className="flex items-center gap-2 mt-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                    <span>
                       {formatDistanceToNow(item.date, { addSuffix: true })}
                     </span>
-                    <span className="text-xs text-neutral-400">•</span>
-                    <span className="text-xs text-neutral-500">
+                    <span>•</span>
+                    <span>
                       {format(item.date, "MMM d, h:mm a")}
                     </span>
                   </div>

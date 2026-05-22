@@ -338,7 +338,7 @@ export default function EmotionTrackingForm({
                       <span>About Emotions</span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="w-[95vw] max-w-3xl">
+                  <DialogContent className="w-[95vw] max-w-3xl border-0">
                     <DialogHeader>
                       <DialogTitle>Understanding the Emotion Wheel</DialogTitle>
                       <DialogDescription>
@@ -695,7 +695,7 @@ export default function EmotionTrackingForm({
       
       {/* Success Dialog with Options */}
       <Dialog open={showSuccessDialog && !!recordedEmotion} onOpenChange={(open) => !open && setShowSuccessDialog(false)}>
-        <DialogContent className="sm:max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto border-0">
           <DialogHeader>
             <DialogTitle className="flex items-center text-xl">
               <Check className="h-6 w-6 text-green-500 mr-2" />
