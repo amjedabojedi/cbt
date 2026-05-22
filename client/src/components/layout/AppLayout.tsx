@@ -8,7 +8,7 @@ interface AppLayoutProps {
   children: React.ReactNode;
   title?: string;
 }
-
+console.log("");
 export default function AppLayout({ children, title = "Dashboard" }: AppLayoutProps) {
   const { user, loading } = useAuth();
   const [location, navigate] = useLocation();
