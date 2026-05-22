@@ -797,7 +797,7 @@ export default function Dashboard() {
                 <span className="text-sm font-medium text-slate-600">Engagement Score</span>
                 <span className="text-sm font-bold text-[#090514]">{engagementScore}%</span>
               </div>
-              <Progress value={engagementScore} className="h-2" />
+              <Progress value={engagementScore} className="h-2 [&>div]:bg-purple-600" />
               <p className="text-xs text-slate-400 mt-1.5">{totalActivities} total activities across all modules</p>
             </div>
 
