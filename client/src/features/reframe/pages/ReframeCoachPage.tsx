@@ -2,7 +2,8 @@ import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useLocation } from "wouter";
-import ModulePageShell from "@/components/layout/ModulePageShell";
+import AppLayout from "@/components/layout/AppLayout";
+import { cn } from "@/lib/utils";
 import ThoughtRecordsList from "@/features/therapy/components/thought/ThoughtRecordsList";
 import ReframePracticeHistory from "@/features/reframe/components/ReframePracticeHistory";
 import ReframeInsights from "@/features/reframe/components/ReframeInsights";
@@ -19,22 +20,17 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { ThoughtRecord } from "@shared/schema";
-import { 
-  Loader2, 
+import {
+  Loader2,
   Target,
   Zap,
   ShieldAlert,
   HelpCircle,
   TrendingUp,
-  History
+  History,
+  Sparkles,
 } from "lucide-react";
 import useActiveUser from "@/hooks/use-active-user";
 
@@ -47,6 +43,14 @@ export default function ReframeCoachPage() {
   // Check URL parameters for tab
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
+
+  const defaultTab = tabParam === 'insights'
+    ? "insights"
+    : tabParam === 'history'
+      ? "history"
+      : "practice";
+
+  const [activeTab, setActiveTab] = useState(defaultTab);
 
   // Fetch thought records
   const { data: thoughtRecords, isLoading: thoughtsLoading } = useQuery<ThoughtRecord[]>({
@@ -73,155 +77,174 @@ export default function ReframeCoachPage() {
     : "0";
   const currentStreak = profileData?.profile?.practiceStreak || 0;
 
+  const isPracticeTab = activeTab === "practice";
+  const showStats = totalSessions > 0;
+
   return (
-    <ModulePageShell
-      title="Reframe Coach"
-      description="Practice balanced thinking with interactive exercises based on the thoughts and distortions you've already recorded"
-    >
-        
-        {/* Overall Progress Summary */}
-        {totalSessions > 0 && (
-          <Card className="mb-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Overall Progress</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                  <div className="text-2xl font-bold text-primary">{totalSessions}</div>
-                  <div className="text-sm text-muted-foreground">Sessions Completed</div>
-                </div>
-                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">{avgScore}</div>
-                  <div className="text-sm text-muted-foreground">Avg Score</div>
-                </div>
-                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{currentStreak}</div>
-                  <div className="text-sm text-muted-foreground">Day Streak</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        <Tabs 
-          defaultValue={
-            tabParam === 'insights'
-              ? "insights"
-              : tabParam === 'history'
-                ? "history"
-                : "practice"
-          }
-          className="space-y-4"
-        >
-          <TabsList>
-            <TabsTrigger value="practice" data-testid="tab-practice">
-              <Zap className="h-4 w-4 mr-1.5" />
-              Practice
-            </TabsTrigger>
-            <TabsTrigger value="history" data-testid="tab-history">
-              <History className="h-4 w-4 mr-1.5" />
-              History
-            </TabsTrigger>
-            <TabsTrigger value="insights" data-testid="tab-insights">
-              <TrendingUp className="h-4 w-4 mr-1.5" />
-              Insights
-            </TabsTrigger>
-          </TabsList>
+    <AppLayout title="Reframe Coach">
+      <div className="min-h-screen bg-slate-50">
+        {/* Premium Hero Banner */}
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden transition-all duration-300">
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
           
-          <TabsContent value="practice">
-            {/* Educational Accordion */}
-            <Accordion type="single" collapsible className="mb-6 bg-green-50 dark:bg-green-950/30 rounded-lg px-4">
-              <AccordionItem value="why-reframe" className="border-0">
-                <AccordionTrigger className="text-base font-medium hover:no-underline py-3">
-                  <div className="flex items-center">
-                    <HelpCircle className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
-                    Why Practice Reframing?
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground pb-4">
-                  <p className="mb-3">
-                    Cognitive reframing is a core CBT skill that helps you challenge and change unhelpful thinking patterns. By practicing with scenarios based on your actual thought records, you build the muscle to recognize and reframe distorted thoughts in real-time.
-                  </p>
-                  
-                  <div className="space-y-3">
-                    <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                      <h4 className="font-medium text-foreground mb-1">Practice with Real Thoughts</h4>
-                      <p>Work through interactive scenarios based on your recorded thoughts and distortions.</p>
-                    </div>
-                    
-                    <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                      <h4 className="font-medium text-foreground mb-1">Build Reframing Skills</h4>
-                      <p>Learn to create balanced, helpful perspectives through guided practice.</p>
-                    </div>
-                    
-                    <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                      <h4 className="font-medium text-foreground mb-1">Track Progress</h4>
-                      <p>Monitor your scores and improvement over time in the Insights tab.</p>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Thought Records</CardTitle>
-                <CardDescription>
-                  {isViewingClientData 
-                    ? "View client's thought records and practice history"
-                    : "Select a thought record to practice cognitive reframing"}
-                </CardDescription>
-              </CardHeader>
+          <div className="max-w-5xl mx-auto relative">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-4 w-4 text-purple-400" />
+                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                    Cognitive Reframing
+                  </span>
+                </div>
+                <h1 className="font-bold text-white tracking-tight text-3xl md:text-4xl mb-2">
+                  Reframe Coach
+                </h1>
+                <p className="text-purple-300/70 text-base max-w-md leading-relaxed">
+                  Practice balanced thinking with interactive exercises based on the thoughts and distortions you've already recorded
+                </p>
+              </div>
               
-              <CardContent>
-                {thoughtsLoading ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : (thoughtRecords && thoughtRecords.length > 0) ? (
-                  <ThoughtRecordsList 
-                    thoughtRecords={thoughtRecords} 
-                    userId={userId}
-                    showPracticeButton={true}
-                    practiceResults={results}
-                  />
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="mb-4 inline-flex items-center justify-center w-16 h-16 bg-muted rounded-full">
-                      <ShieldAlert className="h-8 w-8 text-muted-foreground" />
+              {showStats && (
+                <div className="flex items-center gap-6 shrink-0 flex-wrap">
+                  {[
+                    { value: totalSessions, label: "Sessions Completed" },
+                    { value: avgScore, label: "Avg Score", color: "text-purple-400" },
+                    { value: currentStreak, label: "Day Streak", color: "text-emerald-400" },
+                  ].map((s, i) => (
+                    <div key={i} className="text-center">
+                      <div className={cn("text-2xl font-bold", s.color || "text-white")}>{s.value}</div>
+                      <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">No Thought Records Yet</h3>
-                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                      {isViewingClientData
-                        ? "This client hasn't created any thought records yet."
-                        : "Create a thought record first to begin practicing cognitive reframing."}
-                    </p>
-                    {!isViewingClientData && (
-                      <Button 
-                        onClick={() => navigate(`/thoughts`)}
-                        data-testid="button-go-to-thoughts"
-                      >
-                        Create Your First Thought Record
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="history">
-            <ReframePracticeHistory userId={userId!} />
-          </TabsContent>
-          
-          <TabsContent value="insights">
-            <ReframeInsights userId={userId!} />
-          </TabsContent>
-        </Tabs>
-    </ModulePageShell>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Reframe Mastery strip */}
+            <div className="mt-6 bg-white/5 rounded-xl border border-white/10 p-4">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-3.5 w-3.5 text-emerald-400" />
+                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">Reframe Mastery</span>
+                </div>
+                <span className="text-xs text-purple-400">{totalSessions} of 20 sessions</span>
+              </div>
+              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-emerald-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.round((totalSessions / 20) * 100))}%` }} />
+              </div>
+              <p className="text-[11px] text-purple-400/60 mt-1.5">Each reframing session builds cognitive flexibility{avgScore > 0 ? ` — avg score ${avgScore}` : ""}.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Body Layout */}
+        <div className="max-w-5xl mx-auto pb-10 pt-6 space-y-5">
+          <Tabs 
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-5"
+          >
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-1.5">
+              <TabsList className="w-full h-auto bg-transparent p-0 gap-1 flex flex-wrap">
+                <TabsTrigger 
+                  value="practice" 
+                  data-testid="tab-practice"
+                  className={cn(
+                    "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
+                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                  )}
+                >
+                  <Zap className="h-4 w-4 mr-1.5 inline" />
+                  Practice
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="history" 
+                  data-testid="tab-history"
+                  className={cn(
+                    "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
+                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                  )}
+                >
+                  <History className="h-4 w-4 mr-1.5 inline" />
+                  History
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="insights" 
+                  data-testid="tab-insights"
+                  className={cn(
+                    "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
+                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                  )}
+                >
+                  <TrendingUp className="h-4 w-4 mr-1.5 inline" />
+                  Insights
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="practice" className="mt-0">
+              <Card className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
+                <CardHeader className="border-b border-slate-100 bg-slate-50/50 pb-4 pt-5 px-6">
+                  <CardTitle className="text-lg font-bold text-[#090514]">Your Thought Records</CardTitle>
+                  <CardDescription className="text-slate-500 text-sm">
+                    {isViewingClientData 
+                      ? "View client's thought records and practice history"
+                      : "Select a thought record to practice cognitive reframing"}
+                  </CardDescription>
+                </CardHeader>
+                
+                <CardContent className="p-6">
+                  {thoughtsLoading ? (
+                    <div className="flex justify-center py-12">
+                      <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+                    </div>
+                  ) : (thoughtRecords && thoughtRecords.length > 0) ? (
+                    <ThoughtRecordsList 
+                      thoughtRecords={thoughtRecords} 
+                      userId={userId}
+                      showPracticeButton={true}
+                      practiceResults={results}
+                    />
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="mb-4 inline-flex items-center justify-center w-16 h-16 bg-purple-50 text-purple-600 rounded-full">
+                        <ShieldAlert className="h-8 w-8" />
+                      </div>
+                      <h3 className="text-lg font-bold text-[#090514] mb-2">No Thought Records Yet</h3>
+                      <p className="text-slate-500 text-sm mb-6 max-w-md mx-auto leading-relaxed">
+                        {isViewingClientData
+                          ? "This client hasn't created any thought records yet."
+                          : "Create a thought record first to begin practicing cognitive reframing."}
+                      </p>
+                      {!isViewingClientData && (
+                        <Button 
+                          onClick={() => navigate(`/thoughts`)}
+                          data-testid="button-go-to-thoughts"
+                          className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl px-6 py-2.5 font-semibold transition-all duration-200"
+                        >
+                          Create Your First Thought Record
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="history" className="mt-0">
+              <ReframePracticeHistory userId={userId!} />
+            </TabsContent>
+            
+            <TabsContent value="insights" className="mt-0">
+              <ReframeInsights userId={userId!} />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    </AppLayout>
   );
 }

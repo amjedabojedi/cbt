@@ -22,7 +22,7 @@ const TOUR_SLIDES = [
     icon: Heart,
     content: (
       <div className="space-y-4">
-        <div className="bg-blue-50 p-4 rounded-lg">
+        <div className="bg-purple-50 p-4 rounded-lg">
           <p className="text-sm text-gray-700">
             Tracking emotions helps you understand patterns in your mental health. 
             Research shows that people who can identify specific emotions are better 
@@ -30,8 +30,8 @@ const TOUR_SLIDES = [
           </p>
         </div>
         <div className="flex items-start gap-3">
-          <div className="bg-blue-100 p-2 rounded-full">
-            <Heart className="h-5 w-5 text-blue-600" />
+          <div className="bg-purple-100 p-2 rounded-full">
+            <Heart className="h-5 w-5 text-purple-600" />
           </div>
           <div>
             <h4 className="font-medium text-sm">What you'll learn:</h4>
@@ -51,7 +51,7 @@ const TOUR_SLIDES = [
     icon: Gauge,
     content: (
       <div className="space-y-4">
-        <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg">
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-4 rounded-lg">
           <h4 className="font-medium text-sm mb-2">Three Levels of Emotions:</h4>
           <div className="space-y-3">
             <div className="flex items-start gap-2">
@@ -98,29 +98,29 @@ const TOUR_SLIDES = [
     icon: FileText,
     content: (
       <div className="space-y-4">
-        <div className="bg-gradient-to-br from-green-50 to-blue-50 p-4 rounded-lg">
+        <div className="bg-gradient-to-br from-green-50 to-purple-50 p-4 rounded-lg">
           <h4 className="font-medium text-sm mb-3">Follow these simple steps:</h4>
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+              <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
                 1
               </div>
               <p className="text-sm text-gray-700">Select your emotion from the wheel</p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+              <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
                 2
               </div>
               <p className="text-sm text-gray-700">Rate how intensely you felt it (1-10)</p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+              <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
                 3
               </div>
               <p className="text-sm text-gray-700">Describe what happened (the situation)</p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+              <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
                 4
               </div>
               <p className="text-sm text-gray-700">Add optional details (where, when, who)</p>
@@ -183,8 +183,8 @@ export default function EmotionOnboardingTour({ onComplete }: EmotionOnboardingT
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-100 p-2 rounded-full">
-                <Icon className="h-6 w-6 text-blue-600" />
+              <div className="bg-purple-100 p-2 rounded-full">
+                <Icon className="h-6 w-6 text-purple-600" />
               </div>
               <div>
                 <DialogTitle className="text-xl">{currentSlideData.title}</DialogTitle>
@@ -215,7 +215,7 @@ export default function EmotionOnboardingTour({ onComplete }: EmotionOnboardingT
               <span>Step {currentSlide + 1} of {TOUR_SLIDES.length}</span>
               <span>{Math.round(progress)}% complete</span>
             </div>
-            <Progress value={progress} className="h-2" />
+            <Progress value={progress} className="h-2 [&>div]:bg-purple-600" />
           </div>
 
           <div className="flex items-center justify-between w-full gap-2">

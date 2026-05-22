@@ -31,7 +31,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
   const [location] = useLocation();
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
-  const isClinicalUser = user?.role === "admin" || user?.role === "therapist";
+  const isClinicalUser = true; // unified dark-purple theme for all roles
 
   let navItems = [];
 
@@ -63,7 +63,6 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
       { href: "/reports", label: "My Progress", icon: <BarChart size={20} /> },
     ];
-    console.log("Loaded client navigation items:", navItems);
   }
 
   return (
@@ -142,11 +141,9 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 )}>
                   ResilienceHub
                 </h1>
-                {isClinicalUser && (
-                  <span className="text-[9px] font-bold tracking-widest text-purple-400/90 uppercase block mt-0.5">
-                    {user?.role === "admin" ? "Clinical Admin" : "Therapist Suite"}
-                  </span>
-                )}
+                <span className="text-[9px] font-bold tracking-widest text-purple-400/90 uppercase block mt-0.5">
+                  {user?.role === "admin" ? "Clinical Admin" : user?.role === "therapist" ? "Therapist Suite" : "Client Portal"}
+                </span>
               </div>
             </div>
           </div>
@@ -313,7 +310,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
 
       {/* Mobile toggle button */}
       <button
-        className="fixed bottom-20 right-4 md:hidden bg-primary text-white p-3 rounded-full shadow-lg z-50"
+        className="fixed bottom-20 right-4 md:hidden bg-gradient-to-tr from-purple-600 to-indigo-600 text-white p-3 rounded-full shadow-lg z-50"
         onClick={() => setIsMobileExpanded(!isMobileExpanded)}
         aria-label={isMobileExpanded ? "Close menu" : "Open menu"}
       >

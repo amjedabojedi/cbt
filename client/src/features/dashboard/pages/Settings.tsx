@@ -5,6 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import AppLayout from "@/components/layout/AppLayout";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
@@ -20,75 +22,72 @@ import {
   AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  Bell, Globe, ShieldAlert, LogOut, User, Lock, Settings as SettingsIcon,
-  Shield, BadgeCheck,
+  Bell, Globe, ShieldAlert, LogOut, User, Lock,
+  Shield, BadgeCheck, Sparkles, CheckCircle2, Settings as SettingsIcon,
 } from "lucide-react";
 
+// ── Schemas ──────────────────────────────────────────────────────────
 const profileFormSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
+  name:     z.string().min(2, "Name must be at least 2 characters"),
+  email:    z.string().email("Please enter a valid email address"),
   username: z.string().min(3, "Username must be at least 3 characters"),
 });
 
 const passwordFormSchema = z.object({
   currentPassword: z.string().min(6, "Password must be at least 6 characters"),
-  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+  newPassword:     z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
-}).refine((data) => data.newPassword === data.confirmPassword, {
+}).refine((d) => d.newPassword === d.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
 });
 
 const notificationFormSchema = z.object({
   emailNotifications: z.boolean().default(true),
-  reminderEmails: z.boolean().default(true),
-  weeklyDigest: z.boolean().default(true),
-  reminderFrequency: z.string().default("daily"),
+  reminderEmails:     z.boolean().default(true),
+  weeklyDigest:       z.boolean().default(true),
+  reminderFrequency:  z.string().default("daily"),
 });
 
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
-type PasswordFormValues = z.infer<typeof passwordFormSchema>;
+type ProfileFormValues      = z.infer<typeof profileFormSchema>;
+type PasswordFormValues     = z.infer<typeof passwordFormSchema>;
 type NotificationFormValues = z.infer<typeof notificationFormSchema>;
 type TabId = "profile" | "password" | "notifications" | "appearance" | "account";
 
-function TabButton({
-  active, onClick, icon, label,
-}: {
-  active: boolean; onClick: () => void; icon: React.ReactNode; label: string;
-}) {
+// ── Shared input style ────────────────────────────────────────────────
+const inputCls =
+  "h-11 rounded-xl border-slate-200 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 bg-slate-50/60";
+const labelCls = "text-[10px] font-bold text-slate-500 uppercase tracking-wider";
+
+// ── Card section header ───────────────────────────────────────────────
+function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
   return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 whitespace-nowrap ${
-        active
-          ? "bg-[#090514] text-white shadow-sm"
-          : "text-slate-500 hover:text-slate-700 hover:bg-slate-100"
-      }`}
-    >
-      <span className={active ? "text-purple-200" : "text-slate-400"}>{icon}</span>
-      {label}
-    </button>
+    <div className="flex items-center gap-3.5 px-6 py-5 border-b border-slate-100">
+      <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0 text-[#090514]">
+        {icon}
+      </div>
+      <div>
+        <h2 className="text-sm font-bold text-slate-800 leading-tight">{title}</h2>
+        <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
+      </div>
+    </div>
   );
 }
 
-const inputClass =
-  "h-10 rounded-xl border border-slate-200 bg-white text-slate-700 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-purple-900/20 focus-visible:border-purple-900 transition-all";
-
-const fieldLabelClass = "text-slate-700 text-xs font-semibold uppercase tracking-wide";
-
+// ─────────────────────────────────────────────────────────────────────
 export default function Settings() {
   const { user, logout } = useAuth();
   const { toast } = useToast();
-  const [language, setLanguage] = useState("en");
-  const [activeTab, setActiveTab] = useState<TabId>("profile");
+  const [language, setLanguage]     = useState("en");
+  const [activeTab, setActiveTab]   = useState<TabId>("profile");
 
   const isClinicalUser = user?.role === "admin" || user?.role === "therapist";
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      name: user?.name || "",
-      email: user?.email || "",
+      name:     user?.name     || "",
+      email:    user?.email    || "",
       username: user?.username || "",
     },
   });
@@ -100,12 +99,7 @@ export default function Settings() {
 
   const notificationForm = useForm<NotificationFormValues>({
     resolver: zodResolver(notificationFormSchema),
-    defaultValues: {
-      emailNotifications: true,
-      reminderEmails: true,
-      weeklyDigest: true,
-      reminderFrequency: "daily",
-    },
+    defaultValues: { emailNotifications: true, reminderEmails: true, weeklyDigest: true, reminderFrequency: "daily" },
   });
 
   const onProfileSubmit = (data: ProfileFormValues) => {
@@ -126,10 +120,7 @@ export default function Settings() {
 
   const handleLanguageChange = (value: string) => {
     setLanguage(value);
-    toast({
-      title: "Language Changed",
-      description: `Display language set to ${value === "en" ? "English" : "Arabic"}.`,
-    });
+    toast({ title: "Language Changed", description: `Display language set to ${value === "en" ? "English" : "Arabic"}.` });
   };
 
   const handleDeleteAccount = () => {
@@ -143,107 +134,148 @@ export default function Settings() {
     return (name || "U").slice(0, 2).toUpperCase();
   };
 
+  const roleLabel =
+    user?.role === "therapist" ? "Clinical Therapist" :
+    user?.role === "admin"     ? "Administrator" : "Client";
+
   const tabs: { id: TabId; icon: React.ReactNode; label: string }[] = [
-    { id: "profile",       icon: <User className="h-4 w-4" />,     label: "Profile"       },
-    { id: "password",      icon: <Lock className="h-4 w-4" />,     label: "Password"      },
-    { id: "notifications", icon: <Bell className="h-4 w-4" />,     label: "Notifications" },
-    { id: "appearance",    icon: <Globe className="h-4 w-4" />,    label: "Appearance"    },
-    { id: "account",       icon: <Shield className="h-4 w-4" />,   label: "Account"       },
+    { id: "profile",       icon: <User className="h-3.5 w-3.5" />,       label: "Profile"       },
+    { id: "password",      icon: <Lock className="h-3.5 w-3.5" />,       label: "Password"      },
+    { id: "notifications", icon: <Bell className="h-3.5 w-3.5" />,       label: "Notifications" },
+    { id: "appearance",    icon: <Globe className="h-3.5 w-3.5" />,      label: "Appearance"    },
+    { id: "account",       icon: <Shield className="h-3.5 w-3.5" />,     label: "Account"       },
   ];
 
   return (
     <AppLayout title="Settings">
-      <div className="min-h-full bg-slate-50">
+      <div className="min-h-screen bg-slate-50">
 
-        {/* ── Hero ── */}
-        <div className="bg-white border-b border-slate-100 px-6 py-8">
-          <div className="max-w-3xl mx-auto">
-            <div className="flex items-center gap-4">
-              <div className="p-2.5 bg-[#090514] rounded-xl shadow-lg shadow-purple-950/20">
-                <SettingsIcon className="h-6 w-6 text-white" />
-              </div>
+        {/* ── Hero banner ── */}
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden">
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="max-w-3xl mx-auto relative">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+              {/* Left: title */}
               <div>
-                <p className="text-xs font-bold text-purple-900 uppercase tracking-widest mb-0.5">
-                  {isClinicalUser ? "Clinical Account" : "My Account"}
-                </p>
-                <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Settings</h1>
-                <p className="text-sm text-slate-500 mt-0.5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="h-4 w-4 text-purple-400" />
+                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                    {isClinicalUser ? "Clinical Account" : "My Account"}
+                  </span>
+                </div>
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">Settings</h1>
+                <p className="text-purple-300/70 text-base max-w-md leading-relaxed">
                   Manage your account, security, and preferences
                 </p>
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* ── Tab Nav ── */}
-        <div className="sticky top-0 z-10 border-b border-slate-100 bg-white shadow-sm">
-          <div className="max-w-3xl mx-auto px-4">
-            <div className="flex items-center gap-1.5 py-2.5 overflow-x-auto no-scrollbar">
-              {tabs.map((tab) => (
-                <TabButton
-                  key={tab.id}
-                  active={activeTab === tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  icon={tab.icon}
-                  label={tab.label}
-                />
-              ))}
+              {/* Right: quick stats */}
+              <div className="flex items-center gap-6 shrink-0 flex-wrap">
+                {[
+                  { value: roleLabel,  label: "Role"   },
+                  { value: "Active",   label: "Status" },
+                ].map((s, i) => (
+                  <div key={i} className="text-center">
+                    <div className="text-lg font-bold text-white leading-tight">{s.value}</div>
+                    <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Account Status strip */}
+            <div className="mt-6 bg-white/5 rounded-xl border border-white/10 p-4">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">Account Status</span>
+                </div>
+                <span className="text-xs text-purple-400">Active &amp; Secure</span>
+              </div>
+              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-emerald-500 to-purple-400 rounded-full" style={{ width: "100%" }} />
+              </div>
+              <p className="text-[11px] text-purple-400/60 mt-1.5">
+                Your account is active and in good standing — keep your security settings up to date.
+              </p>
             </div>
           </div>
         </div>
 
         {/* ── Body ── */}
-        <div className="max-w-3xl mx-auto px-4 py-8 space-y-5">
+        <div className="max-w-3xl mx-auto pt-6 pb-10 space-y-5">
 
-          {/* ══ PROFILE ══ */}
-          {activeTab === "profile" && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabId)}>
 
-              {/* Profile header — flat, no overlap */}
-              <div className="flex items-center gap-4 px-6 py-5 border-b border-slate-100">
+            {/* Tab nav — pill style matching other pages */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-1.5">
+              <TabsList className="w-full h-auto bg-transparent p-0 gap-1 grid grid-cols-3 sm:flex">
+                {tabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className={cn(
+                      "sm:flex-1 min-w-0 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-all gap-1 sm:gap-2",
+                      "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                    )}
+                  >
+                    <span className="hidden sm:inline-flex">{tab.icon}</span>
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
+
+            {/* ── PROFILE ── */}
+            <TabsContent value="profile" className="mt-0">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+
+                {/* User card header */}
                 <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-xl text-white shadow-md shrink-0"
-                  style={{ background: "linear-gradient(135deg, #090514 0%, #1e0a36 100%)" }}
+                  className="relative px-6 py-5 overflow-hidden"
+                  style={{ background: "linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)" }}
                 >
-                  {getInitials(user?.name || "")}
+                  <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+                  <div className="relative flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xl text-white shrink-0 backdrop-blur-sm">
+                      {getInitials(user?.name || "")}
+                    </div>
+                    <div>
+                      <p className="text-base font-bold text-white leading-tight">{user?.name || "User"}</p>
+                      <span className={cn(
+                        "inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider mt-1.5",
+                        isClinicalUser ? "bg-purple-400/20 text-purple-200" : "bg-white/10 text-purple-300"
+                      )}>
+                        <BadgeCheck className="h-3 w-3" />
+                        {roleLabel}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-800 leading-tight">
-                    {user?.name || "User"}
-                  </h2>
-                  <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider mt-1.5 ${
-                    isClinicalUser
-                      ? "bg-[#090514]/10 text-[#090514]"
-                      : "bg-slate-100 text-slate-600"
-                  }`}>
-                    <BadgeCheck className="h-3 w-3" />
-                    {user?.role === "therapist" ? "Clinical Therapist" : user?.role === "admin" ? "Admin" : "Client"}
-                  </span>
-                </div>
-              </div>
 
-              <div className="px-6 pb-6">
-                <div className="pt-5">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
-                    Profile Information
-                  </p>
+                {/* Form body */}
+                <div className="px-6 py-6">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4">Profile Information</p>
                   <Form {...profileForm}>
                     <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField control={profileForm.control} name="name" render={({ field }) => (
                           <FormItem>
-                            <FormLabel className={fieldLabelClass}>Full Name</FormLabel>
+                            <FormLabel className={labelCls}>Full Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="Your full name" className={inputClass} {...field} />
+                              <Input placeholder="Your full name" className={inputCls} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                         <FormField control={profileForm.control} name="username" render={({ field }) => (
                           <FormItem>
-                            <FormLabel className={fieldLabelClass}>Username</FormLabel>
+                            <FormLabel className={labelCls}>Username</FormLabel>
                             <FormControl>
-                              <Input placeholder="Your username" className={inputClass} {...field} />
+                              <Input placeholder="Your username" className={inputCls} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -251,15 +283,15 @@ export default function Settings() {
                       </div>
                       <FormField control={profileForm.control} name="email" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className={fieldLabelClass}>Email Address</FormLabel>
+                          <FormLabel className={labelCls}>Email Address</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="Your email address" className={inputClass} {...field} />
+                            <Input type="email" placeholder="Your email address" className={inputCls} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
-                      <div className="pt-1">
-                        <Button type="submit" className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl px-6">
+                      <div className="pt-1 flex justify-end">
+                        <Button type="submit" className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-10 px-6">
                           Save Changes
                         </Button>
                       </div>
@@ -267,252 +299,265 @@ export default function Settings() {
                   </Form>
                 </div>
               </div>
-            </div>
-          )}
+            </TabsContent>
 
-          {/* ══ PASSWORD ══ */}
-          {activeTab === "password" && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2.5 rounded-xl bg-[#090514]/10 border border-[#090514]/10">
-                  <Lock className="h-5 w-5 text-[#090514]" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-800">Change Password</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Keep your account secure with a strong password</p>
-                </div>
-              </div>
-
-              <Form {...passwordForm}>
-                <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
-                  <FormField control={passwordForm.control} name="currentPassword" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={fieldLabelClass}>Current Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Enter your current password" className={inputClass} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField control={passwordForm.control} name="newPassword" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={fieldLabelClass}>New Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="New password" className={inputClass} {...field} />
-                        </FormControl>
-                        <FormDescription className="text-xs text-slate-400">Minimum 6 characters</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={passwordForm.control} name="confirmPassword" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={fieldLabelClass}>Confirm Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="Confirm new password" className={inputClass} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                  </div>
-
-                  <div className="pt-1">
-                    <Button type="submit" className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl px-6">
-                      Update Password
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </div>
-          )}
-
-          {/* ══ NOTIFICATIONS ══ */}
-          {activeTab === "notifications" && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2.5 rounded-xl bg-[#090514]/10 border border-[#090514]/10">
-                  <Bell className="h-5 w-5 text-[#090514]" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-800">Notification Preferences</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Control how and when you receive notifications</p>
-                </div>
-              </div>
-
-              <Form {...notificationForm}>
-                <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-3">
-                  {([
-                    { name: "emailNotifications" as const, label: "Email Notifications",  desc: "Receive notifications via email" },
-                    { name: "reminderEmails" as const,     label: "Reminder Emails",      desc: "Reminders to log emotions and complete exercises" },
-                    { name: "weeklyDigest" as const,       label: "Weekly Digest",        desc: "A weekly summary of your progress" },
-                  ]).map(({ name, label, desc }) => (
-                    <FormField key={name} control={notificationForm.control} name={name} render={({ field }) => (
-                      <FormItem className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:border-[#090514]/10 transition-colors">
-                        <div>
-                          <FormLabel className="text-sm font-semibold text-slate-700 cursor-pointer">{label}</FormLabel>
-                          <FormDescription className="text-xs text-slate-400 mt-0.5">{desc}</FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch checked={field.value as boolean} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )} />
-                  ))}
-
-                  <div className="pt-3">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Reminder Frequency</p>
-                    <FormField control={notificationForm.control} name="reminderFrequency" render={({ field }) => (
-                      <FormItem>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+            {/* ── PASSWORD ── */}
+            <TabsContent value="password" className="mt-0">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <SectionHeader
+                  icon={<Lock className="h-5 w-5" />}
+                  title="Change Password"
+                  subtitle="Keep your account secure with a strong password"
+                />
+                <div className="px-6 py-6">
+                  <Form {...passwordForm}>
+                    <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                      <FormField control={passwordForm.control} name="currentPassword" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className={labelCls}>Current Password</FormLabel>
                           <FormControl>
-                            <SelectTrigger className="h-10 rounded-xl border-slate-200 bg-white text-slate-700 focus:ring-2 focus:ring-purple-900/20 focus:border-purple-900">
-                              <SelectValue placeholder="Select frequency" />
-                            </SelectTrigger>
+                            <Input type="password" placeholder="Enter your current password" className={inputCls} {...field} />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="daily">Daily</SelectItem>
-                            <SelectItem value="every-other-day">Every Other Day</SelectItem>
-                            <SelectItem value="twice-weekly">Twice Weekly</SelectItem>
-                            <SelectItem value="weekly">Weekly</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription className="text-xs text-slate-400">
-                          How often you'll receive reminder emails
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                  </div>
-
-                  <div className="pt-1">
-                    <Button type="submit" className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl px-6">
-                      Save Preferences
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </div>
-          )}
-
-          {/* ══ APPEARANCE ══ */}
-          {activeTab === "appearance" && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2.5 rounded-xl bg-[#090514]/10 border border-[#090514]/10">
-                  <Globe className="h-5 w-5 text-[#090514]" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-800">Appearance</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Customize language and display settings</p>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField control={passwordForm.control} name="newPassword" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className={labelCls}>New Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="New password" className={inputCls} {...field} />
+                            </FormControl>
+                            <FormDescription className="text-xs text-slate-400">Minimum 6 characters</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={passwordForm.control} name="confirmPassword" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className={labelCls}>Confirm Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="Confirm new password" className={inputCls} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+                      <div className="pt-1 flex justify-end">
+                        <Button type="submit" className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-10 px-6">
+                          Update Password
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
                 </div>
               </div>
+            </TabsContent>
 
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Language</p>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-xl border border-slate-100 bg-slate-50 gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-slate-700">Application Language</p>
-                  <p className="text-xs text-slate-400 mt-0.5">Select your preferred display language</p>
+            {/* ── NOTIFICATIONS ── */}
+            <TabsContent value="notifications" className="mt-0">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <SectionHeader
+                  icon={<Bell className="h-5 w-5" />}
+                  title="Notification Preferences"
+                  subtitle="Control how and when you receive notifications"
+                />
+                <div className="px-6 py-6">
+                  <Form {...notificationForm}>
+                    <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-3">
+                      {([
+                        { name: "emailNotifications" as const, label: "Email Notifications",  desc: "Receive notifications via email" },
+                        { name: "reminderEmails"      as const, label: "Reminder Emails",      desc: "Reminders to log emotions and complete exercises" },
+                        { name: "weeklyDigest"        as const, label: "Weekly Digest",        desc: "A weekly summary of your progress" },
+                      ]).map(({ name, label, desc }) => (
+                        <FormField key={name} control={notificationForm.control} name={name} render={({ field }) => (
+                          <FormItem className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-white hover:border-purple-100 transition-colors">
+                            <div>
+                              <FormLabel className="text-sm font-semibold text-slate-700 cursor-pointer">{label}</FormLabel>
+                              <FormDescription className="text-xs text-slate-400 mt-0.5">{desc}</FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value as boolean}
+                                onCheckedChange={field.onChange}
+                                className="data-[state=checked]:bg-purple-600 shrink-0"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )} />
+                      ))}
+
+                      <div className="pt-2">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Reminder Frequency</p>
+                        <FormField control={notificationForm.control} name="reminderFrequency" render={({ field }) => (
+                          <FormItem>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/60 text-slate-700 focus:ring-1 focus:ring-purple-400/30 focus:border-purple-400">
+                                  <SelectValue placeholder="Select frequency" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="daily">Daily</SelectItem>
+                                <SelectItem value="every-other-day">Every Other Day</SelectItem>
+                                <SelectItem value="twice-weekly">Twice Weekly</SelectItem>
+                                <SelectItem value="weekly">Weekly</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormDescription className="text-xs text-slate-400">
+                              How often you'll receive reminder emails
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+
+                      <div className="pt-1 flex justify-end">
+                        <Button type="submit" className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-10 px-6">
+                          Save Preferences
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
                 </div>
-                <Select value={language} onValueChange={handleLanguageChange}>
-                  <SelectTrigger className="w-full sm:w-[180px] h-10 rounded-xl border-slate-200 bg-white text-slate-700 focus:ring-2 focus:ring-purple-900/20 focus:border-purple-900">
-                    <Globe className="h-4 w-4 mr-2 text-slate-400" />
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="ar">Arabic (العربية)</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
-            </div>
-          )}
+            </TabsContent>
 
-          {/* ══ ACCOUNT ══ */}
-          {activeTab === "account" && (
-            <div className="space-y-5">
+            {/* ── APPEARANCE ── */}
+            <TabsContent value="appearance" className="mt-0">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <SectionHeader
+                  icon={<Globe className="h-5 w-5" />}
+                  title="Appearance"
+                  subtitle="Customize language and display settings"
+                />
+                <div className="px-6 py-6">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Language</p>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/60 gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700">Application Language</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Select your preferred display language</p>
+                    </div>
+                    <Select value={language} onValueChange={handleLanguageChange}>
+                      <SelectTrigger className="w-full sm:w-[180px] h-11 rounded-xl border-slate-200 bg-white text-slate-700 focus:ring-1 focus:ring-purple-400/30 focus:border-purple-400">
+                        <Globe className="h-4 w-4 mr-2 text-purple-400" />
+                        <SelectValue placeholder="Select language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="ar">Arabic (العربية)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* ── ACCOUNT ── */}
+            <TabsContent value="account" className="mt-0 space-y-4">
+
               {/* Account info */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2.5 rounded-xl bg-[#090514]/10 border border-[#090514]/10">
-                    <Shield className="h-5 w-5 text-[#090514]" />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-bold text-slate-800">Account Information</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">Details about your account and membership</p>
-                  </div>
-                </div>
-                <div className="space-y-2">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <SectionHeader
+                  icon={<Shield className="h-5 w-5" />}
+                  title="Account Information"
+                  subtitle="Details about your account and membership"
+                />
+                <div className="px-6 py-5 space-y-2">
                   {[
-                    {
-                      label: "Account Type",
-                      value: user?.role === "therapist" ? "Clinical Therapist" : user?.role === "admin" ? "Administrator" : "Client",
-                    },
-                    { label: "Member Since", value: "January 15, 2023" },
+                    { label: "Account Type",   value: roleLabel },
+                    { label: "Member Since",   value: "January 15, 2023" },
                     { label: "Account Status", value: "Active", green: true },
                   ].map(({ label, value, green }) => (
-                    <div key={label} className="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <div key={label} className="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50/60 border border-slate-100">
                       <span className="text-sm text-slate-500">{label}</span>
-                      <span className={`text-sm font-semibold ${green ? "text-emerald-600" : "text-slate-700"}`}>
-                        {value}
-                      </span>
+                      <span className={cn("text-sm font-semibold", green ? "text-emerald-600" : "text-slate-700")}>{value}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Sign out */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Session</p>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start h-11 rounded-xl border-slate-200 text-slate-600 hover:text-slate-800 hover:bg-slate-50 hover:border-slate-300 font-medium"
-                  onClick={logout}
-                >
-                  <LogOut className="h-4 w-4 mr-3 text-slate-400" />
-                  Sign Out
-                </Button>
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <SectionHeader
+                  icon={<LogOut className="h-5 w-5" />}
+                  title="Session"
+                  subtitle="Manage your current login session"
+                />
+                <div className="px-6 py-5">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start h-11 rounded-xl border-slate-200 text-slate-600 hover:text-slate-800 hover:bg-slate-50 hover:border-slate-300 font-medium"
+                    onClick={logout}
+                  >
+                    <LogOut className="h-4 w-4 mr-3 text-slate-400" />
+                    Sign Out
+                  </Button>
+                </div>
               </div>
 
               {/* Danger zone */}
-              <div className="bg-white rounded-2xl border border-red-100 shadow-sm p-6">
-                <p className="text-xs font-bold text-red-400 uppercase tracking-widest mb-1">Danger Zone</p>
-                <p className="text-xs text-slate-400 mb-4">Irreversible actions — proceed with caution</p>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start h-11 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-medium"
-                    >
-                      <ShieldAlert className="h-4 w-4 mr-3" />
-                      Delete Account
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="rounded-2xl bg-white border border-slate-100 shadow-xl">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="text-slate-800">Are you absolutely sure?</AlertDialogTitle>
-                      <AlertDialogDescription className="text-slate-500">
-                        This action cannot be undone. This will permanently delete your account
-                        and remove all your data from our servers.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel className="rounded-xl border-slate-200 text-slate-600">
-                        Cancel
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDeleteAccount}
-                        className="rounded-xl bg-red-600 hover:bg-red-700 text-white"
+              <div className="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden">
+                <div className="flex items-center gap-3.5 px-6 py-5 border-b border-red-50">
+                  <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0 text-red-500">
+                    <ShieldAlert className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-red-600 leading-tight">Danger Zone</h2>
+                    <p className="text-xs text-slate-400 mt-0.5">Irreversible actions — proceed with caution</p>
+                  </div>
+                </div>
+                <div className="px-6 py-5">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start h-11 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-medium"
                       >
+                        <ShieldAlert className="h-4 w-4 mr-3" />
                         Delete Account
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="rounded-2xl border-0 overflow-hidden p-0">
+                      <div
+                        className="relative px-7 py-5 overflow-hidden"
+                        style={{ background: "linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)" }}
+                      >
+                        <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-red-600/20 blur-3xl pointer-events-none" />
+                        <div className="relative flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-red-500/20 border border-red-400/30 flex items-center justify-center shrink-0">
+                            <ShieldAlert className="h-4.5 w-4.5 text-red-300" />
+                          </div>
+                          <div>
+                            <AlertDialogTitle className="text-white font-bold text-base leading-tight">
+                              Are you absolutely sure?
+                            </AlertDialogTitle>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="px-7 py-5 bg-white">
+                        <AlertDialogDescription className="text-slate-500 text-sm leading-relaxed">
+                          This action cannot be undone. This will permanently delete your account and remove all your data from our servers.
+                        </AlertDialogDescription>
+                      </div>
+                      <AlertDialogFooter className="px-7 py-4 border-t border-slate-100 bg-white flex gap-2.5 justify-end">
+                        <AlertDialogCancel className="rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 h-9 px-5">
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteAccount}
+                          className="rounded-xl bg-red-600 hover:bg-red-700 text-white border-0 shadow-md h-9 px-5"
+                        >
+                          Delete Account
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
-            </div>
-          )}
 
+            </TabsContent>
+
+          </Tabs>
         </div>
       </div>
     </AppLayout>
