@@ -29,14 +29,14 @@ import {
 
 // ── Schemas ──────────────────────────────────────────────────────────
 const profileFormSchema = z.object({
-  name:     z.string().min(2, "Name must be at least 2 characters"),
-  email:    z.string().email("Please enter a valid email address"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
   username: z.string().min(3, "Username must be at least 3 characters"),
 });
 
 const passwordFormSchema = z.object({
   currentPassword: z.string().min(6, "Password must be at least 6 characters"),
-  newPassword:     z.string().min(6, "Password must be at least 6 characters"),
+  newPassword: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
 }).refine((d) => d.newPassword === d.confirmPassword, {
   message: "Passwords do not match",
@@ -45,13 +45,13 @@ const passwordFormSchema = z.object({
 
 const notificationFormSchema = z.object({
   emailNotifications: z.boolean().default(true),
-  reminderEmails:     z.boolean().default(true),
-  weeklyDigest:       z.boolean().default(true),
-  reminderFrequency:  z.string().default("daily"),
+  reminderEmails: z.boolean().default(true),
+  weeklyDigest: z.boolean().default(true),
+  reminderFrequency: z.string().default("daily"),
 });
 
-type ProfileFormValues      = z.infer<typeof profileFormSchema>;
-type PasswordFormValues     = z.infer<typeof passwordFormSchema>;
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
+type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 type NotificationFormValues = z.infer<typeof notificationFormSchema>;
 type TabId = "profile" | "password" | "notifications" | "appearance" | "account";
 
@@ -80,16 +80,16 @@ export default function Settings() {
   const { user, logout } = useAuth();
   const { t, currentLanguage, setLanguage: setAppLanguage } = useLocalization();
   const { toast } = useToast();
-  const [language, setLanguage]     = useState(currentLanguage || "en");
-  const [activeTab, setActiveTab]   = useState<TabId>("profile");
+  const [language, setLanguage] = useState(currentLanguage || "en");
+  const [activeTab, setActiveTab] = useState<TabId>("profile");
 
   const isClinicalUser = user?.role === "admin" || user?.role === "therapist";
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      name:     user?.name     || "",
-      email:    user?.email    || "",
+      name: user?.name || "",
+      email: user?.email || "",
       username: user?.username || "",
     },
   });
@@ -121,11 +121,11 @@ export default function Settings() {
   };
 
   const handleLanguageChange = (value: string) => {
-    setLanguage(value);
-    setAppLanguage(value as "en" | "ar");
-    toast({ 
-      title: t("Language Changed"), 
-      description: value === "en" ? t("Display language set to English.") : t("Display language set to Arabic.") 
+    // setLanguage(value);
+    // setAppLanguage(value as "en" | "ar");
+    toast({
+      title: t("Language Changed"),
+      description: value === "en" ? t("Display language set to English.") : t("Display language set to Arabic.")
     });
   };
 
@@ -142,14 +142,14 @@ export default function Settings() {
 
   const roleLabel =
     user?.role === "therapist" ? "Clinical Therapist" :
-    user?.role === "admin"     ? "Administrator" : "Client";
+      user?.role === "admin" ? "Administrator" : "Client";
 
   const tabs: { id: TabId; icon: React.ReactNode; label: string }[] = [
-    { id: "profile",       icon: <User className="h-3.5 w-3.5" />,       label: t("Profile")       },
-    { id: "password",      icon: <Lock className="h-3.5 w-3.5" />,       label: t("Password")      },
-    { id: "notifications", icon: <Bell className="h-3.5 w-3.5" />,       label: t("Notifications") },
-    { id: "appearance",    icon: <Globe className="h-3.5 w-3.5" />,      label: t("Appearance")    },
-    { id: "account",       icon: <Shield className="h-3.5 w-3.5" />,     label: t("Account")       },
+    { id: "profile", icon: <User className="h-3.5 w-3.5" />, label: t("Profile") },
+    { id: "password", icon: <Lock className="h-3.5 w-3.5" />, label: t("Password") },
+    { id: "notifications", icon: <Bell className="h-3.5 w-3.5" />, label: t("Notifications") },
+    { id: "appearance", icon: <Globe className="h-3.5 w-3.5" />, label: t("Appearance") },
+    { id: "account", icon: <Shield className="h-3.5 w-3.5" />, label: t("Account") },
   ];
 
   return (
@@ -180,8 +180,8 @@ export default function Settings() {
               {/* Right: quick stats */}
               <div className="flex items-center gap-6 shrink-0 flex-wrap">
                 {[
-                  { value: t(roleLabel),  label: t("Role")   },
-                  { value: t("Active"),   label: t("Status") },
+                  { value: t(roleLabel), label: t("Role") },
+                  { value: t("Active"), label: t("Status") },
                 ].map((s, i) => (
                   <div key={i} className="text-center">
                     <div className="text-lg font-bold text-white leading-tight">{s.value}</div>
@@ -371,9 +371,9 @@ export default function Settings() {
                   <Form {...notificationForm}>
                     <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-3">
                       {([
-                        { name: "emailNotifications" as const, label: t("Email Notifications"),  desc: t("Receive notifications via email") },
-                        { name: "reminderEmails"      as const, label: t("Reminder Emails"),      desc: t("Reminders to log emotions and complete exercises") },
-                        { name: "weeklyDigest"        as const, label: t("Weekly Digest"),        desc: t("A weekly summary of your progress") },
+                        { name: "emailNotifications" as const, label: t("Email Notifications"), desc: t("Receive notifications via email") },
+                        { name: "reminderEmails" as const, label: t("Reminder Emails"), desc: t("Reminders to log emotions and complete exercises") },
+                        { name: "weeklyDigest" as const, label: t("Weekly Digest"), desc: t("A weekly summary of your progress") },
                       ]).map(({ name, label, desc }) => (
                         <FormField key={name} control={notificationForm.control} name={name} render={({ field }) => (
                           <FormItem className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-white hover:border-purple-100 transition-colors">
@@ -470,8 +470,8 @@ export default function Settings() {
                 />
                 <div className="px-6 py-5 space-y-2">
                   {[
-                    { label: t("Account Type"),   value: t(roleLabel) },
-                    { label: t("Member Since"),   value: t("January 15, 2023") },
+                    { label: t("Account Type"), value: t(roleLabel) },
+                    { label: t("Member Since"), value: t("January 15, 2023") },
                     { label: t("Account Status"), value: t("Active"), green: true },
                   ].map(({ label, value, green }) => (
                     <div key={label} className="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50/60 border border-slate-100">

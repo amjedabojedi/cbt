@@ -17,6 +17,65 @@ declare global {
 // English and Arabic translation mapping for the SideNavBar and layout
 export const translations: Record<string, Record<string, string>> = {
   en: {
+    "Syncing practice data…": "Syncing practice data…",
+    "Access individual client records, launch clinical modules, and manage your practice connections.": "Access individual client records, launch clinical modules, and manage your practice connections.",
+    "Clients": "Clients",
+    "Invite Client": "Invite Client",
+    "Invite a Client": "Invite a Client",
+    "Send a secure invitation to connect a client's account to your practice.": "Send a secure invitation to connect a client's account to your practice.",
+    "Jane Doe": "Jane Doe",
+    "client@example.com": "client@example.com",
+    "Sending…": "Sending…",
+    "Send Invitation": "Send Invitation",
+    "Pending Connections": "Pending Connections",
+    "Search clients…": "Search clients…",
+    "Registered": "Registered",
+    "Active Rate": "Active Rate",
+    "Select a client to open their workspace.": "Select a client to open their workspace.",
+    "No clients found": "No clients found",
+    "Try a different search or send an invite.": "Try a different search or send an invite.",
+    "Back to list": "Back to list",
+    "Since ": "Since ",
+    "ID #": "ID #",
+    "Message": "Message",
+    "Remove client": "Remove client",
+    "Clinical Modules": "Clinical Modules",
+    "Select to launch": "Select to launch",
+    "Self-reflections & session notes": "Self-reflections & session notes",
+    "Mood fluctuations & trigger events": "Mood fluctuations & trigger events",
+    "SMART objectives & milestones": "SMART objectives & milestones",
+    "View Profile": "View Profile",
+    "Open Analytics ": "Open Analytics ",
+    "Select a client from the directory on the left to open their workspace and launch clinical modules.": "Select a client from the directory on the left to open their workspace and launch clinical modules.",
+    "Load Client File": "Load Client File",
+    "Select a profile to access their records and metadata.": "Select a profile to access their records and metadata.",
+    "Launch Modules": "Launch Modules",
+    "Analyze cognitive records, journals, or progress reports.": "Analyze cognitive records, journals, or progress reports.",
+    "Invitations dispatched to clients awaiting registration.": "Invitations dispatched to clients awaiting registration.",
+    "Send Invite": "Send Invite",
+    "Recipient": "Recipient",
+    "Email": "Email",
+    "Sent On": "Sent On",
+    "Action": "Action",
+    "Anonymous": "Anonymous",
+    "Resend": "Resend",
+    "No pending invitations": "No pending invitations",
+    "All connection requests have been completed. Invite new clients to expand your practice.": "All connection requests have been completed. Invite new clients to expand your practice.",
+    "Send Secure Invite": "Send Secure Invite",
+    "Invitation sent!": "Invitation sent!",
+    "The client invitation has been sent successfully.": "The client invitation has been sent successfully.",
+    "Failed to send invitation.": "Failed to send invitation.",
+    "Feature Coming Soon": "Feature Coming Soon",
+    "Direct messaging will be available in a future update.": "Direct messaging will be available in a future update.",
+    "Client Removed": "Client Removed",
+    "The client has been successfully removed from your practice.": "The client has been successfully removed from your practice.",
+    "Failed to remove client": "Failed to remove client",
+    "Are you sure you want to remove {name} from your practice? This action cannot be undone.": "Are you sure you want to remove {name} from your practice? This action cannot be undone.",
+    "Invitation Resent!": "Invitation Resent!",
+    "The invitation has been sent again successfully.": "The invitation has been sent again successfully.",
+    "Invitation Removed": "Invitation Removed",
+    "This invitation was already processed or removed.": "This invitation was already processed or removed.",
+    "Failed to resend invitation.": "Failed to resend invitation.",
     // Admin Sidebar
     "Admin Dashboard": "Admin Dashboard",
     "User Management": "User Management",
@@ -1336,6 +1395,99 @@ export const translations: Record<string, Record<string, string>> = {
     "Display language set to Arabic.": "Display language set to Arabic."
   },
   ar: {
+    "Syncing practice data…": "جاري مزامنة بيانات العيادة...",
+    "Access individual client records, launch clinical modules, and manage your practice connections.": "الوصول إلى سجلات العملاء الفردية، تشغيل الوحدات السريرية، وإدارة اتصالات عيادتك.",
+    "Clients": "العملاء",
+    "Invite Client": "دعوة عميل",
+    "Invite a Client": "دعوة عميل",
+    "Send a secure invitation to connect a client's account to your practice.": "أرسل دعوة آمنة لربط حساب العميل بعيادتك.",
+    "Jane Doe": "فلان الفلاني",
+    "client@example.com": "client@example.com",
+    "Sending…": "جاري الإرسال...",
+    "Send Invitation": "إرسال دعوة",
+    "Pending Connections": "الاتصالات المعلقة",
+    "Search clients…": "البحث عن العملاء...",
+    "Registered": "مسجل",
+    "Active Rate": "معدل النشاط",
+    "Select a client to open their workspace.": "حدد عميلاً لفتح مساحة العمل الخاصة به.",
+    "No clients found": "لم يتم العثور على عملاء",
+    "Try a different search or send an invite.": "جرب بحثًا مختلفًا أو أرسل دعوة.",
+    "Back to list": "العودة للقائمة",
+    "Since ": "منذ ",
+    "ID #": "رقم #",
+    "Message": "رسالة",
+    "Remove client": "إزالة العميل",
+    "Clinical Modules": "الوحدات السريرية",
+    "Select to launch": "اختر للتشغيل",
+    "Self-reflections & session notes": "تأملات ذاتية وملاحظات الجلسة",
+    "Mood fluctuations & trigger events": "تقلبات المزاج وأحداث الإثارة",
+    "SMART objectives & milestones": "أهداف ذكية ومعالم",
+    "View Profile": "عرض الملف الشخصي",
+    "Open Analytics ": "فتح التحليلات ",
+    "Select a client from the directory on the left to open their workspace and launch clinical modules.": "حدد عميلاً من الدليل على اليسار لفتح مساحة العمل الخاصة به وتشغيل الوحدات السريرية.",
+    "Load Client File": "تحميل ملف العميل",
+    "Select a profile to access their records and metadata.": "حدد ملفًا شخصيًا للوصول إلى سجلاته والبيانات الوصفية.",
+    "Launch Modules": "تشغيل الوحدات",
+    "Analyze cognitive records, journals, or progress reports.": "تحليل السجلات المعرفية، المذكرات، أو تقارير التقدم.",
+    "Invitations dispatched to clients awaiting registration.": "الدعوات المرسلة إلى العملاء بانتظار التسجيل.",
+    "Send Invite": "إرسال دعوة",
+    "Recipient": "المستلم",
+    "Email": "البريد الإلكتروني",
+    "Sent On": "أرسلت في",
+    "Action": "إجراء",
+    "Anonymous": "مجهول",
+    "Resend": "إعادة إرسال",
+    "No pending invitations": "لا توجد دعوات معلقة",
+    "All connection requests have been completed. Invite new clients to expand your practice.": "اكتملت جميع طلبات الاتصال. ادعُ عملاء جدد لتوسيع عيادتك.",
+    "Send Secure Invite": "إرسال دعوة آمنة",
+    "Invitation sent!": "تم إرسال الدعوة!",
+    "The client invitation has been sent successfully.": "تم إرسال دعوة العميل بنجاح.",
+    "Failed to send invitation.": "فشل إرسال الدعوة.",
+    "Feature Coming Soon": "ميزة قادمة قريبًا",
+    "Direct messaging will be available in a future update.": "ستكون المراسلة المباشرة متاحة في تحديث مستقبلي.",
+    "Client Removed": "تم إزالة العميل",
+    "The client has been successfully removed from your practice.": "تم إزالة العميل بنجاح من عيادتك.",
+    "Failed to remove client": "فشل في إزالة العميل",
+    "Are you sure you want to remove {name} from your practice? This action cannot be undone.": "هل أنت متأكد من أنك تريد إزالة {name} من عيادتك؟ هذا الإجراء لا يمكن التراجع عنه.",
+    "Invitation Resent!": "تم إعادة إرسال الدعوة!",
+    "The invitation has been sent again successfully.": "تم إرسال الدعوة مرة أخرى بنجاح.",
+    "Invitation Removed": "تم إزالة الدعوة",
+    "This invitation was already processed or removed.": "هذه الدعوة تمت معالجتها بالفعل أو إزالتها.",
+    "Failed to resend invitation.": "فشل إعادة إرسال الدعوة.",
+    "You are viewing {name}'s data in read-only mode": "أنت تعرض بيانات {name} في وضع القراءة فقط",
+    "Loading client profile…": "جاري تحميل ملف العميل...",
+    "Client Not Found": "العميل غير موجود",
+    "This profile doesn't exist or you don't have permission to view it.": "هذا الملف الشخصي غير موجود أو ليس لديك إذن لعرضه.",
+    "— Profile": "— الملف الشخصي",
+    "Journals": "المذكرات",
+    "Overview": "نظرة عامة",
+    "Progress": "التقدم",
+    "Recent Activity": "النشاط الأخير",
+    "— click to open in client context": "— انقر للفتح في سياق العميل",
+    "Emotion fluctuations & trigger events": "تقلبات المشاعر وأحداث الإثارة",
+    "Cognitive distortions & reframing": "التشوهات المعرفية وإعادة الصياغة",
+    "Goals & Objectives": "الأهداف والغايات",
+    "Back to Directory": "العودة للدليل",
+    "Recent Emotions": "المشاعر الأخيرة",
+    "View all ": "عرض الكل ",
+    "Emotion recorded": "تم تسجيل الشعور",
+    "Recent Journal": "المذكرات الأخيرة",
+    "Journal entry": "إدخال المذكرات",
+    "No journal entries yet": "لا توجد إدخالات مذكرات بعد",
+    "Activity Summary": "ملخص النشاط",
+    "Total Activities": "إجمالي الأنشطة",
+    "Across all modules": "عبر جميع الوحدات",
+    "Goals Completed": "الأهداف المكتملة",
+    " success rate": " معدل النجاح",
+    "No goals yet": "لا توجد أهداف بعد",
+    "Days as Client": "أيام كعميل",
+    "Since registration": "منذ التسجيل",
+    "Open module ": "فتح الوحدة ",
+    "Goal": "هدف",
+    "Latest Entries": "أحدث الإدخالات",
+    "No activity recorded yet": "لم يتم تسجيل أي نشاط بعد",
+    "Thought": "فكرة",
+    "Thought record": "سجل فكرة",
     // Admin Sidebar
     "Admin Dashboard": "لوحة تحكم المسؤول",
     "User Management": "إدارة المستخدمين",
@@ -2652,7 +2804,14 @@ export const translations: Record<string, Record<string, string>> = {
     "January 15, 2023": "١٥ يناير ٢٠٢٣",
     "Language Changed": "تم تغيير اللغة",
     "Display language set to English.": "تم تعيين لغة العرض إلى الإنجليزية.",
-    "Display language set to Arabic.": "تم تعيين لغة العرض إلى العربية."
+    "Display language set to Arabic.": "تم تعيين لغة العرض إلى العربية.",
+  
+    "cognitive_restructuring": "إعادة الهيكلة المعرفية",
+    "This resource provides guided practice for cognitive restructuring.": "يوفر هذا المورد ممارسة موجهة لإعادة الهيكلة المعرفية.",
+    "Guided practice for reframing automatic negative thoughts": "ممارسة موجهة لإعادة صياغة الأفكار السلبية التلقائية",
+    "A detailed guide to understanding your emotions": "دليل مفصل لفهم عواطفك",
+    "A clinical approach to changing thoughts": "نهج سريري لتغيير الأفكار",
+    "Provides structured exercises for therapists to use with clients.": "يوفر تمارين منظمة للمعالجين لاستخدامها مع العملاء.",
   }
 };
 
@@ -2798,6 +2957,7 @@ const dynamicTranslationCache = new Map<string, string>();
 interface DynamicTranslatorProps {
   text: string | null | undefined;
   className?: string;
+  isHtml?: boolean;
 }
 
 /**
@@ -2805,7 +2965,7 @@ interface DynamicTranslatorProps {
  * user/database text into Arabic using OpenAI. Uses strict memory caching to eliminate
  * redundant API calls and renders an elegant, pulse-animation shimmer while loading.
  */
-export const DynamicTranslator: React.FC<DynamicTranslatorProps> = ({ text, className }) => {
+export const DynamicTranslator: React.FC<DynamicTranslatorProps> = ({ text, className, isHtml = false }) => {
   const { currentLanguage } = useLocalization();
   const [translatedText, setTranslatedText] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -2878,6 +3038,15 @@ export const DynamicTranslator: React.FC<DynamicTranslatorProps> = ({ text, clas
   if (isLoading) {
     return (
       <span className={`inline-block animate-pulse bg-slate-200 dark:bg-slate-800 rounded select-none min-w-[70px] h-[1.1em] align-middle opacity-60 ${className || ""}`} />
+    );
+  }
+
+  if (isHtml) {
+    return (
+      <div 
+        className={className}
+        dangerouslySetInnerHTML={{ __html: translatedText }}
+      />
     );
   }
 

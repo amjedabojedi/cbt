@@ -118,9 +118,10 @@ export default function ResourceViewer({
                 {t("Content")}
               </span>
             </div>
-            <div
+            <DynamicTranslator
+              text={DOMPurify.sanitize(resource.content)}
+              isHtml={true}
               className="prose prose-sm max-w-none text-slate-700 bg-slate-50 rounded-xl border border-slate-100 p-4 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(resource.content) }}
             />
           </div>
 

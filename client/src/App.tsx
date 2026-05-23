@@ -116,7 +116,9 @@ function Router() {
           <ProtectedRoute path="/dashboard" component={RoleDashboard} />
           <ProtectedRoute path="/emotions" component={EmotionTracking} />
           <ProtectedRoute path="/thoughts" component={ThoughtRecords} />
+          <ProtectedRoute path="/thought-records" component={ThoughtRecords} />
           <ProtectedRoute path="/thoughts/new" component={ThoughtNew} />
+          <ProtectedRoute path="/thought-records/new" component={ThoughtNew} />
           <ProtectedRoute path="/reflection" component={Reflection} />
           <ProtectedRoute path="/goals" component={GoalSetting} />
           <ProtectedRoute path="/library" component={ResourceLibrary} />

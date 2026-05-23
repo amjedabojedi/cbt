@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuth } from "@/lib/auth";
 import { useClientContext } from "@/context/ClientContext";
+import { useLocalization } from "@/lib/localize";
 import { Button } from "@/components/ui/button";
 import {
   User, Heart, Brain, BookOpen, Target, BarChart3,
@@ -52,6 +53,7 @@ function ModuleCard({
   icon: React.ReactNode; code: string; title: string;
   description: string; count: number; unit: string; onClick: () => void;
 }) {
+  const { tNum } = useLocalization();
   return (
     <button
       onClick={onClick}
@@ -72,7 +74,7 @@ function ModuleCard({
       </div>
       <div className="shrink-0 flex items-center gap-2">
         <div className="text-right">
-          <p className="text-base font-bold text-[#090514]">{count}</p>
+          <p className="text-base font-bold text-[#090514]">{tNum(count)}</p>
           <p className="text-[10px] text-slate-400">{unit}</p>
         </div>
         <ChevronRight className="h-4 w-4 text-slate-300 group-hover/card:text-purple-500 transition-colors" />
@@ -88,6 +90,7 @@ function StatCard({
   icon: React.ReactNode; value: number | string; label: string;
   color: "blue" | "purple" | "amber" | "emerald" | "indigo";
 }) {
+  const { tNum } = useLocalization();
   const colorMap = {
     blue:    "bg-blue-50   text-blue-600   border-blue-100",
     purple:  "bg-purple-50 text-purple-600 border-purple-100",
@@ -99,7 +102,7 @@ function StatCard({
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
       <div className={`p-2.5 rounded-xl border ${colorMap[color]} shrink-0`}>{icon}</div>
       <div>
-        <p className="text-xl font-bold text-[#090514] leading-tight">{value}</p>
+        <p className="text-xl font-bold text-[#090514] leading-tight">{tNum(value)}</p>
         <p className="text-xs text-slate-500 font-medium mt-0.5">{label}</p>
       </div>
     </div>
@@ -121,6 +124,7 @@ function RecentRow({ title, date, sub }: { title: string; date: string; sub?: st
 
 // ═════════════════════════════════════════════════════════════════════════════
 export default function ClientProfile() {
+  const { t, tNum } = useLocalization();
   const { clientId } = useParams();
   const [, navigate] = useLocation();
   const { user } = useAuth();
@@ -171,7 +175,7 @@ export default function ClientProfile() {
         <div className="min-h-full bg-slate-50 flex items-center justify-center" style={{ minHeight: "50vh" }}>
           <div className="flex flex-col items-center gap-4">
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#090514]" />
-            <p className="text-slate-500 text-sm font-medium">Loading client profile…</p>
+            <p className="text-slate-500 text-sm font-medium">{t("Loading client profile…")}</p>
           </div>
         </div>
       </AppLayout>
@@ -187,13 +191,13 @@ export default function ClientProfile() {
             <div className="p-4 bg-purple-50 rounded-2xl inline-flex mb-5 border border-purple-100">
               <User className="h-8 w-8 text-purple-900" />
             </div>
-            <h3 className="text-lg font-bold text-slate-700 mb-2">Client Not Found</h3>
+            <h3 className="text-lg font-bold text-slate-700 mb-2">{t("Client Not Found")}</h3>
             <p className="text-sm text-slate-400 mb-6">
-              This profile doesn't exist or you don't have permission to view it.
+              {t("This profile doesn't exist or you don't have permission to view it.")}
             </p>
             <Button onClick={() => navigate("/clients")}
               className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl px-6">
-              <ArrowLeft className="h-4 w-4 mr-2" /> Back to Clients
+              <ArrowLeft className="h-4 w-4 mr-2" /> {t("Back to Clients")}
             </Button>
           </div>
         </div>
@@ -203,7 +207,7 @@ export default function ClientProfile() {
 
   // ── Full page ──
   return (
-    <AppLayout title={`${client.name || client.username} — Profile`}>
+    <AppLayout title={`${client.name || client.username} ${t("— Profile")}`}>
       <div className="min-h-full bg-slate-50">
 
         {/* ── Hero header ── */}
@@ -215,7 +219,8 @@ export default function ClientProfile() {
               className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 mb-6 transition-colors group"
             >
               <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
-              Back to Clients
+              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
+              {t("Back to Clients")}
             </button>
 
             <div className="flex flex-col md:flex-row md:items-end gap-6">
@@ -254,12 +259,12 @@ export default function ClientProfile() {
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5" />
-                      Since {client.createdAt
+                      {t("Since ")} {client.createdAt
                         ? new Date(client.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
                         : "—"}
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <Shield className="h-3.5 w-3.5" /> ID #{client.id}
+                      <Shield className="h-3.5 w-3.5" /> {t("ID #")}{client.id}
                     </span>
                   </div>
                 </div>
@@ -268,13 +273,13 @@ export default function ClientProfile() {
               {/* Summary stats (top-right) */}
               <div className="flex items-center gap-6 md:ml-auto flex-wrap">
                 {[
-                  { val: emotions.length,  label: "Emotions"  },
-                  { val: thoughts.length,  label: "Thoughts"  },
-                  { val: journals.length,  label: "Journals"  },
-                  { val: goals.length,     label: "Goals"     },
+                  { val: emotions.length,  label: t("Emotions")  },
+                  { val: thoughts.length,  label: t("Thoughts")  },
+                  { val: journals.length,  label: t("Journals")  },
+                  { val: goals.length,     label: t("Goals")     },
                 ].map((s, i) => (
                   <div key={i} className="text-center">
-                    <p className="text-2xl font-bold text-[#090514]">{s.val}</p>
+                    <p className="text-2xl font-bold text-[#090514]">{tNum(s.val)}</p>
                     <p className="text-xs text-slate-400 font-medium mt-0.5">{s.label}</p>
                   </div>
                 ))}
@@ -287,9 +292,9 @@ export default function ClientProfile() {
         <div className="sticky top-0 z-10 bg-white border-b border-slate-100 shadow-sm">
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex items-center gap-1.5 py-2.5 overflow-x-auto no-scrollbar">
-              <TabBtn active={activeTab === "overview"}  onClick={() => setActiveTab("overview")}  icon={<User className="h-4 w-4" />}       label="Overview" />
-              <TabBtn active={activeTab === "progress"}  onClick={() => setActiveTab("progress")}  icon={<TrendingUp className="h-4 w-4" />}  label="Progress" />
-              <TabBtn active={activeTab === "activity"}  onClick={() => setActiveTab("activity")}  icon={<Activity className="h-4 w-4" />}    label="Recent Activity" />
+              <TabBtn active={activeTab === "overview"}  onClick={() => setActiveTab("overview")}  icon={<User className="h-4 w-4" />}       label={t("Overview")} />
+              <TabBtn active={activeTab === "progress"}  onClick={() => setActiveTab("progress")}  icon={<TrendingUp className="h-4 w-4" />}  label={t("Progress")} />
+              <TabBtn active={activeTab === "activity"}  onClick={() => setActiveTab("activity")}  icon={<Activity className="h-4 w-4" />}    label={t("Recent Activity")} />
             </div>
           </div>
         </div>
@@ -305,14 +310,14 @@ export default function ClientProfile() {
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <Sparkles className="h-4 w-4 text-purple-900" />
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Clinical Modules</span>
-                  <span className="text-xs text-slate-400 ml-1">— click to open in client context</span>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Clinical Modules")}</span>
+                  <span className="text-xs text-slate-400 ml-1">{t("— click to open in client context")}</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <ModuleCard icon={<Heart className="h-5 w-5 stroke-[1.75]" />}    code="M01" title="Mood & Triggers"    description="Emotion fluctuations & trigger events"     count={emotions.length}  unit="records" onClick={() => goToSection("emotions")} />
-                  <ModuleCard icon={<Brain className="h-5 w-5 stroke-[1.75]" />}    code="M02" title="Thought Records"    description="Cognitive distortions & reframing"        count={thoughts.length}  unit="records" onClick={() => goToSection("thoughts")} />
-                  <ModuleCard icon={<BookOpen className="h-5 w-5 stroke-[1.75]" />} code="M03" title="Journal Entries"   description="Self-reflections & session notes"          count={journals.length}  unit="entries" onClick={() => goToSection("journal")} />
-                  <ModuleCard icon={<Target className="h-5 w-5 stroke-[1.75]" />}   code="M04" title="Goals & Objectives" description="SMART objectives & milestones"            count={goals.length}     unit="goals"   onClick={() => goToSection("goals")} />
+                  <ModuleCard icon={<Heart className="h-5 w-5 stroke-[1.75]" />}    code="M01" title={t("Mood & Triggers")}    description={t("Emotion fluctuations & trigger events")}     count={emotions.length}  unit={t("records")} onClick={() => goToSection("emotions")} />
+                  <ModuleCard icon={<Brain className="h-5 w-5 stroke-[1.75]" />}    code="M02" title={t("Thought Records")}    description={t("Cognitive distortions & reframing")}        count={thoughts.length}  unit={t("records")} onClick={() => goToSection("thoughts")} />
+                  <ModuleCard icon={<BookOpen className="h-5 w-5 stroke-[1.75]" />} code="M03" title={t("Journal Entries")}   description={t("Self-reflections & session notes")}          count={journals.length}  unit={t("entries")} onClick={() => goToSection("journal")} />
+                  <ModuleCard icon={<Target className="h-5 w-5 stroke-[1.75]" />}   code="M04" title={t("Goals & Objectives")} description={t("SMART objectives & milestones")}            count={goals.length}     unit={t("goals")}   onClick={() => goToSection("goals")} />
                 </div>
               </div>
 
@@ -320,11 +325,11 @@ export default function ClientProfile() {
               <div className="flex gap-3 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
                 <Button variant="outline" onClick={() => navigate("/clients")}
                   className="flex-1 h-10 rounded-xl border-slate-200 text-slate-600 hover:border-purple-200 hover:bg-purple-50 font-semibold text-sm gap-2 bg-white">
-                  <ArrowLeft className="h-4 w-4" /> Back to Directory
+                  <ArrowLeft className="h-4 w-4" /> {t("Back to Directory")}
                 </Button>
                 <Button onClick={() => goToSection("dashboard")}
                   className="flex-1 h-10 rounded-xl bg-[#090514] hover:bg-purple-950 text-white font-semibold text-sm gap-2 shadow-sm">
-                  Open Analytics <ExternalLink className="h-4 w-4" />
+                  {t("Open Analytics ")} <ExternalLink className="h-4 w-4" />
                 </Button>
               </div>
 
@@ -336,11 +341,11 @@ export default function ClientProfile() {
                   <div className="px-5 pt-4 pb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Heart className="h-4 w-4 text-purple-900" />
-                      <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Recent Emotions</span>
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Recent Emotions")}</span>
                     </div>
                     <button onClick={() => goToSection("emotions")}
                       className="text-xs font-semibold text-purple-900 hover:text-[#090514] transition-colors flex items-center gap-1">
-                      View all <ChevronRight className="h-3.5 w-3.5" />
+                      {t("View all ")} <ChevronRight className="h-3.5 w-3.5" />
                     </button>
                   </div>
                   <div className="px-5 pb-4">
@@ -348,13 +353,13 @@ export default function ClientProfile() {
                       emotions.slice(0, 4).map((e: any) => (
                         <RecentRow
                           key={e.id}
-                          title={e.coreEmotion || "Emotion recorded"}
+                          title={e.coreEmotion || t("Emotion recorded")}
                           sub={e.specificEmotion || undefined}
                           date={e.createdAt ? new Date(e.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "—"}
                         />
                       ))
                     ) : (
-                      <p className="text-sm text-slate-400 py-4 text-center">No emotion records yet</p>
+                      <p className="text-sm text-slate-400 py-4 text-center">{t("No emotion records yet")}</p>
                     )}
                   </div>
                 </div>
@@ -365,11 +370,11 @@ export default function ClientProfile() {
                   <div className="px-5 pt-4 pb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <BookOpen className="h-4 w-4 text-purple-900" />
-                      <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Recent Journal</span>
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Recent Journal")}</span>
                     </div>
                     <button onClick={() => goToSection("journal")}
                       className="text-xs font-semibold text-purple-900 hover:text-[#090514] transition-colors flex items-center gap-1">
-                      View all <ChevronRight className="h-3.5 w-3.5" />
+                      {t("View all ")} <ChevronRight className="h-3.5 w-3.5" />
                     </button>
                   </div>
                   <div className="px-5 pb-4">
@@ -377,12 +382,12 @@ export default function ClientProfile() {
                       journals.slice(0, 4).map((j: any) => (
                         <RecentRow
                           key={j.id}
-                          title={j.title || "Journal entry"}
+                          title={j.title || t("Journal entry")}
                           date={j.createdAt ? new Date(j.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "—"}
                         />
                       ))
                     ) : (
-                      <p className="text-sm text-slate-400 py-4 text-center">No journal entries yet</p>
+                      <p className="text-sm text-slate-400 py-4 text-center">{t("No journal entries yet")}</p>
                     )}
                   </div>
                 </div>
@@ -398,40 +403,40 @@ export default function ClientProfile() {
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <BarChart3 className="h-4 w-4 text-purple-900" />
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Activity Summary</span>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Activity Summary")}</span>
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <StatCard icon={<Heart className="h-5 w-5" />}     value={emotions.length}  label="Emotion Records"  color="blue"    />
-                  <StatCard icon={<Brain className="h-5 w-5" />}     value={thoughts.length}  label="Thought Records"  color="purple"  />
-                  <StatCard icon={<BookOpen className="h-5 w-5" />}  value={journals.length}  label="Journal Entries"  color="amber"   />
-                  <StatCard icon={<Target className="h-5 w-5" />}    value={goals.length}     label="Goals Set"        color="indigo"  />
+                  <StatCard icon={<Heart className="h-5 w-5" />}     value={emotions.length}  label={t("Emotion Records")}  color="blue"    />
+                  <StatCard icon={<Brain className="h-5 w-5" />}     value={thoughts.length}  label={t("Thought Records")}  color="purple"  />
+                  <StatCard icon={<BookOpen className="h-5 w-5" />}  value={journals.length}  label={t("Journal Entries")}  color="amber"   />
+                  <StatCard icon={<Target className="h-5 w-5" />}    value={goals.length}     label={t("Goals Set")}        color="indigo"  />
                 </div>
               </div>
 
               {/* Totals */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-center">
-                  <p className="text-3xl font-bold text-[#090514]">{totalActivities}</p>
-                  <p className="text-sm text-slate-500 font-medium mt-1">Total Activities</p>
-                  <p className="text-xs text-slate-400 mt-0.5">Across all modules</p>
+                  <p className="text-3xl font-bold text-[#090514]">{tNum(totalActivities)}</p>
+                  <p className="text-sm text-slate-500 font-medium mt-1">{t("Total Activities")}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{t("Across all modules")}</p>
                 </div>
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-center">
-                  <p className="text-3xl font-bold text-emerald-600">{completedGoals}</p>
-                  <p className="text-sm text-slate-500 font-medium mt-1">Goals Completed</p>
+                  <p className="text-3xl font-bold text-emerald-600">{tNum(completedGoals)}</p>
+                  <p className="text-sm text-slate-500 font-medium mt-1">{t("Goals Completed")}</p>
                   <p className="text-xs text-slate-400 mt-0.5">
                     {goals.length > 0
-                      ? `${Math.round((completedGoals / goals.length) * 100)}% success rate`
-                      : "No goals yet"}
+                      ? `${tNum(`${Math.round((completedGoals / goals.length) * 100)}%`)} ${t(" success rate")}`
+                      : t("No goals yet")}
                   </p>
                 </div>
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-center">
                   <p className="text-3xl font-bold text-[#090514]">
                     {client.createdAt
-                      ? Math.floor((Date.now() - new Date(client.createdAt).getTime()) / (1000 * 60 * 60 * 24))
+                      ? tNum(Math.floor((Date.now() - new Date(client.createdAt).getTime()) / (1000 * 60 * 60 * 24)))
                       : "—"}
                   </p>
-                  <p className="text-sm text-slate-500 font-medium mt-1">Days as Client</p>
-                  <p className="text-xs text-slate-400 mt-0.5">Since registration</p>
+                  <p className="text-sm text-slate-500 font-medium mt-1">{t("Days as Client")}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{t("Since registration")}</p>
                 </div>
               </div>
 
@@ -442,11 +447,11 @@ export default function ClientProfile() {
                   <div className="px-5 pt-4 pb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Target className="h-4 w-4 text-purple-900" />
-                      <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Goals</span>
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Goals")}</span>
                     </div>
                     <button onClick={() => goToSection("goals")}
                       className="text-xs font-semibold text-purple-900 hover:text-[#090514] transition-colors flex items-center gap-1">
-                      Open module <ChevronRight className="h-3.5 w-3.5" />
+                      {t("Open module ")} <ChevronRight className="h-3.5 w-3.5" />
                     </button>
                   </div>
                   <div className="px-5 pb-4 space-y-2">
@@ -463,7 +468,7 @@ export default function ClientProfile() {
                             ? <CheckCircle2 className="h-3.5 w-3.5" />
                             : <Clock className="h-3 w-3" />}
                         </div>
-                        <p className="text-sm font-medium text-slate-700 flex-1 truncate">{g.title || g.goal || "Goal"}</p>
+                        <p className="text-sm font-medium text-slate-700 flex-1 truncate">{g.title || g.goal || t("Goal")}</p>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                           g.status === "completed"   ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" :
                           g.status === "in_progress" ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200" :
@@ -482,30 +487,30 @@ export default function ClientProfile() {
             <div className="space-y-5">
               <div className="flex items-center gap-2 mb-2">
                 <Activity className="h-4 w-4 text-purple-900" />
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Latest Entries</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Latest Entries")}</span>
               </div>
 
               {/* Merged timeline */}
               {(() => {
                 const items: { type: string; title: string; sub?: string; date: Date; onClick: () => void }[] = [
                   ...emotions.map((e: any) => ({
-                    type: "emotion", title: e.coreEmotion || "Emotion",
+                    type: "emotion", title: e.coreEmotion || t("Emotion"),
                     sub: e.specificEmotion || undefined,
                     date: new Date(e.createdAt),
                     onClick: () => goToSection("emotions"),
                   })),
                   ...journals.map((j: any) => ({
-                    type: "journal", title: j.title || "Journal entry",
+                    type: "journal", title: j.title || t("Journal entry"),
                     date: new Date(j.createdAt),
                     onClick: () => goToSection("journal"),
                   })),
                   ...thoughts.map((t: any) => ({
-                    type: "thought", title: t.situation || t.automaticThought || "Thought record",
+                    type: "thought", title: t.situation || t.automaticThought || t("Thought record"),
                     date: new Date(t.createdAt),
                     onClick: () => goToSection("thoughts"),
                   })),
                   ...goals.map((g: any) => ({
-                    type: "goal", title: g.title || g.goal || "Goal",
+                    type: "goal", title: g.title || g.goal || t("Goal"),
                     sub: g.status,
                     date: new Date(g.createdAt),
                     onClick: () => goToSection("goals"),
@@ -513,17 +518,17 @@ export default function ClientProfile() {
                 ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 20);
 
                 const typeMap: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
-                  emotion: { icon: <Heart className="h-3.5 w-3.5" />,    label: "Emotion",  color: "bg-blue-50   text-blue-600   border-blue-100"    },
-                  journal: { icon: <BookOpen className="h-3.5 w-3.5" />, label: "Journal",  color: "bg-amber-50  text-amber-600  border-amber-100"   },
-                  thought: { icon: <Brain className="h-3.5 w-3.5" />,    label: "Thought",  color: "bg-purple-50 text-purple-600 border-purple-100"  },
-                  goal:    { icon: <Target className="h-3.5 w-3.5" />,   label: "Goal",     color: "bg-indigo-50 text-indigo-600 border-indigo-100"  },
+                  emotion: { icon: <Heart className="h-3.5 w-3.5" />,    label: t("Emotion"),  color: "bg-blue-50   text-blue-600   border-blue-100"    },
+                  journal: { icon: <BookOpen className="h-3.5 w-3.5" />, label: t("Journal"),  color: "bg-amber-50  text-amber-600  border-amber-100"   },
+                  thought: { icon: <Brain className="h-3.5 w-3.5" />,    label: t("Thought"),  color: "bg-purple-50 text-purple-600 border-purple-100"  },
+                  goal:    { icon: <Target className="h-3.5 w-3.5" />,   label: t("Goal"),     color: "bg-indigo-50 text-indigo-600 border-indigo-100"  },
                 };
 
                 if (items.length === 0) {
                   return (
                     <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-12 text-center">
                       <Activity className="h-8 w-8 text-slate-300 mx-auto mb-3" />
-                      <p className="text-sm font-medium text-slate-500">No activity recorded yet</p>
+                      <p className="text-sm font-medium text-slate-500">{t("No activity recorded yet")}</p>
                     </div>
                   );
                 }

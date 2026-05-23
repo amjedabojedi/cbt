@@ -78,7 +78,7 @@ export default function Header({ title: _title }: HeaderProps) {
 
       {viewingClientName && (
         <div className="bg-yellow-100 text-yellow-800 px-4 py-1 text-sm text-center border-t border-yellow-200">
-          You are viewing {viewingClientName}'s data in read-only mode
+          {t("You are viewing {name}'s data in read-only mode").replace("{name}", viewingClientName)}
         </div>
       )}
     </header>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { useLocalization } from "@/lib/localize.tsx";
+import { useLocalization } from "@/lib/localize";
 
 import {
   LayoutDashboard,
@@ -28,6 +28,13 @@ interface SidebarProps {
   onToggle?: () => void;
 }
 
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  exact?: boolean;
+}
+
 export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
   const { user, logout } = useAuth();
   const [location] = useLocation();
@@ -36,7 +43,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
 
   const isClinicalUser = true; // unified dark-purple theme for all roles
 
-  let navItems = [];
+  let navItems: NavItem[] = [];
 
   if (user?.role === "admin") {
     navItems = [
@@ -74,13 +81,13 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
   // Modern, clean, and robust logical margin adjustments
   const iconMarginClass = isCollapsed
     ? cn(
-        "flex-shrink-0 transition-all duration-300",
-        isRTL ? "ml-2 sm:ml-3 md:ml-0" : "mr-2 sm:mr-3 md:mr-0"
-      )
+      "flex-shrink-0 transition-all duration-300",
+      isRTL ? "ml-2 sm:ml-3 md:ml-0" : "mr-2 sm:mr-3 md:mr-0"
+    )
     : cn(
-        "flex-shrink-0 transition-all duration-300",
-        isRTL ? "ml-2 sm:ml-3" : "mr-2 sm:mr-3"
-      );
+      "flex-shrink-0 transition-all duration-300",
+      isRTL ? "ml-2 sm:ml-3" : "mr-2 sm:mr-3"
+    );
 
   const settingsIconMarginClass = cn(
     "flex-shrink-0 transition-all duration-300",
@@ -114,12 +121,12 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
           "w-64",
           isCollapsed && "md:w-16",
           isClinicalUser ? "bg-[#090514] border-purple-950/80" : "bg-white border-neutral-200",
-          
+
           // Deterministic positioning and borders
-          isRTL 
-            ? "right-0 border-l shadow-[-4px_0_24px_rgba(124,58,237,0.06)]" 
+          isRTL
+            ? "right-0 border-l shadow-[-4px_0_24px_rgba(124,58,237,0.06)]"
             : "left-0 border-r shadow-[4px_0_24px_rgba(124,58,237,0.06)]",
-            
+
           // Deterministic mobile hiding/showing translate
           isMobileExpanded
             ? "translate-x-0"
@@ -140,7 +147,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
               isClinicalUser
                 ? "border-purple-300 hover:border-[#090514] hover:shadow-purple-200/60"
                 : "border-slate-300 hover:border-slate-500",
-              
+
               // Dynamic toggle placement
               isRTL ? "-left-3.5" : "-right-3.5"
             )}
@@ -250,9 +257,9 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                       })()
                         ? isClinicalUser
                           ? cn(
-                              "text-purple-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 shadow-[0_0_15px_rgba(168,85,247,0.12)] border-purple-500",
-                              isRTL ? "border-r-[3px]" : "border-l-[3px]"
-                            )
+                            "text-purple-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 shadow-[0_0_15px_rgba(168,85,247,0.12)] border-purple-500",
+                            isRTL ? "border-r-[3px]" : "border-l-[3px]"
+                          )
                           : "text-primary font-medium bg-primary/10"
                         : isClinicalUser
                           ? "text-purple-300/70 hover:text-purple-200 hover:bg-purple-950/20"
@@ -276,7 +283,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
             </ul>
           </nav>
 
-          {/* Settings & Logout */}
+          Settings & Logout
           <div className={cn(
             "border-t transition-all duration-300",
             isCollapsed ? "md:p-1 p-2 sm:p-4" : "p-2 sm:p-4",
@@ -320,7 +327,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                       : "bg-neutral-100 border-neutral-200"
                   )}>
                     <button
-                      onClick={() => setLanguage("en")}
+                      // onClick={() => setLanguage("en")}
                       className={cn(
                         "flex-1 text-xs py-1 px-2 rounded-md font-bold transition-all duration-300 text-center",
                         currentLanguage === "en"
@@ -335,7 +342,8 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                       English
                     </button>
                     <button
-                      onClick={() => setLanguage("ar")}
+                      // onClick={() => setLanguage("ar")}
+                      onClick={() => alert("The Arabic Translated version of the app is coming soon")}
                       className={cn(
                         "flex-1 text-xs py-1 px-2 rounded-md font-bold transition-all duration-300 text-center font-noto-arabic",
                         currentLanguage === "ar"
@@ -367,9 +375,9 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                     location === "/settings"
                       ? isClinicalUser
                         ? cn(
-                            "text-purple-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 shadow-[0_0_15px_rgba(168,85,247,0.12)] border-purple-500",
-                            isRTL ? "border-r-[3px]" : "border-l-[3px]"
-                          )
+                          "text-purple-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 shadow-[0_0_15px_rgba(168,85,247,0.12)] border-purple-500",
+                          isRTL ? "border-r-[3px]" : "border-l-[3px]"
+                        )
                         : "text-primary font-medium bg-primary/10"
                       : isClinicalUser
                         ? "text-purple-300/70 hover:text-purple-200 hover:bg-purple-950/20"

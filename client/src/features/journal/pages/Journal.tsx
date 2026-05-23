@@ -874,7 +874,7 @@ export default function Journal() {
                                 className="p-0 h-auto text-xs"
                                 asChild
                               >
-                                <a href={`/thought-records/${record.id}`}>
+                                <a href={`/reflection?edit=${record.id}`}>
                                   <ExternalLink size={12} className="me-1" />
                                   {t("View Full Record")}
                                 </a>
