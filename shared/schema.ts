@@ -616,4 +616,22 @@ export const insertClientInvitationSchema = createInsertSchema(clientInvitations
 export type ClientInvitation = typeof clientInvitations.$inferSelect;
 export type InsertClientInvitation = z.infer<typeof insertClientInvitationSchema>;
 
+export const clientNotes = pgTable("client_notes", {
+  id: serial("id").primaryKey(),
+  therapistId: integer("therapist_id").notNull(),
+  clientId: integer("client_id").notNull(),
+  noteType: text("note_type").notNull().default("general"),
+  communicationDate: text("communication_date").notNull(),
+  subject: text("subject"),
+  details: text("details").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertClientNoteSchema = createInsertSchema(clientNotes).omit({
+  id: true,
+  createdAt: true,
+});
+export type ClientNote = typeof clientNotes.$inferSelect;
+export type InsertClientNote = z.infer<typeof insertClientNoteSchema>;
+
 
