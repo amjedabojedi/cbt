@@ -23,6 +23,7 @@ import {
   clientInvitations, type ClientInvitation, type InsertClientInvitation,
   aiRecommendations, type AiRecommendation, type InsertAiRecommendation,
   engagementSettings, type EngagementSettings, type InsertEngagementSettings,
+  clientNotes, type ClientNote, type InsertClientNote,
   reframePracticeResults,
   userGameProfile
 } from "@shared/schema";
@@ -210,6 +211,11 @@ export interface IStorage {
   // Engagement Settings
   getEngagementSettings(): Promise<EngagementSettings | undefined>;
   updateEngagementSettings(settings: Partial<InsertEngagementSettings>): Promise<EngagementSettings>;
+
+  // Client Notes
+  getClientNotes(therapistId: number, clientId: number): Promise<ClientNote[]>;
+  createClientNote(note: InsertClientNote): Promise<ClientNote>;
+  deleteClientNote(id: number, therapistId: number): Promise<void>;
 }
 
 // @ts-expect-error - some optional methods are stubbed/added at runtime
@@ -2013,6 +2019,25 @@ export class DatabaseStorage implements IStorage {
       
       return created;
     }
+  }
+
+  async getClientNotes(therapistId: number, clientId: number): Promise<ClientNote[]> {
+    return db
+      .select()
+      .from(clientNotes)
+      .where(and(eq(clientNotes.therapistId, therapistId), eq(clientNotes.clientId, clientId)))
+      .orderBy(desc(clientNotes.createdAt));
+  }
+
+  async createClientNote(note: InsertClientNote): Promise<ClientNote> {
+    const [created] = await db.insert(clientNotes).values(note).returning();
+    return created;
+  }
+
+  async deleteClientNote(id: number, therapistId: number): Promise<void> {
+    await db
+      .delete(clientNotes)
+      .where(and(eq(clientNotes.id, id), eq(clientNotes.therapistId, therapistId)));
   }
 }
 

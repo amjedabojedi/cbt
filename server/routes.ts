@@ -7961,5 +7961,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // ── Client Notes ──────────────────────────────────────────────────────────
+  app.get("/api/therapist/clients/:clientId/notes", authenticate, isTherapist, async (req: Request, res: Response) => {
+    try {
+      const therapistId = (req.session as any).userId;
+      const clientId = parseInt(req.params.clientId);
+      const notes = await storage.getClientNotes(therapistId, clientId);
+      res.json(notes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notes" });
+    }
+  });
+
+  app.post("/api/therapist/clients/:clientId/notes", authenticate, isTherapist, async (req: Request, res: Response) => {
+    try {
+      const therapistId = (req.session as any).userId;
+      const clientId = parseInt(req.params.clientId);
+      const { noteType, communicationDate, subject, details } = req.body;
+      if (!details || !communicationDate) {
+        return res.status(400).json({ message: "Details and communication date are required" });
+      }
+      const note = await storage.createClientNote({
+        therapistId,
+        clientId,
+        noteType: noteType || "general",
+        communicationDate,
+        subject: subject || null,
+        details,
+      });
+      res.status(201).json(note);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create note" });
+    }
+  });
+
+  app.delete("/api/therapist/clients/:clientId/notes/:noteId", authenticate, isTherapist, async (req: Request, res: Response) => {
+    try {
+      const therapistId = (req.session as any).userId;
+      const noteId = parseInt(req.params.noteId);
+      await storage.deleteClientNote(noteId, therapistId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete note" });
+    }
+  });
+
+  // AI note enhancement
+  app.post("/api/openai/enhance-note", authenticate, isTherapist, async (req: Request, res: Response) => {
+    try {
+      const { text, tone } = req.body;
+      if (!text || text.trim().length < 10) {
+        return res.status(400).json({ message: "Text too short to enhance" });
+      }
+      const OpenAIModule = await import("openai");
+      const client = new OpenAIModule.default({ apiKey: process.env.OPENAI_API_KEY });
+      const toneInstruction = tone === "empathetic"
+        ? "Use a warm, empathetic clinical tone."
+        : tone === "concise"
+        ? "Be concise and to the point, clinical tone."
+        : "Use a professional, neutral clinical tone suitable for a therapist's case notes.";
+      const completion = await client.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are a clinical writing assistant for mental health professionals. Improve the grammar, flow, and readability of therapist notes. ${toneInstruction} Preserve all clinical facts and observations exactly. Return only the improved text with no preamble, commentary, or markdown formatting.`,
+          },
+          { role: "user", content: text },
+        ],
+        max_tokens: 800,
+      });
+      const enhanced = completion.choices[0]?.message?.content?.trim() || text;
+      res.json({ enhanced });
+    } catch (error) {
+      console.error("Error enhancing note:", error);
+      res.status(500).json({ message: "Failed to enhance note" });
+    }
+  });
+
+  // PDF export for a single client note
+  app.get("/api/therapist/clients/:clientId/notes/:noteId/pdf", authenticate, isTherapist, async (req: Request, res: Response) => {
+    try {
+      const therapistId = (req.session as any).userId;
+      const clientId = parseInt(req.params.clientId);
+      const noteId = parseInt(req.params.noteId);
+      const notes = await storage.getClientNotes(therapistId, clientId);
+      const note = notes.find(n => n.id === noteId);
+      if (!note) return res.status(404).json({ message: "Note not found" });
+      const therapist = await storage.getUser(therapistId);
+      const client = await storage.getUser(clientId);
+      // @ts-ignore -- pdfkit ships without TypeScript declarations
+      const PDFDocumentModule = await import("pdfkit");
+      const PDFDocument = PDFDocumentModule.default;
+      const doc = new PDFDocument({ margin: 50, compress: false, pdfVersion: "1.4" });
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="client-note-${noteId}.pdf"`);
+      res.setHeader("Cache-Control", "no-store");
+      doc.pipe(res);
+      // Header — consistent with existing clinic style
+      doc.fontSize(20).text("ResilienceHub", { align: "center" });
+      doc.fontSize(11).fillColor("#555555").text("Clinical Note — Confidential", { align: "center" });
+      doc.moveDown(0.5);
+      doc.moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).stroke().moveDown(0.8);
+      // Meta
+      doc.fillColor("#000000").fontSize(11);
+      doc.text(`Therapist: ${therapist?.name || therapist?.username || "Unknown"}`, { continued: true });
+      doc.text(`   |   Client: ${client?.name || client?.username || "Unknown"}`, { align: "left" });
+      doc.text(`Date of Communication: ${note.communicationDate}`);
+      doc.text(`Note Type: ${note.noteType.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}`);
+      if (note.subject) doc.text(`Subject: ${note.subject}`);
+      doc.text(`Created: ${new Date(note.createdAt).toLocaleString()}`);
+      doc.moveDown(0.8);
+      doc.moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).stroke().moveDown(0.8);
+      // Body
+      doc.fontSize(12).text("Details", { underline: true }).moveDown(0.4);
+      doc.fontSize(11).text(note.details, { lineGap: 4 });
+      // Footer
+      const pageBottom = doc.page.height - 40;
+      doc.fontSize(8).fillColor("#888888").text(
+        `Generated by ResilienceHub — ${new Date().toLocaleString()} — Confidential Clinical Record`,
+        50, pageBottom, { align: "center" }
+      );
+      doc.end();
+    } catch (error) {
+      console.error("Error generating note PDF:", error);
+      if (!res.headersSent) res.status(500).json({ message: "Failed to generate PDF" });
+    }
+  });
+
   return httpServer;
 }
