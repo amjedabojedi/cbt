@@ -15,9 +15,11 @@ import {
   Users,
   Lightbulb,
   LogOut,
+  Globe,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
+import { useLocalization } from '@/lib/localize';
 
 interface MobileNavigationProps {
   className?: string;
@@ -27,6 +29,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
   const [open, setOpen] = useState(false);
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const { currentLanguage, t } = useLocalization();
 
   const navigationItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -128,7 +131,41 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
             </nav>
 
             {/* Settings & Logout */}
-            <div className="border-t border-purple-950/80 bg-purple-950/5 p-3">
+            <div className="border-t border-purple-950/80 bg-purple-950/5 p-3 flex flex-col gap-3">
+              {/* Language Switcher Component */}
+              <div className="border-b border-purple-950/40 pb-2">
+                <div className="flex flex-col space-y-1">
+                  <span className="text-[10px] font-bold tracking-widest uppercase mb-1 flex items-center gap-1.5 text-purple-400/90">
+                    <Globe size={12} className="animate-[spin_6s_linear_infinite]" />
+                    {t("Language")}
+                  </span>
+                  <div className="flex p-0.5 rounded-lg border bg-purple-950/40 border-purple-900/60 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
+                    <button
+                      // onClick={() => setLanguage("en")}
+                      className={cn(
+                        "flex-1 text-xs py-1 px-2 rounded-md font-bold transition-all duration-300 text-center",
+                        currentLanguage === "en"
+                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(124,58,237,0.4)]"
+                          : "text-purple-400/80 hover:text-purple-200 hover:bg-purple-900/20"
+                      )}
+                    >
+                      English
+                    </button>
+                    <button
+                      onClick={() => alert("The Arabic Translated version of the app is coming soon")}
+                      className={cn(
+                        "flex-1 text-xs py-1 px-2 rounded-md font-bold transition-all duration-300 text-center font-noto-arabic",
+                        currentLanguage === "ar"
+                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(124,58,237,0.4)]"
+                          : "text-purple-400/80 hover:text-purple-200 hover:bg-purple-900/20"
+                      )}
+                    >
+                      العربية
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <ul>
                 <li className="py-0.5">
                   <Link href="/settings" onClick={() => setOpen(false)}>
