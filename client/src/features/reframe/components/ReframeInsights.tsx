@@ -4,12 +4,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp, BarChart3, Calendar as CalendarIcon, Target, Award, CheckCircle, Zap, AlertCircle } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { format, eachDayOfInterval, eachMonthOfInterval, subDays, subYears, startOfWeek, endOfWeek, endOfMonth, isWithinInterval } from "date-fns";
+import { ar } from "date-fns/locale";
+import { useLocalization } from "@/lib/localize.tsx";
+import { formatDistortionLabel } from "@/features/reframe/utils/reframeLabels";
 
 interface ReframeInsightsProps {
   userId: number;
 }
 
 export default function ReframeInsights({ userId }: ReframeInsightsProps) {
+  const { t, tNum, isRTL } = useLocalization();
+  const dateLocale = isRTL ? ar : undefined;
   const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("month");
 
   // Fetch practice results
@@ -85,7 +90,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
           : 0;
         
         return {
-          date: format(monthStart, "MMM"),
+          date: format(monthStart, "MMM", { locale: dateLocale }),
           score: parseFloat(avgScore.toFixed(2)),
           sessions: monthResults.length,
         };
@@ -114,7 +119,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
           : 0;
         
         return {
-          date: `Week ${index + 1}`,
+          date: `${t("Week")} ${tNum(index + 1)}`,
           score: parseFloat(avgScore.toFixed(2)),
           sessions: weekResults.length,
         };
@@ -134,7 +139,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
         : 0;
       
       return {
-        date: format(day, "EEE"),
+        date: format(day, "EEE", { locale: dateLocale }),
         score: parseFloat(avgScore.toFixed(2)),
         sessions: dayResults.length,
       };
@@ -165,7 +170,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
         
         if (monthResults.length === 0) {
           return {
-            date: format(monthStart, "MMM"),
+            date: format(monthStart, "MMM", { locale: dateLocale }),
             accuracy: 0,
             sessions: 0,
           };
@@ -176,7 +181,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
         const accuracy = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
         
         return {
-          date: format(monthStart, "MMM"),
+          date: format(monthStart, "MMM", { locale: dateLocale }),
           accuracy: parseFloat(accuracy.toFixed(1)),
           sessions: monthResults.length,
         };
@@ -202,7 +207,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
         
         if (weekResults.length === 0) {
           return {
-            date: `Week ${index + 1}`,
+            date: `${t("Week")} ${tNum(index + 1)}`,
             accuracy: 0,
             sessions: 0,
           };
@@ -213,7 +218,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
         const accuracy = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
         
         return {
-          date: `Week ${index + 1}`,
+          date: `${t("Week")} ${tNum(index + 1)}`,
           accuracy: parseFloat(accuracy.toFixed(1)),
           sessions: weekResults.length,
         };
@@ -230,7 +235,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
       
       if (dayResults.length === 0) {
         return {
-          date: format(day, "EEE"),
+          date: format(day, "EEE", { locale: dateLocale }),
           accuracy: 0,
           sessions: 0,
         };
@@ -241,7 +246,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
       const accuracy = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
       
       return {
-        date: format(day, "EEE"),
+        date: format(day, "EEE", { locale: dateLocale }),
         accuracy: parseFloat(accuracy.toFixed(1)),
         sessions: dayResults.length,
       };
@@ -256,20 +261,19 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
       if (result.scenarioData && Array.isArray(result.scenarioData)) {
         result.scenarioData.forEach((scenario: any) => {
           if (scenario.cognitiveDistortion) {
-            const distortion = scenario.cognitiveDistortion
-              .replace(/[-_]/g, ' ')
-              .split(' ')
-              .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(' ');
-            
-            distortionCounts[distortion] = (distortionCounts[distortion] || 0) + 1;
+            const raw = String(scenario.cognitiveDistortion);
+            distortionCounts[raw] = (distortionCounts[raw] || 0) + 1;
           }
         });
       }
     });
 
     return Object.entries(distortionCounts)
-      .map(([name, count]) => ({ name, count }))
+      .map(([raw, count]) => ({
+        raw,
+        name: formatDistortionLabel(raw, t),
+        count,
+      }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 8);
   };
@@ -292,7 +296,8 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
         : 0;
       
       return {
-        date: format(day, "MMM d"),
+        date: format(day, "MMM d", { locale: dateLocale }),
+        dayNum: format(day, "d", { locale: dateLocale }),
         score: avgScore,
         sessions: dayResults.length,
       };
@@ -301,7 +306,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16 bg-white/60 backdrop-blur border border-slate-100 rounded-3xl shadow-sm">
+      <div className="flex items-center justify-center py-16 bg-white/60 backdrop-blur border border-slate-100 rounded-3xl shadow-sm" dir={isRTL ? "rtl" : "ltr"}>
         <div className="animate-spin h-10 w-10 border-4 border-purple-600 border-t-transparent rounded-full" />
       </div>
     );
@@ -309,12 +314,14 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
 
   if (results.length === 0) {
     return (
-      <div className="bg-white/60 backdrop-blur rounded-3xl border border-slate-100 shadow-sm py-16 text-center px-6">
+      <div className="bg-white/60 backdrop-blur rounded-3xl border border-slate-100 shadow-sm py-16 text-center px-6" dir={isRTL ? "rtl" : "ltr"}>
         <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
           <Award className="h-8 w-8" />
         </div>
-        <h3 className="font-bold text-slate-800 text-lg mb-1">Reframe Training</h3>
-        <p className="text-slate-500 max-w-sm mx-auto text-sm">No reframing training scenarios completed yet. Complete a practice module with the Reframe Coach to activate analytics.</p>
+        <h3 className="font-bold text-slate-800 text-lg mb-1">{t("Reframe Training")}</h3>
+        <p className="text-slate-500 max-w-sm mx-auto text-sm">
+          {t("No reframing training scenarios completed yet. Complete a practice module with the Reframe Coach to activate analytics.")}
+        </p>
       </div>
     );
   }
@@ -325,7 +332,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
   const insightCardClass = "bg-white/90 backdrop-blur-md rounded-2xl border border-slate-100/80 shadow-sm overflow-hidden hover:shadow-md hover:border-purple-200/60 transition-all duration-300";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white/90 backdrop-blur border border-slate-100/80 hover:border-purple-200/60 hover:shadow-md transition-all duration-300 rounded-2xl p-5 shadow-sm flex items-center gap-4">
@@ -333,9 +340,9 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
             <Award className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Sessions</p>
-            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{metrics.totalSessions}</h4>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Trainings completed</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t("Total Sessions")}</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{tNum(metrics.totalSessions)}</h4>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{t("Trainings completed")}</p>
           </div>
         </div>
 
@@ -344,9 +351,9 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
             <TrendingUp className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Avg Score</p>
-            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{metrics.avgScore}</h4>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Points per module</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t("Avg Score")}</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{tNum(metrics.avgScore)}</h4>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{t("Points per module")}</p>
           </div>
         </div>
 
@@ -355,9 +362,9 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
             <CheckCircle className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Accuracy</p>
-            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{metrics.avgAccuracy}%</h4>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Correct selections</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t("Accuracy")}</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{tNum(metrics.avgAccuracy)}%</h4>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{t("Correct selections")}</p>
           </div>
         </div>
 
@@ -366,9 +373,9 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
             <Zap className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Streak</p>
-            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{metrics.currentStreak}</h4>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Days in a row</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t("Current Streak")}</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{tNum(metrics.currentStreak)}</h4>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{t("Days in a row")}</p>
           </div>
         </div>
       </div>
@@ -381,15 +388,15 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
               <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600">
                 <TrendingUp className="h-4 w-4" />
               </div>
-              <h3 className="font-bold text-slate-800 text-base">Score Trends</h3>
+              <h3 className="font-bold text-slate-800 text-base">{t("Score Trends")}</h3>
             </div>
-            <p className="text-xs text-slate-500 mt-1">Timeline tracing points and score parameters achieved per session</p>
+            <p className="text-xs text-slate-500 mt-1">{t("Timeline tracing points and score parameters achieved per session")}</p>
           </div>
           <Tabs value={timeRange} onValueChange={(v: any) => setTimeRange(v)} className="w-auto">
             <TabsList className="bg-slate-100 p-0.5 rounded-xl h-auto">
-              <TabsTrigger value="week" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">Week</TabsTrigger>
-              <TabsTrigger value="month" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">Month</TabsTrigger>
-              <TabsTrigger value="year" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">Year</TabsTrigger>
+              <TabsTrigger value="week" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Week")}</TabsTrigger>
+              <TabsTrigger value="month" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Month")}</TabsTrigger>
+              <TabsTrigger value="year" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Year")}</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -408,22 +415,23 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
                 tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
                 axisLine={false}
                 tickLine={false}
+                tickFormatter={(v) => tNum(v)}
               />
               <Tooltip 
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className="bg-white/95 backdrop-blur-md p-3 border border-purple-100 rounded-xl shadow-xl">
+                      <div className="bg-white/95 backdrop-blur-md p-3 border border-purple-100 rounded-xl shadow-xl" dir={isRTL ? "rtl" : "ltr"}>
                         <p className="font-bold text-slate-800 text-xs mb-1.5">{data.date}</p>
                         <div className="space-y-1 text-[11px] font-semibold">
                           <div className="flex items-center gap-2 justify-between">
-                            <span className="text-purple-600">Average Score:</span>
-                            <span className="text-slate-800 font-extrabold">{data.score}</span>
+                            <span className="text-purple-600">{t("Average Score:")}</span>
+                            <span className="text-slate-800 font-extrabold">{tNum(data.score)}</span>
                           </div>
                           <div className="flex items-center gap-2 justify-between">
-                            <span className="text-slate-500">Completed Sessions:</span>
-                            <span className="text-slate-800 font-extrabold">{data.sessions}</span>
+                            <span className="text-slate-500">{t("Completed Sessions:")}</span>
+                            <span className="text-slate-800 font-extrabold">{tNum(data.sessions)}</span>
                           </div>
                         </div>
                       </div>
@@ -446,7 +454,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
                 strokeWidth={3} 
                 dot={{ r: 4, strokeWidth: 1, fill: '#fff' }}
                 activeDot={{ r: 6, strokeWidth: 0 }}
-                name="Score Achievement"
+                name={t("Score Achievement")}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -460,9 +468,9 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
             <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
               <Target className="h-4 w-4" />
             </div>
-            <h3 className="font-bold text-slate-800 text-base">Accuracy Trends</h3>
+            <h3 className="font-bold text-slate-800 text-base">{t("Accuracy Trends")}</h3>
           </div>
-          <p className="text-xs text-slate-500 mt-1">Accuracy rate timeline showing percentage of correct scenario selections</p>
+          <p className="text-xs text-slate-500 mt-1">{t("Accuracy rate timeline showing percentage of correct scenario selections")}</p>
         </div>
         <div className="p-6 overflow-visible">
           <ResponsiveContainer width="100%" height={280}>
@@ -479,22 +487,23 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
                 tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
                 axisLine={false}
                 tickLine={false}
+                tickFormatter={(v) => tNum(v)}
               />
               <Tooltip 
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className="bg-white/95 backdrop-blur-md p-3 border border-purple-100 rounded-xl shadow-xl">
+                      <div className="bg-white/95 backdrop-blur-md p-3 border border-purple-100 rounded-xl shadow-xl" dir={isRTL ? "rtl" : "ltr"}>
                         <p className="font-bold text-slate-800 text-xs mb-1.5">{data.date}</p>
                         <div className="space-y-1 text-[11px] font-semibold">
                           <div className="flex items-center gap-2 justify-between">
-                            <span className="text-emerald-600">Accuracy Rate:</span>
-                            <span className="text-[#090514] font-extrabold">{data.accuracy}%</span>
+                            <span className="text-emerald-600">{t("Accuracy Rate:")}</span>
+                            <span className="text-[#090514] font-extrabold">{tNum(data.accuracy)}%</span>
                           </div>
                           <div className="flex items-center gap-2 justify-between">
-                            <span className="text-slate-500">Completed Sessions:</span>
-                            <span className="text-slate-800 font-extrabold">{data.sessions}</span>
+                            <span className="text-slate-500">{t("Completed Sessions:")}</span>
+                            <span className="text-slate-800 font-extrabold">{tNum(data.sessions)}</span>
                           </div>
                         </div>
                       </div>
@@ -517,7 +526,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
                 strokeWidth={3} 
                 dot={{ r: 4, strokeWidth: 1, fill: '#fff' }}
                 activeDot={{ r: 6, strokeWidth: 0 }}
-                name="Accuracy Rate %"
+                name={t("Accuracy Rate %")}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -531,9 +540,9 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
             <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
               <BarChart3 className="h-4 w-4" />
             </div>
-            <h3 className="font-bold text-slate-800 text-base">Cognitive Distortions Reframed</h3>
+            <h3 className="font-bold text-slate-800 text-base">{t("Cognitive Distortions Reframed")}</h3>
           </div>
-          <p className="text-xs text-slate-500 mt-1">Review of which unhelpful cognitive thinking styles were practiced most</p>
+          <p className="text-xs text-slate-500 mt-1">{t("Review of which unhelpful cognitive thinking styles were practiced most")}</p>
         </div>
         <div className="p-6">
           {distortionsData.length > 0 ? (
@@ -550,16 +559,16 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="4 4" stroke="#f1f5f9" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} tickFormatter={(v) => tNum(v)} />
                 <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 500 }} axisLine={false} tickLine={false} />
                 <Tooltip 
                   cursor={{ fill: 'rgba(79, 70, 229, 0.03)' }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
-                      const data = payload[0].payload;
+                      const data = payload[0].payload as { name?: string; count?: number };
                       return (
-                        <div className="bg-white/95 backdrop-blur-md py-1.5 px-3 border border-indigo-50 rounded-xl shadow-lg text-xs font-semibold text-slate-800">
-                          {data.name}: <span className="font-extrabold text-indigo-600">{data.count} scenarios solved</span>
+                        <div className="bg-white/95 backdrop-blur-md py-1.5 px-3 border border-indigo-50 rounded-xl shadow-lg text-xs font-semibold text-slate-800" dir={isRTL ? "rtl" : "ltr"}>
+                          {data.name}: <span className="font-extrabold text-indigo-600">{tNum(data.count ?? 0)} {t("scenarios solved")}</span>
                         </div>
                       );
                     }
@@ -572,7 +581,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
           ) : (
             <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
               <AlertCircle className="h-6 w-6 text-slate-300 mb-2" />
-              <p className="text-xs text-slate-400 font-semibold">No scenario data available.</p>
+              <p className="text-xs text-slate-400 font-semibold">{t("No scenario data available.")}</p>
             </div>
           )}
         </div>
@@ -585,9 +594,9 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
             <div className="p-1.5 rounded-lg bg-fuchsia-50 text-fuchsia-600">
               <CalendarIcon className="h-4 w-4" />
             </div>
-            <h3 className="font-bold text-slate-800 text-base">30-Day Practice Calendar</h3>
+            <h3 className="font-bold text-slate-800 text-base">{t("30-Day Practice Calendar")}</h3>
           </div>
-          <p className="text-xs text-slate-500 mt-1">Calendar tracking tracing reframing consistency and training frequency</p>
+          <p className="text-xs text-slate-500 mt-1">{t("Calendar tracking tracing reframing consistency and training frequency")}</p>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-10 gap-2">
@@ -612,12 +621,14 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
                   key={idx}
                   className={`aspect-square rounded-xl ${cellClass} flex items-center justify-center text-[10px] font-bold relative group transition-all duration-300 hover:scale-105 cursor-default`}
                 >
-                  <span className="opacity-80">{day.date.split(' ')[1]}</span>
-                  <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-slate-900/95 backdrop-blur-sm text-white text-[10px] rounded-xl px-2.5 py-1.5 whitespace-nowrap z-10 shadow-xl border border-slate-800 pointer-events-none transition-all duration-200 font-medium">
+                  <span className="opacity-80">{day.dayNum}</span>
+                  <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-slate-900/95 backdrop-blur-sm text-white text-[10px] rounded-xl px-2.5 py-1.5 whitespace-nowrap z-10 shadow-xl border border-slate-800 pointer-events-none transition-all duration-200 font-medium" dir={isRTL ? "rtl" : "ltr"}>
                     <p className="font-bold text-slate-200 mb-1 border-b border-slate-700/60 pb-0.5">{day.date}</p>
                     <div className="space-y-0.5 text-slate-300">
-                      <p>Completed: <span className="text-white font-bold">{day.sessions} sessions</span></p>
-                      {day.sessions > 0 && <p>Average Score: <span className="text-purple-300 font-bold">{score.toFixed(2)}</span></p>}
+                      <p>{t("Completed:")} <span className="text-white font-bold">{tNum(day.sessions)} {t("sessions")}</span></p>
+                      {day.sessions > 0 && (
+                        <p>{t("Average Score:")} <span className="text-purple-300 font-bold">{tNum(score.toFixed(2))}</span></p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -625,7 +636,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
             })}
           </div>
           <div className="flex items-center justify-between mt-6 text-xs text-slate-500 font-semibold">
-            <span>Inactive</span>
+            <span>{t("Inactive")}</span>
             <div className="flex gap-1.5">
               <div className="w-3.5 h-3.5 bg-slate-50 border border-slate-100/50 rounded-md" />
               <div className="w-3.5 h-3.5 bg-purple-50 border border-purple-100 rounded-md" />
@@ -633,7 +644,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
               <div className="w-3.5 h-3.5 bg-purple-300 border border-purple-400 rounded-md" />
               <div className="w-3.5 h-3.5 bg-purple-600 rounded-md shadow-sm" />
             </div>
-            <span>High Performance</span>
+            <span>{t("High Performance")}</span>
           </div>
         </div>
       </div>

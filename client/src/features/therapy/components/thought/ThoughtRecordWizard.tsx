@@ -9,17 +9,18 @@ import { EmotionRecord } from "@shared/schema";
 import useActiveUser from "@/hooks/use-active-user";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { ar as arLocale } from "date-fns/locale";
 import { useLocation } from "wouter";
 import { ThoughtChallengeWizard } from "./ThoughtChallengeWizard";
+import { useLocalization } from "@/lib/localize.tsx";
+import { translateEmotion } from "@/features/therapy/components/emotion/EmotionWheelFixed";
 
 import {
   Brain,
   CheckCircle2,
   Info,
   Sparkles,
-  Home,
   RefreshCw,
-  ArrowRight,
   X,
   BrainCircuit,
   Scale,
@@ -34,13 +35,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import WizardSuccessDialog from "@/features/journal/components/wizard/WizardSuccessDialog";
 import {
   Form,
   FormControl,
@@ -156,7 +151,7 @@ interface ThoughtRecordWizardProps {
   preselectedEmotionId?: number;
 }
 
-export default function ThoughtRecordWizard({ 
+export default function ThoughtRecordWizard({
   onClose,
   preselectedEmotionId,
 }: ThoughtRecordWizardProps) {
@@ -164,6 +159,24 @@ export default function ThoughtRecordWizard({
   const { activeUserId } = useActiveUser();
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const { t, tNum, isRTL, currentLanguage } = useLocalization();
+  const translateError = (message?: string) => (message ? t(message) : undefined);
+
+  const formatEmotionLabel = (emotion: EmotionRecord) => {
+    const primary = translateEmotion(
+      emotion.primaryEmotion || emotion.coreEmotion || "",
+      currentLanguage
+    );
+    const tertiary = emotion.tertiaryEmotion
+      ? translateEmotion(emotion.tertiaryEmotion, currentLanguage)
+      : null;
+    const dateStr = format(
+      new Date(emotion.timestamp),
+      "MMM d, h:mm a",
+      isRTL ? { locale: arLocale } : undefined
+    );
+    return tertiary ? `${primary} (${tertiary}) - ${dateStr}` : `${primary} - ${dateStr}`;
+  };
   
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -236,14 +249,14 @@ export default function ThoughtRecordWizard({
       setShowSuccessDialog(true);
       
       toast({
-        title: "Success!",
-        description: "Your thought has been recorded.",
+        title: t("Success!"),
+        description: t("Your thought has been recorded."),
       });
     } catch (error) {
       console.error("Error recording thought:", error);
       toast({
-        title: "Error",
-        description: "Failed to record thought. Please try again.",
+        title: t("Error"),
+        description: t("Failed to record thought. Please try again."),
         variant: "destructive",
       });
     } finally {
@@ -303,13 +316,13 @@ export default function ThoughtRecordWizard({
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
             <Brain className="h-4.5 w-4.5 text-purple-600" />
-            What thought went through your mind? <span className="text-red-500">*</span>
+            {t("What thought went through your mind?")} <span className="text-red-500">*</span>
           </label>
           <p className="text-xs text-slate-500">
-            Write down the exact thought that popped into your head. Be as specific as possible.
+            {t("Write down the exact thought that popped into your head. Be as specific as possible.")}
           </p>
           <Textarea
-            placeholder="e.g., I'm going to embarrass myself in front of everyone..."
+            placeholder={t("e.g., I'm going to embarrass myself in front of everyone...")}
             className="resize-none w-full min-h-[90px] text-sm py-2 px-3 rounded-xl"
             rows={3}
             value={watchedValues.automaticThought || ""}
@@ -320,12 +333,12 @@ export default function ThoughtRecordWizard({
           />
           <div className="flex justify-between items-center text-xs mt-1">
             {form.formState.errors.automaticThought ? (
-              <p className="text-red-500 text-xs">{form.formState.errors.automaticThought.message}</p>
+              <p className="text-red-500 text-xs">{translateError(form.formState.errors.automaticThought.message)}</p>
             ) : (
               <span />
             )}
             <span className={`font-medium ${(watchedValues.automaticThought || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
-              {(watchedValues.automaticThought || "").length}/10 characters minimum
+              {tNum((watchedValues.automaticThought || "").length)}/10 {t("characters minimum")}
             </span>
           </div>
         </div>
@@ -333,22 +346,22 @@ export default function ThoughtRecordWizard({
 
       <div className="md:col-span-5">
         <div className="bg-purple-50/40 border border-purple-100 p-3.5 rounded-xl space-y-3 shadow-2xs">
-          <div className="flex items-start">
-            <Info className="h-4.5 w-4.5 text-purple-600 mt-0.5 mr-2 shrink-0" />
+          <div className={`flex items-start ${isRTL ? "flex-row-reverse" : ""}`}>
+            <Info className={`h-4.5 w-4.5 text-purple-600 mt-0.5 shrink-0 me-2`} />
             <div>
-              <h4 className="font-bold text-purple-900 text-xs mb-0.5">💡 Why This Step?</h4>
+              <h4 className="font-bold text-purple-900 text-xs mb-0.5">{t("💡 Why This Step?")}</h4>
               <p className="text-[11px] text-purple-800/80 leading-relaxed">
-                Simply capture what went through your mind exactly as you thought it. Don't worry about accuracy yet.
+                {t("Simply capture what went through your mind exactly as you thought it. Don't worry about accuracy yet.")}
               </p>
             </div>
           </div>
           <div className="border-t border-purple-100/50 pt-2.5">
-            <h4 className="font-bold text-purple-950 text-xs mb-1.5">Common Examples:</h4>
+            <h4 className="font-bold text-purple-950 text-xs mb-1.5">{t("Common Examples:")}</h4>
             <ul className="text-[11px] text-purple-900/70 space-y-1">
-              <li>• "I'm not good enough"</li>
-              <li>• "Everyone will judge me"</li>
-              <li>• "I'll never succeed"</li>
-              <li>• "This is going to be a disaster"</li>
+              <li>• {t("\"I'm not good enough\"")}</li>
+              <li>• {t("\"Everyone will judge me\"")}</li>
+              <li>• {t("\"I'll never succeed\"")}</li>
+              <li>• {t("\"This is going to be a disaster\"")}</li>
             </ul>
           </div>
         </div>
@@ -365,19 +378,19 @@ export default function ThoughtRecordWizard({
             <Sparkles className="h-5 w-5 text-purple-600 mt-0.5 shrink-0" />
             <div>
               <h3 className="text-sm font-bold text-purple-900 mb-1.5">
-                What Are "Automatic Thoughts"?
+                {t("What Are \"Automatic Thoughts\"?")}
               </h3>
               <p className="text-[11px] text-slate-600 leading-relaxed mb-2">
-                These are immediate, lightning-fast thoughts that pop into your mind in response to situations - often so quick you barely notice them!
+                {t("These are immediate, lightning-fast thoughts that pop into your mind in response to situations - often so quick you barely notice them!")}
               </p>
               <p className="text-[11px] font-semibold text-slate-800 mb-1">
-                Automatic thoughts are:
+                {t("Automatic thoughts are:")}
               </p>
               <ul className="text-[11px] text-slate-600 space-y-1 ml-2.5 leading-relaxed">
-                <li>• <strong>Lightning fast</strong> - split-second occurrences</li>
-                <li>• <strong>Believable</strong> - they feel like absolute truth</li>
-                <li>• <strong>Powerful</strong> - strongly affect how you feel</li>
-                <li>• <strong>Sometimes unhelpful</strong> - can be inaccurate</li>
+                <li>• <strong>{t("Lightning fast")}</strong> - {t("split-second occurrences")}</li>
+                <li>• <strong>{t("Believable")}</strong> - {t("they feel like absolute truth")}</li>
+                <li>• <strong>{t("Powerful")}</strong> - {t("strongly affect how you feel")}</li>
+                <li>• <strong>{t("Sometimes unhelpful")}</strong> - {t("can be inaccurate")}</li>
               </ul>
             </div>
           </div>
@@ -385,29 +398,29 @@ export default function ThoughtRecordWizard({
       </div>
 
       <div className="md:col-span-6 space-y-2">
-        <h4 className="font-semibold text-slate-800 text-xs">The 3-Step CBT Method:</h4>
+        <h4 className="font-semibold text-slate-800 text-xs">{t("The 3-Step CBT Method:")}</h4>
         <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
           <h4 className="font-bold text-slate-900 text-xs mb-0.5 flex items-center gap-1.5">
-            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-purple-100 text-[10px] font-bold text-purple-700">1</span>
-            Catch the Thought
+            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-purple-100 text-[10px] font-bold text-purple-700">{tNum(1)}</span>
+            {t("Catch the Thought")}
           </h4>
-          <p className="text-[10px] text-slate-500 leading-normal">Notice immediate negative thoughts exactly as they occur.</p>
+          <p className="text-[10px] text-slate-500 leading-normal">{t("Notice immediate negative thoughts exactly as they occur.")}</p>
         </div>
-        
+
         <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
           <h4 className="font-bold text-slate-900 text-xs mb-0.5 flex items-center gap-1.5">
-            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-purple-100 text-[10px] font-bold text-purple-700">2</span>
-            Identify the Pattern
+            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-purple-100 text-[10px] font-bold text-purple-700">{tNum(2)}</span>
+            {t("Identify the Pattern")}
           </h4>
-          <p className="text-[10px] text-slate-500 leading-normal">Categorize which unhelpful thinking pattern (ANT) it represents.</p>
+          <p className="text-[10px] text-slate-500 leading-normal">{t("Categorize which unhelpful thinking pattern (ANT) it represents.")}</p>
         </div>
-        
+
         <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
           <h4 className="font-bold text-slate-900 text-xs mb-0.5 flex items-center gap-1.5">
-            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-purple-100 text-[10px] font-bold text-purple-700">3</span>
-            Challenge & Reframe
+            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-purple-100 text-[10px] font-bold text-purple-700">{tNum(3)}</span>
+            {t("Challenge & Reframe")}
           </h4>
-          <p className="text-[10px] text-slate-500 leading-normal">Examine evidence and develop a balanced, healthy perspective.</p>
+          <p className="text-[10px] text-slate-500 leading-normal">{t("Examine evidence and develop a balanced, healthy perspective.")}</p>
         </div>
       </div>
     </div>
@@ -418,7 +431,7 @@ export default function ThoughtRecordWizard({
     <div className="grid grid-cols-1 md:grid-cols-12 gap-4" data-testid="step-categorize-thought">
       <div className="md:col-span-8 space-y-3 flex flex-col">
         <div className="bg-purple-50/70 border border-purple-100/50 p-2.5 rounded-xl shadow-2xs">
-          <p className="text-[10.5px] font-semibold text-purple-900 mb-0.5">Your automatic thought:</p>
+          <p className="text-[10.5px] font-semibold text-purple-900 mb-0.5">{t("Your automatic thought:")}</p>
           <p className="text-[11px] italic text-slate-700">"{watchedValues.automaticThought}"</p>
         </div>
 
@@ -428,10 +441,10 @@ export default function ThoughtRecordWizard({
           render={() => (
             <FormItem className="flex-1 flex flex-col">
               <FormLabel className="text-sm font-semibold text-slate-900">
-                Read definitions, then select matches <span className="text-red-500">*</span>
+                {t("Read definitions, then select matches")} <span className="text-red-500">*</span>
               </FormLabel>
               <FormDescription className="text-xxs">
-                Select all unhelpful thinking styles that match your thought (scroll to view all 12)
+                {t("Select all unhelpful thinking styles that match your thought (scroll to view all 12)")}
               </FormDescription>
               <div className="space-y-1.5 mt-1.5 flex-1 overflow-y-auto pr-1 max-h-[220px] border border-slate-100 rounded-xl p-1.5 bg-slate-50/50 custom-scrollbar">
                 {thoughtCategories.map((category) => (
@@ -441,11 +454,11 @@ export default function ThoughtRecordWizard({
                     name="thoughtCategory"
                     render={({ field }) => (
                       <div className={`group relative p-2.5 rounded-lg border transition-all duration-200 cursor-pointer ${
-                        field.value?.includes(category.value) 
-                          ? 'border-purple-500 bg-purple-50/60 shadow-2xs' 
+                        field.value?.includes(category.value)
+                          ? 'border-purple-500 bg-purple-50/60 shadow-2xs'
                           : 'border-slate-200 bg-white hover:border-purple-300 hover:shadow-3xs'
                       }`}>
-                        <div className="flex items-start space-x-2.5">
+                        <div className={`flex items-start ${isRTL ? "space-x-reverse" : ""} space-x-2.5`}>
                           <Checkbox
                             checked={field.value?.includes(category.value)}
                             onCheckedChange={(checked) => {
@@ -460,13 +473,13 @@ export default function ThoughtRecordWizard({
                           />
                           <div className="flex-1">
                             <Label className="text-xs font-bold text-slate-900 cursor-pointer block mb-0.5">
-                              {category.label}
+                              {t(category.label)}
                             </Label>
                             <p className="text-[10.5px] text-slate-500 leading-normal">
-                              {category.description}
+                              {t(category.description)}
                             </p>
                             <span className="block mt-1 text-[10px] text-purple-600 font-medium italic">
-                              Example: "{category.examples[0]}"
+                              {t("Example:")} "{t(category.examples[0])}"
                             </span>
                           </div>
                         </div>
@@ -475,7 +488,11 @@ export default function ThoughtRecordWizard({
                   />
                 ))}
               </div>
-              <FormMessage />
+              {form.formState.errors.thoughtCategory && (
+                <p className="text-red-500 text-sm font-medium">
+                  {translateError(form.formState.errors.thoughtCategory.message)}
+                </p>
+              )}
             </FormItem>
           )}
         />
@@ -483,15 +500,15 @@ export default function ThoughtRecordWizard({
 
       <div className="md:col-span-4">
         <div className="bg-purple-50/40 border border-purple-100 p-3.5 rounded-xl shadow-2xs">
-          <div className="flex items-start">
-            <Info className="h-4.5 w-4.5 text-purple-600 mt-0.5 mr-2 shrink-0" />
+          <div className={`flex items-start ${isRTL ? "flex-row-reverse" : ""}`}>
+            <Info className={`h-4.5 w-4.5 text-purple-600 mt-0.5 shrink-0 me-2`} />
             <div>
-              <h4 className="font-bold text-purple-900 text-xs mb-0.5">💡 What are ANTs?</h4>
+              <h4 className="font-bold text-purple-900 text-xs mb-0.5">{t("💡 What are ANTs?")}</h4>
               <p className="text-[11px] text-purple-800/80 leading-relaxed mb-2">
-                Automatic thoughts can be unhelpful patterns called ANTs (Automatic Negative Thoughts).
+                {t("Automatic thoughts can be unhelpful patterns called ANTs (Automatic Negative Thoughts).")}
               </p>
               <p className="text-[11px] text-purple-800/80 leading-relaxed font-medium">
-                Recognizing these styles is half the battle to reframing your mind!
+                {t("Recognizing these styles is half the battle to reframing your mind!")}
               </p>
             </div>
           </div>
@@ -506,13 +523,13 @@ export default function ThoughtRecordWizard({
       <div className="md:col-span-7 space-y-3">
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-            What was happening when you had this thought? <span className="text-red-500">*</span>
+            {t("What was happening when you had this thought?")} <span className="text-red-500">*</span>
           </label>
           <p className="text-xs text-slate-500">
-            Describe the situation objectively - who, what, when, where
+            {t("Describe the situation objectively - who, what, when, where")}
           </p>
           <Textarea
-            placeholder="e.g., I was preparing for my presentation tomorrow and my manager asked to review my slides..."
+            placeholder={t("e.g., I was preparing for my presentation tomorrow and my manager asked to review my slides...")}
             className="resize-none w-full min-h-[90px] text-sm py-2 px-3 rounded-xl"
             rows={3}
             value={watchedValues.situation || ""}
@@ -523,12 +540,12 @@ export default function ThoughtRecordWizard({
           />
           <div className="flex justify-between items-center text-xs mt-1">
             {form.formState.errors.situation ? (
-              <p className="text-red-500 text-xs">{form.formState.errors.situation.message}</p>
+              <p className="text-red-500 text-xs">{translateError(form.formState.errors.situation.message)}</p>
             ) : (
               <span />
             )}
             <span className={`font-medium ${(watchedValues.situation || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
-              {(watchedValues.situation || "").length}/10 characters minimum
+              {tNum((watchedValues.situation || "").length)}/10 {t("characters minimum")}
             </span>
           </div>
         </div>
@@ -536,21 +553,21 @@ export default function ThoughtRecordWizard({
 
       <div className="md:col-span-5">
         <div className="bg-amber-50/40 border border-amber-100 p-3.5 rounded-xl space-y-3 shadow-2xs">
-          <div className="flex items-start">
-            <Info className="h-4.5 w-4.5 text-amber-600 mt-0.5 mr-2 shrink-0" />
+          <div className={`flex items-start ${isRTL ? "flex-row-reverse" : ""}`}>
+            <Info className={`h-4.5 w-4.5 text-amber-600 mt-0.5 shrink-0 me-2`} />
             <div>
-              <h4 className="font-bold text-amber-900 text-xs mb-0.5">💡 Why Describe Situation?</h4>
+              <h4 className="font-bold text-amber-900 text-xs mb-0.5">{t("💡 Why Describe Situation?")}</h4>
               <p className="text-[11px] text-amber-800/80 leading-relaxed">
-                Context helps identify triggers. Try to stick completely to objective observable facts.
+                {t("Context helps identify triggers. Try to stick completely to objective observable facts.")}
               </p>
             </div>
           </div>
           <div className="border-t border-amber-100/50 pt-2.5">
-            <h4 className="font-bold text-amber-950 text-xs mb-1.5">Observable Tips:</h4>
+            <h4 className="font-bold text-amber-950 text-xs mb-1.5">{t("Observable Tips:")}</h4>
             <ul className="text-[11px] text-amber-900/70 space-y-1">
-              <li>• Stick to objective facts (who, what, when, where)</li>
-              <li>• Avoid subjective judgment words (e.g., "terrible")</li>
-              <li>• Keep descriptions concise and trigger-focused</li>
+              <li>• {t("Stick to objective facts (who, what, when, where)")}</li>
+              <li>• {t("Avoid subjective judgment words (e.g., \"terrible\")")}</li>
+              <li>• {t("Keep descriptions concise and trigger-focused")}</li>
             </ul>
           </div>
         </div>
@@ -568,10 +585,10 @@ export default function ThoughtRecordWizard({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-sm font-semibold text-slate-900">
-                Link to a Recent Emotion (Optional)
+                {t("Link to a Recent Emotion (Optional)")}
               </FormLabel>
               <FormDescription className="text-xs">
-                Select an emotion you tracked recently, or skip this step
+                {t("Select an emotion you tracked recently, or skip this step")}
               </FormDescription>
               <Select
                 value={field.value?.toString() || "none"}
@@ -581,27 +598,19 @@ export default function ThoughtRecordWizard({
               >
                 <FormControl>
                   <SelectTrigger data-testid="select-emotion-link" className="rounded-xl">
-                    <SelectValue placeholder="No emotion linked" />
+                    <SelectValue placeholder={t("No emotion linked")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="none">No emotion linked</SelectItem>
+                  <SelectItem value="none">{t("No emotion linked")}</SelectItem>
                   {recentEmotions.map((emotion) => (
                     <SelectItem key={emotion.id} value={emotion.id.toString()}>
-                      <div className="flex items-center gap-1.5">
-                        <span>{emotion.primaryEmotion || emotion.coreEmotion}</span>
-                        {emotion.tertiaryEmotion && (
-                          <span className="text-slate-500">({emotion.tertiaryEmotion})</span>
-                        )}
-                        <span className="text-xs text-slate-400">
-                          - {format(new Date(emotion.timestamp), "MMM d, h:mm a")}
-                        </span>
-                      </div>
+                      {formatEmotionLabel(emotion)}
                     </SelectItem>
                   ))}
                   {recentEmotions.length === 0 && (
                     <SelectItem value="__empty" disabled>
-                      No recent emotions tracked
+                      {t("No recent emotions tracked")}
                     </SelectItem>
                   )}
                 </SelectContent>
@@ -615,29 +624,29 @@ export default function ThoughtRecordWizard({
           <div className="bg-green-50/40 border border-green-200/60 p-3 rounded-xl shadow-2xs mt-3">
             <h4 className="font-bold text-green-950 text-xs mb-1.5 flex items-center gap-1.5">
               <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
-              Linked Emotion
+              {t("Linked Emotion")}
             </h4>
             <div className="flex items-center gap-1.5 flex-wrap">
               <Badge variant="secondary" className="text-[10px] px-2 py-0">
-                {selectedEmotion.coreEmotion}
+                {translateEmotion(selectedEmotion.coreEmotion, currentLanguage)}
               </Badge>
               {selectedEmotion.primaryEmotion && (
                 <Badge variant="outline" className="text-[10px] px-2 py-0">
-                  {selectedEmotion.primaryEmotion}
+                  {translateEmotion(selectedEmotion.primaryEmotion, currentLanguage)}
                 </Badge>
               )}
               {selectedEmotion.tertiaryEmotion && (
                 <Badge variant="outline" className="text-[10px] px-2 py-0">
-                  {selectedEmotion.tertiaryEmotion}
+                  {translateEmotion(selectedEmotion.tertiaryEmotion, currentLanguage)}
                 </Badge>
               )}
               <span className="text-[10px] font-medium text-slate-600">
-                Intensity: {selectedEmotion.intensity}/10
+                {t("Intensity:")} {tNum(selectedEmotion.intensity)}/10
               </span>
             </div>
             {selectedEmotion.situation && (
               <p className="text-[10px] text-slate-650 mt-1.5 leading-normal">
-                <strong>Situation:</strong> {selectedEmotion.situation}
+                <strong>{t("Situation:")}</strong> {selectedEmotion.situation}
               </p>
             )}
           </div>
@@ -646,12 +655,12 @@ export default function ThoughtRecordWizard({
 
       <div className="md:col-span-5">
         <div className="bg-purple-50/40 border border-purple-100 p-3.5 rounded-xl shadow-2xs">
-          <div className="flex items-start">
-            <Info className="h-4.5 w-4.5 text-purple-600 mt-0.5 mr-2 shrink-0" />
+          <div className={`flex items-start ${isRTL ? "flex-row-reverse" : ""}`}>
+            <Info className={`h-4.5 w-4.5 text-purple-600 mt-0.5 shrink-0 me-2`} />
             <div>
-              <h4 className="font-bold text-purple-900 text-xs mb-0.5">💡 Why Link to Emotion?</h4>
+              <h4 className="font-bold text-purple-900 text-xs mb-0.5">{t("💡 Why Link to Emotion?")}</h4>
               <p className="text-[11px] text-purple-800/80 leading-relaxed">
-                Connecting thoughts to your tracked emotions reveals patterns between what you think and how you feel.
+                {t("Connecting thoughts to your tracked emotions reveals patterns between what you think and how you feel.")}
               </p>
             </div>
           </div>
@@ -669,9 +678,9 @@ export default function ThoughtRecordWizard({
           <Brain className="h-5 w-5 text-white" />
         </div>
         <div className="space-y-0.5">
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Record a Thought</h2>
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">{t("Record a Thought")}</h2>
           <p className="text-[11px] text-slate-500 leading-relaxed">
-            Capture and challenge automatic negative thoughts (ANTs) using clinical CBT techniques to improve mental well-being.
+            {t("Capture and challenge automatic negative thoughts (ANTs) using clinical CBT techniques to improve mental well-being.")}
           </p>
         </div>
       </div>
@@ -682,28 +691,28 @@ export default function ThoughtRecordWizard({
         <div className="bg-gradient-to-br from-indigo-50/20 to-purple-50/20 p-3.5 rounded-xl border border-indigo-100/30 shadow-xs flex flex-col justify-center">
           <h3 className="font-semibold text-slate-900 text-xs mb-2 flex items-center gap-1.5">
             <HelpCircle className="h-3.5 w-3.5 text-indigo-600" />
-            What You'll Do Next
+            {t("What You'll Do Next")}
           </h3>
           <ol className="space-y-1.5 text-xxs text-slate-650 leading-normal">
             <li className="flex items-start gap-1.5">
-              <span className="font-bold text-indigo-600">1.</span>
-              <span>Write down the automatic negative thought</span>
+              <span className="font-bold text-indigo-600">{tNum(1)}.</span>
+              <span>{t("Write down the automatic negative thought")}</span>
             </li>
             <li className="flex items-start gap-1.5">
-              <span className="font-bold text-indigo-600">2.</span>
-              <span>Learn about automatic thoughts in CBT</span>
+              <span className="font-bold text-indigo-600">{tNum(2)}.</span>
+              <span>{t("Learn about automatic thoughts in CBT")}</span>
             </li>
             <li className="flex items-start gap-1.5">
-              <span className="font-bold text-indigo-600">3.</span>
-              <span>Categorize matching thinking patterns (ANTs)</span>
+              <span className="font-bold text-indigo-600">{tNum(3)}.</span>
+              <span>{t("Categorize matching thinking patterns (ANTs)")}</span>
             </li>
             <li className="flex items-start gap-1.5">
-              <span className="font-bold text-indigo-600">4.</span>
-              <span>Describe the situation that triggered the thought</span>
+              <span className="font-bold text-indigo-600">{tNum(4)}.</span>
+              <span>{t("Describe the situation that triggered the thought")}</span>
             </li>
             <li className="flex items-start gap-1.5">
-              <span className="font-bold text-indigo-600">5.</span>
-              <span>Optionally link to a tracked emotion</span>
+              <span className="font-bold text-indigo-600">{tNum(5)}.</span>
+              <span>{t("Optionally link to a tracked emotion")}</span>
             </li>
           </ol>
         </div>
@@ -711,20 +720,20 @@ export default function ThoughtRecordWizard({
         {/* Right column: Concept cards */}
         <div className="grid grid-cols-2 gap-2.5 h-full">
           {[
-            { icon: Sparkles, color: "text-indigo-600 bg-indigo-50", title: "Notice Thoughts", desc: "Catch thoughts triggering moods." },
-            { icon: BrainCircuit, color: "text-purple-600 bg-purple-50", title: "Identify Patterns", desc: "Recognize ANTs categories." },
-            { icon: Scale, color: "text-blue-600 bg-blue-50", title: "Examine Evidence", desc: "Examine facts for & against." },
-            { icon: Lightbulb, color: "text-amber-600 bg-amber-50", title: "Gain Insights", desc: "Develop healthy reframes." }
+            { icon: Sparkles, color: "text-indigo-600 bg-indigo-50", titleKey: "Notice Thoughts", descKey: "Catch thoughts triggering moods." },
+            { icon: BrainCircuit, color: "text-purple-600 bg-purple-50", titleKey: "Identify Patterns", descKey: "Recognize ANTs categories." },
+            { icon: Scale, color: "text-blue-600 bg-blue-50", titleKey: "Examine Evidence", descKey: "Examine facts for & against." },
+            { icon: Lightbulb, color: "text-amber-600 bg-amber-50", titleKey: "Gain Insights", descKey: "Develop healthy reframes." }
           ].map((item, idx) => (
             <Card key={idx} className="border-slate-100 bg-white p-3 shadow-2xs rounded-lg h-full flex flex-col justify-center">
               <CardHeader className="p-0 pb-1.5 flex flex-row items-center gap-2">
                 <div className={`p-1.5 rounded-md ${item.color} shrink-0`}>
                   <item.icon className="h-4 w-4" />
                 </div>
-                <span className="text-xs sm:text-sm font-bold text-slate-800 leading-tight">{item.title}</span>
+                <span className="text-xs sm:text-sm font-bold text-slate-800 leading-tight">{t(item.titleKey)}</span>
               </CardHeader>
               <CardContent className="p-0 mt-0.5">
-                <p className="text-[11px] sm:text-xs text-slate-500 leading-normal sm:leading-relaxed">{item.desc}</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 leading-normal sm:leading-relaxed">{t(item.descKey)}</p>
               </CardContent>
             </Card>
           ))}
@@ -754,13 +763,13 @@ export default function ThoughtRecordWizard({
 
   return (
     <>
-      <Card className="max-w-3xl mx-auto shadow-sm border-slate-100/80 overflow-hidden">
+      <Card dir={isRTL ? "rtl" : "ltr"} className="max-w-3xl mx-auto shadow-sm border-slate-100/80 overflow-hidden">
         <WizardProgressHeader
-          title="Record a Thought"
+          title={t("Record a Thought")}
           icon={Brain}
           currentStep={currentStep}
           totalSteps={totalSteps}
-          stepLabels={["1. Situation", "2. Thought", "3. ANTs", "4. Link", "5. Review"]}
+          stepLabels={[t("1. Situation"), t("2. Thought"), t("3. ANTs"), t("4. Link"), t("5. Review")]}
           accentClassName="text-indigo-600"
           onClose={onClose}
         />
@@ -779,6 +788,7 @@ export default function ThoughtRecordWizard({
                 onSubmit={() => form.handleSubmit(onSubmit)()}
                 isSubmitting={isSubmitting}
                 submitLabel="Record Thought"
+                introNextLabel="Get Started"
                 submitIcon={CheckCircle2}
                 nextButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl border-0 transition-all shadow-md"
                 submitButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl border-0 transition-all shadow-md"
@@ -792,7 +802,7 @@ export default function ThoughtRecordWizard({
                         disabled={isSubmitting}
                         data-testid="button-skip-emotion"
                       >
-                        Skip & Record
+                        {t("Skip & Record")}
                       </Button>
                     )}
                   </>
@@ -803,73 +813,55 @@ export default function ThoughtRecordWizard({
         </CardContent>
       </Card>
 
-      {/* Success Dialog */}
-      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="max-w-md">
-          <DialogTitle className="sr-only">Thought Recorded Successfully</DialogTitle>
-          <DialogDescription className="sr-only">Your automatic thought has been saved</DialogDescription>
-          <div className="text-center space-y-4 py-4">
-            <div className="flex justify-center">
-              <div className="rounded-full bg-green-100 p-3">
-                <CheckCircle2 className="h-12 w-12 text-green-600" />
-              </div>
-            </div>
+      <WizardSuccessDialog
+        open={showSuccessDialog}
+        onOpenChange={setShowSuccessDialog}
+        title={t("Thought Recorded Successfully!")}
+        description={t("Great job capturing your automatic thought. What would you like to do next?")}
+        testId="dialog-thought-success"
+      >
+        <div className="flex flex-col gap-2.5">
+          <Button
+            size="lg"
+            className="flex items-center justify-center gap-2 h-11 bg-[#090514] hover:bg-purple-950 text-white rounded-xl text-sm font-semibold"
+            onClick={() => {
+              setShowSuccessDialog(false);
+              setShowChallengeWizard(true);
+            }}
+            data-testid="button-challenge-thought"
+          >
+            <Sparkles className="h-4 w-4" />
+            {t("Challenge This Thought (Optional)")}
+          </Button>
 
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                Thought Recorded Successfully!
-              </h3>
-              <p className="text-gray-600">
-                Great job capturing your automatic thought. What would you like to do next?
-              </p>
-            </div>
+          <Button
+            size="lg"
+            variant="outline"
+            className="flex items-center justify-center gap-2 h-11 rounded-xl border-slate-200 hover:border-purple-200 hover:bg-purple-50 text-sm"
+            onClick={() => {
+              handleReset();
+            }}
+            data-testid="button-record-another-thought"
+          >
+            <RefreshCw className="h-4 w-4" />
+            {t("Record Another Thought")}
+          </Button>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-3 pt-4">
-              <Button
-                size="lg"
-                variant="default"
-                className="flex items-center justify-center gap-2 h-12"
-                onClick={() => {
-                  setShowSuccessDialog(false);
-                  setShowChallengeWizard(true);
-                }}
-                data-testid="button-challenge-thought"
-              >
-                <Sparkles className="h-5 w-5" />
-                Challenge This Thought (Optional)
-              </Button>
-
-              <Button
-                size="lg"
-                variant="outline"
-                className="flex items-center justify-center gap-2 h-12"
-                onClick={() => {
-                  handleReset();
-                }}
-                data-testid="button-record-another-thought"
-              >
-                <RefreshCw className="h-5 w-5" />
-                Record Another Thought
-              </Button>
-
-              <Button
-                size="lg"
-                variant="outline"
-                className="flex items-center justify-center gap-2 h-12"
-                onClick={() => {
-                  setShowSuccessDialog(false);
-                  onClose();
-                }}
-                data-testid="button-close-wizard"
-              >
-                <X className="h-5 w-5" />
-                Close
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          <Button
+            size="lg"
+            variant="outline"
+            className="flex items-center justify-center gap-2 h-11 rounded-xl border-slate-200 hover:border-purple-200 hover:bg-purple-50 text-sm"
+            onClick={() => {
+              setShowSuccessDialog(false);
+              onClose();
+            }}
+            data-testid="button-close-wizard"
+          >
+            <X className="h-4 w-4" />
+            {t("Close")}
+          </Button>
+        </div>
+      </WizardSuccessDialog>
 
       {/* Thought Challenge Wizard */}
       {recordedThought && (

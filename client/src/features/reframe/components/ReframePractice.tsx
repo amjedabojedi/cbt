@@ -25,40 +25,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { Loader2, CheckCircle2, AlertCircle, Trophy, Flame, Zap, BarChart3, ChevronRight, ShieldAlert, BadgeCheck, Sparkles } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
-
-// Helper function to format cognitive distortion names for display
-function formatCognitiveDistortion(distortion: string): string {
-  if (!distortion) return "Unknown";
-  
-  // Handle special cases like hyphenated names
-  if (distortion === "emotional-reasoning") return "Emotional Reasoning";
-  if (distortion === "mind-reading") return "Mind Reading";
-  if (distortion === "fortune-telling") return "Fortune Telling";
-  if (distortion === "all-or-nothing") return "All or Nothing";
-  if (distortion === "unknown") return "Cognitive Distortion";
-  
-  // General case: convert kebab-case or snake_case to Title Case
-  return distortion
-    .replace(/[-_]/g, ' ')
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
-
-// Helper function to format emotion category names for display
-function formatEmotionCategory(category: string): string {
-  if (!category) return "Unknown";
-  if (category === "unknown") return "Emotion";
-  
-  // Convert to Title Case
-  return category
-    .replace(/[-_]/g, ' ')
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { useLocalization, DynamicTranslator } from "@/lib/localize.tsx";
+import { formatDistortionLabel, formatEmotionCategoryLabel } from "@/features/reframe/utils/reframeLabels";
 
 // Types for practice scenario data
 interface PracticeOption {
@@ -79,6 +48,16 @@ interface PracticeSession {
   thoughtContent: string;
   generalFeedback: string;
 }
+
+const ACHIEVEMENT_LABEL_KEYS: Record<string, string> = {
+  streak_3: "3-Day Streak",
+  streak_7: "7-Day Streak",
+  streak_14: "14-Day Streak",
+  practice_5: "5 Practice Sessions",
+  practice_20: "20 Practice Sessions",
+  practice_50: "50 Practice Sessions",
+  perfect_score: "Perfect Score",
+};
 
 interface UserChoice {
   scenarioIndex: number;
@@ -105,26 +84,33 @@ const PracticeScenario = ({
   showFeedback: boolean;
   onNext: () => void;
 }) => {
+  const { t, tNum, isRTL, currentLanguage } = useLocalization();
+
   return (
-    <Card className="w-full mb-6 border border-slate-100 shadow-lg rounded-2xl bg-white overflow-hidden">
+    <Card dir={isRTL ? "rtl" : "ltr"} className="w-full mb-6 border border-slate-100 shadow-lg rounded-2xl bg-white overflow-hidden">
       <CardHeader className="pb-4 bg-slate-50/50 border-b border-slate-100">
         <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
           <span className="text-xs font-bold text-purple-600 uppercase tracking-widest">
-            Scenario {currentIndex + 1} of {totalScenarios}
+            {t("Scenario")} {tNum(currentIndex + 1)} {t("of")} {tNum(totalScenarios)}
           </span>
           <div className="flex items-center gap-2">
             <span className="bg-purple-50 text-purple-700 border border-purple-100 px-3 py-1 rounded-full text-xxs font-bold uppercase tracking-wider shadow-2xs">
-              {formatCognitiveDistortion(scenario.cognitiveDistortion)}
+              {formatDistortionLabel(scenario.cognitiveDistortion, t)}
             </span>
-            <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full text-xxs font-bold uppercase tracking-wider shadow-2xs">
-              {formatEmotionCategory(scenario.emotionCategory)}
+            <span
+              className={cn(
+                "bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full text-xxs font-bold tracking-wider shadow-2xs",
+                !isRTL && "uppercase"
+              )}
+            >
+              {formatEmotionCategoryLabel(scenario.emotionCategory, t, currentLanguage)}
             </span>
           </div>
         </div>
         <div className="rounded-xl bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 border border-purple-900/20 shadow-md px-5 py-4 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-purple-600/10 rounded-full blur-xl pointer-events-none" />
+          <div className="absolute top-0 end-0 w-24 h-24 bg-purple-600/10 rounded-full blur-xl pointer-events-none" />
           <CardTitle className="text-sm md:text-[0.95rem] font-semibold leading-relaxed italic text-purple-50">
-            "{scenario.scenario}"
+            "<DynamicTranslator text={scenario.scenario} />"
           </CardTitle>
         </div>
       </CardHeader>
@@ -132,7 +118,7 @@ const PracticeScenario = ({
       <CardContent className="space-y-4 pt-6">
         <p className="text-xs md:text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
           <Sparkles className="h-4 w-4 text-purple-600 animate-pulse animate-duration-2000" />
-          How would you reframe this thought?
+          {t("How would you reframe this thought?")}
         </p>
         
         <div className="space-y-3">
@@ -183,7 +169,9 @@ const PracticeScenario = ({
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-slate-800 text-sm leading-snug">{option.text}</p>
+                    <p className="font-semibold text-slate-800 text-sm leading-snug">
+                      <DynamicTranslator text={option.text} />
+                    </p>
                     
                     {showFeedback && (isSelected || isCorrect) && (
                       <div className={cn(
@@ -192,7 +180,9 @@ const PracticeScenario = ({
                           ? "bg-emerald-100/35 text-emerald-800 border-emerald-200/50" 
                           : "bg-rose-100/35 text-rose-800 border-rose-200/50"
                       )}>
-                        <p className="font-medium">{option.explanation}</p>
+                        <p className="font-medium">
+                          <DynamicTranslator text={option.explanation} />
+                        </p>
                       </div>
                     )}
                   </div>
@@ -210,7 +200,7 @@ const PracticeScenario = ({
               className="w-full bg-[#090514] hover:bg-purple-950 text-white font-bold py-5 rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-2" 
               onClick={onNext}
             >
-              {currentIndex < totalScenarios - 1 ? "Next Scenario" : "See Results"}
+              {currentIndex < totalScenarios - 1 ? t("Next Scenario") : t("See Results")}
               <ChevronRight className="h-4.5 w-4.5" />
             </Button>
           )}
@@ -227,6 +217,7 @@ const GameProfile = ({
   userId: number;
   newAchievements?: string[];
 }) => {
+  const { t, tNum, isRTL } = useLocalization();
   const { data: profile, isLoading } = useQuery({
     queryKey: [`/api/users/${userId}/reframe-coach/profile`],
   });
@@ -254,26 +245,16 @@ const GameProfile = ({
     strongestDistortion 
   } = statsInfo;
   
-  const achievementLabels: Record<string, string> = {
-    "streak_3": "3-Day Streak",
-    "streak_7": "7-Day Streak",
-    "streak_14": "14-Day Streak",
-    "practice_5": "5 Practice Sessions",
-    "practice_20": "20 Practice Sessions",
-    "practice_50": "50 Practice Sessions",
-    "perfect_score": "Perfect Score"
-  };
-  
   return (
-    <Card className="border border-slate-100 shadow-lg bg-white overflow-hidden rounded-2xl">
+    <Card dir={isRTL ? "rtl" : "ltr"} className="border border-slate-100 shadow-lg bg-white overflow-hidden rounded-2xl">
       <CardHeader className="bg-gradient-to-br from-[#090514] to-purple-950 text-white pb-6 relative">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/20 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute top-0 end-0 w-32 h-32 bg-purple-600/20 rounded-full blur-2xl pointer-events-none" />
         <CardTitle className="flex items-center text-xl font-bold">
-          <Trophy className="mr-2.5 h-6 w-6 text-amber-400 animate-pulse" />
-          Your Reframe Coach Profile
+          <Trophy className="me-2.5 h-6 w-6 text-amber-400 animate-pulse" />
+          {t("Your Reframe Coach Profile")}
         </CardTitle>
         <CardDescription className="text-purple-200/70">
-          Track your cognitive reframing mastery, streaks, and awards
+          {t("Track your cognitive reframing mastery, streaks, and awards")}
         </CardDescription>
       </CardHeader>
       
@@ -282,8 +263,8 @@ const GameProfile = ({
           {/* Level card */}
           <div className="p-4 rounded-xl border border-purple-100 bg-purple-50/30 flex flex-col justify-between space-y-3">
             <div>
-              <p className="text-[10px] font-bold text-purple-700 uppercase tracking-widest">Skill Level</p>
-              <p className="text-2xl font-extrabold text-slate-800">Level {level}</p>
+              <p className="text-[10px] font-bold text-purple-700 uppercase tracking-widest">{t("Skill Level")}</p>
+              <p className="text-2xl font-extrabold text-slate-800">{t("Level")} {tNum(level)}</p>
             </div>
             <div className="space-y-1.5">
               <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
@@ -295,8 +276,8 @@ const GameProfile = ({
                 ></div>
               </div>
               <div className="flex justify-between text-[10px] font-bold text-slate-500">
-                <span>{(totalScore % 500)} / 500 XP</span>
-                <span>{500 - (totalScore % 500)} XP to level up</span>
+                <span>{tNum(totalScore % 500)} / {tNum(500)} XP</span>
+                <span>{tNum(500 - (totalScore % 500))} {t("XP to level up")}</span>
               </div>
             </div>
           </div>
@@ -304,14 +285,14 @@ const GameProfile = ({
           {/* Streak card */}
           <div className="p-4 rounded-xl border border-amber-100 bg-amber-50/20 flex flex-col justify-between">
             <div>
-              <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Current Streak</p>
+              <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">{t("Current Streak")}</p>
               <div className="flex items-center mt-1">
-                <Flame className="h-7 w-7 text-amber-500 fill-amber-500 animate-bounce mr-2 shrink-0 animate-duration-1000" />
-                <span className="text-2xl font-extrabold text-slate-800">{practiceStreak} Days</span>
+                <Flame className="h-7 w-7 text-amber-500 fill-amber-500 animate-bounce me-2 shrink-0 animate-duration-1000" />
+                <span className="text-2xl font-extrabold text-slate-800">{tNum(practiceStreak)} {t("Days")}</span>
               </div>
             </div>
             <p className="text-xs font-semibold text-amber-600/80 mt-3">
-              Practice daily to keep the restructuring fire burning!
+              {t("Practice daily to keep the restructuring fire burning!")}
             </p>
           </div>
         </div>
@@ -319,14 +300,14 @@ const GameProfile = ({
         <div className="space-y-3">
           <h3 className="font-bold text-sm text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
             <BarChart3 className="h-4 w-4 text-purple-600" />
-            Cognitive Statistics
+            {t("Cognitive Statistics")}
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "Sessions", value: totalPractices || 0, color: "bg-slate-50 border-slate-100" },
-              { label: "Avg Score", value: avgScore ? Math.round(avgScore) : 0, color: "bg-purple-50/30 border-purple-50" },
-              { label: "Accuracy", value: `${accuracyRate || 0}%`, color: "bg-emerald-50/20 border-emerald-50" },
-              { label: "Best Distortion Mastery", value: strongestDistortion ? formatCognitiveDistortion(strongestDistortion) : "N/A", color: "bg-indigo-50/20 border-indigo-50", isWide: true },
+              { label: t("Sessions"), value: tNum(totalPractices || 0), color: "bg-slate-50 border-slate-100" },
+              { label: t("Avg Score"), value: tNum(avgScore ? Math.round(avgScore) : 0), color: "bg-purple-50/30 border-purple-50" },
+              { label: t("Accuracy"), value: `${tNum(accuracyRate || 0)}%`, color: "bg-emerald-50/20 border-emerald-50" },
+              { label: t("Best Distortion Mastery"), value: strongestDistortion ? formatDistortionLabel(strongestDistortion, t) : t("N/A"), color: "bg-indigo-50/20 border-indigo-50", isWide: true },
             ].map((s, idx) => (
               <div key={idx} className={cn("border p-3.5 rounded-xl text-center flex flex-col justify-center", s.color, s.isWide && "col-span-2 sm:col-span-1")}>
                 <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{s.label}</span>
@@ -337,9 +318,10 @@ const GameProfile = ({
         </div>
         
         <div className="space-y-3">
-          <h3 className="font-bold text-sm text-slate-800 uppercase tracking-wider">Achievements</h3>
+          <h3 className="font-bold text-sm text-slate-800 uppercase tracking-wider">{t("Achievements")}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {Object.entries(achievementLabels).map(([key, label]) => {
+            {Object.entries(ACHIEVEMENT_LABEL_KEYS).map(([key, labelKey]) => {
+              const label = t(labelKey);
               const isEarned = achievements.includes(key);
               const isNew = newAchievements.includes(key);
               
@@ -401,22 +383,23 @@ const PracticeResults = ({
   thoughtRecordId?: number;
   isQuickPractice?: boolean;
 }) => {
+  const { t, tNum, isRTL } = useLocalization();
   const correctAnswers = userChoices.filter(choice => choice.isCorrect).length;
   const accuracy = scenarios.length > 0 ? Math.round((correctAnswers / scenarios.length) * 100) : 0;
   
   return (
-    <div className="space-y-6 animate-fade-in-up duration-300">
+    <div dir={isRTL ? "rtl" : "ltr"} className="space-y-6 animate-fade-in-up duration-300">
       <Card className="border border-slate-100 shadow-xl rounded-2xl overflow-hidden bg-white">
         <CardHeader className="bg-gradient-to-br from-[#090514] to-purple-950 text-white pb-6 relative text-center">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 end-0 w-32 h-32 bg-purple-600/20 rounded-full blur-2xl pointer-events-none" />
           <div className="mx-auto bg-purple-600/20 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-3">
             <Trophy className="h-7 w-7 text-amber-400" />
           </div>
           <CardTitle className="text-xl md:text-2xl font-bold">
-            Practice Complete!
+            {t("Practice Complete!")}
           </CardTitle>
           <CardDescription className="text-purple-200/80">
-            Fantastic job challenging and reframing these scenarios!
+            {t("Fantastic job challenging and reframing these scenarios!")}
           </CardDescription>
         </CardHeader>
         
@@ -424,9 +407,9 @@ const PracticeResults = ({
           {/* Stats Ring/Cards Grid */}
           <div className="grid grid-cols-3 gap-4">
             {[
-              { label: "Points Earned", value: totalScore, color: "text-purple-600 bg-purple-50/50 border-purple-100" },
-              { label: "Accuracy", value: `${accuracy}%`, color: "text-emerald-600 bg-emerald-50/50 border-emerald-100" },
-              { label: "Answers", value: `${correctAnswers}/${scenarios.length}`, color: "text-indigo-600 bg-indigo-50/50 border-indigo-100" }
+              { label: t("Points Earned"), value: tNum(totalScore), color: "text-purple-600 bg-purple-50/50 border-purple-100" },
+              { label: t("Accuracy"), value: `${tNum(accuracy)}%`, color: "text-emerald-600 bg-emerald-50/50 border-emerald-100" },
+              { label: t("Answers"), value: `${tNum(correctAnswers)}/${tNum(scenarios.length)}`, color: "text-indigo-600 bg-indigo-50/50 border-indigo-100" }
             ].map((s, idx) => (
               <div key={idx} className={cn("text-center p-4 border rounded-xl flex flex-col justify-center shadow-xs", s.color)}>
                 <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{s.label}</p>
@@ -440,13 +423,13 @@ const PracticeResults = ({
             <div className="border border-amber-200 bg-amber-50/60 rounded-xl p-4 flex gap-3.5 shadow-xs">
               <Trophy className="h-5 w-5 text-amber-500 fill-amber-500 shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-sm font-bold text-amber-800">New Achievements Unlocked!</h4>
-                <ul className="mt-1.5 list-disc pl-5 text-xs text-amber-700 font-semibold space-y-1">
+                <h4 className="text-sm font-bold text-amber-800">{t("New Achievements Unlocked!")}</h4>
+                <ul className="mt-1.5 list-disc ps-5 text-xs text-amber-700 font-semibold space-y-1">
                   {gameUpdates.newAchievements.map((achievement: any, idx: number) => (
                     <li key={idx}>
-                      {typeof achievement === 'string' 
-                        ? achievement.replace(/_/g, ' ') 
-                        : (achievement.name || 'New Trophy')}
+                      {typeof achievement === "string"
+                        ? t(ACHIEVEMENT_LABEL_KEYS[achievement] ?? achievement.replace(/_/g, " "))
+                        : (achievement.name || t("New Trophy"))}
                     </li>
                   ))}
                 </ul>
@@ -458,9 +441,11 @@ const PracticeResults = ({
             <div className="border border-purple-200 bg-purple-50/60 rounded-xl p-4 flex gap-3.5 shadow-xs">
               <Zap className="h-5 w-5 text-purple-600 fill-purple-600 shrink-0 mt-0.5 animate-bounce" />
               <div>
-                <h4 className="text-sm font-bold text-purple-800">Level Up!</h4>
+                <h4 className="text-sm font-bold text-purple-800">{t("Level Up!")}</h4>
                 <p className="text-xs text-purple-700 font-medium mt-0.5">
-                  You reached <span className="font-extrabold">Level {gameUpdates.newLevel}</span>! Keep practicing to unlock more advanced exercises.
+                  {t("You reached")}{" "}
+                  <span className="font-extrabold">{t("Level")} {tNum(gameUpdates.newLevel)}</span>!{" "}
+                  {t("Keep practicing to unlock more advanced exercises.")}
                 </p>
               </div>
             </div>
@@ -469,9 +454,9 @@ const PracticeResults = ({
           <div className="border border-emerald-100 bg-emerald-50/30 rounded-xl p-4 flex gap-3.5 shadow-xs items-center">
             <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
             <div className="flex-1 min-w-0">
-              <h4 className="text-xs font-bold text-emerald-800">Progress Recorded</h4>
+              <h4 className="text-xs font-bold text-emerald-800">{t("Progress Recorded")}</h4>
               <p className="text-[10px] text-emerald-700 font-semibold mt-0.5">
-                Your restructuring statistics have been committed to your secure profile.
+                {t("Your restructuring statistics have been committed to your secure profile.")}
               </p>
             </div>
           </div>
@@ -483,14 +468,14 @@ const PracticeResults = ({
               variant="outline" 
               className="flex-1 py-5 rounded-xl border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition-all duration-300"
             >
-              Return to Thought Records
+              {t("Return to Thought Records")}
             </Button>
             
             <Button 
               onClick={() => window.location.href = `/users/${userId}/reframe-coach?tab=history`} 
               className="flex-1 py-5 rounded-xl bg-[#090514] hover:bg-purple-950 text-white font-semibold shadow-md transition-all duration-300"
             >
-              View Practice History
+              {t("View Practice History")}
             </Button>
           </div>
         </CardContent>
@@ -520,6 +505,7 @@ const ReframePractice = ({
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const { t, tNum, isRTL } = useLocalization();
   
   // Check authentication status
   const [authChecked, setAuthChecked] = useState(false);
@@ -541,8 +527,8 @@ const ReframePractice = ({
       if (!user) {
         console.error("User not authenticated in ReframePractice component");
         toast({
-          title: "Authentication Required",
-          description: "Please log in to access this feature",
+          title: t("Authentication Required"),
+          description: t("Please log in to access this feature"),
           variant: "destructive"
         });
       }
@@ -764,8 +750,8 @@ const ReframePractice = ({
           // Only show toast on first error to avoid multiple notifications
           if (retryCount === 1) {
             toast({
-              title: "Connection issue detected",
-              description: "We'll try again to save your results...",
+              title: t("Connection issue detected"),
+              description: t("We'll try again to save your results..."),
               variant: "destructive"
             });
           }
@@ -799,17 +785,17 @@ const ReframePractice = ({
       
       // Show confirmation toast with more detailed information
       toast({
-        title: "Practice Complete",
-        description: "Your results have been saved successfully! Your progress is being tracked in your profile.",
-        variant: "default", // Using default instead of success as it's in the allowed variants
-        duration: 5000 // Show for 5 seconds to ensure user sees it
+        title: t("Practice Complete"),
+        description: t("Your results have been saved successfully! Your progress is being tracked in your profile."),
+        variant: "default",
+        duration: 5000
       });
     },
     onError: (error: Error) => {
       console.error("Mutation error saving results:", error);
       toast({
-        title: "Error saving results",
-        description: error.message || "Unknown error occurred",
+        title: t("Error saving results"),
+        description: error.message || t("Unknown error occurred"),
         variant: "destructive"
       });
     }
@@ -886,14 +872,14 @@ const ReframePractice = ({
   // Skip this check if we have practice scenarios directly provided via props
   if (!propPracticeScenarios && !isLoading && (!currentUserId || (!thoughtRecordId && !assignmentId))) {
     return (
-      <Alert variant="destructive" className="mb-6">
+      <Alert dir={isRTL ? "rtl" : "ltr"} variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Missing Information</AlertTitle>
+        <AlertTitle>{t("Missing Information")}</AlertTitle>
         <AlertDescription>
-          Required parameters are missing. Please start from a thought record.
+          {t("Required parameters are missing. Please start from a thought record.")}
         </AlertDescription>
         <Button className="mt-4" onClick={() => setLocation(`/users/${user?.id || ''}/thoughts`)}>
-          Go to Thoughts
+          {t("Go to Thoughts")}
         </Button>
       </Alert>
     );
@@ -902,10 +888,10 @@ const ReframePractice = ({
   // Show loading state only if we're waiting on API and don't have scenarios from props
   if (!propPracticeScenarios && isLoading) {
     return (
-      <div className="flex items-center justify-center p-12">
+      <div dir={isRTL ? "rtl" : "ltr"} className="flex items-center justify-center p-12">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading practice scenarios...</p>
+          <p className="text-muted-foreground">{t("Loading practice scenarios...")}</p>
         </div>
       </div>
     );
@@ -914,11 +900,11 @@ const ReframePractice = ({
   // Only show API errors if we're not using provided scenarios
   if (!propPracticeScenarios && error) {
     return (
-      <Alert variant="destructive" className="mb-6">
+      <Alert dir={isRTL ? "rtl" : "ltr"} variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
+        <AlertTitle>{t("Error")}</AlertTitle>
         <AlertDescription>
-          Failed to load practice scenarios. Please try again later.
+          {t("Failed to load practice scenarios. Please try again later.")}
         </AlertDescription>
       </Alert>
     );
@@ -927,17 +913,17 @@ const ReframePractice = ({
   // Safety check for scenarios - might be undefined at first
   if (!scenarios || scenarios.length === 0) {
     return (
-      <Alert variant="destructive" className="mb-6">
+      <Alert dir={isRTL ? "rtl" : "ltr"} variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>No Scenarios Available</AlertTitle>
+        <AlertTitle>{t("No Scenarios Available")}</AlertTitle>
         <AlertDescription>
-          {isQuickPractice 
-            ? "No practice scenarios were generated for this thought record. Please try again later."
-            : "No practice scenarios available for this thought record."
+          {isQuickPractice
+            ? t("No practice scenarios were generated for this thought record. Please try again later.")
+            : t("No practice scenarios available for this thought record.")
           }
         </AlertDescription>
         <Button className="mt-4" onClick={() => setLocation(`/users/${currentUserId || user?.id || ''}/thoughts`)}>
-          Back to Thought Records
+          {t("Back to Thought Records")}
         </Button>
       </Alert>
     );
@@ -963,13 +949,18 @@ const ReframePractice = ({
   const scenariosCount = scenarios.length || 1; // Avoid division by zero
   const progress = ((currentScenarioIndex + (showFeedback ? 0.5 : 0)) / scenariosCount) * 100;
   
+  const thoughtContent =
+    propPracticeScenarios?.thoughtContent ||
+    sessionData.thoughtContent ||
+    (sessionData as any)?.generalFeedback;
+
   return (
-    <div className="space-y-5 animate-fade-in duration-300">
+    <div dir={isRTL ? "rtl" : "ltr"} className="space-y-5 animate-fade-in duration-300">
       <div className="bg-white border border-slate-100 shadow-xs rounded-2xl p-4 sm:p-5">
         <div className="flex justify-between items-center mb-2.5">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Practice Progress</h3>
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">{t("Practice Progress")}</h3>
           <span className="text-xs font-extrabold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-100/60 shadow-xxs">
-            {currentScenarioIndex + 1} of {scenarios.length}
+            {tNum(currentScenarioIndex + 1)} {t("of")} {tNum(scenarios.length)}
           </span>
         </div>
         <Progress value={progress} className="h-2.5 bg-slate-100 rounded-full [&>div]:bg-purple-600 shadow-inner transition-all duration-300" />
@@ -985,14 +976,15 @@ const ReframePractice = ({
         onNext={handleNext}
       />
       
-      {/* Original thought display */}
-      {sessionData.thoughtContent && (
+      {thoughtContent && (
         <Card className="border border-slate-100 shadow-sm rounded-2xl bg-white overflow-hidden">
           <CardHeader className="bg-slate-50/50 pb-2 border-b border-slate-100">
-            <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-wider">Original Cognitive Material</CardTitle>
+            <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t("Original Cognitive Material")}</CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <p className="text-sm italic font-semibold text-slate-600 leading-relaxed">"{sessionData.thoughtContent}"</p>
+            <p className="text-sm italic font-semibold text-slate-600 leading-relaxed">
+              "<DynamicTranslator text={thoughtContent} />"
+            </p>
           </CardContent>
         </Card>
       )}

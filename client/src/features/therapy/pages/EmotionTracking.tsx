@@ -22,6 +22,8 @@ import useActiveUser from "@/hooks/use-active-user";
 import { ClientDebug } from "@/features/admin/components/debug/ClientDebug";
 import EmotionInsights from "@/features/therapy/components/emotion/EmotionInsights";
 import { cn } from "@/lib/utils";
+import { useLocalization, DynamicTranslator } from "@/lib/localize.tsx";
+import { useEffect } from "react";
 
 function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
@@ -35,9 +37,17 @@ function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string })
 export default function EmotionTracking() {
   const { user } = useAuth();
   const { isViewingClientData, activeUserId } = useActiveUser();
-  const [language, setLanguage] = useState<"en" | "ar">("en");
-  const [direction, setDirection] = useState<"ltr" | "rtl">("ltr");
+  const { t, isRTL, tNum, currentLanguage, setLanguage: setGlobalLanguage } = useLocalization();
+  
+  const [language, setLanguage] = useState<"en" | "ar">((currentLanguage === "ar" ? "ar" : "en") as "en" | "ar");
+  const [direction, setDirection] = useState<"ltr" | "rtl">(currentLanguage === "ar" ? "rtl" : "ltr");
   const [showLanguageNotice, setShowLanguageNotice] = useState(false);
+
+  // Sync local wizard language with global language context changes (e.g. from Sidebar)
+  useEffect(() => {
+    setLanguage((currentLanguage === "ar" ? "ar" : "en") as "en" | "ar");
+    setDirection(currentLanguage === "ar" ? "rtl" : "ltr");
+  }, [currentLanguage]);
 
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get("tab");
@@ -81,16 +91,15 @@ export default function EmotionTracking() {
     const newDirection = newLanguage === "ar" ? "rtl" : "ltr";
     setLanguage(newLanguage);
     setDirection(newDirection);
-    setShowLanguageNotice(newLanguage === "ar");
-    if (newLanguage === "ar") {
-      setTimeout(() => setShowLanguageNotice(false), 3000);
-    }
+    setGlobalLanguage(newLanguage); // synchronize globally
+    setShowLanguageNotice(true);
+    setTimeout(() => setShowLanguageNotice(false), 3000);
   };
 
-  const pageTitle = isViewingClientData ? "Client Emotions" : "Emotion Tracking";
+  const pageTitle = isViewingClientData ? t("Client Emotions") : t("Emotion Tracking");
   const pageSubtitle = isViewingClientData
-    ? "Review mood logs, patterns, and emotional history for this client."
-    : "Identify, track, and understand your emotional patterns using the interactive emotion wheel.";
+    ? t("Review mood logs, patterns, and emotional history for this client.")
+    : t("Identify, track, and understand your emotional patterns using the interactive emotion wheel.");
 
   return (
     <AppLayout title={pageTitle}>
@@ -108,7 +117,7 @@ export default function EmotionTracking() {
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="h-4 w-4 text-purple-400" />
                   <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
-                    {isViewingClientData ? "Clinical Review" : "Mood & Triggers"}
+                    {isViewingClientData ? t("Clinical Review") : t("Mood & Triggers")}
                   </span>
                 </div>
                 <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
@@ -122,9 +131,9 @@ export default function EmotionTracking() {
               {emotions.length > 0 && (
                 <div className="flex items-center gap-6 shrink-0 flex-wrap">
                   {[
-                    { value: totalEmotions, label: "Total Logs" },
-                    { value: `${avgIntensity}/10`, label: "Avg Intensity" },
-                    { value: mostCommonEmotion, label: "Most Common" },
+                    { value: tNum(totalEmotions), label: t("Total Logs") },
+                    { value: tNum(`${avgIntensity}/10`), label: t("Avg Intensity") },
+                    { value: <DynamicTranslator text={mostCommonEmotion} />, label: t("Most Common") },
                   ].map((s, i) => (
                     <div key={i} className="text-center">
                       <div className="text-2xl font-bold text-white">{s.value}</div>
@@ -140,14 +149,14 @@ export default function EmotionTracking() {
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-3.5 w-3.5 text-rose-400" />
-                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">Emotional Intelligence</span>
+                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">{t("Emotional Intelligence")}</span>
                 </div>
-                <span className="text-xs text-purple-400">{totalEmotions} of 50 tracked</span>
+                <span className="text-xs text-purple-400">{tNum(totalEmotions)} {t("of")} {tNum(50)} {t("tracked")}</span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-rose-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.round((totalEmotions / 50) * 100))}%` }} />
               </div>
-              <p className="text-[11px] text-purple-400/60 mt-1.5">Tracking your emotions regularly builds self-awareness and emotional regulation skills.</p>
+              <p className="text-[11px] text-purple-400/60 mt-1.5">{t("Tracking your emotions regularly builds self-awareness and emotional regulation skills.")}</p>
             </div>
           </div>
         </div>
@@ -169,8 +178,8 @@ export default function EmotionTracking() {
                       "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                     )}
                   >
-                    <PenLine className="h-4 w-4 mr-1.5 inline" />
-                    Record Emotion
+                    <PenLine className="h-4 w-4 mr-1.5 inline animate-none" />
+                    {t("Record Emotion")}
                   </TabsTrigger>
                 )}
                 <TabsTrigger
@@ -182,7 +191,7 @@ export default function EmotionTracking() {
                   )}
                 >
                   <History className="h-4 w-4 mr-1.5 inline" />
-                  {isViewingClientData ? "Client History" : "My History"}
+                  {isViewingClientData ? t("Client History") : t("My History")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="insights"
@@ -193,7 +202,7 @@ export default function EmotionTracking() {
                   )}
                 >
                   <TrendingUp className="h-4 w-4 mr-1.5 inline" />
-                  Insights
+                  {t("Insights")}
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -222,13 +231,13 @@ export default function EmotionTracking() {
                 <div className="space-y-4">
                   <SectionLabel
                     icon={<ClipboardList className="h-4 w-4" />}
-                    label="Client Emotion History"
+                    label={t("Client Emotion History")}
                   />
                   <EmotionHistory />
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <SectionLabel icon={<History className="h-4 w-4" />} label="Emotion History" />
+                  <SectionLabel icon={<History className="h-4 w-4" />} label={t("Emotion History")} />
                   <EmotionHistory />
                 </div>
               )}
@@ -236,7 +245,7 @@ export default function EmotionTracking() {
 
             <TabsContent value="insights" className="mt-0">
               <div className="space-y-4">
-                <SectionLabel icon={<TrendingUp className="h-4 w-4" />} label="Emotion Insights" />
+                <SectionLabel icon={<TrendingUp className="h-4 w-4" />} label={t("Emotion Insights")} />
                 {activeUserId && <EmotionInsights userId={activeUserId} />}
               </div>
             </TabsContent>
