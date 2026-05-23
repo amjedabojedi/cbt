@@ -115,6 +115,23 @@
         transform-origin: center;
       }
     </style>
+    <!-- LocalizeJS Integration with Fallback Stub -->
+    <script>
+      !function(a){if(!a.Localize){a.Localize={};for(var e=["initialize","translate","getLanguage","setLanguage","on","off","translatePage","bootstrap","prefetch","destroy"],t=0;t<e.length;t++)a.Localize[e[t]]=function(){}}}(window);
+    </script>
+    <script src="https://global.localizecdn.com/localize.js" async></script>
+    <script>
+      try {
+        if (typeof Localize !== 'undefined') {
+          Localize.initialize({
+            key: 'YOUR_LOCALIZEJS_PROJECT_KEY',
+            rememberLanguage: true
+          });
+        }
+      } catch (e) {
+        console.warn("LocalizeJS initialization failed: ", e);
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

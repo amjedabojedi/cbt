@@ -10,6 +10,7 @@ import { ClientProvider } from "@/context/ClientContext";
 import { ThemeProvider } from "next-themes";
 import { WebSocketProvider } from "@/context/WebSocketContext";
 import ErrorBoundary from "@/components/error/ErrorBoundary";
+import { LocalizationProvider } from "@/lib/localize.tsx";
 
 // Retry lazy imports once on chunk load failure (handles post-deploy cache mismatch)
 function lazyWithRetry(factory: () => Promise<any>) {
@@ -210,18 +211,20 @@ function App() {
     <ErrorBoundary name="Application Root">
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <AuthProvider>
-            <WebSocketProvider>
-              <ClientProvider>
-                {/* Ensure mobile redirection happens after landing page loads */}
-                <MobileRedirector />
-                <TooltipProvider>
-                  <Toaster />
-                  <Router />
-                </TooltipProvider>
-              </ClientProvider>
-            </WebSocketProvider>
-          </AuthProvider>
+          <LocalizationProvider>
+            <AuthProvider>
+              <WebSocketProvider>
+                <ClientProvider>
+                  {/* Ensure mobile redirection happens after landing page loads */}
+                  <MobileRedirector />
+                  <TooltipProvider>
+                    <Toaster />
+                    <Router />
+                  </TooltipProvider>
+                </ClientProvider>
+              </WebSocketProvider>
+            </AuthProvider>
+          </LocalizationProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

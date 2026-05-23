@@ -25,29 +25,12 @@ import { Loader2, ArrowLeft, AlertCircle, CheckCircle2, Sparkles } from "lucide-
 import { useAuth } from "@/lib/auth";
 import AppLayout from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
-
-// Helper function to format cognitive distortion names for display
-function formatCognitiveDistortion(distortion: string): string {
-  if (!distortion) return "Unknown";
-  
-  // Handle special cases like hyphenated names
-  if (distortion === "emotional-reasoning") return "Emotional Reasoning";
-  if (distortion === "mind-reading") return "Mind Reading";
-  if (distortion === "fortune-telling") return "Fortune Telling";
-  if (distortion === "all-or-nothing") return "All or Nothing";
-  if (distortion === "should-statements") return "Should Statements";
-  if (distortion === "unknown") return "Cognitive Distortion";
-  
-  // General case: convert kebab-case or snake_case to Title Case
-  return distortion
-    .replace(/[-_]/g, ' ')
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { useLocalization, DynamicTranslator } from "@/lib/localize.tsx";
+import { formatDistortionLabel } from "@/features/reframe/utils/reframeLabels";
 
 const ReframePracticePage = () => {
   const { user } = useAuth();
+  const { t, tNum, isRTL } = useLocalization();
   const params = useParams();
   const [location, setLocation] = useLocation();
   const queryParams = new URLSearchParams(location.split('?')[1] || '');
@@ -211,6 +194,7 @@ const ReframePracticePage = () => {
     userId: number;
     automaticThoughts: string;
     cognitiveDistortions?: string[];
+    thoughtCategory?: string[];
     alternativePerspective?: string;
     evidenceFor?: string;
     evidenceAgainst?: string;
@@ -223,7 +207,7 @@ const ReframePracticePage = () => {
     userId: userId || 0,
     automaticThoughts: "",
     cognitiveDistortions: ["unknown"],
-    alternativePerspective: "Consider a more balanced view of the situation",
+    alternativePerspective: t("Consider a more balanced view of the situation"),
     evidenceFor: "",
     evidenceAgainst: "",
     createdAt: new Date().toISOString()
@@ -235,9 +219,13 @@ const ReframePracticePage = () => {
       id: (thoughtRecord as any)?.id || 0,
       userId: (thoughtRecord as any)?.userId || userId || 0,
       automaticThoughts: (thoughtRecord as any)?.automaticThoughts || "",
-      cognitiveDistortions: Array.isArray((thoughtRecord as any)?.cognitiveDistortions) ? 
-        (thoughtRecord as any)?.cognitiveDistortions : [],
-      alternativePerspective: (thoughtRecord as any)?.alternativePerspective || "Consider a more balanced view of the situation",
+      cognitiveDistortions: Array.isArray((thoughtRecord as any)?.cognitiveDistortions)
+        ? (thoughtRecord as any)?.cognitiveDistortions
+        : [],
+      thoughtCategory: Array.isArray((thoughtRecord as any)?.thoughtCategory)
+        ? (thoughtRecord as any)?.thoughtCategory
+        : [],
+      alternativePerspective: (thoughtRecord as any)?.alternativePerspective || t("Consider a more balanced view of the situation"),
       evidenceFor: (thoughtRecord as any)?.evidenceFor || "",
       evidenceAgainst: (thoughtRecord as any)?.evidenceAgainst || "",
       createdAt: (thoughtRecord as any)?.createdAt || new Date().toISOString()
@@ -261,14 +249,13 @@ const ReframePracticePage = () => {
     fullLocation: location
   });
   
-  // Make sure we never display "No thought content available" in the title
-  const title = assignment 
-    ? "Reframe Practice Assignment" 
-    : (thoughtRecordData.automaticThoughts && thoughtRecordData.automaticThoughts !== "No thought content available")
-      ? `Practice: ${thoughtRecordData.automaticThoughts.slice(0, 50)}${thoughtRecordData.automaticThoughts.length > 50 ? '...' : ''}`
-      : "Cognitive Restructuring Practice";  return (
+  const title = assignment
+    ? t("Reframe Practice Assignment")
+    : t("Cognitive Restructuring Practice");
+
+  return (
     <AppLayout title={title}>
-      <div className="min-h-screen bg-slate-50">
+      <div dir={isRTL ? "rtl" : "ltr"} className="min-h-screen bg-slate-50">
         {/* Premium Hero Banner */}
         <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-8 relative overflow-hidden transition-all duration-300 border-b border-purple-900/30">
           <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
@@ -282,22 +269,22 @@ const ReframePracticePage = () => {
                   className="text-purple-300 hover:text-white hover:bg-white/10 -ml-2 mb-2 font-medium"
                   onClick={() => window.history.back()}
                 >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Coach
+                  <ArrowLeft className="me-2 h-4 w-4" />
+                  {t("Back to Coach")}
                 </Button>
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="h-4 w-4 text-purple-400 animate-pulse" />
                   <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
-                    Interactive Restructuring
+                    {t("Interactive Restructuring")}
                   </span>
                 </div>
                 <h1 className="font-extrabold text-white tracking-tight text-2xl md:text-3xl mb-2">
                   {title}
                 </h1>
                 <p className="text-purple-200/70 text-sm md:text-base max-w-2xl leading-relaxed">
-                  Challenge unhelpful automatic patterns, identify cognitive distortions, and practice building balanced reframes.
+                  {t("Challenge unhelpful automatic patterns, identify cognitive distortions, and practice building balanced reframes.")}
                 </p>
               </div>
             </div>
@@ -319,10 +306,10 @@ const ReframePracticePage = () => {
               <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
               <p className="text-slate-600 text-center font-semibold text-sm">
                 {isLoadingScenarios ? (
-                  isFromCache ? 
-                    "Retrieving practice scenarios from cache..." : 
-                    "Generating practice scenarios based on your thought record. This may take up to 30 seconds..."
-                ) : "Loading..."}
+                  isFromCache
+                    ? t("Retrieving practice scenarios from cache...")
+                    : t("Generating practice scenarios based on your thought record. This may take up to 30 seconds...")
+                ) : t("Loading...")}
               </p>
               {isLoadingScenarios && !isFromCache && (
                 <div className="max-w-md mt-6 w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
@@ -336,7 +323,7 @@ const ReframePracticePage = () => {
                   </div>
                   <div className="max-w-md mt-3 flex items-center gap-2 justify-center animate-pulse-slow">
                     <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500" />
-                    <span className="text-xs text-emerald-600 font-semibold">Using cached results for faster loading</span>
+                    <span className="text-xs text-emerald-600 font-semibold">{t("Using cached results for faster loading")}</span>
                   </div>
                 </>
               )}
@@ -346,12 +333,12 @@ const ReframePracticePage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-amber-800 font-bold">
                   <AlertCircle className="h-5 w-5 text-amber-500" />
-                  Redirecting to Thought Records
+                  {t("Redirecting to Thought Records")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-slate-600 font-medium text-sm">
-                  The Reframe Coach practice feature must be started from a thought record. You are being redirected to your thought records.
+                  {t("The Reframe Coach practice feature must be started from a thought record. You are being redirected to your thought records.")}
                 </p>
                 <div className="flex justify-center my-4">
                   <div className="h-2 w-full max-w-sm bg-amber-100/50 rounded-full overflow-hidden">
@@ -365,27 +352,27 @@ const ReframePracticePage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-rose-800 font-bold">
                   <AlertCircle className="h-5 w-5 text-rose-500" />
-                  {isQuickPractice ? "Failed to Load Practice Scenarios" : "Practice Assignment Not Found"}
+                  {isQuickPractice ? t("Failed to Load Practice Scenarios") : t("Practice Assignment Not Found")}
                 </CardTitle>
                 <CardDescription className="text-rose-700/80 font-medium">
-                  Error encountered at {new Date().toLocaleTimeString()}
+                  {t("Error encountered at")} {new Date().toLocaleTimeString()}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-slate-600 font-medium text-sm">
-                  {isQuickPractice 
+                  {isQuickPractice
                     ? (scenariosError?.message
-                        || `We couldn't generate practice scenarios for this thought record. It may have insufficient content or no cognitive distortions identified. Try selecting a different thought record with clearer cognitive distortions.`)
-                    : `We couldn't find practice assignment #${assignmentId}. It may have been deleted or you may not have permission to access it.`
+                        || t("We couldn't generate practice scenarios for this thought record. It may have insufficient content or no cognitive distortions identified. Try selecting a different thought record with clearer cognitive distortions."))
+                    : `${t("We couldn't find practice assignment #")}${tNum(assignmentId ?? 0)}. ${t("It may have been deleted or you may not have permission to access it.")}`
                   }
                 </p>
                 
                 <div className="bg-rose-100/30 p-3.5 rounded-xl border border-rose-200/40">
-                  <p className="text-xs font-bold text-rose-800">Error Details:</p>
+                  <p className="text-xs font-bold text-rose-800">{t("Error Details:")}</p>
                   <pre className="text-xxs mt-1 bg-white/60 p-2 rounded-lg overflow-auto max-h-24 text-rose-900 font-mono">
-                    {isQuickPractice 
-                      ? (scenariosError?.message || "Failed to generate practice scenarios") 
-                      : (assignmentError?.message || "Assignment not found")
+                    {isQuickPractice
+                      ? (scenariosError?.message || t("Failed to generate practice scenarios"))
+                      : (assignmentError?.message || t("Assignment not found"))
                     }
                   </pre>
                 </div>
@@ -396,17 +383,17 @@ const ReframePracticePage = () => {
                     onClick={() => window.location.reload()}
                     className="flex items-center rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold"
                   >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg className="w-4 h-4 me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    Try Again
+                    {t("Try Again")}
                   </Button>
                   <Button
                     variant="default"
                     className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl font-semibold shadow-xs"
                     onClick={() => window.location.href = isQuickPractice ? `/users/${userId}/thoughts` : '/reframe-coach'}
                   >
-                    Return to {isQuickPractice ? "Thought Records" : "Reframe Coach"}
+                    {isQuickPractice ? t("Return to Thought Records") : t("Return to Reframe Coach")}
                   </Button>
                 </div>
               </CardContent>
@@ -416,14 +403,14 @@ const ReframePracticePage = () => {
               {/* Introduction card */}
               <Card className="border border-slate-100 shadow-sm rounded-2xl bg-white">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-bold text-[#090514]">Cognitive Restructuring Practice</CardTitle>
+                  <CardTitle className="text-lg font-bold text-[#090514]">{t("Cognitive Restructuring Practice")}</CardTitle>
                   {isQuickPractice && thoughtRecordData.automaticThoughts && thoughtRecordData.automaticThoughts !== "No thought content available" && (
                     <div className="mt-3">
-                      <p className="text-xxs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Original Automatic Thought:</p>
+                      <p className="text-xxs font-bold text-slate-400 uppercase tracking-wider mb-1.5">{t("Original Automatic Thought:")}</p>
                       <div className="rounded-xl bg-purple-50/40 border border-purple-100/50 p-4 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-purple-600/5 rounded-full blur-lg pointer-events-none" />
+                        <div className="absolute top-0 end-0 w-16 h-16 bg-purple-600/5 rounded-full blur-lg pointer-events-none" />
                         <p className="text-slate-700 italic font-semibold text-sm leading-relaxed">
-                          "{thoughtRecordData.automaticThoughts}"
+                          "<DynamicTranslator text={thoughtRecordData.automaticThoughts} />"
                         </p>
                       </div>
                     </div>
@@ -431,39 +418,44 @@ const ReframePracticePage = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-slate-500 font-medium text-sm leading-relaxed">
-                    This interactive restructuring exercise will help you practice identifying and challenging unhelpful thinking patterns in real-time.
-                    You will be presented with specific scenarios and asked to select the most balanced, healthy reframing option.
+                    {t("This interactive restructuring exercise will help you practice identifying and challenging unhelpful thinking patterns in real-time. You will be presented with specific scenarios and asked to select the most balanced, healthy reframing option.")}
                   </p>
                   
                   {isQuickPractice && practiceScenarios && Array.isArray((practiceScenarios as any)?.scenarios) && (practiceScenarios as any).scenarios.length > 0 ? (
                     <div className="mt-4 p-4 rounded-2xl bg-purple-50/20 border border-purple-100/50">
-                      <h4 className="text-xs font-bold text-purple-800 uppercase tracking-wider mb-2">Cognitive Distortions Identified:</h4>
+                      <h4 className="text-xs font-bold text-purple-800 uppercase tracking-wider mb-2">{t("Cognitive Distortions Identified:")}</h4>
                       <div className="flex flex-wrap gap-1.5">
                         {(() => {
-                          // Create a set of unique distortions
-                          const uniqueDistortions = new Set<string>();
+                          const uniqueDistortionKeys = new Set<string>();
                           
-                          // Add distortions from scenarios
                           (practiceScenarios as any).scenarios.forEach((scenario: any) => {
                             if (scenario.cognitiveDistortion) {
-                              uniqueDistortions.add(formatCognitiveDistortion(scenario.cognitiveDistortion));
+                              uniqueDistortionKeys.add(scenario.cognitiveDistortion);
                             }
                           });
                           
-                          // Add distortions from thought record
-                          if (thoughtRecordData.cognitiveDistortions && thoughtRecordData.cognitiveDistortions.length > 0) {
-                            thoughtRecordData.cognitiveDistortions.forEach((distortion: string) => {
-                              uniqueDistortions.add(formatCognitiveDistortion(distortion));
-                            });
-                          }
+                          const recordDistortions = [
+                            ...(thoughtRecordData.thoughtCategory ?? []),
+                            ...(thoughtRecordData.cognitiveDistortions ?? []),
+                          ];
+                          recordDistortions.forEach((distortion: string) => {
+                            if (distortion) uniqueDistortionKeys.add(distortion);
+                          });
                           
-                          // Return array of JSX elements with unique distortions
-                          return Array.from(uniqueDistortions).map((distortion, idx) => (
+                          const seenLabels = new Set<string>();
+                          return Array.from(uniqueDistortionKeys)
+                            .map((distortionKey) => formatDistortionLabel(distortionKey, t))
+                            .filter((label) => {
+                              if (seenLabels.has(label)) return false;
+                              seenLabels.add(label);
+                              return true;
+                            })
+                            .map((label, idx) => (
                             <span 
                               key={`distortion-${idx}`} 
                               className="px-2.5 py-1 text-xs rounded-lg bg-purple-50 text-purple-700 border border-purple-100/60 font-semibold shadow-2xs"
                             >
-                              {distortion}
+                              {label}
                             </span>
                           ));
                         })()}
@@ -472,7 +464,7 @@ const ReframePracticePage = () => {
                   ) : null}
                   
                   <p className="text-slate-400 font-medium text-xs">
-                    Each successful restructuring earns you points towards your Coach Level. Your stats are tracked securely in your clinical profile.
+                    {t("Each successful restructuring earns you points towards your Coach Level. Your stats are tracked securely in your clinical profile.")}
                   </p>
                 </CardContent>
               </Card>
@@ -492,7 +484,7 @@ const ReframePracticePage = () => {
                   // Show loading state while waiting for scenarios to be generated
                   <div className="flex justify-center items-center py-16 bg-white border border-slate-100 shadow-sm rounded-2xl p-8">
                     <Loader2 className="h-7 w-7 animate-spin text-purple-600" />
-                    <span className="ml-3 text-slate-600 font-semibold text-sm">Generating relevant practice scenarios...</span>
+                    <span className="ms-3 text-slate-600 font-semibold text-sm">{t("Generating relevant practice scenarios...")}</span>
                   </div>
                 )
               ) : (

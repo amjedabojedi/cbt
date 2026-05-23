@@ -3,11 +3,13 @@ import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ThoughtRecord } from "@shared/schema";
 import { format, formatDistanceToNow } from "date-fns";
+import { ar as arLocale } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
 import { useLocation } from "wouter";
 import { useRefreshData } from "@/hooks/use-refresh-data";
+import { useLocalization, DynamicTranslator } from "@/lib/localize.tsx";
 
 import {
   Dialog,
@@ -34,7 +36,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, Trash2, Brain, BrainCircuit, AlertTriangle, Scale, Lightbulb, Sparkles, Calendar, Book, BookText, MessageSquare, Heart, Dumbbell, Plus, CheckCircle, XCircle, MoreVertical, Zap } from "lucide-react";
+import { Edit, Eye, Trash2, Brain, BrainCircuit, AlertTriangle, Scale, Lightbulb, Sparkles, Calendar, Book, BookText, MessageSquare, Heart, Dumbbell, Plus, CheckCircle, XCircle, MoreVertical, Zap, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -81,6 +83,7 @@ export default function ThoughtRecordsList({
 }: ThoughtRecordsListProps) {
   const { user } = useAuth();
   const { activeUserId, isViewingClientData } = useActiveUser();
+  const { t, tNum, isRTL } = useLocalization();
   const [selectedRecord, setSelectedRecord] = useState<ThoughtRecord | null>(null);
   const [showFullHistory, setShowFullHistory] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -235,13 +238,16 @@ export default function ThoughtRecordsList({
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+    const locale = isRTL ? { locale: arLocale } : undefined;
+
     if (recordDate.toDateString() === today.toDateString()) {
-      return `Today, ${format(recordDate, "h:mm a")}`;
+      return `${t("Today")}, ${format(recordDate, "h:mm a", locale)}`;
     } else if (recordDate.toDateString() === yesterday.toDateString()) {
-      return `Yesterday, ${format(recordDate, "h:mm a")}`;
+      return `${t("Yesterday")}, ${format(recordDate, "h:mm a", locale)}`;
     } else {
-      return format(recordDate, "MMM d, yyyy, h:mm a");
+      return isRTL
+        ? format(recordDate, "d MMM yyyy, h:mm a", locale)
+        : tNum(format(recordDate, "MMM d, yyyy, h:mm a"));
     }
   };
   
@@ -252,9 +258,9 @@ export default function ThoughtRecordsList({
   
   if (isLoading) {
     return (
-      <Card>
+      <Card dir={isRTL ? "rtl" : "ltr"} className="text-start">
         <CardHeader>
-          <CardTitle>Thought Records</CardTitle>
+          <CardTitle>{t("Thought Records")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-12 flex items-center justify-center">
@@ -267,9 +273,9 @@ export default function ThoughtRecordsList({
   
   if (error) {
     return (
-      <Card>
+      <Card dir={isRTL ? "rtl" : "ltr"} className="text-start">
         <CardHeader>
-          <CardTitle>Thought Records</CardTitle>
+          <CardTitle>{t("Thought Records")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-center text-sm text-red-500">
@@ -286,21 +292,21 @@ export default function ThoughtRecordsList({
   
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <div>
+      <Card dir={isRTL ? "rtl" : "ltr"} className="text-start">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 text-start">
+          <div className="text-start">
             {isViewingClientData ? (
               <>
-                <CardTitle>Client's Thought Records</CardTitle>
+                <CardTitle>{t("Client's Thought Records")}</CardTitle>
                 <CardDescription>
-                  Viewing thought records and reflections for this client
+                  {t("Viewing thought records and reflections for this client")}
                 </CardDescription>
               </>
             ) : (
               <>
-                <CardTitle>Thought Records</CardTitle>
+                <CardTitle>{t("Thought Records")}</CardTitle>
                 <CardDescription>
-                  Your thought records and reflections
+                  {t("Your thought records and reflections")}
                 </CardDescription>
               </>
             )}
@@ -311,26 +317,26 @@ export default function ThoughtRecordsList({
               onClick={() => setShowFullHistory(true)}
               className="text-sm text-primary hover:text-primary-dark"
             >
-              View All
+              {t("View All")}
             </Button>
           )}
         </CardHeader>
         <CardContent>
           {!thoughtRecords || thoughtRecords.length === 0 ? (
             <div className="text-center py-6">
-              <p className="text-neutral-500">No thought records yet.</p>
+              <p className="text-neutral-500">{t("No thought records yet.")}</p>
               {isViewingClientData ? (
                 <p className="text-sm text-neutral-400 mt-1">
-                  This client has not created any thought records.
+                  {t("This client has not created any thought records.")}
                 </p>
               ) : (
-                <p className="text-sm text-neutral-400 mt-1">
-                  Add reflections to your emotions to start building thought records.
+                <p className="text-sm text-neutral-400 mt-1 leading-relaxed">
+                  {t("Add reflections to your emotions to start building thought records.")}
                 </p>
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-start">
               {displayRecords?.map((record) => {
                 const practiceInfo = getLastPracticeInfo(record.id);
                 const canPractice = !practiceInfo || practiceInfo.canPractice;
@@ -340,10 +346,10 @@ export default function ThoughtRecordsList({
                 return (
                 <Card 
                   key={record.id} 
-                  className="overflow-hidden border-slate-200 transition-all duration-200 hover:shadow-md h-full flex flex-col"
+                  className="overflow-hidden border-slate-200 transition-all duration-200 hover:shadow-md h-full flex flex-col text-start"
                   data-testid={`card-thought-${record.id}`}
                 >
-                  <div className="bg-muted/20 px-4 py-3 border-b space-y-2">
+                  <div className="bg-muted/20 px-4 py-3 border-b space-y-2 text-start">
                     {/* First line: Date and Actions */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -360,22 +366,22 @@ export default function ThoughtRecordsList({
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align={isRTL ? "start" : "end"} className="text-start">
                           <DropdownMenuItem onClick={() => handleViewDetails(record)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
+                            <Eye className="h-4 w-4 me-2" />
+                            {t("View Details")}
                           </DropdownMenuItem>
                           {!isViewingClientData && (
                             <>
                               {!isThoughtChallenged(record) && (
                                 <DropdownMenuItem onClick={() => setThoughtToChallenge(record)}>
-                                  <Brain className="h-4 w-4 mr-2" />
-                                  Challenge This Thought
+                                  <Brain className="h-4 w-4 me-2" />
+                                  {t("Challenge This Thought")}
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuItem onClick={() => handleEditRecord(record)}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
+                                <Edit className="h-4 w-4 me-2" />
+                                {t("Edit")}
                               </DropdownMenuItem>
                               {showPracticeButton && (() => {
                                 const practiceInfo = getLastPracticeInfo(record.id);
@@ -392,13 +398,13 @@ export default function ThoughtRecordsList({
                                   >
                                     {canPractice ? (
                                       <>
-                                        <Sparkles className="h-4 w-4 mr-2" />
-                                        Practice
+                                        <Sparkles className="h-4 w-4 me-2" />
+                                        {t("Practice")}
                                       </>
                                     ) : (
                                       <>
-                                        <CheckCircle className="h-4 w-4 mr-2" />
-                                        Practiced Today
+                                        <CheckCircle className="h-4 w-4 me-2" />
+                                        {t("Practiced Today")}
                                       </>
                                     )}
                                   </DropdownMenuItem>
@@ -409,8 +415,8 @@ export default function ThoughtRecordsList({
                                 onClick={() => handleDeleteClick(record)}
                                 className="text-destructive focus:text-destructive"
                               >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
+                                <Trash2 className="h-4 w-4 me-2" />
+                                {t("Delete")}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -419,16 +425,16 @@ export default function ThoughtRecordsList({
                               <DropdownMenuItem onClick={() => {
                                 navigate(`/users/${targetUserId}/reframe-coach`);
                               }}>
-                                <BookText className="h-4 w-4 mr-2" />
-                                View Practice History
+                                <BookText className="h-4 w-4 me-2" />
+                                {t("View Practice History")}
                               </DropdownMenuItem>
                               {user?.role === 'therapist' && (
                                 <DropdownMenuItem onClick={() => {
                                   setSelectedRecord(record);
                                   setShowReframeDialog(true);
                                 }}>
-                                  <Book className="h-4 w-4 mr-2" />
-                                  Assign Practice
+                                  <Book className="h-4 w-4 me-2" />
+                                  {t("Assign Practice")}
                                 </DropdownMenuItem>
                               )}
                             </>
@@ -438,12 +444,12 @@ export default function ThoughtRecordsList({
                     </div>
                     
                     {/* Second line: Status Info */}
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap text-start">
                       {/* Challenged status */}
                       {isThoughtChallenged(record) && (
                         <Badge variant="outline" className="gap-1 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700">
                           <CheckCircle className="h-3 w-3" />
-                          <span className="text-xs">Challenged</span>
+                          <span className="text-xs">{t("Challenged")}</span>
                         </Badge>
                       )}
                       
@@ -451,85 +457,85 @@ export default function ThoughtRecordsList({
                       {record.relatedJournalEntryIds && record.relatedJournalEntryIds.length > 0 && (
                         <Badge variant="outline" className="gap-1">
                           <BookText className="h-3 w-3" />
-                          <span className="text-xs">{record.relatedJournalEntryIds.length} Journal {record.relatedJournalEntryIds.length === 1 ? 'Entry' : 'Entries'}</span>
+                          <span className="text-xs">{tNum(record.relatedJournalEntryIds.length)} {t("Journal Connection")}</span>
                         </Badge>
                       )}
                     </div>
                   </div>
                   
-                  <CardContent className="p-4 flex-1">
+                  <CardContent className="p-4 flex-1 text-start">
                     {/* Automatic Thoughts Section */}
-                    <div className="mb-3">
+                    <div className="mb-3 text-start">
                       <div className="flex items-center gap-2 mb-1">
                         <div className="p-1.5 rounded-full bg-indigo-100">
                           <BrainCircuit className="h-3.5 w-3.5 text-indigo-500" />
                         </div>
-                        <h4 className="text-sm font-medium text-slate-700">Automatic Thoughts</h4>
+                        <h4 className="text-sm font-medium text-slate-700">{t("Automatic Thoughts")}</h4>
                       </div>
-                      <p className="text-sm pl-7 text-slate-600 line-clamp-1 sm:line-clamp-2">
-                        {record.automaticThoughts}
+                      <p className="text-sm ps-7 text-slate-600 line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                        <DynamicTranslator text={record.automaticThoughts} />
                       </p>
                     </div>
                     
                     {/* Cognitive Distortions */}
-                    <div className="mb-3">
+                    <div className="mb-3 text-start">
                       <div className="flex items-center gap-2 mb-1">
                         <div className="p-1.5 rounded-full bg-amber-100">
                           <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
                         </div>
-                        <h4 className="text-sm font-medium text-slate-700">Distortions</h4>
+                        <h4 className="text-sm font-medium text-slate-700">{t("Distortions")}</h4>
                       </div>
-                      <div className="pl-7">
+                      <div className="ps-7 text-start">
                         {record.thoughtCategory && record.thoughtCategory.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
                             {record.thoughtCategory.slice(0, 2).map((distortion: string, idx: number) => (
                               <span key={idx} className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-xs">
-                                {thoughtCategoryLabels[distortion] || distortion}
+                                {t(thoughtCategoryLabels[distortion] || distortion)}
                               </span>
                             ))}
                             {record.thoughtCategory.length > 2 && (
                               <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-xs">
-                                +{record.thoughtCategory.length - 2} more
+                                +{tNum(record.thoughtCategory.length - 2)} {t("more")}
                               </span>
                             )}
                           </div>
                         ) : (
-                          <span className="text-muted-foreground text-xs">None identified</span>
+                          <span className="text-muted-foreground text-xs">{t("None identified")}</span>
                         )}
                       </div>
                     </div>
                     
-                    {/* Alternative Perspective — hidden on mobile to reduce card height */}
+                    {/* Alternative Perspective */}
                     {record.alternativePerspective && (
-                      <div className="mb-3 hidden sm:block">
+                      <div className="mb-3 hidden sm:block text-start">
                         <div className="flex items-center gap-2 mb-1">
                           <div className="p-1.5 rounded-full bg-blue-100">
                             <Lightbulb className="h-3.5 w-3.5 text-blue-500" />
                           </div>
-                          <h4 className="text-sm font-medium text-slate-700">Alternative Perspective</h4>
+                          <h4 className="text-sm font-medium text-slate-700">{t("Alternative Perspective")}</h4>
                         </div>
-                        <p className="text-sm pl-7 text-slate-600 line-clamp-2">
-                          {record.alternativePerspective}
+                        <p className="text-sm ps-7 text-slate-600 line-clamp-2 leading-relaxed">
+                          <DynamicTranslator text={record.alternativePerspective} />
                         </p>
                       </div>
                     )}
                     
                     {/* Practice Button & Last Practice Info */}
                     {showPracticeButton && !isViewingClientData && (
-                      <div className="mt-4 pt-4 border-t space-y-3">
+                      <div className="mt-4 pt-4 border-t space-y-3 text-start">
                         {lastPractice && (
-                          <div className="bg-purple-50/50 dark:bg-purple-950/20 rounded-lg p-3 text-sm">
+                          <div className="bg-purple-50/50 dark:bg-purple-950/20 rounded-lg p-3 text-sm text-start">
                             <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-xs text-muted-foreground mb-1">Last practiced</p>
+                              <div className="text-start">
+                                <p className="text-xs text-muted-foreground mb-1">{t("Last practiced")}</p>
                                 <p className="font-medium text-purple-900 dark:text-purple-100">
-                                  {formatDistanceToNow(new Date(lastPractice.createdAt), { addSuffix: true })}
+                                  {formatDistanceToNow(new Date(lastPractice.createdAt), { addSuffix: true, ...(isRTL ? { locale: arLocale } : {}) })}
                                 </p>
                               </div>
                               <div className="text-center">
-                                <p className="text-xs text-muted-foreground mb-1">Score</p>
+                                <p className="text-xs text-muted-foreground mb-1">{t("Score")}</p>
                                 <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                                  {lastPractice.score || 0}
+                                  {tNum(lastPractice.score || 0)}
                                 </p>
                               </div>
                             </div>
@@ -539,26 +545,26 @@ export default function ThoughtRecordsList({
                         {canPractice ? (
                           <Button 
                             onClick={() => navigate(`/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`)}
-                            className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                            className="w-full bg-purple-600 hover:bg-purple-700 text-white animate-none text-center"
                             size="lg"
                             data-testid={`button-practice-${record.id}`}
                           >
-                            <Sparkles className="h-4 w-4 mr-2" />
-                            Practice This Thought
+                            <Sparkles className="h-4 w-4 me-2" />
+                            {t("Practice This Thought")}
                           </Button>
                         ) : (
                           <Button 
                             disabled
                             variant="secondary"
-                            className="w-full"
+                            className="w-full text-center"
                             size="lg"
                             data-testid={`button-practiced-today-${record.id}`}
                           >
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            Practiced Today
+                            <CheckCircle className="h-4 w-4 me-2" />
+                            {t("Practiced Today")}
                             {practiceInfo && practiceInfo.hoursUntilNext > 0 && (
-                              <span className="ml-2 text-xs text-muted-foreground">
-                                ({practiceInfo.hoursUntilNext}h until next)
+                              <span className="ms-2 text-xs text-muted-foreground">
+                                ({tNum(practiceInfo.hoursUntilNext)}{t("h until next")})
                               </span>
                             )}
                           </Button>
@@ -577,52 +583,54 @@ export default function ThoughtRecordsList({
       {/* Record Details Dialog */}
       {selectedRecord && (
         <Dialog open={!!selectedRecord} onOpenChange={() => setSelectedRecord(null)}>
-          <DialogContent aria-describedby={undefined} className="max-w-3xl p-0 rounded-2xl border-0">
-            <DialogTitle className="sr-only">Thought Record</DialogTitle>
+          <DialogContent dir={isRTL ? "rtl" : "ltr"} aria-describedby={undefined} className="max-w-3xl p-0 rounded-2xl border-0 text-start">
+            <DialogTitle className="sr-only">{t("Record Details Dialog")}</DialogTitle>
             {/* ── Luxury gradient header ── */}
             <div
               className="relative overflow-hidden px-7 py-5"
               style={{ background: 'linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)' }}
             >
               {/* Glowing orb backdrops */}
-              <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-purple-600/25 blur-3xl pointer-events-none" />
-              <div className="absolute -left-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/20 blur-2xl pointer-events-none" />
+              <div className="absolute -end-12 -top-12 w-36 h-36 rounded-full bg-purple-600/25 blur-3xl pointer-events-none" />
+              <div className="absolute -start-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/20 blur-2xl pointer-events-none" />
               <div className="relative z-10 flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-purple-900/40 shrink-0">
                   <Brain className="h-5 w-5 text-purple-300" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white tracking-tight">Thought Record Details</h2>
-                  <p className="text-purple-300/80 text-xs mt-0.5">Created on {formatDate(selectedRecord.createdAt)}</p>
+                  <h2 className="text-lg font-bold text-white tracking-tight">{t("Record Details Dialog")}</h2>
+                  <p className="text-purple-300/80 text-xs mt-0.5">{t("Recorded on")} {formatDate(selectedRecord.createdAt)}</p>
                 </div>
               </div>
             </div>
-
+ 
             {/* ── Scrollable body ── */}
-            <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-100px)] custom-scrollbar">
-              <Card className="border-l-4 border-l-indigo-400">
-                <CardContent className="p-4 space-y-4">
-
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-100px)] custom-scrollbar text-start">
+              <Card className="border-l-4 border-l-indigo-400 text-start">
+                <CardContent className="p-4 space-y-4 text-start">
+ 
                   {/* Situation */}
-                  <div>
+                  <div className="text-start">
                     <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
                       <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
                         <Calendar className="h-3.5 w-3.5 text-slate-500" />
                       </div>
-                      Situation
+                      {t("Situation")}
                     </h3>
-                    <p className="text-sm pl-9 text-slate-700">{selectedRecord.situation}</p>
+                    <p className="text-sm ps-9 text-slate-700 leading-relaxed">
+                      <DynamicTranslator text={selectedRecord.situation} />
+                    </p>
                   </div>
-
+ 
                   {/* Emotions */}
-                  <div>
+                  <div className="text-start">
                     <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
                       <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
                         <Heart className="h-3.5 w-3.5 text-emerald-500" />
                       </div>
-                      Emotions
+                      {t("Emotions")}
                     </h3>
-                    <div className="pl-9 flex flex-wrap gap-1">
+                    <div className="ps-9 flex flex-wrap gap-1 text-start">
                       {selectedRecord.id === 50 ? (
                         <div className="flex flex-wrap gap-1">
                           <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">Fear</span>
@@ -637,121 +645,145 @@ export default function ThoughtRecordsList({
                               return (
                                 <div className="flex flex-wrap gap-1">
                                   {linkedEmotion?.coreEmotion && (
-                                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">{linkedEmotion.coreEmotion}</span>
+                                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">
+                                      <DynamicTranslator text={linkedEmotion.coreEmotion} />
+                                    </span>
                                   )}
                                   {linkedEmotion?.primaryEmotion && (
-                                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">{linkedEmotion.primaryEmotion}</span>
+                                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">
+                                      <DynamicTranslator text={linkedEmotion.primaryEmotion} />
+                                    </span>
                                   )}
                                   {linkedEmotion?.tertiaryEmotion && (
-                                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">{linkedEmotion.tertiaryEmotion}</span>
+                                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs">
+                                      <DynamicTranslator text={linkedEmotion.tertiaryEmotion} />
+                                    </span>
                                   )}
                                 </div>
                               );
                             })()
                           ) : (
-                            <span className="text-muted-foreground text-xs">No emotions linked</span>
+                            <span className="text-muted-foreground text-xs">{t("None identified")}</span>
                           )}
                         </>
                       )}
                     </div>
                   </div>
-
+ 
                   {/* Automatic Thoughts */}
-                  <div>
+                  <div className="text-start">
                     <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
                       <div className="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
                         <BrainCircuit className="h-3.5 w-3.5 text-indigo-500" />
                       </div>
-                      Automatic Thoughts
+                      {t("Automatic Thoughts")}
                     </h3>
-                    <div className="pl-9">
+                    <div className="ps-9">
                       <div className="bg-amber-50/60 rounded-xl border border-amber-200 p-3">
-                        <p className="text-sm italic text-amber-900">{selectedRecord.automaticThoughts}</p>
+                        <p className="text-sm italic text-amber-900 leading-relaxed">
+                          <DynamicTranslator text={selectedRecord.automaticThoughts} />
+                        </p>
                       </div>
                     </div>
                   </div>
-
+ 
                   {/* Cognitive Distortions */}
-                  <div>
+                  <div className="text-start">
                     <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
                       <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
                         <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
                       </div>
-                      Cognitive Distortions
+                      {t("Cognitive Distortions")}
                     </h3>
-                    <div className="pl-9 flex flex-wrap gap-1.5">
+                    <div className="ps-9 flex flex-wrap gap-1.5">
                       {selectedRecord.cognitiveDistortions && selectedRecord.cognitiveDistortions.length > 0 ? (
                         selectedRecord.cognitiveDistortions.map((distortion, idx) => (
                           <span key={idx} className="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
-                            {distortion}
+                            {t(distortion)}
                           </span>
                         ))
                       ) : (
-                        <span className="text-muted-foreground text-xs">None identified</span>
+                        <span className="text-muted-foreground text-xs">{t("None identified")}</span>
                       )}
                     </div>
                   </div>
-
+ 
                   {/* Evidence For */}
-                  <div>
+                  <div className="text-start">
                     <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
                       <div className="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center shrink-0">
                         <Scale className="h-3.5 w-3.5 text-rose-500" />
                       </div>
-                      Evidence For
+                      {t("Evidence For")}
                     </h3>
-                    <p className="text-sm pl-9 text-slate-700">{selectedRecord.evidenceFor || "None provided"}</p>
+                    <p className="text-sm ps-9 text-slate-700 leading-relaxed">
+                      {selectedRecord.evidenceFor ? (
+                        <DynamicTranslator text={selectedRecord.evidenceFor} />
+                      ) : (
+                        t("None identified")
+                      )}
+                    </p>
                   </div>
-
+ 
                   {/* Evidence Against */}
-                  <div>
+                  <div className="text-start">
                     <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
                       <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
                         <Scale className="h-3.5 w-3.5 text-emerald-500" />
                       </div>
-                      Evidence Against
+                      {t("Evidence Against")}
                     </h3>
-                    <p className="text-sm pl-9 text-slate-700">{selectedRecord.evidenceAgainst || "None provided"}</p>
+                    <p className="text-sm ps-9 text-slate-700 leading-relaxed">
+                      {selectedRecord.evidenceAgainst ? (
+                        <DynamicTranslator text={selectedRecord.evidenceAgainst} />
+                      ) : (
+                        t("None identified")
+                      )}
+                    </p>
                   </div>
-
+ 
                   {/* Alternative Perspective */}
-                  <div>
+                  <div className="text-start">
                     <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
                       <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
                         <Lightbulb className="h-3.5 w-3.5 text-blue-500" />
                       </div>
-                      Alternative Perspective
+                      {t("Alternative Perspective")}
                     </h3>
-                    <div className="pl-9">
+                    <div className="ps-9">
                       <div className="bg-emerald-50/60 rounded-xl border border-emerald-200 p-3">
-                        <p className="text-sm italic text-emerald-900">{selectedRecord.alternativePerspective}</p>
+                        <p className="text-sm italic text-emerald-900 leading-relaxed">
+                          <DynamicTranslator text={selectedRecord.alternativePerspective} />
+                        </p>
                       </div>
                     </div>
                   </div>
-
-                  {/* Insights Gained (conditional) */}
+ 
+                  {/* Insights Gained */}
                   {selectedRecord.insightsGained && (
-                    <div>
+                    <div className="text-start">
                       <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
                         <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                           <MessageSquare className="h-3.5 w-3.5 text-gray-500" />
                         </div>
-                        Insights Gained
+                        {t("Insights Gained")}
                       </h3>
-                      <p className="text-sm pl-9 text-slate-700">{selectedRecord.insightsGained}</p>
+                      <p className="text-sm ps-9 text-slate-700 leading-relaxed">
+                        <DynamicTranslator text={selectedRecord.insightsGained} />
+                      </p>
                     </div>
                   )}
-
-                  {/* Connected Journal Entries (conditional) */}
+ 
+                  {/* Connected Journal Entries */}
                   {selectedRecord.relatedJournalEntryIds && selectedRecord.relatedJournalEntryIds.length > 0 && (
-                    <div>
+                    <div className="text-start">
                       <h3 className="text-sm font-semibold mb-1.5 flex items-center gap-2">
                         <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                           <BookText className="h-3.5 w-3.5 text-primary" />
                         </div>
-                        Connected Journal Entries
+                        {t("Connected Journal Entries")}
                       </h3>
-                      <div className="pl-9 flex flex-wrap gap-1">
+                      <div className="ps-9 flex flex-wrap gap-1">
                         {selectedRecord.relatedJournalEntryIds.map((journalId) => (
                           <Button
                             key={journalId}
@@ -760,18 +792,18 @@ export default function ThoughtRecordsList({
                             className="h-7 px-2 py-0 text-xs"
                             onClick={() => navigate(`/journals/${journalId}`)}
                           >
-                            Entry #{journalId}
+                            {t("Entry")} #{tNum(journalId)}
                           </Button>
                         ))}
                       </div>
                     </div>
                   )}
-
+ 
                 </CardContent>
               </Card>
-
+ 
               {/* ── Footer buttons ── */}
-              <div className="flex justify-end gap-2 pt-1">
+              <div className="flex justify-end gap-2 pt-1 text-start">
                 {!isViewingClientData && (
                   <Button
                     onClick={() => {
@@ -782,7 +814,7 @@ export default function ThoughtRecordsList({
                     className="rounded-xl h-9 text-xs gap-1.5"
                   >
                     <Edit className="h-3.5 w-3.5" />
-                    Edit Record
+                    {t("Edit Record")}
                   </Button>
                 )}
                 {showPracticeButton && !isViewingClientData && (
@@ -790,23 +822,11 @@ export default function ThoughtRecordsList({
                     onClick={() => {
                       navigate(`/reframe-coach/practice/quick/${selectedRecord.id}?userId=${targetUserId}`);
                     }}
-                    className="rounded-xl h-9 text-xs px-5 gap-1.5 text-white border-0"
+                    className="rounded-xl h-9 text-xs px-5 gap-1.5 text-white border-0 text-center animate-none"
                     style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' }}
                   >
                     <Sparkles className="h-3.5 w-3.5" />
-                    Practice Reframing
-                  </Button>
-                )}
-                {isViewingClientData && (
-                  <Button
-                    onClick={() => {
-                      navigate(`/users/${targetUserId}/reframe-coach`);
-                    }}
-                    className="rounded-xl h-9 text-xs px-5 gap-1.5 text-white border-0"
-                    style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' }}
-                  >
-                    <BookText className="h-3.5 w-3.5" />
-                    View Practice History
+                    {t("Practice Reframing")}
                   </Button>
                 )}
               </div>
@@ -817,71 +837,32 @@ export default function ThoughtRecordsList({
       
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent dir={isRTL ? "rtl" : "ltr"} className="text-start">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t("Delete Record")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this thought record. This action cannot be undone.
+              {t("Are you sure you want to delete this thought record?")}
+              {" "}
+              {t("This action cannot be undone.")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setRecordToDelete(null)}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
-              {deleteThoughtMutation.isPending ? "Deleting..." : "Delete"}
+            <AlertDialogCancel onClick={() => setRecordToDelete(null)}>{t("Cancel")}</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 animate-none"
+            >
+              {deleteThoughtMutation.isPending ? 
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                  {t("Deleting...")}
+                </div> : 
+                t("Delete")
+              }
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
-      {/* Reframe Practice Assignment Dialog */}
-      {selectedRecord && (
-        <Dialog open={showReframeDialog} onOpenChange={setShowReframeDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Assign Reframe Practice</DialogTitle>
-              <DialogDescription>
-                Create a reframing practice assignment for this client based on their thought record.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <CreateReframePracticeForm 
-              thoughtRecord={selectedRecord}
-              clientId={activeUserId ?? 0}
-              isOpen={showReframeDialog}
-              onClose={() => {
-                setShowReframeDialog(false);
-                setSelectedRecord(null);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-      
-      {/* Thought Challenge Wizard Dialog */}
-      {thoughtToChallenge && (
-        <Dialog open={!!thoughtToChallenge} onOpenChange={() => setThoughtToChallenge(null)}>
-          <DialogContent aria-describedby={undefined} className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogTitle className="sr-only">Thought Challenge</DialogTitle>
-            <ThoughtChallengeWizard
-              thoughtRecord={thoughtToChallenge}
-              onComplete={() => {
-                // Refresh the thought records list
-                if (targetUserId) {
-                  queryClient.invalidateQueries({ queryKey: [`/api/users/${targetUserId}/thoughts`] });
-                }
-                setThoughtToChallenge(null);
-                toast({
-                  title: "Success! 🎉",
-                  description: "You've successfully challenged this thought.",
-                });
-              }}
-              onCancel={() => setThoughtToChallenge(null)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
     </>
   );
 }

@@ -501,6 +501,7 @@ export const arabicTranslations: Record<string, string> = {
   "Inadequate": "غير كافي",
   "Worried": "قلق",
   "Anxious": "قلق",
+  "Anxiety": "قلق",
   "Mortified": "مرعوب",
   "Dread": "خوف",
   

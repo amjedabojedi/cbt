@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
 import { useAuth } from "@/lib/auth";
 import { useRefreshData } from "@/hooks/use-refresh-data";
+import { useLocalization, DynamicTranslator } from "@/lib/localize.tsx";
 import { 
   ArrowRight, 
   Smile, 
@@ -104,6 +105,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
   const { activeUserId, isViewingClientData } = useActiveUser();
   const { user } = useAuth();
   const [location, navigate] = useLocation();
+  const { t, tNum, isRTL } = useLocalization();
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionRecord | null>(null);
   const [showFullHistory, setShowFullHistory] = useState(false);
   const [showReflectionWizard, setShowReflectionWizard] = useState(false);
@@ -251,11 +253,11 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
     yesterday.setDate(yesterday.getDate() - 1);
     
     if (emotionDate.toDateString() === today.toDateString()) {
-      return `Today, ${format(emotionDate, "h:mm a")}`;
+      return `${t("Today")}, ${tNum(format(emotionDate, "h:mm a"))}`;
     } else if (emotionDate.toDateString() === yesterday.toDateString()) {
-      return `Yesterday, ${format(emotionDate, "h:mm a")}`;
+      return `${t("Yesterday")}, ${tNum(format(emotionDate, "h:mm a"))}`;
     } else {
-      return format(emotionDate, "MMM d, yyyy, h:mm a");
+      return tNum(format(emotionDate, "MMM d, yyyy, h:mm a"));
     }
   };
   
@@ -303,10 +305,10 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
     <>
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="flex flex-row items-center justify-between px-5 py-4 border-b border-slate-100">
-          <div>
-            <h3 className="font-bold text-slate-800">Recent Entries</h3>
+          <div className="text-start">
+            <h3 className="font-bold text-slate-800">{t("Recent Entries")}</h3>
             <p className="text-sm text-slate-500 mt-0.5">
-              Your recently recorded emotions and thoughts
+              {t("Your recently recorded emotions and thoughts")}
             </p>
           </div>
           {limit && emotionsArray.length > limit && (
@@ -315,7 +317,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               onClick={() => setShowFullHistory(true)}
               className="text-sm text-purple-900 hover:text-[#090514] hover:bg-purple-50 rounded-xl"
             >
-              View All
+              {t("View All")}
             </Button>
           )}
         </div>
@@ -325,17 +327,17 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               <div className="mx-auto w-14 h-14 bg-rose-50 border border-rose-100 rounded-2xl flex items-center justify-center mb-4">
                 <Heart className="h-7 w-7 text-rose-500" />
               </div>
-              <p className="font-medium text-slate-600">No emotion records yet</p>
-              <p className="text-sm text-slate-400 mt-1 max-w-xs mx-auto">
-                Use the emotion wheel to start tracking how you feel.
+              <p className="font-medium text-slate-600">{t("No emotion records yet")}</p>
+              <p className="text-sm text-slate-400 mt-1 max-w-xs mx-auto leading-relaxed">
+                {t("Use the emotion wheel to start tracking how you feel.")}
               </p>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2 text-start">
               {displayEmotions?.map((emotion) => (
                 <div
                   key={emotion.id}
-                  className="overflow-hidden rounded-xl border border-slate-100 hover:border-purple-200 hover:shadow-sm transition-all duration-200 bg-slate-50/30"
+                  className="overflow-hidden rounded-xl border border-slate-100 hover:border-purple-200 hover:shadow-sm transition-all duration-200 bg-slate-50/30 text-start"
                 >
                   <div className="px-4 pt-4 pb-2">
                     <div className="flex items-center justify-between">
@@ -350,20 +352,20 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align={isRTL ? "start" : "end"} className="text-start">
                           <DropdownMenuItem onClick={() => handleViewDetails(emotion)}>
                             <Eye className="h-4 w-4 mr-2" />
-                            View Details
+                            {t("View Details")}
                           </DropdownMenuItem>
                           {!isViewingClientData && (
                             <>
                               <DropdownMenuItem onClick={() => handleEditEmotion(emotion)}>
                                 <Edit className="h-4 w-4 mr-2" />
-                                Edit
+                                {t("Edit")}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleAddThoughtRecord(emotion)}>
                                 <ArrowRight className="h-4 w-4 mr-2" />
-                                Add Thought Record
+                                {t("Add Thought Record")}
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem 
@@ -371,7 +373,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                                 className="text-destructive focus:text-destructive"
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
+                                {t("Delete")}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -384,22 +386,24 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                     <div className="space-y-3">
                       {/* Emotion Badge */}
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-500">Emotion:</span>
+                        <span className="text-sm text-slate-500">{t("Emotion:")}</span>
                         <Badge className={getEmotionBadgeColor(emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion)}>
-                          {emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion}
+                          <DynamicTranslator text={emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion} />
                         </Badge>
                       </div>
                       
                       {/* Intensity */}
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-500">Intensity:</span>
-                        <span className="text-sm font-bold text-[#090514]">{emotion.intensity}/10</span>
+                        <span className="text-sm text-slate-500">{t("Intensity:")}</span>
+                        <span className="text-sm font-bold text-[#090514]">{tNum(`${emotion.intensity}/10`)}</span>
                       </div>
                       
                       {/* Situation */}
                       <div>
-                        <span className="text-sm text-slate-500 block mb-1">Situation:</span>
-                        <p className="text-sm text-slate-600 line-clamp-1 sm:line-clamp-2">{emotion.situation}</p>
+                        <span className="text-sm text-slate-500 block mb-1">{t("Situation:")}</span>
+                        <p className="text-sm text-slate-600 line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                          <DynamicTranslator text={emotion.situation} />
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -413,8 +417,8 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
       {/* Emotion Details Dialog */}
       {selectedEmotion && (
         <Dialog open={!!selectedEmotion && !showReflectionWizard} onOpenChange={() => setSelectedEmotion(null)}>
-          <DialogContent aria-describedby={undefined} className="max-w-2xl max-h-[85vh] overflow-y-auto p-0 rounded-2xl border-0">
-            <DialogTitle className="sr-only">Emotion Details</DialogTitle>
+          <DialogContent aria-describedby={undefined} className="max-w-2xl max-h-[85vh] overflow-y-auto p-0 rounded-2xl border-0 text-start">
+            <DialogTitle className="sr-only">{t("Emotion Details")}</DialogTitle>
             {/* ── Luxury gradient header ── */}
             <div
               className="relative overflow-hidden px-7 py-5"
@@ -423,7 +427,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               {/* Ambient orbs */}
               <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-purple-600/25 blur-3xl pointer-events-none" />
               <div className="absolute -left-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/20 blur-2xl pointer-events-none" />
-
+ 
               <div className="relative z-10 flex items-center gap-3.5">
                 {/* Glassmorphic emotion icon orb */}
                 <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
@@ -438,17 +442,17 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                   )}
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">Emotion Details</h2>
+                  <h2 className="text-lg font-bold text-white">{t("Emotion Details")}</h2>
                   <p className="text-purple-300/80 text-xs mt-0.5">
-                    Recorded on {format(new Date(selectedEmotion.timestamp), "MMMM d, yyyy 'at' h:mm a")}
+                    {t("Recorded on")} {formatDate(selectedEmotion.timestamp)}
                   </p>
                 </div>
               </div>
             </div>
-
+ 
             {/* ── Body ── */}
             <div className="p-6 space-y-4">
-
+ 
               {/* Premium emotion visualization card */}
               {(() => {
                 const emotionColor =
@@ -458,7 +462,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                   selectedEmotion.coreEmotion === 'Fear'    ? '#4CAF50' :
                   selectedEmotion.coreEmotion === 'Surprise'? '#9C27B0' :
                   selectedEmotion.coreEmotion === 'Disgust' ? '#795548' : '#9E9E9E';
-
+ 
                 const emotionBg =
                   selectedEmotion.coreEmotion === 'Joy'     ? 'bg-yellow-50/60'  :
                   selectedEmotion.coreEmotion === 'Sadness' ? 'bg-purple-50/60'  :
@@ -466,13 +470,13 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                   selectedEmotion.coreEmotion === 'Fear'    ? 'bg-green-50/60'   :
                   selectedEmotion.coreEmotion === 'Surprise'? 'bg-purple-50/60'  :
                   selectedEmotion.coreEmotion === 'Disgust' ? 'bg-amber-50/60'   : 'bg-slate-50/60';
-
+ 
                 return (
                   <div
                     className={`rounded-xl border p-5 flex items-center gap-5 ${emotionBg}`}
                     style={{ borderColor: emotionColor + '55' }}
                   >
-                    {/* Intensity ring – w-20 h-20 */}
+                    {/* Intensity ring */}
                     <div
                       className="w-20 h-20 rounded-full flex items-center justify-center shrink-0"
                       style={{
@@ -480,22 +484,24 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                       }}
                     >
                       <div className="w-12 h-12 bg-white rounded-full flex flex-col items-center justify-center shadow-sm">
-                        <span className="text-sm font-bold text-slate-800 leading-none">{selectedEmotion.intensity}/10</span>
+                        <span className="text-sm font-bold text-slate-800 leading-none">{tNum(`${selectedEmotion.intensity}/10`)}</span>
                       </div>
                     </div>
-
+ 
                     {/* Right side */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-2xl font-bold text-slate-800 leading-tight">{selectedEmotion.coreEmotion}</p>
+                      <p className="text-2xl font-bold text-slate-800 leading-tight">
+                        <DynamicTranslator text={selectedEmotion.coreEmotion} />
+                      </p>
                       <div className="flex flex-wrap gap-2 mt-2">
                         {selectedEmotion.primaryEmotion && (
                           <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${getEmotionBadgeColor(selectedEmotion.primaryEmotion)}`}>
-                            {selectedEmotion.primaryEmotion}
+                            <DynamicTranslator text={selectedEmotion.primaryEmotion} />
                           </span>
                         )}
                         {selectedEmotion.tertiaryEmotion && (
                           <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${getEmotionBadgeColor(selectedEmotion.tertiaryEmotion)}`}>
-                            {selectedEmotion.tertiaryEmotion}
+                            <DynamicTranslator text={selectedEmotion.tertiaryEmotion} />
                           </span>
                         )}
                       </div>
@@ -503,7 +509,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                   </div>
                 );
               })()}
-
+ 
               {/* Context + Situation 2-col grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Context Details */}
@@ -512,45 +518,48 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                     <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
                       <MapPin className="h-4 w-4 text-slate-500" />
                     </div>
-                    <span className="text-sm font-semibold text-slate-700">Context Details</span>
+                    <span className="text-sm font-semibold text-slate-700">{t("Context Details")}</span>
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <div className="text-xs text-slate-400 mb-0.5">Location</div>
+                      <div className="text-xs text-slate-400 mb-0.5">{t("Location")}</div>
                       <div className="text-sm font-medium text-slate-700 capitalize">
-                        {selectedEmotion.location || "Not specified"}
+                        {selectedEmotion.location ? t(selectedEmotion.location) : t("Not specified")}
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs text-slate-400 mb-0.5">Company</div>
+                      <div className="text-xs text-slate-400 mb-0.5">{t("Company")}</div>
                       <div className="text-sm font-medium text-slate-700 capitalize">
-                        {selectedEmotion.company || "Not specified"}
+                        {selectedEmotion.company ? t(selectedEmotion.company) : t("Not specified")}
                       </div>
                     </div>
                   </div>
                 </div>
-
+ 
                 {/* Situation */}
                 <div className="rounded-xl border border-slate-200 bg-slate-50/40 p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
                       <MessageSquare className="h-4 w-4 text-slate-500" />
                     </div>
-                    <span className="text-sm font-semibold text-slate-700">Situation</span>
+                    <span className="text-sm font-semibold text-slate-700">{t("Situation")}</span>
                   </div>
                   <p className="text-sm text-slate-600 leading-relaxed">
-                    {selectedEmotion.situation || "No situation description provided"}
+                    {selectedEmotion.situation ? (
+                      <DynamicTranslator text={selectedEmotion.situation} />
+                    ) : (
+                      t("No situation description provided")
+                    )}
                   </p>
                 </div>
               </div>
-
+ 
               {/* Footer: Related Records + CTA */}
               <div className="flex flex-col items-center gap-2 pt-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h4 className="text-sm font-medium text-neutral-500 mb-2">Related Records</h4>
-                  {/* thought record links added in a separate update */}
+                  <h4 className="text-sm font-medium text-neutral-500 mb-2">{t("Related Records")}</h4>
                 </div>
-
+ 
                 <div className="flex gap-2">
                   {!isViewingClientData && (
                     <Button
@@ -561,7 +570,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                       }}
                     >
                       <ArrowRight className="h-4 w-4" />
-                      Create Thought Record
+                      {t("Create Thought Record")}
                     </Button>
                   )}
                 </div>
@@ -588,9 +597,9 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
         <Dialog open={showEditEmotionDialog} onOpenChange={(open) => {
           if (!open) setShowEditEmotionDialog(false);
         }}>
-          <DialogContent aria-describedby={undefined} className="max-w-lg p-0 rounded-2xl border-0 overflow-hidden">
-            <DialogTitle className="sr-only">Edit Emotion</DialogTitle>
-
+          <DialogContent aria-describedby={undefined} className="max-w-lg p-0 rounded-2xl border-0 overflow-hidden text-start">
+            <DialogTitle className="sr-only">{t("Edit Emotion Record")}</DialogTitle>
+ 
             {/* ── Dark gradient header ── */}
             <div
               className="relative overflow-hidden px-7 py-5"
@@ -611,14 +620,14 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                   )}
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white tracking-tight leading-tight">Edit Emotion Record</h2>
+                  <h2 className="text-lg font-bold text-white tracking-tight leading-tight">{t("Edit Emotion Record")}</h2>
                   <p className="text-purple-300/80 text-xs mt-0.5 font-medium">
-                    Recorded on {format(new Date(selectedEmotion.timestamp), "MMMM d, yyyy 'at' h:mm a")}
+                    {t("Recorded on")} {formatDate(selectedEmotion.timestamp)}
                   </p>
                 </div>
               </div>
             </div>
-
+ 
             {/* ── Form body ── */}
             <form onSubmit={(e) => {
               e.preventDefault();
@@ -632,7 +641,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               });
             }}>
               <div className="px-7 py-6 space-y-5 bg-white">
-
+ 
                 {/* Read-only emotion snapshot */}
                 <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3">
                   <div
@@ -642,27 +651,29 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                     }}
                   >
                     <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm">
-                      <span className="text-xs font-bold text-slate-700 leading-none">{selectedEmotion.intensity}/10</span>
+                      <span className="text-xs font-bold text-slate-700 leading-none">{tNum(`${selectedEmotion.intensity}/10`)}</span>
                     </div>
                   </div>
                   <div>
-                    <p className="font-bold text-slate-800 text-base">{selectedEmotion.coreEmotion}</p>
+                    <p className="font-bold text-slate-800 text-base">
+                      <DynamicTranslator text={selectedEmotion.coreEmotion} />
+                    </p>
                     <div className="flex flex-wrap gap-1.5 mt-1">
                       {selectedEmotion.primaryEmotion && (
                         <span className={`px-2 py-0.5 text-xs rounded-full ${getEmotionBadgeColor(selectedEmotion.primaryEmotion)}`}>
-                          {selectedEmotion.primaryEmotion}
+                          <DynamicTranslator text={selectedEmotion.primaryEmotion} />
                         </span>
                       )}
                       {selectedEmotion.tertiaryEmotion && (
                         <span className={`px-2 py-0.5 text-xs rounded-full ${getEmotionBadgeColor(selectedEmotion.tertiaryEmotion)}`}>
-                          {selectedEmotion.tertiaryEmotion}
+                          <DynamicTranslator text={selectedEmotion.tertiaryEmotion} />
                         </span>
                       )}
                     </div>
                   </div>
                   {/* Editable intensity */}
                   <div className="ml-auto flex flex-col items-end gap-1">
-                    <label htmlFor="intensity" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Intensity</label>
+                    <label htmlFor="intensity" className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t("Intensity")}</label>
                     <input
                       type="number"
                       id="intensity"
@@ -674,11 +685,11 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                     />
                   </div>
                 </div>
-
+ 
                 {/* Situation */}
                 <div className="space-y-1.5">
                   <label htmlFor="situation" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Situation
+                    {t("Situation")}
                   </label>
                   <textarea
                     id="situation"
@@ -688,12 +699,12 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                     className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl min-h-[90px] bg-slate-50/60 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 outline-none resize-none leading-relaxed"
                   />
                 </div>
-
+ 
                 {/* Location + Company */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label htmlFor="location" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      Location
+                      {t("Location")}
                     </label>
                     <input
                       type="text"
@@ -706,7 +717,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                   </div>
                   <div className="space-y-1.5">
                     <label htmlFor="company" className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      Company
+                      {t("Company")}
                     </label>
                     <input
                       type="text"
@@ -718,9 +729,9 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                     />
                   </div>
                 </div>
-
+ 
               </div>
-
+ 
               {/* ── Footer ── */}
               <div className="flex items-center justify-end gap-2.5 px-7 py-4 border-t border-slate-100 bg-white">
                 <Button
@@ -729,7 +740,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                   onClick={() => setShowEditEmotionDialog(false)}
                   className="rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 h-9 px-5"
                 >
-                  Cancel
+                  {t("Cancel")}
                 </Button>
                 <Button
                   type="submit"
@@ -739,60 +750,60 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                   {updateEmotionMutation.isPending ? (
                     <>
                       <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Saving…
+                      {t("Saving…")}
                     </>
-                  ) : "Save Changes"}
+                  ) : t("Save Changes")}
                 </Button>
               </div>
             </form>
-
+ 
           </DialogContent>
         </Dialog>
       )}
       
       {/* Full History Dialog */}
       <Dialog open={showFullHistory} onOpenChange={setShowFullHistory}>
-        <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+        <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto custom-scrollbar text-start">
           <DialogHeader className="sticky top-0 bg-background z-10 pb-4">
-            <DialogTitle>Emotion History</DialogTitle>
+            <DialogTitle>{t("Emotion History")}</DialogTitle>
           </DialogHeader>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date & Time</TableHead>
-                  <TableHead>Emotion</TableHead>
-                  <TableHead>Intensity</TableHead>
-                  <TableHead>Situation</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="text-start">{t("Date & Time")}</TableHead>
+                  <TableHead className="text-start">{t("Emotion")}</TableHead>
+                  <TableHead className="text-start">{t("Intensity")}</TableHead>
+                  <TableHead className="text-start">{t("Situation")}</TableHead>
+                  <TableHead className="text-start">{t("Location")}</TableHead>
+                  <TableHead className="text-start">{t("Company")}</TableHead>
+                  <TableHead className="text-start">{t("Actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {emotionsArray.map((emotion) => (
                   <TableRow key={emotion.id}>
-                    <TableCell className="whitespace-nowrap text-sm">
+                    <TableCell className="whitespace-nowrap text-sm text-start">
                       {formatDate(emotion.timestamp)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-start">
                       <span className={`px-2 py-1 text-xs rounded-full ${getEmotionBadgeColor(emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion)}`}>
-                        {emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion}
+                        <DynamicTranslator text={emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion} />
                       </span>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap text-sm">
-                      {emotion.intensity}/10
+                    <TableCell className="whitespace-nowrap text-sm text-start">
+                      {tNum(`${emotion.intensity}/10`)}
                     </TableCell>
-                    <TableCell className="max-w-xs truncate text-sm">
-                      {emotion.situation}
+                    <TableCell className="max-w-xs truncate text-sm text-start">
+                      <DynamicTranslator text={emotion.situation} />
                     </TableCell>
-                    <TableCell className="text-sm capitalize">
-                      {emotion.location || "—"}
+                    <TableCell className="text-sm capitalize text-start">
+                      {emotion.location ? t(emotion.location) : "—"}
                     </TableCell>
-                    <TableCell className="text-sm capitalize">
-                      {emotion.company || "—"}
+                    <TableCell className="text-sm capitalize text-start">
+                      {emotion.company ? t(emotion.company) : "—"}
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
+                    <TableCell className="whitespace-nowrap text-start">
                       <div className="flex items-center space-x-2">
                         {/* Only show edit button if viewing own data */}
                         {!isViewingClientData && (
@@ -805,7 +816,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                               setShowFullHistory(false);
                             }}
                             className="text-primary hover:text-primary-dark"
-                            title="Edit emotion"
+                            title={t("Edit")}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -821,7 +832,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                               setShowFullHistory(false);
                             }}
                             className="text-primary hover:text-primary-dark"
-                            title="Add thought record"
+                            title={t("Add Thought Record")}
                           >
                             <ArrowRight className="h-4 w-4" />
                           </Button>
@@ -864,26 +875,27 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
       
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="text-start">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Emotion Record</AlertDialogTitle>
+            <AlertDialogTitle>{t("Delete Emotion Record")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this emotion record? This will also remove any linked thought records and reflections.
-              This action cannot be undone.
+              {t("Are you sure you want to delete this emotion record? This will also remove any linked thought records and reflections.")}
+              {" "}
+              {t("This action cannot be undone.")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setEmotionToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setEmotionToDelete(null)}>{t("Cancel")}</AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 animate-none"
             >
               {deleteEmotionMutation.isPending ? 
                 <div className="flex items-center gap-2">
                   <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                  Deleting...
+                  {t("Deleting...")}
                 </div> : 
-                "Delete"
+                t("Delete")
               }
             </AlertDialogAction>
           </AlertDialogFooter>

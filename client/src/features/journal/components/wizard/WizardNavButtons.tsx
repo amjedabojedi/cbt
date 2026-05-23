@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Check, ChevronLeft, ChevronRight, LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useLocalization } from "@/lib/localize.tsx";
 
 interface WizardNavButtonsProps {
   currentStep: number;
@@ -38,6 +40,7 @@ export default function WizardNavButtons({
   submitButtonClassName,
   footerClassName,
 }: WizardNavButtonsProps) {
+  const { t, isRTL } = useLocalization();
   const isLast = currentStep === totalSteps - 1;
 
   return (
@@ -52,8 +55,8 @@ export default function WizardNavButtons({
           disabled={isSubmitting}
           data-testid="button-previous-step"
         >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Previous
+          <ChevronLeft className={cn("h-4 w-4", isRTL ? "ms-1 rotate-180" : "me-1")} />
+          {t("Previous")}
         </Button>
       )}
 
@@ -68,8 +71,11 @@ export default function WizardNavButtons({
             data-testid="button-next-step"
             className={`${currentStep === 0 ? "h-11 px-6 text-base " : ""}${nextButtonClassName ?? ""}`}
           >
-            {currentStep === 0 ? introNextLabel : nextLabel}
-            <ChevronRight className={currentStep === 0 ? "h-5 w-5 ml-1.5" : "h-4 w-4 ml-1"} />
+            {currentStep === 0 ? t(introNextLabel) : t(nextLabel)}
+            <ChevronRight className={cn(
+              currentStep === 0 ? "h-5 w-5" : "h-4 w-4",
+              isRTL ? "me-1.5 rotate-180" : currentStep === 0 ? "ms-1.5" : "ms-1"
+            )} />
           </Button>
         ) : (
           <Button
@@ -79,8 +85,8 @@ export default function WizardNavButtons({
             data-testid="button-submit-wizard"
             className={submitButtonClassName}
           >
-            <SubmitIcon className="h-4 w-4 mr-1" />
-            {isSubmitting ? "Submitting…" : submitLabel}
+            <SubmitIcon className={cn("h-4 w-4", isRTL ? "ms-1" : "me-1")} />
+            {isSubmitting ? t("Submitting…") : t(submitLabel)}
           </Button>
         )}
       </div>
