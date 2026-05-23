@@ -9,6 +9,7 @@ import journalRouter from "./journal.routes";
 import adminRouter from "./admin.routes";
 import notificationsRouter from "./notifications.routes";
 import resourcesRouter from "./resources.routes";
+import translateRouter from "./translate.routes";
 
 const router = Router();
 
@@ -29,5 +30,6 @@ router.use("/", journalRouter); // contains /journal/...
 router.use("/", adminRouter); // contains /admin/...
 router.use("/notifications", notificationsRouter);
 router.use("/", resourcesRouter); // contains /resources/..., /therapist/assignments, /resource-assignments/...
+router.use("/", translateRouter); // contains /translate
 
 export default router;

@@ -3,6 +3,7 @@ import RoleIndicator from "./RoleIndicator";
 import { useClientContext } from "@/context/ClientContext";
 import NotificationBell from "@/components/layout/notification-bell";
 import MobileNavigation from "@/components/MobileNavigation";
+import { useLocalization } from "@/lib/localize.tsx";
 
 interface HeaderProps {
   title: string;
@@ -28,11 +29,14 @@ function getInitials(name: string) {
 export default function Header({ title: _title }: HeaderProps) {
   const { viewingClientName } = useClientContext();
   const { user } = useAuth();
+  const { t, isRTL } = useLocalization();
 
   const handleClientChange = (_clientId: number | null) => {};
 
   const firstName = user?.name?.split(" ")[0] || "there";
+  const translatedName = t(firstName);
   const greeting = getGreeting();
+  const translatedGreeting = t(greeting);
   const dateStr = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -47,8 +51,8 @@ export default function Header({ title: _title }: HeaderProps) {
           <MobileNavigation className="md:hidden flex-shrink-0" />
           <div>
             <p className="text-sm sm:text-base font-semibold text-slate-800 leading-tight">
-              {greeting},{" "}
-              <span className="text-[#090514]">{firstName}</span>
+              {isRTL ? `${translatedGreeting}، ` : `${translatedGreeting}, `}
+              <span className="text-[#090514]">{translatedName}</span>
             </p>
             <p className="text-[11px] text-slate-400 hidden sm:block">{dateStr}</p>
           </div>

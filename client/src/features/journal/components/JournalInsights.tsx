@@ -4,7 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, TrendingUp, Calendar as CalendarIcon, Tag, Heart, Info, AlertCircle } from "lucide-react";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, RadialBarChart, RadialBar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { format, subDays, subYears, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
-
+import { ar } from "date-fns/locale";
+import { useLocalization } from "@/lib/localize.tsx";
+import { formatJournalTag } from "@/features/journal/utils/journalLabels";
 interface JournalInsightsProps {
   userId: number;
 }
@@ -21,6 +23,8 @@ const TOPIC_COLORS = [
 ];
 
 export default function JournalInsights({ userId }: JournalInsightsProps) {
+  const { t, tNum, isRTL, currentLanguage } = useLocalization();
+  const dateLocale = isRTL ? ar : undefined;
   const [timeRange, setTimeRange] = useState<"week" | "month" | "year" | "all">("month");
 
   // Fetch journal entries
@@ -61,7 +65,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
           : 0;
         
         return {
-          date: format(monthStart, "MMM"),
+          date: format(monthStart, "MMM", { locale: dateLocale }),
           positive: parseFloat(avgPositive.toFixed(1)),
           negative: parseFloat(avgNegative.toFixed(1)),
           neutral: parseFloat(avgNeutral.toFixed(1)),
@@ -100,7 +104,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
           : 0;
         
         return {
-          date: `Week ${index + 1}`,
+          date: `${t("Week")} ${tNum(index + 1)}`,
           positive: parseFloat(avgPositive.toFixed(1)),
           negative: parseFloat(avgNegative.toFixed(1)),
           neutral: parseFloat(avgNeutral.toFixed(1)),
@@ -130,7 +134,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
         : 0;
       
       return {
-        date: format(day, "EEE"),
+        date: format(day, "EEE", { locale: dateLocale }),
         positive: parseFloat(avgPositive.toFixed(1)),
         negative: parseFloat(avgNegative.toFixed(1)),
         neutral: parseFloat(avgNeutral.toFixed(1)),
@@ -153,7 +157,8 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
       );
       
       return {
-        date: format(day, "MMM d"),
+        date: format(day, "MMM d", { locale: dateLocale }),
+        dayNum: format(day, "d", { locale: dateLocale }),
         count: dayEntries.length,
       };
     });
@@ -254,7 +259,12 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
     });
 
     return Object.entries(coreCounts)
-      .map(([name, value]) => ({ name, value, color: CORE_EMOTIONS[name]?.color || "#a78bfa" }))
+      .map(([name, value]) => ({
+        name,
+        displayName: formatJournalTag(name, t, currentLanguage),
+        value,
+        color: CORE_EMOTIONS[name]?.color || "#a78bfa",
+      }))
       .sort((a, b) => b.value - a.value);
   };
 
@@ -271,9 +281,21 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
     });
     
     return Object.entries(topicCounts)
-      .map(([topic, count]) => ({ topic, count }))
+      .map(([topic, count]) => ({
+        topic,
+        label: formatJournalTag(topic, t, currentLanguage),
+        count,
+      }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 8);
+  };
+
+  const formatCalendarTooltip = (date: string, count: number) => {
+    const logLabel =
+      count === 1
+        ? t("{date}: {count} log completed")
+        : t("{date}: {count} logs completed");
+    return logLabel.replace("{date}", date).replace("{count}", tNum(count));
   };
 
   // Calculate overall stats
@@ -291,8 +313,9 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
       ? entries.reduce((sum, e) => sum + (e.sentimentNeutral || 0), 0) / entries.length
       : 0;
     
-    const mostCommonEmotion = getEmotionDistribution()[0]?.name || "None";
-    
+    const rawEmotion = getEmotionDistribution()[0]?.name || "None";
+    const mostCommonEmotion = formatJournalTag(rawEmotion, t, currentLanguage);
+
     return {
       totalEntries,
       avgPositivity: parseFloat(avgSentimentPositive.toFixed(1)),
@@ -304,7 +327,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16 bg-white/60 backdrop-blur border border-slate-100 rounded-3xl shadow-sm">
+      <div className="flex items-center justify-center py-16 bg-white/60 backdrop-blur border border-slate-100 rounded-3xl shadow-sm" dir={isRTL ? "rtl" : "ltr"}>
         <div className="animate-spin h-10 w-10 border-4 border-purple-600 border-t-transparent rounded-full" />
       </div>
     );
@@ -312,12 +335,14 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
 
   if (entries.length === 0) {
     return (
-      <div className="bg-white/60 backdrop-blur rounded-3xl border border-slate-100 shadow-sm py-16 text-center px-6">
+      <div className="bg-white/60 backdrop-blur rounded-3xl border border-slate-100 shadow-sm py-16 text-center px-6" dir={isRTL ? "rtl" : "ltr"}>
         <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
           <BookOpen className="h-8 w-8" />
         </div>
-        <h3 className="font-bold text-slate-800 text-lg mb-1">Wellness Journal</h3>
-        <p className="text-slate-500 max-w-sm mx-auto text-sm">No journal logs recorded yet. Begin documenting daily notes to analyze patterns, sentiment scores, and word graphs.</p>
+        <h3 className="font-bold text-slate-800 text-lg mb-1">{t("Wellness Journal")}</h3>
+        <p className="text-slate-500 max-w-sm mx-auto text-sm">
+          {t("No journal logs recorded yet. Begin documenting daily notes to analyze patterns, sentiment scores, and word graphs.")}
+        </p>
       </div>
     );
   }
@@ -326,7 +351,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
   const insightCardClass = "bg-white/90 backdrop-blur-md rounded-2xl border border-slate-100/80 shadow-sm overflow-hidden hover:shadow-md hover:border-purple-200/60 transition-all duration-300";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white/90 backdrop-blur border border-slate-100/80 hover:border-violet-200/60 hover:shadow-md transition-all duration-300 rounded-2xl p-5 shadow-sm flex items-center gap-4">
@@ -334,9 +359,9 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
             <BookOpen className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Entries</p>
-            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{stats.totalEntries}</h4>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Logs recorded</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t("Total Entries")}</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{tNum(stats.totalEntries)}</h4>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{t("Logs recorded")}</p>
           </div>
         </div>
 
@@ -345,9 +370,9 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
             <Heart className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Avg Positivity</p>
-            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{stats.avgPositivity}%</h4>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Positive sentiments</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t("Avg Positivity")}</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{tNum(stats.avgPositivity)}%</h4>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{t("Positive sentiments")}</p>
           </div>
         </div>
 
@@ -356,9 +381,9 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
             <TrendingUp className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Top Emotion</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t("Top Emotion")}</p>
             <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{stats.mostCommonEmotion}</h4>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Most common vibe</p>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{t("Most common vibe")}</p>
           </div>
         </div>
       </div>
@@ -367,7 +392,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className={insightCardClass}>
           <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-            <h3 className="font-bold text-slate-800 text-sm text-center">Positive Sentiment</h3>
+            <h3 className="font-bold text-slate-800 text-sm text-center">{t("Positive Sentiment")}</h3>
           </div>
           <div className="p-6 flex flex-col items-center">
             <ResponsiveContainer width="100%" height={160}>
@@ -394,19 +419,19 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                   className="text-2xl font-extrabold"
                   fill="#10b981"
                 >
-                  {stats.avgPositivity}%
+                  {tNum(stats.avgPositivity)}%
                 </text>
               </RadialBarChart>
             </ResponsiveContainer>
             <p className="text-[11px] font-semibold text-slate-500 text-center mt-2 max-w-[200px]">
-              Average positive emotion level detected across entries
+              {t("Average positive emotion level detected across entries")}
             </p>
           </div>
         </div>
 
         <div className={insightCardClass}>
           <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-            <h3 className="font-bold text-slate-800 text-sm text-center">Negative Sentiment</h3>
+            <h3 className="font-bold text-slate-800 text-sm text-center">{t("Negative Sentiment")}</h3>
           </div>
           <div className="p-6 flex flex-col items-center">
             <ResponsiveContainer width="100%" height={160}>
@@ -433,19 +458,19 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                   className="text-2xl font-extrabold"
                   fill="#ef4444"
                 >
-                  {stats.avgNegativity}%
+                  {tNum(stats.avgNegativity)}%
                 </text>
               </RadialBarChart>
             </ResponsiveContainer>
             <p className="text-[11px] font-semibold text-slate-500 text-center mt-2 max-w-[200px]">
-              Average negative distress level detected across entries
+              {t("Average negative distress level detected across entries")}
             </p>
           </div>
         </div>
 
         <div className={insightCardClass}>
           <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-            <h3 className="font-bold text-slate-800 text-sm text-center">Neutral Sentiment</h3>
+            <h3 className="font-bold text-slate-800 text-sm text-center">{t("Neutral Sentiment")}</h3>
           </div>
           <div className="p-6 flex flex-col items-center">
             <ResponsiveContainer width="100%" height={160}>
@@ -472,12 +497,12 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                   className="text-2xl font-extrabold"
                   fill="#64748b"
                 >
-                  {stats.avgNeutrality}%
+                  {tNum(stats.avgNeutrality)}%
                 </text>
               </RadialBarChart>
             </ResponsiveContainer>
             <p className="text-[11px] font-semibold text-slate-500 text-center mt-2 max-w-[200px]">
-              Average objective neutral content density detected
+              {t("Average objective neutral content density detected")}
             </p>
           </div>
         </div>
@@ -491,15 +516,15 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
               <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
                 <TrendingUp className="h-4 w-4" />
               </div>
-              <h3 className="font-bold text-slate-800 text-base">Sentiment Composition</h3>
+              <h3 className="font-bold text-slate-800 text-base">{t("Sentiment Composition")}</h3>
             </div>
-            <p className="text-xs text-slate-500 mt-1">Timeline composition showing ratios of positivity vs. distress</p>
+            <p className="text-xs text-slate-500 mt-1">{t("Timeline composition showing ratios of positivity vs. distress")}</p>
           </div>
           <Tabs value={timeRange} onValueChange={(v: any) => setTimeRange(v)} className="w-auto">
             <TabsList className="bg-slate-100 p-0.5 rounded-xl h-auto">
-              <TabsTrigger value="week" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">Week</TabsTrigger>
-              <TabsTrigger value="month" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">Month</TabsTrigger>
-              <TabsTrigger value="year" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">Year</TabsTrigger>
+              <TabsTrigger value="week" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Week")}</TabsTrigger>
+              <TabsTrigger value="month" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Month")}</TabsTrigger>
+              <TabsTrigger value="year" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Year")}</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -533,26 +558,27 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                 axisLine={false}
                 tickLine={false}
                 allowDecimals={false}
+                tickFormatter={(v) => tNum(v)}
               />
               <Tooltip 
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className="bg-white/95 backdrop-blur-md p-3 border border-purple-100 rounded-xl shadow-xl">
+                      <div className="bg-white/95 backdrop-blur-md p-3 border border-purple-100 rounded-xl shadow-xl" dir={isRTL ? "rtl" : "ltr"}>
                         <p className="font-bold text-slate-800 text-xs mb-1.5">{data.date}</p>
                         <div className="space-y-1 text-[11px] font-semibold">
                           <div className="flex items-center gap-2 justify-between">
-                            <span className="text-emerald-600">Positive:</span>
-                            <span className="text-slate-800 font-extrabold">{data.positive}%</span>
+                            <span className="text-emerald-600">{t("Positive:")}</span>
+                            <span className="text-slate-800 font-extrabold">{tNum(data.positive)}%</span>
                           </div>
                           <div className="flex items-center gap-2 justify-between">
-                            <span className="text-slate-500">Neutral:</span>
-                            <span className="text-slate-800 font-extrabold">{data.neutral}%</span>
+                            <span className="text-slate-500">{t("Neutral:")}</span>
+                            <span className="text-slate-800 font-extrabold">{tNum(data.neutral)}%</span>
                           </div>
                           <div className="flex items-center gap-2 justify-between">
-                            <span className="text-rose-600">Negative:</span>
-                            <span className="text-slate-800 font-extrabold">{data.negative}%</span>
+                            <span className="text-rose-600">{t("Negative:")}</span>
+                            <span className="text-slate-800 font-extrabold">{tNum(data.negative)}%</span>
                           </div>
                         </div>
                       </div>
@@ -575,7 +601,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                 stroke="#10b981" 
                 fill="url(#colorPositive)"
                 strokeWidth={2}
-                name="Positive Sentiment"
+                name={t("Positive Sentiment")}
               />
               <Area 
                 type="monotone" 
@@ -584,7 +610,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                 stroke="#64748b" 
                 fill="url(#colorNeutral)"
                 strokeWidth={2}
-                name="Neutral Sentiment"
+                name={t("Neutral Sentiment")}
               />
               <Area 
                 type="monotone" 
@@ -593,7 +619,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                 stroke="#ef4444" 
                 fill="url(#colorNegative)"
                 strokeWidth={2}
-                name="Negative Sentiment"
+                name={t("Negative Sentiment")}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -608,9 +634,9 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
               <div className="p-1.5 rounded-lg bg-pink-50 text-pink-600">
                 <BookOpen className="h-4 w-4" />
               </div>
-              <h3 className="font-bold text-slate-800 text-base">Detected Emotions</h3>
+              <h3 className="font-bold text-slate-800 text-base">{t("Detected Emotions")}</h3>
             </div>
-            <p className="text-xs text-slate-500 mt-1">Breakdown of specific core feelings found in your journals</p>
+            <p className="text-xs text-slate-500 mt-1">{t("Breakdown of specific core feelings found in your journals")}</p>
           </div>
           <div className="p-6 flex items-center justify-center min-h-[280px]">
             {getEmotionDistribution().length > 0 ? (
@@ -621,7 +647,10 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent, payload }) => {
+                      const displayName = (payload as { displayName?: string })?.displayName ?? formatJournalTag(String(name), t, currentLanguage);
+                      return `${displayName} ${tNum(Math.round((percent ?? 0) * 100))}%`;
+                    }}
                     innerRadius={50}
                     outerRadius={75}
                     paddingAngle={3}
@@ -634,10 +663,11 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                   <Tooltip 
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
-                        const data = payload[0];
+                        const data = payload[0].payload as { displayName?: string; name?: string; value?: number };
+                        const label = data.displayName ?? formatJournalTag(String(data.name ?? ""), t, currentLanguage);
                         return (
-                          <div className="bg-white/95 backdrop-blur-md py-1.5 px-3 border border-purple-50 rounded-xl shadow-lg text-xs font-semibold text-slate-800">
-                            {data.name}: <span className="font-extrabold text-purple-700">{data.value} records</span>
+                          <div className="bg-white/95 backdrop-blur-md py-1.5 px-3 border border-purple-50 rounded-xl shadow-lg text-xs font-semibold text-slate-800" dir={isRTL ? "rtl" : "ltr"}>
+                            {label}: <span className="font-extrabold text-purple-700">{tNum(data.value ?? 0)} {t("records")}</span>
                           </div>
                         );
                       }
@@ -649,7 +679,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
             ) : (
               <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
                 <AlertCircle className="h-6 w-6 text-slate-300 mb-2" />
-                <p className="text-xs text-slate-400 font-semibold">No emotions detected.</p>
+                <p className="text-xs text-slate-400 font-semibold">{t("No emotions detected.")}</p>
               </div>
             )}
           </div>
@@ -662,9 +692,9 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
               <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
                 <Tag className="h-4 w-4" />
               </div>
-              <h3 className="font-bold text-slate-800 text-base">Topic Analysis</h3>
+              <h3 className="font-bold text-slate-800 text-base">{t("Topic Analysis")}</h3>
             </div>
-            <p className="text-xs text-slate-500 mt-1">Frequently addressed topics and recurrent concepts</p>
+            <p className="text-xs text-slate-500 mt-1">{t("Frequently addressed topics and recurrent concepts")}</p>
           </div>
           <div className="p-6">
             {getTopicAnalysis().length > 0 ? (
@@ -678,7 +708,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                   </defs>
                   <CartesianGrid strokeDasharray="4 4" stroke="#f8fafc" vertical={false} />
                   <XAxis 
-                    dataKey="topic" 
+                    dataKey="label" 
                     angle={-25} 
                     textAnchor="end" 
                     interval={0}
@@ -692,15 +722,16 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                     axisLine={false}
                     tickLine={false}
                     allowDecimals={false}
+                    tickFormatter={(v) => tNum(v)}
                   />
                   <Tooltip 
                     cursor={{ fill: 'rgba(13, 148, 136, 0.05)', radius: [4, 4, 0, 0] } as any}
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
-                        const data = payload[0].payload;
+                        const data = payload[0].payload as { label?: string; count?: number };
                         return (
-                          <div className="bg-white/95 backdrop-blur-md py-1.5 px-3 border border-teal-50 rounded-xl shadow-lg text-xs font-semibold text-slate-800">
-                            {data.topic}: <span className="font-extrabold text-teal-600">{data.count} references</span>
+                          <div className="bg-white/95 backdrop-blur-md py-1.5 px-3 border border-teal-50 rounded-xl shadow-lg text-xs font-semibold text-slate-800" dir={isRTL ? "rtl" : "ltr"}>
+                            {data.label}: <span className="font-extrabold text-teal-600">{tNum(data.count ?? 0)} {t("references")}</span>
                           </div>
                         );
                       }
@@ -713,7 +744,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
             ) : (
               <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
                 <AlertCircle className="h-6 w-6 text-slate-300 mb-2" />
-                <p className="text-xs text-slate-400 font-semibold">No topics analyzed yet.</p>
+                <p className="text-xs text-slate-400 font-semibold">{t("No topics analyzed yet.")}</p>
               </div>
             )}
           </div>
@@ -727,9 +758,9 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
             <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
               <BookOpen className="h-4 w-4" />
             </div>
-            <h3 className="font-bold text-slate-800 text-base">Emotion Word Canvas</h3>
+            <h3 className="font-bold text-slate-800 text-base">{t("Emotion Word Canvas")}</h3>
           </div>
-          <p className="text-xs text-slate-500 mt-1">Interactive visual map showing prominent emotional weights in journals</p>
+          <p className="text-xs text-slate-500 mt-1">{t("Interactive visual map showing prominent emotional weights in journals")}</p>
         </div>
         <div className="p-6">
           {getEmotionDistribution().length > 0 ? (
@@ -750,9 +781,9 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                       fontWeight: 700,
                       opacity: 0.75 + (size / 8),
                     }}
-                    title={`${emotion.name}: logged ${emotion.value} times`}
+                    title={t("logged {count} times").replace("{count}", tNum(emotion.value))}
                   >
-                    {emotion.name}
+                    {emotion.displayName}
                   </div>
                 );
               })}
@@ -760,7 +791,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
           ) : (
             <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
               <AlertCircle className="h-6 w-6 text-slate-300 mb-2" />
-              <p className="text-xs text-slate-400 font-semibold">No emotion data available.</p>
+              <p className="text-xs text-slate-400 font-semibold">{t("No emotion data available.")}</p>
             </div>
           )}
         </div>
@@ -773,9 +804,9 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
             <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
               <CalendarIcon className="h-4 w-4" />
             </div>
-            <h3 className="font-bold text-slate-800 text-base">30-Day Writing Calendar</h3>
+            <h3 className="font-bold text-slate-800 text-base">{t("30-Day Writing Calendar")}</h3>
           </div>
-          <p className="text-xs text-slate-500 mt-1">Consistency calendar tracing writing volumes over the past month</p>
+          <p className="text-xs text-slate-500 mt-1">{t("Consistency calendar tracing writing volumes over the past month")}</p>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-10 gap-2">
@@ -796,9 +827,9 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                   key={i}
                   className={`aspect-square rounded-xl ${cellClass} flex items-center justify-center text-[10px] font-bold relative group transition-all duration-300 hover:scale-105 cursor-default`}
                 >
-                  <span className="opacity-80">{day.date.split(' ')[1]}</span>
+                  <span className="opacity-80">{day.dayNum}</span>
                   <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-slate-900/95 backdrop-blur-sm text-white text-[10px] rounded-xl px-2.5 py-1.5 whitespace-nowrap z-10 shadow-xl border border-slate-800 pointer-events-none transition-all duration-200 font-medium">
-                    {day.date}: {count} {count === 1 ? 'log' : 'logs'} completed
+                    {formatCalendarTooltip(day.date, count)}
                   </div>
                 </div>
               );
@@ -807,19 +838,19 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
           <div className="flex items-center justify-center gap-4 mt-6 text-xs text-slate-500 font-semibold">
             <div className="flex items-center gap-1.5">
               <div className="w-3.5 h-3.5 bg-slate-50 border border-slate-100 rounded-md" />
-              <span>None</span>
+              <span>{t("None")}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3.5 h-3.5 bg-purple-50 border border-purple-100 rounded-md" />
-              <span>1 Entry</span>
+              <span>{t("1 Entry")}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3.5 h-3.5 bg-purple-100 border border-purple-200 rounded-md" />
-              <span>2 Entries</span>
+              <span>{t("2 Entries")}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3.5 h-3.5 bg-purple-500 rounded-md shadow-sm" />
-              <span>3+ Entries</span>
+              <span>{t("3+ Entries")}</span>
             </div>
           </div>
         </div>

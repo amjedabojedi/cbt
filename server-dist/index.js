@@ -5507,7 +5507,7 @@ function registerReframeCoachRoutes(app2) {
 }
 
 // server/routes/index.ts
-import { Router as Router11 } from "express";
+import { Router as Router12 } from "express";
 
 // server/routes/subscriptions.routes.ts
 import { Router } from "express";
@@ -9558,22 +9558,60 @@ router10.get("/therapist/assignments", authenticate, getTherapistAssignments);
 router10.delete("/resource-assignments/:id", authenticate, deleteResourceAssignment);
 var resources_routes_default = router10;
 
-// server/routes/index.ts
+// server/routes/translate.routes.ts
+import { Router as Router11 } from "express";
+import OpenAI2 from "openai";
 var router11 = Router11();
-router11.use("/subscription-plans", subscriptions_routes_default);
-router11.use("/subscription", subscriptions_routes_default);
-router11.use("/auth", auth_routes_default);
-router11.use("/users", users_routes_default);
-router11.use("/users/:userId/emotions", emotions_routes_default);
-router11.use("/users/:userId/thoughts", thoughts_routes_default);
-router11.use("/", thoughts_routes_default);
-router11.use("/users/:userId/goals", goals_routes_default);
-router11.use("/", goals_routes_default);
-router11.use("/", journal_routes_default);
-router11.use("/", admin_routes_default);
-router11.use("/notifications", notifications_routes_default);
-router11.use("/", resources_routes_default);
-var routes_default = router11;
+var openai2 = new OpenAI2({
+  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL
+});
+router11.post("/translate", authenticate, async (req, res) => {
+  try {
+    const { text: text2, targetLang = "ar" } = req.body;
+    if (!text2 || typeof text2 !== "string" || text2.trim() === "") {
+      return res.status(400).json({ message: "Text is required and must be a non-empty string" });
+    }
+    const languageNames = {
+      ar: "Arabic",
+      en: "English"
+    };
+    const targetLanguageName = languageNames[targetLang] || "Arabic";
+    const prompt = `Translate the following text into ${targetLanguageName}. Keep the tone natural, compassionate, and appropriate for a mental health / cognitive behavioral therapy application. Do not add any conversational filler, explanations, or quotes around the translated text. Return ONLY the translated text.
+    
+    Text to translate:
+    "${text2}"`;
+    const response = await openai2.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.3
+    });
+    const translatedText = response.choices[0]?.message?.content?.trim() || text2;
+    res.json({ translation: translatedText });
+  } catch (error) {
+    console.error("Translation API error:", error);
+    res.status(500).json({ message: "Failed to translate text" });
+  }
+});
+var translate_routes_default = router11;
+
+// server/routes/index.ts
+var router12 = Router12();
+router12.use("/subscription-plans", subscriptions_routes_default);
+router12.use("/subscription", subscriptions_routes_default);
+router12.use("/auth", auth_routes_default);
+router12.use("/users", users_routes_default);
+router12.use("/users/:userId/emotions", emotions_routes_default);
+router12.use("/users/:userId/thoughts", thoughts_routes_default);
+router12.use("/", thoughts_routes_default);
+router12.use("/users/:userId/goals", goals_routes_default);
+router12.use("/", goals_routes_default);
+router12.use("/", journal_routes_default);
+router12.use("/", admin_routes_default);
+router12.use("/notifications", notifications_routes_default);
+router12.use("/", resources_routes_default);
+router12.use("/", translate_routes_default);
+var routes_default = router12;
 
 // server/routes.ts
 async function registerRoutes(app2) {

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { LucideIcon, X } from "lucide-react";
+import { useLocalization } from "@/lib/localize.tsx";
 
 interface WizardProgressHeaderProps {
   title: string;
@@ -28,6 +29,7 @@ export default function WizardProgressHeader({
   trailing,
   testId = "progress-wizard",
 }: WizardProgressHeaderProps) {
+  const { t, tNum } = useLocalization();
   const progress =
     currentStep === 0 ? 0 : (currentStep / (totalSteps - 1)) * 100;
 
@@ -56,8 +58,8 @@ export default function WizardProgressHeader({
             </CardTitle>
             <CardDescription className={`text-slate-500 ${currentStep === 0 ? "text-base mt-0.5" : "text-sm"}`}>
               {currentStep === 0
-                ? "Quick intro — about 2 minutes"
-                : `Step ${currentStep} of ${totalSteps - 1}`}
+                ? t("Quick intro — about 2 minutes")
+                : `${t("Step")} ${tNum(currentStep)} ${t("of")} ${tNum(totalSteps - 1)}`}
             </CardDescription>
           </div>
           <div className="flex items-center gap-1 shrink-0">

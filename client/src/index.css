@@ -164,6 +164,18 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+
+  /* Gorgeous premium Arabic font override for both text and Eastern Arabic numerals */
+  html[dir="rtl"],
+  html[dir="rtl"] body,
+  html[dir="rtl"] input,
+  html[dir="rtl"] textarea,
+  html[dir="rtl"] button,
+  html[dir="rtl"] select,
+  .rtl,
+  .rtl * {
+    font-family: 'Noto Sans Arabic', ui-sans-serif, system-ui, -apple-system, sans-serif !important;
+  }
   
   /* Consistent typography scale */
   h1, .h1 {
