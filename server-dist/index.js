@@ -775,7 +775,7 @@ async function sendEmotionTrackingReminder(email, name) {
   const text2 = `
 Hello ${name},
 
-We noticed it's been a few days since you last tracked your emotions on ResilienceHub\u2122. 
+We noticed it's been a few days since you last tracked your emotions on ResilienceHub\u2122.
 
 Regular emotion tracking helps build self-awareness and can lead to better therapy outcomes. Even a quick 30-second check-in can provide valuable insights for both you and your therapist.
 
@@ -789,25 +789,25 @@ Resilience Counseling Research and Consultation Team
   const html = `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
   <h2 style="color: #4f46e5;">Hello ${name},</h2>
-  
+
   <p>We noticed it's been a few days since you last tracked your emotions on ResilienceHub\u2122.</p>
-  
+
   <p>Regular emotion tracking helps build self-awareness and can lead to better therapy outcomes. Even a quick 30-second check-in can provide valuable insights for both you and your therapist.</p>
-  
+
   <p><a href="${process.env.APP_URL || "https://resiliencehub.replit.app"}" style="background-color: #4f46e5; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 15px 0;">Track Your Emotions Now</a></p>
-  
+
   <p>Wishing you well,<br>
   Resilience Counseling Research and Consultation Team</p>
-  
+
   <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
   <p style="font-size: 12px; color: #666;">This email was sent as part of your therapy program with Resilience Counseling. If you believe you received this in error, please contact your therapist.</p>
-  
+
   <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0; border-left: 4px solid #4f46e5;">
     <p style="margin: 0; font-size: 12px; color: #666; line-height: 1.4;">
       <strong>Automated Reminder System:</strong><br>
-      This is an automated engagement reminder sent to encourage regular use of your mental health tracking tools. 
-      The system monitors your activity and sends reminders when you haven't logged emotions for several days. 
-      You can adjust reminder preferences in your account settings at 
+      This is an automated engagement reminder sent to encourage regular use of your mental health tracking tools.
+      The system monitors your activity and sends reminders when you haven't logged emotions for several days.
+      You can adjust reminder preferences in your account settings at
       <a href="https://resiliencehub.replit.app/dashboard" style="color: #4f46e5;">https://resiliencehub.replit.app/dashboard</a>
     </p>
   </div>
@@ -841,21 +841,21 @@ Resilience Counseling Research and Consultation Team
   const html = `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
   <h2 style="color: #4f46e5;">Hello ${name},</h2>
-  
+
   <p>Here's your weekly progress report from ResilienceHub\u2122:</p>
-  
+
   <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
     <p><strong>Emotions tracked:</strong> ${stats.emotionsTracked || 0}</p>
     <p><strong>Journal entries:</strong> ${stats.journalEntries || 0}</p>
     <p><strong>Thought records completed:</strong> ${stats.thoughtRecords || 0}</p>
     <p><strong>Goals progress:</strong> ${stats.goalsProgress || "No updates"}</p>
   </div>
-  
+
   <p><a href="${process.env.APP_URL || "https://resiliencehub.replit.app"}/dashboard/analytics" style="background-color: #4f46e5; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 15px 0;">View Detailed Analytics</a></p>
-  
+
   <p>Wishing you continued growth,<br>
   Resilience Counseling Research and Consultation Team</p>
-  
+
   <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
   <p style="font-size: 12px; color: #666;">This email was sent as part of your therapy program with Resilience Counseling. If you believe you received this in error, please contact your therapist.</p>
 </div>
@@ -890,26 +890,26 @@ Resilience Counseling Research and Consultation Team
   <div style="text-align: center; margin-bottom: 20px;">
     <img src="https://www.rcrc.ca/wp-content/uploads/2023/06/RCRC-Logo-scaled.jpg" alt="Resilience Counseling Research and Consultation" style="max-width: 200px;">
   </div>
-  
+
   <h2 style="color: #4A6FA5; margin-bottom: 20px;">Reset Your Password</h2>
-  
+
   <p>Hello,</p>
-  
+
   <p>We received a request to reset your password for your ResilienceHub\u2122 account. If you didn't make this request, please ignore this email.</p>
-  
+
   <p>To reset your password, click the button below:</p>
-  
+
   <div style="text-align: center; margin: 30px 0;">
     <a href="${resetLink}" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Password</a>
   </div>
-  
+
   <p>This link will expire in 1 hour for security reasons.</p>
-  
+
   <p>If you didn't request a password reset, please contact our support team immediately.</p>
-  
+
   <p>Best regards,<br>
   Resilience Counseling Research and Consultation Team</p>
-  
+
   <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666;">
     <p>For security, this reset request was received on ${(/* @__PURE__ */ new Date()).toLocaleDateString()} at ${(/* @__PURE__ */ new Date()).toLocaleTimeString()}</p>
   </div>
@@ -933,13 +933,13 @@ async function sendProfessionalWelcomeEmail(email, name) {
         <h1 style="color: #4A6FA5; margin-bottom: 10px;">ResilienceHub\u2122</h1>
         <p style="color: #666; font-size: 16px;">Resilience Counseling Research and Consultation</p>
       </div>
-      
+
       <div style="background-color: #f8f9fa; border-left: 4px solid #4A6FA5; padding: 15px; margin-bottom: 20px;">
         <h2 style="color: #4A6FA5; margin-top: 0;">Welcome to ResilienceHub\u2122</h2>
         <p style="color: #333; line-height: 1.5;">Hello ${name},</p>
         <p style="color: #333; line-height: 1.5;">Thank you for joining ResilienceHub\u2122, your comprehensive platform for therapy support and emotional well-being.</p>
       </div>
-      
+
       <div style="margin-bottom: 25px;">
         <p style="color: #333; line-height: 1.5;">As a professional on our platform, you now have access to:</p>
         <ul style="color: #333; line-height: 1.5;">
@@ -950,7 +950,7 @@ async function sendProfessionalWelcomeEmail(email, name) {
         </ul>
         <p style="color: #333; line-height: 1.5;">You can access your account by logging in to the platform using your credentials.</p>
       </div>
-      
+
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e1e1e1; text-align: center;">
         <p style="color: #666; font-size: 14px;">
           &copy; ${(/* @__PURE__ */ new Date()).getFullYear()} Resilience Counseling Research and Consultation<br>
@@ -972,12 +972,12 @@ async function sendClientInvitation(email, therapistName, inviteLink, therapistI
         <h1 style="color: #4A6FA5; margin-bottom: 10px;">ResilienceHub\u2122</h1>
         <p style="color: #666; font-size: 16px;">Resilience Counseling Research and Consultation</p>
       </div>
-      
+
       <div style="background-color: #f8f9fa; border-left: 4px solid #4A6FA5; padding: 15px; margin-bottom: 20px;">
         <h2 style="color: #4A6FA5; margin-top: 0;">You've Been Invited</h2>
         <p style="color: #333; line-height: 1.5;">${therapistName} has invited you to join ResilienceHub\u2122, a comprehensive platform designed to support your therapy journey and emotional well-being.</p>
       </div>
-      
+
       <div style="margin-bottom: 25px;">
         <p style="color: #333; line-height: 1.5;">With ResilienceHub\u2122, you can:</p>
         <ul style="color: #333; line-height: 1.5;">
@@ -987,19 +987,19 @@ async function sendClientInvitation(email, therapistName, inviteLink, therapistI
           <li>Journal your experiences</li>
           <li>Securely share information with your therapist</li>
         </ul>
-        
+
         <div style="text-align: center; margin: 30px 0;">
           <a href="${registrationUrl}" style="background-color: #4A6FA5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">Create Your Account</a>
         </div>
-        
+
         <p style="color: #333; line-height: 1.5;">Click the button above to create your account and get started with ResilienceHub\u2122. Your email address (${email}) will be pre-filled to make the process easier.</p>
       </div>
-      
+
       <div style="border-top: 1px solid #e1e1e1; padding-top: 20px; font-size: 14px; color: #666; line-height: 1.5;">
         <p>If you're having trouble with the button above, copy and paste the URL below into your web browser:</p>
         <p style="word-break: break-all;">${registrationUrl}</p>
       </div>
-      
+
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e1e1e1; text-align: center;">
         <p style="color: #666; font-size: 14px;">
           &copy; ${(/* @__PURE__ */ new Date()).getFullYear()} Resilience Counseling Research and Consultation<br>
@@ -1132,7 +1132,7 @@ async function sendReminderToClient(clientId, clientEmail, clientName, config) {
 }
 async function processInactivityReminders(config = {
   inactivityThreshold: 3,
-  // Default: 3 days of inactivity 
+  // Default: 3 days of inactivity
   sendEmails: true,
   createNotifications: true
 }) {
@@ -1180,7 +1180,7 @@ var init_reminderService = __esm({
     <h1 style="color: #3b82f6; margin-bottom: 10px;">ResilienceHub\u2122 Activity Reminder</h1>
     <p style="color: #4b5563; font-size: 16px;">We've noticed you haven't been active on ResilienceHub\u2122 recently.</p>
   </div>
-  
+
   <div style="margin-bottom: 20px; padding: 15px; background-color: #f9fafb; border-radius: 6px;">
     <p style="color: #4b5563; font-size: 15px;">Regular tracking of your emotions, thoughts, and activities helps you:</p>
     <ul style="color: #4b5563;">
@@ -1191,11 +1191,11 @@ var init_reminderService = __esm({
       <li>Provide valuable insights for your therapy journey</li>
     </ul>
   </div>
-  
+
   <div style="text-align: center; margin-top: 25px;">
     <a href="{{loginUrl}}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Log In Now</a>
   </div>
-  
+
   <p style="color: #6b7280; font-size: 14px; margin-top: 30px; text-align: center;">
     If you'd prefer not to receive these reminders, you can update your notification preferences in your account settings.
   </p>
@@ -1404,14 +1404,14 @@ var UsersRepository = class {
     }
     try {
       const query = `
-        SELECT 
-          id, 
-          username, 
-          email, 
-          name, 
-          role, 
-          therapist_id, 
-          current_viewing_client_id, 
+        SELECT
+          id,
+          username,
+          email,
+          name,
+          role,
+          therapist_id,
+          current_viewing_client_id,
           status,
           created_at,
           stripe_customer_id,
@@ -2204,11 +2204,11 @@ var NotificationsRepository = class {
   async getUnreadNotificationsByUser(userId) {
     console.log(`STORAGE FIX: Fetching unread notifications for user ${userId}`);
     const result = await pool.query(`
-      SELECT id, user_id as "userId", title, body, type, is_read as "isRead", 
+      SELECT id, user_id as "userId", title, body, type, is_read as "isRead",
              created_at as "createdAt", expires_at as "expiresAt", metadata, link_path as "linkPath", link
-      FROM notifications 
-      WHERE user_id = $1 
-        AND is_read = false 
+      FROM notifications
+      WHERE user_id = $1
+        AND is_read = false
         AND (expires_at IS NULL OR expires_at >= NOW())
       ORDER BY created_at DESC
     `, [userId]);
@@ -4113,12 +4113,12 @@ async function analyzeJournalEntry(title, content) {
   }
   try {
     const prompt = `
-    Please analyze the following journal entry in the context of cognitive behavioral therapy. 
+    Please analyze the following journal entry in the context of cognitive behavioral therapy.
     The entry title is: "${title}"
-    
+
     Journal content:
     "${content}"
-    
+
     Provide the following in JSON format:
     1. suggestedTags: Extract 3-8 most relevant tags that would help categorize this journal entry
     2. analysis: A brief (2-3 sentences) summary of the main themes and emotional content
@@ -4151,7 +4151,7 @@ async function analyzeJournalEntry(title, content) {
        - Labeling (attaching negative labels to self or others)
        - Personalization (blaming yourself for events outside your control)
     6. sentiment: Score the overall emotional tone with percentages for positive, negative, and neutral (totaling 100%)
-    
+
     Your response should be a valid JSON object with these fields.
     `;
     const response = await openai.chat.completions.create({
@@ -4225,40 +4225,40 @@ async function generateReframePracticeScenarios(automaticThought, cognitiveDisto
     });
     const distortionDefinitions = `
     COGNITIVE DISTORTION DEFINITIONS:
-    
+
     1. **All or Nothing Thinking**: Seeing things in black-and-white categories. If performance isn't perfect, it's seen as total failure.
        Example: "If I make ONE mistake, the ENTIRE presentation is ruined" or "Either I do this perfectly or I'm a complete failure"
-    
+
     2. **Mental Filter**: Picking out a single negative detail and dwelling on it exclusively, filtering out all positive aspects.
        Example: "I got 9/10 positive reviews, but that ONE negative comment proves I'm terrible at my job"
-    
+
     3. **Mind Reading**: Assuming you know what others are thinking without evidence.
        Example: "She didn't smile at me, so she must think I'm incompetent"
-    
+
     4. **Fortune Telling**: Predicting negative outcomes without evidence.
        Example: "I know this interview will be a disaster" or "I'm certain I'll fail this exam"
-    
+
     5. **Labelling**: Attaching negative labels to yourself or others based on limited information.
        Example: "I'm a loser" or "I'm worthless" instead of "I made a mistake"
-    
+
     6. **Over-Generalising**: Making broad conclusions based on a single event.
        Example: "I failed once, so I ALWAYS fail" or "NOTHING ever works out for me"
-    
+
     7. **Compare and Despair**: Comparing yourself unfavourably to others.
        Example: "Everyone else is better than me" or "I'll never be as successful as them"
-    
+
     8. **Emotional Thinking**: Believing that feelings reflect reality.
        Example: "I feel stupid, therefore I AM stupid" or "I feel anxious, so something bad WILL happen"
-    
+
     9. **Guilty Thinking**: Using "should", "must", "ought to" statements that create guilt and pressure.
        Example: "I SHOULD be perfect" or "I MUST never make mistakes"
-    
+
     10. **Catastrophising**: Expecting disaster or magnifying the importance of negative events.
         Example: "This small mistake will ruin my entire career" or "If I fail this test, my life is over"
-    
+
     11. **Blaming Others**: Always blaming others for problems without taking any responsibility.
         Example: "It's all their fault I didn't succeed" or "If they hadn't interfered, everything would be fine"
-    
+
     12. **Personalising**: Taking personal responsibility for things outside your control or believing everything relates to you.
         Example: "My boss is in a bad mood - I must have done something wrong" or "The project failed because of me, even though I was just one team member"
     `;
@@ -4277,10 +4277,10 @@ async function generateReframePracticeScenarios(automaticThought, cognitiveDisto
     2. The scenario text should clearly show the distortion in action (e.g., for All or Nothing, show extreme binary thinking)
     3. DO NOT just mention "I'm not good enough" - show the SPECIFIC distortion pattern happening
     4. Make scenarios that are obviously teaching about the SPECIFIC distortion type
-    
+
     Example of GOOD scenario for All or Nothing Thinking:
     "During practice, you stumble over ONE word and immediately think: 'If I make even a single mistake during the real presentation, it will be a COMPLETE disaster and everyone will think I'm totally incompetent.'" (This clearly shows the binary, extreme thinking)
-    
+
     Example of BAD scenario for All or Nothing Thinking:
     "You're preparing for a presentation and think 'I'm not good enough'" (This doesn't show the all-or-nothing pattern)
 
@@ -4292,13 +4292,13 @@ async function generateReframePracticeScenarios(automaticThought, cognitiveDisto
     4. Provide 4 possible reframing options (1 correct, 3 incorrect)
     5. For each option, explain why it's helpful or unhelpful
     6. Make the scenarios progressively more challenging
-    
+
     The correct option should demonstrate effective cognitive restructuring that:
     - Directly challenges the specific distorted thinking pattern by name
     - Considers the evidence for and against the thought
     - Uses balanced, realistic thinking
     - Promotes self-compassion and growth
-    
+
     The incorrect options should:
     - Show subtle ways people might maintain the same distortion
     - Include examples that feel realistic but reinforce unhelpful patterns
@@ -5058,7 +5058,7 @@ function registerReframeCoachRoutes(app2) {
       try {
         console.log("Searching for existing Reframe Coach resource");
         const searchResult = await db.execute(sql2`
-          SELECT id FROM resources 
+          SELECT id FROM resources
           WHERE title = 'Reframe Coach Practice' AND type = 'exercise'
           LIMIT 1
         `);
@@ -5068,16 +5068,16 @@ function registerReframeCoachRoutes(app2) {
         } else {
           console.log("No existing resource found, creating new Reframe Coach resource");
           const insertResult = await db.execute(sql2`
-            INSERT INTO resources 
-            (title, description, content, type, category, created_by, is_published) 
-            VALUES 
-            ('Reframe Coach Practice', 
-             'Interactive cognitive restructuring practice', 
-             'This resource provides guided practice for cognitive restructuring.', 
-             'exercise', 
-             'cognitive_restructuring', 
-             ${user.id}, 
-             true) 
+            INSERT INTO resources
+            (title, description, content, type, category, created_by, is_published)
+            VALUES
+            ('Reframe Coach Practice',
+             'Interactive cognitive restructuring practice',
+             'This resource provides guided practice for cognitive restructuring.',
+             'exercise',
+             'cognitive_restructuring',
+             ${user.id},
+             true)
             RETURNING id
           `);
           if (!insertResult.rows || insertResult.rows.length === 0) {
@@ -5372,7 +5372,7 @@ function registerReframeCoachRoutes(app2) {
         thoughtRecord.automaticThoughts || "No thought content available",
         normalizedDistortions,
         emotionCategory,
-        `Make the scenarios closely related to the following situation and evidence: 
+        `Make the scenarios closely related to the following situation and evidence:
          Evidence for the thought: ${thoughtRecord.evidenceFor || "Not specified"}
          Evidence against the thought: ${thoughtRecord.evidenceAgainst || "Not specified"}
          Alternative perspective: ${thoughtRecord.alternativePerspective || "Not specified"}`
@@ -5467,19 +5467,19 @@ function registerReframeCoachRoutes(app2) {
       const distortionStatsResult = await db.execute(
         sql2`
           WITH distortion_data AS (
-            SELECT 
+            SELECT
               jsonb_array_elements(scenario_data) as scenario
-            FROM 
+            FROM
               reframe_practice_results
           )
-          SELECT 
-            scenario->>'cognitiveDistortion' as distortion, 
+          SELECT
+            scenario->>'cognitiveDistortion' as distortion,
             COUNT(*) as count
-          FROM 
+          FROM
             distortion_data
-          GROUP BY 
+          GROUP BY
             distortion
-          ORDER BY 
+          ORDER BY
             count DESC
           LIMIT 10
         `
@@ -5911,26 +5911,26 @@ async function registerUser(req, res) {
                 <h1 style="color: #4A6FA5;">Welcome to ResilienceHub</h1>
                 <p>Hello ${user.name || user.username},</p>
                 <p>Thank you for registering as a mental health professional on the ResilienceHub platform. This platform will help you manage your clients with tools for emotion tracking, thought records, journaling, and goal setting.</p>
-                
+
                 <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4A6FA5;">
                   <h2 style="color: #4A6FA5; margin-top: 0; font-size: 18px;">Your Account Details:</h2>
                   <p><strong>Username:</strong> ${user.username}</p>
                   <p><strong>Subscription Plan:</strong> Free (60-day trial)</p>
                 </div>
-                
+
                 <div style="margin: 30px 0;">
                   <a href="${loginUrl}" style="background-color: #4A6FA5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
                     Log In Now
                   </a>
                 </div>
-                
+
                 <h2 style="color: #4A6FA5; margin-top: 25px; font-size: 18px;">Getting Started:</h2>
                 <ol style="margin-bottom: 25px;">
                   <li><strong>Complete your profile</strong> in your account settings</li>
                   <li><strong>Invite clients</strong> from your dashboard</li>
                   <li><strong>Explore the resource library</strong> with therapeutic materials</li>
                 </ol>
-                
+
                 <p>If you have any questions or need assistance, please contact our support team.</p>
                 <p>Best regards,<br>The Resilience CBT Team</p>
               </div>
@@ -7034,9 +7034,9 @@ async function getProtectiveFactorUsage(req, res) {
   try {
     const userId = parseInt(req.params.userId);
     const query = `
-      SELECT 
-        pf.id, 
-        pf.name, 
+      SELECT
+        pf.id,
+        pf.name,
         pfu.effectiveness_rating as effectiveness
       FROM protective_factors pf
       JOIN protective_factor_usage pfu ON pf.id = pfu.protective_factor_id
@@ -7151,9 +7151,9 @@ async function getCopingStrategyUsage(req, res) {
   try {
     const userId = parseInt(req.params.userId);
     const query = `
-      SELECT 
-        cs.id, 
-        cs.name, 
+      SELECT
+        cs.id,
+        cs.name,
         csu.effectiveness_rating as effectiveness
       FROM coping_strategies cs
       JOIN coping_strategy_usage csu ON cs.id = csu.coping_strategy_id
@@ -8806,12 +8806,12 @@ async function triggerWeeklyDigests(req, res) {
 async function getAdminNotifications(req, res) {
   try {
     const query = `
-      SELECT 
-        n.id, 
-        n.title, 
-        n.body, 
-        n.type, 
-        n.is_read as "isRead", 
+      SELECT
+        n.id,
+        n.title,
+        n.body,
+        n.type,
+        n.is_read as "isRead",
         n.created_at as "createdAt",
         n.user_id as "userId",
         u.name as "userName",
@@ -8831,7 +8831,7 @@ async function getAdminNotifications(req, res) {
 async function getAdminLogs(req, res) {
   try {
     const query = `
-      SELECT 
+      SELECT
         sl.id,
         sl.action,
         sl.action_type as "actionType",
@@ -8976,15 +8976,15 @@ async function checkInactiveClients(req, res) {
     const query = `
       SELECT u.id, u.name, u.email, u.therapist_id as "therapistId"
       FROM users u
-      WHERE u.role = 'client' 
+      WHERE u.role = 'client'
         AND u.status = 'active'
         AND (
           -- Has tracked emotions before
           EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id)
           -- But not since cutoff date
           AND NOT EXISTS (
-            SELECT 1 FROM emotion_records e 
-            WHERE e.user_id = u.id 
+            SELECT 1 FROM emotion_records e
+            WHERE e.user_id = u.id
             AND e.timestamp > $1
           )
         )
@@ -9019,15 +9019,15 @@ async function sendInactivityReminders(req, res) {
     const query = `
       SELECT u.id, u.name, u.email, u.therapist_id as "therapistId"
       FROM users u
-      WHERE u.role = 'client' 
+      WHERE u.role = 'client'
         AND u.status = 'active'
         AND (
           -- Has tracked emotions before
           EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id)
           -- But not since cutoff date
           AND NOT EXISTS (
-            SELECT 1 FROM emotion_records e 
-            WHERE e.user_id = u.id 
+            SELECT 1 FROM emotion_records e
+            WHERE e.user_id = u.id
             AND e.timestamp > $1
           )
         )
@@ -9115,25 +9115,25 @@ async function sendWeeklyDigests(req, res) {
       const startDate = oneWeekAgo.toISOString().split("T")[0];
       const endDate = now.toISOString().split("T")[0];
       const emotionQuery = `
-        SELECT COUNT(*) as count 
-        FROM emotion_records 
-        WHERE user_id = $1 
+        SELECT COUNT(*) as count
+        FROM emotion_records
+        WHERE user_id = $1
         AND timestamp BETWEEN $2 AND $3
       `;
       const emotionResult = await pool.query(emotionQuery, [user.id, startDate, endDate]);
       const emotionsTracked = parseInt(emotionResult.rows[0].count, 10);
       const journalQuery = `
-        SELECT COUNT(*) as count 
-        FROM journal_entries 
-        WHERE user_id = $1 
+        SELECT COUNT(*) as count
+        FROM journal_entries
+        WHERE user_id = $1
         AND created_at BETWEEN $2 AND $3
       `;
       const journalResult = await pool.query(journalQuery, [user.id, startDate, endDate]);
       const journalEntries3 = parseInt(journalResult.rows[0].count, 10);
       const thoughtQuery = `
-        SELECT COUNT(*) as count 
-        FROM thought_records 
-        WHERE user_id = $1 
+        SELECT COUNT(*) as count
+        FROM thought_records
+        WHERE user_id = $1
         AND created_at BETWEEN $2 AND $3
       `;
       const thoughtResult = await pool.query(thoughtQuery, [user.id, startDate, endDate]);
@@ -9256,11 +9256,11 @@ async function getUnreadNotifications(req, res) {
       return res.status(200).json(cached.notifications);
     }
     const result = await pool.query(`
-      SELECT id, user_id as "userId", title, body, type, is_read as "isRead", 
+      SELECT id, user_id as "userId", title, body, type, is_read as "isRead",
              created_at as "createdAt", expires_at as "expiresAt", metadata, link_path as "linkPath", link
-      FROM notifications 
+      FROM notifications
       WHERE user_id = $1
-        AND is_read = false 
+        AND is_read = false
         AND (expires_at IS NULL OR expires_at >= NOW())
       ORDER BY created_at DESC
     `, [userId]);
@@ -9313,8 +9313,8 @@ async function markAllNotificationsRead(req, res) {
     }
     try {
       await pool.query(`
-        UPDATE notifications 
-        SET is_read = true 
+        UPDATE notifications
+        SET is_read = true
         WHERE user_id = $1
       `, [userId]);
       console.log(`Successfully marked all notifications as read for user ${userId}`);
@@ -9578,7 +9578,7 @@ router11.post("/translate", authenticate, async (req, res) => {
     };
     const targetLanguageName = languageNames[targetLang] || "Arabic";
     const prompt = `Translate the following text into ${targetLanguageName}. Keep the tone natural, compassionate, and appropriate for a mental health / cognitive behavioral therapy application. Do not add any conversational filler, explanations, or quotes around the translated text. Return ONLY the translated text.
-    
+
     Text to translate:
     "${text2}"`;
     const response = await openai2.chat.completions.create({
