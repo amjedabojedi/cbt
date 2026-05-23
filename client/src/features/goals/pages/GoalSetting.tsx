@@ -62,9 +62,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { PlusCircle, Calendar as CalendarIcon, CheckCircle, Clock, Flag, HelpCircle, Target, TrendingUp, MoreVertical, Sparkles, BarChart3, MessageSquare } from "lucide-react";
+import { useLocalization, DynamicTranslator } from "@/lib/localize";
 
 export default function GoalSetting() {
   const { user } = useAuth();
+  const { t, currentLanguage } = useLocalization();
   const { activeUserId, apiPath } = useActiveUser();
   const queryClient = useQueryClient();
   const [isCreatingGoal, setIsCreatingGoal] = useState(false);
@@ -183,33 +185,33 @@ export default function GoalSetting() {
       case 'pending':
         return (
           <Badge variant="outline" className={`bg-yellow-100 text-yellow-800 hover:bg-yellow-100 ${sizeClasses}`}>
-            <Clock className="h-3 w-3 mr-1" />
-            Pending
+            <Clock className="h-3 w-3 me-1" />
+            {t("Pending")}
           </Badge>
         );
       case 'in_progress':
         return (
           <Badge variant="outline" className={`bg-blue-100 text-blue-800 hover:bg-blue-100 ${sizeClasses}`}>
-            <TrendingUp className="h-3 w-3 mr-1" />
-            In Progress
+            <TrendingUp className="h-3 w-3 me-1" />
+            {t("In Progress")}
           </Badge>
         );
       case 'approved':
         return (
           <Badge variant="outline" className={`bg-purple-100 text-purple-800 hover:bg-purple-100 ${sizeClasses}`}>
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Approved
+            <CheckCircle className="h-3 w-3 me-1" />
+            {t("Approved")}
           </Badge>
         );
       case 'completed':
         return (
           <Badge variant="outline" className={`bg-green-100 text-green-800 hover:bg-green-100 ${sizeClasses}`}>
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Completed
+            <CheckCircle className="h-3 w-3 me-1" />
+            {t("Completed")}
           </Badge>
         );
       default:
-        return <Badge variant="outline" className={sizeClasses}>{status}</Badge>;
+        return <Badge variant="outline" className={sizeClasses}>{t(status)}</Badge>;
     }
   };
 
@@ -217,7 +219,7 @@ export default function GoalSetting() {
   const showStats = goals.length > 0;
 
   return (
-    <AppLayout title="Smart Goals">
+    <AppLayout title={t("Smart Goals")}>
       <div className="min-h-screen bg-slate-50">
         {/* Premium Hero Banner */}
         <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden transition-all duration-300">
@@ -230,24 +232,24 @@ export default function GoalSetting() {
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="h-4 w-4 text-purple-400" />
                   <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
-                    Personal Growth
+                    {t("Personal Growth")}
                   </span>
                 </div>
                 <h1 className="font-bold text-white tracking-tight text-3xl md:text-4xl mb-2">
-                  Smart Goals
+                  {t("Smart Goals")}
                 </h1>
                 <p className="text-purple-300/70 text-base max-w-md leading-relaxed">
-                  Set structured SMART goals to track your progress and celebrate achievements
+                  {t("Set structured SMART goals to track your progress and celebrate achievements")}
                 </p>
               </div>
               
               {showStats && (
                 <div className="flex items-center gap-6 shrink-0 flex-wrap">
                   {[
-                    { value: overallStats.totalGoals, label: "Total Goals" },
-                    { value: overallStats.completedGoals, label: "Completed", color: "text-emerald-400" },
-                    { value: overallStats.inProgressGoals, label: "In Progress", color: "text-purple-400" },
-                    { value: overallStats.pendingGoals, label: "Pending", color: "text-amber-400" },
+                    { value: overallStats.totalGoals, label: t("Total Goals") },
+                    { value: overallStats.completedGoals, label: t("Completed"), color: "text-emerald-400" },
+                    { value: overallStats.inProgressGoals, label: t("In Progress"), color: "text-purple-400" },
+                    { value: overallStats.pendingGoals, label: t("Pending"), color: "text-amber-400" },
                   ].map((s, i) => (
                     <div key={i} className="text-center">
                       <div className={cn("text-2xl font-bold", s.color || "text-white")}>{s.value}</div>
@@ -263,14 +265,14 @@ export default function GoalSetting() {
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
                   <Target className="h-3.5 w-3.5 text-indigo-400" />
-                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">Goal Achievement</span>
+                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">{t("Goal Achievement")}</span>
                 </div>
-                <span className="text-xs text-purple-400">{overallStats.completedGoals} of {overallStats.totalGoals} completed</span>
+                <span className="text-xs text-purple-400">{overallStats.completedGoals} {t("of")} {overallStats.totalGoals} {t("completed")}</span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: `${overallStats.totalGoals > 0 ? Math.round((overallStats.completedGoals / overallStats.totalGoals) * 100) : 0}%` }} />
               </div>
-              <p className="text-[11px] text-purple-400/60 mt-1.5">Breaking big goals into milestones makes achievement feel attainable and sustainable.</p>
+              <p className="text-[11px] text-purple-400/60 mt-1.5">{t("Breaking big goals into milestones makes achievement feel attainable and sustainable.")}</p>
             </div>
           </div>
         </div>
@@ -305,8 +307,8 @@ export default function GoalSetting() {
                       "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                     )}
                   >
-                    <PlusCircle className="h-4 w-4 mr-1.5 inline" />
-                    Set Goal
+                    <PlusCircle className="h-4 w-4 me-1.5 inline" />
+                    {t("Set Goal")}
                   </TabsTrigger>
                 )}
                 <TabsTrigger
@@ -317,8 +319,8 @@ export default function GoalSetting() {
                     "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                   )}
                 >
-                  <Target className="h-4 w-4 mr-1.5 inline" />
-                  {user?.role === 'therapist' || user?.role === 'admin' ? "Client's Goals" : "My Goals"}
+                  <Target className="h-4 w-4 me-1.5 inline" />
+                  {user?.role === 'therapist' || user?.role === 'admin' ? t("Client's Goals") : t("My Goals")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="insights"
@@ -328,8 +330,8 @@ export default function GoalSetting() {
                     "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                   )}
                 >
-                  <TrendingUp className="h-4 w-4 mr-1.5 inline" />
-                  Insights
+                  <TrendingUp className="h-4 w-4 me-1.5 inline" />
+                  {t("Insights")}
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -350,16 +352,16 @@ export default function GoalSetting() {
                 </div>
               ) : error ? (
                 <div className="bg-destructive/10 p-4 rounded-md text-center">
-                  <p className="text-destructive font-medium">Error loading goals</p>
-                  <p className="text-sm text-muted-foreground mt-1">Please try again later</p>
+                  <p className="text-destructive font-medium">{t("Error loading goals")}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t("Please try again later")}</p>
                 </div>
               ) : goals.length === 0 ? (
                 <div className="text-center p-8 border border-dashed rounded-lg">
-                  <h3 className="font-medium text-lg">No Goals Yet</h3>
+                  <h3 className="font-medium text-lg">{t("No Goals Yet")}</h3>
                   <p className="text-muted-foreground mt-1">
                     {user?.role === 'client'
-                      ? "Create your first goal to start tracking your progress."
-                      : "Your client hasn't created any goals yet."}
+                      ? t("Create your first goal to start tracking your progress.")
+                      : t("Your client hasn't created any goals yet.")}
                   </p>
                   {user?.role === 'client' && (
                     <Button
@@ -367,8 +369,8 @@ export default function GoalSetting() {
                       className="mt-4"
                       onClick={() => setIsCreatingGoal(true)}
                     >
-                      <PlusCircle className="h-4 w-4 mr-2" />
-                      Create Your First Goal
+                      <PlusCircle className="h-4 w-4 me-2" />
+                      {t("Create Your First Goal")}
                     </Button>
                   )}
                 </div>
@@ -396,8 +398,8 @@ export default function GoalSetting() {
 
               {/* Goal Details Dialog */}
               <Dialog open={!!selectedGoal} onOpenChange={(open) => !open && setSelectedGoal(null)}>
-                <DialogContent aria-describedby={undefined} className="max-w-5xl max-h-[90vh] overflow-y-auto p-0 rounded-2xl border-0">
-                  <DialogTitle className="sr-only">Goal Details</DialogTitle>
+                <DialogContent dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'} aria-describedby={undefined} className={cn("max-w-5xl max-h-[90vh] overflow-y-auto p-0 rounded-2xl border-0", currentLanguage === 'ar' && "rtl text-right")}>
+                  <DialogTitle className="sr-only">{t("Goal Details")}</DialogTitle>
                   {/* ── Luxury Header ── */}
                   <div
                     className="relative overflow-hidden px-7 py-5"
@@ -411,13 +413,13 @@ export default function GoalSetting() {
                           <Target className="h-5 w-5 text-purple-300" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h2 className="text-xl font-bold text-white tracking-tight leading-tight">{selectedGoal?.title}</h2>
+                          <h2 className="text-xl font-bold text-white tracking-tight leading-tight"><DynamicTranslator text={selectedGoal?.title || ""} /></h2>
                           <div className="flex items-center gap-3 mt-2 flex-wrap">
                             {getStatusBadge(selectedGoal?.status || 'pending', 'lg')}
                             {selectedGoal?.deadline && (
                               <span className="inline-flex items-center text-xs text-purple-300/80 gap-1">
                                 <CalendarIcon className="h-3.5 w-3.5" />
-                                Target: {format(parseISO(selectedGoal?.deadline), "MMM d, yyyy")}
+                                {t("Target:")} {format(parseISO(selectedGoal?.deadline), "MMM d, yyyy")}
                               </span>
                             )}
                             {(() => {
@@ -425,7 +427,7 @@ export default function GoalSetting() {
                               return progress.total > 0 ? (
                                 <span className="inline-flex items-center text-xs text-emerald-400 gap-1">
                                   <CheckCircle className="h-3.5 w-3.5" />
-                                  {progress.completed}/{progress.total} milestones
+                                  {progress.completed}/{progress.total} {t("milestones")}
                                 </span>
                               ) : null;
                             })()}
@@ -441,7 +443,7 @@ export default function GoalSetting() {
 
                       {/* Left column — SMART Breakdown */}
                       <div>
-                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">SMART Breakdown</h3>
+                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">{t("SMART Breakdown")}</h3>
                         <div className="space-y-3">
 
                           {/* Specific */}
@@ -450,9 +452,9 @@ export default function GoalSetting() {
                               <div className="w-7 h-7 rounded-lg bg-purple-100 border border-purple-200 flex items-center justify-center shrink-0">
                                 <Target className="h-3.5 w-3.5 text-purple-600" />
                               </div>
-                              <span className="text-xs font-bold text-purple-700 uppercase tracking-wider">S &mdash; Specific</span>
+                              <span className="text-xs font-bold text-purple-700 uppercase tracking-wider">{t("S — Specific")}</span>
                             </div>
-                            <p className="text-sm text-slate-600 leading-relaxed">{selectedGoal?.specific}</p>
+                            <p className="text-sm text-slate-600 leading-relaxed"><DynamicTranslator text={selectedGoal?.specific || ""} /></p>
                           </div>
 
                           {/* Measurable */}
@@ -461,9 +463,9 @@ export default function GoalSetting() {
                               <div className="w-7 h-7 rounded-lg bg-blue-100 border border-blue-200 flex items-center justify-center shrink-0">
                                 <BarChart3 className="h-3.5 w-3.5 text-blue-600" />
                               </div>
-                              <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">M &mdash; Measurable</span>
+                              <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">{t("M — Measurable")}</span>
                             </div>
-                            <p className="text-sm text-slate-600 leading-relaxed">{selectedGoal?.measurable}</p>
+                            <p className="text-sm text-slate-600 leading-relaxed"><DynamicTranslator text={selectedGoal?.measurable || ""} /></p>
                           </div>
 
                           {/* Achievable */}
@@ -472,9 +474,9 @@ export default function GoalSetting() {
                               <div className="w-7 h-7 rounded-lg bg-emerald-100 border border-emerald-200 flex items-center justify-center shrink-0">
                                 <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
                               </div>
-                              <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">A &mdash; Achievable</span>
+                              <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">{t("A — Achievable")}</span>
                             </div>
-                            <p className="text-sm text-slate-600 leading-relaxed">{selectedGoal?.achievable}</p>
+                            <p className="text-sm text-slate-600 leading-relaxed"><DynamicTranslator text={selectedGoal?.achievable || ""} /></p>
                           </div>
 
                           {/* Relevant */}
@@ -483,9 +485,9 @@ export default function GoalSetting() {
                               <div className="w-7 h-7 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
                                 <Sparkles className="h-3.5 w-3.5 text-amber-600" />
                               </div>
-                              <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">R &mdash; Relevant</span>
+                              <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">{t("R — Relevant")}</span>
                             </div>
-                            <p className="text-sm text-slate-600 leading-relaxed">{selectedGoal?.relevant}</p>
+                            <p className="text-sm text-slate-600 leading-relaxed"><DynamicTranslator text={selectedGoal?.relevant || ""} /></p>
                           </div>
 
                           {/* Time-bound */}
@@ -494,9 +496,9 @@ export default function GoalSetting() {
                               <div className="w-7 h-7 rounded-lg bg-rose-100 border border-rose-200 flex items-center justify-center shrink-0">
                                 <Clock className="h-3.5 w-3.5 text-rose-600" />
                               </div>
-                              <span className="text-xs font-bold text-rose-700 uppercase tracking-wider">T &mdash; Time-bound</span>
+                              <span className="text-xs font-bold text-rose-700 uppercase tracking-wider">{t("T — Time-bound")}</span>
                             </div>
-                            <p className="text-sm text-slate-600 leading-relaxed">{selectedGoal?.timebound}</p>
+                            <p className="text-sm text-slate-600 leading-relaxed"><DynamicTranslator text={selectedGoal?.timebound || ""} /></p>
                           </div>
 
                         </div>
@@ -508,9 +510,9 @@ export default function GoalSetting() {
                               <div className="w-7 h-7 rounded-lg bg-indigo-100 border border-indigo-200 flex items-center justify-center shrink-0">
                                 <MessageSquare className="h-3.5 w-3.5 text-indigo-600" />
                               </div>
-                              <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Therapist Feedback</span>
+                              <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">{t("Therapist Feedback")}</span>
                             </div>
-                            <p className="text-sm italic text-indigo-800 leading-relaxed">{selectedGoal.therapistComments}</p>
+                            <p className="text-sm italic text-indigo-800 leading-relaxed"><DynamicTranslator text={selectedGoal.therapistComments} /></p>
                           </div>
                         )}
                       </div>
@@ -535,8 +537,8 @@ export default function GoalSetting() {
 
               {/* Add Milestone Dialog */}
               <Dialog open={isAddingMilestone} onOpenChange={setIsAddingMilestone}>
-                <DialogContent aria-describedby={undefined} className="max-w-md p-0 rounded-2xl border-0 overflow-hidden">
-                  <DialogTitle className="sr-only">Add Milestone</DialogTitle>
+                <DialogContent dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'} aria-describedby={undefined} className={cn("max-w-md p-0 rounded-2xl border-0 overflow-hidden", currentLanguage === 'ar' && "rtl text-right")}>
+                  <DialogTitle className="sr-only">{t("Add Milestone")}</DialogTitle>
 
                   {/* Dark gradient header */}
                   <div
@@ -550,9 +552,9 @@ export default function GoalSetting() {
                         <Flag className="h-5 w-5 text-purple-300" />
                       </div>
                       <div>
-                        <h2 className="text-lg font-bold text-white tracking-tight leading-tight">Add Milestone</h2>
+                        <h2 className="text-lg font-bold text-white tracking-tight leading-tight">{t("Add Milestone")}</h2>
                         <p className="text-purple-300/80 text-xs mt-0.5 font-medium">
-                          Break your goal into smaller, achievable steps
+                          {t("Break your goal into smaller, achievable steps")}
                         </p>
                       </div>
                     </div>
@@ -569,11 +571,11 @@ export default function GoalSetting() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                Milestone Title
+                                {t("Milestone Title")}
                               </FormLabel>
                               <FormControl>
                                 <Input
-                                  placeholder="e.g. Complete first chapter…"
+                                  placeholder={t("e.g. Complete first chapter…")}
                                   className="rounded-xl border-slate-200 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 bg-slate-50/60 h-11"
                                   {...field}
                                 />
@@ -589,11 +591,11 @@ export default function GoalSetting() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                Description <span className="text-slate-400 normal-case font-normal">(optional)</span>
+                                {t("Description")} <span className="text-slate-400 normal-case font-normal">({t("optional")})</span>
                               </FormLabel>
                               <FormControl>
                                 <Textarea
-                                  placeholder="Add details about this milestone…"
+                                  placeholder={t("Add details about this milestone…")}
                                   rows={3}
                                   className="rounded-xl border-slate-200 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 bg-slate-50/60 resize-none"
                                   {...field}
@@ -610,7 +612,7 @@ export default function GoalSetting() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                Due Date <span className="text-slate-400 normal-case font-normal">(optional)</span>
+                                {t("Due Date")} <span className="text-slate-400 normal-case font-normal">({t("optional")})</span>
                               </FormLabel>
                               <Popover>
                                 <PopoverTrigger asChild>
@@ -618,14 +620,14 @@ export default function GoalSetting() {
                                     <Button
                                       variant="outline"
                                       className={cn(
-                                        "w-full justify-start text-left font-normal rounded-xl border-slate-200 bg-slate-50/60 hover:bg-slate-100 h-11",
+                                        "w-full justify-start text-start font-normal rounded-xl border-slate-200 bg-slate-50/60 hover:bg-slate-100 h-11",
                                         !field.value && "text-slate-400"
                                       )}
                                     >
-                                      <CalendarIcon className="mr-2 h-4 w-4 text-purple-500" />
+                                      <CalendarIcon className="me-2 h-4 w-4 text-purple-500" />
                                       {field.value
                                         ? format(parseISO(field.value), "PPP")
-                                        : "Pick a date"}
+                                        : t("Pick a date")}
                                     </Button>
                                   </FormControl>
                                 </PopoverTrigger>
@@ -655,7 +657,7 @@ export default function GoalSetting() {
                           onClick={() => setIsAddingMilestone(false)}
                           className="rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 h-9 px-5"
                         >
-                          Cancel
+                          {t("Cancel")}
                         </Button>
                         <Button
                           type="submit"
@@ -665,12 +667,12 @@ export default function GoalSetting() {
                           {createMilestoneMutation.isPending ? (
                             <>
                               <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              Adding…
+                              {t("Adding…")}
                             </>
                           ) : (
                             <>
-                              <Flag className="h-4 w-4" />
-                              Add Milestone
+                              <Flag className="h-4 w-4 me-2" />
+                              {t("Add Milestone")}
                             </>
                           )}
                         </Button>

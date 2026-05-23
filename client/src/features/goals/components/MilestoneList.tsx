@@ -3,6 +3,7 @@ import type { Goal, Milestone } from "@/features/goals/types";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar, CheckCircle, Clock, PlusCircle, Target } from "lucide-react";
+import { useLocalization, DynamicTranslator } from "@/lib/localize";
 
 interface MilestoneListProps {
   milestones: Milestone[];
@@ -23,12 +24,14 @@ export default function MilestoneList({
   onSetAddingMilestone,
   onToggleCompletion,
 }: MilestoneListProps) {
+  const { t } = useLocalization();
+
   return (
     <div id="milestones-section" className="bg-muted/30 p-6 rounded-lg border">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Target className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold text-xl">Milestones</h3>
+          <h3 className="font-semibold text-xl">{t("Milestones")}</h3>
         </div>
 
         {user?.role === "client" && (
@@ -40,7 +43,7 @@ export default function MilestoneList({
             data-testid="button-add-milestone"
           >
             <PlusCircle className="h-4 w-4" />
-            Add Milestone
+            {t("Add Milestone")}
           </Button>
         )}
       </div>
@@ -51,7 +54,7 @@ export default function MilestoneList({
         </div>
       ) : milestones.length === 0 ? (
         <div className="text-center p-6 border border-dashed rounded-lg">
-          <p className="text-muted-foreground text-sm">No milestones created yet</p>
+          <p className="text-muted-foreground text-sm">{t("No milestones created yet")}</p>
           {user?.role === "client" && (
             <Button
               variant="outline"
@@ -59,8 +62,8 @@ export default function MilestoneList({
               className="mt-3"
               onClick={() => onSetAddingMilestone(true)}
             >
-              <PlusCircle className="h-4 w-4 mr-1" />
-              Add First Milestone
+              <PlusCircle className="h-4 w-4 me-1" />
+              {t("Add First Milestone")}
             </Button>
           )}
         </div>
@@ -100,16 +103,18 @@ export default function MilestoneList({
 
                 <div className="flex-1">
                   <h4 className={`font-medium ${milestone.isCompleted ? "text-green-800" : ""}`}>
-                    {milestone.title}
+                    <DynamicTranslator text={milestone.title} />
                   </h4>
 
                   {milestone.description && (
-                    <p className="text-sm text-muted-foreground mt-1">{milestone.description}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      <DynamicTranslator text={milestone.description} />
+                    </p>
                   )}
 
                   {milestone.dueDate && (
                     <div className="flex items-center text-xs text-muted-foreground mt-2">
-                      <Calendar className="h-3 w-3 mr-1" />
+                      <Calendar className="h-3 w-3 me-1" />
                       {format(parseISO(milestone.dueDate), "MMM d, yyyy")}
                     </div>
                   )}

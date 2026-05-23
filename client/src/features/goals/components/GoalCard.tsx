@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Calendar, Flag, MoreVertical, Target } from "lucide-react";
+import { useLocalization, DynamicTranslator } from "@/lib/localize";
 
 interface GoalCardProps {
   goal: Goal;
@@ -35,11 +36,14 @@ export default function GoalCard({
   onSelect,
   onUpdateStatus,
 }: GoalCardProps) {
+  const { t, currentLanguage } = useLocalization();
+  const isRtl = currentLanguage === 'ar';
+
   return (
     <Card className="overflow-hidden" data-testid={`goal-card-${goal.id}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between mb-2">
-          <CardTitle className="text-lg font-bold">{goal.title}</CardTitle>
+          <CardTitle className="text-lg font-bold"><DynamicTranslator text={goal.title} /></CardTitle>
           <div className="flex items-center gap-2">
             <div>{getStatusBadge(goal.status, "lg")}</div>
             <DropdownMenu>
@@ -50,12 +54,12 @@ export default function GoalCard({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onSelect(goal)}>
-                  <Flag className="h-4 w-4 mr-2" />
-                  View Details
+                  <Flag className="h-4 w-4 me-2" />
+                  {t("View Details")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onSelect(goal)}>
-                  <Target className="h-4 w-4 mr-2" />
-                  View Milestones ({progress.total})
+                  <Target className="h-4 w-4 me-2" />
+                  {t("View Milestones")} ({progress.total})
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -65,9 +69,9 @@ export default function GoalCard({
         {progress.total > 0 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Milestone Progress</span>
+              <span className="text-muted-foreground">{t("Milestone Progress")}</span>
               <span className="font-semibold" data-testid={`goal-progress-${goal.id}`}>
-                {progress.completed}/{progress.total} completed ({progress.percentage}%)
+                {progress.completed}/{progress.total} {t("completed")} ({progress.percentage}%)
               </span>
             </div>
             <Progress
@@ -80,8 +84,8 @@ export default function GoalCard({
 
         {goal.deadline && (
           <div className="flex items-center text-sm text-muted-foreground mt-2">
-            <Calendar className="h-4 w-4 mr-1" />
-            Target: {format(parseISO(goal.deadline), "MMM d, yyyy")}
+            <Calendar className="h-4 w-4 me-1" />
+            {t("Target:")} {format(parseISO(goal.deadline), "MMM d, yyyy")}
           </div>
         )}
       </CardHeader>
@@ -89,29 +93,29 @@ export default function GoalCard({
       <CardContent className="pb-3 hidden sm:block">
         <div className="space-y-2">
           <div>
-            <h4 className="text-sm font-medium text-primary">Specific</h4>
-            <p className="text-sm text-muted-foreground line-clamp-2">{goal.specific}</p>
+            <h4 className="text-sm font-medium text-primary">{t("Specific")}</h4>
+            <p className="text-sm text-muted-foreground line-clamp-2"><DynamicTranslator text={goal.specific} /></p>
           </div>
           <div>
-            <h4 className="text-sm font-medium text-primary">Measurable</h4>
-            <p className="text-sm text-muted-foreground line-clamp-2">{goal.measurable}</p>
+            <h4 className="text-sm font-medium text-primary">{t("Measurable")}</h4>
+            <p className="text-sm text-muted-foreground line-clamp-2"><DynamicTranslator text={goal.measurable} /></p>
           </div>
         </div>
       </CardContent>
 
       <CardContent className="pb-3 sm:hidden">
-        <p className="text-sm text-muted-foreground line-clamp-2">{goal.specific}</p>
+        <p className="text-sm text-muted-foreground line-clamp-2"><DynamicTranslator text={goal.specific} /></p>
         <button
           className="mt-2 text-xs text-primary font-medium"
           onClick={() => onSelect(goal)}
         >
-          View full details →
+          {t("View full details")} {isRtl ? "←" : "→"}
         </button>
       </CardContent>
 
       {user?.role === "therapist" && (
         <CardFooter className="flex flex-col items-stretch pt-1 pb-3">
-          <div className="text-sm font-medium mb-2">Update Status:</div>
+          <div className="text-sm font-medium mb-2">{t("Update Status:")}</div>
           <div className="flex gap-2 flex-wrap">
             <Button
               variant={goal.status === "pending" ? "default" : "outline"}
@@ -124,7 +128,7 @@ export default function GoalCard({
                 })
               }
             >
-              Pending
+              {t("Pending")}
             </Button>
             <Button
               variant={goal.status === "in_progress" ? "default" : "outline"}
@@ -137,7 +141,7 @@ export default function GoalCard({
                 })
               }
             >
-              In Progress
+              {t("In Progress")}
             </Button>
             <Button
               variant={goal.status === "approved" ? "default" : "outline"}
@@ -150,7 +154,7 @@ export default function GoalCard({
                 })
               }
             >
-              Approved
+              {t("Approved")}
             </Button>
             <Button
               variant={goal.status === "completed" ? "default" : "outline"}
@@ -163,14 +167,14 @@ export default function GoalCard({
                 })
               }
             >
-              Completed
+              {t("Completed")}
             </Button>
           </div>
 
           <div className="mt-4">
-            <div className="text-sm font-medium mb-2">Feedback:</div>
+            <div className="text-sm font-medium mb-2">{t("Feedback:")}</div>
             <Textarea
-              placeholder="Add your feedback or suggestions here..."
+              placeholder={t("Add your feedback or suggestions here...")}
               defaultValue={goal.therapistComments || ""}
               className="min-h-[80px]"
               onBlur={(e) => {

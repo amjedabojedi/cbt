@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { EducationalResource } from "@/features/resources/types";
+import { useLocalization } from "@/lib/localize.tsx";
+import { formatResourceType } from "@/features/resources/utils/resourceLabels";
 
 interface CreatorPanelProps {
   mode: "create" | "edit";
@@ -35,6 +37,7 @@ export default function CreatorPanel({
   onSubmitEdit,
   isPending,
 }: CreatorPanelProps) {
+  const { t, isRTL } = useLocalization();
   const selectClass =
     "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
 
@@ -44,11 +47,11 @@ export default function CreatorPanel({
   if (mode === "create") {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" dir={isRTL ? "rtl" : "ltr"}>
           <DialogHeader>
-            <DialogTitle>Add Educational Resource</DialogTitle>
+            <DialogTitle>{t("Add Educational Resource")}</DialogTitle>
             <DialogDescription>
-              Create a new resource to share knowledge with clients
+              {t("Create a new resource to share knowledge with clients")}
             </DialogDescription>
           </DialogHeader>
 
@@ -57,24 +60,24 @@ export default function CreatorPanel({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="title" className={labelClass}>
-                    Title
+                    {t("Title")}
                   </label>
-                  <Input id="title" name="title" placeholder="Enter title" required />
+                  <Input id="title" name="title" placeholder={t("Enter title")} required />
                 </div>
 
                 <div className="space-y-2">
                   <label htmlFor="category" className={labelClass}>
-                    Category
+                    {t("Category")}
                   </label>
                   <div className="grid grid-cols-1 gap-2">
                     <select id="category" name="category" className={selectClass}>
-                      <option value="">-- Select a Category --</option>
+                      <option value="">{t("-- Select a Category --")}</option>
                       {educationalResources &&
                         Array.from(new Set(educationalResources.map((r: EducationalResource) => r.category)))
                           .filter((cat: string) => cat && cat !== "all")
                           .map((category: string) => (
                             <option key={category} value={category}>
-                              {category}
+                              {t(category)}
                             </option>
                           ))}
                     </select>
@@ -83,12 +86,12 @@ export default function CreatorPanel({
                       <Input
                         id="custom-category"
                         name="custom-category"
-                        placeholder="Or enter a new category name"
+                        placeholder={t("Or enter a new category name")}
                         defaultValue=""
                       />
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Select an existing category or create a new one
+                      {t("Select an existing category or create a new one")}
                     </p>
                   </div>
                 </div>
@@ -96,12 +99,12 @@ export default function CreatorPanel({
 
               <div className="space-y-2">
                 <label htmlFor="description" className={labelClass}>
-                  Description
+                  {t("Description")}
                 </label>
                 <Textarea
                   id="description"
                   name="description"
-                  placeholder="Enter a brief description"
+                  placeholder={t("Enter a brief description")}
                   rows={2}
                   required
                 />
@@ -109,12 +112,12 @@ export default function CreatorPanel({
 
               <div className="space-y-2">
                 <label htmlFor="content" className={labelClass}>
-                  Content
+                  {t("Content")}
                 </label>
                 <Textarea
                   id="content"
                   name="content"
-                  placeholder="Enter the main content (supports HTML for formatting)"
+                  placeholder={t("Enter the main content (supports HTML for formatting)")}
                   rows={8}
                   required
                 />
@@ -123,20 +126,20 @@ export default function CreatorPanel({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="type" className={labelClass}>
-                    Resource Type
+                    {t("Resource Type")}
                   </label>
                   <select id="type" name="type" className={selectClass} required>
-                    <option value="article">Article</option>
-                    <option value="worksheet">Worksheet</option>
-                    <option value="guide">Guide</option>
-                    <option value="exercise">Exercise</option>
-                    <option value="video">Video</option>
+                    {(["article", "worksheet", "guide", "exercise", "video"] as const).map((type) => (
+                      <option key={type} value={type}>
+                        {formatResourceType(type, t)}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="space-y-2">
                   <label htmlFor="pdfUrl" className={labelClass}>
-                    PDF URL (Optional)
+                    {t("PDF URL (Optional)")}
                   </label>
                   <Input
                     id="pdfUrl"
@@ -148,7 +151,7 @@ export default function CreatorPanel({
 
               <div className="space-y-2">
                 <label htmlFor="tags" className={labelClass}>
-                  Tags (comma-separated)
+                  {t("Tags (comma-separated)")}
                 </label>
                 <Input
                   id="tags"
@@ -160,7 +163,7 @@ export default function CreatorPanel({
               <div className="flex items-center space-x-2">
                 <Checkbox id="published" name="published" defaultChecked={true} />
                 <label htmlFor="published" className={labelClass}>
-                  Published (visible to others)
+                  {t("Published (visible to others)")}
                 </label>
               </div>
             </div>
@@ -171,10 +174,10 @@ export default function CreatorPanel({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
               >
-                Cancel
+                {t("Cancel")}
               </Button>
               <Button type="submit" disabled={isPending} className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl">
-                {isPending ? "Creating..." : "Create Resource"}
+                {isPending ? t("Creating...") : t("Create Resource")}
               </Button>
             </DialogFooter>
           </form>
@@ -188,10 +191,10 @@ export default function CreatorPanel({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" dir={isRTL ? "rtl" : "ltr"}>
         <DialogHeader>
-          <DialogTitle>Edit Resource</DialogTitle>
-          <DialogDescription>Update this educational resource</DialogDescription>
+          <DialogTitle>{t("Edit Resource")}</DialogTitle>
+          <DialogDescription>{t("Update this educational resource")}</DialogDescription>
         </DialogHeader>
 
         <form
@@ -204,16 +207,16 @@ export default function CreatorPanel({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className={labelClass}>Title</label>
+                <label className={labelClass}>{t("Title")}</label>
                 <Input
                   value={resource.title}
                   onChange={(e) => onResourceChange({ ...resource, title: e.target.value })}
-                  placeholder="Enter title"
+                  placeholder={t("Enter title")}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className={labelClass}>Category</label>
+                <label className={labelClass}>{t("Category")}</label>
                 <div className="relative">
                   <Input
                     value={resource.category}
@@ -223,42 +226,42 @@ export default function CreatorPanel({
                         onResourceChange({ ...resource, category: value });
                       }
                     }}
-                    placeholder="Enter your custom category name"
+                    placeholder={t("Enter your custom category name")}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Type the name of your custom category
+                  {t("Type the name of your custom category")}
                 </p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className={labelClass}>Description</label>
+              <label className={labelClass}>{t("Description")}</label>
               <Textarea
                 value={resource.description}
                 onChange={(e) =>
                   onResourceChange({ ...resource, description: e.target.value })
                 }
-                placeholder="Enter a brief description"
+                placeholder={t("Enter a brief description")}
                 rows={2}
               />
             </div>
 
             <div className="space-y-2">
-              <label className={labelClass}>Content</label>
+              <label className={labelClass}>{t("Content")}</label>
               <Textarea
                 value={resource.content}
                 onChange={(e) =>
                   onResourceChange({ ...resource, content: e.target.value })
                 }
-                placeholder="Enter the main content (supports HTML for formatting)"
+                placeholder={t("Enter the main content (supports HTML for formatting)")}
                 rows={8}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className={labelClass}>Resource Type</label>
+                <label className={labelClass}>{t("Resource Type")}</label>
                 <select
                   value={resource.type}
                   onChange={(e) =>
@@ -266,16 +269,16 @@ export default function CreatorPanel({
                   }
                   className={selectClass}
                 >
-                  <option value="article">Article</option>
-                  <option value="worksheet">Worksheet</option>
-                  <option value="guide">Guide</option>
-                  <option value="exercise">Exercise</option>
-                  <option value="video">Video</option>
+                  {(["article", "worksheet", "guide", "exercise", "video"] as const).map((type) => (
+                    <option key={type} value={type}>
+                      {formatResourceType(type, t)}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div className="space-y-2">
-                <label className={labelClass}>PDF URL (Optional)</label>
+                <label className={labelClass}>{t("PDF URL (Optional)")}</label>
                 <Input
                   value={resource.pdfUrl || ""}
                   onChange={(e) =>
@@ -287,7 +290,7 @@ export default function CreatorPanel({
             </div>
 
             <div className="space-y-2">
-              <label className={labelClass}>Tags (comma-separated)</label>
+              <label className={labelClass}>{t("Tags (comma-separated)")}</label>
               <Input
                 value={(resource.tags || []).join(", ")}
                 onChange={(e) => {
@@ -321,10 +324,10 @@ export default function CreatorPanel({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button type="submit" disabled={isPending} className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl">
-              {isPending ? "Saving..." : "Save Changes"}
+              {isPending ? t("Saving...") : t("Save Changes")}
             </Button>
           </DialogFooter>
         </form>

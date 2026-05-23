@@ -39,7 +39,7 @@ const DISTORTION_KEY_MAP: Record<string, string> = {
   unknown: "Cognitive Distortion",
 };
 
-const TRANSLATION_KEYS = [...new Set(Object.values(DISTORTION_KEY_MAP))];
+const TRANSLATION_KEYS = Array.from(new Set(Object.values(DISTORTION_KEY_MAP)));
 
 /** Normalize any distortion string for fuzzy lookup (case, spacing, - vs _) */
 function normalizeDistortionInput(value: string): string {
@@ -128,7 +128,7 @@ function toTitleCaseWords(value: string): string {
     .join(" ");
 }
 
-const EMOTION_TRANSLATION_KEYS = [...new Set(Object.values(EMOTION_KEY_MAP))];
+const EMOTION_TRANSLATION_KEYS = Array.from(new Set(Object.values(EMOTION_KEY_MAP)));
 
 function normalizeEmotionInput(value: string): string {
   return normalizeDistortionInput(value);

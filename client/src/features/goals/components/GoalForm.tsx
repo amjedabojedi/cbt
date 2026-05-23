@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { HelpCircle } from "lucide-react";
+import { useLocalization } from "@/lib/localize";
 
 export const goalSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -64,13 +65,15 @@ export default function GoalForm({
   isPending,
   reflectionInsights,
 }: GoalFormProps) {
+  const { t } = useLocalization();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create a SMART Goal</DialogTitle>
+          <DialogTitle>{t("Create a SMART Goal")}</DialogTitle>
           <DialogDescription>
-            SMART goals are Specific, Measurable, Achievable, Relevant, and Time-bound.
+            {t("SMART goals are Specific, Measurable, Achievable, Relevant, and Time-bound.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -79,55 +82,55 @@ export default function GoalForm({
             <AccordionItem value="smart-goals">
               <AccordionTrigger className="text-base font-medium">
                 <div className="flex items-center">
-                  <HelpCircle className="h-5 w-5 mr-2 text-primary" />
-                  Understanding SMART Goals
+                  <HelpCircle className="h-5 w-5 me-2 text-primary" />
+                  {t("Understanding SMART Goals")}
                 </div>
               </AccordionTrigger>
               <AccordionContent className="text-sm">
                 <p className="mb-2">
-                  SMART is an acronym used to guide goal setting. It stands for Specific, Measurable, Achievable, Relevant, and Time-bound.
+                  {t("SMART is an acronym used to guide goal setting. It stands for Specific, Measurable, Achievable, Relevant, and Time-bound.")}
                 </p>
 
                 <div className="space-y-3 mt-3">
                   <div>
-                    <h4 className="font-medium">Specific</h4>
-                    <p>Your goal should clearly define what you want to accomplish. The more specific, the better.</p>
-                    <p className="text-xs mt-1 italic">Example: "I will walk 10,000 steps daily" instead of "I will exercise more."</p>
+                    <h4 className="font-medium">{t("Specific")}</h4>
+                    <p>{t("Your goal should clearly define what you want to accomplish. The more specific, the better.")}</p>
+                    <p className="text-xs mt-1 italic">{t('Example: "I will walk 10,000 steps daily" instead of "I will exercise more."')}</p>
                   </div>
 
                   <div>
-                    <h4 className="font-medium">Measurable</h4>
-                    <p>You need concrete criteria to track your progress and measure success.</p>
-                    <p className="text-xs mt-1 italic">Example: "I will save $300 per month" instead of "I will save money."</p>
+                    <h4 className="font-medium">{t("Measurable")}</h4>
+                    <p>{t("You need concrete criteria to track your progress and measure success.")}</p>
+                    <p className="text-xs mt-1 italic">{t('Example: "I will save $300 per month" instead of "I will save money."')}</p>
                   </div>
 
                   <div>
-                    <h4 className="font-medium">Achievable</h4>
-                    <p>Your goal should be realistic and attainable with the resources available to you.</p>
-                    <p className="text-xs mt-1 italic">Example: "I will read one book per month" instead of "I will read 100 books this year."</p>
+                    <h4 className="font-medium">{t("Achievable")}</h4>
+                    <p>{t("Your goal should be realistic and attainable with the resources available to you.")}</p>
+                    <p className="text-xs mt-1 italic">{t('Example: "I will read one book per month" instead of "I will read 100 books this year."')}</p>
                   </div>
 
                   <div>
-                    <h4 className="font-medium">Relevant</h4>
-                    <p>Your goal should align with your broader life objectives and personal values.</p>
-                    <p className="text-xs mt-1 italic">Example: "I will take a coding course to advance my career" instead of pursuing a goal unrelated to your interests or needs.</p>
+                    <h4 className="font-medium">{t("Relevant")}</h4>
+                    <p>{t("Your goal should align with your broader life objectives and personal values.")}</p>
+                    <p className="text-xs mt-1 italic">{t('Example: "I will take a coding course to advance my career" instead of pursuing a goal unrelated to your interests or needs.')}</p>
                   </div>
 
                   <div>
-                    <h4 className="font-medium">Time-bound</h4>
-                    <p>Your goal needs a target date or deadline to create urgency and maintain focus.</p>
-                    <p className="text-xs mt-1 italic">Example: "I will complete this project by June 30th" instead of "I will do this project someday."</p>
+                    <h4 className="font-medium">{t("Time-bound")}</h4>
+                    <p>{t("Your goal needs a target date or deadline to create urgency and maintain focus.")}</p>
+                    <p className="text-xs mt-1 italic">{t('Example: "I will complete this project by June 30th" instead of "I will do this project someday."')}</p>
                   </div>
                 </div>
 
                 <div className="mt-4">
-                  <h4 className="font-medium">Benefits of SMART Goals:</h4>
+                  <h4 className="font-medium">{t("Benefits of SMART Goals:")}</h4>
                   <ul className="list-disc pl-5 space-y-1 mt-1">
-                    <li>Provides clear direction and focus</li>
-                    <li>Makes it easier to track progress</li>
-                    <li>Increases motivation and commitment</li>
-                    <li>Helps prioritize your efforts and resources</li>
-                    <li>Creates accountability</li>
+                    <li>{t("Provides clear direction and focus")}</li>
+                    <li>{t("Makes it easier to track progress")}</li>
+                    <li>{t("Increases motivation and commitment")}</li>
+                    <li>{t("Helps prioritize your efforts and resources")}</li>
+                    <li>{t("Creates accountability")}</li>
                   </ul>
                 </div>
               </AccordionContent>
@@ -136,33 +139,33 @@ export default function GoalForm({
             <AccordionItem value="milestones">
               <AccordionTrigger className="text-base font-medium">
                 <div className="flex items-center">
-                  <HelpCircle className="h-5 w-5 mr-2 text-primary" />
-                  The Power of Milestones
+                  <HelpCircle className="h-5 w-5 me-2 text-primary" />
+                  {t("The Power of Milestones")}
                 </div>
               </AccordionTrigger>
               <AccordionContent className="text-sm">
                 <p className="mb-2">
-                  Milestones are smaller, manageable targets that mark your progress toward a larger goal.
+                  {t("Milestones are smaller, manageable targets that mark your progress toward a larger goal.")}
                 </p>
 
                 <div className="space-y-3 mt-3">
                   <div>
-                    <h4 className="font-medium">Why Use Milestones?</h4>
+                    <h4 className="font-medium">{t("Why Use Milestones?")}</h4>
                     <ul className="list-disc pl-5 space-y-1 mt-1">
-                      <li><strong>Break down complexity</strong> - Large goals become less overwhelming</li>
-                      <li><strong>Track progress</strong> - Regular feedback on how you're doing</li>
-                      <li><strong>Celebrate small wins</strong> - Boost motivation along the journey</li>
-                      <li><strong>Adjust as needed</strong> - Early warning if something needs to change</li>
+                      <li><strong>{t("Break down complexity")}</strong> - {t("Large goals become less overwhelming")}</li>
+                      <li><strong>{t("Track progress")}</strong> - {t("Regular feedback on how you're doing")}</li>
+                      <li><strong>{t("Celebrate small wins")}</strong> - {t("Boost motivation along the journey")}</li>
+                      <li><strong>{t("Adjust as needed")}</strong> - {t("Early warning if something needs to change")}</li>
                     </ul>
                   </div>
 
                   <div>
-                    <h4 className="font-medium">Creating Effective Milestones:</h4>
+                    <h4 className="font-medium">{t("Creating Effective Milestones:")}</h4>
                     <ul className="list-disc pl-5 space-y-1 mt-1">
-                      <li>Make them specific and concrete</li>
-                      <li>Set realistic timeframes</li>
-                      <li>Ensure they build logically toward your main goal</li>
-                      <li>Keep them achievable but challenging</li>
+                      <li>{t("Make them specific and concrete")}</li>
+                      <li>{t("Set realistic timeframes")}</li>
+                      <li>{t("Ensure they build logically toward your main goal")}</li>
+                      <li>{t("Keep them achievable but challenging")}</li>
                     </ul>
                   </div>
                 </div>
@@ -178,9 +181,9 @@ export default function GoalForm({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Goal Title</FormLabel>
+                  <FormLabel>{t("Goal Title")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter a title for your goal" voiceInput {...field} />
+                    <Input placeholder={t("Enter a title for your goal")} voiceInput {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -192,13 +195,13 @@ export default function GoalForm({
               name="specific"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Specific</FormLabel>
+                  <FormLabel>{t("Specific")}</FormLabel>
                   <FormDescription>
-                    What exactly do you want to accomplish?
+                    {t("What exactly do you want to accomplish?")}
                   </FormDescription>
                   <FormControl>
                     <Textarea
-                      placeholder="Be precise about what you want to achieve..."
+                      placeholder={t("Be precise about what you want to achieve...")}
                       rows={3}
                       {...field}
                     />
@@ -213,13 +216,13 @@ export default function GoalForm({
               name="measurable"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Measurable</FormLabel>
+                  <FormLabel>{t("Measurable")}</FormLabel>
                   <FormDescription>
-                    How will you track progress and measure success?
+                    {t("How will you track progress and measure success?")}
                   </FormDescription>
                   <FormControl>
                     <Textarea
-                      placeholder="Define criteria to measure progress..."
+                      placeholder={t("Define criteria to measure progress...")}
                       rows={3}
                       {...field}
                     />
@@ -234,13 +237,13 @@ export default function GoalForm({
               name="achievable"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Achievable</FormLabel>
+                  <FormLabel>{t("Achievable")}</FormLabel>
                   <FormDescription>
-                    Is this goal realistic? Do you have the resources and capabilities?
+                    {t("Is this goal realistic? Do you have the resources and capabilities?")}
                   </FormDescription>
                   <FormControl>
                     <Textarea
-                      placeholder="Explain why this goal is attainable..."
+                      placeholder={t("Explain why this goal is attainable...")}
                       rows={3}
                       {...field}
                     />
@@ -255,13 +258,13 @@ export default function GoalForm({
               name="relevant"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Relevant</FormLabel>
+                  <FormLabel>{t("Relevant")}</FormLabel>
                   <FormDescription>
-                    Why is this goal important to you? How does it align with your values?
+                    {t("Why is this goal important to you? How does it align with your values?")}
                   </FormDescription>
                   <FormControl>
                     <Textarea
-                      placeholder="Describe why this goal matters to you..."
+                      placeholder={t("Describe why this goal matters to you...")}
                       rows={3}
                       {...field}
                     />
@@ -276,13 +279,13 @@ export default function GoalForm({
               name="timebound"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Time-bound</FormLabel>
+                  <FormLabel>{t("Time-bound")}</FormLabel>
                   <FormDescription>
-                    What's your time frame for accomplishing this goal?
+                    {t("What's your time frame for accomplishing this goal?")}
                   </FormDescription>
                   <FormControl>
                     <Textarea
-                      placeholder="Describe your timeline and deadlines..."
+                      placeholder={t("Describe your timeline and deadlines...")}
                       rows={3}
                       {...field}
                     />
@@ -297,7 +300,7 @@ export default function GoalForm({
               name="deadline"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Target Completion Date</FormLabel>
+                  <FormLabel>{t("Target Completion Date")}</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -308,7 +311,7 @@ export default function GoalForm({
 
             <DialogFooter>
               <Button type="submit" disabled={isPending}>
-                {isPending ? "Creating..." : "Create Goal"}
+                {isPending ? t("Creating...") : t("Create Goal")}
               </Button>
             </DialogFooter>
           </form>

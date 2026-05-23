@@ -3,10 +3,13 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   FileText, Edit, Trash2, Copy, X,
-  BookOpen, Layers, Activity, Zap, Globe, Lock,
+  BookOpen, Layers, Activity, Zap, Lock,
   Tag, ChevronRight,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { EducationalResource } from "@/features/resources/types";
+import { useLocalization, DynamicTranslator } from "@/lib/localize.tsx";
+import { formatResourceCategory, formatResourceType } from "@/features/resources/utils/resourceLabels";
 
 interface ResourceViewerProps {
   resource: EducationalResource | null;
@@ -49,6 +52,8 @@ function getTypeIcon(type: string) {
 export default function ResourceViewer({
   resource, user, open, onClose, onEdit, onDelete, onClone, isDeleting, isCloning,
 }: ResourceViewerProps) {
+  const { t, isRTL } = useLocalization();
+
   if (!resource) return null;
 
   const cat = getCat(resource.category);
@@ -56,50 +61,62 @@ export default function ResourceViewer({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent aria-describedby={undefined} className="!p-0 !gap-0 max-w-2xl !rounded-2xl border-0 shadow-2xl overflow-hidden bg-white max-h-[90vh] flex flex-col [&>button:last-child]:hidden">
-        <DialogTitle className="sr-only">Resource</DialogTitle>
+      <DialogContent
+        aria-describedby={undefined}
+        className="!p-0 !gap-0 max-w-2xl !rounded-2xl border-0 shadow-2xl overflow-hidden bg-white max-h-[90vh] flex flex-col [&>button:last-child]:hidden"
+        dir={isRTL ? "rtl" : "ltr"}
+      >
+        <DialogTitle className="sr-only">{t("Resource Library")}</DialogTitle>
 
-        {/* ── Dark gradient header ── */}
         <div className="relative bg-gradient-to-r from-[#090514] via-purple-950 to-indigo-950 px-6 pt-6 pb-5 shrink-0">
-          {/* Subtle radial glow */}
-          <div className="absolute inset-0 opacity-20 pointer-events-none"
-            style={{ backgroundImage: "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 60%)" }} />
+          <div
+            className="absolute inset-0 opacity-20 pointer-events-none"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 60%)",
+            }}
+          />
 
-          {/* Close button */}
-          <button onClick={onClose}
-            className="absolute top-4 right-4 h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition-all">
+          <button
+            onClick={onClose}
+            className="absolute top-4 end-4 h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition-all"
+          >
             <X className="h-4 w-4" />
           </button>
 
-          {/* Category + type badges */}
           <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ring-1 ${cat.pill}`}>
+            <span
+              className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ring-1 ${cat.pill}`}
+            >
               <span className={`h-1.5 w-1.5 rounded-full ${cat.dot}`} />
-              {resource.category}
+              {formatResourceCategory(resource.category, t)}
             </span>
             <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-white/10 text-white/80 ring-1 ring-white/20">
               {getTypeIcon(resource.type)}
-              {resource.type.charAt(0).toUpperCase() + resource.type.slice(1)}
+              {formatResourceType(resource.type, t)}
             </span>
             {resource.isPublished === false && (
               <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-300 ring-1 ring-amber-400/30">
-                <Lock className="h-3 w-3" /> Draft
+                <Lock className="h-3 w-3" /> {t("Draft")}
               </span>
             )}
           </div>
 
-          <h2 className="text-xl font-bold text-white leading-snug pr-10">{resource.title}</h2>
-          <p className="text-sm text-white/60 mt-1.5 leading-relaxed line-clamp-2">{resource.description}</p>
+          <h2 className="text-xl font-bold text-white leading-snug pe-10">
+            <DynamicTranslator text={resource.title} />
+          </h2>
+          <p className="text-sm text-white/60 mt-1.5 leading-relaxed line-clamp-2">
+            <DynamicTranslator text={resource.description || ""} />
+          </p>
         </div>
 
-        {/* ── Scrollable body ── */}
         <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
-
-          {/* Content */}
           <div>
             <div className="flex items-center gap-2 mb-3">
               <BookOpen className="h-4 w-4 text-purple-900" />
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Content</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                {t("Content")}
+              </span>
             </div>
             <div
               className="prose prose-sm max-w-none text-slate-700 bg-slate-50 rounded-xl border border-slate-100 p-4 leading-relaxed"
@@ -107,12 +124,13 @@ export default function ResourceViewer({
             />
           </div>
 
-          {/* PDF attachment */}
           {resource.pdfUrl && (
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="h-4 w-4 text-purple-900" />
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Attached PDF</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                  {t("Attached PDF")}
+                </span>
               </div>
               <a
                 href={resource.pdfUrl}
@@ -125,26 +143,34 @@ export default function ResourceViewer({
                     <FileText className="h-4 w-4" />
                   </div>
                   <span className="text-sm font-medium text-slate-700 group-hover:text-purple-900 transition-colors">
-                    Open PDF document
+                    {t("Open PDF document")}
                   </span>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-purple-500 transition-colors" />
+                <ChevronRight
+                  className={cn(
+                    "h-4 w-4 text-slate-300 group-hover:text-purple-500 transition-colors",
+                    isRTL && "rotate-180"
+                  )}
+                />
               </a>
             </div>
           )}
 
-          {/* Tags */}
           {resource.tags && resource.tags.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Tag className="h-4 w-4 text-purple-900" />
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Tags</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                  {t("Tags")}
+                </span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {resource.tags.map((tag: string, idx: number) => (
-                  <span key={idx}
-                    className="text-xs px-2.5 py-1 rounded-full bg-purple-50 text-purple-900 ring-1 ring-purple-100 font-medium">
-                    #{tag}
+                  <span
+                    key={idx}
+                    className="text-xs px-2.5 py-1 rounded-full bg-purple-50 text-purple-900 ring-1 ring-purple-100 font-medium"
+                  >
+                    #<DynamicTranslator text={tag} />
                   </span>
                 ))}
               </div>
@@ -152,38 +178,51 @@ export default function ResourceViewer({
           )}
         </div>
 
-        {/* ── Footer actions ── */}
         <div className="shrink-0 flex items-center justify-between gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50">
-          {/* Destructive left side */}
           <div>
             {isOwner && (
-              <Button variant="ghost" size="sm" onClick={onDelete} disabled={isDeleting}
-                className="h-9 px-3 text-sm rounded-xl text-red-500 hover:text-red-700 hover:bg-red-50 font-semibold gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDelete}
+                disabled={isDeleting}
+                className="h-9 px-3 text-sm rounded-xl text-red-500 hover:text-red-700 hover:bg-red-50 font-semibold gap-2"
+              >
                 <Trash2 className="h-4 w-4" />
-                {isDeleting ? "Deleting…" : "Delete"}
+                {isDeleting ? t("Deleting…") : t("Delete")}
               </Button>
             )}
           </div>
 
-          {/* Right side actions */}
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={onClose}
-              className="h-9 px-4 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-100 font-semibold text-sm">
-              Close
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onClose}
+              className="h-9 px-4 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-100 font-semibold text-sm"
+            >
+              {t("Close")}
             </Button>
 
             {user?.role === "therapist" && !isOwner && (
-              <Button size="sm" onClick={onClone} disabled={isCloning}
-                className="h-9 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-semibold text-sm gap-2 shadow-sm">
+              <Button
+                size="sm"
+                onClick={onClone}
+                disabled={isCloning}
+                className="h-9 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-semibold text-sm gap-2 shadow-sm"
+              >
                 <Copy className="h-4 w-4" />
-                {isCloning ? "Cloning…" : "Clone"}
+                {isCloning ? t("Cloning…") : t("Clone")}
               </Button>
             )}
 
             {isOwner && (
-              <Button size="sm" onClick={onEdit}
-                className="h-9 px-4 rounded-xl bg-[#090514] hover:bg-purple-950 text-white font-semibold text-sm gap-2 shadow-sm">
-                <Edit className="h-4 w-4" /> Edit Resource
+              <Button
+                size="sm"
+                onClick={onEdit}
+                className="h-9 px-4 rounded-xl bg-[#090514] hover:bg-purple-950 text-white font-semibold text-sm gap-2 shadow-sm"
+              >
+                <Edit className="h-4 w-4" /> {t("Edit Resource")}
               </Button>
             )}
           </div>

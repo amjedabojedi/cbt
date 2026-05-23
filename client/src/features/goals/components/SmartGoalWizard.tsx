@@ -57,6 +57,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useLocalization } from "@/lib/localize";
 
 // Form schema
 const formSchema = z.object({
@@ -83,6 +84,7 @@ interface SmartGoalWizardProps {
 
 export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps) {
   const { user } = useAuth();
+  const { t, currentLanguage } = useLocalization();
   const { toast } = useToast();
   const { activeUserId } = useActiveUser();
   const [currentStep, setCurrentStep] = useState(0); // 0 = intro
@@ -223,12 +225,12 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
 
   return (
     <>
-      <Card className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white">
+      <Card className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white" dir={currentLanguage === "ar" ? "rtl" : "ltr"}>
         <WizardProgressHeader
-          title="SMART Goal Wizard"
+          title={t("SMART Goal Wizard")}
           currentStep={currentStep}
           totalSteps={totalSteps}
-          stepLabels={["Title", "Specific", "Measurable", "Achievable", "Relevant", "Time-bound", "Milestones"]}
+          stepLabels={[t("Title"), t("Specific"), t("Measurable"), t("Achievable"), t("Relevant"), t("Time-bound"), t("Milestones")]}
         />
 
         <CardContent className="pt-6">
@@ -241,18 +243,18 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                     <div className="inline-flex p-3 rounded-full bg-purple-50 text-purple-600 mb-3">
                       <Target className="h-10 w-10" />
                     </div>
-                    <h2 className="text-2xl font-bold text-[#090514] mb-2">Welcome to SMART Goal Setting</h2>
+                    <h2 className="text-2xl font-bold text-[#090514] mb-2">{t("Welcome to SMART Goal Setting")}</h2>
                     <p className="text-slate-600 text-base max-w-2xl mx-auto">
-                      SMART goals are Specific, Measurable, Achievable, Relevant, and Time-bound. This framework helps you create clear, actionable goals that you can actually achieve.
+                      {t("SMART goals are Specific, Measurable, Achievable, Relevant, and Time-bound. This framework helps you create clear, actionable goals that you can actually achieve.")}
                     </p>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-6">
                       {[
-                        { title: "Specific", desc: "Clear, precise and well-defined roadmap", icon: Target, color: "text-purple-600 bg-purple-50" },
-                        { title: "Measurable", desc: "Concrete metrics to track your daily progress", icon: Ruler, color: "text-indigo-600 bg-indigo-50" },
-                        { title: "Achievable", desc: "Realistic and attainable within your reach", icon: TrendingUp, color: "text-emerald-600 bg-emerald-50" },
-                        { title: "Relevant", desc: "Aligned with your life values and core priorities", icon: LinkIcon, color: "text-amber-600 bg-amber-50" },
-                        { title: "Time-bound", desc: "Set clear target deadlines to maintain focus", icon: Clock, color: "text-rose-600 bg-rose-50" },
+                        { title: t("Specific"), desc: t("Clear, precise and well-defined roadmap"), icon: Target, color: "text-purple-600 bg-purple-50" },
+                        { title: t("Measurable"), desc: t("Concrete metrics to track your daily progress"), icon: Ruler, color: "text-indigo-600 bg-indigo-50" },
+                        { title: t("Achievable"), desc: t("Realistic and attainable within your reach"), icon: TrendingUp, color: "text-emerald-600 bg-emerald-50" },
+                        { title: t("Relevant"), desc: t("Aligned with your life values and core priorities"), icon: LinkIcon, color: "text-amber-600 bg-amber-50" },
+                        { title: t("Time-bound"), desc: t("Set clear target deadlines to maintain focus"), icon: Clock, color: "text-rose-600 bg-rose-50" },
                       ].map((item, idx) => {
                         const Icon = item.icon;
                         return (
@@ -286,10 +288,10 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       <HelpCircle className="h-5 w-5" />
                     </div>
                     <h3 className="font-bold text-base text-[#090514] mb-2">
-                      Start with a Clear Vision
+                      {t("Start with a Clear Vision")}
                     </h3>
                     <p className="text-sm text-slate-600 leading-relaxed">
-                      Give your goal a memorable title that captures what you want to achieve. This will help you stay focused and motivated.
+                      {t("Give your goal a memorable title that captures what you want to achieve. This will help you stay focused and motivated.")}
                     </p>
                   </div>
 
@@ -300,11 +302,11 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-base font-bold text-[#090514] flex items-center gap-2">
-                            Goal Title <span className="text-red-500 text-sm">*</span>
+                            {t("Goal Title")} <span className="text-red-500 text-sm">*</span>
                           </FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="e.g., Run a 5K Marathon, Learn Spanish, Save $5000..."
+                              placeholder={t("e.g., Run a 5K Marathon, Learn Spanish, Save $5000...")}
                               className="text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl py-5"
                               voiceInput
                               {...field}
@@ -312,7 +314,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                             />
                           </FormControl>
                           <FormDescription className="text-xs text-slate-400">
-                            A clear, motivating title for your goal (at least 5 characters)
+                            {t("A clear, motivating title for your goal (at least 5 characters)")}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -330,15 +332,15 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       <Target className="h-5 w-5" />
                     </div>
                     <h3 className="font-bold text-base text-[#090514] mb-2">
-                      Be Specific
+                      {t("Be Specific")}
                     </h3>
                     <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                      Define exactly what you want to accomplish. Answer: What will I do? How will I do it? Where? With whom?
+                      {t("Define exactly what you want to accomplish. Answer: What will I do? How will I do it? Where? With whom?")}
                     </p>
                     <div className="bg-white/80 p-3 rounded-xl border border-purple-100">
-                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">Example</span>
+                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
                       <p className="text-xs italic text-slate-600">
-                        "I will exercise 3 times per week at the gym" instead of "I want to be healthier"
+                        {t('"I will exercise 3 times per week at the gym" instead of "I want to be healthier"')}
                       </p>
                     </div>
                   </div>
@@ -350,19 +352,19 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-base font-bold text-[#090514] flex items-center gap-2">
-                            What Specifically Will You Do? <span className="text-red-500 text-sm">*</span>
+                            {t("What Specifically Will You Do?")} <span className="text-red-500 text-sm">*</span>
                           </FormLabel>
                           <FormControl>
                             <Textarea
                               value={watchedValues.specific}
                               onChange={(e) => form.setValue("specific", e.target.value)}
-                              placeholder="Describe your goal in detail. What exactly will you accomplish? Be as specific as possible..."
+                              placeholder={t("Describe your goal in detail. What exactly will you accomplish? Be as specific as possible...")}
                               className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
                               data-testid="textarea-goal-specific"
                             />
                           </FormControl>
                           <FormDescription className="text-xs text-slate-400">
-                            Be detailed and clear about what you'll do (at least 20 characters)
+                            {t("Be detailed and clear about what you'll do (at least 20 characters)")}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -380,15 +382,15 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       <Ruler className="h-5 w-5" />
                     </div>
                     <h3 className="font-bold text-base text-[#090514] mb-2">
-                      Make It Measurable
+                      {t("Make It Measurable")}
                     </h3>
                     <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                      How will you know when you've achieved your goal? Define concrete criteria to track your progress.
+                      {t("How will you know when you've achieved your goal? Define concrete criteria to track your progress.")}
                     </p>
                     <div className="bg-white/80 p-3 rounded-xl border border-purple-100">
-                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">Example</span>
+                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
                       <p className="text-xs italic text-slate-600">
-                        "Complete 12 workout sessions" or "Save $100 per week"
+                        {t('"Complete 12 workout sessions" or "Save $100 per week"')}
                       </p>
                     </div>
                   </div>
@@ -400,19 +402,19 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-base font-bold text-[#090514] flex items-center gap-2">
-                            How Will You Measure Progress? <span className="text-red-500 text-sm">*</span>
+                            {t("How Will You Measure Progress?")} <span className="text-red-500 text-sm">*</span>
                           </FormLabel>
                           <FormControl>
                             <Textarea
                               value={watchedValues.measurable}
                               onChange={(e) => form.setValue("measurable", e.target.value)}
-                              placeholder="What metrics or milestones will show your progress? How will you know you've succeeded?"
+                              placeholder={t("What metrics or milestones will show your progress? How will you know you've succeeded?")}
                               className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
                               data-testid="textarea-goal-measurable"
                             />
                           </FormControl>
                           <FormDescription className="text-xs text-slate-400">
-                            Define clear metrics to track progress (at least 20 characters)
+                            {t("Define clear metrics to track progress (at least 20 characters)")}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -430,15 +432,15 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       <TrendingUp className="h-5 w-5" />
                     </div>
                     <h3 className="font-bold text-base text-[#090514] mb-2">
-                      Keep It Achievable
+                      {t("Keep It Achievable")}
                     </h3>
                     <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                      Is this goal realistic given your current resources, skills, and time? Challenge yourself, but stay practical.
+                      {t("Is this goal realistic given your current resources, skills, and time? Challenge yourself, but stay practical.")}
                     </p>
                     <div className="bg-white/80 p-3 rounded-xl border border-purple-100">
-                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">Example</span>
+                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
                       <p className="text-xs italic text-slate-600">
-                        "I have gym membership and can commit 3 hours/week"
+                        {t('"I have gym membership and can commit 3 hours/week"')}
                       </p>
                     </div>
                   </div>
@@ -450,19 +452,19 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-base font-bold text-[#090514] flex items-center gap-2">
-                            Why Is This Achievable? <span className="text-red-500 text-sm">*</span>
+                            {t("Why Is This Achievable?")} <span className="text-red-500 text-sm">*</span>
                           </FormLabel>
                           <FormControl>
                             <Textarea
                               value={watchedValues.achievable}
                               onChange={(e) => form.setValue("achievable", e.target.value)}
-                              placeholder="What resources, skills, or support do you have? What makes this goal realistic for you?"
+                              placeholder={t("What resources, skills, or support do you have? What makes this goal realistic for you?")}
                               className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
                               data-testid="textarea-goal-achievable"
                             />
                           </FormControl>
                           <FormDescription className="text-xs text-slate-400">
-                            Explain why this goal is realistic for you (at least 20 characters)
+                            {t("Explain why this goal is realistic for you (at least 20 characters)")}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -480,15 +482,15 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       <LinkIcon className="h-5 w-5" />
                     </div>
                     <h3 className="font-bold text-base text-[#090514] mb-2">
-                      Make It Relevant
+                      {t("Make It Relevant")}
                     </h3>
                     <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                      Why does this goal matter to you? How does it align with your values and life priorities?
+                      {t("Why does this goal matter to you? How does it align with your values and life priorities?")}
                     </p>
                     <div className="bg-white/80 p-3 rounded-xl border border-purple-100">
-                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">Example</span>
+                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
                       <p className="text-xs italic text-slate-600">
-                        "Better health will give me energy to play with my kids"
+                        {t('"Better health will give me energy to play with my kids"')}
                       </p>
                     </div>
                   </div>
@@ -500,19 +502,19 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-base font-bold text-[#090514] flex items-center gap-2">
-                            Why Does This Matter to You? <span className="text-red-500 text-sm">*</span>
+                            {t("Why Does This Matter to You?")} <span className="text-red-500 text-sm">*</span>
                           </FormLabel>
                           <FormControl>
                             <Textarea
                               value={watchedValues.relevant}
                               onChange={(e) => form.setValue("relevant", e.target.value)}
-                              placeholder="How will achieving this goal improve your life? Why is it important to you right now?"
+                              placeholder={t("How will achieving this goal improve your life? Why is it important to you right now?")}
                               className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
                               data-testid="textarea-goal-relevant"
                             />
                           </FormControl>
                           <FormDescription className="text-xs text-slate-400">
-                            Explain the personal meaning behind this goal (at least 20 characters)
+                            {t("Explain the personal meaning behind this goal (at least 20 characters)")}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -530,15 +532,15 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       <Clock className="h-5 w-5" />
                     </div>
                     <h3 className="font-bold text-base text-[#090514] mb-2">
-                      Set a Timeline
+                      {t("Set a Timeline")}
                     </h3>
                     <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                      When will you achieve this goal? A deadline creates urgency and helps you stay on track.
+                      {t("When will you achieve this goal? A deadline creates urgency and helps you stay on track.")}
                     </p>
                     <div className="bg-white/80 p-3 rounded-xl border border-purple-100">
-                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">Example</span>
+                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
                       <p className="text-xs italic text-slate-600">
-                        "Complete within 3 months, tracking weekly milestones"
+                        {t('"Complete within 3 months, tracking weekly milestones"')}
                       </p>
                     </div>
                   </div>
@@ -550,19 +552,19 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-base font-bold text-[#090514] flex items-center gap-2">
-                            What's Your Timeframe? <span className="text-red-500 text-sm">*</span>
+                            {t("What's Your Timeframe?")} <span className="text-red-500 text-sm">*</span>
                           </FormLabel>
                           <FormControl>
                             <Textarea
                               value={watchedValues.timebound}
                               onChange={(e) => form.setValue("timebound", e.target.value)}
-                              placeholder="By when will you achieve this? Describe your timeline..."
+                              placeholder={t("By when will you achieve this? Describe your timeline...")}
                               className="resize-none min-h-[90px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
                               data-testid="textarea-goal-timebound"
                             />
                           </FormControl>
                           <FormDescription className="text-xs text-slate-400">
-                            Specify when you'll complete this goal (at least 10 characters)
+                            {t("Specify when you'll complete this goal (at least 10 characters)")}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -574,17 +576,17 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       name="deadline"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base font-bold text-[#090514]">Target Deadline (Optional)</FormLabel>
+                          <FormLabel className="text-base font-bold text-[#090514]">{t("Target Deadline (Optional)")}</FormLabel>
                           <Popover>
                             <PopoverTrigger asChild>
                               <FormControl>
                                 <Button
                                   variant="outline"
-                                  className="w-full justify-start text-left font-normal bg-white border-slate-200 hover:bg-slate-50 rounded-xl"
+                                  className="w-full justify-start text-start font-normal bg-white border-slate-200 hover:bg-slate-50 rounded-xl"
                                   data-testid="button-select-deadline"
                                 >
-                                  <CalendarIcon className="mr-2 h-4 w-4 text-purple-500" />
-                                  {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                  <CalendarIcon className="me-2 h-4 w-4 text-purple-500" />
+                                  {field.value ? format(field.value, "PPP") : <span>{t("Pick a date")}</span>}
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
@@ -599,7 +601,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                             </PopoverContent>
                           </Popover>
                           <FormDescription className="text-xs text-slate-400">
-                            Optional: Select a specific target date
+                            {t("Optional: Select a specific target date")}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -618,10 +620,10 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
                         <h3 className="font-bold text-sm text-[#090514] mb-1 flex items-center gap-2">
                           <HelpCircle className="h-4 w-4 text-purple-600" />
-                          Break It Down
+                          {t("Break It Down")}
                         </h3>
                         <p className="text-xs text-slate-600 leading-relaxed">
-                          Milestones are smaller checkpoints that help you track progress toward your main goal.
+                          {t("Milestones are smaller checkpoints that help you track progress toward your main goal.")}
                         </p>
                       </div>
 
@@ -630,19 +632,19 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                         <CardHeader className="pb-3 pt-4">
                           <CardTitle className="text-sm font-bold text-[#090514] flex items-center gap-2">
                             <Plus className="h-4 w-4 text-purple-600" />
-                            Add Milestone
+                            {t("Add Milestone")}
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3 pb-4">
                           <Input
-                            placeholder="Milestone title"
+                            placeholder={t("Milestone title")}
                             value={newMilestone.title}
                             onChange={(e) => setNewMilestone({ ...newMilestone, title: e.target.value })}
                             className="bg-white border-slate-200 rounded-xl"
                             data-testid="input-milestone-title"
                           />
                           <Textarea
-                            placeholder="Description (optional)"
+                            placeholder={t("Description (optional)")}
                             value={newMilestone.description}
                             onChange={(e) => setNewMilestone({ ...newMilestone, description: e.target.value })}
                             className="resize-none bg-white border-slate-200 rounded-xl"
@@ -651,9 +653,9 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                           <div className="grid grid-cols-2 gap-2">
                             <Popover>
                               <PopoverTrigger asChild>
-                                <Button variant="outline" className="justify-start text-left font-normal bg-white border-slate-200 hover:bg-slate-50 rounded-xl text-xs">
-                                  <CalendarIcon className="mr-1.5 h-3.5 w-3.5 text-purple-500" />
-                                  {newMilestone.dueDate ? format(newMilestone.dueDate, "MMM d") : <span>Due date</span>}
+                                <Button variant="outline" className="justify-start text-start font-normal bg-white border-slate-200 hover:bg-slate-50 rounded-xl text-xs">
+                                  <CalendarIcon className="me-1.5 h-3.5 w-3.5 text-purple-500" />
+                                  {newMilestone.dueDate ? format(newMilestone.dueDate, "MMM d") : <span>{t("Due date")}</span>}
                                 </Button>
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0" align="start">
@@ -673,8 +675,8 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                               className="w-full bg-[#090514] hover:bg-purple-950 text-white rounded-xl text-xs"
                               data-testid="button-add-milestone"
                             >
-                              <Plus className="mr-1.5 h-3.5 w-3.5" />
-                              Add
+                              <Plus className="me-1.5 h-3.5 w-3.5" />
+                              {t("Add")}
                             </Button>
                           </div>
                         </CardContent>
@@ -687,16 +689,16 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                         <CardHeader className="pb-3 pt-4">
                           <CardTitle className="text-sm font-bold text-[#090514] flex items-center gap-2">
                             <ListChecks className="h-4 w-4 text-purple-600" />
-                            Your Milestones ({milestones.length})
+                            {t("Your Milestones")} ({milestones.length})
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="flex-1 flex flex-col">
                           {milestones.length === 0 ? (
                             <div className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-100">
                               <ListChecks className="h-8 w-8 text-slate-300 mb-2" />
-                              <p className="text-xs font-semibold text-slate-500">No Milestones Added Yet</p>
+                              <p className="text-xs font-semibold text-slate-500">{t("No Milestones Added Yet")}</p>
                               <p className="text-[11px] text-slate-400 mt-1 max-w-[200px]">
-                                Add checkpoints on the left to break down your main goal.
+                                {t("Add checkpoints on the left to break down your main goal.")}
                               </p>
                             </div>
                           ) : (
@@ -713,8 +715,8 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                                     )}
                                     {milestone.dueDate && (
                                       <p className="text-[10px] text-purple-600 font-medium mt-1 inline-flex items-center">
-                                        <CalendarIcon className="h-3 w-3 mr-1" />
-                                        Due: {format(milestone.dueDate, "MMM d, yyyy")}
+                                        <CalendarIcon className="h-3 w-3 me-1" />
+                                        {t("Due:")} {format(milestone.dueDate, "MMM d, yyyy")}
                                       </p>
                                     )}
                                   </div>
@@ -744,8 +746,8 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                 onPrevious={handlePreviousStep}
                 onNext={handleNextStep}
                 onSubmit={() => form.handleSubmit(onSubmit)()}
-                nextLabel="Next"
-                submitLabel="Create Goal"
+                nextLabel={t("Next")}
+                submitLabel={t("Create Goal")}
                 nextButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl"
                 submitButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl"
               />
@@ -761,28 +763,28 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
           handleReset();
         }
       }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'} className={cn("sm:max-w-md", currentLanguage === 'ar' && "rtl text-right")}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-purple-600 text-xl font-bold">
               <Check className="h-6 w-6 bg-purple-50 p-1 rounded-full text-purple-600" />
-              Goal Created Successfully!
+              {t("Goal Created Successfully!")}
             </DialogTitle>
             <DialogDescription>
-              Your SMART goal has been created{milestones.length > 0 ? ` with ${milestones.length} milestone${milestones.length !== 1 ? "s" : ""}` : ""}.
+              {t("Your SMART goal has been created")} {milestones.length > 0 ? `${t("with")} ${milestones.length} ${t(milestones.length !== 1 ? "milestones" : "milestone")}` : ""}.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <Card className="border border-slate-100 shadow-sm bg-slate-50/50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-xs text-slate-400 font-bold uppercase tracking-wider">Goal Summary</CardTitle>
+                <CardTitle className="text-xs text-slate-400 font-bold uppercase tracking-wider">{t("Goal Summary")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <h3 className="font-bold text-lg text-[#090514]">{form.getValues("title")}</h3>
                 <div className="mt-3 space-y-2 text-sm text-slate-600">
-                  <p><strong>Specific:</strong> {form.getValues("specific") ? form.getValues("specific").substring(0, 100) : ""}...</p>
+                  <p><strong>{t("Specific:")}</strong> {form.getValues("specific") ? form.getValues("specific").substring(0, 100) : ""}...</p>
                   {form.getValues("deadline") && (
-                    <p><strong>Deadline:</strong> {format(form.getValues("deadline")!, "PPP")}</p>
+                    <p><strong>{t("Deadline:")}</strong> {format(form.getValues("deadline")!, "PPP")}</p>
                   )}
                 </div>
               </CardContent>
@@ -791,7 +793,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
 
           <DialogFooter>
             <Button onClick={handleReset} className="w-full bg-[#090514] hover:bg-purple-950 text-white rounded-xl">
-              Create Another Goal
+              {t("Create Another Goal")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Target, TrendingUp, Award, BarChart3, CheckCircle, Clock, Calendar as CalendarIcon, AlertCircle } from "lucide-react";
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { format, subDays, subYears, eachDayOfInterval, eachMonthOfInterval, startOfWeek, endOfWeek, endOfMonth, isWithinInterval } from "date-fns";
+import { useLocalization } from "@/lib/localize";
 
 interface GoalInsightsProps {
   userId: number;
@@ -18,6 +19,7 @@ const STATUS_COLORS = {
 
 export default function GoalInsights({ userId }: GoalInsightsProps) {
   const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("month");
+  const { t, tNum } = useLocalization();
 
   const { data: goals = [], isLoading } = useGoals(`/api/users/${userId}`, userId);
 
@@ -48,9 +50,9 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
     const stats = getCompletionRate();
     
     return [
-      { name: 'Completed', value: stats.completed, color: STATUS_COLORS.completed },
-      { name: 'In Progress', value: stats.inProgress, color: STATUS_COLORS.in_progress },
-      { name: 'Pending', value: stats.pending, color: STATUS_COLORS.pending },
+      { name: t('Completed'), value: stats.completed, color: STATUS_COLORS.completed },
+      { name: t('In Progress'), value: stats.inProgress, color: STATUS_COLORS.in_progress },
+      { name: t('Pending'), value: stats.pending, color: STATUS_COLORS.pending },
     ].filter(item => item.value > 0);
   };
 
@@ -123,7 +125,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
         ).length;
         
         return {
-          date: `Week ${index + 1}`,
+          date: `${t('Week')} ${index + 1}`,
           total: totalGoals,
           completed: completedGoals,
           completionRate: totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 0,
@@ -186,8 +188,8 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
     }).length;
     
     return [
-      { name: 'On Time', value: onTime, color: '#10b981' },
-      { name: 'Late', value: late, color: '#ef4444' },
+      { name: t('On Time'), value: onTime, color: '#10b981' },
+      { name: t('Late'), value: late, color: '#ef4444' },
     ].filter(item => item.value > 0);
   };
 
@@ -205,8 +207,8 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
         <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
           <Target className="h-8 w-8" />
         </div>
-        <h3 className="font-bold text-slate-800 text-lg mb-1">SMART Goals Tracker</h3>
-        <p className="text-slate-500 max-w-sm mx-auto text-sm">No structured goals recorded yet. Begin setting SMART goals and key milestones to unlock visual trackers.</p>
+        <h3 className="font-bold text-slate-800 text-lg mb-1">{t("SMART Goals Tracker")}</h3>
+        <p className="text-slate-500 max-w-sm mx-auto text-sm">{t("No structured goals recorded yet. Begin setting SMART goals and key milestones to unlock visual trackers.")}</p>
       </div>
     );
   }
@@ -224,10 +226,10 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
             <CheckCircle className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Completion</p>
-            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{stats.completionRate.toFixed(1)}%</h4>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t("Completion")}</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{tNum(stats.completionRate.toFixed(1))}%</h4>
             <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
-              {stats.completed} of {stats.total} goals
+              {tNum(stats.completed)} {t("of")} {tNum(stats.total)} {t("goals")}
             </p>
           </div>
         </div>
@@ -237,9 +239,9 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
             <Clock className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Goals</p>
-            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{stats.inProgress}</h4>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Currently working</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t("Active Goals")}</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{tNum(stats.inProgress)}</h4>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{t("Currently working")}</p>
           </div>
         </div>
 
@@ -248,9 +250,9 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
             <Award className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-semibold">Achieved Milestones</p>
-            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{milestoneStats.totalCompleted}</h4>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Steps completed</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-semibold">{t("Achieved Milestones")}</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{tNum(milestoneStats.totalCompleted)}</h4>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{t("Steps completed")}</p>
           </div>
         </div>
 
@@ -259,9 +261,9 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
             <Target className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining Tasks</p>
-            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{milestoneStats.totalPending}</h4>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Pending milestones</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t("Remaining Tasks")}</p>
+            <h4 className="text-2xl font-extrabold text-slate-800 mt-1">{tNum(milestoneStats.totalPending)}</h4>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{t("Pending milestones")}</p>
           </div>
         </div>
       </div>
@@ -275,9 +277,9 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
               <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
                 <Target className="h-4 w-4" />
               </div>
-              <h3 className="font-bold text-slate-800 text-base">Goal Status Distribution</h3>
+              <h3 className="font-bold text-slate-800 text-base">{t("Goal Status Distribution")}</h3>
             </div>
-            <p className="text-xs text-slate-500 mt-1">Breakdown of active, pending, and completed SMART goals</p>
+            <p className="text-xs text-slate-500 mt-1">{t("Breakdown of active, pending, and completed SMART goals")}</p>
           </div>
           <div className="p-6 flex items-center justify-center min-h-[260px]">
             {getStatusDistribution().length > 0 ? (
@@ -288,7 +290,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => `${name} ${tNum((percent * 100).toFixed(0))}%`}
                     innerRadius={50}
                     outerRadius={75}
                     paddingAngle={3}
@@ -304,7 +306,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
                         const data = payload[0];
                         return (
                           <div className="bg-white/95 backdrop-blur-md py-1.5 px-3 border border-purple-50 rounded-xl shadow-lg text-xs font-semibold text-slate-800">
-                            {data.name}: <span className="font-extrabold text-indigo-600">{data.value} goals</span>
+                            {data.name}: <span className="font-extrabold text-indigo-600">{tNum(data.value as number)} {t("goals")}</span>
                           </div>
                         );
                       }
@@ -316,7 +318,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
             ) : (
               <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
                 <AlertCircle className="h-6 w-6 text-slate-300 mb-2" />
-                <p className="text-xs text-slate-400 font-semibold">No status data available.</p>
+                <p className="text-xs text-slate-400 font-semibold">{t("No status data available.")}</p>
               </div>
             )}
           </div>
@@ -329,9 +331,9 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
               <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
                 <Award className="h-4 w-4" />
               </div>
-              <h3 className="font-bold text-slate-800 text-base">Timeline Performance</h3>
+              <h3 className="font-bold text-slate-800 text-base">{t("Timeline Performance")}</h3>
             </div>
-            <p className="text-xs text-slate-500 mt-1">Review of completed goals completed relative to targets</p>
+            <p className="text-xs text-slate-500 mt-1">{t("Review of completed goals completed relative to targets")}</p>
           </div>
           <div className="p-6 flex items-center justify-center min-h-[260px]">
             {getTimelineAnalysis().length > 0 ? (
@@ -342,7 +344,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => `${name} ${tNum((percent * 100).toFixed(0))}%`}
                     innerRadius={50}
                     outerRadius={75}
                     paddingAngle={3}
@@ -358,7 +360,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
                         const data = payload[0];
                         return (
                           <div className="bg-white/95 backdrop-blur-md py-1.5 px-3 border border-purple-50 rounded-xl shadow-lg text-xs font-semibold text-slate-800">
-                            {data.name}: <span className="font-extrabold text-slate-700">{data.value} goals</span>
+                            {data.name}: <span className="font-extrabold text-slate-700">{tNum(data.value as number)} {t("goals")}</span>
                           </div>
                         );
                       }
@@ -370,7 +372,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
             ) : (
               <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
                 <AlertCircle className="h-6 w-6 text-slate-300 mb-2" />
-                <p className="text-xs text-slate-400 font-semibold max-w-[200px]">Goals must be completed with specified deadlines to analyze target shifts.</p>
+                <p className="text-xs text-slate-400 font-semibold max-w-[200px]">{t("Goals must be completed with specified deadlines to analyze target shifts.")}</p>
               </div>
             )}
           </div>
@@ -385,15 +387,15 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
               <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600">
                 <TrendingUp className="h-4 w-4" />
               </div>
-              <h3 className="font-bold text-slate-800 text-base">Progress Trends</h3>
+              <h3 className="font-bold text-slate-800 text-base">{t("Progress Trends")}</h3>
             </div>
-            <p className="text-xs text-slate-500 mt-1">Review net goals created vs absolute completions</p>
+            <p className="text-xs text-slate-500 mt-1">{t("Review net goals created vs absolute completions")}</p>
           </div>
           <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as "week" | "month" | "year")} className="w-auto">
             <TabsList className="bg-slate-100 p-0.5 rounded-xl h-auto">
-              <TabsTrigger value="week" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">Week</TabsTrigger>
-              <TabsTrigger value="month" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">Month</TabsTrigger>
-              <TabsTrigger value="year" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">Year</TabsTrigger>
+              <TabsTrigger value="week" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Week")}</TabsTrigger>
+              <TabsTrigger value="month" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Month")}</TabsTrigger>
+              <TabsTrigger value="year" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Year")}</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -422,16 +424,16 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
                         <p className="font-bold text-slate-800 text-xs mb-1.5">{data.date}</p>
                         <div className="space-y-1 text-[11px] font-semibold">
                           <div className="flex items-center gap-2 justify-between">
-                            <span className="text-purple-600">Total Goals:</span>
-                            <span className="text-slate-800 font-extrabold">{data.total}</span>
+                            <span className="text-purple-600">{t("Total Goals:")}</span>
+                            <span className="text-slate-800 font-extrabold">{tNum(data.total)}</span>
                           </div>
                           <div className="flex items-center gap-2 justify-between">
-                            <span className="text-emerald-600">Completed:</span>
-                            <span className="text-slate-800 font-extrabold">{data.completed}</span>
+                            <span className="text-emerald-600">{t("Completed:")}</span>
+                            <span className="text-slate-800 font-extrabold">{tNum(data.completed)}</span>
                           </div>
                           <div className="flex items-center gap-2 justify-between pt-1 border-t border-slate-100">
-                            <span className="text-indigo-600">Completion Rate:</span>
-                            <span className="text-[#090514] font-extrabold">{data.completionRate.toFixed(1)}%</span>
+                            <span className="text-indigo-600">{t("Completion Rate:")}</span>
+                            <span className="text-[#090514] font-extrabold">{tNum(data.completionRate.toFixed(1))}%</span>
                           </div>
                         </div>
                       </div>
@@ -452,7 +454,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
                 dataKey="total" 
                 stroke="#6366f1" 
                 strokeWidth={3}
-                name="Total SMART Goals"
+                name={t("Total SMART Goals")}
                 dot={{ r: 4, strokeWidth: 1, fill: '#fff' }}
                 activeDot={{ r: 6, strokeWidth: 0 }}
               />
@@ -461,7 +463,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
                 dataKey="completed" 
                 stroke="#10b981" 
                 strokeWidth={3}
-                name="Completed Goals"
+                name={t("Completed Goals")}
                 dot={{ r: 4, strokeWidth: 1, fill: '#fff' }}
                 activeDot={{ r: 6, strokeWidth: 0 }}
               />
@@ -477,9 +479,9 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
             <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
               <BarChart3 className="h-4 w-4" />
             </div>
-            <h3 className="font-bold text-slate-800 text-base">30-Day Milestone Activity</h3>
+            <h3 className="font-bold text-slate-800 text-base">{t("30-Day Milestone Activity")}</h3>
           </div>
-          <p className="text-xs text-slate-500 mt-1">Calendar tracing of sub-tasks and milestones achieved over the past month</p>
+          <p className="text-xs text-slate-500 mt-1">{t("Calendar tracing of sub-tasks and milestones achieved over the past month")}</p>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-10 gap-2">
@@ -500,9 +502,9 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
                   key={i}
                   className={`aspect-square rounded-xl ${cellClass} flex items-center justify-center text-[10px] font-bold relative group transition-all duration-300 hover:scale-105 cursor-default`}
                 >
-                  <span className="opacity-80">{day.date.split(' ')[1]}</span>
+                  <span className="opacity-80">{tNum(day.date.split(' ')[1])}</span>
                   <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-slate-900/95 backdrop-blur-sm text-white text-[10px] rounded-xl px-2.5 py-1.5 whitespace-nowrap z-10 shadow-xl border border-slate-800 pointer-events-none transition-all duration-200 font-medium">
-                    {day.date}: {count} {count === 1 ? 'milestone' : 'milestones'} achieved
+                    {day.date}: {tNum(count)} {count === 1 ? t('milestone') : t('milestones')} {t('achieved')}
                   </div>
                 </div>
               );
@@ -511,19 +513,19 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
           <div className="flex items-center justify-center gap-4 mt-6 text-xs text-slate-500 font-semibold">
             <div className="flex items-center gap-1.5">
               <div className="w-3.5 h-3.5 bg-slate-50 border border-slate-100 rounded-md" />
-              <span>None</span>
+              <span>{t("None")}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3.5 h-3.5 bg-indigo-50 border border-indigo-100 rounded-md" />
-              <span>1 Milestone</span>
+              <span>{tNum(1)} {t("Milestone")}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3.5 h-3.5 bg-indigo-100 border border-indigo-200 rounded-md" />
-              <span>2 Milestones</span>
+              <span>{tNum(2)} {t("Milestones")}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3.5 h-3.5 bg-indigo-600 rounded-md shadow-sm" />
-              <span>3+ Milestones</span>
+              <span>{tNum("3+")} {t("Milestones")}</span>
             </div>
           </div>
         </div>
