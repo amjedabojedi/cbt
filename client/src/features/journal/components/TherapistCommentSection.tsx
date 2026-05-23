@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { Send } from 'lucide-react';
+import { DynamicTranslator } from "@/lib/localize.tsx";
 
 interface Comment {
   id: number;
@@ -63,7 +64,9 @@ const TherapistCommentSection: React.FC<TherapistCommentSectionProps> = ({
                     {format(new Date(comment.createdAt), "MMM d, p")}
                   </span>
                 </div>
-                <p className="text-sm mt-1">{comment.comment}</p>
+                <p className="text-sm mt-1">
+                  <DynamicTranslator text={comment.comment} />
+                </p>
               </div>
             </div>
           ))}

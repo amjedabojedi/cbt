@@ -17,17 +17,23 @@ import EmotionWheelMobile from "./EmotionWheelMobile";
 interface EmotionWheelResponsiveProps {
   language?: string;
   direction?: "ltr" | "rtl";
+  compact?: boolean;
   onEmotionSelect?: (selection: {
     coreEmotion: string;
     primaryEmotion: string;
     tertiaryEmotion: string;
   }) => void;
+  hideBreadcrumb?: boolean;
+  hideStatus?: boolean;
 }
 
 export default function EmotionWheelResponsive({
   language = "en",
   direction = "ltr",
+  compact = false,
   onEmotionSelect,
+  hideBreadcrumb = false,
+  hideStatus = false,
 }: EmotionWheelResponsiveProps) {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [mounted, setMounted] = useState(false);
@@ -40,7 +46,11 @@ export default function EmotionWheelResponsive({
   // Show a shimmer placeholder during SSR and client hydration
   if (!mounted) {
     return (
-      <div className="w-full aspect-square bg-gray-100 animate-pulse rounded-full" />
+      <div
+        className={`w-full aspect-square bg-gray-100 animate-pulse rounded-full mx-auto ${
+          compact ? "max-w-[18rem] sm:max-w-xs md:max-w-[420px]" : "max-w-md"
+        }`}
+      />
     );
   }
   
@@ -49,13 +59,17 @@ export default function EmotionWheelResponsive({
     <EmotionWheelMobile
       language={language}
       direction={direction}
+      compact={compact}
       onEmotionSelect={onEmotionSelect}
     />
   ) : (
     <EmotionWheel
       language={language}
       direction={direction}
+      compact={compact}
       onEmotionSelect={onEmotionSelect}
+      hideBreadcrumb={hideBreadcrumb}
+      hideStatus={hideStatus}
     />
   );
 }

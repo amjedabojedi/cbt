@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 import {
   Card,
   CardContent,
@@ -25,6 +26,8 @@ import {
   Trash2,
 } from "lucide-react";
 import type { JournalEntry } from "../types";
+import { useLocalization, DynamicTranslator } from "@/lib/localize.tsx";
+import { JournalTag } from "@/features/journal/components/JournalTag";
 
 interface JournalEntryCardProps {
   entry: JournalEntry;
@@ -41,11 +44,16 @@ export function JournalEntryCard({
   onEdit,
   onDelete,
 }: JournalEntryCardProps) {
+  const { t, isRTL, tNum } = useLocalization();
+  const dateLocale = isRTL ? ar : undefined;
+
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden" dir={isRTL ? "rtl" : "ltr"}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{entry.title}</CardTitle>
+          <CardTitle className="text-lg">
+            <DynamicTranslator text={entry.title || t("Untitled Entry")} />
+          </CardTitle>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -54,22 +62,22 @@ export function JournalEntryCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onView(entry)}>
-                <Info className="h-4 w-4 mr-2" />
-                View Details
+                <Info className="h-4 w-4 me-2" />
+                {t("View Details")}
               </DropdownMenuItem>
               {canCreateEntries && (
                 <>
                   <DropdownMenuItem onClick={() => onEdit(entry)}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
+                    <Edit className="h-4 w-4 me-2" />
+                    {t("Edit")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => onDelete(entry)}
                     className="text-destructive focus:text-destructive"
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
+                    <Trash2 className="h-4 w-4 me-2" />
+                    {t("Delete")}
                   </DropdownMenuItem>
                 </>
               )}
@@ -77,24 +85,26 @@ export function JournalEntryCard({
           </DropdownMenu>
         </div>
         <CardDescription className="flex items-center text-xs">
-          <CalendarIcon className="mr-1 h-3 w-3" />
-          {format(new Date(entry.createdAt), "MMM d, yyyy")}
+          <CalendarIcon className="me-1 h-3 w-3" />
+          {format(new Date(entry.createdAt), "MMM d, yyyy", { locale: dateLocale })}
         </CardDescription>
       </CardHeader>
       <CardContent className="pb-2">
         <div className="cursor-pointer" onClick={() => onView(entry)}>
-          <p className="text-sm line-clamp-2 sm:line-clamp-3 mb-2">{entry.content}</p>
+          <p className="text-sm line-clamp-2 sm:line-clamp-3 mb-2">
+            <DynamicTranslator text={entry.content} />
+          </p>
         </div>
         {entry.userSelectedTags && entry.userSelectedTags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1">
             {entry.userSelectedTags.slice(0, 3).map((tag, index) => (
               <Badge key={index} variant="outline" className="text-xs">
-                {tag}
+                <JournalTag text={tag} />
               </Badge>
             ))}
             {entry.userSelectedTags.length > 3 && (
               <Badge variant="outline" className="text-xs">
-                +{entry.userSelectedTags.length - 3} more
+                +{tNum(entry.userSelectedTags.length - 3)} {t("more")}
               </Badge>
             )}
           </div>
@@ -107,13 +117,13 @@ export function JournalEntryCard({
           className="text-xs text-muted-foreground p-0 h-auto"
           onClick={() => onView(entry)}
         >
-          <Info className="mr-1 h-3 w-3" />
-          View Details
+          <Info className="me-1 h-3 w-3" />
+          {t("View Details")}
         </Button>
         {entry.comments && entry.comments.length > 0 && (
-          <div className="ml-auto flex items-center text-xs text-muted-foreground">
-            <MessageCircle className="mr-1 h-3 w-3" />
-            {entry.comments.length}
+          <div className="ms-auto flex items-center text-xs text-muted-foreground">
+            <MessageCircle className="me-1 h-3 w-3" />
+            {tNum(entry.comments.length)}
           </div>
         )}
       </CardFooter>

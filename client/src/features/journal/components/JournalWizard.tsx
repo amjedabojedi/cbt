@@ -7,6 +7,10 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import useActiveUser from "@/hooks/use-active-user";
 import { getEmotionInfo } from "@/utils/emotionUtils";
+import { cn } from "@/lib/utils";
+import { useLocalization, DynamicTranslator } from "@/lib/localize.tsx";
+import WizardSuccessDialog from "@/features/journal/components/wizard/WizardSuccessDialog";
+import { JournalTag } from "@/features/journal/components/JournalTag";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,14 +30,6 @@ import {
   CheckSquare,
   HelpCircle,
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import {
   Card,
   CardContent,
@@ -57,13 +53,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-// Form schema
-const formSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  content: z.string().min(20, "Please write at least 20 characters"),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = { title: string; content: string };
 
 interface JournalWizardProps {
   onEntryCreated?: () => void;
@@ -73,6 +63,12 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const { activeUserId } = useActiveUser();
+  const { t, isRTL } = useLocalization();
+
+  const formSchema = z.object({
+    title: z.string().min(3, t("Title must be at least 3 characters")),
+    content: z.string().min(20, t("Please write at least 20 characters")),
+  });
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -153,8 +149,8 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
       setCurrentStep(3);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to create journal entry",
+        title: t("Error"),
+        description: t("Failed to create journal entry"),
         variant: "destructive",
       });
     } finally {
@@ -179,8 +175,8 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
       setShowSuccessDialog(true);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to save tags",
+        title: t("Error"),
+        description: t("Failed to save tags"),
         variant: "destructive",
       });
     }
@@ -214,375 +210,383 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
     }
   };
 
+  const tagCountLabel =
+    selectedTags.length === 1
+      ? t("Your entry has been saved with {count} tag.").replace("{count}", String(selectedTags.length))
+      : t("Your entry has been saved with {count} tags.").replace("{count}", String(selectedTags.length));
+
   return (
     <>
-      <Card>
+      <Card dir={isRTL ? "rtl" : "ltr"}>
         <WizardProgressHeader
-          title="Journal Entry Wizard"
+          title={t("Journal Entry Wizard")}
           currentStep={currentStep}
           totalSteps={totalSteps}
-          stepLabels={["1. Title", "2. Write", "3. Review"]}
+          stepLabels={[t("1. Title"), t("2. Write"), t("3. Review")]}
         />
 
-        <CardContent>
+        <CardContent className="p-4 sm:p-5">
           <Form {...form}>
-            <div className="space-y-6">
+            <div className="space-y-4 pb-1">
               {/* Step 0: Introduction */}
               {currentStep === 0 && (
-                <div className="space-y-6" data-testid="step-intro">
-                  <div className="text-center space-y-4 py-8">
-                    <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-teal-500 rounded-full flex items-center justify-center">
-                      <Send className="h-10 w-10 text-white" />
+                <div className="space-y-4" data-testid="step-intro">
+                  <div className="text-center space-y-2 py-2">
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center justify-center gap-2">
+                      <Send className="h-6 w-6 text-purple-600" /> {t("Welcome to Journaling")}
+                    </h2>
+                    <p className="text-gray-600 text-sm max-w-2xl mx-auto">
+                      {t("Express your thoughts and feelings in a safe, private space. Our AI will help identify patterns and provide insights.")}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Left Column: Concept Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 h-full">
+                      <Card className="border-purple-100 bg-purple-50/30 flex flex-col justify-center p-3.5 h-full">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Heart className="h-4.5 w-4.5 text-purple-700 shrink-0" />
+                          <h4 className="font-bold text-xs sm:text-sm text-gray-900">{t("Process Emotions")}</h4>
+                        </div>
+                        <p className="text-[11px] sm:text-xs text-gray-600 leading-normal">
+                          {t("Reduce emotional intensity and gain clarity.")}
+                        </p>
+                      </Card>
+
+                      <Card className="border-purple-100 bg-purple-50/30 flex flex-col justify-center p-3.5 h-full">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Sparkles className="h-4.5 w-4.5 text-purple-700 shrink-0" />
+                          <h4 className="font-bold text-xs sm:text-sm text-gray-900">{t("AI Insights")}</h4>
+                        </div>
+                        <p className="text-[11px] sm:text-xs text-gray-600 leading-normal">
+                          {t("Detect emotions, topics, and cognitive patterns.")}
+                        </p>
+                      </Card>
+
+                      <Card className="border-purple-100 bg-purple-50/30 flex flex-col justify-center p-3.5 h-full">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Tag className="h-4.5 w-4.5 text-purple-700 shrink-0" />
+                          <h4 className="font-bold text-xs sm:text-sm text-gray-900">{t("Track Patterns")}</h4>
+                        </div>
+                        <p className="text-[11px] sm:text-xs text-gray-600 leading-normal">
+                          {t("Discover recurring themes in your mental wellness journey.")}
+                        </p>
+                      </Card>
+
+                      <Card className="border-purple-100 bg-purple-50/30 flex flex-col justify-center p-3.5 h-full">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <CheckSquare className="h-4.5 w-4.5 text-purple-700 shrink-0" />
+                          <h4 className="font-bold text-xs sm:text-sm text-gray-900">{t("Private & Secure")}</h4>
+                        </div>
+                        <p className="text-[11px] sm:text-xs text-gray-600 leading-normal">
+                          {t("Your records are private and visible only to you and your therapist.")}
+                        </p>
+                      </Card>
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900">Welcome to Journaling</h2>
-                    <p className="text-gray-600 max-w-md mx-auto">
-                      Express your thoughts and feelings in a safe, private space. Our AI will help identify patterns and provide insights.
-                    </p>
-                  </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Card className="border-blue-200 bg-blue-50/50">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <Heart className="h-4 w-4 text-blue-600" />
-                          </div>
-                          Process Emotions
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-sm text-gray-700">
-                        Writing about your feelings helps reduce emotional intensity and provides clarity.
-                      </CardContent>
+                    {/* Right Column: What You'll Do Next */}
+                    <Card className="border-purple-100 bg-gradient-to-br from-purple-50/30 to-indigo-50/30 flex flex-col justify-between p-4 h-full">
+                      <div>
+                        <h3 className="font-bold text-gray-900 text-sm mb-3.5 flex items-center gap-2">
+                          <HelpCircle className="h-4 w-4 text-purple-700" />
+                          {t("What You'll Do Next")}
+                        </h3>
+                        <ol className="space-y-3 text-xs sm:text-sm text-gray-700">
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-purple-700 mt-0.5 shrink-0">1.</span>
+                            <span>{t("Create a title that captures the main theme of your entry.")}</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-purple-700 mt-0.5 shrink-0">2.</span>
+                            <span>{t("Write freely about your thoughts, feelings, and experiences.")}</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-purple-700 mt-0.5 shrink-0">3.</span>
+                            <span>{t("Review AI-detected emotions and topics, customize your tags.")}</span>
+                          </li>
+                        </ol>
+                      </div>
                     </Card>
-
-                    <Card className="border-teal-200 bg-teal-50/50">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <div className="p-2 bg-teal-100 rounded-lg">
-                            <Sparkles className="h-4 w-4 text-teal-600" />
-                          </div>
-                          AI-Powered Insights
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-sm text-gray-700">
-                        Our AI analyzes your entry to detect emotions, topics, and provide helpful insights.
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-purple-200 bg-purple-50/50">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <div className="p-2 bg-purple-100 rounded-lg">
-                            <Tag className="h-4 w-4 text-purple-600" />
-                          </div>
-                          Track Patterns
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-sm text-gray-700">
-                        Tags help you organize and discover recurring themes in your mental health journey.
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-amber-200 bg-amber-50/50">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <div className="p-2 bg-amber-100 rounded-lg">
-                            <CheckSquare className="h-4 w-4 text-amber-600" />
-                          </div>
-                          Private & Secure
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-sm text-gray-700">
-                        Your journal entries are completely private and only visible to you and your therapist.
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  <div className="bg-gradient-to-r from-blue-50 to-teal-50 p-6 rounded-lg border border-blue-200">
-                    <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                      <HelpCircle className="h-5 w-5 text-blue-600" />
-                      What You'll Do Next
-                    </h3>
-                    <ol className="space-y-2 text-sm text-gray-700">
-                      <li className="flex items-start gap-2">
-                        <span className="font-semibold text-blue-600 mt-0.5">1.</span>
-                        <span>Create a title that captures the main theme of your entry</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="font-semibold text-blue-600 mt-0.5">2.</span>
-                        <span>Write freely about your thoughts, feelings, and experiences</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="font-semibold text-blue-600 mt-0.5">3.</span>
-                        <span>Review AI-detected emotions and topics, customize your tags</span>
-                      </li>
-                    </ol>
-                  </div>
-
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <p className="text-sm text-gray-700">
-                      <strong className="text-blue-900">💡 Tip:</strong> There's no right or wrong way to journal. Write as much or as little as you need. The goal is to express yourself authentically.
-                    </p>
                   </div>
                 </div>
               )}
               
               {/* Step 1: Title */}
               {currentStep === 1 && (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <h3 className="font-medium text-sm mb-2 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4" />
-                      Why Title Your Entry?
-                    </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      A clear title helps you quickly identify and find entries later. Think of it as a headline that captures the main theme or event of your day.
-                    </p>
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch font-sans" data-testid="step-title">
+                  <div className="md:col-span-8 flex flex-col justify-between">
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <FormLabel className="text-base font-bold text-gray-900 flex items-center gap-2">
+                            {t("Entry Title")} <span className="text-red-500 font-normal">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder={t("e.g., A Challenging Day at Work, Weekend Reflections...")}
+                              className="text-base h-11 border-purple-100 focus-visible:ring-purple-950"
+                              voiceInput
+                              {...field}
+                              data-testid="input-journal-title"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs">
+                            {t("Give your entry a descriptive title (at least 3 characters)")}
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-lg flex items-center gap-2">
-                          Entry Title <span className="text-red-500 text-xl">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g., A Challenging Day at Work, Weekend Reflections..."
-                            className="text-base"
-                            voiceInput
-                            {...field}
-                            data-testid="input-journal-title"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Give your entry a descriptive title (at least 3 characters)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="md:col-span-4 bg-purple-50/30 p-4 rounded-xl border border-purple-100 flex flex-col justify-center">
+                    <h3 className="font-semibold text-xs sm:text-sm text-gray-900 mb-1.5 flex items-center gap-2">
+                      <HelpCircle className="h-4 w-4 text-purple-700" />
+                      {t("Why Title Your Entry?")}
+                    </h3>
+                    <p className="text-xs text-gray-600 leading-normal">
+                      {t("A clear title helps you quickly identify and find entries later. Think of it as a headline that captures the main theme or event of your day.")}
+                    </p>
+                  </div>
                 </div>
               )}
 
               {/* Step 2: Content */}
               {currentStep === 2 && (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <h3 className="font-medium text-sm mb-2 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4" />
-                      Why Journal?
-                    </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      Writing helps you process emotions, understand patterns, and gain insights. Express yourself freely without judgment - this is your safe space.
-                    </p>
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch" data-testid="step-content">
+                  <div className="md:col-span-8 flex flex-col justify-between">
+                    <FormField
+                      control={form.control}
+                      name="content"
+                      render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <FormLabel className="text-base font-bold text-gray-900 flex items-center gap-2">
+                            {t("What's on your mind?")} <span className="text-red-500 font-normal">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder={t("Write about your thoughts, feelings, experiences... Be as detailed as you like.")}
+                              className="resize-none min-h-[140px] text-base border-purple-100 focus-visible:ring-purple-950"
+                              rows={5}
+                              {...field}
+                              data-testid="textarea-journal-content"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs">
+                            {t("Write at least 20 characters to capture your thoughts")}
+                          </FormDescription>
+                          <FormMessage />
+                          {field.value && field.value.length < 20 && (
+                            <p className="text-[11px] text-amber-600 mt-1 font-medium">
+                              {t("Keep writing...")} ({field.value.length}/20 {t("characters minimum")})
+                            </p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="content"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-lg flex items-center gap-2">
-                          What's on your mind? <span className="text-red-500 text-xl">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Write about your thoughts, feelings, experiences... Be as detailed as you like."
-                            className="resize-none min-h-[200px] text-base"
-                            {...field}
-                            data-testid="textarea-journal-content"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Write at least 20 characters to capture your thoughts
-                        </FormDescription>
-                        <FormMessage />
-                        {field.value && field.value.length < 20 && (
-                          <p className="text-sm text-amber-600 mt-2">
-                            Keep writing... ({field.value.length}/20 characters minimum)
-                          </p>
-                        )}
-                      </FormItem>
-                    )}
-                  />
+                  <div className="md:col-span-4 bg-purple-50/30 p-4 rounded-xl border border-purple-100 flex flex-col justify-center">
+                    <h3 className="font-semibold text-xs sm:text-sm text-gray-900 mb-1.5 flex items-center gap-2">
+                      <HelpCircle className="h-4 w-4 text-purple-700" />
+                      {t("Why Journal?")}
+                    </h3>
+                    <p className="text-xs text-gray-600 leading-normal">
+                      {t("Writing helps you process emotions, understand patterns, and gain insights. Express yourself freely without judgment - this is your safe space.")}
+                    </p>
+                  </div>
                 </div>
               )}
 
               {/* Step 3: AI Analysis & Tag Review */}
               {currentStep === 3 && (
-                <div className="space-y-4">
+                <div className="space-y-3 font-sans" data-testid="step-review">
                   {isAnalyzing ? (
-                    <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                      <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full" />
-                      <p className="text-lg font-medium">AI is analyzing your entry...</p>
-                      <p className="text-sm text-muted-foreground">Detecting emotions and themes</p>
+                    <div className="flex flex-col items-center justify-center py-10 space-y-3">
+                      <div className="animate-spin h-10 w-10 border-4 border-[#090514] border-t-transparent rounded-full" />
+                      <p className="text-base font-bold text-gray-900">{t("AI is analyzing your entry...")}</p>
+                      <p className="text-xs text-gray-500">{t("Detecting emotions and themes")}</p>
                     </div>
                   ) : createdEntry ? (
-                    <>
-                      <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <h3 className="font-medium text-sm mb-2 flex items-center gap-2">
-                          <HelpCircle className="h-4 w-4" />
-                          Review AI-Detected Tags
-                        </h3>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">
-                          AI has identified emotions and topics in your entry. Review and select the tags that feel right. You can also add your own custom tags.
-                        </p>
-                      </div>
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+                      {/* Left Column: AI Insights & Add Tag */}
+                      <div className="md:col-span-6 flex flex-col gap-3">
+                        {/* AI Insights Summary */}
+                        {createdEntry.aiAnalysis ? (
+                          <Card className="border-purple-100 bg-purple-50/20 flex flex-col justify-between flex-1">
+                            <CardHeader className="p-3.5 pb-2">
+                              <CardTitle className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                                <Sparkles className="h-4 w-4 text-purple-700" />
+                                {t("AI Insights")}
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-3.5 pt-0">
+                              <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
+                                <DynamicTranslator text={createdEntry.aiAnalysis} />
+                              </p>
+                            </CardContent>
+                          </Card>
+                        ) : (
+                          <Card className="border-purple-100 bg-purple-50/20 flex flex-col justify-between flex-1">
+                            <CardHeader className="p-3.5 pb-2">
+                              <CardTitle className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                                <Sparkles className="h-4 w-4 text-purple-700" />
+                                {t("AI Insights")}
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-3.5 pt-0">
+                              <p className="text-xs italic text-gray-500">
+                                {t("Processing insights for your entry...")}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        )}
 
-                      {/* AI Analysis Summary */}
-                      {createdEntry.aiAnalysis && (
-                        <Card>
-                          <CardHeader className="pb-3">
-                            <CardTitle className="text-sm flex items-center gap-2">
-                              <Sparkles className="h-4 w-4 text-primary" />
-                              AI Insights
+                        {/* Custom Tag Input */}
+                        <Card className="border-purple-100 bg-purple-50/20">
+                          <CardHeader className="p-3.5 pb-2">
+                            <CardTitle className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                              <Plus className="h-4 w-4 text-purple-700" />
+                              {t("Add Custom Tag")}
                             </CardTitle>
                           </CardHeader>
-                          <CardContent>
-                            <p className="text-sm text-muted-foreground">{createdEntry.aiAnalysis}</p>
+                          <CardContent className="p-3.5 pt-0">
+                            <div className="flex gap-2">
+                              <Input
+                                value={customTag}
+                                onChange={(e) => setCustomTag(e.target.value)}
+                                placeholder={t("Enter a custom tag...")}
+                                className="h-9 text-sm border-purple-100 focus-visible:ring-purple-950 bg-white"
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    handleAddCustomTag();
+                                  }
+                                }}
+                              />
+                              <Button
+                                type="button"
+                                onClick={handleAddCustomTag}
+                                disabled={!customTag.trim()}
+                                size="sm"
+                                className="bg-[#090514] hover:bg-purple-950 text-white rounded-lg h-9"
+                              >
+                                {t("Add")}
+                              </Button>
+                            </div>
                           </CardContent>
                         </Card>
-                      )}
+                      </div>
 
-                      {/* Emotions & Topics Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Emotions */}
-                        <Card>
-                          <CardHeader className="pb-3">
-                            <CardTitle className="text-sm flex items-center gap-2">
-                              <Heart className="h-4 w-4 text-rose-500" />
-                              Emotions
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="flex flex-wrap gap-2">
+                      {/* Right Column: Unified Card for Tag Selection & Review */}
+                      <Card className="md:col-span-6 border-purple-100 bg-gradient-to-br from-purple-50/20 to-indigo-50/20 flex flex-col justify-between">
+                        <CardHeader className="p-3.5 pb-2">
+                          <CardTitle className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                            <Tag className="h-4 w-4 text-purple-700" />
+                            {t("Review & Select Tags")}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-3.5 pt-0 space-y-3.5 flex-1 flex flex-col justify-between">
+                          {/* Emotions Section */}
+                          <div>
+                            <h4 className="flex items-center gap-1.5 text-xs font-bold text-gray-900 mb-1.5">
+                              <Heart className="h-3.5 w-3.5 text-rose-500 shrink-0" />
+                              {t("Detected Emotions")}
+                            </h4>
+                            <div className="max-h-[70px] overflow-y-auto pr-1 flex flex-wrap gap-1.5 custom-scrollbar">
                               {createdEntry.emotions?.map((emotion: string, i: number) => {
                                 const { color } = getEmotionInfo(emotion);
+                                const isSelected = selectedTags.includes(emotion);
                                 return (
                                   <Badge
                                     key={`${emotion}-${i}`}
-                                    variant={selectedTags.includes(emotion) ? "default" : "outline"}
-                                    className={`cursor-pointer hover:opacity-80 transition-colors ${
-                                      selectedTags.includes(emotion) ? "" : color
-                                    }`}
+                                    variant="outline"
+                                    className={cn(
+                                      "cursor-pointer hover:opacity-90 transition-all font-medium py-1 px-2.5 rounded-lg text-xs",
+                                      isSelected
+                                        ? "bg-[#090514] hover:bg-purple-950 text-white border-transparent shadow-sm"
+                                        : cn("bg-white border-slate-200 text-slate-700", color)
+                                    )}
                                     onClick={() => toggleTagSelection(emotion)}
                                   >
-                                    {emotion}
-                                    {selectedTags.includes(emotion) && (
-                                      <CheckCircle className="h-3 w-3 ml-1" />
+                                    <JournalTag text={emotion} />
+                                    {isSelected && (
+                                      <Check className="h-3 w-3 ms-1 text-white shrink-0" />
                                     )}
                                   </Badge>
                                 );
                               })}
                               {(!createdEntry.emotions || createdEntry.emotions.length === 0) && (
-                                <p className="text-sm text-muted-foreground">No emotions detected</p>
+                                <p className="text-[11px] text-gray-500 italic">{t("No emotions detected")}</p>
                               )}
                             </div>
-                          </CardContent>
-                        </Card>
+                          </div>
 
-                        {/* Topics */}
-                        <Card>
-                          <CardHeader className="pb-3">
-                            <CardTitle className="text-sm flex items-center gap-2">
-                              <Tag className="h-4 w-4 text-blue-500" />
-                              Topics
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="flex flex-wrap gap-2">
+                          {/* Topics Section */}
+                          <div>
+                            <h4 className="flex items-center gap-1.5 text-xs font-bold text-gray-900 mb-1.5">
+                              <Tag className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                              {t("Topics & Themes")}
+                            </h4>
+                            <div className="max-h-[70px] overflow-y-auto pr-1 flex flex-wrap gap-1.5 custom-scrollbar">
                               {createdEntry.topics?.map((topic: string, i: number) => {
                                 const { color } = getEmotionInfo(topic);
+                                const isSelected = selectedTags.includes(topic);
                                 return (
                                   <Badge
                                     key={`${topic}-${i}`}
-                                    variant={selectedTags.includes(topic) ? "default" : "outline"}
-                                    className={`cursor-pointer hover:opacity-80 transition-colors ${
-                                      selectedTags.includes(topic) ? "" : color
-                                    }`}
+                                    variant="outline"
+                                    className={cn(
+                                      "cursor-pointer hover:opacity-90 transition-all font-medium py-1 px-2.5 rounded-lg text-xs",
+                                      isSelected
+                                        ? "bg-[#090514] hover:bg-purple-950 text-white border-transparent shadow-sm"
+                                        : cn("bg-white border-slate-200 text-slate-700", color)
+                                    )}
                                     onClick={() => toggleTagSelection(topic)}
                                   >
-                                    {topic}
-                                    {selectedTags.includes(topic) && (
-                                      <CheckCircle className="h-3 w-3 ml-1" />
+                                    <JournalTag text={topic} />
+                                    {isSelected && (
+                                      <Check className="h-3 w-3 ms-1 text-white shrink-0" />
                                     )}
                                   </Badge>
                                 );
                               })}
                               {(!createdEntry.topics || createdEntry.topics.length === 0) && (
-                                <p className="text-sm text-muted-foreground">No topics detected</p>
+                                <p className="text-[11px] text-gray-500 italic">{t("No topics detected")}</p>
                               )}
                             </div>
-                          </CardContent>
-                        </Card>
-                      </div>
+                          </div>
 
-                      {/* Custom Tag Input */}
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm flex items-center gap-2">
-                            <Plus className="h-4 w-4 text-green-500" />
-                            Add Custom Tag
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex gap-2">
-                            <Input
-                              value={customTag}
-                              onChange={(e) => setCustomTag(e.target.value)}
-                              placeholder="Enter a custom tag"
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault();
-                                  handleAddCustomTag();
-                                }
-                              }}
-                            />
-                            <Button
-                              type="button"
-                              onClick={handleAddCustomTag}
-                              disabled={!customTag.trim()}
-                              size="sm"
-                            >
-                              Add
-                            </Button>
+                          {/* Selected Tags Summary */}
+                          <div className="border-t border-purple-100/50 pt-2.5">
+                            <h4 className="flex items-center gap-1.5 text-xs font-bold text-gray-900 mb-1.5">
+                              <CheckSquare className="h-3.5 w-3.5 text-purple-700 shrink-0" />
+                              {t("Selected Tags ({count})").replace("{count}", String(selectedTags.length))}
+                            </h4>
+                            <div className="max-h-[70px] overflow-y-auto pr-1 flex flex-wrap gap-1.5 custom-scrollbar">
+                              {selectedTags.length > 0 ? (
+                                selectedTags.map((tag, i) => (
+                                  <Badge
+                                    key={`selected-${tag}-${i}`}
+                                    className="bg-purple-50 hover:bg-purple-100 text-purple-950 border border-purple-200/60 font-medium py-1 px-2 rounded-lg text-xs cursor-pointer flex items-center gap-1 transition-all"
+                                    onClick={() => toggleTagSelection(tag)}
+                                  >
+                                    <JournalTag text={tag} />
+                                    <X className="h-3 w-3 text-purple-700 shrink-0" />
+                                  </Badge>
+                                ))
+                              ) : (
+                                <p className="text-[11px] text-gray-500 italic">
+                                  {t("No tags selected yet. Click emotions or topics above to select.")}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
-
-                      {/* Selected Tags Summary */}
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm flex items-center gap-2">
-                            <CheckSquare className="h-4 w-4 text-purple-500" />
-                            Selected Tags ({selectedTags.length})
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          {selectedTags.length > 0 ? (
-                            <div className="flex flex-wrap gap-2">
-                              {selectedTags.map((tag, i) => (
-                                <Badge
-                                  key={`selected-${tag}-${i}`}
-                                  className="bg-primary/20 text-primary border-primary/30 hover:bg-primary/30 cursor-pointer flex items-center gap-1"
-                                  onClick={() => toggleTagSelection(tag)}
-                                >
-                                  {tag}
-                                  <X className="h-3 w-3" />
-                                </Badge>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-muted-foreground">
-                              No tags selected. Click on emotions or topics above to select them.
-                            </p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </>
+                    </div>
                   ) : null}
                 </div>
               )}
@@ -596,67 +600,74 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                 isSubmitting={isAnalyzing}
                 nextLabel={currentStep === 2 ? "Analyze Entry" : "Next"}
                 submitLabel="Save Entry"
+                nextButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl shadow-md border-0 transition-colors py-2 px-5 font-semibold text-sm"
+                submitButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl shadow-md border-0 transition-colors py-2 px-5 font-semibold text-sm"
               />
             </div>
           </Form>
         </CardContent>
       </Card>
 
-      {/* Success Dialog */}
-      <Dialog open={showSuccessDialog} onOpenChange={(open) => {
-        setShowSuccessDialog(open);
-        if (!open) {
-          handleReset();
-        }
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-green-600">
-              <Check className="h-5 w-5" />
-              Journal Entry Saved!
-            </DialogTitle>
-            <DialogDescription>
-              Your entry has been saved with {selectedTags.length} tag{selectedTags.length !== 1 ? "s" : ""}.
-            </DialogDescription>
-          </DialogHeader>
+      <WizardSuccessDialog
+        open={showSuccessDialog}
+        onOpenChange={(open) => {
+          setShowSuccessDialog(open);
+          if (!open) handleReset();
+        }}
+        title={t("Journal Entry Saved!")}
+        description={tagCountLabel}
+      >
+        <Card className="border-slate-100 bg-slate-50/50 shadow-none">
+          <CardHeader className="p-3 pb-1">
+            <CardTitle className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
+              {t("Entry Summary")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-0">
+            <p className="font-bold text-gray-900 text-sm sm:text-base">
+              <DynamicTranslator text={form.getValues("title")} />
+            </p>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2 leading-relaxed">
+              <DynamicTranslator text={form.getValues("content")} />
+            </p>
+          </CardContent>
+        </Card>
 
-          <div className="space-y-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Entry Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="font-medium">{form.getValues("title")}</p>
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                  {form.getValues("content")}
-                </p>
-              </CardContent>
-            </Card>
-
-            {selectedTags.length > 0 && (
-              <div>
-                <p className="text-sm font-medium mb-2">Selected Tags:</p>
-                <div className="flex flex-wrap gap-2">
-                  {selectedTags.map((tag, i) => (
-                    <Badge key={i} variant="secondary">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
+        {selectedTags.length > 0 && (
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+              {t("Selected Tags:")}
+            </p>
+            <div className="flex flex-wrap gap-1.5 max-h-[100px] overflow-y-auto pe-1">
+              {selectedTags.map((tag, i) => (
+                <Badge
+                  key={i}
+                  variant="secondary"
+                  className="bg-purple-50 text-purple-950 border-0 text-xs py-0.5 px-2.5 rounded-md font-medium"
+                >
+                  <JournalTag text={tag} />
+                </Badge>
+              ))}
+            </div>
           </div>
+        )}
 
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowSuccessDialog(false)}>
-              Done
-            </Button>
-            <Button onClick={handleReset}>
-              Write Another Entry
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-100">
+          <Button
+            variant="outline"
+            onClick={() => setShowSuccessDialog(false)}
+            className="rounded-xl border-slate-200 hover:bg-slate-50 text-slate-700 font-medium flex-1"
+          >
+            {t("Done")}
+          </Button>
+          <Button
+            onClick={handleReset}
+            className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl shadow-md border-0 font-medium flex-1"
+          >
+            {t("Write Another Entry")}
+          </Button>
+        </div>
+      </WizardSuccessDialog>
     </>
   );
 }

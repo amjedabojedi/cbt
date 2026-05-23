@@ -35,7 +35,7 @@ export default function MilestoneList({
           <Button
             variant="default"
             size="sm"
-            className="gap-1"
+            className="gap-1 bg-purple-600 hover:bg-purple-700 border-0"
             onClick={() => onSetAddingMilestone(true)}
             data-testid="button-add-milestone"
           >
@@ -82,6 +82,7 @@ export default function MilestoneList({
                     {user?.role === "client" ? (
                       <Checkbox
                         checked={milestone.isCompleted}
+                        className="border-purple-600 data-[state=checked]:bg-purple-600"
                         onCheckedChange={(checked) => {
                           onToggleCompletion({
                             milestoneId: milestone.id,

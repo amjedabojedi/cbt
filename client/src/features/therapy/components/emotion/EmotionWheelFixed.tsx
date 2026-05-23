@@ -371,20 +371,185 @@ const emotionsData: EmotionData[] = [
   }
 ];
 
+export const arabicTranslations: Record<string, string> = {
+  // Core emotions
+  "Joy": "الفرح",
+  "Anger": "الغضب",
+  "Sadness": "الحزن",
+  "Fear": "الخوف",
+  "Love": "الحب",
+  "Surprise": "المفاجأة",
+  
+  // Anger secondary emotions
+  "Rage": "الغيظ",
+  "Exasperated": "مستفز",
+  "Irritable": "متهيج",
+  "Envy": "الحسد",
+  "Disgust": "الاشمئزاز",
+  
+  // Anger tertiary emotions
+  "Hate": "الكراهية",
+  "Hostile": "عدائي",
+  "Agitated": "مضطرب",
+  "Frustrated": "محبط",
+  "Annoyed": "منزعج",
+  "Aggravated": "متفاقم",
+  "Resentful": "استياء",
+  "Jealous": "غيور",
+  "Contempt": "احتقار",
+  "Revolted": "متقزز",
+  
+  // Sadness secondary emotions
+  "Suffering": "المعاناة",
+  "Disappointed": "خائب الأمل",
+  "Shameful": "مخجل",
+  "Neglected": "مهمل",
+  "Despair": "اليأس",
+  
+  // Sadness tertiary emotions
+  "Agony": "ألم شديد",
+  "Hurt": "متألم",
+  "Depressed": "مكتئب",
+  "Sorrow": "أسى",
+  "Dismayed": "مصدوم",
+  "Displeased": "غير راض",
+  "Regretful": "نادم",
+  "Guilty": "مذنب",
+  "Isolated": "معزول",
+  "Lonely": "وحيد",
+  "Grief": "حزن عميق",
+  "Powerless": "عاجز",
+  
+  // Surprise secondary emotions
+  "Stunned": "مذهول",
+  "Confused": "مرتبك",
+  "Amazed": "مندهش",
+  "Overcome": "مغلوب",
+  "Moved": "متأثر",
+  
+  // Surprise tertiary emotions
+  "Shocked": "مصدوم",
+  "Stunned_Dismayed": "مفجوع", // Renamed to avoid duplicate keys
+  "Disillusioned": "خائب الظن",
+  "Perplexed": "محتار",
+  "Astonished": "متعجب",
+  "Awe-struck": "مبهور",
+  "Speechless": "عاجز عن الكلام",
+  "Astounded": "مندهش",
+  "Stimulated": "متحفز",
+  "Touched": "متأثر",
+  
+  // Joy secondary emotions
+  "Content": "راضي",
+  "Happy": "سعيد",
+  "Cheerful": "مرح",
+  "Proud": "فخور",
+  "Optimistic": "متفائل",
+  "Enthusiastic": "متحمس",
+  "Elation": "ابتهاج",
+  "Enthralled": "مأخوذ",
+  
+  // Joy tertiary emotions
+  "Pleased": "مسرور",
+  "Content_Satisfied": "راضي", // Renamed to avoid duplicate keys
+  "Amused": "مستمتع",
+  "Delighted": "مبتهج",
+  "Jovial": "مرح",
+  "Blissful": "سعيد",
+  "Triumphant": "منتصر",
+  "Illustrious": "بارز",
+  "Eager": "متلهف",
+  "Hopeful": "متفائل",
+  "Excited": "متحمس",
+  "Zeal": "حماس",
+  "Euphoric": "نشوة",
+  "Jubilation": "فرح شديد",
+  "Enchanted": "مفتون",
+  "Rapture": "نشوة",
+  
+  // Love secondary emotions
+  "Affectionate": "عاطفي",
+  "Longing": "شوق",
+  "Desire": "رغبة",
+  "Tenderness": "حنان",
+  "Peaceful": "هادئ",
+  
+  // Love tertiary emotions
+  "Romantic": "رومانسي",
+  "Fondness": "مودة",
+  "Sentimental": "عاطفي",
+  "Attracted": "منجذب",
+  "Passion": "شغف",
+  "Infatuation": "افتتان",
+  "Caring": "مهتم",
+  "Compassionate": "متعاطف",
+  "Relieved": "مرتاح",
+  
+  // Fear secondary emotions
+  "Scared": "خائف",
+  "Terror": "رعب",
+  "Insecure": "غير آمن",
+  "Nervous": "متوتر",
+  "Horror": "فزع",
+  
+  // Fear tertiary emotions
+  "Frightened": "مرعوب",
+  "Helpless": "عاجز",
+  "Panic": "ذعر",
+  "Hysterical": "هستيري",
+  "Inferior": "أدنى",
+  "Inadequate": "غير كافي",
+  "Worried": "قلق",
+  "Anxious": "قلق",
+  "Anxiety": "قلق",
+  "Mortified": "مرعوب",
+  "Dread": "خوف",
+  
+  // UI elements
+  "Emotion Path:": "مسار المشاعر:",
+  "Select an": "اختر",
+  "Emotion": "شعورًا",
+  "Click on the wheel to select your emotion": "انقر على العجلة لاختيار شعورك",
+  "You selected": "لقد اخترت",
+  "Select an emotion from the wheel below": "اختر شعورًا من العجلة أدناه"
+};
+
+export const translateEmotion = (text: string, language: string): string => {
+  // Special cases for renamed keys to avoid duplication
+  if (text === "Dismayed" && language === "ar") {
+    return arabicTranslations["Stunned_Dismayed"];
+  }
+  
+  if (text === "Satisfied" && language === "ar") {
+    return arabicTranslations["Content_Satisfied"];
+  }
+  
+  if (language === "ar" && arabicTranslations[text]) {
+    return arabicTranslations[text];
+  }
+  return text;
+};
+
 interface EmotionWheelProps {
   language?: string;
   direction?: "ltr" | "rtl";
+  compact?: boolean;
   onEmotionSelect?: (selection: {
     coreEmotion: string;
     primaryEmotion: string;
     tertiaryEmotion: string;
   }) => void;
+  hideBreadcrumb?: boolean;
+  hideStatus?: boolean;
 }
 
 export default function EmotionWheel({
   language = "en",
   direction = "ltr",
+  compact = false,
   onEmotionSelect,
+  hideBreadcrumb = false,
+  hideStatus = false,
 }: EmotionWheelProps) {
   const [selectedCore, setSelectedCore] = useState<string | null>(null);
   const [selectedPrimary, setSelectedPrimary] = useState<string | null>(null);
@@ -404,164 +569,9 @@ export default function EmotionWheel({
     }
   }, [direction]);
 
-  // Arabic translations (would be replaced with proper translation map in production)
-  const arabicTranslations: Record<string, string> = {
-    // Core emotions
-    "Joy": "الفرح",
-    "Anger": "الغضب",
-    "Sadness": "الحزن",
-    "Fear": "الخوف",
-    "Love": "الحب",
-    "Surprise": "المفاجأة",
-    
-    // Anger secondary emotions
-    "Rage": "الغيظ",
-    "Exasperated": "مستفز",
-    "Irritable": "متهيج",
-    "Envy": "الحسد",
-    "Disgust": "الاشمئزاز",
-    
-    // Anger tertiary emotions
-    "Hate": "الكراهية",
-    "Hostile": "عدائي",
-    "Agitated": "مضطرب",
-    "Frustrated": "محبط",
-    "Annoyed": "منزعج",
-    "Aggravated": "متفاقم",
-    "Resentful": "استياء",
-    "Jealous": "غيور",
-    "Contempt": "احتقار",
-    "Revolted": "متقزز",
-    
-    // Sadness secondary emotions
-    "Suffering": "المعاناة",
-    "Disappointed": "خائب الأمل",
-    "Shameful": "مخجل",
-    "Neglected": "مهمل",
-    "Despair": "اليأس",
-    
-    // Sadness tertiary emotions
-    "Agony": "ألم شديد",
-    "Hurt": "متألم",
-    "Depressed": "مكتئب",
-    "Sorrow": "أسى",
-    "Dismayed": "مصدوم",
-    "Displeased": "غير راض",
-    "Regretful": "نادم",
-    "Guilty": "مذنب",
-    "Isolated": "معزول",
-    "Lonely": "وحيد",
-    "Grief": "حزن عميق",
-    "Powerless": "عاجز",
-    
-    // Surprise secondary emotions
-    "Stunned": "مذهول",
-    "Confused": "مرتبك",
-    "Amazed": "مندهش",
-    "Overcome": "مغلوب",
-    "Moved": "متأثر",
-    
-    // Surprise tertiary emotions
-    "Shocked": "مصدوم",
-    "Stunned_Dismayed": "مفجوع", // Renamed to avoid duplicate keys
-    "Disillusioned": "خائب الظن",
-    "Perplexed": "محتار",
-    "Astonished": "متعجب",
-    "Awe-struck": "مبهور",
-    "Speechless": "عاجز عن الكلام",
-    "Astounded": "مندهش",
-    "Stimulated": "متحفز",
-    "Touched": "متأثر",
-    
-    // Joy secondary emotions
-    "Content": "راضي",
-    "Happy": "سعيد",
-    "Cheerful": "مرح",
-    "Proud": "فخور",
-    "Optimistic": "متفائل",
-    "Enthusiastic": "متحمس",
-    "Elation": "ابتهاج",
-    "Enthralled": "مأخوذ",
-    
-    // Joy tertiary emotions
-    "Pleased": "مسرور",
-    "Content_Satisfied": "راضي", // Renamed to avoid duplicate keys
-    "Amused": "مستمتع",
-    "Delighted": "مبتهج",
-    "Jovial": "مرح",
-    "Blissful": "سعيد",
-    "Triumphant": "منتصر",
-    "Illustrious": "بارز",
-    "Eager": "متلهف",
-    "Hopeful": "متفائل",
-    "Excited": "متحمس",
-    "Zeal": "حماس",
-    "Euphoric": "نشوة",
-    "Jubilation": "فرح شديد",
-    "Enchanted": "مفتون",
-    "Rapture": "نشوة",
-    
-    // Love secondary emotions
-    "Affectionate": "عاطفي",
-    "Longing": "شوق",
-    "Desire": "رغبة",
-    "Tenderness": "حنان",
-    "Peaceful": "هادئ",
-    
-    // Love tertiary emotions
-    "Romantic": "رومانسي",
-    "Fondness": "مودة",
-    "Sentimental": "عاطفي",
-    "Attracted": "منجذب",
-    "Passion": "شغف",
-    "Infatuation": "افتتان",
-    "Caring": "مهتم",
-    "Compassionate": "متعاطف",
-    "Relieved": "مرتاح",
-    
-    // Fear secondary emotions
-    "Scared": "خائف",
-    "Terror": "رعب",
-    "Insecure": "غير آمن",
-    "Nervous": "متوتر",
-    "Horror": "فزع",
-    
-    // Fear tertiary emotions
-    "Frightened": "مرعوب",
-    "Helpless": "عاجز",
-    "Panic": "ذعر",
-    "Hysterical": "هستيري",
-    "Inferior": "أدنى",
-    "Inadequate": "غير كافي",
-    "Worried": "قلق",
-    "Anxious": "قلق",
-    "Mortified": "مرعوب",
-    "Dread": "خوف",
-    
-    // UI elements
-    "Emotion Path:": "مسار المشاعر:",
-    "Select an": "اختر",
-    "Emotion": "شعورًا",
-    "Click on the wheel to select your emotion": "انقر على العجلة لاختيار شعورك",
-    "You selected": "لقد اخترت",
-    "Select an emotion from the wheel below": "اختر شعورًا من العجلة أدناه"
-  };
-
   // Translation function
   const translate = (text: string): string => {
-    // Special cases for renamed keys to avoid duplication
-    if (text === "Dismayed" && language === "ar") {
-      return arabicTranslations["Stunned_Dismayed"];
-    }
-    
-    if (text === "Satisfied" && language === "ar") {
-      return arabicTranslations["Content_Satisfied"];
-    }
-    
-    if (language === "ar" && arabicTranslations[text]) {
-      return arabicTranslations[text];
-    }
-    return text;
+    return translateEmotion(text, language);
   };
 
   // Generate the wheel segments
@@ -695,11 +705,11 @@ export default function EmotionWheel({
                 
                 {/* Background for text with rotation */}
                 <rect
-                  x={-25} 
-                  y={-8}
-                  width={50}
-                  height={16}
-                  rx={8}
+                  x={-27.5} 
+                  y={-9}
+                  width={55}
+                  height={18}
+                  rx={9}
                   fill="rgba(0,0,0,0.3)"
                   className="select-none pointer-events-none"
                   transform={`translate(${labelX},${labelY}) rotate(${(midAngle * 180 / Math.PI)})`}
@@ -713,7 +723,7 @@ export default function EmotionWheel({
                   fill="#FFFFFF"
                   className="select-none pointer-events-none font-bold"
                   style={{
-                    fontSize: '13px',
+                    fontSize: '14px',
                     textShadow: "0px 1px 2px rgba(0,0,0,0.7)",
                     letterSpacing: '0.5px'
                   }}
@@ -793,11 +803,11 @@ export default function EmotionWheel({
                   
                   {/* Background for text with rotation */}
                   <rect
-                    x={-20} 
-                    y={-7}
-                    width={40}
-                    height={14}
-                    rx={7}
+                    x={-23} 
+                    y={-8}
+                    width={46}
+                    height={16}
+                    rx={8}
                     fill="rgba(255,255,255,0.7)"
                     className="select-none pointer-events-none"
                     transform={`translate(${labelX},${labelY}) rotate(${(midAngle * 180 / Math.PI)})`}
@@ -810,7 +820,7 @@ export default function EmotionWheel({
                     dominantBaseline="middle"
                     fill="#000000"
                     style={{
-                      fontSize: '9px',
+                      fontSize: '10.5px',
                       fontWeight: '600',
                     }}
                     className="select-none pointer-events-none"
@@ -917,11 +927,11 @@ export default function EmotionWheel({
                     
                     {/* Background for tertiary text with rotation */}
                     <rect
-                      x={-23} 
-                      y={-7}
-                      width={46}
-                      height={14}
-                      rx={7}
+                      x={-25} 
+                      y={-8}
+                      width={50}
+                      height={16}
+                      rx={8}
                       fill="rgba(255,255,255,0.75)"
                       className="select-none pointer-events-none"
                       style={{
@@ -937,7 +947,7 @@ export default function EmotionWheel({
                       dominantBaseline="middle"
                       fill={isSelected ? "#000000" : "#333333"}
                       style={{
-                        fontSize: '9px',
+                        fontSize: '10px',
                         fontWeight: isSelected || hoveredEmotion === tertiary.name ? '700' : '600',
                         opacity: isSelected || hoveredEmotion === tertiary.name ? 1 : 0.95
                       }}
@@ -1010,94 +1020,182 @@ export default function EmotionWheel({
     setSelectedTertiary(null);
   };
 
-  return (
-    <div className="w-full max-w-md mx-auto">
-      {/* Simple Breadcrumb Trail - Plain Text */}
-      <div id="emotion-breadcrumb" className="breadcrumb-container p-4 mb-5 flex items-center">
-        <span className="breadcrumb-label text-sm font-medium text-gray-600 mr-3">
-          {translate("Emotion Path:")}
+  const getSelectionBadgeClass = (emotion: string): string => {
+    const colorMap: Record<string, string> = {
+      Anger: "bg-red-500 text-white",
+      Sadness: "bg-blue-500 text-white",
+      Surprise: "bg-purple-500 text-white",
+      Joy: "bg-yellow-500 text-black",
+      Love: "bg-pink-500 text-white",
+      Fear: "bg-green-500 text-white",
+    };
+    return colorMap[emotion] || "bg-slate-600 text-white";
+  };
+
+  const renderCompactPathTrail = () => {
+    if (!selectedCore) {
+      return (
+        <span className="text-xs text-slate-400 italic truncate">
+          {translate("Select on the wheel")}
         </span>
-        <div className={`breadcrumb-trail flex flex-wrap ${direction === "rtl" ? "flex-row-reverse" : ""}`}>
-          {selectedCore && (
-            <motion.span
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              id="core-breadcrumb"
-              className={cn(
-                "breadcrumb-item flex items-center text-sm py-1 px-2 relative",
-                direction === "rtl" ? "ml-4" : "mr-4"
-              )}
-            >
-              <span className="font-medium text-gray-900">{translate(selectedCore)}</span>
-              {!selectedPrimary && (
-                <button 
-                  className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none" 
-                  onClick={() => resetSelections()}
-                >
-                  ✕
-                </button>
-              )}
-              {(direction !== "rtl" && selectedPrimary) && (
-                <span className="ml-2 text-gray-400">→</span>
-              )}
-              {(direction === "rtl" && selectedPrimary) && (
-                <span className="mr-2 text-gray-400">←</span>
-              )}
-            </motion.span>
-          )}
-          
-          {selectedPrimary && (
-            <motion.span
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              id="primary-breadcrumb"
-              className={cn(
-                "breadcrumb-item flex items-center text-sm py-1 px-2 relative",
-                direction === "rtl" ? "ml-4" : "mr-4"
-              )}
-            >
-              <span className="font-medium text-gray-900">{translate(selectedPrimary)}</span>
-              {!selectedTertiary && (
-                <button 
-                  className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none" 
-                  onClick={() => setSelectedPrimary(null)}
-                >
-                  ✕
-                </button>
-              )}
-              {(direction !== "rtl" && selectedTertiary) && (
-                <span className="ml-2 text-gray-400">→</span>
-              )}
-              {(direction === "rtl" && selectedTertiary) && (
-                <span className="mr-2 text-gray-400">←</span>
-              )}
-            </motion.span>
-          )}
-          
-          {selectedTertiary && (
-            <motion.span
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              id="tertiary-breadcrumb"
-              className="breadcrumb-item flex items-center text-sm py-1 px-2"
-            >
-              <span className="font-medium text-gray-900">{translate(selectedTertiary)}</span>
-              <button 
-                className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none" 
-                onClick={() => setSelectedTertiary(null)}
-              >
-                ✕
-              </button>
-            </motion.span>
-          )}
-          
-          {!selectedCore && (
-            <span className="text-sm text-gray-500 italic">
-              {translate("Select an emotion from the wheel below")}
+      );
+    }
+
+    const parts = [selectedCore, selectedPrimary, selectedTertiary].filter(Boolean) as string[];
+    return (
+      <span className="flex items-center gap-1 text-xs text-slate-700 min-w-0 truncate">
+        {parts.map((part, i) => (
+          <span key={part} className="flex items-center gap-1 shrink-0">
+            {i > 0 && <span className="text-slate-300">→</span>}
+            <span className="font-medium">{translate(part)}</span>
+          </span>
+        ))}
+      </span>
+    );
+  };
+
+  const renderCompactSelectionBadges = () => {
+    if (!selectedCore) {
+      return <span className="text-xs text-amber-600 whitespace-nowrap">—</span>;
+    }
+
+    return (
+      <span className="flex items-center gap-1 shrink-0">
+        <span className={`px-2 py-0.5 rounded text-xs font-medium ${getSelectionBadgeClass(selectedCore)}`}>
+          {translate(selectedCore)}
+        </span>
+        {selectedPrimary && (
+          <>
+            <span className="text-slate-300 text-xs">→</span>
+            <span className={`px-2 py-0.5 rounded text-xs font-medium ${getSelectionBadgeClass(selectedCore)} opacity-90`}>
+              {translate(selectedPrimary)}
             </span>
-          )}
-        </div>
-      </div>
+          </>
+        )}
+        {selectedTertiary && (
+          <>
+            <span className="text-slate-300 text-xs">→</span>
+            <span className={`px-2 py-0.5 rounded text-xs font-medium ${getSelectionBadgeClass(selectedCore)} opacity-75`}>
+              {translate(selectedTertiary)}
+            </span>
+          </>
+        )}
+      </span>
+    );
+  };
+
+  return (
+    <div className={compact ? "w-full max-w-[18rem] sm:max-w-xs md:max-w-[420px] mx-auto" : "w-full max-w-md mx-auto"}>
+      {/* Path + selected — single row in compact wizard mode */}
+      {!hideBreadcrumb && (
+        compact ? (
+          <div
+            id="emotion-breadcrumb"
+            className="breadcrumb-container flex items-center gap-2 min-h-[2.5rem] px-3 py-2 mb-2 rounded-xl border border-slate-100 bg-slate-50/90 overflow-hidden"
+          >
+            <span className="shrink-0 text-xs font-semibold text-slate-500 whitespace-nowrap">
+              {translate("Emotion path")}
+            </span>
+            <div className="flex-1 min-w-0 overflow-x-auto">{renderCompactPathTrail()}</div>
+            <span className="shrink-0 text-slate-200" aria-hidden>
+              |
+            </span>
+            <span className="shrink-0 text-xs font-semibold text-emerald-700 whitespace-nowrap">
+              {translate("Selected")}
+            </span>
+            <div className="shrink-0 max-w-[45%] overflow-x-auto">{renderCompactSelectionBadges()}</div>
+          </div>
+        ) : (
+          <div
+            id="emotion-breadcrumb"
+            className="breadcrumb-container flex items-center p-4 mb-5"
+          >
+            <span className="breadcrumb-label text-sm font-medium text-gray-600 mr-3">
+              {translate("Emotion Path:")}
+            </span>
+            <div className={`breadcrumb-trail flex flex-wrap ${direction === "rtl" ? "flex-row-reverse" : ""}`}>
+              {selectedCore && (
+                <motion.span
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  id="core-breadcrumb"
+                  className={cn(
+                    "breadcrumb-item flex items-center text-sm py-1 px-2 relative",
+                    direction === "rtl" ? "ml-4" : "mr-4"
+                  )}
+                >
+                  <span className="font-medium text-gray-900">{translate(selectedCore)}</span>
+                  {!selectedPrimary && (
+                    <button
+                      className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                      onClick={() => resetSelections()}
+                    >
+                      ✕
+                    </button>
+                  )}
+                  {(direction !== "rtl" && selectedPrimary) && (
+                    <span className="ml-2 text-gray-400">→</span>
+                  )}
+                  {(direction === "rtl" && selectedPrimary) && (
+                    <span className="mr-2 text-gray-400">←</span>
+                  )}
+                </motion.span>
+              )}
+
+              {selectedPrimary && (
+                <motion.span
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  id="primary-breadcrumb"
+                  className={cn(
+                    "breadcrumb-item flex items-center text-sm py-1 px-2 relative",
+                    direction === "rtl" ? "ml-4" : "mr-4"
+                  )}
+                >
+                  <span className="font-medium text-gray-900">{translate(selectedPrimary)}</span>
+                  {!selectedTertiary && (
+                    <button
+                      className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                      onClick={() => setSelectedPrimary(null)}
+                    >
+                      ✕
+                    </button>
+                  )}
+                  {(direction !== "rtl" && selectedTertiary) && (
+                    <span className="ml-2 text-gray-400">→</span>
+                  )}
+                  {(direction === "rtl" && selectedTertiary) && (
+                    <span className="mr-2 text-gray-400">←</span>
+                  )}
+                </motion.span>
+              )}
+
+              {selectedTertiary && (
+                <motion.span
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  id="tertiary-breadcrumb"
+                  className="breadcrumb-item flex items-center text-sm py-1 px-2"
+                >
+                  <span className="font-medium text-gray-900">{translate(selectedTertiary)}</span>
+                  <button
+                    className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                    onClick={() => setSelectedTertiary(null)}
+                  >
+                    ✕
+                  </button>
+                </motion.span>
+              )}
+
+              {!selectedCore && (
+                <span className="text-sm text-gray-500 italic">
+                  {translate("Select an emotion from the wheel below")}
+                </span>
+              )}
+            </div>
+          </div>
+        )
+      )}
 
       {/* The SVG wheel with enhanced styling */}
       <motion.div
@@ -1105,7 +1203,7 @@ export default function EmotionWheel({
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
         id="emotional-wheel"
-        className="wheel-container w-full aspect-square relative rounded-full p-4"
+        className={`wheel-container w-full aspect-square relative rounded-full ${compact ? "p-2" : "p-4"}`}
         style={{ 
           background: "linear-gradient(135deg, #f5f7ff 0%, #e0e7ff 100%)",
           boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.1), 0 8px 10px -6px rgba(99, 102, 241, 0.05)"
@@ -1135,23 +1233,28 @@ export default function EmotionWheel({
         {/* The CSS for rotation animation is added in the main stylesheet */}
       </motion.div>
       
-      <div className="mt-6 text-center text-sm text-gray-500">
-        {selectedCore ? (
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="py-2 px-4 bg-indigo-50 inline-block rounded-full"
-          >
-            {translate("You selected")}: <span className="font-semibold text-indigo-700">
-              {selectedTertiary ? translate(selectedTertiary) : 
-               selectedPrimary ? translate(selectedPrimary) : 
-               translate(selectedCore)}
-            </span>
-          </motion.p>
-        ) : (
-          <p>{translate("Click on the wheel to select your emotion")}</p>
-        )}
-      </div>
+      {!compact && !hideStatus && (
+        <div className="mt-6 text-center text-sm text-gray-500">
+          {selectedCore ? (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="py-2 px-4 bg-indigo-50 inline-block rounded-full"
+            >
+              {translate("You selected")}:{" "}
+              <span className="font-semibold text-indigo-700">
+                {selectedTertiary
+                  ? translate(selectedTertiary)
+                  : selectedPrimary
+                    ? translate(selectedPrimary)
+                    : translate(selectedCore)}
+              </span>
+            </motion.p>
+          ) : (
+            <p>{translate("Click on the wheel to select your emotion")}</p>
+          )}
+        </div>
+      )}
 
       {/* Hidden inputs for state */}
       <input type="hidden" id="selectedCore" name="selectedCore" value={selectedCore || ""} />

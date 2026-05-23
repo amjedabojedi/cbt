@@ -16,7 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Check, ArrowRight, RefreshCw, Home, TrendingUp, Calendar, Brain, Target, Sparkles, Heart, HelpCircle } from "lucide-react";
+import { Check, ArrowRight, RefreshCw, Home, TrendingUp, Calendar, Heart, Globe, Sparkles, Brain } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -24,20 +25,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import EmotionWheelResponsive from "./EmotionWheelResponsive";
+import { translateEmotion } from "./EmotionWheelFixed";
 import EmotionOnboardingTour from "./EmotionOnboardingTour";
 import WizardProgressHeader from "@/features/journal/components/wizard/WizardProgressHeader";
 import WizardNavButtons from "@/features/journal/components/wizard/WizardNavButtons";
 import WizardSuccessDialog from "@/features/journal/components/wizard/WizardSuccessDialog";
 import type { EmotionRecord } from "@shared/schema";
+import { useLocalization } from "@/lib/localize.tsx";
 
 // Define schema for the form
 const formSchema = z.object({
@@ -58,21 +55,9 @@ interface EmotionTrackingFormWizardProps {
   language?: "en" | "ar";
   direction?: "ltr" | "rtl";
   onEmotionRecorded?: () => void;
+  onLanguageToggle?: () => void;
+  languageLabel?: string;
 }
-
-// Helper function to get color class based on emotion
-const getEmotionColor = (emotion: string): string => {
-  const colorMap: Record<string, string> = {
-    "Anger": "bg-red-500 text-white",
-    "Sadness": "bg-blue-500 text-white",
-    "Surprise": "bg-purple-500 text-white",
-    "Joy": "bg-yellow-500 text-black",
-    "Love": "bg-pink-500 text-white",
-    "Fear": "bg-green-500 text-white",
-    "default": "bg-gray-500 text-white"
-  };
-  return colorMap[emotion] || colorMap.default;
-};
 
 const EXAMPLE_SITUATIONS = [
   "My boss criticized my work in front of the team during the meeting",
@@ -82,12 +67,52 @@ const EXAMPLE_SITUATIONS = [
   "I had a disagreement with my partner about household responsibilities"
 ];
 
+const INTRO_STEPS = [
+  { n: 1, label: "Select", hint: "Choose on the emotion wheel" },
+  { n: 2, label: "Rate", hint: "How intense it felt (1–10)" },
+  { n: 3, label: "Describe", hint: "What triggered the feeling" },
+  { n: 4, label: "Details", hint: "Location, company, time (optional)" },
+] as const;
+
 export default function EmotionTrackingFormWizard({
   language = "en",
   direction = "ltr",
   onEmotionRecorded,
+  onLanguageToggle,
+  languageLabel = "English",
 }: EmotionTrackingFormWizardProps) {
+  const { t, isRTL, tNum, currentLanguage } = useLocalization();
   const { user } = useAuth();
+
+  const formatTimestamp = (val: string | undefined) => {
+    if (!val) return "";
+    try {
+      const date = new Date(val);
+      if (isNaN(date.getTime())) return val;
+      
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      let hours = date.getHours();
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+      if (currentLanguage === "ar") {
+        const ampm = hours >= 12 ? "م" : "ص";
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        const formattedHours = String(hours).padStart(2, '0');
+        return tNum(`${day}/${month}/${year}، ${formattedHours}:${minutes} ${ampm}`);
+      } else {
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        const formattedHours = String(hours).padStart(2, '0');
+        return `${day}/${month}/${year}, ${formattedHours}:${minutes} ${ampm}`;
+      }
+    } catch (e) {
+      return val;
+    }
+  };
   const { toast } = useToast();
   const { refreshAfterOperation } = useRefreshData();
   const [currentStep, setCurrentStep] = useState(0);
@@ -119,6 +144,10 @@ export default function EmotionTrackingFormWizard({
       useCurrentTime: true,
     },
   });
+  
+  const selectedCore = form.watch("coreEmotion");
+  const selectedPrimary = form.watch("primaryEmotion");
+  const selectedTertiary = form.watch("tertiaryEmotion");
   
   // Handle emotion wheel selection
   const handleEmotionSelect = (selection: { 
@@ -266,224 +295,281 @@ export default function EmotionTrackingFormWizard({
     <>
       <EmotionOnboardingTour onComplete={() => setShowTourComplete(true)} />
       
-      <Card>
+      <div dir={isRTL ? "rtl" : "ltr"} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <WizardProgressHeader
-          title="Track Your Emotion"
+          title={t("Track Your Emotion")}
+          icon={Heart}
           currentStep={currentStep}
           totalSteps={totalSteps}
-          stepLabels={["1. Select", "2. Rate", "3. Describe", "4. Details"]}
+          stepLabels={[t("Select"), t("Rate"), t("Describe"), t("Details")]}
+          accentClassName="text-purple-900"
+          hideProgressOnIntro
+          trailing={
+            onLanguageToggle ? (
+              <button
+                type="button"
+                onClick={onLanguageToggle}
+                className="flex items-center gap-1.5 text-slate-500 hover:text-purple-900 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-purple-200 bg-white text-sm font-medium transition-colors"
+              >
+                <Globe className="h-4 w-4" />
+                {t(languageLabel)}
+              </button>
+            ) : undefined
+          }
         />
 
-        <CardContent>
+        <CardContent
+          className={
+            currentStep === 0
+              ? "px-6 sm:px-8 pb-6 pt-6"
+              : currentStep === 1
+                ? "px-5 sm:px-6 pb-4 pt-4"
+                : "px-5 sm:px-6 pb-5 pt-5"
+          }
+        >
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Step 0: Introduction */}
+            <form onSubmit={form.handleSubmit(onSubmit)} className={currentStep === 0 ? "space-y-6" : "space-y-5"}>
+              {/* Step 0: Intro */}
               {currentStep === 0 && (
-                <div className="space-y-6" data-testid="step-intro">
-                  <div className="text-center space-y-4 py-8">
-                    <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                      <Heart className="h-10 w-10 text-white" />
+                <div className="space-y-7" data-testid="step-intro">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-6">
+                    <div className="w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] shrink-0 bg-gradient-to-br from-rose-500 via-purple-600 to-[#090514] rounded-2xl flex items-center justify-center shadow-lg shadow-purple-900/15 mx-auto sm:mx-0">
+                      <Heart className="h-8 w-8 text-white" />
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900">Welcome to Emotion Tracking</h2>
-                    <p className="text-gray-600 max-w-md mx-auto">
-                      Understanding and tracking your emotions is the first step toward better mental health and self-awareness.
-                    </p>
+                    <div className={cn("min-w-0 text-center", isRTL ? "sm:text-right" : "sm:text-left")}>
+                      <h2 className="text-2xl sm:text-[1.65rem] font-bold text-[#090514] tracking-tight leading-tight">
+                        {t("Welcome to Emotion Tracking")}
+                      </h2>
+                      <p className={cn("text-base text-slate-500 mt-2 leading-relaxed max-w-xl mx-auto", isRTL ? "sm:mr-0 text-right" : "sm:ml-0 text-left")}>
+                        {t("Log how you feel in four short steps. This builds self-awareness and helps you spot patterns over time.")}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Card className="border-blue-200 bg-blue-50/50">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <Sparkles className="h-4 w-4 text-blue-600" />
-                          </div>
-                          Identify Patterns
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-sm text-gray-700">
-                        Track when and where specific emotions occur to recognize triggers and patterns in your emotional life.
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-purple-200 bg-purple-50/50">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <div className="p-2 bg-purple-100 rounded-lg">
-                            <TrendingUp className="h-4 w-4 text-purple-600" />
-                          </div>
-                          Track Progress
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-sm text-gray-700">
-                        See how your emotional landscape changes over time and celebrate improvements in your well-being.
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-green-200 bg-green-50/50">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <div className="p-2 bg-green-100 rounded-lg">
-                            <Brain className="h-4 w-4 text-green-600" />
-                          </div>
-                          Build Awareness
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-sm text-gray-700">
-                        Develop emotional intelligence by understanding the nuances of what you feel and why.
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-amber-200 bg-amber-50/50">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <div className="p-2 bg-amber-100 rounded-lg">
-                            <Target className="h-4 w-4 text-amber-600" />
-                          </div>
-                          Connect Insights
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-sm text-gray-700">
-                        Link emotions to thought records and journal entries for deeper therapeutic insights.
-                      </CardContent>
-                    </Card>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {INTRO_STEPS.map(({ n, label, hint }) => (
+                      <div
+                        key={label}
+                        className={cn(
+                          "rounded-2xl border border-slate-100 bg-slate-50/80 p-5 flex flex-col items-center text-center",
+                          isRTL ? "sm:items-end sm:text-right" : "sm:items-start sm:text-left"
+                        )}
+                      >
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#090514] text-sm font-bold text-white mb-3">
+                          {tNum(n)}
+                        </span>
+                        <p className="font-bold text-base text-slate-800">{t(label)}</p>
+                        <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">{t(hint)}</p>
+                      </div>
+                    ))}
                   </div>
 
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-200">
-                    <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                      <HelpCircle className="h-5 w-5 text-blue-600" />
-                      What You'll Do Next
-                    </h3>
-                    <ol className="space-y-2 text-sm text-gray-700">
-                      <li className="flex items-start gap-2">
-                        <span className="font-semibold text-blue-600 mt-0.5">1.</span>
-                        <span>Select your emotion using our interactive emotion wheel</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="font-semibold text-blue-600 mt-0.5">2.</span>
-                        <span>Rate how intensely you felt this emotion (1-10 scale)</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="font-semibold text-blue-600 mt-0.5">3.</span>
-                        <span>Describe the situation that triggered this emotion</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="font-semibold text-blue-600 mt-0.5">4.</span>
-                        <span>Add optional context (location, company, time)</span>
-                      </li>
-                    </ol>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="flex gap-4 rounded-2xl border border-rose-100 bg-rose-50/50 p-5">
+                      <div className="p-2.5 h-fit rounded-xl bg-rose-100 text-rose-600 border border-rose-200">
+                        <Sparkles className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-base text-slate-800">{t("Identify patterns")}</p>
+                        <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">
+                          {t("See which emotions show up most and what tends to trigger them.")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-4 rounded-2xl border border-purple-100 bg-purple-50/50 p-5">
+                      <div className="p-2.5 h-fit rounded-xl bg-purple-100 text-purple-600 border border-purple-200">
+                        <Brain className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-base text-slate-800">{t("Build awareness")}</p>
+                        <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">
+                          {t("Naming emotions clearly is a core skill in CBT and everyday wellbeing.")}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
               
               {/* Step 1: Select Emotion */}
               {currentStep === 1 && (
-                <div className="space-y-4" data-testid="step-select-emotion">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h3 className="font-medium text-sm mb-2">💡 About This Step</h3>
-                    <p className="text-sm text-gray-700">
-                      Use the emotion wheel below to identify how you're feeling. Click on any section to select an emotion. 
-                      The outer rings represent more specific emotions.
-                    </p>
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center" data-testid="step-select-emotion">
+                  {/* Left column: Enlarged Emotion Wheel */}
+                  <div className="md:col-span-7 flex justify-center items-center">
+                    <EmotionWheelResponsive
+                      compact
+                      language={language}
+                      direction={direction}
+                      onEmotionSelect={handleEmotionSelect}
+                      hideBreadcrumb
+                      hideStatus
+                    />
                   </div>
-                  
-                  <FormField
-                    control={form.control}
-                    name="coreEmotion"
-                    render={({ field }) => (
-                      <FormItem className="hidden">
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="primaryEmotion"
-                    render={({ field }) => (
-                      <FormItem className="hidden">
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="tertiaryEmotion"
-                    render={({ field }) => (
-                      <FormItem className="hidden">
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <EmotionWheelResponsive 
-                    language={language} 
-                    direction={direction} 
-                    onEmotionSelect={handleEmotionSelect} 
-                  />
-                  
-                  {!form.getValues("coreEmotion") && (
-                    <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-md border border-amber-200">
-                      ⚠️ Please select an emotion from the wheel above to continue
-                    </div>
-                  )}
-                  
-                  {form.getValues("coreEmotion") && (
-                    <div className="mt-3 p-4 bg-green-50 rounded-md border border-green-200">
-                      <h4 className="text-sm font-medium mb-2 text-green-900">✓ Emotion Selected:</h4>
-                      <div className="flex items-center flex-wrap gap-2">
-                        <span className={`px-3 py-1.5 rounded font-medium ${getEmotionColor(form.getValues("coreEmotion"))}`}>
-                          {form.getValues("coreEmotion")}
-                        </span>
-                        {form.getValues("primaryEmotion") && (
-                          <>
-                            <span className="text-gray-400">→</span>
-                            <span className={`px-3 py-1.5 rounded font-medium ${getEmotionColor(form.getValues("coreEmotion"))} bg-opacity-80`}>
-                              {form.getValues("primaryEmotion")}
+
+                  {/* Right column: Interactive guide and current selection preview */}
+                  <div className="md:col-span-5 flex flex-col space-y-4 h-full justify-between py-2">
+                    {/* Keep form fields hidden */}
+                    <FormField
+                      control={form.control}
+                      name="coreEmotion"
+                      render={({ field }) => (
+                        <FormItem className="hidden">
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="primaryEmotion"
+                      render={({ field }) => (
+                        <FormItem className="hidden">
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="tertiaryEmotion"
+                      render={({ field }) => (
+                        <FormItem className="hidden">
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Styled guide and live selected emotion path */}
+                    <div className="space-y-4">
+                      <div className="bg-purple-50/70 p-4 rounded-xl border border-purple-100/80">
+                        <div className="flex items-center gap-2 text-purple-900 font-semibold text-sm mb-1.5">
+                          <Sparkles className="h-4 w-4" />
+                          <span>{t("Interactive Guide")}</span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                          {t("Tap any segment on the emotion wheel. The outer rings reveal more specific, granular feelings.")}
+                        </p>
+                      </div>
+
+                      {/* Live feedback card for selection */}
+                      <div className="bg-slate-50/80 rounded-xl border border-slate-100 p-4 space-y-3 min-h-[140px] flex flex-col justify-center">
+                        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          {t("Current Selection")}
+                        </div>
+                        
+                        {selectedCore ? (
+                          <div className="flex flex-col gap-2">
+                            {/* Horizontal breadcrumb trail using stylized badges */}
+                            <div className="flex items-center gap-1.5 flex-wrap text-sm text-slate-700 font-medium">
+                              <span className={cn(
+                                "px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all duration-300",
+                                selectedCore === "Anger" && "bg-red-50 text-red-700 border border-red-100",
+                                selectedCore === "Sadness" && "bg-blue-50 text-blue-700 border border-blue-100",
+                                selectedCore === "Surprise" && "bg-purple-50 text-purple-700 border border-purple-100",
+                                selectedCore === "Joy" && "bg-amber-50 text-amber-700 border border-amber-100",
+                                selectedCore === "Love" && "bg-pink-50 text-pink-700 border border-pink-100",
+                                selectedCore === "Fear" && "bg-green-50 text-green-700 border border-green-100"
+                              )}>
+                                {translateEmotion(selectedCore, language)}
+                              </span>
+                              
+                              {selectedPrimary && (
+                                <>
+                                  <span className="text-slate-300">→</span>
+                                  <span className={cn(
+                                    "px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all duration-300",
+                                    selectedCore === "Anger" && "bg-red-100/60 text-red-800 border border-red-200/50",
+                                    selectedCore === "Sadness" && "bg-blue-100/60 text-blue-800 border border-blue-200/50",
+                                    selectedCore === "Surprise" && "bg-purple-100/60 text-purple-800 border border-purple-200/50",
+                                    selectedCore === "Joy" && "bg-amber-100/60 text-amber-800 border border-amber-200/50",
+                                    selectedCore === "Love" && "bg-pink-100/60 text-pink-800 border border-pink-200/50",
+                                    selectedCore === "Fear" && "bg-green-100/60 text-green-800 border border-green-200/50"
+                                  )}>
+                                    {translateEmotion(selectedPrimary, language)}
+                                  </span>
+                                </>
+                              )}
+                              
+                              {selectedTertiary && (
+                                <>
+                                  <span className="text-slate-300">→</span>
+                                  <span className={cn(
+                                    "px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all duration-300",
+                                    selectedCore === "Anger" && "bg-red-500 text-white shadow-red-100",
+                                    selectedCore === "Sadness" && "bg-blue-500 text-white shadow-blue-100",
+                                    selectedCore === "Surprise" && "bg-purple-500 text-white shadow-purple-100",
+                                    selectedCore === "Joy" && "bg-amber-500 text-neutral-900 shadow-amber-100",
+                                    selectedCore === "Love" && "bg-pink-500 text-white shadow-pink-100",
+                                    selectedCore === "Fear" && "bg-green-500 text-white shadow-green-100"
+                                  )}>
+                                    {translateEmotion(selectedTertiary, language)}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            
+                            <p className="text-xs text-slate-500 italic mt-1">
+                              {isRTL
+                                ? `لقد حددت شعور ${translateEmotion(selectedTertiary || selectedPrimary || selectedCore, "ar")}.`
+                                : `You've selected the feeling of ${translateEmotion(selectedTertiary || selectedPrimary || selectedCore, "en")}.`}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-amber-600/90 text-sm">
+                            <span className="animate-pulse h-2 w-2 rounded-full bg-amber-500" />
+                            <span>
+                              {t("Please tap a segment on the wheel to select your feeling")}
                             </span>
-                          </>
-                        )}
-                        {form.getValues("tertiaryEmotion") && (
-                          <>
-                            <span className="text-gray-400">→</span>
-                            <span className={`px-3 py-1.5 rounded font-medium ${getEmotionColor(form.getValues("coreEmotion"))} bg-opacity-60`}>
-                              {form.getValues("tertiaryEmotion")}
-                            </span>
-                          </>
+                          </div>
                         )}
                       </div>
                     </div>
-                  )}
+                    
+                    {/* Action to clear the current selection path */}
+                    {selectedCore && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          form.setValue("coreEmotion", "");
+                          form.setValue("primaryEmotion", "");
+                          form.setValue("tertiaryEmotion", "");
+                          form.trigger("coreEmotion");
+                        }}
+                        className={cn("text-xs text-slate-400 hover:text-purple-900 hover:underline transition-colors w-fit", isRTL ? "text-right" : "text-left")}
+                      >
+                        {t("✕ Clear Selection")}
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
               
               {/* Step 2: Rate Intensity */}
               {currentStep === 2 && (
                 <div className="space-y-4" data-testid="step-rate-intensity">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h3 className="font-medium text-sm mb-2">💡 Why Rate Intensity?</h3>
-                    <p className="text-sm text-gray-700">
-                      Rating how strongly you felt an emotion helps you track patterns over time. 
-                      A rating of 1 means you barely noticed it, while 10 means it was overwhelming.
+                  <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                    <h3 className="font-semibold text-sm text-purple-900 mb-1.5">{t("Why rate intensity?")}</h3>
+                    <p className="text-sm text-slate-600">
+                      {t("Rating how strongly you felt an emotion helps you track patterns over time. A rating of 1 means you barely noticed it, while 10 means it was overwhelming.")}
                     </p>
                   </div>
                   
                   <FormField
-                    control={form.control}
+                     control={form.control}
                     name="intensity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-lg">How intensely did you feel this emotion?</FormLabel>
+                        <FormLabel className="text-base font-semibold text-slate-700">{t("How intensely did you feel this emotion?")}</FormLabel>
                         <div className="mt-4 mb-2 flex flex-col space-y-4">
-                          <div className="flex items-center space-x-3 w-full">
-                            <span className="text-sm text-neutral-600 min-w-0 text-xs sm:text-sm sm:min-w-[80px]">Mild (1)</span>
+                          <div className="flex items-center space-x-3 rtl:space-x-reverse w-full">
+                            <span className="text-xs sm:text-sm text-slate-500 sm:min-w-[80px]">{t("Mild (1)")}</span>
                             <FormControl>
                               <Slider
                                 min={1}
@@ -491,20 +577,20 @@ export default function EmotionTrackingFormWizard({
                                 step={1}
                                 value={[field.value]}
                                 onValueChange={(vals) => field.onChange(vals[0])}
-                                className="flex-grow h-3 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-600"
+                                className="flex-grow h-3 [&_[role=slider]]:bg-[#090514] [&_.bg-primary]:bg-gradient-to-r [&_.bg-primary]:from-rose-300 [&_.bg-primary]:via-purple-500 [&_.bg-primary]:to-[#090514]"
                                 data-testid="slider-intensity"
                               />
                             </FormControl>
-                            <span className="text-sm text-neutral-600 min-w-0 text-xs sm:text-sm sm:min-w-[120px]">Intense (10)</span>
+                            <span className={cn("text-xs sm:text-sm text-slate-500 sm:min-w-[120px]", isRTL ? "text-left" : "text-right")}>{t("Intense (10)")}</span>
                           </div>
                           <div className="flex justify-center">
-                            <span className="px-6 py-3 rounded-full bg-blue-600 text-white text-2xl font-bold">
-                              {field.value}
+                            <span className="px-6 py-3 rounded-2xl bg-[#090514] text-white text-2xl font-bold shadow-sm">
+                              {tNum(field.value)}
                             </span>
                           </div>
                         </div>
-                        <FormDescription className="text-center">
-                          Current rating: <strong>{field.value}/10</strong>
+                        <FormDescription className="text-center text-slate-500">
+                          {t("Current rating:")} <strong>{tNum(field.value)}/{tNum(10)}</strong>
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -516,11 +602,10 @@ export default function EmotionTrackingFormWizard({
               {/* Step 3: Describe Situation */}
               {currentStep === 3 && (
                 <div className="space-y-4" data-testid="step-describe-situation">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h3 className="font-medium text-sm mb-2">💡 Why Describe the Situation?</h3>
-                    <p className="text-sm text-gray-700">
-                      Documenting what triggered your emotion helps identify patterns and develop better coping strategies over time.
-                      Be as specific as possible.
+                  <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                    <h3 className="font-semibold text-sm text-purple-900 mb-1.5">{t("Why describe the situation?")}</h3>
+                    <p className="text-sm text-slate-600">
+                      {t("Documenting what triggered your emotion helps identify patterns and develop better coping strategies over time. Be as specific as possible.")}
                     </p>
                   </div>
                   
@@ -529,13 +614,13 @@ export default function EmotionTrackingFormWizard({
                     name="situation"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-lg flex items-center gap-2">
-                          What happened? (Situation) <span className="text-red-500 text-xl">*</span>
+                        <FormLabel className="text-base font-semibold text-slate-700 flex items-center gap-2">
+                          {t("What happened? (Situation)")} <span className="text-rose-500">*</span>
                         </FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Example: My boss criticized my work in front of the team during the meeting..."
-                            className="resize-none w-full min-h-[120px] text-base"
+                            placeholder={t("Example: My boss criticized my work in front of the team during the meeting...")}
+                            className="resize-none w-full min-h-[120px] text-base rounded-xl border-slate-200 focus-visible:ring-purple-500"
                             rows={5}
                             {...field}
                             data-testid="textarea-situation"
@@ -543,18 +628,18 @@ export default function EmotionTrackingFormWizard({
                         </FormControl>
                         <FormDescription>
                           <div className="space-y-2 mt-2">
-                            <p className="text-sm font-medium">Example situations:</p>
-                            <ul className="text-xs text-gray-600 space-y-1 pl-4">
-                              <li>• "{EXAMPLE_SITUATIONS[0]}"</li>
-                              <li>• "{EXAMPLE_SITUATIONS[1]}"</li>
-                              <li>• "{EXAMPLE_SITUATIONS[2]}"</li>
+                            <p className="text-sm font-medium">{t("Example situations:")}</p>
+                            <ul className="text-xs text-slate-500 space-y-1 pl-4">
+                              <li>• "{t(EXAMPLE_SITUATIONS[0])}"</li>
+                              <li>• "{t(EXAMPLE_SITUATIONS[1])}"</li>
+                              <li>• "{t(EXAMPLE_SITUATIONS[2])}"</li>
                             </ul>
                           </div>
                         </FormDescription>
                         <FormMessage />
                         {field.value && field.value.length < 10 && (
                           <p className="text-sm text-amber-600 mt-2">
-                            Please provide more detail ({field.value.length}/10 characters minimum)
+                            {t("Please provide more detail")} ({tNum(field.value.length)}/{tNum(10)} {t("characters minimum")})
                           </p>
                         )}
                       </FormItem>
@@ -566,10 +651,10 @@ export default function EmotionTrackingFormWizard({
               {/* Step 4: Add Context */}
               {currentStep === 4 && (
                 <div className="space-y-4" data-testid="step-add-context">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h3 className="font-medium text-sm mb-2">💡 Additional Context (Optional)</h3>
-                    <p className="text-sm text-gray-700">
-                      These optional details help you understand when and where certain emotions tend to occur.
+                  <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                    <h3 className="font-semibold text-sm text-purple-900 mb-1.5">{t("Additional context (optional)")}</h3>
+                    <p className="text-sm text-slate-600">
+                      {t("These optional details help you understand when and where certain emotions tend to occur.")}
                     </p>
                   </div>
                   
@@ -579,19 +664,19 @@ export default function EmotionTrackingFormWizard({
                       name="location"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Where were you?</FormLabel>
+                          <FormLabel>{t("Where were you?")}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-location">
-                                <SelectValue placeholder="Select a location" />
+                                <SelectValue placeholder={t("Select a location")} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="home">Home</SelectItem>
-                              <SelectItem value="work">Work</SelectItem>
-                              <SelectItem value="school">School</SelectItem>
-                              <SelectItem value="public">Public Place</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
+                              <SelectItem value="home">{t("Home")}</SelectItem>
+                              <SelectItem value="work">{t("Work")}</SelectItem>
+                              <SelectItem value="school">{t("School")}</SelectItem>
+                              <SelectItem value="public">{t("Public Place")}</SelectItem>
+                              <SelectItem value="other">{t("Other")}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -604,20 +689,20 @@ export default function EmotionTrackingFormWizard({
                       name="company"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Who were you with?</FormLabel>
+                          <FormLabel>{t("Who were you with?")}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-company">
-                                <SelectValue placeholder="Select an option" />
+                                <SelectValue placeholder={t("Select an option")} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="alone">Alone</SelectItem>
-                              <SelectItem value="family">Family</SelectItem>
-                              <SelectItem value="friends">Friends</SelectItem>
-                              <SelectItem value="coworkers">Coworkers</SelectItem>
-                              <SelectItem value="strangers">Strangers</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
+                              <SelectItem value="alone">{t("Alone")}</SelectItem>
+                              <SelectItem value="family">{t("Family")}</SelectItem>
+                              <SelectItem value="friends">{t("Friends")}</SelectItem>
+                              <SelectItem value="coworkers">{t("Coworkers")}</SelectItem>
+                              <SelectItem value="strangers">{t("Strangers")}</SelectItem>
+                              <SelectItem value="other">{t("Other")}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -632,7 +717,7 @@ export default function EmotionTrackingFormWizard({
                       name="useCurrentTime"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel>When did this happen?</FormLabel>
+                          <FormLabel>{t("When did this happen?")}</FormLabel>
                           <div className="flex items-center space-x-2">
                             <FormControl>
                               <Checkbox
@@ -645,7 +730,7 @@ export default function EmotionTrackingFormWizard({
                               />
                             </FormControl>
                             <Label htmlFor="current-time" className="text-sm text-neutral-600 cursor-pointer">
-                              Use current time
+                              {t("Use current time")}
                             </Label>
                           </div>
                         </FormItem>
@@ -655,20 +740,45 @@ export default function EmotionTrackingFormWizard({
                     <FormField
                       control={form.control}
                       name="timestamp"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="datetime-local"
-                              disabled={form.getValues("useCurrentTime")}
-                              className="w-full"
-                              {...field}
-                              data-testid="input-timestamp"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        const isDisabled = form.getValues("useCurrentTime");
+                        const formattedDisplay = formatTimestamp(field.value);
+
+                        return (
+                          <FormItem>
+                            <FormControl>
+                              <div className="relative w-full">
+                                {/* Visually gorgeous custom premium input */}
+                                <div className="relative w-full">
+                                  <Input
+                                    type="text"
+                                    readOnly
+                                    disabled={isDisabled}
+                                    value={formattedDisplay}
+                                    className="w-full pl-3 pr-10 cursor-pointer bg-white"
+                                    data-testid="input-timestamp-display"
+                                  />
+                                  <div className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                    <Calendar className="h-4 w-4" />
+                                  </div>
+                                </div>
+                                
+                                {/* Hidden actual native datetime-local input filled completely over it */}
+                                {!isDisabled && (
+                                  <input
+                                    type="datetime-local"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    value={field.value || ""}
+                                    onChange={(e) => field.onChange(e.target.value)}
+                                    data-testid="input-timestamp"
+                                  />
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
                   </div>
                 </div>
@@ -680,6 +790,7 @@ export default function EmotionTrackingFormWizard({
                 onPrevious={handlePreviousStep}
                 onNext={handleNextStep}
                 onSubmit={() => form.handleSubmit(onSubmit)()}
+                footerClassName={currentStep === 0 ? "pt-5 mt-1" : undefined}
                 nextDisabled={
                   (currentStep === 1 && !form.getValues("coreEmotion")) ||
                   (currentStep === 3 && (!form.getValues("situation") || form.getValues("situation").length < 10))
@@ -689,7 +800,9 @@ export default function EmotionTrackingFormWizard({
                   !form.getValues("situation") ||
                   form.getValues("situation").length < 10
                 }
-                submitLabel="Record Emotion"
+                submitLabel={t("Record Emotion")}
+                nextButtonClassName="bg-[#090514] hover:bg-purple-950 text-white"
+                submitButtonClassName="bg-[#090514] hover:bg-purple-950 text-white"
                 extraActions={
                   currentStep === totalSteps - 1 ? (
                     <Button
@@ -699,7 +812,7 @@ export default function EmotionTrackingFormWizard({
                       disabled={!form.getValues("coreEmotion") || !form.getValues("situation") || form.getValues("situation").length < 10}
                       data-testid="button-skip-context"
                     >
-                      Skip & Record
+                      {t("Skip & Record")}
                     </Button>
                   ) : null
                 }
@@ -707,127 +820,121 @@ export default function EmotionTrackingFormWizard({
             </form>
           </Form>
         </CardContent>
-      </Card>
+      </div>
       
       {/* Success Dialog with Insights */}
       <WizardSuccessDialog
         open={showSuccessDialog && !!recordedEmotion}
         onOpenChange={(open) => !open && setShowSuccessDialog(false)}
-        title="Emotion Recorded Successfully!"
-        description="Your emotion has been tracked. Here are your insights:"
+        title={t("Emotion Recorded Successfully!")}
+        description={t("Your emotion has been tracked. Here are your insights:")}
       >
-          <>
-            {/* Insights Section */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription className="text-xs">Total Tracked</CardDescription>
-                  <CardTitle className="text-2xl">{totalEmotions + 1}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-gray-500 flex items-center">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    {totalEmotions === 0 ? "First emotion!" : `${totalEmotions} before this`}
-                  </p>
-                </CardContent>
-              </Card>
-              
-              {mostCommonEmotion && (
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription className="text-xs">Most Common</CardDescription>
-                    <CardTitle className="text-lg">{mostCommonEmotion[0]}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-xs text-gray-500">
-                      {mostCommonEmotion[1]} times tracked
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription className="text-xs">This Emotion</CardDescription>
-                  <CardTitle className="text-lg">{currentEmotionName}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
-                    <span className="text-lg font-bold text-blue-600">{currentIntensity}</span>
-                    <span>/10 intensity</span>
-                  </p>
-                </CardContent>
-              </Card>
+        <>
+          {/* Stats cards */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-tight">{t("Total Tracked")}</p>
+              <p className="text-2xl font-bold text-rose-500 mt-2">{tNum(totalEmotions + 1)}</p>
+              <p className="text-[11px] text-slate-400 flex items-center gap-1 mt-1">
+                <TrendingUp className="h-3 w-3 shrink-0" />
+                <span className="truncate">
+                  {totalEmotions === 0 ? t("First emotion!") : `${tNum(totalEmotions)} ${t("before this")}`}
+                </span>
+              </p>
             </div>
-            
-            {totalEmotions < 3 && (
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                <p className="text-sm text-purple-900 font-medium">
-                  🎯 Track {3 - totalEmotions} more emotion{3 - totalEmotions > 1 ? 's' : ''} to unlock detailed pattern insights!
-                </p>
-              </div>
-            )}
-            
-            <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-md">
-              💡 <strong>Tip:</strong> You can connect thoughts to this emotion later by visiting your emotion history.
+
+            <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-tight">{t("Most Common")}</p>
+              <p className="text-base font-bold text-purple-600 mt-2 truncate">
+                {mostCommonEmotion ? translateEmotion(mostCommonEmotion[0], currentLanguage) : "—"}
+              </p>
+              <p className="text-[11px] text-slate-400 mt-1 truncate">
+                {mostCommonEmotion ? `${tNum(mostCommonEmotion[1])} ${t("times tracked")}` : ""}
+              </p>
             </div>
-            
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-3">
-              <Button 
+
+            <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-tight">{t("This Emotion")}</p>
+              <p className="text-base font-bold text-[#090514] mt-2 truncate">
+                {translateEmotion(currentEmotionName, currentLanguage)}
+              </p>
+              <p className="text-[11px] text-slate-400 flex items-center gap-0.5 mt-1">
+                <span className="font-bold text-purple-600">{tNum(currentIntensity)}</span>
+                <span>/{tNum(10)}</span>
+              </p>
+            </div>
+          </div>
+
+          {totalEmotions < 3 && (
+            <div className="bg-purple-50 px-4 py-3 rounded-xl border border-purple-100">
+              <p className="text-sm text-purple-900 font-medium">
+                {t("Track")} {tNum(3 - totalEmotions)} {t("more emotion(s) to unlock detailed pattern insights.")}
+              </p>
+            </div>
+          )}
+
+          <div className="text-sm text-slate-500 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
+            <strong className="text-slate-700">{t("Tip:")}</strong>{" "}
+            {t("You can connect thoughts to this emotion later by visiting your emotion history.")}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-2.5 pt-1">
+            <Button
+              size="lg"
+              className="flex items-center justify-center gap-2 h-11 bg-[#090514] hover:bg-purple-950 text-white rounded-xl text-sm font-semibold"
+              onClick={() => {
+                setShowSuccessDialog(false);
+                form.reset({
+                  coreEmotion: "",
+                  primaryEmotion: "",
+                  tertiaryEmotion: "",
+                  intensity: 5,
+                  situation: "",
+                  location: "",
+                  company: "",
+                  timestamp: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+                  useCurrentTime: true,
+                });
+                setCurrentStep(1);
+              }}
+              data-testid="button-record-another"
+            >
+              <RefreshCw className="h-4 w-4" />
+              {t("Track Another Emotion")}
+            </Button>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              <Button
                 size="lg"
-                variant="default" 
-                className="flex items-center justify-center gap-2 h-12"
-                onClick={() => {
-                  setShowSuccessDialog(false);
-                  form.reset({
-                    coreEmotion: "",
-                    primaryEmotion: "",
-                    tertiaryEmotion: "",
-                    intensity: 5,
-                    situation: "",
-                    location: "",
-                    company: "",
-                    timestamp: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-                    useCurrentTime: true,
-                  });
-                  setCurrentStep(1);
-                }}
-                data-testid="button-record-another"
-              >
-                <RefreshCw className="h-5 w-5" />
-                Track Another Emotion
-              </Button>
-              
-              <Button 
-                size="lg"
-                variant="outline" 
-                className="flex items-center justify-center gap-2 h-12"
+                variant="outline"
+                className="flex items-center justify-center gap-2 h-11 rounded-xl border-slate-200 hover:border-purple-200 hover:bg-purple-50 text-sm"
                 onClick={() => {
                   setShowSuccessDialog(false);
                   navigate("/emotions?tab=history");
                 }}
                 data-testid="button-view-history"
               >
-                <Calendar className="h-5 w-5" />
-                View Emotion History
+                <Calendar className="h-4 w-4" />
+                {t("View Emotion History")}
               </Button>
-              
-              <Button 
+
+              <Button
                 size="lg"
-                variant="outline" 
-                className="flex items-center justify-center gap-2 h-12"
+                variant="outline"
+                className="flex items-center justify-center gap-2 h-11 rounded-xl border-slate-200 hover:border-purple-200 hover:bg-purple-50 text-sm"
                 onClick={() => {
                   setShowSuccessDialog(false);
                   navigate("/dashboard");
                 }}
                 data-testid="button-go-dashboard"
               >
-                <Home className="h-5 w-5" />
-                Back to Dashboard
+                <Home className="h-4 w-4" />
+                {t("Back to Dashboard")}
               </Button>
             </div>
-          </>
+          </div>
+        </>
       </WizardSuccessDialog>
     </>
   );

@@ -40,6 +40,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Accordion,
@@ -50,7 +51,10 @@ import {
 import JournalWordCloud from "@/features/journal/components/JournalWordCloud";
 import JournalWizard from "@/features/journal/components/JournalWizard";
 import JournalInsights from "@/features/journal/components/JournalInsights";
-import ModulePageShell from "@/components/layout/ModulePageShell";
+import AppLayout from "@/components/layout/AppLayout";
+import { BackToClientsButton } from "@/features/dashboard/components/navigation/BackToClientsButton";
+import { ClientDebug } from "@/features/admin/components/debug/ClientDebug";
+import { cn } from "@/lib/utils";
 import { JournalList } from "@/features/journal/components/JournalList";
 import { JournalEntryForm } from "@/features/journal/components/JournalEntryForm";
 import { JournalComments } from "@/features/journal/components/JournalComments";
@@ -71,37 +75,21 @@ import {
 } from "@/features/journal/hooks/useJournal";
 
 import { getEmotionInfo } from '@/utils/emotionUtils';
-
-// Helper function to provide descriptions for cognitive distortions
-function getDistortionDescription(distortion: string): string {
-  const distortions: Record<string, string> = {
-    "all-or-nothing thinking": "Viewing situations in absolute, black-and-white categories without considering middle ground.",
-    "catastrophizing": "Expecting the worst possible outcome and exaggerating the importance of negative events.",
-    "emotional reasoning": "Believing that feelings reflect reality—'I feel it, therefore it must be true.'",
-    "fortune telling": "Predicting negative outcomes without adequate evidence.",
-    "labeling": "Attaching a negative label to yourself or others instead of describing specific behaviors.",
-    "magnification": "Exaggerating the importance of problems or shortcomings while minimizing successes.",
-    "mental filtering": "Focusing exclusively on negative aspects while filtering out all positive information.",
-    "mind reading": "Assuming you know what others are thinking without sufficient evidence.",
-    "overgeneralization": "Drawing broad negative conclusions based on a single incident.",
-    "personalization": "Believing you're responsible for external events outside your control.",
-    "should statements": "Imposing rigid demands on yourself or others with 'should', 'must', or 'ought to' statements.",
-    "disqualifying the positive": "Rejecting positive experiences by insisting they 'don't count'.",
-    "jumping to conclusions": "Making negative interpretations without supporting facts.",
-    "minimization": "Downplaying or dismissing your positive qualities or achievements."
-  };
-
-  // Return the description if found, otherwise return a default message
-  return distortions[distortion.toLowerCase()] ||
-    "A pattern of thought that may distort your perception of reality or situations.";
-}
+import { useLocalization, DynamicTranslator } from "@/lib/localize.tsx";
+import { JournalTag } from "@/features/journal/components/JournalTag";
+import {
+  formatJournalTag,
+  getDistortionDescription,
+  formatDistortionTag,
+} from "@/features/journal/utils/journalLabels";
 
 export default function Journal() {
   const { user } = useAuth();
   const { viewingClientId } = useClientContext();
   const { activeUserId, isViewingSelf } = useActiveUser();
   const { refreshAfterOperation } = useRefreshData();
-
+  const { t, isRTL, tNum, currentLanguage } = useLocalization();
+  const dateLocale = isRTL ? ar : undefined;
   // If viewing client data, use client's ID, otherwise use current user's ID
   const userId = activeUserId;
 
@@ -417,110 +405,134 @@ export default function Journal() {
   // If viewing another user's data and current user is a therapist, they should only view
   const canCreateEntries = isViewingSelf || user?.role === 'client';
 
+  const pageTitle = isViewingSelf || user?.role === 'client' ? t("Journal") : t("Client's Journal");
+  const pageSubtitle = t("Process your emotions and experiences: Reflect on your thoughts and feelings through daily journaling");
+  const isWriteTab = activeTab === "write";
+
+  const mostCommonEmotion = Object.keys(stats.emotions).length > 0
+    ? Object.entries(stats.emotions).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0]
+    : "None";
+  const uniqueEmotionsCount = Object.keys(stats.emotions).length;
+
   return (
-    <ModulePageShell
-      title="Journal"
-      description="Process your emotions and experiences: Reflect on your thoughts and feelings through daily journaling"
-    >
+    <AppLayout title={pageTitle}>
+      <div className="min-h-screen bg-slate-50" dir={isRTL ? "rtl" : "ltr"}>
+        <ClientDebug />
 
-        {/* Overall Progress Summary */}
-        {stats.totalEntries > 0 && (
-          <Card className="mb-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Book className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Overall Progress</CardTitle>
+        {/* Premium Hero Banner */}
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 relative overflow-hidden transition-all duration-300 pt-8 pb-10">
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="max-w-5xl mx-auto relative text-start">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="h-4 w-4 text-purple-400" />
+                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                    {isViewingSelf || user?.role === 'client' ? t("Self Reflection") : t("Clinical Review")}
+                  </span>
+                </div>
+                <h1 className="font-bold text-white tracking-tight text-3xl md:text-4xl mb-2">
+                  {pageTitle}
+                </h1>
+                <p className="text-purple-300/70 text-base max-w-md leading-relaxed">
+                  {pageSubtitle}
+                </p>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                  <div className="text-2xl font-bold text-primary">{stats.totalEntries}</div>
-                  <div className="text-sm text-muted-foreground">Total Entries</div>
+              
+              {stats.totalEntries > 0 && (
+                <div className="flex items-center gap-6 shrink-0 flex-wrap">
+                  {[
+                    { value: tNum(stats.totalEntries), label: t("Total Entries") },
+                    { value: formatJournalTag(mostCommonEmotion, t, currentLanguage), label: t("Common Emotion") },
+                    { value: tNum(uniqueEmotionsCount), label: t("Unique Emotions") },
+                  ].map((s, i) => (
+                    <div key={i} className="text-center">
+                      <div className="text-2xl font-bold text-white">{s.value}</div>
+                      <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
+                    </div>
+                  ))}
                 </div>
-                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                  <div className="text-2xl font-bold text-teal-600">
-                    {Object.keys(stats.emotions).length > 0
-                      ? Object.entries(stats.emotions).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0]
-                      : "None"}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Most Common Emotion</div>
-                </div>
-                <div className="text-center p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                  <div className="text-2xl font-bold text-rose-600">{Object.keys(stats.emotions).length}</div>
-                  <div className="text-sm text-muted-foreground">Unique Emotions</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              )}
+            </div>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          defaultValue={
-            user?.role === 'therapist' || user?.role === 'admin' ? "history" : "write"
-          }
-          className="space-y-4"
-        >
-          <TabsList>
-            {/* Only show Write Entry tab for clients */}
+            {/* Journaling Habit strip */}
+            <div className="mt-6 bg-white/5 rounded-xl border border-white/10 p-4">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <Book className="h-3.5 w-3.5 text-amber-400" />
+                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">{t("Journaling Habit")}</span>
+                </div>
+                <span className="text-xs text-purple-400">{tNum(stats.totalEntries)} {t("of")} {tNum(30)} {t("entries")}</span>
+              </div>
+              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-amber-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.round((stats.totalEntries / 30) * 100))}%` }} />
+              </div>
+              <p className="text-[11px] text-purple-400/60 mt-1.5">{t("Regular journaling deepens self-awareness and supports emotional processing and healing.")}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Body Layout */}
+        <div className="max-w-5xl mx-auto pb-10 pt-6 space-y-5">
+          <BackToClientsButton />
+
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            defaultValue={
+              user?.role === 'therapist' || user?.role === 'admin' ? "history" : "write"
+            }
+            className="space-y-5"
+          >
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-1.5">
+              <TabsList className="w-full h-auto bg-transparent p-0 gap-1 flex flex-wrap">
+                {/* Only show Write Entry tab for clients */}
+                {user?.role === 'client' && (
+                  <TabsTrigger
+                    value="write"
+                    className={cn(
+                      "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
+                      "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                    )}
+                  >
+                    <MessageSquarePlus className="h-4 w-4 me-1.5 inline" />
+                    {t("Write Entry")}
+                  </TabsTrigger>
+                )}
+                <TabsTrigger
+                  value="history"
+                  className={cn(
+                    "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
+                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                  )}
+                >
+                  <Tag className="h-4 w-4 me-1.5 inline" />
+                  {user?.role === 'therapist' || user?.role === 'admin' ? t("Client's Journal") : t("My Journal")}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="insights"
+                  className={cn(
+                    "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
+                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                  )}
+                >
+                  <TrendingUp className="h-4 w-4 me-1.5 inline" />
+                  {t("Insights")}
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Write Entry tab - only for clients */}
             {user?.role === 'client' && (
-              <TabsTrigger value="write">
-                <MessageSquarePlus className="mr-2 h-4 w-4" />
-                Write Entry
-              </TabsTrigger>
+              <TabsContent value="write" className="mt-0">
+                <JournalWizard onEntryCreated={() => setActiveTab("history")} />
+              </TabsContent>
             )}
-            <TabsTrigger value="history">
-              <Tag className="mr-2 h-4 w-4" />
-              {user?.role === 'therapist' || user?.role === 'admin' ? "Client's Journal" : "My Journal"}
-            </TabsTrigger>
-            <TabsTrigger value="insights">
-              <TrendingUp className="mr-2 h-4 w-4" />
-              Insights
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Write Entry tab - only for clients */}
-          {user?.role === 'client' && (
-            <TabsContent value="write">
-              {/* Educational Accordion */}
-              <Accordion type="single" collapsible className="mb-6 bg-teal-50 dark:bg-teal-950/30 rounded-lg px-4">
-                <AccordionItem value="why-journal" className="border-0">
-                  <AccordionTrigger className="text-base font-medium hover:no-underline py-3">
-                    <div className="flex items-center">
-                      <HelpCircle className="h-5 w-5 mr-2 text-teal-600 dark:text-teal-400" />
-                      Why Journal?
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-sm text-muted-foreground pb-4">
-                    <p className="mb-3">
-                      Journaling is a powerful tool for self-reflection and emotional processing. It helps you understand patterns in your thoughts and feelings, track your progress, and gain valuable insights into your mental well-being.
-                    </p>
-
-                    <div className="space-y-3">
-                      <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                        <h4 className="font-medium text-foreground mb-1">Process Emotions</h4>
-                        <p>Writing about your feelings helps you make sense of them and reduces emotional intensity. It's a safe space to express yourself without judgment.</p>
-                      </div>
-
-                      <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                        <h4 className="font-medium text-foreground mb-1">Track Patterns</h4>
-                        <p>Over time, your journal entries reveal patterns in your mood, triggers, and coping strategies, helping you understand yourself better.</p>
-                      </div>
-
-                      <div className="bg-white dark:bg-slate-900/50 p-3 rounded-md">
-                        <h4 className="font-medium text-foreground mb-1">Support Growth</h4>
-                        <p>Regular journaling documents your journey, celebrates progress, and provides insights that support your ongoing mental health and personal growth.</p>
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-
-              <JournalWizard onEntryCreated={() => setActiveTab("history")} />
-            </TabsContent>
-          )}
 
           {/* Journal History tab */}
           <TabsContent value="history">
@@ -544,16 +556,16 @@ export default function Journal() {
                   <div className="flex justify-between items-start">
                     <div>
                       <h2 className="text-2xl font-bold tracking-tight mb-1">
-                        {currentEntry.title || "Untitled Entry"}
+                        <DynamicTranslator text={currentEntry.title || "Untitled Entry"} />
                       </h2>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <CalendarIcon size={14} />
                         <span>
-                          {format(new Date(currentEntry.createdAt), "MMMM d, yyyy 'at' h:mm a")}
+                          {format(new Date(currentEntry.createdAt), "MMMM d, yyyy 'at' h:mm a", { locale: dateLocale })}
                         </span>
                         {currentEntry.updatedAt && currentEntry.updatedAt !== currentEntry.createdAt && (
                           <span className="text-xs italic">
-                            (edited {format(new Date(currentEntry.updatedAt), "MMM d, yyyy")})
+                            ({t("edited")} {format(new Date(currentEntry.updatedAt), "MMM d, yyyy", { locale: dateLocale })})
                           </span>
                         )}
                       </div>
@@ -570,8 +582,8 @@ export default function Journal() {
                             setShowEntryDialog(true);
                           }}
                         >
-                          <Edit size={16} className="mr-1" />
-                          Edit
+                          <Edit size={16} className="me-1" />
+                          {t("Edit")}
                         </Button>
                         <Button
                           variant="ghost"
@@ -588,14 +600,14 @@ export default function Journal() {
                 <CardContent className="space-y-6">
                   {/* Journal Content */}
                   <div className="whitespace-pre-wrap p-4 border rounded-md bg-white shadow-sm">
-                    {currentEntry.content}
+                    <DynamicTranslator text={currentEntry.content} />
                   </div>
 
                   {/* Tag Editor Section */}
                   <div className="p-4 border rounded-md bg-slate-50/50">
                     <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                       <Tag size={16} />
-                      Tag Editor
+                      {t("Tag Editor")}
                     </h4>
 
                     {/* Three column layout for emotions, topics, and selected tags */}
@@ -604,7 +616,7 @@ export default function Journal() {
                       <div className="space-y-2">
                         <h5 className="text-xs font-semibold flex items-center gap-1">
                           <Heart size={14} className="text-red-500" />
-                          Suggested Emotions
+                          {t("Suggested Emotions")}
                         </h5>
                         <div className="flex flex-wrap gap-1">
                           {currentEntry.emotions?.map((emotion, i) => (
@@ -619,9 +631,9 @@ export default function Journal() {
                               `}
                               onClick={() => toggleTagSelection(emotion)}
                             >
-                              {emotion}
+                              <JournalTag text={emotion} />
                               {selectedTags.includes(emotion) && (
-                                <Check size={12} className="ml-1" />
+                                <Check size={12} className="ms-1" />
                               )}
                             </Badge>
                           ))}
@@ -632,7 +644,7 @@ export default function Journal() {
                       <div className="space-y-2">
                         <h5 className="text-xs font-semibold flex items-center gap-1">
                           <Lightbulb size={14} className="text-amber-500" />
-                          Topics
+                          {t("Topics")}
                         </h5>
                         <div className="flex flex-wrap gap-1">
                           {currentEntry.topics?.map((topic, i) => (
@@ -647,9 +659,9 @@ export default function Journal() {
                               `}
                               onClick={() => toggleTagSelection(topic)}
                             >
-                              {topic}
+                              <JournalTag text={topic} />
                               {selectedTags.includes(topic) && (
-                                <Check size={12} className="ml-1" />
+                                <Check size={12} className="ms-1" />
                               )}
                             </Badge>
                           ))}
@@ -660,7 +672,7 @@ export default function Journal() {
                       <div className="space-y-2">
                         <h5 className="text-xs font-semibold flex items-center gap-1">
                           <CheckSquare size={14} className="text-blue-500" />
-                          Selected Tags
+                          {t("Selected Tags")}
                         </h5>
                         <div className="flex flex-wrap gap-1">
                           {selectedTags.length > 0 ? (
@@ -670,16 +682,16 @@ export default function Journal() {
                                 variant="outline"
                                 className="bg-blue-100 border-blue-200"
                               >
-                                {tag}
+                                <JournalTag text={tag} />
                                 <X
                                   size={12}
-                                  className="ml-1 cursor-pointer"
+                                  className="ms-1 cursor-pointer"
                                   onClick={() => toggleTagSelection(tag)}
                                 />
                               </Badge>
                             ))
                           ) : (
-                            <p className="text-xs text-muted-foreground">No tags selected yet</p>
+                            <p className="text-xs text-muted-foreground">{t("No tags selected yet")}</p>
                           )}
                         </div>
                       </div>
@@ -691,7 +703,7 @@ export default function Journal() {
                         <div className="flex gap-2 mt-4">
                           <Input
                             type="text"
-                            placeholder="Add a custom tag..."
+                            placeholder={t("Add a custom tag...")}
                             value={customTag}
                             onChange={(e) => setCustomTag(e.target.value)}
                             onKeyDown={(e) => {
@@ -711,7 +723,7 @@ export default function Journal() {
                               }
                             }}
                           >
-                            Add
+                            {t("Add")}
                           </Button>
                         </div>
 
@@ -719,10 +731,10 @@ export default function Journal() {
                         <Button
                           onClick={handleUpdateTags}
                           disabled={updateTagsMutation.isPending}
-                          className="w-full mt-3"
+                          className="w-full mt-3 animate-none text-center"
                           size="sm"
                         >
-                          {updateTagsMutation.isPending ? "Saving..." : "Save Selected Tags"}
+                          {updateTagsMutation.isPending ? t("Saving…") : t("Save Selected Tags")}
                         </Button>
                       </>
                     )}
@@ -733,7 +745,7 @@ export default function Journal() {
                     <div className="p-4 border rounded-md bg-orange-50/50">
                       <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                         <BrainCircuit size={16} className="text-orange-500" />
-                        Detected Cognitive Distortions
+                        {t("Detected Cognitive Distortions")}
                       </h4>
 
                       <div className="flex flex-wrap gap-2 mb-4">
@@ -751,14 +763,14 @@ export default function Journal() {
                                   `}
                                   onClick={() => toggleDistortionSelection(distortion)}
                                 >
-                                  {distortion}
+                                  {formatDistortionTag(distortion, t)}
                                   {selectedDistortions.includes(distortion) && (
-                                    <Check size={12} className="ml-1 text-orange-600" />
+                                    <Check size={12} className="ms-1 text-orange-600" />
                                   )}
                                 </Badge>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <div className="max-w-xs">{getDistortionDescription(distortion)}</div>
+                                <div className="max-w-xs">{getDistortionDescription(distortion, t)}</div>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -769,11 +781,11 @@ export default function Journal() {
                         <Button
                           onClick={handleUpdateDistortions}
                           disabled={updateDistortionsMutation.isPending}
-                          className="w-full"
+                          className="w-full animate-none text-center"
                           size="sm"
                           variant="outline"
                         >
-                          {updateDistortionsMutation.isPending ? "Saving..." : "Confirm Selected Distortions"}
+                          {updateDistortionsMutation.isPending ? t("Saving…") : t("Confirm Selected Distortions")}
                         </Button>
                       )}
                     </div>
@@ -784,9 +796,11 @@ export default function Journal() {
                     <div className="p-4 border rounded-md bg-violet-50/50">
                       <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                         <Sparkles size={16} className="text-violet-500" />
-                        AI Analysis
+                        {t("AI Analysis")}
                       </h4>
-                      <p className="text-sm whitespace-pre-wrap">{currentEntry.aiAnalysis}</p>
+                      <p className="text-sm whitespace-pre-wrap">
+                        <DynamicTranslator text={currentEntry.aiAnalysis} />
+                      </p>
                     </div>
                   )}
 
@@ -795,7 +809,7 @@ export default function Journal() {
                     <div className="flex justify-between items-center mb-3">
                       <h4 className="text-sm font-semibold flex items-center gap-2">
                         <Brain size={16} />
-                        Related Thought Records
+                        {t("Related Thought Records")}
                       </h4>
                       {canCreateEntries && (
                         <Button
@@ -803,8 +817,8 @@ export default function Journal() {
                           size="sm"
                           onClick={() => setShowThoughtRecordDialog(true)}
                         >
-                          <Link2 size={14} className="mr-1" />
-                          Link Record
+                          <Link2 size={14} className="me-1" />
+                          {t("Link Record")}
                         </Button>
                       )}
                     </div>
@@ -816,7 +830,7 @@ export default function Journal() {
                             <CardHeader className="p-3">
                               <div className="flex justify-between items-start">
                                 <CardTitle className="text-sm">
-                                  Thought Record
+                                  {t("Thought Record")}
                                 </CardTitle>
                                 {canCreateEntries && (
                                   <Button
@@ -830,18 +844,20 @@ export default function Journal() {
                                 )}
                               </div>
                               <CardDescription className="text-xs">
-                                {format(new Date(record.createdAt), "MMM d, yyyy")}
+                                {format(new Date(record.createdAt), "MMM d, yyyy", { locale: dateLocale })}
                               </CardDescription>
                             </CardHeader>
                             <CardContent className="p-3 pt-0">
-                              <p className="text-xs font-medium mb-1">Automatic Thoughts:</p>
-                              <p className="text-xs line-clamp-2 mb-2">{record.automaticThoughts}</p>
+                              <p className="text-xs font-medium mb-1">{t("Automatic Thoughts")}:</p>
+                              <p className="text-xs line-clamp-2 mb-2">
+                                <DynamicTranslator text={record.automaticThoughts} />
+                              </p>
 
                               {record.cognitiveDistortions && record.cognitiveDistortions.length > 0 && (
                                 <div className="flex flex-wrap gap-1 mb-2">
                                   {record.cognitiveDistortions.slice(0, 2).map((d, i) => (
                                     <Badge key={i} variant="outline" className="text-[10px] py-0 px-1 bg-orange-50">
-                                      {d}
+                                      {formatDistortionTag(d, t)}
                                     </Badge>
                                   ))}
                                   {record.cognitiveDistortions.length > 2 && (
@@ -859,8 +875,8 @@ export default function Journal() {
                                 asChild
                               >
                                 <a href={`/thought-records/${record.id}`}>
-                                  <ExternalLink size={12} className="mr-1" />
-                                  View Full Record
+                                  <ExternalLink size={12} className="me-1" />
+                                  {t("View Full Record")}
                                 </a>
                               </Button>
                             </CardFooter>
@@ -870,7 +886,7 @@ export default function Journal() {
                     ) : (
                       <div className="text-center py-6 px-4 border border-dashed rounded">
                         <p className="text-sm text-muted-foreground">
-                          No thought records linked to this journal entry yet.
+                          {t("No thought records linked to this journal entry yet.")}
                         </p>
                         {canCreateEntries && (
                           <Button
@@ -878,7 +894,7 @@ export default function Journal() {
                             onClick={() => setShowThoughtRecordDialog(true)}
                             className="mt-2"
                           >
-                            Link a thought record
+                            {t("Link a thought record")}
                           </Button>
                         )}
                       </div>
@@ -1151,7 +1167,7 @@ export default function Journal() {
                                       }}
                                     ></div>
                                   </div>
-                                  <p className="text-xs text-muted-foreground mt-1">{getDistortionDescription(distortion)}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">{getDistortionDescription(distortion, t)}</p>
                                 </div>
                               </div>
                             ))}
@@ -1250,16 +1266,16 @@ export default function Journal() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showConfirmDelete} onOpenChange={setShowConfirmDelete}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" dir={isRTL ? "rtl" : "ltr"}>
           <DialogHeader>
-            <DialogTitle>Delete Journal Entry</DialogTitle>
+            <DialogTitle>{t("Delete Journal Entry")}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p>Are you sure you want to delete this journal entry? This action cannot be undone.</p>
+            <p>{t("Are you sure you want to delete this journal entry? This action cannot be undone.")}</p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowConfirmDelete(false)}>
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -1268,7 +1284,7 @@ export default function Journal() {
             >
               {deleteEntryMutation.isPending ? (
                 <div className="animate-spin h-4 w-4 border-2 border-background border-t-transparent rounded-full" />
-              ) : "Delete"}
+              ) : t("Delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1276,11 +1292,11 @@ export default function Journal() {
 
       {/* Link Thought Record Dialog */}
       <Dialog open={showThoughtRecordDialog} onOpenChange={setShowThoughtRecordDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" dir={isRTL ? "rtl" : "ltr"}>
           <DialogHeader>
-            <DialogTitle>Link a Thought Record</DialogTitle>
+            <DialogTitle>{t("Link Thought Record")}</DialogTitle>
             <DialogDescription>
-              Select a thought record to link to this journal entry.
+              {t("Select a thought record to link to this journal entry.")}
             </DialogDescription>
           </DialogHeader>
 
@@ -1293,21 +1309,23 @@ export default function Journal() {
                     <Card key={record.id} className="cursor-pointer hover:border-primary" onClick={() => handleLinkThoughtRecord(record.id)}>
                       <CardHeader className="p-3">
                         <CardTitle className="text-sm">
-                          Thought Record
+                          {t("Thought Record")}
                         </CardTitle>
                         <CardDescription className="text-xs">
-                          {format(new Date(record.createdAt), "MMM d, yyyy")}
+                          {format(new Date(record.createdAt), "MMM d, yyyy", { locale: dateLocale })}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="p-3 pt-0">
-                        <p className="text-xs font-medium mb-1">Automatic Thoughts:</p>
-                        <p className="text-xs line-clamp-2 mb-2">{record.automaticThoughts}</p>
+                        <p className="text-xs font-medium mb-1">{t("Automatic Thoughts")}:</p>
+                        <p className="text-xs line-clamp-2 mb-2">
+                          <DynamicTranslator text={record.automaticThoughts} />
+                        </p>
 
                         {record.cognitiveDistortions && record.cognitiveDistortions.length > 0 && (
                           <div className="flex flex-wrap gap-1">
                             {record.cognitiveDistortions.slice(0, 2).map((d: string, i: number) => (
                               <Badge key={i} variant="outline" className="text-[10px] py-0 px-1 bg-orange-50">
-                                {d}
+                                {formatDistortionTag(d, t)}
                               </Badge>
                             ))}
                             {record.cognitiveDistortions.length > 2 && (
@@ -1323,9 +1341,9 @@ export default function Journal() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <p>No thought records found. Create a thought record first to link it.</p>
+                <p>{t("No thought records found. Create a thought record first to link it.")}</p>
                 <Button asChild className="mt-4">
-                  <a href="/thought-records/new">Create Thought Record</a>
+                  <a href="/thought-records/new">{t("Create Thought Record")}</a>
                 </Button>
               </div>
             )}
@@ -1333,7 +1351,7 @@ export default function Journal() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowThoughtRecordDialog(false)}>
-              Cancel
+              {t("Cancel")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1347,16 +1365,18 @@ export default function Journal() {
       }}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle>Add Tags to Your Journal Entry</DialogTitle>
+            <DialogTitle>{t("Add Tags to Your Journal Entry")}</DialogTitle>
             <DialogDescription>
-              Tag your entry with emotions and topics to help organize and track your journal.
+              {t("Tag your entry with emotions and topics to help organize and track your journal.")}
               {currentEntry?.aiAnalysis && (
                 <div className="mt-2 p-3 bg-slate-50 rounded-md">
                   <div className="flex items-center gap-2 text-sm mb-2">
                     <Sparkles className="h-4 w-4 text-primary" />
-                    <span className="font-medium">AI-generated insights:</span>
+                    <span className="font-medium">{t("AI-generated insights:")}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">{currentEntry.aiAnalysis}</p>
+                  <p className="text-sm text-muted-foreground">
+                    <DynamicTranslator text={currentEntry.aiAnalysis} />
+                  </p>
                 </div>
               )}
             </DialogDescription>
@@ -1368,11 +1388,13 @@ export default function Journal() {
                 {/* Journal Content Preview */}
                 <Card>
                   <CardHeader className="py-3">
-                    <CardTitle className="text-md">{currentEntry.title || "Untitled Entry"}</CardTitle>
+                    <CardTitle className="text-md">
+                      <DynamicTranslator text={currentEntry.title || "Untitled Entry"} />
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="py-2">
                     <p className="line-clamp-3 text-sm text-muted-foreground">
-                      {currentEntry.content}
+                      <DynamicTranslator text={currentEntry.content} />
                     </p>
                   </CardContent>
                 </Card>
@@ -1382,8 +1404,8 @@ export default function Journal() {
                   <Card>
                     <CardHeader className="py-3">
                       <CardTitle className="text-sm flex items-center">
-                        <Heart className="h-4 w-4 mr-2 text-rose-500" />
-                        Emotions
+                        <Heart className="h-4 w-4 me-2 text-rose-500" />
+                        {t("Emotions")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0">
@@ -1401,9 +1423,9 @@ export default function Journal() {
                                     }`}
                                     onClick={() => toggleTagSelection(emotion)}
                                   >
-                                    {emotion}
+                                    <JournalTag text={emotion} />
                                     {selectedTags.includes(emotion) && (
-                                      <CheckCircle className="h-3 w-3 ml-1" />
+                                      <CheckCircle className="h-3 w-3 ms-1" />
                                     )}
                                   </Badge>
                                 </TooltipTrigger>
@@ -1415,7 +1437,7 @@ export default function Journal() {
                           );
                         })}
                         {(!currentEntry.emotions || currentEntry.emotions.length === 0) && (
-                          <p className="text-sm text-muted-foreground">No emotions detected. Select emotions from topics or add custom tags below.</p>
+                          <p className="text-sm text-muted-foreground">{t("No emotions detected. Select emotions from topics or add custom tags below.")}</p>
                         )}
                       </div>
                     </CardContent>
@@ -1425,8 +1447,8 @@ export default function Journal() {
                   <Card>
                     <CardHeader className="py-3">
                       <CardTitle className="text-sm flex items-center">
-                        <Tag className="h-4 w-4 mr-2 text-blue-500" />
-                        Topics
+                        <Tag className="h-4 w-4 me-2 text-blue-500" />
+                        {t("Topics")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0">
@@ -1444,9 +1466,9 @@ export default function Journal() {
                                     }`}
                                     onClick={() => toggleTagSelection(topic)}
                                   >
-                                    {topic}
+                                    <JournalTag text={topic} />
                                     {selectedTags.includes(topic) && (
-                                      <CheckCircle className="h-3 w-3 ml-1" />
+                                      <CheckCircle className="h-3 w-3 ms-1" />
                                     )}
                                   </Badge>
                                 </TooltipTrigger>
@@ -1458,7 +1480,7 @@ export default function Journal() {
                           );
                         })}
                         {(!currentEntry.topics || currentEntry.topics.length === 0) && (
-                          <p className="text-sm text-muted-foreground">No topics detected. You can add custom tags below.</p>
+                          <p className="text-sm text-muted-foreground">{t("No topics detected. You can add custom tags below.")}</p>
                         )}
                       </div>
                     </CardContent>
@@ -1469,8 +1491,8 @@ export default function Journal() {
                 <Card>
                   <CardHeader className="py-3">
                     <CardTitle className="text-sm flex items-center">
-                      <Plus className="h-4 w-4 mr-2 text-green-500" />
-                      Add a Custom Tag
+                      <Plus className="h-4 w-4 me-2 text-green-500" />
+                      {t("Add a Custom Tag")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
@@ -1484,7 +1506,7 @@ export default function Journal() {
                       <Input
                         value={customTag}
                         onChange={(e) => setCustomTag(e.target.value)}
-                        placeholder="Enter a custom tag"
+                        placeholder={t("Enter a custom tag")}
                         className="flex-1"
                       />
                       <Button
@@ -1492,7 +1514,7 @@ export default function Journal() {
                         disabled={!customTag.trim()}
                         size="sm"
                       >
-                        Add
+                        {t("Add")}
                       </Button>
                     </form>
                   </CardContent>
@@ -1502,8 +1524,8 @@ export default function Journal() {
                 <Card>
                   <CardHeader className="py-3">
                     <CardTitle className="text-sm flex items-center">
-                      <CheckSquare className="h-4 w-4 mr-2 text-purple-500" />
-                      Selected Tags
+                      <CheckSquare className="h-4 w-4 me-2 text-purple-500" />
+                      {t("Selected Tags")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
@@ -1519,7 +1541,7 @@ export default function Journal() {
                                     className="bg-primary/20 text-primary border-primary/30 hover:bg-primary/30 cursor-pointer flex items-center gap-1"
                                     onClick={() => toggleTagSelection(tag)}
                                   >
-                                    {tag}
+                                    <JournalTag text={tag} />
                                     <X className="h-3 w-3" />
                                   </Badge>
                                 </TooltipTrigger>
@@ -1533,7 +1555,7 @@ export default function Journal() {
                       </div>
                     ) : (
                       <p className="text-sm text-muted-foreground">
-                        No tags selected yet. Click on emotions or topics above to select them.
+                        {t("No tags selected yet. Click on emotions or topics above to select them.")}
                       </p>
                     )}
                   </CardContent>
@@ -1547,7 +1569,7 @@ export default function Journal() {
               variant="outline"
               onClick={() => handleTaggingComplete(false)}
             >
-              Skip
+              {t("Skip")}
             </Button>
             <Button
               onClick={() => handleTaggingComplete(true)}
@@ -1555,16 +1577,16 @@ export default function Journal() {
             >
               {updateTagsMutation.isPending ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin -ms-1 me-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Saving...
+                  {t("Saving...")}
                 </>
               ) : (
                 <>
-                  <Check className="mr-2 h-4 w-4" />
-                  Save Tags
+                  <Check className="me-2 h-4 w-4" />
+                  {t("Save Tags")}
                 </>
               )}
             </Button>
@@ -1575,141 +1597,187 @@ export default function Journal() {
       {/* View Journal Entry Details Dialog */}
       {selectedViewEntry && (
         <Dialog open={!!selectedViewEntry} onOpenChange={() => setSelectedViewEntry(null)}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto custom-scrollbar">
-            <DialogHeader className="sticky top-0 bg-background z-10 pb-4">
-              <DialogTitle className="flex items-center gap-2 text-lg">
-                <div className="p-2 rounded-full bg-blue-100">
-                  <Book className="h-5 w-5 text-blue-600" />
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0 rounded-2xl border-0" dir={isRTL ? "rtl" : "ltr"}>
+            {/* Luxury gradient header */}
+            <div
+              className="relative overflow-hidden px-7 py-5"
+              style={{ background: 'linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)' }}
+            >
+              <div className="absolute -end-12 -top-12 w-36 h-36 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+              <div className="absolute -start-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/20 blur-2xl pointer-events-none" />
+              <div className="relative z-10 flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Book className="h-5 w-5 text-purple-300" />
                 </div>
-                {selectedViewEntry.title}
-              </DialogTitle>
-              <DialogDescription>
-                Created on {format(new Date(selectedViewEntry.createdAt), "MMM d, yyyy 'at' h:mm a")}
-              </DialogDescription>
-            </DialogHeader>
+                <div>
+                  <h2 className="text-lg font-bold text-white truncate max-w-sm">
+                    <DynamicTranslator text={selectedViewEntry.title || t("Untitled Entry")} />
+                  </h2>
+                  <p className="text-blue-300/80 text-xs mt-0.5">
+                    {t("Created on")} {format(new Date(selectedViewEntry.createdAt), "MMM d, yyyy 'at' h:mm a", { locale: dateLocale })}
+                  </p>
+                </div>
+              </div>
+            </div>
 
-            <div className="space-y-6 pr-1">
-              {/* Entry Content */}
-              <Card className="border-l-4 border-l-blue-400">
-                <CardContent className="p-4 space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4 text-blue-500" />
-                      Content
-                    </h3>
-                    <p className="text-sm whitespace-pre-wrap pl-6">{selectedViewEntry.content}</p>
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              <Card className="border-s-4 border-s-blue-400 rounded-2xl shadow-sm">
+                <CardContent className="p-5 space-y-5">
+
+                  {/* Content */}
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                      <MessageCircle className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-slate-800 mb-2">{t("Content")}</h3>
+                      <div className="bg-slate-50/60 rounded-xl border border-slate-200 p-4 text-sm leading-relaxed whitespace-pre-wrap text-slate-700">
+                        <DynamicTranslator text={selectedViewEntry.content} />
+                      </div>
+                    </div>
                   </div>
 
                   {/* Tags */}
                   {selectedViewEntry.userSelectedTags && selectedViewEntry.userSelectedTags.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <Tag className="h-4 w-4 text-blue-500" />
-                        Tags
-                      </h3>
-                      <div className="flex flex-wrap gap-1 pl-6">
-                        {selectedViewEntry.userSelectedTags.map((tag, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Tag className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">{t("Tags")}</h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedViewEntry.userSelectedTags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="px-2.5 py-1 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-200 font-medium"
+                            >
+                              <JournalTag text={tag} />
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
 
-                  {/* AI Analysis */}
+                  {/* AI Insights */}
                   {selectedViewEntry.aiAnalysis && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-amber-500" />
-                        AI Insights
-                      </h3>
-                      <p className="text-sm text-muted-foreground pl-6">{selectedViewEntry.aiAnalysis}</p>
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Sparkles className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">{t("AI Insights")}</h3>
+                        <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-3.5 text-sm leading-relaxed text-amber-900">
+                          <DynamicTranslator text={selectedViewEntry.aiAnalysis} />
+                        </div>
+                      </div>
                     </div>
                   )}
 
                   {/* Detected Emotions */}
                   {selectedViewEntry.emotions && selectedViewEntry.emotions.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <Heart className="h-4 w-4 text-rose-500" />
-                        Detected Emotions
-                      </h3>
-                      <div className="flex flex-wrap gap-1 pl-6">
-                        {selectedViewEntry.emotions.map((emotion, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {emotion}
-                          </Badge>
-                        ))}
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Heart className="h-4 w-4 text-rose-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">{t("Detected Emotions")}</h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedViewEntry.emotions.map((emotion, index) => (
+                            <span
+                              key={index}
+                              className="bg-rose-50 text-rose-700 border border-rose-200 rounded-full px-2.5 py-1 text-xs font-medium"
+                            >
+                              <JournalTag text={emotion} />
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {/* Detected Topics */}
                   {selectedViewEntry.topics && selectedViewEntry.topics.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <Tag className="h-4 w-4 text-blue-500" />
-                        Detected Topics
-                      </h3>
-                      <div className="flex flex-wrap gap-1 pl-6">
-                        {selectedViewEntry.topics.map((topic, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {topic}
-                          </Badge>
-                        ))}
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Tag className="h-4 w-4 text-indigo-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">{t("Detected Topics")}</h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedViewEntry.topics.map((topic, index) => (
+                            <span
+                              key={index}
+                              className="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full px-2.5 py-1 text-xs font-medium"
+                            >
+                              <JournalTag text={topic} />
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {/* Cognitive Distortions */}
                   {selectedViewEntry.userSelectedDistortions && selectedViewEntry.userSelectedDistortions.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <BrainCircuit className="h-4 w-4 text-purple-500" />
-                        Cognitive Distortions
-                      </h3>
-                      <div className="space-y-2 pl-6">
-                        {selectedViewEntry.userSelectedDistortions.map((distortion, index) => (
-                          <div key={index} className="text-sm">
-                            <span className="font-medium">{distortion}:</span>{" "}
-                            <span className="text-muted-foreground">{getDistortionDescription(distortion)}</span>
-                          </div>
-                        ))}
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <BrainCircuit className="h-4 w-4 text-purple-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">{t("Cognitive Distortions")}</h3>
+                        <div className="space-y-2">
+                          {selectedViewEntry.userSelectedDistortions.map((distortion, index) => (
+                            <div key={index} className="text-sm bg-purple-50/60 border border-purple-100 rounded-xl px-3.5 py-2.5">
+                              <span className="font-semibold text-purple-800">{formatDistortionTag(distortion, t)}:</span>{" "}
+                              <span className="text-purple-700">{getDistortionDescription(distortion, t)}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {/* Related Thought Records */}
                   {relatedThoughtRecords.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <Brain className="h-4 w-4 text-indigo-500" />
-                        Related Thought Records
-                      </h3>
-                      <div className="space-y-2 pl-6">
-                        {relatedThoughtRecords.map((record) => (
-                          <Card key={record.id} className="border">
-                            <CardContent className="p-3">
-                              <p className="text-sm font-medium">{record.automaticThoughts}</p>
-                              {record.situation && (
-                                <p className="text-xs text-muted-foreground mt-1">{record.situation}</p>
-                              )}
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {format(new Date(record.createdAt), "MMM d, yyyy")}
-                              </p>
-                            </CardContent>
-                          </Card>
-                        ))}
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Brain className="h-4 w-4 text-indigo-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-2">{t("Related Thought Records")}</h3>
+                        <div className="space-y-2">
+                          {relatedThoughtRecords.map((record) => (
+                            <Card key={record.id} className="border border-indigo-100 rounded-xl bg-indigo-50/30 shadow-none">
+                              <CardContent className="p-3">
+                                <p className="text-sm font-medium text-indigo-900">
+                                  <DynamicTranslator text={record.automaticThoughts} />
+                                </p>
+                                {record.situation && (
+                                  <p className="text-xs text-indigo-600/80 mt-1">
+                                    <DynamicTranslator text={record.situation} />
+                                  </p>
+                                )}
+                                <p className="text-xs text-indigo-500/70 mt-1">
+                                  {format(new Date(record.createdAt), "MMM d, yyyy", { locale: dateLocale })}
+                                </p>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
+
                 </CardContent>
               </Card>
             </div>
           </DialogContent>
         </Dialog>
       )}
-    </ModulePageShell>
+      </div>
+    </div>
+    </AppLayout>
   );
 }

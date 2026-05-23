@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Check, ChevronLeft, ChevronRight, LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useLocalization } from "@/lib/localize.tsx";
 
 interface WizardNavButtonsProps {
   currentStep: number;
@@ -15,6 +17,9 @@ interface WizardNavButtonsProps {
   submitLabel?: string;
   submitIcon?: LucideIcon;
   extraActions?: React.ReactNode;
+  nextButtonClassName?: string;
+  submitButtonClassName?: string;
+  footerClassName?: string;
 }
 
 export default function WizardNavButtons({
@@ -31,21 +36,29 @@ export default function WizardNavButtons({
   submitLabel = "Submit",
   submitIcon: SubmitIcon = Check,
   extraActions,
+  nextButtonClassName,
+  submitButtonClassName,
+  footerClassName,
 }: WizardNavButtonsProps) {
+  const { t, isRTL } = useLocalization();
   const isLast = currentStep === totalSteps - 1;
 
   return (
-    <div className="flex flex-wrap justify-between items-center gap-2 pt-4 border-t">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onPrevious}
-        disabled={currentStep === 0 || isSubmitting}
-        data-testid="button-previous-step"
-      >
-        <ChevronLeft className="h-4 w-4 mr-1" />
-        Previous
-      </Button>
+    <div
+      className={`flex flex-wrap ${currentStep === 0 ? "justify-center" : "justify-between"} items-center gap-3 pt-4 border-t border-slate-100 ${footerClassName ?? ""}`}
+    >
+      {currentStep > 0 && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onPrevious}
+          disabled={isSubmitting}
+          data-testid="button-previous-step"
+        >
+          <ChevronLeft className={cn("h-4 w-4", isRTL ? "ms-1 rotate-180" : "me-1")} />
+          {t("Previous")}
+        </Button>
+      )}
 
       <div className="flex flex-wrap gap-2 justify-end">
         {extraActions}
@@ -56,9 +69,13 @@ export default function WizardNavButtons({
             onClick={onNext}
             disabled={nextDisabled || isSubmitting}
             data-testid="button-next-step"
+            className={`${currentStep === 0 ? "h-11 px-6 text-base " : ""}${nextButtonClassName ?? ""}`}
           >
-            {currentStep === 0 ? introNextLabel : nextLabel}
-            <ChevronRight className="h-4 w-4 ml-1" />
+            {currentStep === 0 ? t(introNextLabel) : t(nextLabel)}
+            <ChevronRight className={cn(
+              currentStep === 0 ? "h-5 w-5" : "h-4 w-4",
+              isRTL ? "me-1.5 rotate-180" : currentStep === 0 ? "ms-1.5" : "ms-1"
+            )} />
           </Button>
         ) : (
           <Button
@@ -66,9 +83,10 @@ export default function WizardNavButtons({
             onClick={onSubmit}
             disabled={submitDisabled || isSubmitting}
             data-testid="button-submit-wizard"
+            className={submitButtonClassName}
           >
-            <SubmitIcon className="h-4 w-4 mr-1" />
-            {isSubmitting ? "Submitting…" : submitLabel}
+            <SubmitIcon className={cn("h-4 w-4", isRTL ? "ms-1" : "me-1")} />
+            {isSubmitting ? t("Submitting…") : t(submitLabel)}
           </Button>
         )}
       </div>

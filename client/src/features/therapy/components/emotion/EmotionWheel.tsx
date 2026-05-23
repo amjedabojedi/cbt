@@ -12,11 +12,14 @@ import EmotionWheelFixed from "./EmotionWheelFixed";
 interface EmotionWheelProps {
   language?: string;
   direction?: "ltr" | "rtl";
+  compact?: boolean;
   onEmotionSelect?: (selection: {
     coreEmotion: string;
     primaryEmotion: string;
     tertiaryEmotion: string;
   }) => void;
+  hideBreadcrumb?: boolean;
+  hideStatus?: boolean;
 }
 
 export default function EmotionWheel(props: EmotionWheelProps) {
