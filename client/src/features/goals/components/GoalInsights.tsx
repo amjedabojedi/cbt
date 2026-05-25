@@ -196,7 +196,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16 bg-white/60 backdrop-blur border border-slate-100 rounded-3xl shadow-sm">
-        <div className="animate-spin h-10 w-10 border-4 border-purple-600 border-t-transparent rounded-full" />
+        <div className="animate-spin h-10 w-10 border-4 border-teal-600 border-t-transparent rounded-full" />
       </div>
     );
   }

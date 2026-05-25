@@ -141,7 +141,7 @@ export function ThoughtChallengeWizard({
       style={{ background: "linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)" }}
     >
       {/* Glowing orb backdrops */}
-      <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-purple-600/25 blur-3xl pointer-events-none" />
+      <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-teal-500/25 blur-3xl pointer-events-none" />
       <div className="absolute -left-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/20 blur-2xl pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-16 rounded-full bg-violet-800/10 blur-3xl pointer-events-none" />
 

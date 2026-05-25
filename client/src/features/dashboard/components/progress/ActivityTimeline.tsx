@@ -33,7 +33,7 @@ const timelineStyleMap = {
   thought: { bg: "bg-teal-50/60 border-teal-100/40", text: "text-teal-700" },
   journal: { bg: "bg-violet-50/60 border-violet-100/40", text: "text-violet-600" },
   goal: { bg: "bg-fuchsia-50/60 border-fuchsia-100/40", text: "text-fuchsia-600" },
-  reframe: { bg: "bg-teal-100/25 border-teal-200/20", text: "text-purple-700" },
+  reframe: { bg: "bg-teal-100/25 border-teal-200/20", text: "text-teal-700" },
 };
 
 function TimelineTitle({ item }: { item: TimelineItem }) {
@@ -154,7 +154,7 @@ export default function ActivityTimeline({ timeline, isLoading }: ActivityTimeli
     >
       <CardHeader className="pb-4 pt-5 px-6">{header}</CardHeader>
       <CardContent className="px-6 pb-6 pt-0 flex-1">
-        <div className="space-y-3.5 pe-2 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-200/60 scrollbar-track-transparent hover:scrollbar-thumb-purple-300 transition-colors">
+        <div className="space-y-3.5 pe-2 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-teal-200/60 scrollbar-track-transparent hover:scrollbar-thumb-teal-300 transition-colors">
           {timeline.map((item) => {
             const Icon = iconMap[item.icon as keyof typeof iconMap];
             const customStyle = timelineStyleMap[item.type as keyof typeof timelineStyleMap];
@@ -180,7 +180,7 @@ export default function ActivityTimeline({ timeline, isLoading }: ActivityTimeli
                   {Icon ? <Icon className="h-4.5 w-4.5" /> : <Clock className="h-4.5 w-4.5" />}
                 </div>
                 <div className="flex-1 min-w-0 pt-0.5">
-                  <p className="text-sm font-bold text-slate-700 truncate leading-snug group-hover:text-purple-700 transition-colors">
+                  <p className="text-sm font-bold text-slate-700 truncate leading-snug group-hover:text-teal-700 transition-colors">
                     <TimelineTitle item={item} />
                   </p>
                   <div className="flex items-center gap-2 mt-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wide">

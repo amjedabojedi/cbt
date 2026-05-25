@@ -127,7 +127,7 @@ export default function CBTProgressSnapshot({
             </div>
             <Progress
               value={Math.min((totalActivities / 20) * 100, 100)}
-              className="h-1.5 [[&>div]:bg-purple-600>div]:bg-teal-600"
+              className="h-1.5 [&>div]:bg-teal-600"
             />
           </div>
         </CardContent>

@@ -1731,7 +1731,7 @@ export default function Journal() {
                           {selectedViewEntry.userSelectedDistortions.map((distortion, index) => (
                             <div key={index} className="text-sm bg-teal-50/60 border border-teal-100 rounded-xl px-3.5 py-2.5">
                               <span className="font-semibold text-teal-800">{formatDistortionTag(distortion, t)}:</span>{" "}
-                              <span className="text-purple-700">{getDistortionDescription(distortion, t)}</span>
+                              <span className="text-teal-700">{getDistortionDescription(distortion, t)}</span>
                             </div>
                           ))}
                         </div>

@@ -79,7 +79,7 @@ export default function WizardProgressHeader({
 
         {!(hideProgressOnIntro && currentStep === 0) && (
           <div className="space-y-2" data-testid={testId}>
-            <Progress value={progress} className="h-2 [[&>div]:bg-purple-600>div]:bg-teal-600" />
+            <Progress value={progress} className="h-2 [&>div]:bg-teal-600" />
             {/* Step labels — hidden on very small screens to prevent overflow with many steps */}
             <div className="hidden sm:flex justify-between text-xs text-slate-400">
               {stepLabels.map((label, idx) => {

@@ -136,7 +136,7 @@ export default function ProgressIndicators({
           </div>
           <Progress
             value={Math.min((totalActivities / 20) * 100, 100)}
-            className="h-2 [[&>div]:bg-purple-600>div]:bg-teal-600 bg-slate-100"
+            className="h-2 [&>div]:bg-teal-600 bg-slate-100"
           />
           <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wide">
             {t("Status:")}{" "}
@@ -203,7 +203,7 @@ export default function ProgressIndicators({
                       ? "bg-emerald-50/50 text-emerald-850 border-emerald-100/50"
                       : rec.type === "warning"
                         ? "bg-amber-50/50 text-amber-850 border-amber-100/50"
-                        : "bg-teal-50/50 text-purple-850 border-teal-100/50"
+                        : "bg-teal-50/50 text-teal-700 border-teal-100/50"
                   )}
                 >
                   <div className="mt-0.5 shrink-0">

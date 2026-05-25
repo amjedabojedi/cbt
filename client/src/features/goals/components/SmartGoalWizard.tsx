@@ -284,7 +284,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
               {currentStep === 1 && (
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                   <div className="md:col-span-2 bg-teal-50/50 p-5 rounded-2xl border border-teal-100/80 flex flex-col justify-center">
-                    <div className="inline-flex p-2.5 rounded-xl bg-teal-100 text-purple-700 w-fit mb-3">
+                    <div className="inline-flex p-2.5 rounded-xl bg-teal-100 text-teal-700 w-fit mb-3">
                       <HelpCircle className="h-5 w-5" />
                     </div>
                     <h3 className="font-bold text-base text-slate-800 mb-2">
@@ -307,7 +307,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                           <FormControl>
                             <Input
                               placeholder={t("e.g., Run a 5K Marathon, Learn Spanish, Save $5000...")}
-                              className="text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-teal-500 rounded-xl py-5"
+                              className="text-base bg-white border-slate-200 focus:border-teal-500 focus:ring-teal-500 rounded-xl py-5"
                               voiceInput
                               {...field}
                               data-testid="input-goal-title"
@@ -328,7 +328,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
               {currentStep === 2 && (
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                   <div className="md:col-span-2 bg-teal-50/50 p-5 rounded-2xl border border-teal-100/80 flex flex-col justify-center">
-                    <div className="inline-flex p-2.5 rounded-xl bg-teal-100 text-purple-700 w-fit mb-3">
+                    <div className="inline-flex p-2.5 rounded-xl bg-teal-100 text-teal-700 w-fit mb-3">
                       <Target className="h-5 w-5" />
                     </div>
                     <h3 className="font-bold text-base text-slate-800 mb-2">
@@ -338,7 +338,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       {t("Define exactly what you want to accomplish. Answer: What will I do? How will I do it? Where? With whom?")}
                     </p>
                     <div className="bg-white/80 p-3 rounded-xl border border-teal-100">
-                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
+                      <span className="text-xs font-bold text-teal-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
                       <p className="text-xs italic text-slate-600">
                         {t('"I will exercise 3 times per week at the gym" instead of "I want to be healthier"')}
                       </p>
@@ -359,7 +359,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                               value={watchedValues.specific}
                               onChange={(e) => form.setValue("specific", e.target.value)}
                               placeholder={t("Describe your goal in detail. What exactly will you accomplish? Be as specific as possible...")}
-                              className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-teal-500 rounded-xl"
+                              className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-teal-500 focus:ring-teal-500 rounded-xl"
                               data-testid="textarea-goal-specific"
                             />
                           </FormControl>
@@ -378,7 +378,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
               {currentStep === 3 && (
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                   <div className="md:col-span-2 bg-teal-50/50 p-5 rounded-2xl border border-teal-100/80 flex flex-col justify-center">
-                    <div className="inline-flex p-2.5 rounded-xl bg-teal-100 text-purple-700 w-fit mb-3">
+                    <div className="inline-flex p-2.5 rounded-xl bg-teal-100 text-teal-700 w-fit mb-3">
                       <Ruler className="h-5 w-5" />
                     </div>
                     <h3 className="font-bold text-base text-slate-800 mb-2">
@@ -388,7 +388,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       {t("How will you know when you've achieved your goal? Define concrete criteria to track your progress.")}
                     </p>
                     <div className="bg-white/80 p-3 rounded-xl border border-teal-100">
-                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
+                      <span className="text-xs font-bold text-teal-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
                       <p className="text-xs italic text-slate-600">
                         {t('"Complete 12 workout sessions" or "Save $100 per week"')}
                       </p>
@@ -409,7 +409,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                               value={watchedValues.measurable}
                               onChange={(e) => form.setValue("measurable", e.target.value)}
                               placeholder={t("What metrics or milestones will show your progress? How will you know you've succeeded?")}
-                              className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-teal-500 rounded-xl"
+                              className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-teal-500 focus:ring-teal-500 rounded-xl"
                               data-testid="textarea-goal-measurable"
                             />
                           </FormControl>
@@ -428,7 +428,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
               {currentStep === 4 && (
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                   <div className="md:col-span-2 bg-teal-50/50 p-5 rounded-2xl border border-teal-100/80 flex flex-col justify-center">
-                    <div className="inline-flex p-2.5 rounded-xl bg-teal-100 text-purple-700 w-fit mb-3">
+                    <div className="inline-flex p-2.5 rounded-xl bg-teal-100 text-teal-700 w-fit mb-3">
                       <TrendingUp className="h-5 w-5" />
                     </div>
                     <h3 className="font-bold text-base text-slate-800 mb-2">
@@ -438,7 +438,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       {t("Is this goal realistic given your current resources, skills, and time? Challenge yourself, but stay practical.")}
                     </p>
                     <div className="bg-white/80 p-3 rounded-xl border border-teal-100">
-                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
+                      <span className="text-xs font-bold text-teal-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
                       <p className="text-xs italic text-slate-600">
                         {t('"I have gym membership and can commit 3 hours/week"')}
                       </p>
@@ -459,7 +459,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                               value={watchedValues.achievable}
                               onChange={(e) => form.setValue("achievable", e.target.value)}
                               placeholder={t("What resources, skills, or support do you have? What makes this goal realistic for you?")}
-                              className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-teal-500 rounded-xl"
+                              className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-teal-500 focus:ring-teal-500 rounded-xl"
                               data-testid="textarea-goal-achievable"
                             />
                           </FormControl>
@@ -478,7 +478,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
               {currentStep === 5 && (
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                   <div className="md:col-span-2 bg-teal-50/50 p-5 rounded-2xl border border-teal-100/80 flex flex-col justify-center">
-                    <div className="inline-flex p-2.5 rounded-xl bg-teal-100 text-purple-700 w-fit mb-3">
+                    <div className="inline-flex p-2.5 rounded-xl bg-teal-100 text-teal-700 w-fit mb-3">
                       <LinkIcon className="h-5 w-5" />
                     </div>
                     <h3 className="font-bold text-base text-slate-800 mb-2">
@@ -488,7 +488,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       {t("Why does this goal matter to you? How does it align with your values and life priorities?")}
                     </p>
                     <div className="bg-white/80 p-3 rounded-xl border border-teal-100">
-                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
+                      <span className="text-xs font-bold text-teal-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
                       <p className="text-xs italic text-slate-600">
                         {t('"Better health will give me energy to play with my kids"')}
                       </p>
@@ -509,7 +509,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                               value={watchedValues.relevant}
                               onChange={(e) => form.setValue("relevant", e.target.value)}
                               placeholder={t("How will achieving this goal improve your life? Why is it important to you right now?")}
-                              className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-teal-500 rounded-xl"
+                              className="resize-none min-h-[110px] text-base bg-white border-slate-200 focus:border-teal-500 focus:ring-teal-500 rounded-xl"
                               data-testid="textarea-goal-relevant"
                             />
                           </FormControl>
@@ -528,7 +528,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
               {currentStep === 6 && (
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                   <div className="md:col-span-2 bg-teal-50/50 p-5 rounded-2xl border border-teal-100/80 flex flex-col justify-center">
-                    <div className="inline-flex p-2.5 rounded-xl bg-teal-100 text-purple-700 w-fit mb-3">
+                    <div className="inline-flex p-2.5 rounded-xl bg-teal-100 text-teal-700 w-fit mb-3">
                       <Clock className="h-5 w-5" />
                     </div>
                     <h3 className="font-bold text-base text-slate-800 mb-2">
@@ -538,7 +538,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                       {t("When will you achieve this goal? A deadline creates urgency and helps you stay on track.")}
                     </p>
                     <div className="bg-white/80 p-3 rounded-xl border border-teal-100">
-                      <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
+                      <span className="text-xs font-bold text-teal-700 uppercase tracking-wider block mb-1">{t("Example")}</span>
                       <p className="text-xs italic text-slate-600">
                         {t('"Complete within 3 months, tracking weekly milestones"')}
                       </p>
@@ -559,7 +559,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                               value={watchedValues.timebound}
                               onChange={(e) => form.setValue("timebound", e.target.value)}
                               placeholder={t("By when will you achieve this? Describe your timeline...")}
-                              className="resize-none min-h-[90px] text-base bg-white border-slate-200 focus:border-purple-500 focus:ring-teal-500 rounded-xl"
+                              className="resize-none min-h-[90px] text-base bg-white border-slate-200 focus:border-teal-500 focus:ring-teal-500 rounded-xl"
                               data-testid="textarea-goal-timebound"
                             />
                           </FormControl>

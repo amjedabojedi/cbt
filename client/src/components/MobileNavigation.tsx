@@ -77,11 +77,11 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
           <div className="flex h-full flex-col">
             {/* Logo */}
             <div className="flex items-center gap-3 px-4 py-4 border-b border-teal-800/80">
-              <div className="w-9 h-9 rounded flex items-center justify-center flex-shrink-0 bg-gradient-to-tr from-purple-600 to-indigo-600 shadow-[0_0_15px_rgba(124,58,237,0.4)]">
+              <div className="w-9 h-9 rounded flex items-center justify-center flex-shrink-0 bg-gradient-to-tr from-teal-700 to-teal-600 shadow-[0_0_15px_rgba(20,184,166,0.4)]">
                 <Brain size={18} className="text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-black tracking-wide bg-gradient-to-r from-purple-300 via-indigo-200 to-purple-400 bg-clip-text text-transparent">
+                <h1 className="text-lg font-black tracking-wide bg-gradient-to-r from-teal-200 via-white to-teal-300 bg-clip-text text-transparent">
                   ResilienceHub
                 </h1>
                 <span className="text-[9px] font-bold tracking-widest text-teal-300/90 uppercase">
@@ -92,11 +92,11 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
 
             {/* User profile */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-teal-800/80 bg-teal-800/10">
-              <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold flex-shrink-0 bg-gradient-to-tr from-purple-500/20 to-indigo-500/20 text-teal-100 border border-purple-500/35 shadow-[0_0_12px_rgba(168,85,247,0.15)]">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold flex-shrink-0 bg-gradient-to-tr from-teal-500/20 to-teal-400/20 text-teal-100 border border-teal-500/35 shadow-[0_0_12px_rgba(20,184,166,0.15)]">
                 {initials}
               </div>
               <div className="min-w-0">
-                <p className="font-bold text-sm text-purple-100 truncate">{user?.name}</p>
+                <p className="font-bold text-sm text-teal-100 truncate">{user?.name}</p>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-teal-300">
                   {user?.role === 'therapist' ? 'Clinical Therapist' : user?.role}
                 </p>
@@ -116,7 +116,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                           className={cn(
                             'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
                             active
-                              ? 'text-teal-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 border-l-[3px] border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.12)]'
+                              ? 'text-teal-200 font-bold bg-gradient-to-r from-teal-800/50 to-teal-900/30 border-l-[3px] border-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.12)]'
                               : 'text-teal-100/70 hover:text-teal-200 hover:bg-teal-700/20'
                           )}
                         >
@@ -145,8 +145,8 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                       className={cn(
                         "flex-1 text-xs py-1 px-2 rounded-md font-bold transition-all duration-300 text-center",
                         currentLanguage === "en"
-                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(124,58,237,0.4)]"
-                          : "text-teal-300/80 hover:text-teal-200 hover:bg-purple-900/20"
+                          ? "bg-gradient-to-r from-teal-700 to-teal-600 text-white shadow-[0_2px_8px_rgba(20,184,166,0.4)]"
+                          : "text-teal-300/80 hover:text-teal-200 hover:bg-teal-900/20"
                       )}
                     >
                       English
@@ -156,8 +156,8 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                       className={cn(
                         "flex-1 text-xs py-1 px-2 rounded-md font-bold transition-all duration-300 text-center font-noto-arabic",
                         currentLanguage === "ar"
-                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(124,58,237,0.4)]"
-                          : "text-teal-300/80 hover:text-teal-200 hover:bg-purple-900/20"
+                          ? "bg-gradient-to-r from-teal-700 to-teal-600 text-white shadow-[0_2px_8px_rgba(20,184,166,0.4)]"
+                          : "text-teal-300/80 hover:text-teal-200 hover:bg-teal-900/20"
                       )}
                     >
                       العربية
@@ -173,7 +173,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                       className={cn(
                         'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
                         location === '/settings'
-                          ? 'text-teal-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 border-l-[3px] border-purple-500'
+                          ? 'text-teal-200 font-bold bg-gradient-to-r from-teal-800/50 to-teal-900/30 border-l-[3px] border-teal-400'
                           : 'text-teal-100/70 hover:text-teal-200 hover:bg-teal-700/20'
                       )}
                     >

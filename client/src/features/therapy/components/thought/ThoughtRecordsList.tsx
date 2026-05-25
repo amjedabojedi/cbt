@@ -545,7 +545,7 @@ export default function ThoughtRecordsList({
                         {canPractice ? (
                           <Button 
                             onClick={() => navigate(`/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`)}
-                            className="w-full bg-purple-600 hover:bg-purple-700 text-white animate-none text-center"
+                            className="w-full bg-teal-700 hover:bg-teal-600 text-white animate-none text-center"
                             size="lg"
                             data-testid={`button-practice-${record.id}`}
                           >
@@ -591,7 +591,7 @@ export default function ThoughtRecordsList({
               style={{ background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)' }}
             >
               {/* Glowing orb backdrops */}
-              <div className="absolute -end-12 -top-12 w-36 h-36 rounded-full bg-purple-600/25 blur-3xl pointer-events-none" />
+              <div className="absolute -end-12 -top-12 w-36 h-36 rounded-full bg-teal-500/25 blur-3xl pointer-events-none" />
               <div className="absolute -start-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/20 blur-2xl pointer-events-none" />
               <div className="relative z-10 flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-purple-900/40 shrink-0">

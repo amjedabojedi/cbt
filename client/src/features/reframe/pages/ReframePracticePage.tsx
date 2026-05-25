@@ -313,7 +313,7 @@ const ReframePracticePage = () => {
               </p>
               {isLoadingScenarios && !isFromCache && (
                 <div className="max-w-md mt-6 w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                  <div className="bg-purple-600 h-2.5 rounded-full animate-progress"></div>
+                  <div className="bg-teal-600 h-2.5 rounded-full animate-progress"></div>
                 </div>
               )}
               {isLoadingScenarios && isFromCache && (
@@ -408,7 +408,7 @@ const ReframePracticePage = () => {
                     <div className="mt-3">
                       <p className="text-xxs font-bold text-slate-400 uppercase tracking-wider mb-1.5">{t("Original Automatic Thought:")}</p>
                       <div className="rounded-xl bg-teal-50/40 border border-teal-100/50 p-4 relative overflow-hidden">
-                        <div className="absolute top-0 end-0 w-16 h-16 bg-purple-600/5 rounded-full blur-lg pointer-events-none" />
+                        <div className="absolute top-0 end-0 w-16 h-16 bg-teal-600/5 rounded-full blur-lg pointer-events-none" />
                         <p className="text-slate-700 italic font-semibold text-sm leading-relaxed">
                           "<DynamicTranslator text={thoughtRecordData.automaticThoughts} />"
                         </p>
@@ -453,7 +453,7 @@ const ReframePracticePage = () => {
                             .map((label, idx) => (
                             <span 
                               key={`distortion-${idx}`} 
-                              className="px-2.5 py-1 text-xs rounded-lg bg-teal-50 text-purple-700 border border-teal-100/60 font-semibold shadow-2xs"
+                              className="px-2.5 py-1 text-xs rounded-lg bg-teal-50 text-teal-700 border border-teal-100/60 font-semibold shadow-2xs"
                             >
                               {label}
                             </span>

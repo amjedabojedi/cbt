@@ -113,25 +113,25 @@ export default function EmotionOnboardingTour({ onComplete }: EmotionOnboardingT
             <h4 className="font-medium text-sm mb-3">{t("Follow these simple steps:")}</h4>
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+                <div className="bg-teal-700 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
                   {tNum(1)}
                 </div>
                 <p className="text-sm text-gray-700">{t("Select your emotion from the wheel")}</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+                <div className="bg-teal-700 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
                   {tNum(2)}
                 </div>
                 <p className="text-sm text-gray-700">{t("Rate how intensely you felt it (1-10)")}</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+                <div className="bg-teal-700 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
                   {tNum(3)}
                 </div>
                 <p className="text-sm text-gray-700">{t("Describe what happened (the situation)")}</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+                <div className="bg-teal-700 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
                   {tNum(4)}
                 </div>
                 <p className="text-sm text-gray-700">{t("Add optional details (where, when, who)")}</p>
@@ -218,7 +218,7 @@ export default function EmotionOnboardingTour({ onComplete }: EmotionOnboardingT
               <span>{t("Step")} {tNum(currentSlide + 1)} {t("of")} {tNum(TOUR_SLIDES.length)}</span>
               <span>{tNum(Math.round(progress))}٪ {t("complete")}</span>
             </div>
-            <Progress value={progress} className="h-2 [[&>div]:bg-purple-600>div]:bg-teal-600" />
+            <Progress value={progress} className="h-2 [&>div]:bg-teal-600" />
           </div>
 
           <div className="flex items-center justify-between w-full gap-2">

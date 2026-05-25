@@ -56,7 +56,7 @@ const modules: Module[] = [
     nameKey: "Reframe Coach",
     icon: Lightbulb,
     iconBg: "bg-teal-100/40 group-hover:bg-teal-100/80",
-    iconColor: "text-purple-700",
+    iconColor: "text-teal-700",
     path: "/reframe-coach?tab=insights",
     descriptionKey: "Practice results",
   },
@@ -97,7 +97,7 @@ export default function ModuleQuickLinks() {
                     >
                       <Icon className="h-4.5 w-4.5" />
                     </div>
-                    <span className="text-xs font-extrabold text-slate-700 leading-tight group-hover:text-purple-700 transition-colors duration-300">
+                    <span className="text-xs font-extrabold text-slate-700 leading-tight group-hover:text-teal-700 transition-colors duration-300">
                       {t(module.nameKey)}
                     </span>
                   </div>
