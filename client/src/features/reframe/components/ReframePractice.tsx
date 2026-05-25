@@ -94,7 +94,7 @@ const PracticeScenario = ({
             {t("Scenario")} {tNum(currentIndex + 1)} {t("of")} {tNum(totalScenarios)}
           </span>
           <div className="flex items-center gap-2">
-            <span className="bg-teal-50 text-purple-700 border border-teal-100 px-3 py-1 rounded-full text-xxs font-bold uppercase tracking-wider shadow-2xs">
+            <span className="bg-teal-50 text-teal-700 border border-teal-100 px-3 py-1 rounded-full text-xxs font-bold uppercase tracking-wider shadow-2xs">
               {formatDistortionLabel(scenario.cognitiveDistortion, t)}
             </span>
             <span
@@ -136,7 +136,7 @@ const PracticeScenario = ({
                       ? "border-emerald-500 bg-emerald-50/60 text-emerald-900"
                       : showFeedback
                         ? "border-rose-500 bg-rose-50/60 text-rose-900"
-                        : "border-purple-600 bg-teal-50/40 text-teal-700"
+                        : "border-teal-500 bg-teal-50/40 text-teal-700"
                     : showFeedback && isCorrect
                       ? "border-emerald-500 bg-emerald-50/60 text-emerald-900"
                       : "border-slate-100 hover:border-teal-200 hover:bg-slate-50/40"
@@ -161,7 +161,7 @@ const PracticeScenario = ({
                       <div className={cn(
                         "h-5 w-5 rounded-full border flex items-center justify-center transition-all duration-300",
                         isSelected 
-                          ? "border-purple-600 bg-purple-600 text-white shadow-xs" 
+                          ? "border-teal-600 bg-teal-600 text-white shadow-xs" 
                           : "border-slate-300 hover:border-purple-400"
                       )}>
                         {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
@@ -263,13 +263,13 @@ const GameProfile = ({
           {/* Level card */}
           <div className="p-4 rounded-xl border border-teal-100 bg-teal-50/30 flex flex-col justify-between space-y-3">
             <div>
-              <p className="text-[10px] font-bold text-purple-700 uppercase tracking-widest">{t("Skill Level")}</p>
+              <p className="text-[10px] font-bold text-teal-700 uppercase tracking-widest">{t("Skill Level")}</p>
               <p className="text-2xl font-extrabold text-slate-800">{t("Level")} {tNum(level)}</p>
             </div>
             <div className="space-y-1.5">
               <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-purple-600 rounded-full transition-all duration-500" 
+                  className="h-full bg-teal-600 rounded-full transition-all duration-500" 
                   style={{ 
                     width: `${(totalScore % 500) / 5}%` 
                   }}
@@ -442,7 +442,7 @@ const PracticeResults = ({
               <Zap className="h-5 w-5 text-teal-700 fill-purple-600 shrink-0 mt-0.5 animate-bounce" />
               <div>
                 <h4 className="text-sm font-bold text-teal-800">{t("Level Up!")}</h4>
-                <p className="text-xs text-purple-700 font-medium mt-0.5">
+                <p className="text-xs text-teal-700 font-medium mt-0.5">
                   {t("You reached")}{" "}
                   <span className="font-extrabold">{t("Level")} {tNum(gameUpdates.newLevel)}</span>!{" "}
                   {t("Keep practicing to unlock more advanced exercises.")}
@@ -963,7 +963,7 @@ const ReframePractice = ({
             {tNum(currentScenarioIndex + 1)} {t("of")} {tNum(scenarios.length)}
           </span>
         </div>
-        <Progress value={progress} className="h-2.5 bg-slate-100 rounded-full [[&>div]:bg-purple-600>div]:bg-teal-600 shadow-inner transition-all duration-300" />
+        <Progress value={progress} className="h-2.5 bg-slate-100 rounded-full [&>div]:bg-teal-600 shadow-inner transition-all duration-300" />
       </div>
       
       <PracticeScenario

@@ -425,8 +425,8 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               style={{ background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)' }}
             >
               {/* Ambient orbs */}
-              <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-purple-600/25 blur-3xl pointer-events-none" />
-              <div className="absolute -left-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/20 blur-2xl pointer-events-none" />
+              <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-teal-500/25 blur-3xl pointer-events-none" />
+              <div className="absolute -left-8 -bottom-8 w-28 h-28 rounded-full bg-sky-700/20 blur-2xl pointer-events-none" />
  
               <div className="relative z-10 flex items-center gap-3.5">
                 {/* Glassmorphic emotion icon orb */}
@@ -606,7 +606,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               style={{ background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)' }}
             >
               <div className="absolute -right-10 -top-10 w-32 h-32 rounded-full bg-teal-500/20 blur-3xl pointer-events-none" />
-              <div className="absolute -left-8 -bottom-8 w-24 h-24 rounded-full bg-indigo-700/15 blur-2xl pointer-events-none" />
+              <div className="absolute -left-8 -bottom-8 w-24 h-24 rounded-full bg-sky-700/15 blur-2xl pointer-events-none" />
               <div className="relative z-10 flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shrink-0">
                   {selectedEmotion.coreEmotion === 'Joy'      && <Smile       className="h-5 w-5 text-teal-200" />}

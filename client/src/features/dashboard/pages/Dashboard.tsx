@@ -809,14 +809,14 @@ export default function Dashboard() {
                 <span className="text-sm font-medium text-slate-600">{t("Engagement Score")}</span>
                 <span className="text-sm font-bold text-slate-800">{tNum(`${engagementScore}%`)}</span>
               </div>
-              <Progress value={engagementScore} className="h-2 [[&>div]:bg-purple-600>div]:bg-teal-600" />
+              <Progress value={engagementScore} className="h-2 [&>div]:bg-teal-600" />
               <p className="text-xs text-slate-400 mt-1.5">{tNum(totalActivities)} {t("total activities across all modules")}</p>
             </div>
 
             <div className="grid grid-cols-5 gap-3 pt-4 border-t border-slate-100">
               {[
                 { val: moduleStats.emotions.total,          label: t("Emotions"),  color: "text-rose-500",    bg: "bg-rose-50"    },
-                { val: moduleStats.thoughts.total,          label: t("Thoughts"),  color: "text-teal-700",  bg: "bg-teal-50"  },
+                { val: moduleStats.thoughts.total,          label: t("Thoughts"),  color: "text-sky-600",  bg: "bg-sky-50"  },
                 { val: moduleStats.reframe.totalPractices,  label: t("Reframes"),  color: "text-emerald-600", bg: "bg-emerald-50" },
                 { val: moduleStats.journal.total,           label: t("Journal"),   color: "text-amber-600",   bg: "bg-amber-50"   },
                 { val: moduleStats.goals.total,             label: t("Goals"),     color: "text-indigo-600",  bg: "bg-indigo-50"  },

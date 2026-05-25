@@ -147,7 +147,7 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16 bg-white/60 backdrop-blur border border-slate-100 rounded-3xl shadow-sm">
-        <div className="animate-spin h-10 w-10 border-4 border-purple-600 border-t-transparent rounded-full" />
+        <div className="animate-spin h-10 w-10 border-4 border-teal-600 border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -278,7 +278,7 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
                     const d = payload[0];
                     return (
                       <div dir={isRTL ? "rtl" : "ltr"} className="bg-white/95 backdrop-blur-md py-1.5 px-3 border border-purple-50 rounded-xl shadow-lg text-xs font-semibold text-slate-800">
-                        {translateEmotion(String(d.name), currentLanguage)}: <span className="font-extrabold text-purple-700">{tNum(d.value as number)}</span>
+                        {translateEmotion(String(d.name), currentLanguage)}: <span className="font-extrabold text-teal-700">{tNum(d.value as number)}</span>
                       </div>
                     );
                   }}
@@ -318,7 +318,7 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
                     const d = payload[0].payload;
                     return (
                       <div dir={isRTL ? "rtl" : "ltr"} className="bg-white/95 backdrop-blur-md py-1.5 px-3 border border-purple-50 rounded-xl shadow-lg text-xs font-semibold text-slate-800">
-                        {d.time}: <span className="font-extrabold text-purple-700">{tNum(d.count)} {t("records")}</span>
+                        {d.time}: <span className="font-extrabold text-teal-700">{tNum(d.count)} {t("records")}</span>
                       </div>
                     );
                   }}

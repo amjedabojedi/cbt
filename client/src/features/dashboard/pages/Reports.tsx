@@ -130,7 +130,7 @@ export default function Reports() {
                       setIsExporting(false);
                     }
                   }}
-                  className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold px-4 py-2 rounded-xl shadow-md border-0 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                  className="bg-teal-700 hover:bg-teal-600 active:bg-teal-800 text-white font-bold px-4 py-2 rounded-xl shadow-md border-0 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                   data-testid="button-export-report"
                 >
                   {isExporting ? (

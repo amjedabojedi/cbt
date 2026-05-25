@@ -687,7 +687,7 @@ export default function ReflectionWizard({
                     <FormControl>
                       <Checkbox
                         checked={isChecked}
-                        className="border-purple-400 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                        className="border-teal-400 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
                         onCheckedChange={(checked) => {
                           const current = form.getValues("cognitiveDistortions") || [];
                           const updated = checked
@@ -820,7 +820,7 @@ export default function ReflectionWizard({
             variant="ghost" 
             size="sm"
             type="button"
-            className="text-teal-700 hover:text-purple-700"
+            className="text-teal-700 hover:text-teal-700"
             onClick={(e) => {
               // Prevent default button behavior that might submit forms
               e.preventDefault();
@@ -846,8 +846,8 @@ export default function ReflectionWizard({
                 key={factor.id}
                 className={`px-3 py-2 text-sm border rounded-full cursor-pointer transition-colors ${
                   selectedProtectiveFactors.includes(factor.id)
-                    ? "bg-purple-600 text-white border-purple-600"
-                    : "bg-white text-neutral-700 border-neutral-300 hover:border-purple-400"
+                    ? "bg-teal-700 text-white border-teal-700"
+                    : "bg-white text-neutral-700 border-neutral-300 hover:border-teal-400"
                 }`}
                 onClick={() => toggleProtectiveFactor(factor.id)}
               >
@@ -866,7 +866,7 @@ export default function ReflectionWizard({
                 <Button
                   size="sm"
                   type="button"
-                  className="bg-purple-600 hover:bg-purple-700 border-0 text-white"
+                  className="bg-teal-700 hover:bg-teal-600 border-0 text-white"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -925,7 +925,7 @@ export default function ReflectionWizard({
                         min={1}
                         max={10}
                         step={1}
-                        className="[&>span>span]:bg-purple-600 [&>[role=slider]]:border-purple-600"
+                        className="[&>span>span]:bg-teal-600 [&>[role=slider]]:border-teal-600"
                         onValueChange={(values) => updateProtectiveFactorRating(factorId, values[0])}
                       />
                     </div>
@@ -999,7 +999,7 @@ export default function ReflectionWizard({
             variant="ghost" 
             size="sm"
             type="button"
-            className="text-teal-700 hover:text-purple-700"
+            className="text-teal-700 hover:text-teal-700"
             onClick={(e) => {
               // Prevent default button behavior that might submit forms
               e.preventDefault();
@@ -1025,8 +1025,8 @@ export default function ReflectionWizard({
                 key={strategy.id}
                 className={`px-3 py-2 text-sm border rounded-full cursor-pointer transition-colors ${
                   selectedCopingStrategies.includes(strategy.id)
-                    ? "bg-purple-600 text-white border-purple-600"
-                    : "bg-white text-neutral-700 border-neutral-300 hover:border-purple-400"
+                    ? "bg-teal-700 text-white border-teal-700"
+                    : "bg-white text-neutral-700 border-neutral-300 hover:border-teal-400"
                 }`}
                 onClick={() => toggleCopingStrategy(strategy.id)}
               >
@@ -1045,7 +1045,7 @@ export default function ReflectionWizard({
                 <Button
                   size="sm"
                   type="button"
-                  className="bg-purple-600 hover:bg-purple-700 border-0 text-white"
+                  className="bg-teal-700 hover:bg-teal-600 border-0 text-white"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1104,7 +1104,7 @@ export default function ReflectionWizard({
                         min={1}
                         max={10}
                         step={1}
-                        className="[&>span>span]:bg-purple-600 [&>[role=slider]]:border-purple-600"
+                        className="[&>span>span]:bg-teal-600 [&>[role=slider]]:border-teal-600"
                         onValueChange={(values) => updateCopingStrategyRating(strategyId, values[0])}
                       />
                     </div>
@@ -1184,7 +1184,7 @@ export default function ReflectionWizard({
                   max={10}
                   step={1}
                   defaultValue={[5]}
-                  className="[&>span>span]:bg-purple-600 [&>[role=slider]]:border-purple-600"
+                  className="[&>span>span]:bg-teal-600 [&>[role=slider]]:border-teal-600"
                   onValueChange={(values) => {
                     field.onChange(values[0]);
                     form.setValue("reflectionRating", values[0], {

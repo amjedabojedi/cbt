@@ -328,7 +328,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16 bg-white/60 backdrop-blur border border-slate-100 rounded-3xl shadow-sm" dir={isRTL ? "rtl" : "ltr"}>
-        <div className="animate-spin h-10 w-10 border-4 border-purple-600 border-t-transparent rounded-full" />
+        <div className="animate-spin h-10 w-10 border-4 border-teal-600 border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -667,7 +667,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                         const label = data.displayName ?? formatJournalTag(String(data.name ?? ""), t, currentLanguage);
                         return (
                           <div className="bg-white/95 backdrop-blur-md py-1.5 px-3 border border-purple-50 rounded-xl shadow-lg text-xs font-semibold text-slate-800" dir={isRTL ? "rtl" : "ltr"}>
-                            {label}: <span className="font-extrabold text-purple-700">{tNum(data.value ?? 0)} {t("records")}</span>
+                            {label}: <span className="font-extrabold text-teal-700">{tNum(data.value ?? 0)} {t("records")}</span>
                           </div>
                         );
                       }
@@ -815,11 +815,11 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
               
               let cellClass = "bg-slate-50 text-slate-300 border border-slate-100/50";
               if (count === 1) {
-                cellClass = "bg-teal-50 border border-teal-100 text-purple-700 shadow-sm";
+                cellClass = "bg-teal-50 border border-teal-100 text-teal-700 shadow-sm";
               } else if (count === 2) {
                 cellClass = "bg-teal-100 border border-teal-200 text-teal-800 shadow-sm";
               } else if (count >= 3) {
-                cellClass = "bg-teal-500 text-white border border-purple-600 shadow-md shadow-purple-100/40";
+                cellClass = "bg-teal-500 text-white border border-teal-600 shadow-md shadow-teal-100/40";
               }
               
               return (

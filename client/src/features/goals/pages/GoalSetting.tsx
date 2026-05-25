@@ -452,7 +452,7 @@ export default function GoalSetting() {
                               <div className="w-7 h-7 rounded-lg bg-teal-100 border border-teal-200 flex items-center justify-center shrink-0">
                                 <Target className="h-3.5 w-3.5 text-teal-700" />
                               </div>
-                              <span className="text-xs font-bold text-purple-700 uppercase tracking-wider">{t("S — Specific")}</span>
+                              <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">{t("S — Specific")}</span>
                             </div>
                             <p className="text-sm text-slate-600 leading-relaxed"><DynamicTranslator text={selectedGoal?.specific || ""} /></p>
                           </div>

@@ -307,7 +307,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16 bg-white/60 backdrop-blur border border-slate-100 rounded-3xl shadow-sm" dir={isRTL ? "rtl" : "ltr"}>
-        <div className="animate-spin h-10 w-10 border-4 border-purple-600 border-t-transparent rounded-full" />
+        <div className="animate-spin h-10 w-10 border-4 border-teal-600 border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -612,7 +612,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
                 } else if (score < 0.85) {
                   cellClass = "bg-purple-300 border border-purple-400 text-teal-700 shadow-sm";
                 } else {
-                  cellClass = "bg-purple-600 text-white border border-purple-700 shadow-md shadow-purple-100/40";
+                  cellClass = "bg-teal-600 text-white border border-teal-700 shadow-md shadow-teal-100/40";
                 }
               }
 
@@ -642,7 +642,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
               <div className="w-3.5 h-3.5 bg-teal-50 border border-teal-100 rounded-md" />
               <div className="w-3.5 h-3.5 bg-teal-100 border border-teal-200 rounded-md" />
               <div className="w-3.5 h-3.5 bg-purple-300 border border-purple-400 rounded-md" />
-              <div className="w-3.5 h-3.5 bg-purple-600 rounded-md shadow-sm" />
+              <div className="w-3.5 h-3.5 bg-teal-600 rounded-md shadow-sm" />
             </div>
             <span>{t("High Performance")}</span>
           </div>

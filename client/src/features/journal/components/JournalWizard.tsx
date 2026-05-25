@@ -245,7 +245,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 h-full">
                       <Card className="border-teal-100 bg-teal-50/30 flex flex-col justify-center p-3.5 h-full">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <Heart className="h-4.5 w-4.5 text-purple-700 shrink-0" />
+                          <Heart className="h-4.5 w-4.5 text-teal-700 shrink-0" />
                           <h4 className="font-bold text-xs sm:text-sm text-gray-900">{t("Process Emotions")}</h4>
                         </div>
                         <p className="text-[11px] sm:text-xs text-gray-600 leading-normal">
@@ -255,7 +255,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
 
                       <Card className="border-teal-100 bg-teal-50/30 flex flex-col justify-center p-3.5 h-full">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <Sparkles className="h-4.5 w-4.5 text-purple-700 shrink-0" />
+                          <Sparkles className="h-4.5 w-4.5 text-teal-700 shrink-0" />
                           <h4 className="font-bold text-xs sm:text-sm text-gray-900">{t("AI Insights")}</h4>
                         </div>
                         <p className="text-[11px] sm:text-xs text-gray-600 leading-normal">
@@ -265,7 +265,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
 
                       <Card className="border-teal-100 bg-teal-50/30 flex flex-col justify-center p-3.5 h-full">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <Tag className="h-4.5 w-4.5 text-purple-700 shrink-0" />
+                          <Tag className="h-4.5 w-4.5 text-teal-700 shrink-0" />
                           <h4 className="font-bold text-xs sm:text-sm text-gray-900">{t("Track Patterns")}</h4>
                         </div>
                         <p className="text-[11px] sm:text-xs text-gray-600 leading-normal">
@@ -275,7 +275,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
 
                       <Card className="border-teal-100 bg-teal-50/30 flex flex-col justify-center p-3.5 h-full">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <CheckSquare className="h-4.5 w-4.5 text-purple-700 shrink-0" />
+                          <CheckSquare className="h-4.5 w-4.5 text-teal-700 shrink-0" />
                           <h4 className="font-bold text-xs sm:text-sm text-gray-900">{t("Private & Secure")}</h4>
                         </div>
                         <p className="text-[11px] sm:text-xs text-gray-600 leading-normal">
@@ -288,20 +288,20 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                     <Card className="border-teal-100 bg-gradient-to-br from-purple-50/30 to-indigo-50/30 flex flex-col justify-between p-4 h-full">
                       <div>
                         <h3 className="font-bold text-gray-900 text-sm mb-3.5 flex items-center gap-2">
-                          <HelpCircle className="h-4 w-4 text-purple-700" />
+                          <HelpCircle className="h-4 w-4 text-teal-700" />
                           {t("What You'll Do Next")}
                         </h3>
                         <ol className="space-y-3 text-xs sm:text-sm text-gray-700">
                           <li className="flex items-start gap-2">
-                            <span className="font-semibold text-purple-700 mt-0.5 shrink-0">1.</span>
+                            <span className="font-semibold text-teal-700 mt-0.5 shrink-0">1.</span>
                             <span>{t("Create a title that captures the main theme of your entry.")}</span>
                           </li>
                           <li className="flex items-start gap-2">
-                            <span className="font-semibold text-purple-700 mt-0.5 shrink-0">2.</span>
+                            <span className="font-semibold text-teal-700 mt-0.5 shrink-0">2.</span>
                             <span>{t("Write freely about your thoughts, feelings, and experiences.")}</span>
                           </li>
                           <li className="flex items-start gap-2">
-                            <span className="font-semibold text-purple-700 mt-0.5 shrink-0">3.</span>
+                            <span className="font-semibold text-teal-700 mt-0.5 shrink-0">3.</span>
                             <span>{t("Review AI-detected emotions and topics, customize your tags.")}</span>
                           </li>
                         </ol>
@@ -343,7 +343,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
 
                   <div className="md:col-span-4 bg-teal-50/30 p-4 rounded-xl border border-teal-100 flex flex-col justify-center">
                     <h3 className="font-semibold text-xs sm:text-sm text-gray-900 mb-1.5 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4 text-purple-700" />
+                      <HelpCircle className="h-4 w-4 text-teal-700" />
                       {t("Why Title Your Entry?")}
                     </h3>
                     <p className="text-xs text-gray-600 leading-normal">
@@ -390,7 +390,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
 
                   <div className="md:col-span-4 bg-teal-50/30 p-4 rounded-xl border border-teal-100 flex flex-col justify-center">
                     <h3 className="font-semibold text-xs sm:text-sm text-gray-900 mb-1.5 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4 text-purple-700" />
+                      <HelpCircle className="h-4 w-4 text-teal-700" />
                       {t("Why Journal?")}
                     </h3>
                     <p className="text-xs text-gray-600 leading-normal">
@@ -418,7 +418,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                           <Card className="border-teal-100 bg-teal-50/20 flex flex-col justify-between flex-1">
                             <CardHeader className="p-3.5 pb-2">
                               <CardTitle className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                                <Sparkles className="h-4 w-4 text-purple-700" />
+                                <Sparkles className="h-4 w-4 text-teal-700" />
                                 {t("AI Insights")}
                               </CardTitle>
                             </CardHeader>
@@ -432,7 +432,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                           <Card className="border-teal-100 bg-teal-50/20 flex flex-col justify-between flex-1">
                             <CardHeader className="p-3.5 pb-2">
                               <CardTitle className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                                <Sparkles className="h-4 w-4 text-purple-700" />
+                                <Sparkles className="h-4 w-4 text-teal-700" />
                                 {t("AI Insights")}
                               </CardTitle>
                             </CardHeader>
@@ -448,7 +448,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                         <Card className="border-teal-100 bg-teal-50/20">
                           <CardHeader className="p-3.5 pb-2">
                             <CardTitle className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                              <Plus className="h-4 w-4 text-purple-700" />
+                              <Plus className="h-4 w-4 text-teal-700" />
                               {t("Add Custom Tag")}
                             </CardTitle>
                           </CardHeader>
@@ -484,7 +484,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                       <Card className="md:col-span-6 border-teal-100 bg-gradient-to-br from-purple-50/20 to-indigo-50/20 flex flex-col justify-between">
                         <CardHeader className="p-3.5 pb-2">
                           <CardTitle className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                            <Tag className="h-4 w-4 text-purple-700" />
+                            <Tag className="h-4 w-4 text-teal-700" />
                             {t("Review & Select Tags")}
                           </CardTitle>
                         </CardHeader>
@@ -562,7 +562,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                           {/* Selected Tags Summary */}
                           <div className="border-t border-teal-100/50 pt-2.5">
                             <h4 className="flex items-center gap-1.5 text-xs font-bold text-gray-900 mb-1.5">
-                              <CheckSquare className="h-3.5 w-3.5 text-purple-700 shrink-0" />
+                              <CheckSquare className="h-3.5 w-3.5 text-teal-700 shrink-0" />
                               {t("Selected Tags ({count})").replace("{count}", String(selectedTags.length))}
                             </h4>
                             <div className="max-h-[70px] overflow-y-auto pr-1 flex flex-wrap gap-1.5 custom-scrollbar">
@@ -574,7 +574,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                                     onClick={() => toggleTagSelection(tag)}
                                   >
                                     <JournalTag text={tag} />
-                                    <X className="h-3 w-3 text-purple-700 shrink-0" />
+                                    <X className="h-3 w-3 text-teal-700 shrink-0" />
                                   </Badge>
                                 ))
                               ) : (

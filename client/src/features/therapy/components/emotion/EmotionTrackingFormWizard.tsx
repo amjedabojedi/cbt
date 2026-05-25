@@ -472,7 +472,7 @@ export default function EmotionTrackingFormWizard({
                                 "px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all duration-300",
                                 selectedCore === "Anger" && "bg-red-50 text-red-700 border border-red-100",
                                 selectedCore === "Sadness" && "bg-blue-50 text-blue-700 border border-blue-100",
-                                selectedCore === "Surprise" && "bg-teal-50 text-purple-700 border border-teal-100",
+                                selectedCore === "Surprise" && "bg-teal-50 text-teal-700 border border-teal-100",
                                 selectedCore === "Joy" && "bg-amber-50 text-amber-700 border border-amber-100",
                                 selectedCore === "Love" && "bg-pink-50 text-pink-700 border border-pink-100",
                                 selectedCore === "Fear" && "bg-green-50 text-green-700 border border-green-100"

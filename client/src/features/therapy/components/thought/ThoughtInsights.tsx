@@ -270,7 +270,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
   if (isLoading) {
     return (
       <div dir={isRTL ? "rtl" : "ltr"} className="flex items-center justify-center py-16 bg-white/60 backdrop-blur border border-slate-100 rounded-3xl shadow-sm">
-        <div className="animate-spin h-10 w-10 border-4 border-purple-600 border-t-transparent rounded-full" />
+        <div className="animate-spin h-10 w-10 border-4 border-teal-600 border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -375,7 +375,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
                     return (
                       <div dir="ltr" className="bg-white/95 backdrop-blur-md py-2 px-3 border border-teal-100 rounded-xl shadow-lg text-xs font-semibold">
                         <span className="text-slate-800">{data.name}: </span>
-                        <span className="font-extrabold text-purple-700">{tNum(data.count)} {t("times")}</span>
+                        <span className="font-extrabold text-teal-700">{tNum(data.count)} {t("times")}</span>
                       </div>
                     );
                   }
@@ -606,7 +606,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
                   </ScatterChart>
                 </ResponsiveContainer>
                 <div className="mt-4 p-3 bg-teal-50/40 rounded-xl border border-teal-100/30 text-[11px] text-slate-500 text-center font-medium max-w-lg mx-auto">
-                  <span className="font-bold text-purple-700">{t("Analytics Tip:")}</span> {t("Bubble size corresponds to pattern frequency. Larger nodes highlight common connection patterns between cognitive distortions and emotional triggers.")}
+                  <span className="font-bold text-teal-700">{t("Analytics Tip:")}</span> {t("Bubble size corresponds to pattern frequency. Larger nodes highlight common connection patterns between cognitive distortions and emotional triggers.")}
                 </div>
               </>
             );

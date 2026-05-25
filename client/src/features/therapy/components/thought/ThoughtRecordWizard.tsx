@@ -401,7 +401,7 @@ export default function ThoughtRecordWizard({
         <h4 className="font-semibold text-slate-800 text-xs">{t("The 3-Step CBT Method:")}</h4>
         <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
           <h4 className="font-bold text-slate-900 text-xs mb-0.5 flex items-center gap-1.5">
-            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-teal-100 text-[10px] font-bold text-purple-700">{tNum(1)}</span>
+            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-teal-100 text-[10px] font-bold text-teal-700">{tNum(1)}</span>
             {t("Catch the Thought")}
           </h4>
           <p className="text-[10px] text-slate-500 leading-normal">{t("Notice immediate negative thoughts exactly as they occur.")}</p>
@@ -409,7 +409,7 @@ export default function ThoughtRecordWizard({
 
         <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
           <h4 className="font-bold text-slate-900 text-xs mb-0.5 flex items-center gap-1.5">
-            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-teal-100 text-[10px] font-bold text-purple-700">{tNum(2)}</span>
+            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-teal-100 text-[10px] font-bold text-teal-700">{tNum(2)}</span>
             {t("Identify the Pattern")}
           </h4>
           <p className="text-[10px] text-slate-500 leading-normal">{t("Categorize which unhelpful thinking pattern (ANT) it represents.")}</p>
@@ -417,7 +417,7 @@ export default function ThoughtRecordWizard({
 
         <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
           <h4 className="font-bold text-slate-900 text-xs mb-0.5 flex items-center gap-1.5">
-            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-teal-100 text-[10px] font-bold text-purple-700">{tNum(3)}</span>
+            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-teal-100 text-[10px] font-bold text-teal-700">{tNum(3)}</span>
             {t("Challenge & Reframe")}
           </h4>
           <p className="text-[10px] text-slate-500 leading-normal">{t("Examine evidence and develop a balanced, healthy perspective.")}</p>

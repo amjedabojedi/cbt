@@ -145,7 +145,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
               "shadow-lg transition-all duration-200",
               "bg-white border-2 text-slate-800",
               isClinicalUser
-                ? "border-teal-300 hover:border-teal-700 hover:shadow-purple-200/60"
+                ? "border-teal-300 hover:border-teal-700 hover:shadow-teal-200/60"
                 : "border-slate-300 hover:border-slate-500",
 
               // Dynamic toggle placement
@@ -174,7 +174,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 "rounded flex items-center justify-center flex-shrink-0 transition-all",
                 "w-8 h-8 sm:w-10 sm:h-10",
                 isClinicalUser
-                  ? "bg-gradient-to-tr from-purple-600 to-indigo-600 text-white shadow-[0_0_15px_rgba(124,58,237,0.4)]"
+                  ? "bg-gradient-to-tr from-teal-700 to-teal-600 text-white shadow-[0_0_15px_rgba(20,184,166,0.4)]"
                   : "bg-primary/20 text-primary"
               )}>
                 <Brain size={20} className="sm:w-6 sm:h-6" />
@@ -186,7 +186,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 <h1 className={cn(
                   "text-lg sm:text-xl font-black tracking-wide whitespace-nowrap",
                   isClinicalUser
-                    ? "bg-gradient-to-r from-purple-300 via-indigo-200 to-purple-400 bg-clip-text text-transparent"
+                    ? "bg-gradient-to-r from-teal-200 via-white to-teal-300 bg-clip-text text-transparent"
                     : "text-primary"
                 )}>
                   ResilienceHub
@@ -213,7 +213,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 "rounded-full flex items-center justify-center font-bold flex-shrink-0 transition-all",
                 isCollapsed ? "md:w-9 md:h-9 w-8 h-8 sm:w-10 sm:h-10" : "w-8 h-8 sm:w-10 sm:h-10",
                 isClinicalUser
-                  ? "bg-gradient-to-tr from-purple-500/20 to-indigo-500/20 text-teal-100 border border-purple-500/35 shadow-[0_0_12px_rgba(168,85,247,0.15)]"
+                  ? "bg-gradient-to-tr from-teal-500/20 to-teal-400/20 text-teal-100 border border-teal-500/35 shadow-[0_0_12px_rgba(20,184,166,0.15)]"
                   : "bg-primary-light text-primary"
               )}>
                 {user?.name?.charAt(0) || "U"}
@@ -221,7 +221,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
               <div className={profileTextMarginClass}>
                 <p className={cn(
                   "font-bold text-xs sm:text-sm truncate max-w-[130px]",
-                  isClinicalUser ? "text-purple-100" : "text-neutral-900"
+                  isClinicalUser ? "text-teal-100" : "text-neutral-900"
                 )}>
                   {user?.name}
                 </p>
@@ -257,7 +257,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                       })()
                         ? isClinicalUser
                           ? cn(
-                            "text-teal-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 shadow-[0_0_15px_rgba(168,85,247,0.12)] border-purple-500",
+                            "text-teal-200 font-bold bg-gradient-to-r from-teal-800/50 to-teal-900/30 shadow-[0_0_15px_rgba(20,184,166,0.12)] border-teal-400",
                             isRTL ? "border-r-[3px]" : "border-l-[3px]"
                           )
                           : "text-primary font-medium bg-primary/10"
@@ -302,7 +302,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                   className={cn(
                     "flex items-center justify-center w-10 h-10 mx-auto rounded-md transition-all duration-300",
                     isClinicalUser
-                      ? "bg-teal-800/30 text-teal-300 hover:text-teal-200 hover:bg-teal-900/40 border border-purple-800/10 hover:border-purple-600/30 shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
+                      ? "bg-teal-800/30 text-teal-300 hover:text-teal-200 hover:bg-teal-900/40 border border-teal-700/20 hover:border-teal-500/30 shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
                       : "bg-neutral-100 text-neutral-600 hover:text-primary hover:bg-primary/10 border border-neutral-200"
                   )}
                   title={currentLanguage === "en" ? t("Switch to Arabic") : t("Switch to English")}
@@ -332,10 +332,10 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                         "flex-1 text-xs py-1 px-2 rounded-md font-bold transition-all duration-300 text-center",
                         currentLanguage === "en"
                           ? isClinicalUser
-                            ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(124,58,237,0.4)]"
+                            ? "bg-gradient-to-r from-teal-700 to-teal-600 text-white shadow-[0_2px_8px_rgba(20,184,166,0.4)]"
                             : "bg-white text-primary shadow-sm"
                           : isClinicalUser
-                            ? "text-teal-300/80 hover:text-teal-200 hover:bg-purple-900/20"
+                            ? "text-teal-300/80 hover:text-teal-200 hover:bg-teal-900/20"
                             : "text-neutral-600 hover:text-neutral-900"
                       )}
                     >
@@ -348,10 +348,10 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                         "flex-1 text-xs py-1 px-2 rounded-md font-bold transition-all duration-300 text-center font-noto-arabic",
                         currentLanguage === "ar"
                           ? isClinicalUser
-                            ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(124,58,237,0.4)]"
+                            ? "bg-gradient-to-r from-teal-700 to-teal-600 text-white shadow-[0_2px_8px_rgba(20,184,166,0.4)]"
                             : "bg-white text-primary shadow-sm"
                           : isClinicalUser
-                            ? "text-teal-300/80 hover:text-teal-200 hover:bg-purple-900/20"
+                            ? "text-teal-300/80 hover:text-teal-200 hover:bg-teal-900/20"
                             : "text-neutral-600 hover:text-neutral-900"
                       )}
                     >
@@ -375,7 +375,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                     location === "/settings"
                       ? isClinicalUser
                         ? cn(
-                          "text-teal-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 shadow-[0_0_15px_rgba(168,85,247,0.12)] border-purple-500",
+                          "text-teal-200 font-bold bg-gradient-to-r from-teal-800/50 to-teal-900/30 shadow-[0_0_15px_rgba(20,184,166,0.12)] border-teal-400",
                           isRTL ? "border-r-[3px]" : "border-l-[3px]"
                         )
                         : "text-primary font-medium bg-primary/10"
@@ -432,7 +432,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
       {/* Mobile toggle button */}
       <button
         className={cn(
-          "fixed bottom-20 md:hidden bg-gradient-to-tr from-purple-600 to-indigo-600 text-white p-3 rounded-full shadow-lg z-50 animate-bounce",
+          "fixed bottom-20 md:hidden bg-gradient-to-tr from-teal-700 to-teal-600 text-white p-3 rounded-full shadow-lg z-50 animate-bounce",
           isRTL ? "left-4" : "right-4"
         )}
         onClick={() => setIsMobileExpanded(!isMobileExpanded)}

@@ -73,7 +73,7 @@ type CopingStrategyFormValues = z.infer<typeof copingStrategySchema>;
 
 // ─── Category accent map (light tokens) ───
 const categoryMap: Record<string, { pill: string; dot: string }> = {
-  "CBT Basics":           { pill: "bg-teal-50 text-purple-700 ring-purple-200", dot: "bg-teal-500" },
+  "CBT Basics":           { pill: "bg-teal-50 text-teal-700 ring-teal-200", dot: "bg-teal-500" },
   "Anxiety":              { pill: "bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-200", dot: "bg-fuchsia-500" },
   "Depression":           { pill: "bg-indigo-50 text-indigo-700 ring-indigo-200", dot: "bg-indigo-500" },
   "Stress Management":    { pill: "bg-violet-50 text-violet-700 ring-violet-200", dot: "bg-violet-500" },
@@ -156,7 +156,7 @@ function ResourceCard({
 
       <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50 border-t border-slate-100 gap-2">
         <Button variant="ghost" size="sm" onClick={() => onView(resource)}
-          className="h-8 px-3 text-xs font-medium text-slate-600 hover:text-purple-700 hover:bg-teal-50 rounded-lg">
+          className="h-8 px-3 text-xs font-medium text-slate-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg">
           <Eye className="h-3.5 w-3.5 me-1.5" /> {t("View")}
         </Button>
         <div className="flex items-center gap-1.5">
@@ -613,7 +613,7 @@ export default function ResourceLibrary() {
                             ? isAll
                               ? "bg-teal-800 text-white border-teal-700 shadow-sm"
                               : `${c.pill} border-transparent ring-1 ring-current`
-                            : "bg-white border-slate-200 text-slate-600 hover:border-teal-300 hover:text-purple-700"
+                            : "bg-white border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-700"
                         }`}>
                         {isAll ? t("All Categories") : t(cat)}
                       </button>

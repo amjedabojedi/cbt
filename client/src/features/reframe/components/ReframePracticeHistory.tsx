@@ -139,7 +139,7 @@ const ReframePracticeHistory: React.FC<ReframePracticeHistoryProps> = ({
                       <Badge
                         key={index}
                         variant="outline"
-                        className="bg-teal-50 text-purple-700 border-teal-100 hover:bg-teal-100 text-xs font-semibold px-2 py-0.5 rounded-md"
+                        className="bg-teal-50 text-teal-700 border-teal-100 hover:bg-teal-100 text-xs font-semibold px-2 py-0.5 rounded-md"
                       >
                         <BrainCircuit className="me-1 h-3.5 w-3.5 text-teal-600 inline-block" />
                         {formatDistortionLabel(String(distortion), t)}
@@ -148,7 +148,7 @@ const ReframePracticeHistory: React.FC<ReframePracticeHistoryProps> = ({
                   ) : (
                     <Badge
                       variant="outline"
-                      className="bg-teal-50 text-purple-700 border-teal-100 hover:bg-teal-100 text-xs font-semibold px-2 py-0.5 rounded-md"
+                      className="bg-teal-50 text-teal-700 border-teal-100 hover:bg-teal-100 text-xs font-semibold px-2 py-0.5 rounded-md"
                     >
                       {t("Cognitive Restructuring Practice")}
                     </Badge>

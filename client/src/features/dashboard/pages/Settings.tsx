@@ -385,7 +385,7 @@ export default function Settings() {
                               <Switch
                                 checked={field.value as boolean}
                                 onCheckedChange={field.onChange}
-                                className="data-[state=checked]:bg-purple-600 shrink-0"
+                                className="data-[state=checked]:bg-teal-600 shrink-0"
                               />
                             </FormControl>
                           </FormItem>
