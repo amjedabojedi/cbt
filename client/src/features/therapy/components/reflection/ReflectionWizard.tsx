@@ -1,0 +1,1459 @@
+// ReflectionWizard.tsx
+import { useState, useEffect, useRef } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "@/lib/auth";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { EmotionRecord, ThoughtRecord } from "@shared/schema";
+import useActiveUser from "@/hooks/use-active-user";
+import { HelpCircle, PlusCircle } from "lucide-react";
+import { useLocation } from "wouter";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { ResearchTooltip } from "@/components/shared/research-tooltip";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
+// Cognitive distortions list
+const cognitiveDistortions = [
+  { 
+    value: "all-or-nothing", 
+    label: "All-or-Nothing Thinking",
+    description: "Seeing situations in black and white terms, with no middle ground.",
+    example: "If I don't get a perfect score, I'm a complete failure.",
+    reframe: "Most situations fall somewhere in between extremes. Look for partial successes."
+  },
+  { 
+    value: "catastrophizing", 
+    label: "Catastrophizing",
+    description: "Expecting the worst possible outcome in a situation.",
+    example: "If I make a mistake in my presentation, my career will be ruined.",
+    reframe: "Consider the most realistic outcome, not just the worst case scenario."
+  },
+  { 
+    value: "emotional-reasoning", 
+    label: "Emotional Reasoning",
+    description: "Assuming your emotions reflect reality: 'I feel it, therefore it must be true.'",
+    example: "I feel anxious about the flight, so it must be dangerous.",
+    reframe: "Emotions are not facts. They're responses that may or may not be proportionate."
+  },
+  { 
+    value: "mind-reading", 
+    label: "Mind Reading",
+    description: "Assuming you know what others are thinking, usually negatively.",
+    example: "She didn't smile at me, so she must dislike me.",
+    reframe: "Without confirmation, we can't know what others think. Consider alternative explanations."
+  },
+  { 
+    value: "overgeneralization", 
+    label: "Overgeneralization",
+    description: "Taking one negative event as evidence of endless pattern of defeat.",
+    example: "I didn't get this job. I'll never find employment.",
+    reframe: "One event is just one data point, not a universal pattern."
+  },
+  { 
+    value: "personalization", 
+    label: "Personalization",
+    description: "Believing others' actions are specifically related to you.",
+    example: "The team's project failed because of my contribution.",
+    reframe: "Most outcomes result from many factors, not just your actions."
+  },
+  { 
+    value: "should-statements", 
+    label: "Should Statements",
+    description: "Having rigid rules about how you and others 'should' behave.",
+    example: "I should never make mistakes. They should always consider my feelings.",
+    reframe: "Replace 'should' with more flexible preferences and realistic expectations."
+  },
+  { 
+    value: "mental-filter", 
+    label: "Mental Filter",
+    description: "Focusing exclusively on negative details while ignoring positives.",
+    example: "I got feedback on my report with 9 compliments and 1 criticism, but I can only think about the criticism.",
+    reframe: "Consciously acknowledge the full picture, including positive aspects."
+  },
+  { 
+    value: "disqualifying-positive", 
+    label: "Disqualifying the Positive",
+    description: "Rejecting positive experiences by insisting they don't count.",
+    example: "I did well on the project, but that doesn't count because anyone could have done it.",
+    reframe: "Accept compliments and achievements as legitimate parts of your experience."
+  },
+  { 
+    value: "jumping-to-conclusions", 
+    label: "Jumping to Conclusions",
+    description: "Making negative interpretations without supporting facts.",
+    example: "My friend hasn't replied to my message. Our friendship must be over.",
+    reframe: "Wait for evidence before coming to conclusions. Consider alternative explanations."
+  },
+];
+
+// Define schema for the thought record form
+const thoughtRecordSchema = z.object({
+  automaticThoughts: z.string().min(3, "Please enter your thoughts"),
+  cognitiveDistortions: z.array(z.string()).default([]),
+  evidenceFor: z.string().default(""),
+  evidenceAgainst: z.string().default(""),
+  alternativePerspective: z.string().default(""),
+  insightsGained: z.string().default(""),
+  reflectionRating: z.number().min(1).max(10).default(5),
+});
+
+type ThoughtRecordFormValues = z.infer<typeof thoughtRecordSchema>;
+
+interface ReflectionWizardProps {
+  emotion: EmotionRecord;
+  open: boolean;
+  onClose: () => void;
+  existingThoughtRecord?: ThoughtRecord; // Optional thought record for editing
+  isEditMode?: boolean; // Flag to indicate if we're in edit mode
+}
+
+// Helper function to get color based on emotion
+const getEmotionColor = (emotion?: string): string => {
+  if (!emotion) return "#cccccc"; // Default gray color if emotion is undefined/null
+  const colorMap: Record<string, string> = {
+    // Core emotions
+    "Joy": "#F9D71C",
+    "Sadness": "#6D87C4",
+    "Fear": "#8A65AA",
+    "Disgust": "#7DB954",
+    "Anger": "#E43D40",
+    // Secondary/tertiary fallbacks
+    "Happy": "#F9D71C",
+    "Excited": "#E8B22B",
+    "Proud": "#D6A338",
+    "Content": "#C8953F",
+    "Hopeful": "#BAA150",
+    "Depressed": "#6D87C4",
+    "Lonely": "#5D78B5",
+    "Guilty": "#4C69A6",
+    "Disappointed": "#3B5A97",
+    "Hurt": "#2A4B88",
+    "Nervous": "#8A65AA",
+    "Worried": "#7C5D9F",
+    "Anxious": "#6D5595",
+    "Insecure": "#5F4D8A",
+    "Terrified": "#50457F",
+    "Disgusted": "#7DB954",
+    "Judgemental": "#6FA94B",
+    "Disapproving": "#629A41",
+    "Awful": "#548B38",
+    "Avoidant": "#457C2F",
+    "Angry": "#E43D40",
+    "Frustrated": "#D23B3E",
+    "Irritated": "#C0393B",
+    "Critical": "#AE3639",
+    "Distant": "#9C3436"
+  };
+  
+  return colorMap[emotion] || "#808080"; // Default to gray if emotion not found
+};
+
+export default function ReflectionWizard({ 
+  emotion, 
+  open, 
+  onClose, 
+  existingThoughtRecord, 
+  isEditMode = false 
+}: ReflectionWizardProps) {
+  const { user } = useAuth();
+  const { isViewingSelf } = useActiveUser();
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  
+  // Step state
+  const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // UI state
+  const [expandedReflectionView, setExpandedReflectionView] = useState(false);
+  const [selectedDistortion, setSelectedDistortion] = useState<string | null>(null);
+  
+  // Protective factors and coping strategies state
+  const [selectedProtectiveFactors, setSelectedProtectiveFactors] = useState<number[]>([]);
+  const [selectedCopingStrategies, setSelectedCopingStrategies] = useState<number[]>([]);
+  const [showAddProtectiveFactorForm, setShowAddProtectiveFactorForm] = useState(false);
+  const [showAddCopingStrategyForm, setShowAddCopingStrategyForm] = useState(false);
+  const [newProtectiveFactor, setNewProtectiveFactor] = useState("");
+  const [newCopingStrategy, setNewCopingStrategy] = useState("");
+  
+  // Effectiveness ratings state
+  const [protectiveFactorRatings, setProtectiveFactorRatings] = useState<Record<number, number>>({});
+  const [copingStrategyRatings, setCopingStrategyRatings] = useState<Record<number, number>>({});
+  
+  // Data state
+  const [protectiveFactors, setProtectiveFactors] = useState<Array<{id: number, name: string}>>([]);
+  const [copingStrategies, setCopingStrategies] = useState<Array<{id: number, name: string}>>([]);
+  const [previousReflections, setPreviousReflections] = useState<ThoughtRecord[]>([]);
+  
+  // Create mutable refs for textareas
+  const automaticThoughtsRef = useRef<HTMLTextAreaElement | null>(null);
+  const evidenceForRef = useRef<HTMLTextAreaElement | null>(null);
+  const evidenceAgainstRef = useRef<HTMLTextAreaElement | null>(null);
+  const alternativePerspectiveRef = useRef<HTMLTextAreaElement | null>(null);
+  const insightsGainedRef = useRef<HTMLTextAreaElement | null>(null);
+  
+  // Progress calculation
+  const totalSteps = 4;
+  const progress = (step / totalSteps) * 100;
+  
+  // Initialize form with default values or existing record values if in edit mode
+  const form = useForm<ThoughtRecordFormValues>({
+    resolver: zodResolver(thoughtRecordSchema),
+    mode: "onChange",
+    defaultValues: isEditMode && existingThoughtRecord ? {
+      automaticThoughts: existingThoughtRecord.automaticThoughts,
+      cognitiveDistortions: existingThoughtRecord.cognitiveDistortions || [],
+      evidenceFor: existingThoughtRecord.evidenceFor ?? "",
+      evidenceAgainst: existingThoughtRecord.evidenceAgainst ?? "",
+      alternativePerspective: existingThoughtRecord.alternativePerspective ?? "",
+      insightsGained: existingThoughtRecord.insightsGained ?? "",
+      reflectionRating: existingThoughtRecord.reflectionRating ?? 0,
+    } : {
+      automaticThoughts: "",
+      cognitiveDistortions: [],
+      evidenceFor: "",
+      evidenceAgainst: "",
+      alternativePerspective: "",
+      insightsGained: "",
+      reflectionRating: 5,
+    },
+  });
+  
+  // Add form value listener for debugging
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      console.log("Form changed:", value);
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+  
+  // Fetch protective factors and coping strategies
+  useEffect(() => {
+    if (user) {
+      // Fetch protective factors
+      const fetchProtectiveFactors = async () => {
+        try {
+          const response = await apiRequest(
+            "GET",
+            `/api/users/${user.id}/protective-factors`
+          );
+          const data = await response.json();
+          setProtectiveFactors(data);
+        } catch (error) {
+          console.error("Error fetching protective factors:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load protective factors",
+            variant: "destructive",
+          });
+        }
+      };
+      
+      // Fetch coping strategies
+      const fetchCopingStrategies = async () => {
+        try {
+          const response = await apiRequest(
+            "GET",
+            `/api/users/${user.id}/coping-strategies`
+          );
+          const data = await response.json();
+          setCopingStrategies(data);
+        } catch (error) {
+          console.error("Error fetching coping strategies:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load coping strategies",
+            variant: "destructive",
+          });
+        }
+      };
+      
+      fetchProtectiveFactors();
+      fetchCopingStrategies();
+    }
+  }, [user, toast]);
+  
+  // Fetch previous reflections for this emotion
+  useEffect(() => {
+    if (user && emotion) {
+      const fetchPreviousReflections = async () => {
+        try {
+          const response = await apiRequest(
+            "GET",
+            `/api/users/${user.id}/thoughts?emotionRecordId=${emotion.id}`
+          );
+          const data = await response.json();
+          setPreviousReflections(data);
+        } catch (error) {
+          console.error("Error fetching previous reflections:", error);
+        }
+      };
+      
+      fetchPreviousReflections();
+    }
+  }, [user, emotion]);
+  
+  // Handle next step
+  const handleNext = () => {
+    if (step === 1) {
+      form.trigger(["automaticThoughts"]);
+      if (form.formState.errors.automaticThoughts) return;
+    }
+    setStep(step + 1);
+    console.log("Current form values:", form.getValues());
+  };
+  
+  // Handle back button
+  const handleBack = () => {
+    setStep(step - 1);
+  };
+  
+  // Handler for toggling protective factors
+  const toggleProtectiveFactor = (id: number) => {
+    if (selectedProtectiveFactors.includes(id)) {
+      // Remove from selected list
+      setSelectedProtectiveFactors(prev => prev.filter(itemId => itemId !== id));
+      // Remove rating
+      setProtectiveFactorRatings(prev => {
+        const newRatings = {...prev};
+        delete newRatings[id];
+        return newRatings;
+      });
+    } else {
+      // Add to selected list with default rating of 5
+      setSelectedProtectiveFactors(prev => [...prev, id]);
+      setProtectiveFactorRatings(prev => ({...prev, [id]: 5}));
+    }
+  };
+  
+  // Handler for toggling coping strategies
+  const toggleCopingStrategy = (id: number) => {
+    if (selectedCopingStrategies.includes(id)) {
+      // Remove from selected list
+      setSelectedCopingStrategies(prev => prev.filter(itemId => itemId !== id));
+      // Remove rating
+      setCopingStrategyRatings(prev => {
+        const newRatings = {...prev};
+        delete newRatings[id];
+        return newRatings;
+      });
+    } else {
+      // Add to selected list with default rating of 5
+      setSelectedCopingStrategies(prev => [...prev, id]);
+      setCopingStrategyRatings(prev => ({...prev, [id]: 5}));
+    }
+  };
+  
+  // Handler for updating protective factor effectiveness ratings
+  const updateProtectiveFactorRating = (id: number, rating: number) => {
+    setProtectiveFactorRatings(prev => ({...prev, [id]: rating}));
+  };
+  
+  // Handler for updating coping strategy effectiveness ratings
+  const updateCopingStrategyRating = (id: number, rating: number) => {
+    setCopingStrategyRatings(prev => ({...prev, [id]: rating}));
+  };
+  
+  // Handler for adding new protective factor
+  const handleAddProtectiveFactor = async () => {
+    if (!newProtectiveFactor.trim() || !user) return;
+    
+    try {
+      const response = await apiRequest(
+        "POST",
+        `/api/users/${user.id}/protective-factors`,
+        {
+          userId: user.id,
+          name: newProtectiveFactor,
+          description: "",
+          isGlobal: false
+        }
+      );
+      
+      const factor = await response.json();
+      
+      setProtectiveFactors(prevFactors => [...prevFactors, factor]);
+      setSelectedProtectiveFactors(prev => [...prev, factor.id]);
+      
+      setNewProtectiveFactor("");
+      setShowAddProtectiveFactorForm(false);
+      
+      toast({
+        title: "Success",
+        description: "Added new protective factor",
+      });
+    } catch (error) {
+      console.error("Error adding protective factor:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add protective factor",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Handler for adding new coping strategy
+  const handleAddCopingStrategy = async () => {
+    if (!newCopingStrategy.trim() || !user) return;
+    
+    try {
+      const response = await apiRequest(
+        "POST",
+        `/api/users/${user.id}/coping-strategies`,
+        {
+          userId: user.id,
+          name: newCopingStrategy,
+          description: "",
+          isGlobal: false
+        }
+      );
+      
+      const strategy = await response.json();
+      
+      setCopingStrategies(prevStrategies => [...prevStrategies, strategy]);
+      setSelectedCopingStrategies(prev => [...prev, strategy.id]);
+      
+      setNewCopingStrategy("");
+      setShowAddCopingStrategyForm(false);
+      
+      toast({
+        title: "Success",
+        description: "Added new coping strategy",
+      });
+    } catch (error) {
+      console.error("Error adding coping strategy:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add coping strategy",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Handle form submission
+  const onSubmit = async (data: ThoughtRecordFormValues) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to record thoughts",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validate required fields
+    if (!data.automaticThoughts || data.automaticThoughts.trim().length < 3) {
+      toast({
+        title: "Error",
+        description: "Please enter your automatic thoughts",
+        variant: "destructive",
+      });
+      setStep(1); // Return to the first step where automatic thoughts are entered
+      return;
+    }
+    
+    // Prevent therapists from adding reflections to client emotion records
+    if (!isViewingSelf) {
+      toast({
+        title: "Permission Denied",
+        description: "Therapists cannot add reflections to client emotion records",
+        variant: "destructive",
+      });
+      onClose();
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Format data for API using form values directly
+      // Server schema uses z.string().min(1).optional() — empty strings fail validation.
+      // Only include optional text fields when they have actual content.
+      const thoughtRecordData: Record<string, unknown> = {
+        userId: user.id,
+        emotionRecordId: isEditMode && existingThoughtRecord ? existingThoughtRecord.emotionRecordId : emotion.id,
+        automaticThoughts: data.automaticThoughts,
+        cognitiveDistortions: data.cognitiveDistortions || [],
+        reflectionRating: data.reflectionRating || 5,
+        ...(data.evidenceFor?.trim()           && { evidenceFor: data.evidenceFor }),
+        ...(data.evidenceAgainst?.trim()        && { evidenceAgainst: data.evidenceAgainst }),
+        ...(data.alternativePerspective?.trim() && { alternativePerspective: data.alternativePerspective }),
+        ...(data.insightsGained?.trim()         && { insightsGained: data.insightsGained }),
+      };
+      
+      let thoughtRecord;
+      
+      if (isEditMode && existingThoughtRecord) {
+        // Update existing thought record
+        const response = await apiRequest(
+          "PATCH",
+          `/api/users/${user.id}/thoughts/${existingThoughtRecord.id}`,
+          thoughtRecordData
+        );
+        thoughtRecord = await response.json();
+        
+        toast({
+          title: "Success",
+          description: "Your thought record has been updated successfully.",
+        });
+      } else {
+        // Create new thought record
+        const response = await apiRequest(
+          "POST", 
+          `/api/users/${user.id}/thoughts`, 
+          thoughtRecordData
+        );
+        thoughtRecord = await response.json();
+        
+        toast({
+          title: "Success",
+          description: "Your thought record has been saved successfully.",
+        });
+      }
+      
+      // Record protective factor usages
+      if (selectedProtectiveFactors.length > 0) {
+        await Promise.all(selectedProtectiveFactors.map(factorId => 
+          apiRequest(
+            "POST",
+            `/api/users/${user.id}/protective-factor-usage`,
+            {
+              userId: user.id,
+              thoughtRecordId: thoughtRecord.id,
+              protectiveFactorId: factorId,
+              effectivenessRating: protectiveFactorRatings[factorId] || 5, // Include the effectiveness rating
+            }
+          )
+        ));
+      }
+      
+      // Record coping strategy usages
+      if (selectedCopingStrategies.length > 0) {
+        await Promise.all(selectedCopingStrategies.map(strategyId => 
+          apiRequest(
+            "POST",
+            `/api/users/${user.id}/coping-strategy-usage`,
+            {
+              userId: user.id,
+              thoughtRecordId: thoughtRecord.id,
+              copingStrategyId: strategyId,
+              effectivenessRating: copingStrategyRatings[strategyId] || 5, // Include the effectiveness rating
+            }
+          )
+        ));
+      }
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/thoughts`] });
+      
+      // Reset form data
+      form.reset({
+        automaticThoughts: "",
+        cognitiveDistortions: [],
+        evidenceFor: "",
+        evidenceAgainst: "",
+        alternativePerspective: "",
+        insightsGained: "",
+        reflectionRating: 5,
+      });
+      
+      // Reset other form-related state
+      setSelectedProtectiveFactors([]);
+      setSelectedCopingStrategies([]);
+      setStep(1);
+      
+      // Show success message
+      toast({
+        title: "Reflection Completed",
+        description: "Your reflection has been recorded successfully.",
+      });
+      
+      // Handle navigation after submission
+      if (isEditMode) {
+        // When editing, just close the dialog and let the parent component handle navigation
+        onClose();
+      } else {
+        // For new records, redirect to the thought record details view
+        // Use setLocation instead of direct window.location for proper routing
+        setLocation(`/thoughts/${thoughtRecord.id}`);
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error recording thought reflection:", error);
+      toast({
+        title: "Error",
+        description: "Failed to record reflection. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Step 1: Automatic Thoughts & Cognitive Distortions
+  const renderStepOne = () => (
+    <div className="space-y-4">
+      <FormField
+        control={form.control}
+        name="automaticThoughts"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>What thoughts are going through your mind?</FormLabel>
+            <FormDescription>
+              Write down any automatic thoughts that came up when you experienced {emotion.tertiaryEmotion ? 
+                `${emotion.primaryEmotion || emotion.coreEmotion || "this emotion"} (${emotion.tertiaryEmotion})` : 
+                (emotion.primaryEmotion || emotion.coreEmotion || "this emotion")
+              }.
+            </FormDescription>
+            <FormControl>
+              <Textarea
+                placeholder="I think that..."
+                className="min-h-[120px] focus:border-primary focus:ring-1 focus:ring-primary w-full"
+                value={field.value || ''}
+                onChange={(e) => {
+                  // Fixed event handling to ensure text is correctly processed
+                  const value = e.target.value;
+                  field.onChange(value);
+                  form.setValue("automaticThoughts", value, { 
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true 
+                  });
+                }}
+                onBlur={field.onBlur}
+                ref={field.ref}
+                name={field.name}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="cognitiveDistortions"
+        render={() => (
+          <FormItem className="space-y-4">
+            <div className="mb-2">
+              <div className="flex items-center gap-2">
+                <FormLabel className="text-lg">Identify any cognitive distortions in your thinking:</FormLabel>
+                <ResearchTooltip 
+                  content="Cognitive distortions are helpful to identify"
+                  research="Research from Beck and Burns (1980) shows that identifying cognitive distortions is a key step in cognitive behavioral therapy. Studies indicate that becoming aware of these patterns can reduce symptoms of depression and anxiety by 40-60% when combined with other CBT techniques."
+                />
+              </div>
+              <FormDescription>
+                These are patterns of thinking that can reinforce negative thoughts and emotions.
+                Select any that apply to your situation.
+              </FormDescription>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {cognitiveDistortions.map((distortion) => {
+                const isChecked = form.getValues("cognitiveDistortions")?.includes(distortion.value);
+                return (
+                  <FormItem
+                    key={distortion.value}
+                    className="flex flex-row items-start space-x-3 space-y-0"
+                  >
+                    <FormControl>
+                      <Checkbox
+                        checked={isChecked}
+                        className="border-purple-400 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                        onCheckedChange={(checked) => {
+                          const current = form.getValues("cognitiveDistortions") || [];
+                          const updated = checked
+                            ? [...current, distortion.value]
+                            : current.filter((value) => value !== distortion.value);
+                          form.setValue("cognitiveDistortions", updated);
+
+                          // Set the selected distortion for the info panel
+                          if (checked) {
+                            setSelectedDistortion(distortion.value);
+                          } else if (selectedDistortion === distortion.value) {
+                            setSelectedDistortion(null);
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <div className="space-y-1">
+                      <FormLabel 
+                        className={`font-medium cursor-pointer ${isChecked ? "text-purple-600" : ""}`}
+                        onClick={() => setSelectedDistortion(selectedDistortion === distortion.value ? null : distortion.value)}
+                      >
+                        {distortion.label}
+                      </FormLabel>
+                    </div>
+                  </FormItem>
+                );
+              })}
+            </div>
+            
+            {/* Distortion Information Panel */}
+            {selectedDistortion && (
+              <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-muted-foreground/20">
+                {cognitiveDistortions.filter(d => d.value === selectedDistortion).map((distortion) => (
+                  <div key={distortion.value} className="space-y-2">
+                    <h4 className="font-semibold text-primary">{distortion.label}</h4>
+                    <p className="text-sm">{distortion.description}</p>
+                    <div className="bg-muted/70 p-3 rounded-md mt-2">
+                      <p className="text-sm font-medium">Example:</p>
+                      <p className="text-sm italic">"{distortion.example}"</p>
+                    </div>
+                    <div className="bg-primary/10 p-3 rounded-md mt-2">
+                      <p className="text-sm font-medium text-primary">How to reframe:</p>
+                      <p className="text-sm">{distortion.reframe}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+
+  // Step 2: Evidence For/Against
+  const renderStepTwo = () => (
+    <div className="space-y-4">
+      <div className="p-4 bg-neutral-100 rounded-md mb-4">
+        <div className="flex flex-col">
+          <p className="text-sm font-medium mb-2">Your thoughts:</p>
+          <p className="text-sm p-3 bg-white rounded border border-neutral-200">
+            {form.getValues("automaticThoughts")}
+          </p>
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <label htmlFor="evidenceFor" className="text-sm font-medium">What evidence supports this thought?</label>
+          <ResearchTooltip 
+            content="Examining evidence is key to changing thoughts"
+            research="According to meta-analyses by Hofmann et al. (2012), examining evidence for and against automatic thoughts is one of the most effective cognitive restructuring techniques. This process helps develop more balanced thinking patterns and reduces emotional distress by up to 50% in clinical trials."
+          />
+        </div>
+        <p className="text-sm text-muted-foreground">
+          List facts that actually support your thought. Focus on objective information, not feelings.
+        </p>
+        <textarea
+          id="evidenceFor"
+          name="evidenceFor"
+          placeholder="List facts that support this thought..."
+          rows={3}
+          value={form.getValues("evidenceFor") || ''}
+          onChange={(e) => {
+            form.setValue("evidenceFor", e.target.value, {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true
+            });
+          }}
+          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <label htmlFor="evidenceAgainst" className="text-sm font-medium">What evidence contradicts this thought?</label>
+        <p className="text-sm text-muted-foreground">
+          List facts that challenge your thought. Look for alternative explanations and realities.
+        </p>
+        <textarea
+          id="evidenceAgainst"
+          name="evidenceAgainst"
+          placeholder="List facts that don't support this thought..."
+          rows={3}
+          value={form.getValues("evidenceAgainst") || ''}
+          onChange={(e) => {
+            form.setValue("evidenceAgainst", e.target.value, {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true
+            });
+          }}
+          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </div>
+      
+      <div className="space-y-3">
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex items-start gap-2">
+            <div>
+              <Label>What protective factors can help you with this situation?</Label>
+              <p className="text-xs text-muted-foreground mt-1">Protective factors are resources, strengths, or skills that help you manage difficult emotions</p>
+            </div>
+            <ResearchTooltip 
+              content="Protective factors build resilience"
+              research="Research by Masten & Cicchetti (2016) shows that protective factors significantly improve mental health outcomes and reduce symptom severity. Studies demonstrate that individuals who identify and use their protective factors are 3x more likely to recover from mental health challenges and have fewer relapses."
+            />
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            type="button"
+            className="text-purple-600 hover:text-purple-700"
+            onClick={(e) => {
+              // Prevent default button behavior that might submit forms
+              e.preventDefault();
+              e.stopPropagation();
+              
+              // Show information toast instead of closing dialog
+              toast({
+                title: "About Protective Factors",
+                description: "Protective factors are personal resources, skills, or relationships that help you cope with stress and build resilience.",
+              });
+            }}
+          >
+            <HelpCircle className="h-4 w-4 mr-1" />
+            Learn More
+          </Button>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {/* Factors selection */}
+          <div className="flex flex-wrap gap-2">
+            {protectiveFactors.map((factor) => (
+              <div 
+                key={factor.id}
+                className={`px-3 py-2 text-sm border rounded-full cursor-pointer transition-colors ${
+                  selectedProtectiveFactors.includes(factor.id)
+                    ? "bg-purple-600 text-white border-purple-600"
+                    : "bg-white text-neutral-700 border-neutral-300 hover:border-purple-400"
+                }`}
+                onClick={() => toggleProtectiveFactor(factor.id)}
+              >
+                {factor.name}
+              </div>
+            ))}
+            
+            {showAddProtectiveFactorForm ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  className="w-48"
+                  placeholder="Enter new factor..."
+                  value={newProtectiveFactor}
+                  onChange={(e) => setNewProtectiveFactor(e.target.value)}
+                />
+                <Button
+                  size="sm"
+                  type="button"
+                  className="bg-purple-600 hover:bg-purple-700 border-0 text-white"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAddProtectiveFactor();
+                  }}
+                  disabled={!newProtectiveFactor.trim()}
+                >
+                  Add
+                </Button>
+                <Button 
+                  size="sm" 
+                  type="button"
+                  variant="outline" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowAddProtectiveFactorForm(false);
+                    setNewProtectiveFactor("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <div 
+                className="px-3 py-2 text-sm border border-dashed border-neutral-400 rounded-full cursor-pointer hover:border-primary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowAddProtectiveFactorForm(true);
+                }}
+              >
+                + Add New
+              </div>
+            )}
+          </div>
+          
+          {/* Effectiveness ratings for selected factors */}
+          {selectedProtectiveFactors.length > 0 && (
+            <div className="space-y-3 mt-2 p-3 border rounded-md bg-muted/20">
+              <h5 className="text-sm font-medium">Rate how effective each protective factor is (1-10):</h5>
+              
+              <div className="space-y-3">
+                {selectedProtectiveFactors.map(factorId => {
+                  const factor = protectiveFactors.find(f => f.id === factorId);
+                  if (!factor) return null;
+                  
+                  return (
+                    <div key={`rating-${factorId}`} className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">{factor.name}</span>
+                        <span className="text-sm">{protectiveFactorRatings[factorId] || 5}/10</span>
+                      </div>
+                      <Slider
+                        value={[protectiveFactorRatings[factorId] || 5]}
+                        min={1}
+                        max={10}
+                        step={1}
+                        className="[&>span>span]:bg-purple-600 [&>[role=slider]]:border-purple-600"
+                        onValueChange={(values) => updateProtectiveFactorRating(factorId, values[0])}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
+          {/* Information about protective factors */}
+          {selectedProtectiveFactors.length > 0 && (
+            <div className="mt-2 p-3 bg-muted/40 rounded-lg text-sm">
+              <h5 className="font-medium mb-1">Why protective factors matter:</h5>
+              <p>Identifying and using your protective factors can build resilience and help you handle difficult situations more effectively.</p>
+              <div className="mt-2 grid grid-cols-1 gap-2">
+                <div className="bg-background p-2 rounded-md">
+                  <span className="font-medium">Examples of protective factors:</span>
+                  <ul className="list-disc pl-5 mt-1 space-y-1">
+                    <li>Social support - Friends, family, community connections</li>
+                    <li>Personal skills - Problem-solving abilities, emotional awareness</li>
+                    <li>Resources - Access to healthcare, stable housing, education</li>
+                    <li>Activities - Exercise, creative outlets, spiritual practices</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Step 3: Alternative Perspective & Coping Strategies
+  const renderStepThree = () => (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <label htmlFor="alternativePerspective" className="text-sm font-medium">What's a more balanced perspective?</label>
+        <p className="text-sm text-muted-foreground">
+          Consider the evidence for and against your thoughts to create a more balanced view.
+        </p>
+        <textarea
+          id="alternativePerspective"
+          name="alternativePerspective"
+          placeholder="A more realistic way to see this situation might be..."
+          rows={4}
+          value={form.getValues("alternativePerspective") || ''}
+          onChange={(e) => {
+            form.setValue("alternativePerspective", e.target.value, {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true
+            });
+          }}
+          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </div>
+      
+      <div className="space-y-3">
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex items-start gap-2">
+            <div>
+              <Label>What coping strategies might help you deal with this?</Label>
+              <p className="text-xs text-muted-foreground mt-1">Coping strategies are specific actions or techniques you can use to manage stress and difficult emotions</p>
+            </div>
+            <ResearchTooltip 
+              content="Effective coping strategies reduce symptoms"
+              research="Research by Aldao et al. (2010) demonstrates that adaptive coping strategies significantly reduce symptoms of anxiety and depression. A meta-analysis of 114 studies showed that healthy coping strategies like problem-solving, cognitive reframing, and mindfulness can reduce psychological distress by 30-45% compared to avoidant coping methods."
+            />
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            type="button"
+            className="text-purple-600 hover:text-purple-700"
+            onClick={(e) => {
+              // Prevent default button behavior that might submit forms
+              e.preventDefault();
+              e.stopPropagation();
+              
+              // Show information toast instead of closing dialog
+              toast({
+                title: "About Coping Strategies",
+                description: "Coping strategies are specific techniques that help you manage stress, regulate emotions, and maintain well-being during difficult situations.",
+              });
+            }}
+          >
+            <HelpCircle className="h-4 w-4 mr-1" />
+            Learn More
+          </Button>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {/* Strategies selection */}
+          <div className="flex flex-wrap gap-2">
+            {copingStrategies.map((strategy) => (
+              <div 
+                key={strategy.id}
+                className={`px-3 py-2 text-sm border rounded-full cursor-pointer transition-colors ${
+                  selectedCopingStrategies.includes(strategy.id)
+                    ? "bg-purple-600 text-white border-purple-600"
+                    : "bg-white text-neutral-700 border-neutral-300 hover:border-purple-400"
+                }`}
+                onClick={() => toggleCopingStrategy(strategy.id)}
+              >
+                {strategy.name}
+              </div>
+            ))}
+            
+            {showAddCopingStrategyForm ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  className="w-48"
+                  placeholder="Enter new strategy..."
+                  value={newCopingStrategy}
+                  onChange={(e) => setNewCopingStrategy(e.target.value)}
+                />
+                <Button
+                  size="sm"
+                  type="button"
+                  className="bg-purple-600 hover:bg-purple-700 border-0 text-white"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAddCopingStrategy();
+                  }}
+                  disabled={!newCopingStrategy.trim()}
+                >
+                  Add
+                </Button>
+                <Button 
+                  size="sm" 
+                  type="button"
+                  variant="outline" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowAddCopingStrategyForm(false);
+                    setNewCopingStrategy("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <div 
+                className="px-3 py-2 text-sm border border-dashed border-neutral-400 rounded-full cursor-pointer hover:border-primary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowAddCopingStrategyForm(true);
+                }}
+              >
+                + Add New
+              </div>
+            )}
+          </div>
+          
+          {/* Effectiveness ratings for selected strategies */}
+          {selectedCopingStrategies.length > 0 && (
+            <div className="space-y-3 mt-2 p-3 border rounded-md bg-muted/20">
+              <h5 className="text-sm font-medium">Rate how effective each coping strategy is (1-10):</h5>
+              
+              <div className="space-y-3">
+                {selectedCopingStrategies.map(strategyId => {
+                  const strategy = copingStrategies.find(s => s.id === strategyId);
+                  if (!strategy) return null;
+                  
+                  return (
+                    <div key={`rating-${strategyId}`} className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">{strategy.name}</span>
+                        <span className="text-sm">{copingStrategyRatings[strategyId] || 5}/10</span>
+                      </div>
+                      <Slider
+                        value={[copingStrategyRatings[strategyId] || 5]}
+                        min={1}
+                        max={10}
+                        step={1}
+                        className="[&>span>span]:bg-purple-600 [&>[role=slider]]:border-purple-600"
+                        onValueChange={(values) => updateCopingStrategyRating(strategyId, values[0])}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
+          {/* Information about coping strategies */}
+          {selectedCopingStrategies.length > 0 && (
+            <div className="mt-2 p-3 bg-muted/40 rounded-lg text-sm">
+              <h5 className="font-medium mb-1">How to use coping strategies:</h5>
+              <p>Effective coping strategies can help you manage stress, regulate emotions, and solve problems more effectively.</p>
+              <div className="mt-2 grid grid-cols-1 gap-2">
+                <div className="bg-background p-2 rounded-md">
+                  <span className="font-medium">Types of coping strategies:</span>
+                  <ul className="list-disc pl-5 mt-1 space-y-1">
+                    <li><strong>Emotional coping</strong> - Managing feelings (deep breathing, mindfulness, journaling)</li>
+                    <li><strong>Problem-focused coping</strong> - Taking action (making plans, seeking information, solving problems)</li>
+                    <li><strong>Social coping</strong> - Connecting with others (talking to friends, joining support groups)</li>
+                    <li><strong>Physical coping</strong> - Taking care of your body (exercise, proper sleep, healthy eating)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Step 4: Insights & Reflection Rating
+  const renderStepFour = () => (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <label htmlFor="insightsGained" className="text-sm font-medium">What insights did you gain from this reflection?</label>
+          <ResearchTooltip 
+            content="Insight development improves treatment outcomes"
+            research="Studies by Kazantzis et al. (2018) indicate that clients who articulate specific insights from CBT exercises show 28% better treatment outcomes than those who don't. Research also demonstrates that written reflection significantly enhances cognitive processing and helps solidify new thinking patterns."
+          />
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Summarize what you've learned about your thoughts, feelings, and reactions.
+        </p>
+        <textarea
+          id="insightsGained"
+          name="insightsGained"
+          placeholder="What I've learned from this reflection..."
+          rows={4}
+          value={form.getValues("insightsGained") || ''}
+          onChange={(e) => {
+            form.setValue("insightsGained", e.target.value, {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true
+            });
+          }}
+          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </div>
+      
+      <FormField
+        control={form.control}
+        name="reflectionRating"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>
+              How helpful was this reflection? (1 = Not helpful, 10 = Very helpful)
+            </FormLabel>
+            <FormControl>
+              <div className="space-y-2">
+                <Slider
+                  value={[field.value || 5]}
+                  min={1}
+                  max={10}
+                  step={1}
+                  defaultValue={[5]}
+                  className="[&>span>span]:bg-purple-600 [&>[role=slider]]:border-purple-600"
+                  onValueChange={(values) => {
+                    field.onChange(values[0]);
+                    form.setValue("reflectionRating", values[0], {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                      shouldTouch: true
+                    });
+                  }}
+                />
+                <div className="flex justify-between text-sm text-neutral-500">
+                  <span>Not helpful</span>
+                  <span>Somewhat helpful</span>
+                  <span>Very helpful</span>
+                </div>
+                <div className="text-center text-lg font-medium text-purple-600">
+                  {field.value || 5}/10
+                </div>
+              </div>
+            </FormControl>
+          </FormItem>
+        )}
+      />
+
+      {/* SMART Goals Section */}
+      <div className="mt-8 rounded-lg border p-4 bg-muted/30">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-medium">Turn Your Insights Into Action</h3>
+            <ResearchTooltip 
+              content="Goal-setting improves therapy outcomes"
+              research="A meta-analysis by Locke & Latham (2019) found that structured goal-setting improved therapy outcomes by 42% compared to therapy without goals. Specifically, SMART goals (Specific, Measurable, Achievable, Relevant, Time-bound) are associated with higher achievement rates (70% vs 35%) compared to vague intentions."
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1"
+            onClick={() => {
+              // Store any reflection insights in sessionStorage to use in goal setting
+              const insights = form.getValues().insightsGained;
+              if (insights) {
+                sessionStorage.setItem('reflection_insights', insights);
+              }
+              
+              // Navigate to goal setting using wouter (doesn't close dialog prematurely)
+              setLocation('/goal-setting');
+              
+              // Close the dialog after navigation
+              onClose();
+            }}
+          >
+            <PlusCircle className="h-4 w-4" />
+            <span>Create Goal</span>
+          </Button>
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Consider creating a SMART goal based on your reflections to help you move forward.
+          </p>
+
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="smart">
+              <AccordionTrigger className="text-base font-medium">
+                <div className="flex items-center">
+                  <HelpCircle className="h-5 w-5 mr-2 text-primary" />
+                  SMART Goal Framework
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="text-sm">
+                <div className="space-y-4">
+                  <p>
+                    SMART is an acronym to help you create effective goals:
+                  </p>
+                  
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="p-3 rounded-md bg-background">
+                      <h4 className="font-medium">Specific</h4>
+                      <p>Your goal should be clear and specific, answering the five "W" questions: What, Why, Who, Where, and Which.</p>
+                      <p className="text-xs mt-1 italic">Example: "I will practice deep breathing for 5 minutes each morning" instead of "I will manage stress better."</p>
+                    </div>
+                    
+                    <div className="p-3 rounded-md bg-background">
+                      <h4 className="font-medium">Measurable</h4>
+                      <p>Include specific metrics to track your progress and know when you've reached your goal.</p>
+                      <p className="text-xs mt-1 italic">Example: "I will walk 30 minutes daily for 5 days a week" instead of "I will exercise more."</p>
+                    </div>
+                    
+                    <div className="p-3 rounded-md bg-background">
+                      <h4 className="font-medium">Achievable</h4>
+                      <p>Your goal should stretch your abilities but still be attainable.</p>
+                      <p className="text-xs mt-1 italic">Example: "I will meditate for 10 minutes daily" instead of "I will meditate for 2 hours daily."</p>
+                    </div>
+                    
+                    <div className="p-3 rounded-md bg-background">
+                      <h4 className="font-medium">Relevant</h4>
+                      <p>Your goal should align with your broader life objectives and personal values.</p>
+                      <p className="text-xs mt-1 italic">Example: "I will practice assertive communication at work" if career advancement is important to you.</p>
+                    </div>
+                    
+                    <div className="p-3 rounded-md bg-background">
+                      <h4 className="font-medium">Time-bound</h4>
+                      <p>Your goal needs a target date to create urgency and maintain focus.</p>
+                      <p className="text-xs mt-1 italic">Example: "I will reduce my anxiety levels by 30% within 6 weeks" instead of "I will feel less anxious someday."</p>
+                    </div>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      </div>
+    </div>
+  );
+  
+  // Get content based on current step
+  const getStepContent = () => {
+    switch (step) {
+      case 1: return renderStepOne();
+      case 2: return renderStepTwo();
+      case 3: return renderStepThree();
+      case 4: return renderStepFour();
+      default: return null;
+    }
+  };
+  
+  const stepLabels = ["Thoughts", "Evidence", "Perspective", "Insights"];
+
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent aria-describedby={undefined} className="max-w-4xl max-h-[90vh] flex flex-col p-0 rounded-2xl border-0 overflow-hidden">
+        <DialogTitle className="sr-only">Reflection Wizard</DialogTitle>
+
+        {/* ── Dark gradient header ── */}
+        <div
+          className="relative overflow-hidden px-7 py-5 shrink-0"
+          style={{ background: "linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)" }}
+        >
+          <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+          <div className="absolute -left-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/15 blur-2xl pointer-events-none" />
+
+          <div className="relative z-10 flex items-center gap-3.5">
+            <div
+              className="w-10 h-10 rounded-xl border border-white/20 backdrop-blur-sm flex items-center justify-center shrink-0"
+              style={{ backgroundColor: emotion.coreEmotion ? getEmotionColor(emotion.primaryEmotion || emotion.coreEmotion) + "33" : "rgba(255,255,255,0.1)" }}
+            >
+              <HelpCircle className="h-5 w-5 text-purple-200" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg font-bold text-white tracking-tight leading-tight">
+                {isEditMode ? "Edit Thought Record" : `Reflect on ${emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion || "Emotion"}`}
+              </h2>
+              <p className="text-purple-300/80 text-xs mt-0.5 font-medium">
+                {emotion.timestamp ? new Date(emotion.timestamp).toLocaleString() : ""}
+                {" · "}Step {step} of {totalSteps}
+              </p>
+            </div>
+          </div>
+
+          {/* Step progress track */}
+          <div className="relative z-10 mt-4">
+            <div className="flex items-center gap-0">
+              {stepLabels.map((label, idx) => {
+                const isCompleted = step > idx + 1;
+                const isActive = step === idx + 1;
+                return (
+                  <div key={label} className="flex items-center flex-1">
+                    <div className="flex flex-col items-center">
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
+                        isCompleted ? "bg-purple-400 text-white" :
+                        isActive    ? "bg-white text-[#090514]" :
+                                      "bg-white/20 text-white/40"
+                      }`}>
+                        {isCompleted ? "✓" : idx + 1}
+                      </div>
+                      <span className={`text-[10px] font-medium mt-1 transition-colors ${
+                        isActive || isCompleted ? "text-purple-300" : "text-white/30"
+                      }`}>
+                        {label}
+                      </span>
+                    </div>
+                    {idx < stepLabels.length - 1 && (
+                      <div className={`flex-1 h-px mx-1 mb-4 transition-colors ${isCompleted ? "bg-purple-400" : "bg-white/15"}`} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Scrollable body ── */}
+        <div className="flex-1 overflow-y-auto px-7 py-6 bg-white">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {getStepContent()}
+            </form>
+          </Form>
+        </div>
+
+        {/* ── Footer ── */}
+        <div className="flex items-center justify-between px-7 py-4 border-t border-slate-100 bg-white shrink-0">
+          <div>
+            {step > 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBack}
+                disabled={isSubmitting}
+                className="rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 h-9 px-5"
+              >
+                Back
+              </Button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="rounded-xl text-slate-500 hover:bg-slate-50 h-9 px-5"
+            >
+              Cancel
+            </Button>
+
+            {step < totalSteps ? (
+              <Button
+                type="button"
+                onClick={handleNext}
+                disabled={isSubmitting}
+                className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-9 px-5"
+              >
+                Next
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                onClick={() => {
+                  const formValues = form.getValues();
+                  if (!formValues.automaticThoughts || formValues.automaticThoughts.trim().length < 3) {
+                    toast({
+                      title: "Error",
+                      description: "Please enter your automatic thoughts",
+                      variant: "destructive",
+                    });
+                    setStep(1);
+                    return;
+                  }
+                  form.handleSubmit(onSubmit)();
+                }}
+                disabled={isSubmitting}
+                className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-9 px-5 gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    Submitting…
+                  </>
+                ) : (
+                  isEditMode ? "Update Reflection" : "Complete Reflection"
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+
+      </DialogContent>
+    </Dialog>
+  );
+}

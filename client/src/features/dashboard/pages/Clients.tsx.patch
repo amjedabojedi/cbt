@@ -1,0 +1,243 @@
+--- client/src/features/dashboard/pages/Clients.tsx
++++ client/src/features/dashboard/pages/Clients.tsx
+@@ -7,2 +7,3 @@
+ import { useLocation } from "wouter";
++import { useLocalization } from "@/lib/localize";
+ import { Button } from "@/components/ui/button";
+@@ -158,2 +159,3 @@
+ export default function Clients() {
++  const { t } = useLocalization();
+   const { user } = useAuth();
+@@ -194,2 +196,2 @@
+-      toast({ title: "Invitation sent!", description: "The client invitation has been sent successfully." });
++      toast({ title: t("Invitation sent!"), description: t("The client invitation has been sent successfully.") });
+       setShowInviteDialog(false);
+@@ -201,2 +203,2 @@
+-      toast({ title: "Error", description: error.message || "Failed to send invitation.", variant: "destructive" });
++      toast({ title: t("Error"), description: error.message || t("Failed to send invitation."), variant: "destructive" });
+     },
+@@ -218,2 +220,2 @@
+-  const handleSendMessage        = (_c: User) => toast({ title: "Feature Coming Soon", description: "Direct messaging will be available in a future update." });
++  const handleSendMessage        = (_c: User) => toast({ title: t("Feature Coming Soon"), description: t("Direct messaging will be available in a future update.") });
+ 
+@@ -223,2 +225,2 @@
+-      toast({ title: "Client Removed", description: "The client has been successfully removed from your practice." });
++      toast({ title: t("Client Removed"), description: t("The client has been successfully removed from your practice.") });
+       setSelectedClientId(null);
+@@ -228,2 +230,2 @@
+-      toast({ title: "Error", description: error.message || "Failed to remove client", variant: "destructive" });
++      toast({ title: t("Error"), description: error.message || t("Failed to remove client"), variant: "destructive" });
+     },
+@@ -233,2 +235,2 @@
+-    if (confirm(`Are you sure you want to remove ${client.name || client.username} from your practice? This action cannot be undone.`)) {
++    if (confirm(t("Are you sure you want to remove {name} from your practice? This action cannot be undone.").replace('{name}', client.name || client.username))) {
+       deleteClientMutation.mutate(client.id);
+@@ -242,2 +244,2 @@
+-      toast({ title: "Invitation Resent!", description: "The invitation has been sent again successfully." });
++      toast({ title: t("Invitation Resent!"), description: t("The invitation has been sent again successfully.") });
+       queryClient.invalidateQueries({ queryKey: ["/api/invitations"] });
+@@ -249,2 +251,2 @@
+-        toast({ title: "Invitation Removed", description: "This invitation was already processed or removed." });
++        toast({ title: t("Invitation Removed"), description: t("This invitation was already processed or removed.") });
+       } else {
+-        toast({ title: "Error", description: error.message || "Failed to resend invitation.", variant: "destructive" });
++        toast({ title: t("Error"), description: error.message || t("Failed to resend invitation."), variant: "destructive" });
+       }
+@@ -288,2 +290,2 @@
+-      <AppLayout title="Clients">
++      <AppLayout title={t("Client Directory")}>
+         <div className="min-h-full bg-slate-50 flex items-center justify-center" style={{ minHeight: "50vh" }}>
+@@ -292,2 +294,2 @@
+-            <p className="text-slate-500 text-sm font-medium">Syncing practice data…</p>
++            <p className="text-slate-500 text-sm font-medium">{t("Syncing practice data…")}</p>
+           </div>
+@@ -300,2 +302,2 @@
+-    <AppLayout title="Clients">
++    <AppLayout title={t("Client Directory")}>
+       <div className="min-h-full bg-slate-50">
+@@ -312,5 +314,5 @@
+-                  <span className="text-purple-900 text-sm font-bold tracking-widest uppercase">Clinical Workspace</span>
++                  <span className="text-purple-900 text-sm font-bold tracking-widest uppercase">{t("Clinical Workspace")}</span>
+                 </div>
+                 <h1 className="text-3xl md:text-4xl font-bold mb-2 tracking-tight text-slate-800">
+-                  Client Directory
++                  {t("Client Directory")}
+                 </h1>
+@@ -318,2 +320,2 @@
+-                  Access individual client records, launch clinical modules, and manage your practice connections.
++                  {t("Access individual client records, launch clinical modules, and manage your practice connections.")}
+                 </p>
+@@ -325,4 +327,4 @@
+-                  { value: totalClientsCount, label: "Clients" },
+-                  { value: `${activeRate}%`, label: "Active" },
+-                  { value: pendingInvitesCount, label: "Pending" },
++                  { value: totalClientsCount, label: t("Clients") },
++                  { value: `${activeRate}%`, label: t("Active") },
++                  { value: pendingInvitesCount, label: t("Pending") },
+                 ].map((stat, i) => (
+@@ -338,2 +340,2 @@
+-                      <Plus className="h-4 w-4 mr-2" /> Invite Client
++                      <Plus className="h-4 w-4 mr-2" /> {t("Invite Client")}
+                     </Button>
+@@ -344,5 +346,5 @@
+-                        <UserPlus className="h-5 w-5 text-[#090514]" /> Invite a Client
++                        <UserPlus className="h-5 w-5 text-[#090514]" /> {t("Invite a Client")}
+                       </DialogTitle>
+                       <DialogDescription className="text-slate-500">
+-                        Send a secure invitation to connect a client's account to your practice.
++                        {t("Send a secure invitation to connect a client's account to your practice.")}
+                       </DialogDescription>
+@@ -354,3 +356,3 @@
+-                            <FormLabel className="text-slate-700">Full Name</FormLabel>
+-                            <FormControl><Input placeholder="Jane Doe" className={lightInput} {...field} /></FormControl>
++                            <FormLabel className="text-slate-700">{t("Full Name")}</FormLabel>
++                            <FormControl><Input placeholder={t("Jane Doe")} className={lightInput} {...field} /></FormControl>
+                             <FormMessage />
+@@ -361,3 +363,3 @@
+-                            <FormLabel className="text-slate-700">Email Address</FormLabel>
+-                            <FormControl><Input placeholder="client@example.com" className={lightInput} {...field} /></FormControl>
++                            <FormLabel className="text-slate-700">{t("Email Address")}</FormLabel>
++                            <FormControl><Input placeholder={t("client@example.com")} className={lightInput} {...field} /></FormControl>
+                             <FormMessage />
+@@ -369,2 +371,2 @@
+-                            Cancel
++                            {t("Cancel")}
+                           </Button>
+@@ -374,4 +376,4 @@
+-                              <span className="flex items-center gap-2"><RefreshCw className="h-4 w-4 animate-spin" /> Sending…</span>
++                              <span className="flex items-center gap-2"><RefreshCw className="h-4 w-4 animate-spin" /> {t("Sending…")}</span>
+                             ) : (
+-                              <span className="flex items-center gap-2"><Send className="h-4 w-4" /> Send Invitation</span>
++                              <span className="flex items-center gap-2"><Send className="h-4 w-4" /> {t("Send Invitation")}</span>
+                             )}
+@@ -393,3 +395,3 @@
+-              <TabButton active={activeTab === "directory"} onClick={() => setActiveTab("directory")} icon={<Users className="h-4 w-4" />} label="Client Directory" count={totalClientsCount} />
+-              <TabButton active={activeTab === "invitations"} onClick={() => setActiveTab("invitations")} icon={<Mail className="h-4 w-4" />} label="Pending Connections" count={pendingInvitesCount} />
++              <TabButton active={activeTab === "directory"} onClick={() => setActiveTab("directory")} icon={<Users className="h-4 w-4" />} label={t("Client Directory")} count={totalClientsCount} />
++              <TabButton active={activeTab === "invitations"} onClick={() => setActiveTab("invitations")} icon={<Mail className="h-4 w-4" />} label={t("Pending Connections")} count={pendingInvitesCount} />
+             </div>
+@@ -414,3 +416,3 @@
+-                    placeholder="Search clients…"
++                    placeholder={t("Search clients…")}
+@@ -429,2 +431,2 @@
+-                    <p className="text-xs text-slate-500 font-medium mb-1">Registered</p>
++                    <p className="text-xs text-slate-500 font-medium mb-1">{t("Registered")}</p>
+                     <p className="text-2xl font-bold text-[#090514]">{totalClientsCount}</p>
+@@ -433,2 +435,2 @@
+-                    <p className="text-xs text-slate-500 font-medium mb-1">Active Rate</p>
++                    <p className="text-xs text-slate-500 font-medium mb-1">{t("Active Rate")}</p>
+                     <p className="text-2xl font-bold text-[#090514]">{activeRate}%</p>
+@@ -441,2 +443,2 @@
+-                  <span>Select a client to open their workspace.</span>
++                  <span>{t("Select a client to open their workspace.")}</span>
+                 </div>
+@@ -489,3 +491,3 @@
+-                      <p className="text-sm font-medium text-slate-600">No clients found</p>
+-                      <p className="text-xs text-slate-400 mt-1">Try a different search or send an invite.</p>
++                      <p className="text-sm font-medium text-slate-600">{t("No clients found")}</p>
++                      <p className="text-xs text-slate-400 mt-1">{t("Try a different search or send an invite.")}</p>
+                     </div>
+@@ -511,2 +513,2 @@
+-                        <ArrowLeft className="h-4 w-4" /> Back to list
++                        <ArrowLeft className="h-4 w-4" /> {t("Back to list")}
+                       </Button>
+@@ -538,2 +540,2 @@
+-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+-                            {selectedClient.status}
++                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
++                            {t(selectedClient.status)}
+@@ -542,2 +544,2 @@
+-                            <Calendar className="h-3.5 w-3.5 text-slate-400" />
+-                            Since {new Date(selectedClient.createdAt).toLocaleDateString()}
++                            <Calendar className="h-3.5 w-3.5 text-slate-400" />
++                            {t("Since ")} {new Date(selectedClient.createdAt).toLocaleDateString()}
+@@ -546,2 +548,2 @@
+-                            <Shield className="h-3.5 w-3.5" /> ID #{selectedClient.id}
++                            <Shield className="h-3.5 w-3.5" /> {t("ID #")}{selectedClient.id}
+                           </span>
+@@ -556,2 +558,2 @@
+-                            title="Message">
++                            title={t("Message")}>
+                             <MessageCircle className="h-4 w-4" />
+@@ -562,2 +564,2 @@
+-                            title="Remove client">
++                            title={t("Remove client")}>
+                             <Trash2 className="h-4 w-4" />
+@@ -574,3 +576,3 @@
+-                          <Sparkles className="h-4 w-4 text-purple-900" />
+-                          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Clinical Modules</span>
++                          <Sparkles className="h-4 w-4 text-purple-900" />
++                          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Clinical Modules")}</span>
+                         </div>
+-                        <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Select to launch</span>
++                        <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">{t("Select to launch")}</span>
+@@ -580,4 +582,4 @@
+-                        <ModuleCard icon={<Brain className="h-5 w-5 stroke-[1.75]" />}    code="M01" title="Thought Records"    description="Cognitive distortions & reframing" onClick={() => handleViewThoughtRecords(selectedClient)} />
+-                        <ModuleCard icon={<BookOpen className="h-5 w-5 stroke-[1.75]" />} code="M02" title="Journal Entries"    description="Self-reflections & session notes"  onClick={() => handleViewJournals(selectedClient)} />
+-                        <ModuleCard icon={<Heart className="h-5 w-5 stroke-[1.75]" />}   code="M03" title="Mood & Triggers"    description="Mood fluctuations & trigger events" onClick={() => handleViewRecords(selectedClient)} />
+-                        <ModuleCard icon={<Target className="h-5 w-5 stroke-[1.75]" />}  code="M04" title="Goals & Objectives" description="SMART objectives & milestones"     onClick={() => handleViewGoals(selectedClient)} />
++                        <ModuleCard icon={<Brain className="h-5 w-5 stroke-[1.75]" />}    code="M01" title={t("Thought Records")}    description={t("Cognitive distortions & reframing")} onClick={() => handleViewThoughtRecords(selectedClient)} />
++                        <ModuleCard icon={<BookOpen className="h-5 w-5 stroke-[1.75]" />} code="M02" title={t("Journal Entries")}    description={t("Self-reflections & session notes")}  onClick={() => handleViewJournals(selectedClient)} />
++                        <ModuleCard icon={<Heart className="h-5 w-5 stroke-[1.75]" />}   code="M03" title={t("Mood & Triggers")}    description={t("Mood fluctuations & trigger events")} onClick={() => handleViewRecords(selectedClient)} />
++                        <ModuleCard icon={<Target className="h-5 w-5 stroke-[1.75]" />}  code="M04" title={t("Goals & Objectives")} description={t("SMART objectives & milestones")}     onClick={() => handleViewGoals(selectedClient)} />
+@@ -590,2 +592,2 @@
+-                          <User className="h-4 w-4" /> View Profile
++                          <User className="h-4 w-4" /> {t("View Profile")}
+                         </Button>
+@@ -594,2 +596,2 @@
+-                          Open Analytics <ExternalLink className="h-4 w-4" />
++                          {t("Open Analytics ")} <ExternalLink className="h-4 w-4" />
+                         </Button>
+@@ -605,3 +607,3 @@
+-                    <h3 className="text-lg font-bold text-slate-800 mb-2">Clinical Workspace</h3>
++                    <h3 className="text-lg font-bold text-slate-800 mb-2">{t("Clinical Workspace")}</h3>
+                     <p className="text-sm text-slate-500 max-w-xs mb-8 leading-relaxed">
+-                      Select a client from the directory on the left to open their workspace and launch clinical modules.
++                      {t("Select a client from the directory on the left to open their workspace and launch clinical modules.")}
+@@ -611,3 +613,3 @@
+-                        { n: "1", title: "Load Client File", desc: "Select a profile to access their records and metadata." },
+-                        { n: "2", title: "Launch Modules",   desc: "Analyze cognitive records, journals, or progress reports." },
++                        { n: "1", title: t("Load Client File"), desc: t("Select a profile to access their records and metadata.") },
++                        { n: "2", title: t("Launch Modules"),   desc: t("Analyze cognitive records, journals, or progress reports.") },
+                       ].map(({ n, title, desc }) => (
+@@ -635,4 +637,4 @@
+-                  <h2 className="text-xl font-bold text-slate-800 mb-1 flex items-center gap-2">
+-                    <Clock className="h-5 w-5 text-purple-900" /> Pending Connections
++                  <h2 className="text-xl font-bold text-slate-800 mb-1 flex items-center gap-2">
++                    <Clock className="h-5 w-5 text-purple-900" /> {t("Pending Connections")}
+                   </h2>
+-                  <p className="text-sm text-slate-500">Invitations dispatched to clients awaiting registration.</p>
++                  <p className="text-sm text-slate-500">{t("Invitations dispatched to clients awaiting registration.")}</p>
+@@ -641,2 +643,2 @@
+-                  <UserPlus className="h-4 w-4 mr-2" /> Send Invite
++                  <UserPlus className="h-4 w-4 mr-2" /> {t("Send Invite")}
+                 </Button>
+@@ -654,4 +656,4 @@
+-                        <TableHead className="font-semibold text-slate-500 pl-6 h-11 text-xs uppercase tracking-widest">Recipient</TableHead>
+-                        <TableHead className="font-semibold text-slate-500 h-11 text-xs uppercase tracking-widest">Email</TableHead>
+-                        <TableHead className="font-semibold text-slate-500 h-11 text-xs uppercase tracking-widest">Sent On</TableHead>
+-                        <TableHead className="font-semibold text-slate-500 h-11 text-xs text-right pr-6 uppercase tracking-widest">Action</TableHead>
++                        <TableHead className="font-semibold text-slate-500 pl-6 h-11 text-xs uppercase tracking-widest">{t("Recipient")}</TableHead>
++                        <TableHead className="font-semibold text-slate-500 h-11 text-xs uppercase tracking-widest">{t("Email")}</TableHead>
++                        <TableHead className="font-semibold text-slate-500 h-11 text-xs uppercase tracking-widest">{t("Sent On")}</TableHead>
++                        <TableHead className="font-semibold text-slate-500 h-11 text-xs text-right pr-6 uppercase tracking-widest">{t("Action")}</TableHead>
+@@ -668,2 +670,2 @@
+-                              {invitation.name || "Anonymous"}
++                              {invitation.name || t("Anonymous")}
+                             </div>
+@@ -690,2 +692,2 @@
+-                              )}
+-                              Resend
++                              )}
++                              {t("Resend")}
+@@ -703,4 +705,4 @@
+-                  <h3 className="text-lg font-semibold text-slate-700 mb-2">No pending invitations</h3>
++                  <h3 className="text-lg font-semibold text-slate-700 mb-2">{t("No pending invitations")}</h3>
+                   <p className="text-sm text-slate-400 mb-6 max-w-sm">
+-                    All connection requests have been completed. Invite new clients to expand your practice.
++                    {t("All connection requests have been completed. Invite new clients to expand your practice.")}
+                   </p>
+@@ -709,2 +711,2 @@
+-                    <UserPlus className="h-4 w-4 mr-2" /> Send Secure Invite
++                    <UserPlus className="h-4 w-4 mr-2" /> {t("Send Secure Invite")}
+                   </Button>
