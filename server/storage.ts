@@ -278,11 +278,11 @@ export class DatabaseStorage implements IStorage {
   async getCurrentViewingClient(userId: number): Promise<number | null> {
     return this.usersRepo.getCurrentViewingClient(userId);
   }
-
+  
   async countTherapistClients(therapistId: number): Promise<number> {
     return this.usersRepo.countProfessionalClients(therapistId);
   }
-
+  
   async countProfessionalClients(professionalId: number): Promise<number> {
     return this.usersRepo.countProfessionalClients(professionalId);
   }
@@ -320,27 +320,27 @@ export class DatabaseStorage implements IStorage {
   async createClientInvitation(invitation: InsertClientInvitation): Promise<ClientInvitation> {
     return this.usersRepo.createClientInvitation(invitation);
   }
-
+  
   async getClientInvitationById(id: number): Promise<ClientInvitation | undefined> {
     return this.usersRepo.getClientInvitationById(id);
   }
-
+  
   async getClientInvitationByEmail(email: string): Promise<ClientInvitation | undefined> {
     return this.usersRepo.getClientInvitationByEmail(email);
   }
-
+  
   async getClientInvitationsByTherapist(therapistId: number): Promise<ClientInvitation[]> {
     return this.usersRepo.getClientInvitationsByProfessional(therapistId);
   }
-
+  
   async getClientInvitationsByProfessional(professionalId: number): Promise<ClientInvitation[]> {
     return this.usersRepo.getClientInvitationsByProfessional(professionalId);
   }
-
+  
   async updateClientInvitationStatus(id: number, status: string): Promise<ClientInvitation> {
     return this.usersRepo.updateClientInvitationStatus(id, status);
   }
-
+  
   async deleteClientInvitation(id: number): Promise<boolean> {
     return this.usersRepo.deleteClientInvitation(id);
   }
@@ -354,15 +354,15 @@ export class DatabaseStorage implements IStorage {
   async getAllEmotionRecords(): Promise<EmotionRecord[]> {
     return this.therapyRepo.getAllEmotionRecords();
   }
-
+  
   async getAllThoughtRecords(): Promise<ThoughtRecord[]> {
     return this.therapyRepo.getAllThoughtRecords();
   }
-
+  
   async getAllGoals(): Promise<Goal[]> {
     return this.goalsRepo.getAllGoals();
   }
-
+  
   async getAllResourceAssignments(): Promise<ResourceAssignment[]> {
     return this.resourcesRepo.getAllResourceAssignments();
   }
@@ -461,19 +461,19 @@ export class DatabaseStorage implements IStorage {
   async createCognitiveDistortion(distortion: InsertCognitiveDistortion): Promise<CognitiveDistortion> {
     return this.therapyRepo.createCognitiveDistortion(distortion);
   }
-
+  
   async getCognitiveDistortions(): Promise<CognitiveDistortion[]> {
     return this.therapyRepo.getCognitiveDistortions();
   }
-
+  
   async getCognitiveDistortionById(id: number): Promise<CognitiveDistortion | undefined> {
     return this.therapyRepo.getCognitiveDistortionById(id);
   }
-
+  
   async updateCognitiveDistortion(id: number, data: Partial<InsertCognitiveDistortion>): Promise<CognitiveDistortion> {
     return this.therapyRepo.updateCognitiveDistortion(id, data);
   }
-
+  
   async deleteCognitiveDistortion(id: number): Promise<void> {
     return this.therapyRepo.deleteCognitiveDistortion(id);
   }
@@ -521,60 +521,60 @@ export class DatabaseStorage implements IStorage {
   async createResource(resource: InsertResource): Promise<Resource> {
     return this.resourcesRepo.createResource(resource);
   }
-
+  
   async getResourceById(id: number): Promise<Resource | undefined> {
     return this.resourcesRepo.getResourceById(id);
   }
-
+  
   async getResourcesByCreator(userId: number): Promise<Resource[]> {
     return this.resourcesRepo.getResourcesByCreator(userId);
   }
-
+  
   async getResourcesByCategory(category: string): Promise<Resource[]> {
     return this.resourcesRepo.getResourcesByCategory(category);
   }
-
+  
   async getAllResources(includeUnpublished?: boolean): Promise<Resource[]> {
     return this.resourcesRepo.getAllResources(includeUnpublished);
   }
-
+  
   async updateResource(id: number, data: Partial<InsertResource>): Promise<Resource> {
     return this.resourcesRepo.updateResource(id, data);
   }
-
+  
   async deleteResource(id: number): Promise<void> {
     return this.resourcesRepo.deleteResource(id);
   }
-
+  
   async cloneResource(resourceId: number, userId: number): Promise<Resource> {
     return this.resourcesRepo.cloneResource(resourceId, userId);
   }
-
+  
   // Resource assignments
   async assignResourceToClient(assignment: InsertResourceAssignment): Promise<ResourceAssignment> {
     return this.resourcesRepo.assignResourceToClient(assignment);
   }
-
+  
   async getResourceAssignmentById(id: number): Promise<ResourceAssignment | undefined> {
     return this.resourcesRepo.getResourceAssignmentById(id);
   }
-
+  
   async getAssignmentsByClient(clientId: number): Promise<ResourceAssignment[]> {
     return this.resourcesRepo.getAssignmentsByClient(clientId);
   }
-
+  
   async getAssignmentsByTherapist(therapistId: number): Promise<ResourceAssignment[]> {
     return this.resourcesRepo.getAssignmentsByTherapist(therapistId);
   }
-
+  
   async getAssignmentsByProfessional(professionalId: number): Promise<ResourceAssignment[]> {
     return this.resourcesRepo.getAssignmentsByProfessional(professionalId);
   }
-
+  
   async updateAssignmentStatus(id: number, status: string): Promise<ResourceAssignment> {
     return this.resourcesRepo.updateAssignmentStatus(id, status);
   }
-
+  
   async deleteResourceAssignment(id: number): Promise<void> {
     return this.resourcesRepo.deleteResourceAssignment(id);
   }
@@ -583,11 +583,11 @@ export class DatabaseStorage implements IStorage {
   async createResourceFeedback(feedback: InsertResourceFeedback): Promise<ResourceFeedback> {
     return this.resourcesRepo.createResourceFeedback(feedback);
   }
-
+  
   async getResourceFeedbackByResource(resourceId: number): Promise<ResourceFeedback[]> {
     return this.resourcesRepo.getResourceFeedbackByResource(resourceId);
   }
-
+  
   async getResourceFeedbackByUser(userId: number): Promise<ResourceFeedback[]> {
     return this.resourcesRepo.getResourceFeedbackByUser(userId);
   }
@@ -596,36 +596,36 @@ export class DatabaseStorage implements IStorage {
   async createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry> {
     return this.journalRepo.createJournalEntry(entry);
   }
-
+  
   async getJournalEntryById(id: number): Promise<JournalEntry | undefined> {
     return this.journalRepo.getJournalEntryById(id);
   }
-
+  
   async getJournalEntriesByUser(userId: number): Promise<JournalEntry[]> {
     return this.journalRepo.getJournalEntriesByUser(userId);
   }
-
+  
   async updateJournalEntry(id: number, data: Partial<InsertJournalEntry>): Promise<JournalEntry> {
     return this.journalRepo.updateJournalEntry(id, data);
   }
-
+  
   async deleteJournalEntry(id: number): Promise<void> {
     return this.journalRepo.deleteJournalEntry(id);
   }
-
+  
   // Journal comments
   async createJournalComment(comment: InsertJournalComment): Promise<JournalComment> {
     return this.journalRepo.createJournalComment(comment);
   }
-
+  
   async getJournalCommentsByEntry(journalEntryId: number): Promise<JournalComment[]> {
     return this.journalRepo.getJournalCommentsByEntry(journalEntryId);
   }
-
+  
   async updateJournalComment(id: number, data: Partial<InsertJournalComment>): Promise<JournalComment> {
     return this.journalRepo.updateJournalComment(id, data);
   }
-
+  
   async deleteJournalComment(id: number): Promise<void> {
     return this.journalRepo.deleteJournalComment(id);
   }
@@ -634,15 +634,15 @@ export class DatabaseStorage implements IStorage {
   async linkJournalToThoughtRecord(journalId: number, thoughtRecordId: number): Promise<void> {
     return this.journalRepo.linkJournalToThoughtRecord(journalId, thoughtRecordId);
   }
-
+  
   async unlinkJournalFromThoughtRecord(journalId: number, thoughtRecordId: number): Promise<void> {
     return this.journalRepo.unlinkJournalFromThoughtRecord(journalId, thoughtRecordId);
   }
-
+  
   async getRelatedThoughtRecords(journalId: number): Promise<ThoughtRecord[]> {
     return this.journalRepo.getRelatedThoughtRecords(journalId);
   }
-
+  
   async getRelatedJournalEntries(thoughtRecordId: number): Promise<JournalEntry[]> {
     return this.journalRepo.getRelatedJournalEntries(thoughtRecordId);
   }
@@ -651,40 +651,40 @@ export class DatabaseStorage implements IStorage {
   async createNotification(notification: InsertNotification): Promise<Notification> {
     return this.notificationsRepo.createNotification(notification);
   }
-
+  
   async getNotificationsByUser(userId: number, limit?: number): Promise<Notification[]> {
     return this.notificationsRepo.getNotificationsByUser(userId, limit);
   }
-
+  
   async getUnreadNotificationsByUser(userId: number): Promise<Notification[]> {
     return this.notificationsRepo.getUnreadNotificationsByUser(userId);
   }
-
+  
   async getNotificationById(id: number): Promise<Notification | undefined> {
     return this.notificationsRepo.getNotificationById(id);
   }
-
+  
   async markNotificationAsRead(id: number): Promise<Notification> {
     return this.notificationsRepo.markNotificationAsRead(id);
   }
-
+  
   async markAllNotificationsAsRead(userId: number): Promise<void> {
     return this.notificationsRepo.markAllNotificationsAsRead(userId);
   }
-
+  
   async deleteNotification(id: number): Promise<void> {
     return this.notificationsRepo.deleteNotification(id);
   }
-
+  
   // Notification preferences
   async getNotificationPreferences(userId: number): Promise<NotificationPreferences | undefined> {
     return this.notificationsRepo.getNotificationPreferences(userId);
   }
-
+  
   async createNotificationPreferences(preferences: InsertNotificationPreferences): Promise<NotificationPreferences> {
     return this.notificationsRepo.createNotificationPreferences(preferences);
   }
-
+  
   async updateNotificationPreferences(userId: number, preferences: Partial<InsertNotificationPreferences>): Promise<NotificationPreferences> {
     return this.notificationsRepo.updateNotificationPreferences(userId, preferences);
   }
@@ -693,27 +693,27 @@ export class DatabaseStorage implements IStorage {
   async createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan> {
     return this.billingRepo.createSubscriptionPlan(plan);
   }
-
+  
   async getSubscriptionPlans(activeOnly?: boolean): Promise<SubscriptionPlan[]> {
     return this.billingRepo.getSubscriptionPlans(activeOnly);
   }
-
+  
   async getSubscriptionPlanById(id: number): Promise<SubscriptionPlan | undefined> {
     return this.billingRepo.getSubscriptionPlanById(id);
   }
-
+  
   async updateSubscriptionPlan(id: number, data: Partial<InsertSubscriptionPlan>): Promise<SubscriptionPlan> {
     return this.billingRepo.updateSubscriptionPlan(id, data);
   }
-
+  
   async getDefaultSubscriptionPlan(): Promise<SubscriptionPlan | undefined> {
     return this.billingRepo.getDefaultSubscriptionPlan();
   }
-
+  
   async setDefaultSubscriptionPlan(id: number): Promise<SubscriptionPlan> {
     return this.billingRepo.setDefaultSubscriptionPlan(id);
   }
-
+  
   async deactivateSubscriptionPlan(id: number): Promise<SubscriptionPlan> {
     return this.billingRepo.deactivateSubscriptionPlan(id);
   }
@@ -722,11 +722,11 @@ export class DatabaseStorage implements IStorage {
   async updateUserStripeInfo(userId: number, stripeInfo: { stripeCustomerId: string, stripeSubscriptionId: string }): Promise<User> {
     return this.billingRepo.updateUserStripeInfo(userId, stripeInfo);
   }
-
+  
   async updateSubscriptionStatus(userId: number, status: string, endDate?: Date): Promise<User> {
     return this.billingRepo.updateSubscriptionStatus(userId, status, endDate);
   }
-
+  
   async assignSubscriptionPlan(userId: number, planId: number): Promise<User> {
     return this.billingRepo.assignSubscriptionPlan(userId, planId);
   }
@@ -744,15 +744,15 @@ export class DatabaseStorage implements IStorage {
   async createAiRecommendation(recommendation: InsertAiRecommendation): Promise<AiRecommendation> {
     return this.adminRepo.createAiRecommendation(recommendation);
   }
-
+  
   async getAiRecommendationById(id: number): Promise<AiRecommendation | undefined> {
     return this.adminRepo.getAiRecommendationById(id);
   }
-
+  
   async getAiRecommendationsByUser(userId: number): Promise<AiRecommendation[]> {
     return this.adminRepo.getAiRecommendationsByUser(userId);
   }
-
+  
   async getPendingAiRecommendationsByProfessional(professionalId: number): Promise<AiRecommendation[]> {
     return this.adminRepo.getPendingAiRecommendationsByProfessional(professionalId);
   }
@@ -760,40 +760,11 @@ export class DatabaseStorage implements IStorage {
   async getPendingAiRecommendationsByTherapist(therapistId: number): Promise<AiRecommendation[]> {
     return this.adminRepo.getPendingAiRecommendationsByTherapist(therapistId);
   }
-
+  
   async updateAiRecommendationStatus(id: number, status: string, therapistNotes?: string): Promise<AiRecommendation> {
     return this.adminRepo.updateAiRecommendationStatus(id, status, therapistNotes);
   }
-
-  async deleteAiRecommendation(id: number): Promise<void> {
-    return this.adminRepo.deleteAiRecommendation(id);
-  }
-
-  // AI Recommendations
-  async createAiRecommendation(recommendation: InsertAiRecommendation): Promise<AiRecommendation> {
-    return this.adminRepo.createAiRecommendation(recommendation);
-  }
-
-  async getAiRecommendationById(id: number): Promise<AiRecommendation | undefined> {
-    return this.adminRepo.getAiRecommendationById(id);
-  }
-
-  async getAiRecommendationsByUser(userId: number): Promise<AiRecommendation[]> {
-    return this.adminRepo.getAiRecommendationsByUser(userId);
-  }
-
-  async getPendingAiRecommendationsByProfessional(professionalId: number): Promise<AiRecommendation[]> {
-    return this.adminRepo.getPendingAiRecommendationsByProfessional(professionalId);
-  }
-
-  async getPendingAiRecommendationsByTherapist(therapistId: number): Promise<AiRecommendation[]> {
-    return this.adminRepo.getPendingAiRecommendationsByTherapist(therapistId);
-  }
-
-  async updateAiRecommendationStatus(id: number, status: string, therapistNotes?: string): Promise<AiRecommendation> {
-    return this.adminRepo.updateAiRecommendationStatus(id, status, therapistNotes);
-  }
-
+  
   async deleteAiRecommendation(id: number): Promise<void> {
     return this.adminRepo.deleteAiRecommendation(id);
   }

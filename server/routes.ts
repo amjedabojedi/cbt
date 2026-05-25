@@ -11,8 +11,8 @@ import indexRouter from "./routes/index";
  */
 export async function registerRoutes(app: Express): Promise<Server> {
   // Parse cookies with signed secret
-  const cookieSecret =
-    process.env.COOKIE_SECRET || "resilience-hub-cookie-secret";
+  const cookieSecret = process.env.COOKIE_SECRET || 'resilience-hub-cookie-secret';
+  
   app.use(cookieParser(cookieSecret));
 
   // SECURITY: CSRF defense via Origin / Referer verification on all

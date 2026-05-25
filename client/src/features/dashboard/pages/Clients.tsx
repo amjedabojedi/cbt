@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useClientContext } from "@/context/ClientContext";
 import { useToast } from "@/hooks/use-toast";
@@ -35,21 +35,14 @@ import {
   BookOpen,
   Heart,
   Target,
-  MessageCircle,
   Brain,
   UserPlus,
-  User,
   Send,
   Clock,
   RefreshCw,
   Trash2,
-  Calendar,
-  Shield,
   ChevronRight,
-  Sparkles,
-  ArrowLeft,
   Info,
-  ExternalLink,
   Plus,
   X,
   Mail,
@@ -122,38 +115,6 @@ function TabButton({
   );
 }
 
-function ModuleCard({
-  icon, code, title, description, onClick,
-}: {
-  icon: React.ReactNode;
-  code: string;
-  title: string;
-  description: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="group/card w-full bg-white border border-slate-100 hover:border-teal-200 hover:shadow-md p-4 rounded-2xl text-left transition-all duration-300 hover:-translate-y-0.5 focus:outline-none flex items-center justify-between gap-3 h-[82px] shadow-sm"
-    >
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="w-10 h-10 rounded-xl bg-teal-50 text-slate-800 group-hover/card:bg-teal-800 group-hover/card:text-white flex items-center justify-center shrink-0 transition-all duration-300 border border-teal-100 group-hover/card:border-teal-700 group-hover/card:shadow-[0_0_12px_rgba(9,5,20,0.25)]">
-          {icon}
-        </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="text-[9px] font-mono font-bold tracking-widest text-teal-600 group-hover/card:text-teal-700 uppercase transition-colors">{code}</span>
-            <span className="h-1 w-1 rounded-full bg-slate-200 group-hover/card:bg-teal-400" />
-            <h4 className="font-bold text-xs text-slate-700 group-hover/card:text-slate-900 transition-colors uppercase tracking-wide truncate">{title}</h4>
-          </div>
-          <p className="text-[10px] text-slate-400 group-hover/card:text-slate-500 transition-colors leading-relaxed line-clamp-1">{description}</p>
-        </div>
-      </div>
-      <ChevronRight className="h-4 w-4 text-slate-300 group-hover/card:text-teal-600 group-hover/card:translate-x-0.5 transition-all shrink-0" />
-    </button>
-  );
-}
-
 const lightInput = "flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/30 focus-visible:border-teal-400 transition-all";
 
 export default function Clients() {
@@ -167,7 +128,6 @@ export default function Clients() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<"directory" | "invitations">("directory");
-  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
 
   const { data: clients, isLoading: clientsLoading } = useQuery<User[]>({
     queryKey: ["/api/users/clients"],
@@ -177,13 +137,10 @@ export default function Clients() {
   const { data: invitations, isLoading: invitationsLoading } = useQuery<any[]>({
     queryKey: ["/api/invitations"],
     enabled: !!user && (user.role === "therapist" || user.role === "admin"),
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
-  useEffect(() => {
-    if (clients && Array.isArray(clients) && clients.length > 0 && selectedClientId === null) {
-      if (window.innerWidth >= 1024) setSelectedClientId(clients[0].id);
-    }
-  }, [clients]);
 
   const inviteForm = useForm<InviteClientFormValues>({
     resolver: zodResolver(inviteClientSchema),
@@ -207,6 +164,13 @@ export default function Clients() {
   const onInviteSubmit = (data: InviteClientFormValues) => inviteMutation.mutate(data);
 
   const setClient = (client: User) => {
+    // Invalidate all cached user-specific data so the new client's pages fetch fresh
+    queryClient.invalidateQueries({
+      predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return typeof key === "string" && key.includes("/api/users/");
+      },
+    });
     setViewingClient(client.id, client.name || client.username);
     localStorage.setItem("viewingClientId", client.id.toString());
     localStorage.setItem("viewingClientName", client.name || client.username);
@@ -217,14 +181,11 @@ export default function Clients() {
   const handleViewJournals       = (c: User) => { setClient(c); navigate("/journal"); };
   const handleViewThoughtRecords = (c: User) => { setClient(c); navigate("/thoughts"); };
   const handleViewStats          = (c: User) => { setClient(c); navigate("/dashboard"); };
-  const handleViewProfile        = (c: User) => navigate(`/client/${c.id}`);
-  const handleSendMessage        = (_c: User) => toast({ title: t("Feature Coming Soon"), description: t("Direct messaging will be available in a future update.") });
 
   const deleteClientMutation = useMutation({
     mutationFn: async (clientId: number) => apiRequest("DELETE", `/api/users/clients/${clientId}`),
     onSuccess: () => {
       toast({ title: t("Client Removed"), description: t("The client has been successfully removed from your practice.") });
-      setSelectedClientId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/users/clients"] });
     },
     onError: (error: Error) => {
@@ -284,7 +245,6 @@ export default function Clients() {
   const pendingInvitesCount = uniqueInvitations?.length || 0;
   const activeClientsCount  = clients?.filter((c: any) => c.status === "active").length || 0;
   const activeRate          = totalClientsCount > 0 ? Math.round((activeClientsCount / totalClientsCount) * 100) : 0;
-  const selectedClient      = clients?.find((c) => c.id === selectedClientId) || null;
 
   if (clientsLoading) {
     return (
@@ -404,230 +364,132 @@ export default function Clients() {
 
           {/* ══ CLIENT DIRECTORY ══ */}
           {activeTab === "directory" && (
-            <div className="flex flex-col lg:flex-row gap-6 items-stretch">
+            <div className="space-y-4">
 
-              {/* LEFT — Index */}
-              <div className={`w-full lg:w-[340px] shrink-0 flex flex-col gap-4 ${selectedClientId !== null ? "hidden lg:flex" : "flex"}`}>
+              {/* Search */}
+              <div className="relative max-w-sm">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder={t("Search clients…")}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-9 h-10 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
+                />
+                {searchTerm && (
+                  <button onClick={() => setSearchTerm("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
 
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    placeholder={t("Search clients…")}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 h-10 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
-                  />
-                  {searchTerm && (
-                    <button onClick={() => setSearchTerm("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
+              {/* Mini stats */}
+              <div className="grid grid-cols-2 gap-3 max-w-xs">
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3.5">
+                  <p className="text-xs text-slate-500 font-medium mb-1">{t("Registered")}</p>
+                  <p className="text-2xl font-bold text-slate-800">{tNum(totalClientsCount)}</p>
                 </div>
-
-                {/* Mini stats */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3.5">
-                    <p className="text-xs text-slate-500 font-medium mb-1">{t("Registered")}</p>
-                    <p className="text-2xl font-bold text-slate-800">{tNum(totalClientsCount)}</p>
-                  </div>
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3.5">
-                    <p className="text-xs text-slate-500 font-medium mb-1">{t("Active Rate")}</p>
-                    <p className="text-2xl font-bold text-slate-800">{tNum(`${activeRate}%`)}</p>
-                  </div>
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3.5">
+                  <p className="text-xs text-slate-500 font-medium mb-1">{t("Active Rate")}</p>
+                  <p className="text-2xl font-bold text-slate-800">{tNum(`${activeRate}%`)}</p>
                 </div>
+              </div>
 
-                {/* Hint */}
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 px-1">
-                  <Info className="h-3.5 w-3.5 shrink-0" />
-                  <span>{t("Select a client to open their workspace.")}</span>
+              {/* Hint */}
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 px-1">
+                <Info className="h-3.5 w-3.5 shrink-0" />
+                <span>{t("Click a client's name to open their overview, or use the module icons for direct access.")}</span>
+              </div>
+
+              {/* Client list */}
+              {clientsLoading ? (
+                <div className="flex justify-center py-16">
+                  <RefreshCw className="h-6 w-6 text-teal-700 animate-spin" />
                 </div>
-
-                {/* Client list */}
-                <div className="flex-1 overflow-y-auto space-y-2 lg:max-h-[640px] pr-0.5">
+              ) : (
+                <div className="space-y-2">
                   <AnimatePresence mode="popLayout">
                     {filteredClients.map((client: User) => {
-                      const isSelected = selectedClientId === client.id;
                       const palette = getAvatarPalette(client.id);
                       return (
-                        <motion.button
+                        <motion.div
                           key={client.id}
                           layout
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95 }}
-                          onClick={() => setSelectedClientId(client.id)}
-                          className={`w-full text-left p-3.5 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-3 shadow-sm ${
-                            isSelected
-                              ? "bg-teal-50 border-teal-200"
-                              : "bg-white border-slate-100 hover:border-teal-100 hover:bg-teal-50/30"
-                          }`}
+                          className="bg-white border border-slate-100 hover:border-teal-200 hover:shadow-md rounded-2xl p-3.5 flex items-center gap-3 shadow-sm transition-all duration-200 group"
                         >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className={`w-9 h-9 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 border ${
-                              isSelected ? "bg-teal-100 text-slate-800 border-teal-300" : `${palette.bg} ${palette.text} ${palette.border}`
-                            }`}>
+                          {/* Avatar + name — click → client overview dashboard */}
+                          <button
+                            onClick={() => handleViewStats(client)}
+                            className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                          >
+                            <div className={`w-10 h-10 rounded-xl font-bold text-sm flex items-center justify-center shrink-0 border ${palette.bg} ${palette.text} ${palette.border} group-hover:shadow-sm transition-all`}>
                               {getInitials(client.name, client.username)}
                             </div>
                             <div className="min-w-0">
-                              <h4 className={`font-semibold text-sm truncate leading-tight ${isSelected ? "text-teal-800" : "text-slate-700"}`}>{client.name || client.username}</h4>
-                              <p className={`text-xs truncate mt-0.5 ${isSelected ? "text-teal-600" : "text-slate-400"}`}>{client.email}</p>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-semibold text-sm text-slate-800 truncate leading-tight">{client.name || client.username}</h4>
+                                {client.status === "active" && (
+                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-400 truncate mt-0.5">{client.email}</p>
                             </div>
+                          </button>
+
+                          {/* Module shortcut icons */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button onClick={() => handleViewRecords(client)} title={t("Emotions")}
+                              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-100 border border-transparent transition-all duration-150">
+                              <Heart className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => handleViewThoughtRecords(client)} title={t("Thoughts")}
+                              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-violet-500 hover:bg-violet-50 hover:border-violet-100 border border-transparent transition-all duration-150">
+                              <Brain className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => handleViewJournals(client)} title={t("Journal")}
+                              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-teal-600 hover:bg-teal-50 hover:border-teal-100 border border-transparent transition-all duration-150">
+                              <BookOpen className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => handleViewGoals(client)} title={t("Goals")}
+                              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-amber-500 hover:bg-amber-50 hover:border-amber-100 border border-transparent transition-all duration-150">
+                              <Target className="h-3.5 w-3.5" />
+                            </button>
+
+                            <div className="w-px h-4 bg-slate-100 mx-0.5" />
+
+                            <button onClick={() => handleDeleteClient(client)} title={t("Remove client")}
+                              disabled={deleteClientMutation.isPending}
+                              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 hover:border-red-100 border border-transparent transition-all duration-150 disabled:opacity-40">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+
+                            <div className="w-px h-4 bg-slate-100 mx-0.5" />
+
+                            <button onClick={() => handleViewStats(client)} title={t("Open overview")}
+                              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-teal-700 hover:bg-teal-50 hover:border-teal-200 border border-transparent transition-all duration-150">
+                              <ChevronRight className="h-4 w-4" />
+                            </button>
                           </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            {client.status === "active" && (
-                              <span className={`h-2 w-2 rounded-full ${isSelected ? "bg-teal-500 animate-pulse" : "bg-emerald-500"}`} />
-                            )}
-                            <ChevronRight className={`h-4 w-4 transition-transform ${isSelected ? "text-teal-600 translate-x-0.5" : "text-slate-300"}`} />
-                          </div>
-                        </motion.button>
+                        </motion.div>
                       );
                     })}
                   </AnimatePresence>
 
                   {filteredClients.length === 0 && (
-                    <div className="text-center py-12 rounded-2xl border-2 border-dashed border-slate-200 bg-white">
+                    <div className="text-center py-16 rounded-2xl border-2 border-dashed border-slate-200 bg-white">
                       <Users className="mx-auto h-8 w-8 text-slate-300 mb-3" />
                       <p className="text-sm font-medium text-slate-600">{t("No clients found")}</p>
                       <p className="text-xs text-slate-400 mt-1">{t("Try a different search or send an invite.")}</p>
                     </div>
                   )}
                 </div>
-              </div>
-
-              {/* RIGHT — Workbench */}
-              <div className={`flex-1 w-full ${selectedClientId === null ? "hidden lg:block" : "block"}`}>
-
-                {selectedClient ? (
-                  <motion.div
-                    key={selectedClient.id}
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="rounded-3xl border border-slate-100 overflow-hidden shadow-sm bg-white"
-                  >
-                    {/* Mobile back */}
-                    <div className="lg:hidden p-4 border-b border-slate-100">
-                      <Button variant="ghost" onClick={() => setSelectedClientId(null)}
-                        className="rounded-xl text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 gap-2 h-9">
-                        <ArrowLeft className="h-4 w-4" /> {t("Back to list")}
-                      </Button>
-                    </div>
-
-                    {/* Dark purple gradient top band */}
-                    <div className="h-20 bg-gradient-to-r from-slate-800 via-teal-900 to-teal-700 relative">
-                      <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 30% 50%, rgba(255,255,255,0.2) 0%, transparent 60%)" }} />
-                    </div>
-
-                    <div className="px-6 pb-6">
-                      {/* Avatar overlapping band */}
-                      <div className="relative -mt-11 mb-4 flex flex-col items-center text-center">
-                        <div className="relative group">
-                          <div className="absolute inset-[-2px] rounded-full border-2 border-white shadow-md" />
-                          <div className="w-20 h-20 rounded-full flex items-center justify-center font-bold text-xl text-white border-4 border-white shadow-lg"
-                            style={{ background: "linear-gradient(135deg, #0f766e 0%, #0d9488 100%)" }}>
-                            {getInitials(selectedClient.name, selectedClient.username)}
-                          </div>
-                        </div>
-
-                        <h2 className="text-xl font-bold text-slate-800 mt-3 tracking-tight">
-                          {selectedClient.name || selectedClient.username}
-                        </h2>
-
-                        <div className="flex items-center gap-2 mt-1.5 flex-wrap justify-center">
-                          <span className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            {t(selectedClient.status)}
-                          </span>
-                          <span className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-                            <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                            {t("Since ")} {new Date(selectedClient.createdAt).toLocaleDateString()}
-                          </span>
-                            <span className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-                              <Shield className="h-3.5 w-3.5" /> {t("ID #")}{tNum(selectedClient.id)}
-                            </span>
-                        </div>
-
-                        <p className="text-sm text-slate-400 mt-1">{selectedClient.email}</p>
-
-                        {/* Quick actions */}
-                        <div className="flex items-center gap-2 mt-3">
-                          <Button variant="outline" size="icon" onClick={() => handleSendMessage(selectedClient)}
-                            className="h-9 w-9 rounded-xl border-slate-200 text-slate-400 hover:text-teal-700 hover:border-teal-200 hover:bg-teal-50 bg-white"
-                            title={t("Message")}>
-                            <MessageCircle className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="icon" onClick={() => handleDeleteClient(selectedClient)}
-                            disabled={deleteClientMutation.isPending}
-                            className="h-9 w-9 rounded-xl border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 bg-white"
-                            title={t("Remove client")}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Divider */}
-                      <div className="border-t border-slate-100 mb-5" />
-
-                      {/* Clinical Modules */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="h-4 w-4 text-teal-700" />
-                          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Clinical Modules")}</span>
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">{t("Select to launch")}</span>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-                        <ModuleCard icon={<Brain className="h-5 w-5 stroke-[1.75]" />}    code="M01" title={t("Thought Records")}    description={t("Cognitive distortions & reframing")} onClick={() => handleViewThoughtRecords(selectedClient)} />
-                        <ModuleCard icon={<BookOpen className="h-5 w-5 stroke-[1.75]" />} code="M02" title={t("Journal Entries")}    description={t("Self-reflections & session notes")}  onClick={() => handleViewJournals(selectedClient)} />
-                        <ModuleCard icon={<Heart className="h-5 w-5 stroke-[1.75]" />}   code="M03" title={t("Mood & Triggers")}    description={t("Mood fluctuations & trigger events")} onClick={() => handleViewRecords(selectedClient)} />
-                        <ModuleCard icon={<Target className="h-5 w-5 stroke-[1.75]" />}  code="M04" title={t("Goals & Objectives")} description={t("SMART objectives & milestones")}     onClick={() => handleViewGoals(selectedClient)} />
-                      </div>
-
-                      {/* Footer actions */}
-                      <div className="flex gap-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
-                        <Button variant="outline" onClick={() => handleViewProfile(selectedClient)}
-                          className="flex-1 h-10 rounded-xl border-slate-200 text-slate-600 hover:text-slate-800 hover:border-teal-200 hover:bg-teal-50 font-semibold text-sm gap-2 bg-white transition-all">
-                          <User className="h-4 w-4" /> {t("View Profile")}
-                        </Button>
-                        <Button onClick={() => handleViewStats(selectedClient)}
-                          className="flex-1 h-10 rounded-xl bg-teal-800 hover:bg-teal-700 text-white font-semibold text-sm gap-2 shadow-sm border-0 transition-all">
-                          {t("Open Analytics ")} <ExternalLink className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ) : (
-                  /* Empty state */
-                  <div className="rounded-3xl border border-slate-100 bg-white p-10 flex flex-col items-center justify-center text-center min-h-[400px] shadow-sm">
-                    <div className="p-5 bg-teal-50 rounded-2xl mb-5 border border-teal-100">
-                      <Sparkles className="h-10 w-10 text-teal-700 animate-pulse" />
-                    </div>
-                    <h3 className="text-lg font-bold text-slate-800 mb-2">{t("Clinical Workspace")}</h3>
-                    <p className="text-sm text-slate-500 max-w-xs mb-8 leading-relaxed">
-                      {t("Select a client from the directory on the left to open their workspace and launch clinical modules.")}
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-sm">
-                      {[
-                        { n: "1", title: t("Load Client File"), desc: t("Select a profile to access their records and metadata.") },
-                        { n: "2", title: t("Launch Modules"),   desc: t("Analyze cognitive records, journals, or progress reports.") },
-                      ].map(({ n, title, desc }) => (
-                        <div key={n} className="text-left bg-slate-50 border border-slate-100 p-4 rounded-2xl flex items-start gap-3">
-                          <span className="w-6 h-6 rounded-full bg-teal-800 text-white text-xs font-bold flex items-center justify-center shrink-0">{n}</span>
-                          <div>
-                            <h5 className="text-xs font-semibold text-slate-700 mb-0.5">{title}</h5>
-                            <p className="text-[10px] text-slate-400 leading-relaxed">{desc}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           )}
+
 
           {/* ══ PENDING CONNECTIONS ══ */}
           {activeTab === "invitations" && (
