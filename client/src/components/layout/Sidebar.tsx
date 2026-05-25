@@ -124,8 +124,8 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
 
           // Deterministic positioning and borders
           isRTL
-            ? "right-0 border-l shadow-[-4px_0_24px_rgba(124,58,237,0.06)]"
-            : "left-0 border-r shadow-[4px_0_24px_rgba(124,58,237,0.06)]",
+            ? "right-0 border-l shadow-md"
+            : "left-0 border-r shadow-md",
 
           // Deterministic mobile hiding/showing translate
           isMobileExpanded
@@ -174,7 +174,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 "rounded flex items-center justify-center flex-shrink-0 transition-all",
                 "w-8 h-8 sm:w-10 sm:h-10",
                 isClinicalUser
-                  ? "bg-gradient-to-tr from-teal-700 to-teal-600 text-white shadow-[0_0_15px_rgba(20,184,166,0.4)]"
+                  ? "bg-white/15 text-white"
                   : "bg-primary/20 text-primary"
               )}>
                 <Brain size={20} className="sm:w-6 sm:h-6" />
@@ -184,14 +184,12 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 isCollapsed && "md:hidden"
               )}>
                 <h1 className={cn(
-                  "text-lg sm:text-xl font-black tracking-wide whitespace-nowrap",
-                  isClinicalUser
-                    ? "bg-gradient-to-r from-teal-200 via-white to-teal-300 bg-clip-text text-transparent"
-                    : "text-primary"
+                  "text-lg sm:text-xl font-bold tracking-wide whitespace-nowrap",
+                  isClinicalUser ? "text-white" : "text-primary"
                 )}>
                   ResilienceHub
                 </h1>
-                <span className="text-[9px] font-bold tracking-widest text-teal-300/90 uppercase block mt-0.5">
+                <span className="text-[9px] font-semibold tracking-widest text-white/50 uppercase block mt-0.5">
                   {user?.role === "admin" ? t("Clinical Admin") : user?.role === "therapist" ? t("Therapist Suite") : t("Client Portal")}
                 </span>
               </div>
@@ -213,21 +211,21 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 "rounded-full flex items-center justify-center font-bold flex-shrink-0 transition-all",
                 isCollapsed ? "md:w-9 md:h-9 w-8 h-8 sm:w-10 sm:h-10" : "w-8 h-8 sm:w-10 sm:h-10",
                 isClinicalUser
-                  ? "bg-gradient-to-tr from-teal-500/20 to-teal-400/20 text-teal-100 border border-teal-500/35 shadow-[0_0_12px_rgba(20,184,166,0.15)]"
+                  ? "bg-white/15 text-white border border-white/20"
                   : "bg-primary-light text-primary"
               )}>
                 {user?.name?.charAt(0) || "U"}
               </div>
               <div className={profileTextMarginClass}>
                 <p className={cn(
-                  "font-bold text-xs sm:text-sm truncate max-w-[130px]",
-                  isClinicalUser ? "text-teal-100" : "text-neutral-900"
+                  "font-semibold text-xs sm:text-sm truncate max-w-[130px]",
+                  isClinicalUser ? "text-white" : "text-neutral-900"
                 )}>
                   {user?.name}
                 </p>
                 <p className={cn(
-                  "text-[10px] font-semibold uppercase tracking-wider",
-                  isClinicalUser ? "text-teal-300" : "text-neutral-500 capitalize"
+                  "text-[10px] font-medium uppercase tracking-wider",
+                  isClinicalUser ? "text-white/50" : "text-neutral-500 capitalize"
                 )}>
                   {user?.role === "therapist" ? t("Therapist Suite") : t(user?.role || "")}
                 </p>
@@ -256,13 +254,10 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                         }
                       })()
                         ? isClinicalUser
-                          ? cn(
-                            "text-teal-200 font-bold bg-gradient-to-r from-teal-800/50 to-teal-900/30 shadow-[0_0_15px_rgba(20,184,166,0.12)] border-teal-400",
-                            isRTL ? "border-r-[3px]" : "border-l-[3px]"
-                          )
+                          ? "text-white font-semibold bg-white/10 rounded-md"
                           : "text-primary font-medium bg-primary/10"
                         : isClinicalUser
-                          ? "text-teal-100/70 hover:text-teal-200 hover:bg-teal-700/20"
+                          ? "text-white/75 hover:text-white hover:bg-white/8"
                           : "text-neutral-600 hover:text-primary hover:bg-primary/5"
                     )}
                     onClick={() => setIsMobileExpanded(false)}
@@ -283,7 +278,6 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
             </ul>
           </nav>
 
-          Settings & Logout
           <div className={cn(
             "border-t transition-all duration-300",
             isCollapsed ? "md:p-1 p-2 sm:p-4" : "p-2 sm:p-4",
@@ -374,13 +368,10 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                     isCollapsed && "md:justify-center md:px-0",
                     location === "/settings"
                       ? isClinicalUser
-                        ? cn(
-                          "text-teal-200 font-bold bg-gradient-to-r from-teal-800/50 to-teal-900/30 shadow-[0_0_15px_rgba(20,184,166,0.12)] border-teal-400",
-                          isRTL ? "border-r-[3px]" : "border-l-[3px]"
-                        )
+                        ? "text-white font-semibold bg-white/10 rounded-md"
                         : "text-primary font-medium bg-primary/10"
                       : isClinicalUser
-                        ? "text-teal-100/70 hover:text-teal-200 hover:bg-teal-700/20"
+                        ? "text-white/75 hover:text-white hover:bg-white/8"
                         : "text-neutral-600 hover:text-primary hover:bg-primary/5"
                   )}
                   onClick={() => setIsMobileExpanded(false)}
