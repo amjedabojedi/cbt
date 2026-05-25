@@ -28,8 +28,8 @@ const modules: Module[] = [
     id: "thoughts",
     nameKey: "Thought Records",
     icon: Brain,
-    iconBg: "bg-purple-50 group-hover:bg-purple-100",
-    iconColor: "text-purple-600",
+    iconBg: "bg-teal-50 group-hover:bg-teal-100",
+    iconColor: "text-teal-700",
     path: "/thoughts?tab=insights",
     descriptionKey: "Distortion analysis",
   },
@@ -55,7 +55,7 @@ const modules: Module[] = [
     id: "reframe",
     nameKey: "Reframe Coach",
     icon: Lightbulb,
-    iconBg: "bg-purple-100/40 group-hover:bg-purple-100/80",
+    iconBg: "bg-teal-100/40 group-hover:bg-teal-100/80",
     iconColor: "text-purple-700",
     path: "/reframe-coach?tab=insights",
     descriptionKey: "Practice results",
@@ -73,7 +73,7 @@ export default function ModuleQuickLinks() {
     >
       <CardHeader className="pb-4 pt-5 px-6">
         <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-800">
-          <Sparkles className="h-4.5 w-4.5 text-purple-600 animate-pulse" />
+          <Sparkles className="h-4.5 w-4.5 text-teal-700 animate-pulse" />
           {t("Module Insights")}
         </CardTitle>
         <CardDescription className="text-slate-400 font-semibold text-xs mt-0.5">
@@ -86,7 +86,7 @@ export default function ModuleQuickLinks() {
             const Icon = module.icon;
             return (
               <Link key={module.id} href={module.path} data-testid={`link-${module.id}-insights`}>
-                <div className="cursor-pointer group p-4 rounded-xl border border-slate-100 hover:border-purple-200 bg-slate-50/20 hover:bg-slate-50/60 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between h-28">
+                <div className="cursor-pointer group p-4 rounded-xl border border-slate-100 hover:border-teal-200 bg-slate-50/20 hover:bg-slate-50/60 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between h-28">
                   <div className="flex items-center gap-2.5">
                     <div
                       className={cn(
@@ -108,7 +108,7 @@ export default function ModuleQuickLinks() {
                     </span>
                     <ArrowRight
                       className={cn(
-                        "h-4 w-4 text-slate-300 group-hover:text-purple-600 transition-all duration-300 shrink-0",
+                        "h-4 w-4 text-slate-300 group-hover:text-teal-700 transition-all duration-300 shrink-0",
                         isRTL
                           ? "rotate-180 group-hover:-translate-x-0.5"
                           : "group-hover:translate-x-0.5"

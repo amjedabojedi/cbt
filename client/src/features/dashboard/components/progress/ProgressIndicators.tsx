@@ -118,7 +118,7 @@ export default function ProgressIndicators({
     >
       <CardHeader className="pb-4 pt-5 px-6">
         <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-800">
-          <TrendingUp className="h-4.5 w-4.5 text-purple-600" />
+          <TrendingUp className="h-4.5 w-4.5 text-teal-700" />
           {t("Therapeutic Progress Indicators")}
         </CardTitle>
         <CardDescription className="text-slate-400 font-semibold text-xs mt-0.5">
@@ -130,13 +130,13 @@ export default function ProgressIndicators({
         <div>
           <div className="flex items-center justify-between mb-2 text-xs font-bold text-slate-700 uppercase tracking-wide">
             <span>{t("Engagement Level")}</span>
-            <span className="text-purple-600 font-extrabold">
+            <span className="text-teal-700 font-extrabold">
               {tNum(totalActivities)} {t("activities completed")}
             </span>
           </div>
           <Progress
             value={Math.min((totalActivities / 20) * 100, 100)}
-            className="h-2 [&>div]:bg-purple-600 bg-slate-100"
+            className="h-2 [[&>div]:bg-purple-600>div]:bg-teal-600 bg-slate-100"
           />
           <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wide">
             {t("Status:")}{" "}
@@ -189,7 +189,7 @@ export default function ProgressIndicators({
 
         <div className="pt-5 border-t border-slate-50">
           <h4 className="text-xs font-extrabold text-slate-700 mb-3.5 uppercase tracking-wider flex items-center gap-1.5">
-            <Sparkles className="h-4 w-4 text-purple-600 animate-pulse shrink-0" />
+            <Sparkles className="h-4 w-4 text-teal-700 animate-pulse shrink-0" />
             {t("Personalized Clinical Recommendations")}
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -203,7 +203,7 @@ export default function ProgressIndicators({
                       ? "bg-emerald-50/50 text-emerald-850 border-emerald-100/50"
                       : rec.type === "warning"
                         ? "bg-amber-50/50 text-amber-850 border-amber-100/50"
-                        : "bg-purple-50/50 text-purple-850 border-purple-100/50"
+                        : "bg-teal-50/50 text-purple-850 border-teal-100/50"
                   )}
                 >
                   <div className="mt-0.5 shrink-0">
@@ -213,7 +213,7 @@ export default function ProgressIndicators({
                     {rec.type === "warning" && (
                       <AlertCircle className="h-4.5 w-4.5 text-amber-500 animate-bounce animate-duration-1000" />
                     )}
-                    {rec.type === "info" && <Info className="h-4.5 w-4.5 text-purple-600" />}
+                    {rec.type === "info" && <Info className="h-4.5 w-4.5 text-teal-700" />}
                   </div>
                   <p className="text-xs font-semibold leading-relaxed">{t(rec.messageKey)}</p>
                 </div>

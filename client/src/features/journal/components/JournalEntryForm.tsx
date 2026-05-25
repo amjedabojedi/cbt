@@ -46,19 +46,19 @@ export function JournalEntryForm({
 
         <div
           className="relative overflow-hidden px-7 py-5"
-          style={{ background: "linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)" }}
+          style={{ background: "linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)" }}
         >
-          <div className="absolute -end-10 -top-10 w-32 h-32 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+          <div className="absolute -end-10 -top-10 w-32 h-32 rounded-full bg-teal-500/20 blur-3xl pointer-events-none" />
           <div className="absolute -start-8 -bottom-8 w-24 h-24 rounded-full bg-indigo-700/15 blur-2xl pointer-events-none" />
           <div className="relative z-10 flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
-              <Feather className="h-5 w-5 text-purple-300" />
+            <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shrink-0">
+              <Feather className="h-5 w-5 text-teal-100" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-white tracking-tight leading-tight">
                 {isEditing ? t("Edit Journal Entry") : t("New Journal Entry")}
               </h2>
-              <p className="text-purple-300/80 text-xs mt-0.5 font-medium">
+              <p className="text-teal-100/80 text-xs mt-0.5 font-medium">
                 {isEditing
                   ? t("Update your thoughts and reflections")
                   : t("Capture your thoughts and feelings")}
@@ -77,7 +77,7 @@ export function JournalEntryForm({
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
               placeholder={t("Give your entry a title…")}
-              className="text-base font-medium border-slate-200 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 rounded-xl h-11 bg-slate-50/60"
+              className="text-base font-medium border-slate-200 focus:border-teal-400 focus:ring-1 focus:ring-teal-400/30 rounded-xl h-11 bg-slate-50/60"
             />
           </div>
 
@@ -95,7 +95,7 @@ export function JournalEntryForm({
               value={content}
               onChange={(e) => onContentChange(e.target.value)}
               placeholder={t("Write about your thoughts, feelings, or experiences…")}
-              className="min-h-[220px] text-sm border-slate-200 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 rounded-xl resize-none leading-relaxed bg-slate-50/60"
+              className="min-h-[220px] text-sm border-slate-200 focus:border-teal-400 focus:ring-1 focus:ring-teal-400/30 rounded-xl resize-none leading-relaxed bg-slate-50/60"
             />
           </div>
         </div>
@@ -111,7 +111,7 @@ export function JournalEntryForm({
           <Button
             onClick={onSubmit}
             disabled={!title.trim() || !content.trim() || isPending}
-            className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-9 px-5 gap-2"
+            className="rounded-xl bg-teal-800 hover:bg-teal-700 text-white border-0 shadow-md h-9 px-5 gap-2"
           >
             {isPending ? (
               <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />

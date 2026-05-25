@@ -37,15 +37,15 @@ export default function Reports() {
         className="min-h-screen bg-slate-50 pb-12"
         dir={isRTL ? "rtl" : "ltr"}
       >
-        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden transition-all duration-300 border-b border-purple-900/30">
-          <div className="absolute -top-10 end-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 start-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-slate-800 via-teal-900 to-teal-700 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden transition-all duration-300 border-b border-teal-700/30">
+          <div className="absolute -top-10 end-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 start-12 w-52 h-52 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="max-w-5xl mx-auto relative z-10">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-900/40 border border-purple-800/40 text-purple-200 text-xs font-semibold mb-3 w-fit">
-                  <Sparkles className="h-3.5 w-3.5 text-purple-400 animate-pulse" />
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-900/40 border border-teal-800/40 text-teal-200 text-xs font-semibold mb-3 w-fit">
+                  <Sparkles className="h-3.5 w-3.5 text-teal-300 animate-pulse" />
                   <span>{t("Therapeutic Analytics")}</span>
                 </div>
                 <h1
@@ -54,7 +54,7 @@ export default function Reports() {
                 >
                   {t("My Progress")}
                 </h1>
-                <p className="text-purple-300/80 text-sm sm:text-base max-w-xl leading-relaxed">
+                <p className="text-teal-100/80 text-sm sm:text-base max-w-xl leading-relaxed">
                   {t(
                     "Evidence-based CBT analytics and clinical insights tracking your personal growth and mental wellness journey."
                   )}
@@ -67,25 +67,25 @@ export default function Reports() {
                   onValueChange={(value) => setTimeRange(value as TimeRange)}
                   data-testid="select-timerange"
                 >
-                  <SelectTrigger className="w-full sm:w-[170px] bg-white/10 hover:bg-white/15 border-purple-500/30 text-white rounded-xl backdrop-blur-md shadow-sm transition-all focus:ring-purple-500">
+                  <SelectTrigger className="w-full sm:w-[170px] bg-white/10 hover:bg-white/15 border-teal-500/30 text-white rounded-xl backdrop-blur-md shadow-sm transition-all focus:ring-teal-500">
                     <SelectValue placeholder={t("Select time range")} />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#090514] border-purple-900 text-white rounded-xl shadow-xl">
+                  <SelectContent className="bg-teal-800 border-teal-700 text-white rounded-xl shadow-xl">
                     <SelectItem
                       value="week"
-                      className="focus:bg-purple-900/50 focus:text-white cursor-pointer"
+                      className="focus:bg-teal-800/50 focus:text-white cursor-pointer"
                     >
                       {t("Past Week")}
                     </SelectItem>
                     <SelectItem
                       value="month"
-                      className="focus:bg-purple-900/50 focus:text-white cursor-pointer"
+                      className="focus:bg-teal-800/50 focus:text-white cursor-pointer"
                     >
                       {t("Past Month")}
                     </SelectItem>
                     <SelectItem
                       value="all"
-                      className="focus:bg-purple-900/50 focus:text-white cursor-pointer"
+                      className="focus:bg-teal-800/50 focus:text-white cursor-pointer"
                     >
                       {t("All Time")}
                     </SelectItem>
@@ -151,22 +151,22 @@ export default function Reports() {
             <div className="mt-6 bg-white/5 rounded-xl border border-white/10 p-4">
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-3.5 w-3.5 text-purple-400" />
-                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">
+                  <TrendingUp className="h-3.5 w-3.5 text-teal-300" />
+                  <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">
                     {t("CBT Progress")}
                   </span>
                 </div>
-                <span className="text-xs text-purple-400">
+                <span className="text-xs text-teal-300">
                   {tNum(milestonePct)}% {t("of first milestone")}
                 </span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full transition-all duration-700"
+                  className="h-full bg-gradient-to-r from-teal-500 to-sky-400 rounded-full transition-all duration-700"
                   style={{ width: `${milestonePct}%` }}
                 />
               </div>
-              <p className="text-[11px] text-purple-400/60 mt-1.5">
+              <p className="text-[11px] text-teal-300/60 mt-1.5">
                 {tNum(insights.totalActivities)}{" "}
                 {t(
                   "activities logged across all CBT modules — your data-driven path to wellbeing."

@@ -304,7 +304,7 @@ export default function LandingPage() {
                 
                 <div>
                   <h4 className="font-medium flex items-center gap-2 text-neutral-800">
-                    <Brain className="h-5 w-5 text-purple-600" /> Identify Effective Strategies
+                    <Brain className="h-5 w-5 text-teal-700" /> Identify Effective Strategies
                   </h4>
                   <p className="mt-1 text-neutral-600">
                     Track which coping mechanisms and protective factors work best for you in different situations.

@@ -349,7 +349,7 @@ export default function AdminDashboard() {
                 value={stats.totalThoughts}
                 description="Total thought records"
                 icon={<Brain className="h-4 w-4" />}
-                colorClass="text-purple-500"
+                colorClass="text-teal-600"
               />
               <StatCard
                 title="Goals Created"

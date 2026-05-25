@@ -58,7 +58,7 @@ const ReframePracticeHistory: React.FC<ReframePracticeHistoryProps> = ({
     return (
       <Card className={cn("border border-slate-100 shadow-sm rounded-2xl bg-white", className)}>
         <CardContent className="py-8 text-center">
-          <Loader2 className="h-6 w-6 animate-spin text-purple-600 mx-auto mb-2" />
+          <Loader2 className="h-6 w-6 animate-spin text-teal-700 mx-auto mb-2" />
           <p className="text-sm text-slate-500 font-medium">{t("Loading practice history...")}</p>
         </CardContent>
       </Card>
@@ -69,8 +69,8 @@ const ReframePracticeHistory: React.FC<ReframePracticeHistoryProps> = ({
     return (
       <Card className={cn("border border-slate-100 shadow-sm rounded-2xl bg-white", className)}>
         <CardContent className="py-8 text-center">
-          <BrainCircuit className="h-8 w-8 text-purple-400 mx-auto mb-2" />
-          <h3 className="text-base font-bold text-[#090514] mb-1">{t("No Practice History")}</h3>
+          <BrainCircuit className="h-8 w-8 text-teal-300 mx-auto mb-2" />
+          <h3 className="text-base font-bold text-slate-800 mb-1">{t("No Practice History")}</h3>
           <p className="text-sm text-slate-500 max-w-sm mx-auto">
             {t("No practice sessions found for this thought record. Complete a practice session to see your results here.")}
           </p>
@@ -82,7 +82,7 @@ const ReframePracticeHistory: React.FC<ReframePracticeHistoryProps> = ({
   return (
     <Card dir={isRTL ? "rtl" : "ltr"} className={cn("border border-slate-100 shadow-sm rounded-2xl bg-white", className)}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-bold text-[#090514]">{t("Practice History")}</CardTitle>
+        <CardTitle className="text-lg font-bold text-slate-800">{t("Practice History")}</CardTitle>
         <CardDescription className="text-slate-500">{t("Your recent practice results")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -91,8 +91,8 @@ const ReframePracticeHistory: React.FC<ReframePracticeHistoryProps> = ({
             <CardContent className="py-4 px-4">
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center">
-                  <BarChart3 className="me-2 h-4 w-4 text-purple-600" />
-                  <span className="text-sm font-semibold text-[#090514]">{t("Practice Session")}</span>
+                  <BarChart3 className="me-2 h-4 w-4 text-teal-700" />
+                  <span className="text-sm font-semibold text-slate-800">{t("Practice Session")}</span>
                 </div>
                 <div className="text-xs text-slate-500 flex items-center font-medium">
                   <Clock className="me-1 h-3 w-3" />
@@ -103,7 +103,7 @@ const ReframePracticeHistory: React.FC<ReframePracticeHistoryProps> = ({
               <div className="grid grid-cols-3 gap-2 my-3">
                 <div className="text-center p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{t("Score")}</p>
-                  <p className="text-lg font-extrabold text-purple-600">{tNum(result.score)}</p>
+                  <p className="text-lg font-extrabold text-teal-700">{tNum(result.score)}</p>
                 </div>
                 <div className="text-center p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{t("Correct")}</p>
@@ -139,16 +139,16 @@ const ReframePracticeHistory: React.FC<ReframePracticeHistoryProps> = ({
                       <Badge
                         key={index}
                         variant="outline"
-                        className="bg-purple-50 text-purple-700 border-purple-100 hover:bg-purple-100 text-xs font-semibold px-2 py-0.5 rounded-md"
+                        className="bg-teal-50 text-purple-700 border-teal-100 hover:bg-teal-100 text-xs font-semibold px-2 py-0.5 rounded-md"
                       >
-                        <BrainCircuit className="me-1 h-3.5 w-3.5 text-purple-500 inline-block" />
+                        <BrainCircuit className="me-1 h-3.5 w-3.5 text-teal-600 inline-block" />
                         {formatDistortionLabel(String(distortion), t)}
                       </Badge>
                     ))
                   ) : (
                     <Badge
                       variant="outline"
-                      className="bg-purple-50 text-purple-700 border-purple-100 hover:bg-purple-100 text-xs font-semibold px-2 py-0.5 rounded-md"
+                      className="bg-teal-50 text-purple-700 border-teal-100 hover:bg-teal-100 text-xs font-semibold px-2 py-0.5 rounded-md"
                     >
                       {t("Cognitive Restructuring Practice")}
                     </Badge>

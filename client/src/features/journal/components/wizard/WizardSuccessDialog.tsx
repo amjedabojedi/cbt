@@ -33,14 +33,14 @@ export default function WizardSuccessDialog({
         dir={isRTL ? "rtl" : "ltr"}
       >
         {/* Header */}
-        <div className="bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 py-6 relative overflow-hidden rounded-t-lg">
-          <div className="absolute -top-8 end-8 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="bg-gradient-to-br from-teal-800 via-teal-700 to-teal-600 px-6 py-6 relative overflow-hidden rounded-t-lg">
+          <div className="absolute -top-8 end-8 w-48 h-48 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative">
             <DialogTitle className="text-white text-xl font-bold leading-tight">
               {title}
             </DialogTitle>
             {description && (
-              <DialogDescription className="text-purple-200/70 text-sm mt-1 leading-relaxed">
+              <DialogDescription className="text-teal-100/80 text-sm mt-1 leading-relaxed">
                 {description}
               </DialogDescription>
             )}

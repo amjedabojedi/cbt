@@ -140,15 +140,15 @@ export default function ProgressTracker() {
               </div>
             </div>
             
-            <div className="bg-purple-50 rounded-lg p-3">
+            <div className="bg-teal-50 rounded-lg p-3">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-medium text-purple-700">Total XP</div>
-                <Star className="h-4 w-4 text-purple-500" />
+                <Star className="h-4 w-4 text-teal-600" />
               </div>
               <div className="mt-1 text-2xl font-bold text-purple-700">
                 {sampleUserStats.totalPoints}
               </div>
-              <div className="text-xs text-purple-500/80">
+              <div className="text-xs text-teal-600/80">
                 Level {formatLevel(sampleUserStats.level)}
               </div>
             </div>

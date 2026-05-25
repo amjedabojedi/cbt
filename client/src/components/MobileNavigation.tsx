@@ -71,12 +71,12 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
         <SheetContent
           side="left"
           aria-describedby={undefined}
-          className="w-72 p-0 bg-[#090514] border-r border-purple-950/80 shadow-[4px_0_24px_rgba(124,58,237,0.1)]"
+          className="w-72 p-0 bg-teal-800 border-r border-teal-800/80 shadow-[4px_0_24px_rgba(124,58,237,0.1)]"
         >
           <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
           <div className="flex h-full flex-col">
             {/* Logo */}
-            <div className="flex items-center gap-3 px-4 py-4 border-b border-purple-950/80">
+            <div className="flex items-center gap-3 px-4 py-4 border-b border-teal-800/80">
               <div className="w-9 h-9 rounded flex items-center justify-center flex-shrink-0 bg-gradient-to-tr from-purple-600 to-indigo-600 shadow-[0_0_15px_rgba(124,58,237,0.4)]">
                 <Brain size={18} className="text-white" />
               </div>
@@ -84,20 +84,20 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 <h1 className="text-lg font-black tracking-wide bg-gradient-to-r from-purple-300 via-indigo-200 to-purple-400 bg-clip-text text-transparent">
                   ResilienceHub
                 </h1>
-                <span className="text-[9px] font-bold tracking-widest text-purple-400/90 uppercase">
+                <span className="text-[9px] font-bold tracking-widest text-teal-300/90 uppercase">
                   {user?.role === 'admin' ? 'Clinical Admin' : user?.role === 'therapist' ? 'Therapist Suite' : 'Client Portal'}
                 </span>
               </div>
             </div>
 
             {/* User profile */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-purple-950/80 bg-purple-950/10">
-              <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold flex-shrink-0 bg-gradient-to-tr from-purple-500/20 to-indigo-500/20 text-purple-300 border border-purple-500/35 shadow-[0_0_12px_rgba(168,85,247,0.15)]">
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-teal-800/80 bg-teal-800/10">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold flex-shrink-0 bg-gradient-to-tr from-purple-500/20 to-indigo-500/20 text-teal-100 border border-purple-500/35 shadow-[0_0_12px_rgba(168,85,247,0.15)]">
                 {initials}
               </div>
               <div className="min-w-0">
                 <p className="font-bold text-sm text-purple-100 truncate">{user?.name}</p>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-purple-400">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-teal-300">
                   {user?.role === 'therapist' ? 'Clinical Therapist' : user?.role}
                 </p>
               </div>
@@ -116,8 +116,8 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                           className={cn(
                             'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
                             active
-                              ? 'text-purple-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 border-l-[3px] border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.12)]'
-                              : 'text-purple-300/70 hover:text-purple-200 hover:bg-purple-950/20'
+                              ? 'text-teal-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 border-l-[3px] border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.12)]'
+                              : 'text-teal-100/70 hover:text-teal-200 hover:bg-teal-700/20'
                           )}
                         >
                           <Icon size={18} className="flex-shrink-0" />
@@ -131,22 +131,22 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
             </nav>
 
             {/* Settings & Logout */}
-            <div className="border-t border-purple-950/80 bg-purple-950/5 p-3 flex flex-col gap-3">
+            <div className="border-t border-teal-800/80 bg-teal-800/5 p-3 flex flex-col gap-3">
               {/* Language Switcher Component */}
-              <div className="border-b border-purple-950/40 pb-2">
+              <div className="border-b border-teal-800/40 pb-2">
                 <div className="flex flex-col space-y-1">
-                  <span className="text-[10px] font-bold tracking-widest uppercase mb-1 flex items-center gap-1.5 text-purple-400/90">
+                  <span className="text-[10px] font-bold tracking-widest uppercase mb-1 flex items-center gap-1.5 text-teal-300/90">
                     <Globe size={12} className="animate-[spin_6s_linear_infinite]" />
                     {t("Language")}
                   </span>
-                  <div className="flex p-0.5 rounded-lg border bg-purple-950/40 border-purple-900/60 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
+                  <div className="flex p-0.5 rounded-lg border bg-teal-800/40 border-teal-700/60 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
                     <button
                       // onClick={() => setLanguage("en")}
                       className={cn(
                         "flex-1 text-xs py-1 px-2 rounded-md font-bold transition-all duration-300 text-center",
                         currentLanguage === "en"
                           ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(124,58,237,0.4)]"
-                          : "text-purple-400/80 hover:text-purple-200 hover:bg-purple-900/20"
+                          : "text-teal-300/80 hover:text-teal-200 hover:bg-purple-900/20"
                       )}
                     >
                       English
@@ -157,7 +157,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                         "flex-1 text-xs py-1 px-2 rounded-md font-bold transition-all duration-300 text-center font-noto-arabic",
                         currentLanguage === "ar"
                           ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(124,58,237,0.4)]"
-                          : "text-purple-400/80 hover:text-purple-200 hover:bg-purple-900/20"
+                          : "text-teal-300/80 hover:text-teal-200 hover:bg-purple-900/20"
                       )}
                     >
                       العربية
@@ -173,11 +173,11 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                       className={cn(
                         'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
                         location === '/settings'
-                          ? 'text-purple-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 border-l-[3px] border-purple-500'
-                          : 'text-purple-300/70 hover:text-purple-200 hover:bg-purple-950/20'
+                          ? 'text-teal-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 border-l-[3px] border-purple-500'
+                          : 'text-teal-100/70 hover:text-teal-200 hover:bg-teal-700/20'
                       )}
                     >
-                      <Settings size={18} className="flex-shrink-0 text-purple-400" />
+                      <Settings size={18} className="flex-shrink-0 text-teal-300" />
                       <span>Settings</span>
                     </div>
                   </Link>
