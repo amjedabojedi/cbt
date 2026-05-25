@@ -57,14 +57,14 @@ type TabId = "profile" | "password" | "notifications" | "appearance" | "account"
 
 // ── Shared input style ────────────────────────────────────────────────
 const inputCls =
-  "h-11 rounded-xl border-slate-200 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 bg-slate-50/60";
+  "h-11 rounded-xl border-slate-200 focus:border-teal-400 focus:ring-1 focus:ring-teal-400/30 bg-slate-50/60";
 const labelCls = "text-[10px] font-bold text-slate-500 uppercase tracking-wider";
 
 // ── Card section header ───────────────────────────────────────────────
 function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
   return (
     <div className="flex items-center gap-3.5 px-6 py-5 border-b border-slate-100">
-      <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0 text-[#090514]">
+      <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0 text-slate-800">
         {icon}
       </div>
       <div>
@@ -157,22 +157,22 @@ export default function Settings() {
       <div className="min-h-screen bg-slate-50" dir={currentLanguage === "ar" ? "rtl" : "ltr"}>
 
         {/* ── Hero banner ── */}
-        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden">
-          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-slate-800 via-teal-900 to-teal-700 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden">
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="max-w-3xl mx-auto relative">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
               {/* Left: title */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="h-4 w-4 text-purple-400" />
-                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                  <Sparkles className="h-4 w-4 text-teal-300" />
+                  <span className="text-teal-300/80 text-xs font-bold tracking-widest uppercase">
                     {isClinicalUser ? t("Clinical Account") : t("My Account")}
                   </span>
                 </div>
                 <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">{t("Settings")}</h1>
-                <p className="text-purple-300/70 text-base max-w-md leading-relaxed">
+                <p className="text-teal-100/70 text-base max-w-md leading-relaxed">
                   {t("Manage your account, security, and preferences")}
                 </p>
               </div>
@@ -185,7 +185,7 @@ export default function Settings() {
                 ].map((s, i) => (
                   <div key={i} className="text-center">
                     <div className="text-lg font-bold text-white leading-tight">{s.value}</div>
-                    <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
+                    <div className="text-xs text-teal-300/80 font-medium mt-0.5">{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -196,14 +196,14 @@ export default function Settings() {
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">{t("Account Status")}</span>
+                  <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">{t("Account Status")}</span>
                 </div>
-                <span className="text-xs text-purple-400">{t("Active & Secure")}</span>
+                <span className="text-xs text-teal-300">{t("Active & Secure")}</span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-emerald-500 to-purple-400 rounded-full" style={{ width: "100%" }} />
+                <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full" style={{ width: "100%" }} />
               </div>
-              <p className="text-[11px] text-purple-400/60 mt-1.5">
+              <p className="text-[11px] text-teal-300/60 mt-1.5">
                 {t("Your account is active and in good standing — keep your security settings up to date.")}
               </p>
             </div>
@@ -224,7 +224,7 @@ export default function Settings() {
                     value={tab.id}
                     className={cn(
                       "sm:flex-1 min-w-0 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-all gap-1 sm:gap-2",
-                      "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                       "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                     )}
                   >
@@ -242,18 +242,18 @@ export default function Settings() {
                 {/* User card header */}
                 <div
                   className="relative px-6 py-5 overflow-hidden"
-                  style={{ background: "linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)" }}
+                  style={{ background: "linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)" }}
                 >
-                  <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+                  <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-teal-500/20 blur-3xl pointer-events-none" />
                   <div className="relative flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xl text-white shrink-0 backdrop-blur-sm">
+                    <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center font-bold text-xl text-white shrink-0 backdrop-blur-sm">
                       {getInitials(user?.name || "")}
                     </div>
                     <div>
                       <p className="text-base font-bold text-white leading-tight">{user?.name || "User"}</p>
                       <span className={cn(
                         "inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider mt-1.5",
-                        isClinicalUser ? "bg-purple-400/20 text-purple-200" : "bg-white/10 text-purple-300"
+                        isClinicalUser ? "bg-teal-400/20 text-teal-200" : "bg-white/10 text-teal-100"
                       )}>
                         <BadgeCheck className="h-3 w-3" />
                         {roleLabel}
@@ -297,7 +297,7 @@ export default function Settings() {
                         </FormItem>
                       )} />
                       <div className="pt-1 flex justify-end">
-                        <Button type="submit" className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-10 px-6">
+                        <Button type="submit" className="rounded-xl bg-teal-800 hover:bg-teal-700 text-white border-0 shadow-md h-10 px-6">
                           {t("Save Changes")}
                         </Button>
                       </div>
@@ -349,7 +349,7 @@ export default function Settings() {
                         )} />
                       </div>
                       <div className="pt-1 flex justify-end">
-                        <Button type="submit" className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-10 px-6">
+                        <Button type="submit" className="rounded-xl bg-teal-800 hover:bg-teal-700 text-white border-0 shadow-md h-10 px-6">
                           {t("Update Password")}
                         </Button>
                       </div>
@@ -376,7 +376,7 @@ export default function Settings() {
                         { name: "weeklyDigest" as const, label: t("Weekly Digest"), desc: t("A weekly summary of your progress") },
                       ]).map(({ name, label, desc }) => (
                         <FormField key={name} control={notificationForm.control} name={name} render={({ field }) => (
-                          <FormItem className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-white hover:border-purple-100 transition-colors">
+                          <FormItem className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-white hover:border-teal-100 transition-colors">
                             <div>
                               <FormLabel className="text-sm font-semibold text-slate-700 cursor-pointer">{label}</FormLabel>
                               <FormDescription className="text-xs text-slate-400 mt-0.5">{desc}</FormDescription>
@@ -398,7 +398,7 @@ export default function Settings() {
                           <FormItem>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
-                                <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/60 text-slate-700 focus:ring-1 focus:ring-purple-400/30 focus:border-purple-400">
+                                <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/60 text-slate-700 focus:ring-1 focus:ring-teal-400/30 focus:border-teal-400">
                                   <SelectValue placeholder={t("Select frequency")} />
                                 </SelectTrigger>
                               </FormControl>
@@ -418,7 +418,7 @@ export default function Settings() {
                       </div>
 
                       <div className="pt-1 flex justify-end">
-                        <Button type="submit" className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-10 px-6">
+                        <Button type="submit" className="rounded-xl bg-teal-800 hover:bg-teal-700 text-white border-0 shadow-md h-10 px-6">
                           {t("Save Preferences")}
                         </Button>
                       </div>
@@ -444,8 +444,8 @@ export default function Settings() {
                       <p className="text-xs text-slate-400 mt-0.5">{t("Select your preferred display language")}</p>
                     </div>
                     <Select value={language} onValueChange={handleLanguageChange}>
-                      <SelectTrigger className="w-full sm:w-[180px] h-11 rounded-xl border-slate-200 bg-white text-slate-700 focus:ring-1 focus:ring-purple-400/30 focus:border-purple-400">
-                        <Globe className="h-4 w-4 mr-2 text-purple-400" />
+                      <SelectTrigger className="w-full sm:w-[180px] h-11 rounded-xl border-slate-200 bg-white text-slate-700 focus:ring-1 focus:ring-teal-400/30 focus:border-teal-400">
+                        <Globe className="h-4 w-4 mr-2 text-teal-300" />
                         <SelectValue placeholder="Select language" />
                       </SelectTrigger>
                       <SelectContent>
@@ -526,7 +526,7 @@ export default function Settings() {
                     <AlertDialogContent className="rounded-2xl border-0 overflow-hidden p-0">
                       <div
                         className="relative px-7 py-5 overflow-hidden"
-                        style={{ background: "linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)" }}
+                        style={{ background: "linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)" }}
                       >
                         <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-red-600/20 blur-3xl pointer-events-none" />
                         <div className="relative flex items-center gap-3">

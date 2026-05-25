@@ -302,14 +302,14 @@ export default function EmotionTrackingFormWizard({
           currentStep={currentStep}
           totalSteps={totalSteps}
           stepLabels={[t("Select"), t("Rate"), t("Describe"), t("Details")]}
-          accentClassName="text-purple-900"
+          accentClassName="text-teal-700"
           hideProgressOnIntro
           trailing={
             onLanguageToggle ? (
               <button
                 type="button"
                 onClick={onLanguageToggle}
-                className="flex items-center gap-1.5 text-slate-500 hover:text-purple-900 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-purple-200 bg-white text-sm font-medium transition-colors"
+                className="flex items-center gap-1.5 text-slate-500 hover:text-teal-700 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-teal-200 bg-white text-sm font-medium transition-colors"
               >
                 <Globe className="h-4 w-4" />
                 {t(languageLabel)}
@@ -333,11 +333,11 @@ export default function EmotionTrackingFormWizard({
               {currentStep === 0 && (
                 <div className="space-y-7" data-testid="step-intro">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-6">
-                    <div className="w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] shrink-0 bg-gradient-to-br from-rose-500 via-purple-600 to-[#090514] rounded-2xl flex items-center justify-center shadow-lg shadow-purple-900/15 mx-auto sm:mx-0">
+                    <div className="w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] shrink-0 bg-gradient-to-br from-rose-500 via-rose-600 to-rose-800 rounded-2xl flex items-center justify-center shadow-lg shadow-teal-900/15 mx-auto sm:mx-0">
                       <Heart className="h-8 w-8 text-white" />
                     </div>
                     <div className={cn("min-w-0 text-center", isRTL ? "sm:text-right" : "sm:text-left")}>
-                      <h2 className="text-2xl sm:text-[1.65rem] font-bold text-[#090514] tracking-tight leading-tight">
+                      <h2 className="text-2xl sm:text-[1.65rem] font-bold text-slate-800 tracking-tight leading-tight">
                         {t("Welcome to Emotion Tracking")}
                       </h2>
                       <p className={cn("text-base text-slate-500 mt-2 leading-relaxed max-w-xl mx-auto", isRTL ? "sm:mr-0 text-right" : "sm:ml-0 text-left")}>
@@ -355,7 +355,7 @@ export default function EmotionTrackingFormWizard({
                           isRTL ? "sm:items-end sm:text-right" : "sm:items-start sm:text-left"
                         )}
                       >
-                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#090514] text-sm font-bold text-white mb-3">
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-teal-800 text-sm font-bold text-white mb-3">
                           {tNum(n)}
                         </span>
                         <p className="font-bold text-base text-slate-800">{t(label)}</p>
@@ -376,8 +376,8 @@ export default function EmotionTrackingFormWizard({
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-4 rounded-2xl border border-purple-100 bg-purple-50/50 p-5">
-                      <div className="p-2.5 h-fit rounded-xl bg-purple-100 text-purple-600 border border-purple-200">
+                    <div className="flex gap-4 rounded-2xl border border-teal-100 bg-teal-50/50 p-5">
+                      <div className="p-2.5 h-fit rounded-xl bg-teal-100 text-teal-700 border border-teal-200">
                         <Brain className="h-5 w-5" />
                       </div>
                       <div>
@@ -448,8 +448,8 @@ export default function EmotionTrackingFormWizard({
 
                     {/* Styled guide and live selected emotion path */}
                     <div className="space-y-4">
-                      <div className="bg-purple-50/70 p-4 rounded-xl border border-purple-100/80">
-                        <div className="flex items-center gap-2 text-purple-900 font-semibold text-sm mb-1.5">
+                      <div className="bg-teal-50/70 p-4 rounded-xl border border-teal-100/80">
+                        <div className="flex items-center gap-2 text-teal-700 font-semibold text-sm mb-1.5">
                           <Sparkles className="h-4 w-4" />
                           <span>{t("Interactive Guide")}</span>
                         </div>
@@ -472,7 +472,7 @@ export default function EmotionTrackingFormWizard({
                                 "px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all duration-300",
                                 selectedCore === "Anger" && "bg-red-50 text-red-700 border border-red-100",
                                 selectedCore === "Sadness" && "bg-blue-50 text-blue-700 border border-blue-100",
-                                selectedCore === "Surprise" && "bg-purple-50 text-purple-700 border border-purple-100",
+                                selectedCore === "Surprise" && "bg-teal-50 text-purple-700 border border-teal-100",
                                 selectedCore === "Joy" && "bg-amber-50 text-amber-700 border border-amber-100",
                                 selectedCore === "Love" && "bg-pink-50 text-pink-700 border border-pink-100",
                                 selectedCore === "Fear" && "bg-green-50 text-green-700 border border-green-100"
@@ -487,7 +487,7 @@ export default function EmotionTrackingFormWizard({
                                     "px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all duration-300",
                                     selectedCore === "Anger" && "bg-red-100/60 text-red-800 border border-red-200/50",
                                     selectedCore === "Sadness" && "bg-blue-100/60 text-blue-800 border border-blue-200/50",
-                                    selectedCore === "Surprise" && "bg-purple-100/60 text-purple-800 border border-purple-200/50",
+                                    selectedCore === "Surprise" && "bg-teal-100/60 text-teal-800 border border-teal-200/50",
                                     selectedCore === "Joy" && "bg-amber-100/60 text-amber-800 border border-amber-200/50",
                                     selectedCore === "Love" && "bg-pink-100/60 text-pink-800 border border-pink-200/50",
                                     selectedCore === "Fear" && "bg-green-100/60 text-green-800 border border-green-200/50"
@@ -504,7 +504,7 @@ export default function EmotionTrackingFormWizard({
                                     "px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all duration-300",
                                     selectedCore === "Anger" && "bg-red-500 text-white shadow-red-100",
                                     selectedCore === "Sadness" && "bg-blue-500 text-white shadow-blue-100",
-                                    selectedCore === "Surprise" && "bg-purple-500 text-white shadow-purple-100",
+                                    selectedCore === "Surprise" && "bg-teal-500 text-white shadow-purple-100",
                                     selectedCore === "Joy" && "bg-amber-500 text-neutral-900 shadow-amber-100",
                                     selectedCore === "Love" && "bg-pink-500 text-white shadow-pink-100",
                                     selectedCore === "Fear" && "bg-green-500 text-white shadow-green-100"
@@ -542,7 +542,7 @@ export default function EmotionTrackingFormWizard({
                           form.setValue("tertiaryEmotion", "");
                           form.trigger("coreEmotion");
                         }}
-                        className={cn("text-xs text-slate-400 hover:text-purple-900 hover:underline transition-colors w-fit", isRTL ? "text-right" : "text-left")}
+                        className={cn("text-xs text-slate-400 hover:text-teal-700 hover:underline transition-colors w-fit", isRTL ? "text-right" : "text-left")}
                       >
                         {t("✕ Clear Selection")}
                       </button>
@@ -554,8 +554,8 @@ export default function EmotionTrackingFormWizard({
               {/* Step 2: Rate Intensity */}
               {currentStep === 2 && (
                 <div className="space-y-4" data-testid="step-rate-intensity">
-                  <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
-                    <h3 className="font-semibold text-sm text-purple-900 mb-1.5">{t("Why rate intensity?")}</h3>
+                  <div className="bg-teal-50 p-4 rounded-xl border border-teal-100">
+                    <h3 className="font-semibold text-sm text-teal-700 mb-1.5">{t("Why rate intensity?")}</h3>
                     <p className="text-sm text-slate-600">
                       {t("Rating how strongly you felt an emotion helps you track patterns over time. A rating of 1 means you barely noticed it, while 10 means it was overwhelming.")}
                     </p>
@@ -577,14 +577,14 @@ export default function EmotionTrackingFormWizard({
                                 step={1}
                                 value={[field.value]}
                                 onValueChange={(vals) => field.onChange(vals[0])}
-                                className="flex-grow h-3 [&_[role=slider]]:bg-[#090514] [&_.bg-primary]:bg-gradient-to-r [&_.bg-primary]:from-rose-300 [&_.bg-primary]:via-purple-500 [&_.bg-primary]:to-[#090514]"
+                                className="flex-grow h-3 [&_[role=slider]]:bg-teal-800 [&_.bg-primary]:bg-gradient-to-r [&_.bg-primary]:from-rose-300 [&_.bg-primary]:via-rose-500 [&_.bg-primary]:to-rose-700"
                                 data-testid="slider-intensity"
                               />
                             </FormControl>
                             <span className={cn("text-xs sm:text-sm text-slate-500 sm:min-w-[120px]", isRTL ? "text-left" : "text-right")}>{t("Intense (10)")}</span>
                           </div>
                           <div className="flex justify-center">
-                            <span className="px-6 py-3 rounded-2xl bg-[#090514] text-white text-2xl font-bold shadow-sm">
+                            <span className="px-6 py-3 rounded-2xl bg-teal-800 text-white text-2xl font-bold shadow-sm">
                               {tNum(field.value)}
                             </span>
                           </div>
@@ -602,8 +602,8 @@ export default function EmotionTrackingFormWizard({
               {/* Step 3: Describe Situation */}
               {currentStep === 3 && (
                 <div className="space-y-4" data-testid="step-describe-situation">
-                  <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
-                    <h3 className="font-semibold text-sm text-purple-900 mb-1.5">{t("Why describe the situation?")}</h3>
+                  <div className="bg-teal-50 p-4 rounded-xl border border-teal-100">
+                    <h3 className="font-semibold text-sm text-teal-700 mb-1.5">{t("Why describe the situation?")}</h3>
                     <p className="text-sm text-slate-600">
                       {t("Documenting what triggered your emotion helps identify patterns and develop better coping strategies over time. Be as specific as possible.")}
                     </p>
@@ -651,8 +651,8 @@ export default function EmotionTrackingFormWizard({
               {/* Step 4: Add Context */}
               {currentStep === 4 && (
                 <div className="space-y-4" data-testid="step-add-context">
-                  <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
-                    <h3 className="font-semibold text-sm text-purple-900 mb-1.5">{t("Additional context (optional)")}</h3>
+                  <div className="bg-teal-50 p-4 rounded-xl border border-teal-100">
+                    <h3 className="font-semibold text-sm text-teal-700 mb-1.5">{t("Additional context (optional)")}</h3>
                     <p className="text-sm text-slate-600">
                       {t("These optional details help you understand when and where certain emotions tend to occur.")}
                     </p>
@@ -801,8 +801,8 @@ export default function EmotionTrackingFormWizard({
                   form.getValues("situation").length < 10
                 }
                 submitLabel={t("Record Emotion")}
-                nextButtonClassName="bg-[#090514] hover:bg-purple-950 text-white"
-                submitButtonClassName="bg-[#090514] hover:bg-purple-950 text-white"
+                nextButtonClassName="bg-teal-800 hover:bg-teal-700 text-white"
+                submitButtonClassName="bg-teal-800 hover:bg-teal-700 text-white"
                 extraActions={
                   currentStep === totalSteps - 1 ? (
                     <Button
@@ -845,7 +845,7 @@ export default function EmotionTrackingFormWizard({
 
             <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-tight">{t("Most Common")}</p>
-              <p className="text-base font-bold text-purple-600 mt-2 truncate">
+              <p className="text-base font-bold text-teal-700 mt-2 truncate">
                 {mostCommonEmotion ? translateEmotion(mostCommonEmotion[0], currentLanguage) : "—"}
               </p>
               <p className="text-[11px] text-slate-400 mt-1 truncate">
@@ -855,19 +855,19 @@ export default function EmotionTrackingFormWizard({
 
             <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-tight">{t("This Emotion")}</p>
-              <p className="text-base font-bold text-[#090514] mt-2 truncate">
+              <p className="text-base font-bold text-slate-800 mt-2 truncate">
                 {translateEmotion(currentEmotionName, currentLanguage)}
               </p>
               <p className="text-[11px] text-slate-400 flex items-center gap-0.5 mt-1">
-                <span className="font-bold text-purple-600">{tNum(currentIntensity)}</span>
+                <span className="font-bold text-teal-700">{tNum(currentIntensity)}</span>
                 <span>/{tNum(10)}</span>
               </p>
             </div>
           </div>
 
           {totalEmotions < 3 && (
-            <div className="bg-purple-50 px-4 py-3 rounded-xl border border-purple-100">
-              <p className="text-sm text-purple-900 font-medium">
+            <div className="bg-teal-50 px-4 py-3 rounded-xl border border-teal-100">
+              <p className="text-sm text-teal-700 font-medium">
                 {t("Track")} {tNum(3 - totalEmotions)} {t("more emotion(s) to unlock detailed pattern insights.")}
               </p>
             </div>
@@ -882,7 +882,7 @@ export default function EmotionTrackingFormWizard({
           <div className="flex flex-col gap-2.5 pt-1">
             <Button
               size="lg"
-              className="flex items-center justify-center gap-2 h-11 bg-[#090514] hover:bg-purple-950 text-white rounded-xl text-sm font-semibold"
+              className="flex items-center justify-center gap-2 h-11 bg-teal-800 hover:bg-teal-700 text-white rounded-xl text-sm font-semibold"
               onClick={() => {
                 setShowSuccessDialog(false);
                 form.reset({
@@ -908,7 +908,7 @@ export default function EmotionTrackingFormWizard({
               <Button
                 size="lg"
                 variant="outline"
-                className="flex items-center justify-center gap-2 h-11 rounded-xl border-slate-200 hover:border-purple-200 hover:bg-purple-50 text-sm"
+                className="flex items-center justify-center gap-2 h-11 rounded-xl border-slate-200 hover:border-teal-200 hover:bg-teal-50 text-sm"
                 onClick={() => {
                   setShowSuccessDialog(false);
                   navigate("/emotions?tab=history");
@@ -922,7 +922,7 @@ export default function EmotionTrackingFormWizard({
               <Button
                 size="lg"
                 variant="outline"
-                className="flex items-center justify-center gap-2 h-11 rounded-xl border-slate-200 hover:border-purple-200 hover:bg-purple-50 text-sm"
+                className="flex items-center justify-center gap-2 h-11 rounded-xl border-slate-200 hover:border-teal-200 hover:bg-teal-50 text-sm"
                 onClick={() => {
                   setShowSuccessDialog(false);
                   navigate("/dashboard");

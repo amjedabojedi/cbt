@@ -104,7 +104,7 @@ export default function CBTProgressSnapshot({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <Card
-        className="bg-white rounded-2xl border border-slate-100 hover:border-purple-200 hover:shadow-md transition-all duration-300 overflow-hidden group shadow-sm flex flex-col justify-between"
+        className="bg-white rounded-2xl border border-slate-100 hover:border-teal-200 hover:shadow-md transition-all duration-300 overflow-hidden group shadow-sm flex flex-col justify-between"
         data-testid="metric-activity-level"
       >
         <CardHeader className="pb-2 pt-4 px-5">
@@ -112,7 +112,7 @@ export default function CBTProgressSnapshot({
             <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">
               {t("Engagement Level")}
             </span>
-            <div className="bg-purple-50 text-purple-600 p-2 rounded-xl group-hover:bg-purple-100 transition-colors duration-300">
+            <div className="bg-teal-50 text-teal-700 p-2 rounded-xl group-hover:bg-teal-100 transition-colors duration-300">
               <Activity className="h-4.5 w-4.5" />
             </div>
           </div>
@@ -123,18 +123,18 @@ export default function CBTProgressSnapshot({
           <div className="pt-2.5 border-t border-slate-50">
             <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
               <span>{t("Behavioral Activation")}</span>
-              <span className="text-purple-600 font-extrabold">{t("Active")}</span>
+              <span className="text-teal-700 font-extrabold">{t("Active")}</span>
             </div>
             <Progress
               value={Math.min((totalActivities / 20) * 100, 100)}
-              className="h-1.5 [&>div]:bg-purple-600"
+              className="h-1.5 [[&>div]:bg-purple-600>div]:bg-teal-600"
             />
           </div>
         </CardContent>
       </Card>
 
       <Card
-        className="bg-white rounded-2xl border border-slate-100 hover:border-purple-200 hover:shadow-md transition-all duration-300 overflow-hidden group shadow-sm flex flex-col justify-between"
+        className="bg-white rounded-2xl border border-slate-100 hover:border-teal-200 hover:shadow-md transition-all duration-300 overflow-hidden group shadow-sm flex flex-col justify-between"
         data-testid="metric-emotional-balance"
       >
         <CardHeader className="pb-2 pt-4 px-5">
@@ -189,7 +189,7 @@ export default function CBTProgressSnapshot({
       </Card>
 
       <Card
-        className="bg-white rounded-2xl border border-slate-100 hover:border-purple-200 hover:shadow-md transition-all duration-300 overflow-hidden group shadow-sm flex flex-col justify-between"
+        className="bg-white rounded-2xl border border-slate-100 hover:border-teal-200 hover:shadow-md transition-all duration-300 overflow-hidden group shadow-sm flex flex-col justify-between"
         data-testid="metric-thought-challenge"
       >
         <CardHeader className="pb-2 pt-4 px-5">
@@ -220,7 +220,7 @@ export default function CBTProgressSnapshot({
       </Card>
 
       <Card
-        className="bg-white rounded-2xl border border-slate-100 hover:border-purple-200 hover:shadow-md transition-all duration-300 overflow-hidden group shadow-sm flex flex-col justify-between"
+        className="bg-white rounded-2xl border border-slate-100 hover:border-teal-200 hover:shadow-md transition-all duration-300 overflow-hidden group shadow-sm flex flex-col justify-between"
         data-testid="metric-goal-progress"
       >
         <CardHeader className="pb-2 pt-4 px-5">

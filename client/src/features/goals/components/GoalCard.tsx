@@ -76,7 +76,7 @@ export default function GoalCard({
             </div>
             <Progress
               value={progress.percentage}
-              className="h-2 [&>div]:bg-purple-600"
+              className="h-2 [[&>div]:bg-purple-600>div]:bg-teal-600"
               data-testid={`progress-bar-${goal.id}`}
             />
           </div>

@@ -216,13 +216,13 @@ const InsightPanel: React.FC<InsightPanelProps> = ({
             {thoughtRecords.flatMap(r => r.cognitiveDistortions || []).length > 0 && (
               <div>
                 <h4 className="text-sm font-medium flex items-center gap-2 mb-2">
-                  <Brain className="h-4 w-4 text-purple-500" />
+                  <Brain className="h-4 w-4 text-teal-600" />
                   Cognitive Distortions
                 </h4>
                 
                 <div className="flex flex-wrap gap-2 mb-2">
                   {Array.from(new Set(thoughtRecords.flatMap(r => r.cognitiveDistortions || []))).map(distortion => (
-                    <Badge key={distortion} variant="outline" className="bg-purple-50">
+                    <Badge key={distortion} variant="outline" className="bg-teal-50">
                       {distortion}
                     </Badge>
                   ))}

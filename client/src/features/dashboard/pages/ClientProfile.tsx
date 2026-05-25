@@ -36,11 +36,11 @@ function TabBtn({
       onClick={onClick}
       className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
         active
-          ? "bg-[#090514] text-white shadow-sm"
+          ? "bg-teal-800 text-white shadow-sm"
           : "text-slate-500 hover:text-slate-700 hover:bg-slate-100"
       }`}
     >
-      <span className={active ? "text-purple-200" : "text-slate-400"}>{icon}</span>
+      <span className={active ? "text-teal-200" : "text-slate-400"}>{icon}</span>
       {label}
     </button>
   );
@@ -57,15 +57,15 @@ function ModuleCard({
   return (
     <button
       onClick={onClick}
-      className="group/card w-full bg-white border border-slate-100 hover:border-purple-200 hover:shadow-md p-4 rounded-2xl text-left transition-all duration-300 hover:-translate-y-0.5 focus:outline-none flex items-center justify-between gap-3 shadow-sm"
+      className="group/card w-full bg-white border border-slate-100 hover:border-teal-200 hover:shadow-md p-4 rounded-2xl text-left transition-all duration-300 hover:-translate-y-0.5 focus:outline-none flex items-center justify-between gap-3 shadow-sm"
     >
       <div className="flex items-center gap-3 min-w-0">
-        <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#090514] group-hover/card:bg-[#090514] group-hover/card:text-white flex items-center justify-center shrink-0 transition-all duration-300 border border-purple-100 group-hover/card:border-[#090514] group-hover/card:shadow-[0_0_12px_rgba(9,5,20,0.2)]">
+        <div className="w-10 h-10 rounded-xl bg-teal-50 text-slate-800 group-hover/card:bg-teal-800 group-hover/card:text-white flex items-center justify-center shrink-0 transition-all duration-300 border border-teal-100 group-hover/card:border-teal-700 group-hover/card:shadow-[0_0_12px_rgba(9,5,20,0.2)]">
           {icon}
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-[9px] font-mono font-bold tracking-widest text-purple-500 group-hover/card:text-purple-900 uppercase transition-colors">{code}</span>
+            <span className="text-[9px] font-mono font-bold tracking-widest text-teal-600 group-hover/card:text-teal-700 uppercase transition-colors">{code}</span>
             <span className="h-1 w-1 rounded-full bg-slate-200" />
             <span className="font-bold text-xs text-slate-700 group-hover/card:text-slate-900 uppercase tracking-wide truncate">{title}</span>
           </div>
@@ -74,10 +74,10 @@ function ModuleCard({
       </div>
       <div className="shrink-0 flex items-center gap-2">
         <div className="text-right">
-          <p className="text-base font-bold text-[#090514]">{tNum(count)}</p>
+          <p className="text-base font-bold text-slate-800">{tNum(count)}</p>
           <p className="text-[10px] text-slate-400">{unit}</p>
         </div>
-        <ChevronRight className="h-4 w-4 text-slate-300 group-hover/card:text-purple-500 transition-colors" />
+        <ChevronRight className="h-4 w-4 text-slate-300 group-hover/card:text-teal-600 transition-colors" />
       </div>
     </button>
   );
@@ -93,7 +93,7 @@ function StatCard({
   const { tNum } = useLocalization();
   const colorMap = {
     blue:    "bg-blue-50   text-blue-600   border-blue-100",
-    purple:  "bg-purple-50 text-purple-600 border-purple-100",
+    purple:  "bg-teal-50 text-teal-700 border-teal-100",
     amber:   "bg-amber-50  text-amber-600  border-amber-100",
     emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
     indigo:  "bg-indigo-50 text-indigo-600 border-indigo-100",
@@ -102,7 +102,7 @@ function StatCard({
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
       <div className={`p-2.5 rounded-xl border ${colorMap[color]} shrink-0`}>{icon}</div>
       <div>
-        <p className="text-xl font-bold text-[#090514] leading-tight">{tNum(value)}</p>
+        <p className="text-xl font-bold text-slate-800 leading-tight">{tNum(value)}</p>
         <p className="text-xs text-slate-500 font-medium mt-0.5">{label}</p>
       </div>
     </div>
@@ -174,7 +174,7 @@ export default function ClientProfile() {
       <AppLayout title="Client Profile">
         <div className="min-h-full bg-slate-50 flex items-center justify-center" style={{ minHeight: "50vh" }}>
           <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#090514]" />
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-teal-700" />
             <p className="text-slate-500 text-sm font-medium">{t("Loading client profile…")}</p>
           </div>
         </div>
@@ -188,15 +188,15 @@ export default function ClientProfile() {
       <AppLayout title="Client Profile">
         <div className="min-h-full bg-slate-50 flex items-center justify-center p-6">
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-10 text-center max-w-md w-full">
-            <div className="p-4 bg-purple-50 rounded-2xl inline-flex mb-5 border border-purple-100">
-              <User className="h-8 w-8 text-purple-900" />
+            <div className="p-4 bg-teal-50 rounded-2xl inline-flex mb-5 border border-teal-100">
+              <User className="h-8 w-8 text-teal-700" />
             </div>
             <h3 className="text-lg font-bold text-slate-700 mb-2">{t("Client Not Found")}</h3>
             <p className="text-sm text-slate-400 mb-6">
               {t("This profile doesn't exist or you don't have permission to view it.")}
             </p>
             <Button onClick={() => navigate("/clients")}
-              className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl px-6">
+              className="bg-teal-800 hover:bg-teal-700 text-white rounded-xl px-6">
               <ArrowLeft className="h-4 w-4 mr-2" /> {t("Back to Clients")}
             </Button>
           </div>
@@ -230,9 +230,9 @@ export default function ClientProfile() {
                 {/* Avatar with gradient background */}
                 <div className="relative shrink-0">
                   {/* Gradient band behind avatar */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#090514] to-purple-900 opacity-90" />
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-slate-700 to-teal-600 opacity-90" />
                   <div className="relative w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold text-white border-4 border-white shadow-lg"
-                    style={{ background: "linear-gradient(135deg, #090514 0%, #1e0a36 100%)" }}>
+                    style={{ background: "linear-gradient(135deg, #0f766e 0%, #0d9488 100%)" }}>
                     {getInitials(client.name, client.username)}
                   </div>
                 </div>
@@ -279,7 +279,7 @@ export default function ClientProfile() {
                   { val: goals.length,     label: t("Goals")     },
                 ].map((s, i) => (
                   <div key={i} className="text-center">
-                    <p className="text-2xl font-bold text-[#090514]">{tNum(s.val)}</p>
+                    <p className="text-2xl font-bold text-slate-800">{tNum(s.val)}</p>
                     <p className="text-xs text-slate-400 font-medium mt-0.5">{s.label}</p>
                   </div>
                 ))}
@@ -309,7 +309,7 @@ export default function ClientProfile() {
               {/* Clinical modules */}
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="h-4 w-4 text-purple-900" />
+                  <Sparkles className="h-4 w-4 text-teal-700" />
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Clinical Modules")}</span>
                   <span className="text-xs text-slate-400 ml-1">{t("— click to open in client context")}</span>
                 </div>
@@ -324,11 +324,11 @@ export default function ClientProfile() {
               {/* Open Analytics CTA */}
               <div className="flex gap-3 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
                 <Button variant="outline" onClick={() => navigate("/clients")}
-                  className="flex-1 h-10 rounded-xl border-slate-200 text-slate-600 hover:border-purple-200 hover:bg-purple-50 font-semibold text-sm gap-2 bg-white">
+                  className="flex-1 h-10 rounded-xl border-slate-200 text-slate-600 hover:border-teal-200 hover:bg-teal-50 font-semibold text-sm gap-2 bg-white">
                   <ArrowLeft className="h-4 w-4" /> {t("Back to Directory")}
                 </Button>
                 <Button onClick={() => goToSection("dashboard")}
-                  className="flex-1 h-10 rounded-xl bg-[#090514] hover:bg-purple-950 text-white font-semibold text-sm gap-2 shadow-sm">
+                  className="flex-1 h-10 rounded-xl bg-teal-800 hover:bg-teal-700 text-white font-semibold text-sm gap-2 shadow-sm">
                   {t("Open Analytics ")} <ExternalLink className="h-4 w-4" />
                 </Button>
               </div>
@@ -337,14 +337,14 @@ export default function ClientProfile() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Recent emotions */}
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                  <div className="h-1 w-full bg-gradient-to-r from-[#090514] to-purple-900" />
+                  <div className="h-1 w-full bg-gradient-to-r from-slate-700 to-teal-600" />
                   <div className="px-5 pt-4 pb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Heart className="h-4 w-4 text-purple-900" />
+                      <Heart className="h-4 w-4 text-teal-700" />
                       <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Recent Emotions")}</span>
                     </div>
                     <button onClick={() => goToSection("emotions")}
-                      className="text-xs font-semibold text-purple-900 hover:text-[#090514] transition-colors flex items-center gap-1">
+                      className="text-xs font-semibold text-teal-700 hover:text-slate-800 transition-colors flex items-center gap-1">
                       {t("View all ")} <ChevronRight className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -366,14 +366,14 @@ export default function ClientProfile() {
 
                 {/* Recent journal */}
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                  <div className="h-1 w-full bg-gradient-to-r from-[#090514] to-purple-900" />
+                  <div className="h-1 w-full bg-gradient-to-r from-slate-700 to-teal-600" />
                   <div className="px-5 pt-4 pb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <BookOpen className="h-4 w-4 text-purple-900" />
+                      <BookOpen className="h-4 w-4 text-teal-700" />
                       <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Recent Journal")}</span>
                     </div>
                     <button onClick={() => goToSection("journal")}
-                      className="text-xs font-semibold text-purple-900 hover:text-[#090514] transition-colors flex items-center gap-1">
+                      className="text-xs font-semibold text-teal-700 hover:text-slate-800 transition-colors flex items-center gap-1">
                       {t("View all ")} <ChevronRight className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -402,7 +402,7 @@ export default function ClientProfile() {
               {/* Stats grid */}
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 className="h-4 w-4 text-purple-900" />
+                  <BarChart3 className="h-4 w-4 text-teal-700" />
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Activity Summary")}</span>
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -416,7 +416,7 @@ export default function ClientProfile() {
               {/* Totals */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-center">
-                  <p className="text-3xl font-bold text-[#090514]">{tNum(totalActivities)}</p>
+                  <p className="text-3xl font-bold text-slate-800">{tNum(totalActivities)}</p>
                   <p className="text-sm text-slate-500 font-medium mt-1">{t("Total Activities")}</p>
                   <p className="text-xs text-slate-400 mt-0.5">{t("Across all modules")}</p>
                 </div>
@@ -430,7 +430,7 @@ export default function ClientProfile() {
                   </p>
                 </div>
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-center">
-                  <p className="text-3xl font-bold text-[#090514]">
+                  <p className="text-3xl font-bold text-slate-800">
                     {client.createdAt
                       ? tNum(Math.floor((Date.now() - new Date(client.createdAt).getTime()) / (1000 * 60 * 60 * 24)))
                       : "—"}
@@ -443,14 +443,14 @@ export default function ClientProfile() {
               {/* Goals list */}
               {goals.length > 0 && (
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                  <div className="h-1 w-full bg-gradient-to-r from-[#090514] to-purple-900" />
+                  <div className="h-1 w-full bg-gradient-to-r from-slate-700 to-teal-600" />
                   <div className="px-5 pt-4 pb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Target className="h-4 w-4 text-purple-900" />
+                      <Target className="h-4 w-4 text-teal-700" />
                       <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Goals")}</span>
                     </div>
                     <button onClick={() => goToSection("goals")}
-                      className="text-xs font-semibold text-purple-900 hover:text-[#090514] transition-colors flex items-center gap-1">
+                      className="text-xs font-semibold text-teal-700 hover:text-slate-800 transition-colors flex items-center gap-1">
                       {t("Open module ")} <ChevronRight className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -486,7 +486,7 @@ export default function ClientProfile() {
           {activeTab === "activity" && (
             <div className="space-y-5">
               <div className="flex items-center gap-2 mb-2">
-                <Activity className="h-4 w-4 text-purple-900" />
+                <Activity className="h-4 w-4 text-teal-700" />
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Latest Entries")}</span>
               </div>
 
@@ -520,7 +520,7 @@ export default function ClientProfile() {
                 const typeMap: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
                   emotion: { icon: <Heart className="h-3.5 w-3.5" />,    label: t("Emotion"),  color: "bg-blue-50   text-blue-600   border-blue-100"    },
                   journal: { icon: <BookOpen className="h-3.5 w-3.5" />, label: t("Journal"),  color: "bg-amber-50  text-amber-600  border-amber-100"   },
-                  thought: { icon: <Brain className="h-3.5 w-3.5" />,    label: t("Thought"),  color: "bg-purple-50 text-purple-600 border-purple-100"  },
+                  thought: { icon: <Brain className="h-3.5 w-3.5" />,    label: t("Thought"),  color: "bg-teal-50 text-teal-700 border-teal-100"  },
                   goal:    { icon: <Target className="h-3.5 w-3.5" />,   label: t("Goal"),     color: "bg-indigo-50 text-indigo-600 border-indigo-100"  },
                 };
 
@@ -535,7 +535,7 @@ export default function ClientProfile() {
 
                 return (
                   <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                    <div className="h-1 w-full bg-gradient-to-r from-[#090514] to-purple-900" />
+                    <div className="h-1 w-full bg-gradient-to-r from-slate-700 to-teal-600" />
                     <div className="divide-y divide-slate-100">
                       {items.map((item, i) => {
                         const t = typeMap[item.type];
@@ -559,7 +559,7 @@ export default function ClientProfile() {
                               </p>
                               <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wide mt-0.5">{t.label}</p>
                             </div>
-                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-purple-500 shrink-0 transition-colors" />
+                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-teal-500 shrink-0 transition-colors" />
                           </motion.button>
                         );
                       })}

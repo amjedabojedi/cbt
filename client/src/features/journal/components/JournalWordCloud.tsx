@@ -48,7 +48,7 @@ const JournalWordCloud: React.FC<JournalWordCloudProps> = ({ words = {}, height 
     if (normalizedValue < 0.33) {
       return 'bg-blue-100 border-blue-300 text-blue-800';
     } else if (normalizedValue < 0.66) {
-      return 'bg-purple-100 border-purple-300 text-purple-800';
+      return 'bg-teal-100 border-teal-300 text-teal-800';
     } else {
       return 'bg-red-100 border-red-300 text-red-800';
     }

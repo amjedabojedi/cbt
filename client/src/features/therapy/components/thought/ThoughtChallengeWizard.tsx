@@ -138,7 +138,7 @@ export function ThoughtChallengeWizard({
   const LuxuryHeader = () => (
     <div
       className="relative overflow-hidden rounded-t-2xl px-7 py-5"
-      style={{ background: "linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)" }}
+      style={{ background: "linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)" }}
     >
       {/* Glowing orb backdrops */}
       <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-purple-600/25 blur-3xl pointer-events-none" />
@@ -148,14 +148,14 @@ export function ThoughtChallengeWizard({
       <div className="relative z-10 flex items-start justify-between gap-4">
         <div className="flex items-center gap-3.5">
           {/* Icon orb */}
-          <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-purple-900/40 shrink-0">
-            <Brain className="h-5 w-5 text-purple-300" />
+          <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-purple-900/40 shrink-0">
+            <Brain className="h-5 w-5 text-teal-100" />
           </div>
           <div>
             <h2 className="text-lg font-bold text-white tracking-tight leading-tight">
               Challenge Your Thought
             </h2>
-            <p className="text-purple-300/80 text-xs mt-0.5 font-medium">
+            <p className="text-teal-100/80 text-xs mt-0.5 font-medium">
               {currentStep === 0
                 ? "CBT Technique • Guided Walkthrough"
                 : `Step ${currentStep} of ${totalSteps} · ${STEP_LABELS[currentStep - 1]}`}
@@ -191,8 +191,8 @@ export function ThoughtChallengeWizard({
                         isCompleted
                           ? "bg-emerald-500 shadow-lg shadow-emerald-500/30"
                           : isActive
-                          ? "bg-purple-500 shadow-lg shadow-purple-500/40 ring-2 ring-purple-400/40 ring-offset-1 ring-offset-transparent"
-                          : "bg-white/10 border border-white/20"
+                          ? "bg-teal-500 shadow-lg shadow-purple-500/40 ring-2 ring-purple-400/40 ring-offset-1 ring-offset-transparent"
+                          : "bg-white/15 border border-white/25"
                       }`}
                     >
                       {isCompleted ? (
@@ -203,7 +203,7 @@ export function ThoughtChallengeWizard({
                     </div>
                     <span
                       className={`text-[10px] mt-1 font-medium tracking-wide transition-colors ${
-                        isActive ? "text-purple-300" : isCompleted ? "text-emerald-400" : "text-white/30"
+                        isActive ? "text-teal-100" : isCompleted ? "text-emerald-400" : "text-white/30"
                       }`}
                     >
                       {label}
@@ -231,10 +231,10 @@ export function ThoughtChallengeWizard({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* LEFT: Educational content */}
         <div className="space-y-3">
-          <div className="rounded-xl bg-gradient-to-br from-slate-50 to-purple-50/40 border border-purple-100/80 p-4">
+          <div className="rounded-xl bg-gradient-to-br from-slate-50 to-purple-50/40 border border-teal-100/80 p-4">
             <div className="flex items-start gap-2.5 mb-3">
-              <div className="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center shrink-0 mt-0.5">
-                <Lightbulb className="h-3.5 w-3.5 text-purple-600" />
+              <div className="w-7 h-7 rounded-lg bg-teal-100 flex items-center justify-center shrink-0 mt-0.5">
+                <Lightbulb className="h-3.5 w-3.5 text-teal-700" />
               </div>
               <h3 className="text-sm font-bold text-slate-800 leading-tight mt-1">
                 What is Thought Challenging?
@@ -252,7 +252,7 @@ export function ThoughtChallengeWizard({
               { icon: Scale, label: "See the Bigger Picture", desc: "Find overlooked evidence and balanced explanations", color: "text-indigo-500", bg: "bg-indigo-50" },
               { icon: TrendingUp, label: "Build Balanced Alternatives", desc: "Craft realistic, evidence-based replacement thoughts", color: "text-emerald-500", bg: "bg-emerald-50" },
             ].map(({ icon: Icon, label, desc, color, bg }) => (
-              <div key={label} className="flex items-start gap-2.5 rounded-lg border border-slate-100 bg-white p-3 hover:border-purple-200 hover:shadow-sm transition-all duration-200">
+              <div key={label} className="flex items-start gap-2.5 rounded-lg border border-slate-100 bg-white p-3 hover:border-teal-200 hover:shadow-sm transition-all duration-200">
                 <div className={`w-6 h-6 rounded-md ${bg} flex items-center justify-center shrink-0 mt-0.5`}>
                   <Icon className={`h-3.5 w-3.5 ${color}`} />
                 </div>
@@ -269,12 +269,12 @@ export function ThoughtChallengeWizard({
         <div className="space-y-3 flex flex-col">
           {/* Auto thought callout */}
           <div
-            className="rounded-xl p-4 border border-purple-900/20 flex-1"
-            style={{ background: "linear-gradient(135deg, #1a0838/80 0%, #0c071a 100%)", backgroundColor: "#12082a" }}
+            className="rounded-xl p-4 border border-teal-700/20 flex-1"
+            style={{ background: "linear-gradient(135deg, rgba(15,118,110,0.9) 0%, #0d9488 100%)", backgroundColor: "#0f766e" }}
           >
             <div className="flex items-center gap-2 mb-3">
               <Quote className="h-4 w-4 text-amber-400 shrink-0" />
-              <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">
+              <span className="text-xs font-semibold text-teal-100 uppercase tracking-wider">
                 Your Automatic Thought
               </span>
             </div>
@@ -282,7 +282,7 @@ export function ThoughtChallengeWizard({
               "{thoughtRecord.automaticThoughts}"
             </p>
             <div className="mt-3 pt-3 border-t border-white/10">
-              <p className="text-[11px] text-purple-400/80 leading-snug">
+              <p className="text-[11px] text-teal-300/80 leading-snug">
                 We'll examine this step-by-step using evidence-based CBT techniques.
               </p>
             </div>
@@ -294,8 +294,8 @@ export function ThoughtChallengeWizard({
             style={{ backgroundColor: "#0f0624" }}
           >
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="h-3.5 w-3.5 text-purple-400" />
-              <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">
+              <Sparkles className="h-3.5 w-3.5 text-teal-300" />
+              <span className="text-xs font-semibold text-teal-100 uppercase tracking-wider">
                 Your 3-Step Journey
               </span>
             </div>
@@ -309,7 +309,7 @@ export function ThoughtChallengeWizard({
                   <span className={`text-[10px] font-black ${color} mt-0.5 tabular-nums w-5 shrink-0`}>{step}</span>
                   <div>
                     <p className="text-[11px] font-semibold text-white/90">{label}</p>
-                    <p className="text-[10px] text-purple-400/70">{desc}</p>
+                    <p className="text-[10px] text-teal-300/70">{desc}</p>
                   </div>
                 </div>
               ))}
@@ -346,7 +346,7 @@ export function ThoughtChallengeWizard({
     <div className="p-6 space-y-4" data-testid="step-evidence">
       {/* Context bar */}
       <div className="flex items-center gap-2.5 rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5">
-        <Quote className="h-3.5 w-3.5 text-purple-500 shrink-0" />
+        <Quote className="h-3.5 w-3.5 text-teal-600 shrink-0" />
         <p className="text-xs text-slate-600 italic leading-snug flex-1 truncate">
           "{thoughtRecord.automaticThoughts}"
         </p>
@@ -489,8 +489,8 @@ export function ThoughtChallengeWizard({
         {/* RIGHT: Alternative Thought Input */}
         <div className="space-y-2 flex flex-col">
           <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 rounded-md bg-purple-100 flex items-center justify-center">
-              <Lightbulb className="h-3 w-3 text-purple-600" />
+            <div className="w-5 h-5 rounded-md bg-teal-100 flex items-center justify-center">
+              <Lightbulb className="h-3 w-3 text-teal-700" />
             </div>
             <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
               Balanced Alternative
@@ -499,7 +499,7 @@ export function ThoughtChallengeWizard({
           <p className="text-[11px] text-slate-500 pl-6">Write a realistic thought that considers all evidence</p>
           <Textarea
             placeholder="e.g., While I got some critical feedback, I've also received positive recognition. One criticism doesn't define my competence — it shows areas where I can grow..."
-            className="resize-none w-full text-sm rounded-xl border-purple-200 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 bg-purple-50/20 flex-1 min-h-[180px]"
+            className="resize-none w-full text-sm rounded-xl border-teal-200 focus:border-teal-400 focus:ring-1 focus:ring-teal-400/30 bg-teal-50/20 flex-1 min-h-[180px]"
             rows={7}
             value={watchedValues.alternativeThought || ""}
             onChange={(e) => form.setValue("alternativeThought", e.target.value, { shouldValidate: true })}
@@ -772,15 +772,15 @@ export function ThoughtChallengeWizard({
 
             {/* Clinical reminder */}
             <div
-              className="rounded-xl border border-purple-900/20 p-4"
+              className="rounded-xl border border-teal-700/20 p-4"
               style={{ backgroundColor: "#0f0624" }}
             >
               <div className="flex items-start gap-2.5">
-                <Sparkles className="h-4 w-4 text-purple-400 shrink-0 mt-0.5" />
+                <Sparkles className="h-4 w-4 text-teal-300 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-xs font-bold text-purple-300 mb-1">Clinical Reminder</p>
-                  <p className="text-[11px] text-purple-400/80 leading-relaxed">
-                    The goal isn't positive thinking — it's <strong className="text-purple-300">realistic, balanced thinking</strong>. 
+                  <p className="text-xs font-bold text-teal-100 mb-1">Clinical Reminder</p>
+                  <p className="text-[11px] text-teal-300/80 leading-relaxed">
+                    The goal isn't positive thinking — it's <strong className="text-teal-100">realistic, balanced thinking</strong>. 
                     With regular practice, this process becomes second nature and builds lasting cognitive resilience.
                   </p>
                 </div>

@@ -278,7 +278,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
   if (thoughts.length === 0) {
     return (
       <div dir={isRTL ? "rtl" : "ltr"} className="bg-white/60 backdrop-blur rounded-3xl border border-slate-100 shadow-sm py-16 text-center px-6">
-        <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-teal-50 text-teal-700 rounded-full flex items-center justify-center mx-auto mb-4">
           <Brain className="h-8 w-8" />
         </div>
         <h3 className="font-bold text-slate-800 text-lg mb-1">{t("CBT Thought Journal")}</h3>
@@ -288,7 +288,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
   }
 
   const metrics = getImprovementMetrics();
-  const insightCardClass = "bg-white/90 backdrop-blur-md rounded-2xl border border-slate-100/80 shadow-sm overflow-hidden hover:shadow-md hover:border-purple-200/60 transition-all duration-300";
+  const insightCardClass = "bg-white/90 backdrop-blur-md rounded-2xl border border-slate-100/80 shadow-sm overflow-hidden hover:shadow-md hover:border-teal-200/60 transition-all duration-300";
 
   return (
     <div dir={isRTL ? "rtl" : "ltr"} className="space-y-6">
@@ -340,7 +340,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
       <div className={insightCardClass}>
         <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600">
+            <div className="p-1.5 rounded-lg bg-teal-50 text-teal-700">
               <Brain className="h-4 w-4" />
             </div>
             <h3 className="font-bold text-slate-800 text-base">{t("ANT Patterns (Cognitive Distortions)")}</h3>
@@ -373,7 +373,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div dir="ltr" className="bg-white/95 backdrop-blur-md py-2 px-3 border border-purple-100 rounded-xl shadow-lg text-xs font-semibold">
+                      <div dir="ltr" className="bg-white/95 backdrop-blur-md py-2 px-3 border border-teal-100 rounded-xl shadow-lg text-xs font-semibold">
                         <span className="text-slate-800">{data.name}: </span>
                         <span className="font-extrabold text-purple-700">{tNum(data.count)} {t("times")}</span>
                       </div>
@@ -585,9 +585,9 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
                             ? t(thoughtCategoryLabelKeys[data.distortion])
                             : data.distortion;
                           return (
-                            <div dir="ltr" className="bg-white/95 backdrop-blur-md p-3 border border-purple-100 rounded-xl shadow-xl">
+                            <div dir="ltr" className="bg-white/95 backdrop-blur-md p-3 border border-teal-100 rounded-xl shadow-xl">
                               <p className="font-bold text-slate-800 text-xs">{distortionLabel}</p>
-                              <p className="text-[11px] font-semibold text-purple-600 mt-0.5">{t(data.emotion)} {t("Emotion (singular)")}</p>
+                              <p className="text-[11px] font-semibold text-teal-700 mt-0.5">{t(data.emotion)} {t("Emotion (singular)")}</p>
                               <div className="border-t border-slate-100 mt-1.5 pt-1 flex items-center justify-between gap-3 text-[11px] font-semibold">
                                 <span className="text-slate-500">{t("Occurrences:")}</span>
                                 <span className="text-slate-800 font-extrabold">{tNum(data.count)} {t("times")}</span>
@@ -605,7 +605,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
                     />
                   </ScatterChart>
                 </ResponsiveContainer>
-                <div className="mt-4 p-3 bg-purple-50/40 rounded-xl border border-purple-100/30 text-[11px] text-slate-500 text-center font-medium max-w-lg mx-auto">
+                <div className="mt-4 p-3 bg-teal-50/40 rounded-xl border border-teal-100/30 text-[11px] text-slate-500 text-center font-medium max-w-lg mx-auto">
                   <span className="font-bold text-purple-700">{t("Analytics Tip:")}</span> {t("Bubble size corresponds to pattern frequency. Larger nodes highlight common connection patterns between cognitive distortions and emotional triggers.")}
                 </div>
               </>
@@ -628,9 +628,9 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
           </div>
           <Tabs value={timeRange} onValueChange={(v: any) => setTimeRange(v)} className="w-auto">
             <TabsList className="bg-slate-100 p-0.5 rounded-xl h-auto">
-              <TabsTrigger value="week" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Week")}</TabsTrigger>
-              <TabsTrigger value="month" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Month")}</TabsTrigger>
-              <TabsTrigger value="year" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Year")}</TabsTrigger>
+              <TabsTrigger value="week" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Week")}</TabsTrigger>
+              <TabsTrigger value="month" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Month")}</TabsTrigger>
+              <TabsTrigger value="year" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Year")}</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -655,7 +655,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div dir="ltr" className="bg-white/95 backdrop-blur-md p-3 border border-purple-100 rounded-xl shadow-xl">
+                      <div dir="ltr" className="bg-white/95 backdrop-blur-md p-3 border border-teal-100 rounded-xl shadow-xl">
                         <p className="font-bold text-slate-800 text-xs mb-1.5">{data.date}</p>
                         <div className="space-y-1 text-[11px] font-semibold">
                           <div className="flex items-center gap-2 justify-between">

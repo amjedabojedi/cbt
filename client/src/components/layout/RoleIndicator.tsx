@@ -137,7 +137,7 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
   // Admin role
   if (user.role === "admin") {
     return (
-      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-[#090514] border border-purple-200">
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-slate-800 border border-teal-200">
         Administrator
       </span>
     );
@@ -153,10 +153,10 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
         </span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:border-[#090514] hover:text-[#090514] transition-colors shadow-sm outline-none">
+            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:border-teal-700 hover:text-slate-800 transition-colors shadow-sm outline-none">
               <span
                 className="w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, #090514 0%, #1e0a36 100%)" }}
+                style={{ background: "linear-gradient(135deg, #0f766e 0%, #0d9488 100%)" }}
               >
                 {getInitials(viewingClientName || "")}
               </span>
@@ -169,7 +169,7 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
             <div className="flex items-center gap-2.5 px-3 py-2.5 mb-1 rounded-xl bg-slate-50 border border-slate-100">
               <span
                 className="w-8 h-8 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, #090514 0%, #1e0a36 100%)" }}
+                style={{ background: "linear-gradient(135deg, #0f766e 0%, #0d9488 100%)" }}
               >
                 {getInitials(viewingClientName || "")}
               </span>
@@ -198,14 +198,14 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
                   <DropdownMenuItem
                     key={client.id}
                     onClick={() => handleClientSelect(client.id, client.name)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-[#090514]/5 cursor-pointer"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-teal-800/5 cursor-pointer"
                   >
-                    <span className="w-7 h-7 rounded-full bg-purple-50 border border-purple-200 text-[#090514] text-xs font-bold flex items-center justify-center flex-shrink-0">
+                    <span className="w-7 h-7 rounded-full bg-teal-50 border border-teal-200 text-slate-800 text-xs font-bold flex items-center justify-center flex-shrink-0">
                       {getInitials(client.name)}
                     </span>
                     <span className="text-slate-700 font-medium">{client.name}</span>
                     {client.id === viewingClientId && (
-                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#090514]" />
+                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-teal-800" />
                     )}
                   </DropdownMenuItem>
                 ))}
@@ -221,12 +221,12 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
   if (user.role === "therapist") {
     return (
       <div className="flex items-center gap-2">
-        <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-[#090514] border border-purple-200">
+        <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-slate-800 border border-teal-200">
           Therapist
         </span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:border-[#090514] hover:text-[#090514] transition-colors shadow-sm outline-none">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:border-teal-700 hover:text-slate-800 transition-colors shadow-sm outline-none">
               <Users size={14} className="text-slate-400 flex-shrink-0" />
               <span>My Clients</span>
               <ChevronDown size={12} className="text-slate-400" />
@@ -235,8 +235,8 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
           <DropdownMenuContent align="end" className="w-[230px] p-1.5 rounded-2xl shadow-xl border border-slate-100">
             {/* Header */}
             <div className="flex items-center gap-2 px-3 py-2 mb-0.5">
-              <div className="w-6 h-6 rounded-lg bg-[#090514]/8 flex items-center justify-center">
-                <Users size={12} className="text-[#090514]" />
+              <div className="w-6 h-6 rounded-lg bg-teal-800/8 flex items-center justify-center">
+                <Users size={12} className="text-slate-800" />
               </div>
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">View Client Data</p>
             </div>
@@ -244,16 +244,16 @@ export default function RoleIndicator({ onClientChange }: ClientSelectorProps) {
 
             {loading ? (
               <div className="flex justify-center p-4">
-                <div className="animate-spin h-4 w-4 border-2 border-[#090514] border-t-transparent rounded-full" />
+                <div className="animate-spin h-4 w-4 border-2 border-teal-700 border-t-transparent rounded-full" />
               </div>
             ) : clients.length > 0 ? (
               clients.map((client) => (
                 <DropdownMenuItem
                   key={client.id}
                   onClick={() => handleClientSelect(client.id, client.name)}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-[#090514]/5 cursor-pointer mx-0.5"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-teal-800/5 cursor-pointer mx-0.5"
                 >
-                  <span className="w-7 h-7 rounded-full bg-purple-50 border border-purple-200 text-[#090514] text-xs font-bold flex items-center justify-center flex-shrink-0">
+                  <span className="w-7 h-7 rounded-full bg-teal-50 border border-teal-200 text-slate-800 text-xs font-bold flex items-center justify-center flex-shrink-0">
                     {getInitials(client.name)}
                   </span>
                   <span className="text-slate-700 font-medium">{client.name}</span>

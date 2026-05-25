@@ -29,7 +29,7 @@ export default function CBTTriangleConnections({
       <Card className="bg-white border border-slate-100 shadow-sm rounded-2xl overflow-hidden h-full flex flex-col justify-between">
         <CardHeader className="pb-4 pt-5 px-6 animate-pulse">
           <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-800">
-            <Link2 className="h-4.5 w-4.5 text-purple-600" />
+            <Link2 className="h-4.5 w-4.5 text-teal-700" />
             {t("Cross-Module Connections")}
           </CardTitle>
         </CardHeader>
@@ -58,7 +58,7 @@ export default function CBTTriangleConnections({
     >
       <CardHeader className="pb-4 pt-5 px-6">
         <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-800">
-          <Link2 className="h-4.5 w-4.5 text-purple-600" />
+          <Link2 className="h-4.5 w-4.5 text-teal-700" />
           {t("Cross-Module Connections")}
         </CardTitle>
         <CardDescription className="text-slate-400 font-semibold text-xs mt-0.5">
@@ -133,7 +133,7 @@ export default function CBTTriangleConnections({
 
         <div>
           <div className="flex gap-3.5 items-start">
-            <div className="bg-purple-50 text-purple-600 p-2 rounded-xl border border-purple-100/30 shrink-0">
+            <div className="bg-teal-50 text-teal-700 p-2 rounded-xl border border-teal-100/30 shrink-0">
               <Activity className="h-4.5 w-4.5" />
             </div>
             <div className="flex-1 min-w-0">
@@ -142,7 +142,7 @@ export default function CBTTriangleConnections({
               </h4>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
                 {t("Tracking")}{" "}
-                <span className="font-bold text-purple-600">{tNum(emotions.length)}</span>{" "}
+                <span className="font-bold text-teal-700">{tNum(emotions.length)}</span>{" "}
                 {t("emotions helps identify how activities and thoughts affect your mood.")}
               </p>
 

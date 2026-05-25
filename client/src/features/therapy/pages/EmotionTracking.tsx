@@ -28,7 +28,7 @@ import { useEffect } from "react";
 function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <span className="text-purple-900">{icon}</span>
+      <span className="text-teal-700">{icon}</span>
       <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{label}</span>
     </div>
   );
@@ -107,23 +107,23 @@ export default function EmotionTracking() {
         <ClientDebug />
 
         {/* Hero banner */}
-        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden">
-          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-slate-800 via-teal-900 to-teal-700 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden">
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="max-w-5xl mx-auto relative">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="h-4 w-4 text-purple-400" />
-                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                  <Sparkles className="h-4 w-4 text-teal-300" />
+                  <span className="text-teal-300/80 text-xs font-bold tracking-widest uppercase">
                     {isViewingClientData ? t("Clinical Review") : t("Mood & Triggers")}
                   </span>
                 </div>
                 <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
                   {pageTitle}
                 </h1>
-                <p className="text-purple-300/70 text-base max-w-md leading-relaxed line-clamp-2">
+                <p className="text-teal-100/70 text-base max-w-md leading-relaxed line-clamp-2">
                   {pageSubtitle}
                 </p>
               </div>
@@ -137,7 +137,7 @@ export default function EmotionTracking() {
                   ].map((s, i) => (
                     <div key={i} className="text-center">
                       <div className="text-2xl font-bold text-white">{s.value}</div>
-                      <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
+                      <div className="text-xs text-teal-300/80 font-medium mt-0.5">{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -149,14 +149,14 @@ export default function EmotionTracking() {
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-3.5 w-3.5 text-rose-400" />
-                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">{t("Emotional Intelligence")}</span>
+                  <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">{t("Emotional Intelligence")}</span>
                 </div>
-                <span className="text-xs text-purple-400">{tNum(totalEmotions)} {t("of")} {tNum(50)} {t("tracked")}</span>
+                <span className="text-xs text-teal-300">{tNum(totalEmotions)} {t("of")} {tNum(50)} {t("tracked")}</span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-rose-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.round((totalEmotions / 50) * 100))}%` }} />
               </div>
-              <p className="text-[11px] text-purple-400/60 mt-1.5">{t("Tracking your emotions regularly builds self-awareness and emotional regulation skills.")}</p>
+              <p className="text-[11px] text-teal-300/60 mt-1.5">{t("Tracking your emotions regularly builds self-awareness and emotional regulation skills.")}</p>
             </div>
           </div>
         </div>
@@ -174,7 +174,7 @@ export default function EmotionTracking() {
                     value="record"
                     className={cn(
                       "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
-                      "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                       "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                     )}
                   >
@@ -186,7 +186,7 @@ export default function EmotionTracking() {
                   value="history"
                   className={cn(
                     "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
-                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                     "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                   )}
                 >
@@ -197,7 +197,7 @@ export default function EmotionTracking() {
                   value="insights"
                   className={cn(
                     "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
-                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                     "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                   )}
                 >
@@ -210,7 +210,7 @@ export default function EmotionTracking() {
             {canRecord && (
               <TabsContent value="record" className="mt-0 space-y-3">
                 {showLanguageNotice && (
-                  <div className="p-2.5 bg-purple-50 text-purple-900 rounded-xl border border-purple-100 text-xs">
+                  <div className="p-2.5 bg-teal-50 text-teal-700 rounded-xl border border-teal-100 text-xs">
                     {language === "ar"
                       ? "تم التبديل إلى العربية. ستتم معالجة كل تفاعلات العجلة بالاتجاه من اليمين إلى اليسار."
                       : "Switched to English. All wheel interactions will now use LTR direction."}

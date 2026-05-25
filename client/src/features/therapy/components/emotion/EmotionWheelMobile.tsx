@@ -147,7 +147,7 @@ export default function EmotionWheelMobile({
     if (lowerEmotion.includes("fear")) return "bg-green-100 text-green-700";
     if (lowerEmotion.includes("joy") || lowerEmotion.includes("happy")) return "bg-yellow-100 text-yellow-700";
     if (lowerEmotion.includes("love")) return "bg-pink-100 text-pink-700";
-    if (lowerEmotion.includes("surprise")) return "bg-purple-100 text-purple-700";
+    if (lowerEmotion.includes("surprise")) return "bg-teal-100 text-purple-700";
     
     // Default color if no match
     return "bg-gray-100 text-gray-700";

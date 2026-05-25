@@ -69,7 +69,7 @@ export default function AchievementBadge({
       case "streak":
         return <Calendar className="h-6 w-6 mb-1 text-green-500" />;
       case "diversity":
-        return <Sparkles className="h-6 w-6 mb-1 text-purple-500" />;
+        return <Sparkles className="h-6 w-6 mb-1 text-teal-600" />;
       default:
         return <Award className="h-6 w-6 mb-1 text-amber-500" />;
     }

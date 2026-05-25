@@ -52,7 +52,7 @@ export default function Header({ title: _title }: HeaderProps) {
           <div>
             <p className="text-sm sm:text-base font-semibold text-slate-800 leading-tight">
               {isRTL ? `${translatedGreeting}، ` : `${translatedGreeting}, `}
-              <span className="text-[#090514]">{translatedName}</span>
+              <span className="text-slate-800">{translatedName}</span>
             </p>
             <p className="text-[11px] text-slate-400 hidden sm:block">{dateStr}</p>
           </div>
@@ -66,8 +66,8 @@ export default function Header({ title: _title }: HeaderProps) {
           <NotificationBell />
           {user && (
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 ring-2 ring-purple-950/10"
-              style={{ background: "linear-gradient(135deg, #090514 0%, #1e0a36 100%)" }}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 ring-2 ring-teal-800/10"
+              style={{ background: "linear-gradient(135deg, #0f766e 0%, #0d9488 100%)" }}
               title={user.name}
             >
               {getInitials(user.name || "")}

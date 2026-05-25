@@ -90,11 +90,11 @@ const PracticeScenario = ({
     <Card dir={isRTL ? "rtl" : "ltr"} className="w-full mb-6 border border-slate-100 shadow-lg rounded-2xl bg-white overflow-hidden">
       <CardHeader className="pb-4 bg-slate-50/50 border-b border-slate-100">
         <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
-          <span className="text-xs font-bold text-purple-600 uppercase tracking-widest">
+          <span className="text-xs font-bold text-teal-700 uppercase tracking-widest">
             {t("Scenario")} {tNum(currentIndex + 1)} {t("of")} {tNum(totalScenarios)}
           </span>
           <div className="flex items-center gap-2">
-            <span className="bg-purple-50 text-purple-700 border border-purple-100 px-3 py-1 rounded-full text-xxs font-bold uppercase tracking-wider shadow-2xs">
+            <span className="bg-teal-50 text-purple-700 border border-teal-100 px-3 py-1 rounded-full text-xxs font-bold uppercase tracking-wider shadow-2xs">
               {formatDistortionLabel(scenario.cognitiveDistortion, t)}
             </span>
             <span
@@ -107,8 +107,8 @@ const PracticeScenario = ({
             </span>
           </div>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 border border-purple-900/20 shadow-md px-5 py-4 text-white relative overflow-hidden">
-          <div className="absolute top-0 end-0 w-24 h-24 bg-purple-600/10 rounded-full blur-xl pointer-events-none" />
+        <div className="rounded-xl bg-gradient-to-br from-slate-800 via-teal-900 to-teal-700 border border-teal-700/20 shadow-md px-5 py-4 text-white relative overflow-hidden">
+          <div className="absolute top-0 end-0 w-24 h-24 bg-teal-500/10 rounded-full blur-xl pointer-events-none" />
           <CardTitle className="text-sm md:text-[0.95rem] font-semibold leading-relaxed italic text-purple-50">
             "<DynamicTranslator text={scenario.scenario} />"
           </CardTitle>
@@ -117,7 +117,7 @@ const PracticeScenario = ({
       
       <CardContent className="space-y-4 pt-6">
         <p className="text-xs md:text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-          <Sparkles className="h-4 w-4 text-purple-600 animate-pulse animate-duration-2000" />
+          <Sparkles className="h-4 w-4 text-teal-700 animate-pulse animate-duration-2000" />
           {t("How would you reframe this thought?")}
         </p>
         
@@ -136,10 +136,10 @@ const PracticeScenario = ({
                       ? "border-emerald-500 bg-emerald-50/60 text-emerald-900"
                       : showFeedback
                         ? "border-rose-500 bg-rose-50/60 text-rose-900"
-                        : "border-purple-600 bg-purple-50/40 text-purple-900"
+                        : "border-purple-600 bg-teal-50/40 text-teal-700"
                     : showFeedback && isCorrect
                       ? "border-emerald-500 bg-emerald-50/60 text-emerald-900"
-                      : "border-slate-100 hover:border-purple-200 hover:bg-slate-50/40"
+                      : "border-slate-100 hover:border-teal-200 hover:bg-slate-50/40"
                 )}
                 onClick={() => !showFeedback && onSelectOption(index)}
               >
@@ -197,7 +197,7 @@ const PracticeScenario = ({
         <div className="w-full">
           {showFeedback && (
             <Button 
-              className="w-full bg-[#090514] hover:bg-purple-950 text-white font-bold py-5 rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-2" 
+              className="w-full bg-teal-800 hover:bg-teal-700 text-white font-bold py-5 rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-2" 
               onClick={onNext}
             >
               {currentIndex < totalScenarios - 1 ? t("Next Scenario") : t("See Results")}
@@ -225,7 +225,7 @@ const GameProfile = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12 bg-white border border-slate-100 rounded-2xl shadow-sm">
-        <Loader2 className="h-7 w-7 animate-spin text-purple-600" />
+        <Loader2 className="h-7 w-7 animate-spin text-teal-700" />
       </div>
     );
   }
@@ -247,13 +247,13 @@ const GameProfile = ({
   
   return (
     <Card dir={isRTL ? "rtl" : "ltr"} className="border border-slate-100 shadow-lg bg-white overflow-hidden rounded-2xl">
-      <CardHeader className="bg-gradient-to-br from-[#090514] to-purple-950 text-white pb-6 relative">
-        <div className="absolute top-0 end-0 w-32 h-32 bg-purple-600/20 rounded-full blur-2xl pointer-events-none" />
+      <CardHeader className="bg-gradient-to-br from-slate-800 to-teal-700 text-white pb-6 relative">
+        <div className="absolute top-0 end-0 w-32 h-32 bg-teal-500/20 rounded-full blur-2xl pointer-events-none" />
         <CardTitle className="flex items-center text-xl font-bold">
           <Trophy className="me-2.5 h-6 w-6 text-amber-400 animate-pulse" />
           {t("Your Reframe Coach Profile")}
         </CardTitle>
-        <CardDescription className="text-purple-200/70">
+        <CardDescription className="text-teal-200/70">
           {t("Track your cognitive reframing mastery, streaks, and awards")}
         </CardDescription>
       </CardHeader>
@@ -261,7 +261,7 @@ const GameProfile = ({
       <CardContent className="pt-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Level card */}
-          <div className="p-4 rounded-xl border border-purple-100 bg-purple-50/30 flex flex-col justify-between space-y-3">
+          <div className="p-4 rounded-xl border border-teal-100 bg-teal-50/30 flex flex-col justify-between space-y-3">
             <div>
               <p className="text-[10px] font-bold text-purple-700 uppercase tracking-widest">{t("Skill Level")}</p>
               <p className="text-2xl font-extrabold text-slate-800">{t("Level")} {tNum(level)}</p>
@@ -299,13 +299,13 @@ const GameProfile = ({
         
         <div className="space-y-3">
           <h3 className="font-bold text-sm text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-            <BarChart3 className="h-4 w-4 text-purple-600" />
+            <BarChart3 className="h-4 w-4 text-teal-700" />
             {t("Cognitive Statistics")}
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: t("Sessions"), value: tNum(totalPractices || 0), color: "bg-slate-50 border-slate-100" },
-              { label: t("Avg Score"), value: tNum(avgScore ? Math.round(avgScore) : 0), color: "bg-purple-50/30 border-purple-50" },
+              { label: t("Avg Score"), value: tNum(avgScore ? Math.round(avgScore) : 0), color: "bg-teal-50/30 border-purple-50" },
               { label: t("Accuracy"), value: `${tNum(accuracyRate || 0)}%`, color: "bg-emerald-50/20 border-emerald-50" },
               { label: t("Best Distortion Mastery"), value: strongestDistortion ? formatDistortionLabel(strongestDistortion, t) : t("N/A"), color: "bg-indigo-50/20 border-indigo-50", isWide: true },
             ].map((s, idx) => (
@@ -333,7 +333,7 @@ const GameProfile = ({
                     isEarned 
                       ? isNew 
                         ? "border-amber-400 bg-amber-50/50 shadow-sm" 
-                        : "border-purple-100 bg-purple-50/20" 
+                        : "border-teal-100 bg-teal-50/20" 
                       : "border-slate-100 bg-slate-50/50 opacity-40"
                   )}
                 >
@@ -390,15 +390,15 @@ const PracticeResults = ({
   return (
     <div dir={isRTL ? "rtl" : "ltr"} className="space-y-6 animate-fade-in-up duration-300">
       <Card className="border border-slate-100 shadow-xl rounded-2xl overflow-hidden bg-white">
-        <CardHeader className="bg-gradient-to-br from-[#090514] to-purple-950 text-white pb-6 relative text-center">
-          <div className="absolute top-0 end-0 w-32 h-32 bg-purple-600/20 rounded-full blur-2xl pointer-events-none" />
-          <div className="mx-auto bg-purple-600/20 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-3">
+        <CardHeader className="bg-gradient-to-br from-slate-800 to-teal-700 text-white pb-6 relative text-center">
+          <div className="absolute top-0 end-0 w-32 h-32 bg-teal-500/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="mx-auto bg-teal-500/20 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-3">
             <Trophy className="h-7 w-7 text-amber-400" />
           </div>
           <CardTitle className="text-xl md:text-2xl font-bold">
             {t("Practice Complete!")}
           </CardTitle>
-          <CardDescription className="text-purple-200/80">
+          <CardDescription className="text-teal-200/80">
             {t("Fantastic job challenging and reframing these scenarios!")}
           </CardDescription>
         </CardHeader>
@@ -407,7 +407,7 @@ const PracticeResults = ({
           {/* Stats Ring/Cards Grid */}
           <div className="grid grid-cols-3 gap-4">
             {[
-              { label: t("Points Earned"), value: tNum(totalScore), color: "text-purple-600 bg-purple-50/50 border-purple-100" },
+              { label: t("Points Earned"), value: tNum(totalScore), color: "text-teal-700 bg-teal-50/50 border-teal-100" },
               { label: t("Accuracy"), value: `${tNum(accuracy)}%`, color: "text-emerald-600 bg-emerald-50/50 border-emerald-100" },
               { label: t("Answers"), value: `${tNum(correctAnswers)}/${tNum(scenarios.length)}`, color: "text-indigo-600 bg-indigo-50/50 border-indigo-100" }
             ].map((s, idx) => (
@@ -438,10 +438,10 @@ const PracticeResults = ({
           )}
           
           {gameUpdates?.newLevel > gameUpdates?.prevLevel && (
-            <div className="border border-purple-200 bg-purple-50/60 rounded-xl p-4 flex gap-3.5 shadow-xs">
-              <Zap className="h-5 w-5 text-purple-600 fill-purple-600 shrink-0 mt-0.5 animate-bounce" />
+            <div className="border border-teal-200 bg-teal-50/60 rounded-xl p-4 flex gap-3.5 shadow-xs">
+              <Zap className="h-5 w-5 text-teal-700 fill-purple-600 shrink-0 mt-0.5 animate-bounce" />
               <div>
-                <h4 className="text-sm font-bold text-purple-800">{t("Level Up!")}</h4>
+                <h4 className="text-sm font-bold text-teal-800">{t("Level Up!")}</h4>
                 <p className="text-xs text-purple-700 font-medium mt-0.5">
                   {t("You reached")}{" "}
                   <span className="font-extrabold">{t("Level")} {tNum(gameUpdates.newLevel)}</span>!{" "}
@@ -473,7 +473,7 @@ const PracticeResults = ({
             
             <Button 
               onClick={() => window.location.href = `/users/${userId}/reframe-coach?tab=history`} 
-              className="flex-1 py-5 rounded-xl bg-[#090514] hover:bg-purple-950 text-white font-semibold shadow-md transition-all duration-300"
+              className="flex-1 py-5 rounded-xl bg-teal-800 hover:bg-teal-700 text-white font-semibold shadow-md transition-all duration-300"
             >
               {t("View Practice History")}
             </Button>
@@ -959,11 +959,11 @@ const ReframePractice = ({
       <div className="bg-white border border-slate-100 shadow-xs rounded-2xl p-4 sm:p-5">
         <div className="flex justify-between items-center mb-2.5">
           <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">{t("Practice Progress")}</h3>
-          <span className="text-xs font-extrabold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-100/60 shadow-xxs">
+          <span className="text-xs font-extrabold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100/60 shadow-xxs">
             {tNum(currentScenarioIndex + 1)} {t("of")} {tNum(scenarios.length)}
           </span>
         </div>
-        <Progress value={progress} className="h-2.5 bg-slate-100 rounded-full [&>div]:bg-purple-600 shadow-inner transition-all duration-300" />
+        <Progress value={progress} className="h-2.5 bg-slate-100 rounded-full [[&>div]:bg-purple-600>div]:bg-teal-600 shadow-inner transition-all duration-300" />
       </div>
       
       <PracticeScenario

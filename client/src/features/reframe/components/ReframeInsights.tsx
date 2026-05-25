@@ -315,7 +315,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
   if (results.length === 0) {
     return (
       <div className="bg-white/60 backdrop-blur rounded-3xl border border-slate-100 shadow-sm py-16 text-center px-6" dir={isRTL ? "rtl" : "ltr"}>
-        <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-teal-50 text-teal-700 rounded-full flex items-center justify-center mx-auto mb-4">
           <Award className="h-8 w-8" />
         </div>
         <h3 className="font-bold text-slate-800 text-lg mb-1">{t("Reframe Training")}</h3>
@@ -329,14 +329,14 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
   const metrics = getKeyMetrics();
   const distortionsData = getDistortionsPracticed();
   const calendarData = getPracticeCalendar();
-  const insightCardClass = "bg-white/90 backdrop-blur-md rounded-2xl border border-slate-100/80 shadow-sm overflow-hidden hover:shadow-md hover:border-purple-200/60 transition-all duration-300";
+  const insightCardClass = "bg-white/90 backdrop-blur-md rounded-2xl border border-slate-100/80 shadow-sm overflow-hidden hover:shadow-md hover:border-teal-200/60 transition-all duration-300";
 
   return (
     <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white/90 backdrop-blur border border-slate-100/80 hover:border-purple-200/60 hover:shadow-md transition-all duration-300 rounded-2xl p-5 shadow-sm flex items-center gap-4">
-          <div className="p-3.5 rounded-xl bg-purple-50 text-purple-600">
+        <div className="bg-white/90 backdrop-blur border border-slate-100/80 hover:border-teal-200/60 hover:shadow-md transition-all duration-300 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+          <div className="p-3.5 rounded-xl bg-teal-50 text-teal-700">
             <Award className="h-5 w-5" />
           </div>
           <div>
@@ -385,7 +385,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
         <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600">
+              <div className="p-1.5 rounded-lg bg-teal-50 text-teal-700">
                 <TrendingUp className="h-4 w-4" />
               </div>
               <h3 className="font-bold text-slate-800 text-base">{t("Score Trends")}</h3>
@@ -394,9 +394,9 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
           </div>
           <Tabs value={timeRange} onValueChange={(v: any) => setTimeRange(v)} className="w-auto">
             <TabsList className="bg-slate-100 p-0.5 rounded-xl h-auto">
-              <TabsTrigger value="week" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Week")}</TabsTrigger>
-              <TabsTrigger value="month" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Month")}</TabsTrigger>
-              <TabsTrigger value="year" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Year")}</TabsTrigger>
+              <TabsTrigger value="week" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Week")}</TabsTrigger>
+              <TabsTrigger value="month" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Month")}</TabsTrigger>
+              <TabsTrigger value="year" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Year")}</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -422,11 +422,11 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className="bg-white/95 backdrop-blur-md p-3 border border-purple-100 rounded-xl shadow-xl" dir={isRTL ? "rtl" : "ltr"}>
+                      <div className="bg-white/95 backdrop-blur-md p-3 border border-teal-100 rounded-xl shadow-xl" dir={isRTL ? "rtl" : "ltr"}>
                         <p className="font-bold text-slate-800 text-xs mb-1.5">{data.date}</p>
                         <div className="space-y-1 text-[11px] font-semibold">
                           <div className="flex items-center gap-2 justify-between">
-                            <span className="text-purple-600">{t("Average Score:")}</span>
+                            <span className="text-teal-700">{t("Average Score:")}</span>
                             <span className="text-slate-800 font-extrabold">{tNum(data.score)}</span>
                           </div>
                           <div className="flex items-center gap-2 justify-between">
@@ -494,12 +494,12 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className="bg-white/95 backdrop-blur-md p-3 border border-purple-100 rounded-xl shadow-xl" dir={isRTL ? "rtl" : "ltr"}>
+                      <div className="bg-white/95 backdrop-blur-md p-3 border border-teal-100 rounded-xl shadow-xl" dir={isRTL ? "rtl" : "ltr"}>
                         <p className="font-bold text-slate-800 text-xs mb-1.5">{data.date}</p>
                         <div className="space-y-1 text-[11px] font-semibold">
                           <div className="flex items-center gap-2 justify-between">
                             <span className="text-emerald-600">{t("Accuracy Rate:")}</span>
-                            <span className="text-[#090514] font-extrabold">{tNum(data.accuracy)}%</span>
+                            <span className="text-slate-800 font-extrabold">{tNum(data.accuracy)}%</span>
                           </div>
                           <div className="flex items-center gap-2 justify-between">
                             <span className="text-slate-500">{t("Completed Sessions:")}</span>
@@ -606,11 +606,11 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
               
               if (day.sessions > 0) {
                 if (score < 0.3) {
-                  cellClass = "bg-purple-50 border border-purple-100 text-purple-600 shadow-sm";
+                  cellClass = "bg-teal-50 border border-teal-100 text-teal-700 shadow-sm";
                 } else if (score < 0.6) {
-                  cellClass = "bg-purple-100 border border-purple-200 text-purple-800 shadow-sm";
+                  cellClass = "bg-teal-100 border border-teal-200 text-teal-800 shadow-sm";
                 } else if (score < 0.85) {
-                  cellClass = "bg-purple-300 border border-purple-400 text-purple-900 shadow-sm";
+                  cellClass = "bg-purple-300 border border-purple-400 text-teal-700 shadow-sm";
                 } else {
                   cellClass = "bg-purple-600 text-white border border-purple-700 shadow-md shadow-purple-100/40";
                 }
@@ -627,7 +627,7 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
                     <div className="space-y-0.5 text-slate-300">
                       <p>{t("Completed:")} <span className="text-white font-bold">{tNum(day.sessions)} {t("sessions")}</span></p>
                       {day.sessions > 0 && (
-                        <p>{t("Average Score:")} <span className="text-purple-300 font-bold">{tNum(score.toFixed(2))}</span></p>
+                        <p>{t("Average Score:")} <span className="text-teal-100 font-bold">{tNum(score.toFixed(2))}</span></p>
                       )}
                     </div>
                   </div>
@@ -639,8 +639,8 @@ export default function ReframeInsights({ userId }: ReframeInsightsProps) {
             <span>{t("Inactive")}</span>
             <div className="flex gap-1.5">
               <div className="w-3.5 h-3.5 bg-slate-50 border border-slate-100/50 rounded-md" />
-              <div className="w-3.5 h-3.5 bg-purple-50 border border-purple-100 rounded-md" />
-              <div className="w-3.5 h-3.5 bg-purple-100 border border-purple-200 rounded-md" />
+              <div className="w-3.5 h-3.5 bg-teal-50 border border-teal-100 rounded-md" />
+              <div className="w-3.5 h-3.5 bg-teal-100 border border-teal-200 rounded-md" />
               <div className="w-3.5 h-3.5 bg-purple-300 border border-purple-400 rounded-md" />
               <div className="w-3.5 h-3.5 bg-purple-600 rounded-md shadow-sm" />
             </div>

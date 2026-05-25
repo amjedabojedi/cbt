@@ -336,7 +336,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
   if (entries.length === 0) {
     return (
       <div className="bg-white/60 backdrop-blur rounded-3xl border border-slate-100 shadow-sm py-16 text-center px-6" dir={isRTL ? "rtl" : "ltr"}>
-        <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-teal-50 text-teal-700 rounded-full flex items-center justify-center mx-auto mb-4">
           <BookOpen className="h-8 w-8" />
         </div>
         <h3 className="font-bold text-slate-800 text-lg mb-1">{t("Wellness Journal")}</h3>
@@ -348,7 +348,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
   }
 
   const stats = getOverallStats();
-  const insightCardClass = "bg-white/90 backdrop-blur-md rounded-2xl border border-slate-100/80 shadow-sm overflow-hidden hover:shadow-md hover:border-purple-200/60 transition-all duration-300";
+  const insightCardClass = "bg-white/90 backdrop-blur-md rounded-2xl border border-slate-100/80 shadow-sm overflow-hidden hover:shadow-md hover:border-teal-200/60 transition-all duration-300";
 
   return (
     <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
@@ -376,8 +376,8 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
           </div>
         </div>
 
-        <div className="bg-white/90 backdrop-blur border border-slate-100/80 hover:border-purple-200/60 hover:shadow-md transition-all duration-300 rounded-2xl p-5 shadow-sm flex items-center gap-4">
-          <div className="p-3.5 rounded-xl bg-purple-50 text-purple-600">
+        <div className="bg-white/90 backdrop-blur border border-slate-100/80 hover:border-teal-200/60 hover:shadow-md transition-all duration-300 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+          <div className="p-3.5 rounded-xl bg-teal-50 text-teal-700">
             <TrendingUp className="h-5 w-5" />
           </div>
           <div>
@@ -522,9 +522,9 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
           </div>
           <Tabs value={timeRange} onValueChange={(v: any) => setTimeRange(v)} className="w-auto">
             <TabsList className="bg-slate-100 p-0.5 rounded-xl h-auto">
-              <TabsTrigger value="week" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Week")}</TabsTrigger>
-              <TabsTrigger value="month" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Month")}</TabsTrigger>
-              <TabsTrigger value="year" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-[#090514] data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Year")}</TabsTrigger>
+              <TabsTrigger value="week" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Week")}</TabsTrigger>
+              <TabsTrigger value="month" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Month")}</TabsTrigger>
+              <TabsTrigger value="year" className="rounded-lg text-xs py-1.5 px-3 data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm text-slate-500 font-semibold">{t("Year")}</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -565,7 +565,7 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className="bg-white/95 backdrop-blur-md p-3 border border-purple-100 rounded-xl shadow-xl" dir={isRTL ? "rtl" : "ltr"}>
+                      <div className="bg-white/95 backdrop-blur-md p-3 border border-teal-100 rounded-xl shadow-xl" dir={isRTL ? "rtl" : "ltr"}>
                         <p className="font-bold text-slate-800 text-xs mb-1.5">{data.date}</p>
                         <div className="space-y-1 text-[11px] font-semibold">
                           <div className="flex items-center gap-2 justify-between">
@@ -815,11 +815,11 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
               
               let cellClass = "bg-slate-50 text-slate-300 border border-slate-100/50";
               if (count === 1) {
-                cellClass = "bg-purple-50 border border-purple-100 text-purple-700 shadow-sm";
+                cellClass = "bg-teal-50 border border-teal-100 text-purple-700 shadow-sm";
               } else if (count === 2) {
-                cellClass = "bg-purple-100 border border-purple-200 text-purple-800 shadow-sm";
+                cellClass = "bg-teal-100 border border-teal-200 text-teal-800 shadow-sm";
               } else if (count >= 3) {
-                cellClass = "bg-purple-500 text-white border border-purple-600 shadow-md shadow-purple-100/40";
+                cellClass = "bg-teal-500 text-white border border-purple-600 shadow-md shadow-purple-100/40";
               }
               
               return (
@@ -841,15 +841,15 @@ export default function JournalInsights({ userId }: JournalInsightsProps) {
               <span>{t("None")}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3.5 h-3.5 bg-purple-50 border border-purple-100 rounded-md" />
+              <div className="w-3.5 h-3.5 bg-teal-50 border border-teal-100 rounded-md" />
               <span>{t("1 Entry")}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3.5 h-3.5 bg-purple-100 border border-purple-200 rounded-md" />
+              <div className="w-3.5 h-3.5 bg-teal-100 border border-teal-200 rounded-md" />
               <span>{t("2 Entries")}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3.5 h-3.5 bg-purple-500 rounded-md shadow-sm" />
+              <div className="w-3.5 h-3.5 bg-teal-500 rounded-md shadow-sm" />
               <span>{t("3+ Entries")}</span>
             </div>
           </div>

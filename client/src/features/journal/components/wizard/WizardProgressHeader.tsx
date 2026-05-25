@@ -23,7 +23,7 @@ export default function WizardProgressHeader({
   currentStep,
   totalSteps,
   stepLabels,
-  accentClassName = "text-purple-600",
+  accentClassName = "text-teal-700",
   hideProgressOnIntro = false,
   onClose,
   trailing,
@@ -45,7 +45,7 @@ export default function WizardProgressHeader({
         <div className="flex justify-between items-start gap-4">
           <div className="min-w-0">
             <CardTitle
-              className={`flex items-center gap-2.5 text-[#090514] ${
+              className={`flex items-center gap-2.5 text-slate-800 ${
                 currentStep === 0 ? "text-xl" : "text-lg"
               }`}
             >
@@ -79,7 +79,7 @@ export default function WizardProgressHeader({
 
         {!(hideProgressOnIntro && currentStep === 0) && (
           <div className="space-y-2" data-testid={testId}>
-            <Progress value={progress} className="h-2 [&>div]:bg-purple-600" />
+            <Progress value={progress} className="h-2 [[&>div]:bg-purple-600>div]:bg-teal-600" />
             {/* Step labels — hidden on very small screens to prevent overflow with many steps */}
             <div className="hidden sm:flex justify-between text-xs text-slate-400">
               {stepLabels.map((label, idx) => {

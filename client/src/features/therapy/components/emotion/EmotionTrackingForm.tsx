@@ -99,7 +99,7 @@ const getEmotionColor = (emotion: string): string => {
   const colorMap: Record<string, string> = {
     "Anger": "bg-red-500 text-white",
     "Sadness": "bg-blue-500 text-white",
-    "Surprise": "bg-purple-500 text-white",
+    "Surprise": "bg-teal-500 text-white",
     "Joy": "bg-yellow-500 text-black",
     "Love": "bg-pink-500 text-white",
     "Fear": "bg-green-500 text-white",
@@ -370,7 +370,7 @@ export default function EmotionTrackingForm({
                             <ul className="list-disc pl-5 space-y-1">
                               <li><strong className="text-red-500">Anger</strong> - A strong feeling of displeasure, usually arising from a perceived wrong or threat</li>
                               <li><strong className="text-blue-500">Sadness</strong> - Feelings of loss, disappointment, or helplessness</li>
-                              <li><strong className="text-purple-500">Surprise</strong> - A brief emotional state experienced as the result of an unexpected event</li>
+                              <li><strong className="text-teal-600">Surprise</strong> - A brief emotional state experienced as the result of an unexpected event</li>
                               <li><strong className="text-yellow-500">Joy</strong> - A feeling of great pleasure and happiness</li>
                               <li><strong className="text-pink-500">Love</strong> - A deep feeling of affection, attachment, or devotion</li>
                               <li><strong className="text-green-500">Fear</strong> - An unpleasant emotion caused by the threat of danger, pain, or harm</li>

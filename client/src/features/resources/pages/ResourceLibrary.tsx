@@ -73,7 +73,7 @@ type CopingStrategyFormValues = z.infer<typeof copingStrategySchema>;
 
 // ─── Category accent map (light tokens) ───
 const categoryMap: Record<string, { pill: string; dot: string }> = {
-  "CBT Basics":           { pill: "bg-purple-50 text-purple-700 ring-purple-200", dot: "bg-purple-500" },
+  "CBT Basics":           { pill: "bg-teal-50 text-purple-700 ring-purple-200", dot: "bg-teal-500" },
   "Anxiety":              { pill: "bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-200", dot: "bg-fuchsia-500" },
   "Depression":           { pill: "bg-indigo-50 text-indigo-700 ring-indigo-200", dot: "bg-indigo-500" },
   "Stress Management":    { pill: "bg-violet-50 text-violet-700 ring-violet-200", dot: "bg-violet-500" },
@@ -84,7 +84,7 @@ const categoryMap: Record<string, { pill: string; dot: string }> = {
   "Self Care":            { pill: "bg-emerald-50 text-emerald-700 ring-emerald-200", dot: "bg-emerald-500" },
 };
 function getCat(cat: string) {
-  return categoryMap[cat] ?? { pill: "bg-purple-50 text-purple-900 ring-purple-200", dot: "bg-purple-800" };
+  return categoryMap[cat] ?? { pill: "bg-teal-50 text-teal-700 ring-purple-200", dot: "bg-purple-800" };
 }
 
 function getTypeIcon(type: string) {
@@ -112,9 +112,9 @@ function ResourceCard({
   const cat = getCat(resource.category);
   const isOwner = resource.createdBy === user?.id || user?.role === "admin";
   return (
-    <div className="group relative flex flex-col h-full rounded-2xl bg-white border border-slate-100 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-purple-100 overflow-hidden">
+    <div className="group relative flex flex-col h-full rounded-2xl bg-white border border-slate-100 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-teal-100 overflow-hidden">
       {/* Purple top accent strip */}
-      <div className="h-1 w-full bg-gradient-to-r from-[#090514] to-purple-900" />
+      <div className="h-1 w-full bg-gradient-to-r from-slate-700 to-teal-600" />
 
       <div className="flex flex-col flex-grow p-5">
         <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -133,7 +133,7 @@ function ResourceCard({
           )}
         </div>
 
-        <h3 className="text-sm font-semibold text-slate-800 mb-2 leading-snug group-hover:text-purple-900 transition-colors duration-200 line-clamp-2">
+        <h3 className="text-sm font-semibold text-slate-800 mb-2 leading-snug group-hover:text-teal-700 transition-colors duration-200 line-clamp-2">
           <DynamicTranslator text={resource.title} />
         </h3>
         <p className="text-xs text-slate-500 leading-relaxed line-clamp-3 flex-grow">
@@ -143,7 +143,7 @@ function ResourceCard({
         {resource.tags && resource.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-3">
             {resource.tags.slice(0, 3).map((tag) => (
-              <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-purple-50 text-purple-900 ring-1 ring-purple-100">
+              <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 ring-1 ring-purple-100">
                 #<DynamicTranslator text={tag} />
               </span>
             ))}
@@ -156,20 +156,20 @@ function ResourceCard({
 
       <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50 border-t border-slate-100 gap-2">
         <Button variant="ghost" size="sm" onClick={() => onView(resource)}
-          className="h-8 px-3 text-xs font-medium text-slate-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg">
+          className="h-8 px-3 text-xs font-medium text-slate-600 hover:text-purple-700 hover:bg-teal-50 rounded-lg">
           <Eye className="h-3.5 w-3.5 me-1.5" /> {t("View")}
         </Button>
         <div className="flex items-center gap-1.5">
           {user?.role === "therapist" && (
             <Button size="sm" onClick={() => onAssign(resource)}
-              className="h-8 px-3 text-xs font-semibold bg-[#090514] hover:bg-purple-950 text-white rounded-lg shadow-sm">
+              className="h-8 px-3 text-xs font-semibold bg-teal-800 hover:bg-teal-700 text-white rounded-lg shadow-sm">
               <UserCheck className="h-3.5 w-3.5 me-1.5" /> {t("Assign")}
             </Button>
           )}
           {isOwner && (
             <>
               <Button variant="ghost" size="icon" onClick={() => onEdit(resource)}
-                className="h-8 w-8 rounded-lg text-slate-400 hover:text-purple-900 hover:bg-purple-50">
+                className="h-8 w-8 rounded-lg text-slate-400 hover:text-teal-700 hover:bg-teal-50">
                 <Edit className="h-3.5 w-3.5" />
               </Button>
               {(user?.role === "admin" || resource.createdBy === user?.id) && (
@@ -189,14 +189,14 @@ function ResourceCard({
 // ─── Factor / Strategy Card ───
 function ItemCard({
   title, description, isGlobal, onEdit, onDelete,
-  accentClass = "from-[#090514] to-purple-900",
+  accentClass = "from-slate-700 to-teal-600",
 }: {
   title: string; description?: string; isGlobal?: boolean;
   onEdit?: () => void; onDelete?: () => void; accentClass?: string;
 }) {
   const { t } = useLocalization();
   return (
-    <div className="group relative rounded-2xl bg-white border border-slate-100 shadow-sm p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-purple-100 overflow-hidden">
+    <div className="group relative rounded-2xl bg-white border border-slate-100 shadow-sm p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-teal-100 overflow-hidden">
       <div className={`absolute top-0 start-0 w-1 h-full bg-gradient-to-b ${accentClass}`} />
       <div className="ps-3">
         <div className="flex items-start justify-between gap-2 mb-2">
@@ -211,7 +211,7 @@ function ItemCard({
             )}
             {onEdit && (
               <button onClick={onEdit}
-                className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-purple-900 hover:bg-purple-50">
+                className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-teal-700 hover:bg-teal-50">
                 <Edit className="h-3.5 w-3.5" />
               </button>
             )}
@@ -241,7 +241,7 @@ function ItemCard({
 function SectionLabel({ icon, label, count, extra }: { icon: React.ReactNode; label: string; count?: number; extra?: string }) {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <span className="text-purple-900">{icon}</span>
+      <span className="text-teal-700">{icon}</span>
       <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">{label}</h3>
       {count !== undefined && <span className="text-xs text-slate-400">({count})</span>}
       {extra && <span className="text-xs text-slate-400">— {extra}</span>}
@@ -400,23 +400,23 @@ export default function ResourceLibrary() {
       <div className="min-h-full bg-slate-50" dir={isRTL ? "rtl" : "ltr"}>
 
                 {/* Premium Hero Banner */}
-        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden transition-all duration-300 border-b border-purple-900/30">
-          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-slate-800 via-teal-900 to-teal-700 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden transition-all duration-300 border-b border-teal-700/30">
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="max-w-6xl mx-auto relative">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="h-4 w-4 text-purple-400" />
-                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                  <Sparkles className="h-4 w-4 text-teal-300" />
+                  <span className="text-teal-300/80 text-xs font-bold tracking-widest uppercase">
                     {t("Resource Library")}
                   </span>
                 </div>
                 <h1 className="font-bold text-white tracking-tight text-3xl md:text-4xl mb-2">
                   {t("Clinical Resource Hub")}
                 </h1>
-                <p className="text-purple-300/70 text-base max-w-md leading-relaxed">
+                <p className="text-teal-100/70 text-base max-w-md leading-relaxed">
                   {t(
                     "Therapeutic tools, protective factors, and coping strategies for recovery and growth"
                   )}
@@ -432,7 +432,7 @@ export default function ResourceLibrary() {
                 ].map((s, i) => (
                   <div key={i} className="text-center">
                     <div className="text-2xl font-bold text-white">{s.value}</div>
-                    <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
+                    <div className="text-xs text-teal-300/80 font-medium mt-0.5">{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -443,9 +443,9 @@ export default function ResourceLibrary() {
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-3.5 w-3.5 text-teal-400" />
-                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">{t("Library Overview")}</span>
+                  <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">{t("Library Overview")}</span>
                 </div>
-                <span className="text-xs text-purple-400">
+                <span className="text-xs text-teal-300">
                   {tNum((educationalResources?.length ?? 0) + (protectiveFactors?.length ?? 0) + (copingStrategies?.length ?? 0))}{" "}
                   {t("total resources")}
                 </span>
@@ -453,7 +453,7 @@ export default function ResourceLibrary() {
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-teal-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: "100%" }} />
               </div>
-              <p className="text-[11px] text-purple-400/60 mt-1.5">
+              <p className="text-[11px] text-teal-300/60 mt-1.5">
                 {t(
                   "Evidence-based CBT tools, exercises, and strategies to support your recovery journey."
                 )}
@@ -471,7 +471,7 @@ export default function ResourceLibrary() {
                   value="educational-resources"
                   className={cn(
                     "sm:flex-1 min-w-0 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-all",
-                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                     "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                   )}
                 >
@@ -492,7 +492,7 @@ export default function ResourceLibrary() {
                   value="protective-factors"
                   className={cn(
                     "sm:flex-1 min-w-0 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-all",
-                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                     "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                   )}
                 >
@@ -513,7 +513,7 @@ export default function ResourceLibrary() {
                   value="coping-strategies"
                   className={cn(
                     "sm:flex-1 min-w-0 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-all",
-                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                     "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                   )}
                 >
@@ -535,7 +535,7 @@ export default function ResourceLibrary() {
                     value="client-assignments"
                     className={cn(
                       "sm:flex-1 min-w-0 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-all",
-                      "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                       "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                     )}
                   >
@@ -568,7 +568,7 @@ export default function ResourceLibrary() {
                     placeholder={t("Search resources by title, description or tag…")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full ps-10 pe-4 h-10 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-900/20 focus:border-purple-900 transition-all"
+                    className="w-full ps-10 pe-4 h-10 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-900/20 focus:border-teal-700 transition-all"
                   />
                   {searchQuery && (
                     <button onClick={() => setSearchQuery("")} className="absolute end-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -578,7 +578,7 @@ export default function ResourceLibrary() {
                 </div>
                 {(user?.role === "admin" || user?.role === "therapist") && (
                   <Button onClick={() => setIsAddingResource(true)}
-                    className="h-10 px-5 bg-[#090514] hover:bg-purple-950 text-white rounded-xl font-semibold shadow-sm shrink-0">
+                    className="h-10 px-5 bg-teal-800 hover:bg-teal-700 text-white rounded-xl font-semibold shadow-sm shrink-0">
                     <PlusCircle className="h-4 w-4 me-2" /> {t("Add Resource")}
                   </Button>
                 )}
@@ -589,7 +589,7 @@ export default function ResourceLibrary() {
                 {/* Left arrow */}
                 <button
                   onClick={() => scrollPills("left")}
-                  className={`shrink-0 h-8 w-8 flex items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:text-[#090514] hover:border-purple-300 shadow-sm transition-all duration-200 ${
+                  className={`shrink-0 h-8 w-8 flex items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:border-teal-300 shadow-sm transition-all duration-200 ${
                     canScrollLeft ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                   }`}
                 >
@@ -611,9 +611,9 @@ export default function ResourceLibrary() {
                         className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                           isActive
                             ? isAll
-                              ? "bg-[#090514] text-white border-[#090514] shadow-sm"
+                              ? "bg-teal-800 text-white border-teal-700 shadow-sm"
                               : `${c.pill} border-transparent ring-1 ring-current`
-                            : "bg-white border-slate-200 text-slate-600 hover:border-purple-300 hover:text-purple-700"
+                            : "bg-white border-slate-200 text-slate-600 hover:border-teal-300 hover:text-purple-700"
                         }`}>
                         {isAll ? t("All Categories") : t(cat)}
                       </button>
@@ -624,7 +624,7 @@ export default function ResourceLibrary() {
                 {/* Right arrow */}
                 <button
                   onClick={() => scrollPills("right")}
-                  className={`shrink-0 h-8 w-8 flex items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:text-[#090514] hover:border-purple-300 shadow-sm transition-all duration-200 ${
+                  className={`shrink-0 h-8 w-8 flex items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:border-teal-300 shadow-sm transition-all duration-200 ${
                     canScrollRight ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                   }`}
                 >
@@ -653,8 +653,8 @@ export default function ResourceLibrary() {
                 </div>
               ) : filteredResources.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="p-5 bg-purple-50 rounded-2xl mb-5 border border-purple-100">
-                    <BookOpen className="h-10 w-10 text-[#090514]" />
+                  <div className="p-5 bg-teal-50 rounded-2xl mb-5 border border-teal-100">
+                    <BookOpen className="h-10 w-10 text-slate-800" />
                   </div>
                   <h3 className="text-lg font-semibold text-slate-700 mb-2">{t("No resources found")}</h3>
                   <p className="text-sm text-slate-400 mb-6 max-w-sm">
@@ -663,7 +663,7 @@ export default function ResourceLibrary() {
                       : t("No resources in this category yet.")}
                   </p>
                   {(user?.role === "admin" || user?.role === "therapist") && (
-                    <Button onClick={() => setIsAddingResource(true)} className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl">
+                    <Button onClick={() => setIsAddingResource(true)} className="bg-teal-800 hover:bg-teal-700 text-white rounded-xl">
                       <PlusCircle className="h-4 w-4 me-2" /> {t("Create First Resource")}
                     </Button>
                   )}
@@ -689,14 +689,14 @@ export default function ResourceLibrary() {
               <div className="flex items-start justify-between mb-7 gap-4">
                 <div>
                   <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-purple-900" /> {t("Protective Factors")}
+                    <Shield className="h-5 w-5 text-teal-700" /> {t("Protective Factors")}
                   </h2>
                   <p className="text-sm text-slate-500">
                     {t("Elements in your life that contribute to resilience and wellbeing")}
                   </p>
                 </div>
                 <Button onClick={() => setIsAddingFactor(true)}
-                  className="shrink-0 h-10 px-5 bg-[#090514] hover:bg-purple-950 text-white rounded-xl font-semibold shadow-sm">
+                  className="shrink-0 h-10 px-5 bg-teal-800 hover:bg-teal-700 text-white rounded-xl font-semibold shadow-sm">
                   <PlusCircle className="h-4 w-4 me-2" /> {t("Add Factor")}
                 </Button>
               </div>
@@ -705,14 +705,14 @@ export default function ResourceLibrary() {
                 <SectionLabel icon={<Lock className="h-3.5 w-3.5" />} label={t("My Protective Factors")} count={personalFactors?.length ?? 0} />
                 {!personalFactors || personalFactors.length === 0 ? (
                   <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white p-12 text-center">
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-purple-50 border border-purple-100 mb-4">
-                      <Shield className="h-7 w-7 text-purple-900" />
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-teal-50 border border-teal-100 mb-4">
+                      <Shield className="h-7 w-7 text-teal-700" />
                     </div>
                     <h4 className="text-base font-semibold text-slate-700 mb-2">{t("No protective factors yet")}</h4>
                     <p className="text-sm text-slate-400 mb-5 max-w-xs mx-auto">
                       {t("Add personal strengths you can rely on during difficult times.")}
                     </p>
-                    <Button onClick={() => setIsAddingFactor(true)} className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl">
+                    <Button onClick={() => setIsAddingFactor(true)} className="bg-teal-800 hover:bg-teal-700 text-white rounded-xl">
                       {t("Add Your First Factor")}
                     </Button>
                   </div>
@@ -720,7 +720,7 @@ export default function ResourceLibrary() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {personalFactors.map((f: ProtectiveFactor) => (
                       <ItemCard key={f.id} title={f.name} description={f.description} isGlobal={f.isGlobal}
-                        accentClass="from-[#090514] to-purple-900"
+                        accentClass="from-slate-700 to-teal-600"
                         onEdit={() => handleEditFactor(f)}
                         onDelete={() => { setSelectedFactor(f); setIsDeleteFactorDialogOpen(true); }}
                       />
@@ -745,7 +745,7 @@ export default function ResourceLibrary() {
               <Dialog open={isAddingFactor} onOpenChange={setIsAddingFactor}>
                 <DialogContent className={dlgContent}>
                   <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-slate-800"><Shield className="h-5 w-5 text-purple-900" /> {t("Add a Protective Factor")}</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2 text-slate-800"><Shield className="h-5 w-5 text-teal-700" /> {t("Add a Protective Factor")}</DialogTitle>
                     <DialogDescription className="text-slate-500">{t("Personal strengths that help you overcome challenges.")}</DialogDescription>
                   </DialogHeader>
                   <Form {...factorForm}>
@@ -770,7 +770,7 @@ export default function ResourceLibrary() {
                       )}
                       <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setIsAddingFactor(false)} className="rounded-xl">{t("Cancel")}</Button>
-                        <Button type="submit" disabled={createFactorMutation.isPending} className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white">
+                        <Button type="submit" disabled={createFactorMutation.isPending} className="rounded-xl bg-teal-800 hover:bg-teal-700 text-white">
                           {createFactorMutation.isPending ? t("Adding…") : t("Add Factor")}
                         </Button>
                       </DialogFooter>
@@ -783,7 +783,7 @@ export default function ResourceLibrary() {
               <Dialog open={isEditingFactor} onOpenChange={setIsEditingFactor}>
                 <DialogContent className={dlgContent}>
                   <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-slate-800"><Edit className="h-5 w-5 text-purple-900" /> {t("Edit Protective Factor")}</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2 text-slate-800"><Edit className="h-5 w-5 text-teal-700" /> {t("Edit Protective Factor")}</DialogTitle>
                     <DialogDescription className="text-slate-500">{t("Update the details of this protective factor.")}</DialogDescription>
                   </DialogHeader>
                   <Form {...editFactorForm}>
@@ -804,7 +804,7 @@ export default function ResourceLibrary() {
                       )}
                       <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setIsEditingFactor(false)} className="rounded-xl">{t("Cancel")}</Button>
-                        <Button type="submit" disabled={updateFactorMutation.isPending} className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white">
+                        <Button type="submit" disabled={updateFactorMutation.isPending} className="rounded-xl bg-teal-800 hover:bg-teal-700 text-white">
                           {updateFactorMutation.isPending ? t("Saving…") : t("Save Changes")}
                         </Button>
                       </DialogFooter>
@@ -838,14 +838,14 @@ export default function ResourceLibrary() {
               <div className="flex items-start justify-between mb-7 gap-4">
                 <div>
                   <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
-                    <Brain className="h-5 w-5 text-purple-900" /> {t("Coping Strategies")}
+                    <Brain className="h-5 w-5 text-teal-700" /> {t("Coping Strategies")}
                   </h2>
                   <p className="text-sm text-slate-500">
                     {t("Techniques and approaches to manage stress and difficult emotions")}
                   </p>
                 </div>
                 <Button onClick={() => setIsAddingStrategy(true)}
-                  className="shrink-0 h-10 px-5 bg-[#090514] hover:bg-purple-950 text-white rounded-xl font-semibold shadow-sm">
+                  className="shrink-0 h-10 px-5 bg-teal-800 hover:bg-teal-700 text-white rounded-xl font-semibold shadow-sm">
                   <PlusCircle className="h-4 w-4 me-2" /> {t("Add Strategy")}
                 </Button>
               </div>
@@ -854,14 +854,14 @@ export default function ResourceLibrary() {
                 <SectionLabel icon={<Lock className="h-3.5 w-3.5" />} label={t("My Coping Strategies")} count={personalStrategies?.length ?? 0} />
                 {!personalStrategies || personalStrategies.length === 0 ? (
                   <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white p-12 text-center">
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-purple-50 border border-purple-100 mb-4">
-                      <Sparkles className="h-7 w-7 text-purple-900" />
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-teal-50 border border-teal-100 mb-4">
+                      <Sparkles className="h-7 w-7 text-teal-700" />
                     </div>
                     <h4 className="text-base font-semibold text-slate-700 mb-2">{t("No coping strategies yet")}</h4>
                     <p className="text-sm text-slate-400 mb-5 max-w-xs mx-auto">
                       {t("Build a toolkit for managing difficult situations.")}
                     </p>
-                    <Button onClick={() => setIsAddingStrategy(true)} className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl">
+                    <Button onClick={() => setIsAddingStrategy(true)} className="bg-teal-800 hover:bg-teal-700 text-white rounded-xl">
                       {t("Add Your First Strategy")}
                     </Button>
                   </div>
@@ -869,7 +869,7 @@ export default function ResourceLibrary() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {personalStrategies.map((s: CopingStrategy) => (
                       <ItemCard key={s.id} title={s.name} description={s.description} isGlobal={s.isGlobal}
-                        accentClass="from-[#090514] to-purple-900"
+                        accentClass="from-slate-700 to-teal-600"
                         onEdit={() => handleEditStrategy(s)}
                         onDelete={() => { setSelectedStrategy(s); setIsDeleteStrategyDialogOpen(true); }}
                       />
@@ -893,7 +893,7 @@ export default function ResourceLibrary() {
               <Dialog open={isAddingStrategy} onOpenChange={setIsAddingStrategy}>
                 <DialogContent className={dlgContent}>
                   <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-slate-800"><Brain className="h-5 w-5 text-purple-900" /> {t("Add a Coping Strategy")}</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2 text-slate-800"><Brain className="h-5 w-5 text-teal-700" /> {t("Add a Coping Strategy")}</DialogTitle>
                     <DialogDescription className="text-slate-500">{t("Strategies to help deal with stress and difficult emotions.")}</DialogDescription>
                   </DialogHeader>
                   <Form {...strategyForm}>
@@ -915,7 +915,7 @@ export default function ResourceLibrary() {
                       )}
                       <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setIsAddingStrategy(false)} className="rounded-xl">{t("Cancel")}</Button>
-                        <Button type="submit" disabled={createStrategyMutation.isPending} className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white">
+                        <Button type="submit" disabled={createStrategyMutation.isPending} className="rounded-xl bg-teal-800 hover:bg-teal-700 text-white">
                           {createStrategyMutation.isPending ? t("Adding…") : t("Add Strategy")}
                         </Button>
                       </DialogFooter>
@@ -927,7 +927,7 @@ export default function ResourceLibrary() {
               <Dialog open={isEditingStrategy} onOpenChange={setIsEditingStrategy}>
                 <DialogContent className={dlgContent}>
                   <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-slate-800"><Edit className="h-5 w-5 text-purple-900" /> {t("Edit Coping Strategy")}</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2 text-slate-800"><Edit className="h-5 w-5 text-teal-700" /> {t("Edit Coping Strategy")}</DialogTitle>
                     <DialogDescription className="text-slate-500">{t("Update the details of this coping strategy.")}</DialogDescription>
                   </DialogHeader>
                   <Form {...editStrategyForm}>
@@ -948,7 +948,7 @@ export default function ResourceLibrary() {
                       )}
                       <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setIsEditingStrategy(false)} className="rounded-xl">{t("Cancel")}</Button>
-                        <Button type="submit" disabled={updateStrategyMutation.isPending} className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white">
+                        <Button type="submit" disabled={updateStrategyMutation.isPending} className="rounded-xl bg-teal-800 hover:bg-teal-700 text-white">
                           {updateStrategyMutation.isPending ? t("Saving…") : t("Save Changes")}
                         </Button>
                       </DialogFooter>
@@ -981,7 +981,7 @@ export default function ResourceLibrary() {
               <div>
               <div className="mb-7">
                 <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
-                  <Users className="h-5 w-5 text-purple-900" /> {t("Client Assignments")}
+                  <Users className="h-5 w-5 text-teal-700" /> {t("Client Assignments")}
                 </h2>
                 <p className="text-sm text-slate-500">{t("Resources you've assigned to your clients")}</p>
               </div>
@@ -1005,8 +1005,8 @@ export default function ResourceLibrary() {
                   {clientAssignments.map((a: ResourceAssignment) => {
                     const cat = getCat(a.resource.category);
                     return (
-                      <div key={a.id} className="group rounded-2xl bg-white border border-slate-100 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-purple-100">
-                        <div className={`h-1 bg-gradient-to-r from-[#090514] to-purple-900`} />
+                      <div key={a.id} className="group rounded-2xl bg-white border border-slate-100 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-teal-100">
+                        <div className={`h-1 bg-gradient-to-r from-slate-700 to-teal-600`} />
                         <div className="p-5">
                           <div className="flex items-start justify-between gap-3 mb-2">
                             <h3 className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2">
@@ -1019,8 +1019,8 @@ export default function ResourceLibrary() {
                             }`}>{formatAssignmentStatus(a.status, t)}</span>
                           </div>
                           <div className="flex items-center gap-2 mb-3">
-                            <div className="h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center">
-                              <Users className="h-3.5 w-3.5 text-purple-900" />
+                            <div className="h-6 w-6 rounded-full bg-teal-100 flex items-center justify-center">
+                              <Users className="h-3.5 w-3.5 text-teal-700" />
                             </div>
                             <span className="text-xs text-slate-500">
                               {(a.client && (a.client.name || a.client.username)) || t("Client unavailable")}
@@ -1030,8 +1030,8 @@ export default function ResourceLibrary() {
                             <DynamicTranslator text={a.resource.description || ""} />
                           </p>
                           {a.notes && (
-                            <div className="p-2.5 bg-purple-50 rounded-xl border border-purple-100 text-xs text-slate-600 mb-3">
-                              <span className="font-medium text-purple-900 block mb-0.5">{t("Notes:")}</span>
+                            <div className="p-2.5 bg-teal-50 rounded-xl border border-teal-100 text-xs text-slate-600 mb-3">
+                              <span className="font-medium text-teal-700 block mb-0.5">{t("Notes:")}</span>
                               <DynamicTranslator text={a.notes} />
                             </div>
                           )}
@@ -1040,7 +1040,7 @@ export default function ResourceLibrary() {
                               {new Date(a.assignedAt).toLocaleDateString(isRTL ? "ar-SA" : "en-US")}
                             </span>
                             <Button size="sm" variant="ghost" onClick={() => { setViewingAssignment(a); setIsViewingAssignment(true); }}
-                              className="h-7 px-3 text-xs rounded-lg text-purple-900 hover:bg-purple-50">
+                              className="h-7 px-3 text-xs rounded-lg text-teal-700 hover:bg-teal-50">
                               {t("View Details")}{" "}
                               <ChevronRight className={cn("h-3 w-3 inline", isRTL && "rotate-180")} />
                             </Button>
@@ -1052,14 +1052,14 @@ export default function ResourceLibrary() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="p-5 bg-purple-50 rounded-2xl mb-5 border border-purple-100">
-                    <Users className="h-10 w-10 text-[#090514]" />
+                  <div className="p-5 bg-teal-50 rounded-2xl mb-5 border border-teal-100">
+                    <Users className="h-10 w-10 text-slate-800" />
                   </div>
                   <h3 className="text-lg font-semibold text-slate-700 mb-2">{t("No assignments yet")}</h3>
                   <p className="text-sm text-slate-400 mb-6 max-w-sm">
                     {t("Assign educational resources to your clients from the Educational Resources tab.")}
                   </p>
-                  <Button onClick={() => setActiveTab("educational-resources")} className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl">
+                  <Button onClick={() => setActiveTab("educational-resources")} className="bg-teal-800 hover:bg-teal-700 text-white rounded-xl">
                     {t("Browse Resources")}
                   </Button>
                 </div>
@@ -1183,8 +1183,8 @@ export default function ResourceLibrary() {
                   })()}
 
                   {viewingAssignment.notes && (
-                    <div className="p-3.5 bg-purple-50 rounded-xl border border-purple-100">
-                      <p className="text-xs font-medium text-purple-900 mb-1">{t("Your Notes")}</p>
+                    <div className="p-3.5 bg-teal-50 rounded-xl border border-teal-100">
+                      <p className="text-xs font-medium text-teal-700 mb-1">{t("Your Notes")}</p>
                       <p className="text-sm text-slate-700">
                         <DynamicTranslator text={viewingAssignment.notes} />
                       </p>
@@ -1208,7 +1208,7 @@ export default function ResourceLibrary() {
                             href={viewingAssignment.resource.pdfUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-purple-900 hover:text-purple-800 font-medium text-sm"
+                            className="inline-flex items-center gap-2 text-teal-700 hover:text-teal-800 font-medium text-sm"
                           >
                             <FileText className="h-5 w-5" /> {t("Open PDF in new tab")}
                           </a>
