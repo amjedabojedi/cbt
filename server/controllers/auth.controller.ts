@@ -377,6 +377,7 @@ export async function inviteClient(req: Request, res: Response) {
     // Create the invitation
     await storage.createClientInvitation({
       email,
+      name,
       therapistId: req.user!.id,
       tempUsername,
       tempPassword: hashedTempPassword,

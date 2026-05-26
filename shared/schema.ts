@@ -595,6 +595,7 @@ export type EmailLog = typeof emailLogs.$inferSelect;
 export const clientInvitations = pgTable("client_invitations", {
   id: serial("id").primaryKey(),
   email: text("email").notNull(),
+  name: text("name"),
   therapistId: integer("therapist_id").notNull().references(() => users.id),
   status: text("status", { 
     enum: ["pending", "email_sent", "email_failed", "accepted", "expired"] 
