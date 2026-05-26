@@ -10,6 +10,7 @@ import adminRouter from "./admin.routes";
 import notificationsRouter from "./notifications.routes";
 import resourcesRouter from "./resources.routes";
 import translateRouter from "./translate.routes";
+import invitationsRouter from "./invitations.routes";
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use("/", adminRouter); // contains /admin/...
 router.use("/notifications", notificationsRouter);
 router.use("/", resourcesRouter); // contains /resources/..., /therapist/assignments, /resource-assignments/...
 router.use("/", translateRouter); // contains /translate
+router.use("/", invitationsRouter); // contains /invitations
 
 export default router;
