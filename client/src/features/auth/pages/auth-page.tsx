@@ -250,314 +250,346 @@ export default function AuthPage() {
     }
   };
   
+  const inputClass = "flex h-11 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/30 focus-visible:border-teal-400 transition-all disabled:bg-slate-50 disabled:text-slate-400";
+
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      {/* Auth Form Column */}
-      <div className="flex flex-col items-center justify-center w-full md:w-1/2 p-8 auth-container">
-        <div className="w-full max-w-md">
-          <div className="flex flex-col items-center mb-8">
-            <div className="flex justify-center w-full mb-4">
-              <Button asChild variant="ghost" className="flex items-center gap-2 text-muted-foreground">
-                <Link href="/">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <path d="m12 19-7-7 7-7"></path>
-                    <path d="M19 12H5"></path>
-                  </svg>
-                  Back to Home
-                </Link>
-              </Button>
+    <div className="min-h-screen flex">
+
+      {/* ── LEFT: Brand panel (desktop only) ── */}
+      <div className="hidden lg:flex lg:w-[460px] xl:w-[500px] shrink-0 flex-col bg-gradient-to-br from-teal-900 via-teal-800 to-teal-700 relative overflow-hidden">
+        {/* Decorative orbs */}
+        <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full bg-white/5 blur-2xl pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-teal-600/20 blur-3xl pointer-events-none" />
+
+        <div className="relative flex flex-col justify-between h-full p-10">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.14Z"/>
+                <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.14Z"/>
+              </svg>
             </div>
-            <h1 className="text-3xl font-bold text-neutral-800">ResilienceHub</h1>
-            <p className="text-neutral-500 mt-2">
-              {isInvitation 
-                ? "Complete your registration to connect with your mental health professional" 
-                : "Your interactive CBT tools for tracking emotions, thoughts, and behaviors"}
-            </p>
+            <div>
+              <p className="text-white font-bold text-lg leading-none tracking-wide">ResilienceHub</p>
+              <p className="text-teal-300/70 text-[10px] font-semibold tracking-widest uppercase mt-0.5">
+                {isInvitation ? "Client Portal" : "Clinical Suite"}
+              </p>
+            </div>
           </div>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full auth-tabs">
-            <TabsList className="grid w-full grid-cols-2 mb-6 tabs-list">
-              <TabsTrigger value="login" className="tabs-trigger">Login</TabsTrigger>
-              <TabsTrigger value="register" className="tabs-trigger">
-                {isInvitation ? "Client Registration" : "Professional Registration"}
-              </TabsTrigger>
-            </TabsList>
-            
-            {!isInvitation && (
-              <div className="mb-4 p-3 rounded bg-blue-50 border border-blue-100 text-blue-700 text-sm">
-                <p className="font-medium mb-1">Note:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Clients need an invitation from their mental health professional</li>
-                  <li>Professionals can register directly using the form</li>
-                  <li>If you received an invitation, check your email for the registration link</li>
-                </ul>
-              </div>
-            )}
-            
-            <TabsContent value="login">
-              <Card className="auth-card">
-                <CardHeader>
-                  <CardTitle className="card-title">Welcome Back</CardTitle>
-                  <CardDescription className="card-description">
-                    Enter your credentials to access your account
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...loginForm}>
-                    <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                      <FormField
-                        control={loginForm.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem className="form-item">
-                            <FormLabel>Username or Email</FormLabel>
-                            <FormControl>
-                              <Input placeholder="johndoe or john@example.com" {...field} />
-                            </FormControl>
-                            <FormDescription className="form-description">
-                              You can log in with either your username or email address
-                            </FormDescription>
-                            <FormMessage className="form-message" />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={loginForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem className="form-item">
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <Input type="password" placeholder="••••••••" {...field} />
-                            </FormControl>
-                            <div className="flex justify-end mt-2">
-                              <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                                Forgot Password?
-                              </Link>
-                            </div>
-                            <FormMessage className="form-message" />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <Button type="submit" className="w-full auth-button" disabled={loginSubmitting}>
-                        {loginSubmitting ? (
-                          <div className="flex items-center justify-center">
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Logging in...
-                          </div>
-                        ) : (
-                          "Log In"
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-                <CardFooter className="flex justify-center">
-                  <p className="text-sm text-muted-foreground">
-                    Clients need an invitation from a mental health professional to register. If you're a professional, please select 'Register' to create an account.
-                  </p>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="register" className="mt-6">
-              <Card className="auth-card">
-                <CardHeader>
-                  <CardTitle className="card-title">
-                    {isInvitation ? "Complete Your Registration" : "Create Account"}
-                  </CardTitle>
-                  <CardDescription className="card-description">
-                    {isInvitation 
-                      ? "Fill out the form below to finalize your account creation" 
-                      : "Join Resilience CBT to access interactive CBT tools"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...registerForm}>
-                    <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                      <FormField
-                        control={registerForm.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem className="form-item">
-                            <FormLabel>Full Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="John Doe" {...field} />
-                            </FormControl>
-                            <FormMessage className="form-message" />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={registerForm.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem className="form-item">
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                              <Input placeholder="johndoe" {...field} />
-                            </FormControl>
-                            <FormDescription className="form-description">
-                              This will be used to log in to your account
-                            </FormDescription>
-                            <FormMessage className="form-message" />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={registerForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem className="form-item">
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="email" 
-                                placeholder="john.doe@example.com" 
-                                {...field} 
-                                disabled={isInvitation}
-                                className={isInvitation ? "bg-muted" : ""}
-                              />
-                            </FormControl>
-                            <FormMessage className="form-message" />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={registerForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem className="form-item">
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <Input type="password" placeholder="••••••••" {...field} />
-                            </FormControl>
-                            <FormDescription className="form-description">
-                              Must be at least 6 characters
-                            </FormDescription>
-                            <FormMessage className="form-message" />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      {!isInvitation && (
-                        <FormField
-                          control={registerForm.control}
-                          name="role"
-                          render={({ field }) => (
-                            <FormItem className="form-item">
-                              <FormLabel>Account Type</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger className="select-trigger">
-                                    <SelectValue placeholder="Select account type" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent className="select-content">
-                                  <SelectItem value="therapist" className="select-item">Mental Health Professional</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormDescription className="form-description">
-                                As a mental health professional, you'll be enrolled in the Free trial plan automatically
-                              </FormDescription>
-                              <FormMessage className="form-message" />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                      
-                      {/* Hidden role field for invited clients */}
-                      {isInvitation && <input type="hidden" {...registerForm.register("role")} value="client" />}
-                      
-                      <Button type="submit" className="w-full auth-button" disabled={registerSubmitting}>
-                        {registerSubmitting ? (
-                          <div className="flex items-center justify-center">
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Creating account...
-                          </div>
-                        ) : (
-                          "Create Account"
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-                <CardFooter className="flex justify-center">
-                  <p className="text-sm text-muted-foreground">
-                    Already have an account?{" "}
-                    <Button variant="link" className="p-0" onClick={() => setActiveTab("login")}>
-                      Log in
-                    </Button>
-                  </p>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-          </Tabs>
+
+          {/* Main message */}
+          <div>
+            <h2 className="text-3xl xl:text-4xl font-bold text-white leading-snug mb-4">
+              {isInvitation
+                ? "Your therapist has invited you"
+                : "Evidence-based CBT, built for practice"}
+            </h2>
+            <p className="text-teal-100/75 text-base leading-relaxed mb-10">
+              {isInvitation
+                ? "Create your account to access personalized CBT tools and stay connected with your mental health professional."
+                : "ResilienceHub gives therapists and clients a shared workspace for emotion tracking, thought records, journaling, and goal setting."}
+            </p>
+
+            <div className="space-y-5">
+              {[
+                {
+                  icon: (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                    </svg>
+                  ),
+                  title: "Emotion Tracking",
+                  desc: "Interactive emotion wheel with 4-step reflection wizard.",
+                },
+                {
+                  icon: (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.14Z"/>
+                      <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.14Z"/>
+                    </svg>
+                  ),
+                  title: "Cognitive Restructuring",
+                  desc: "Thought records with 12 ANT categories and reframe coaching.",
+                },
+                {
+                  icon: (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                    </svg>
+                  ),
+                  title: "AI-Assisted Journaling",
+                  desc: "Smart emotion detection and personalised progress insights.",
+                },
+              ].map(({ icon, title, desc }) => (
+                <div key={title} className="flex items-start gap-4">
+                  <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-teal-200 shrink-0 mt-0.5">
+                    {icon}
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-sm leading-tight">{title}</p>
+                    <p className="text-teal-200/65 text-xs mt-0.5 leading-relaxed">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <p className="text-teal-300/40 text-xs">
+            © {new Date().getFullYear()} ResilienceHub · Evidence-Based CBT Platform
+          </p>
         </div>
       </div>
-      
-      {/* Hero Column */}
-      <div className="hidden md:flex md:w-1/2 bg-white p-8 items-center justify-center auth-container">
-        <div className="max-w-lg">
-          <h2 className="text-3xl font-bold text-primary mb-4">
-            {isInvitation 
-              ? "Welcome to ResilienceHub" 
-              : "Advanced Interactive CBT Tools"}
-          </h2>
-          <p className="text-lg mb-6 text-neutral-700">
-            {isInvitation 
-              ? "A mental health professional has invited you to join ResilienceHub, where you'll have access to personalized interactive CBT tools for tracking."
-              : "ResilienceHub provides a comprehensive suite of tools for tracking emotions, thoughts, and behaviors designed around evidence-based approaches."}
-          </p>
-          
-          <div className="space-y-4">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-primary mr-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5Z"></path>
-                  <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"></path>
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-primary mb-1">Professional-Client Connection</h3>
-                <p className="text-neutral-600">Share your tracking data securely with your mental health professional.</p>
-              </div>
+
+      {/* ── RIGHT: Form panel ── */}
+      <div className="flex-1 flex flex-col bg-slate-50 overflow-y-auto">
+        {/* Mobile top bar */}
+        <div className="lg:hidden flex items-center gap-3 px-6 py-5 bg-teal-800 shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.14Z"/>
+              <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.14Z"/>
+            </svg>
+          </div>
+          <span className="text-white font-bold text-base tracking-wide">ResilienceHub</span>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center p-6 sm:p-10">
+          <div className="w-full max-w-md">
+
+            {/* Back link */}
+            <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-teal-700 mb-8 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>
+              </svg>
+              Back to home
+            </Link>
+
+            {/* Heading */}
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
+                {isInvitation ? "Complete your registration" : activeTab === "login" ? "Welcome back" : "Create your account"}
+              </h1>
+              <p className="text-sm text-slate-500 mt-1">
+                {isInvitation
+                  ? "Your therapist has sent you an invitation — fill in the details below."
+                  : activeTab === "login"
+                    ? "Sign in to access your ResilienceHub workspace."
+                    : "Join ResilienceHub to access evidence-based CBT tools."}
+              </p>
             </div>
-            
-            <div className="flex items-start">
-              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-primary mr-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M12 16v-4"></path>
-                  <path d="M12 8h.01"></path>
+
+            {/* Tab switcher */}
+            {!isInvitation && (
+              <div className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-6">
+                {[
+                  { key: "login", label: "Log In" },
+                  { key: "register", label: "Professional Registration" },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setActiveTab(key)}
+                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                      activeTab === key
+                        ? "bg-white text-teal-800 shadow-sm"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Invitation notice */}
+            {isInvitation && (
+              <div className="mb-6 flex items-start gap-3 p-3.5 bg-teal-50 border border-teal-100 rounded-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-700 mt-0.5 shrink-0">
+                  <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
                 </svg>
+                <p className="text-xs text-teal-800 leading-relaxed">
+                  You were invited by your mental health professional. Your email is pre-filled — just set a username and password.
+                </p>
               </div>
-              <div>
-                <h3 className="text-lg font-medium text-primary mb-1">Advanced Emotion Tracking</h3>
-                <p className="text-neutral-600">Identify, record, and understand your emotions with our specialized tools.</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start">
-              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-primary mr-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            )}
+
+            {/* Non-invitation info note */}
+            {!isInvitation && activeTab === "register" && (
+              <div className="mb-5 flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-100 rounded-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600 mt-0.5 shrink-0">
+                  <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>
+                  <line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/>
                 </svg>
+                <p className="text-xs text-amber-800 leading-relaxed">
+                  Client accounts require an invitation from a professional. This form registers <strong>mental health professionals</strong> only.
+                </p>
               </div>
-              <div>
-                <h3 className="text-lg font-medium text-primary mb-1">Personal Progress Insights</h3>
-                <p className="text-neutral-600">Track your progress with detailed analytics and visualizations.</p>
-              </div>
-            </div>
+            )}
+
+            {/* ── LOGIN FORM ── */}
+            {(activeTab === "login" && !isInvitation) && (
+              <Form {...loginForm}>
+                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                  <FormField
+                    control={loginForm.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-slate-700">Username or Email</FormLabel>
+                        <FormControl>
+                          <input className={inputClass} placeholder="johndoe or john@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage className="text-xs text-red-500" />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={loginForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center justify-between">
+                          <FormLabel className="text-sm font-medium text-slate-700">Password</FormLabel>
+                          <Link href="/forgot-password" className="text-xs text-teal-700 hover:text-teal-800 font-medium transition-colors">
+                            Forgot password?
+                          </Link>
+                        </div>
+                        <FormControl>
+                          <input type="password" className={inputClass} placeholder="••••••••" {...field} />
+                        </FormControl>
+                        <FormMessage className="text-xs text-red-500" />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="submit"
+                    disabled={loginSubmitting}
+                    className="w-full h-11 rounded-xl bg-teal-800 hover:bg-teal-700 text-white font-semibold text-sm shadow-sm border-0 transition-all mt-2"
+                  >
+                    {loginSubmitting ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in…</>
+                    ) : "Sign In"}
+                  </Button>
+                  <p className="text-center text-xs text-slate-400 pt-1">
+                    Don't have an account?{" "}
+                    <button type="button" onClick={() => setActiveTab("register")} className="text-teal-700 font-semibold hover:underline">
+                      Register as a professional
+                    </button>
+                  </p>
+                </form>
+              </Form>
+            )}
+
+            {/* ── REGISTER FORM ── */}
+            {(activeTab === "register" || isInvitation) && (
+              <Form {...registerForm}>
+                <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                  <FormField
+                    control={registerForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-slate-700">Full Name</FormLabel>
+                        <FormControl>
+                          <input className={inputClass} placeholder="John Doe" {...field} />
+                        </FormControl>
+                        <FormMessage className="text-xs text-red-500" />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={registerForm.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-slate-700">Username</FormLabel>
+                        <FormControl>
+                          <input className={inputClass} placeholder="johndoe" {...field} />
+                        </FormControl>
+                        <p className="text-xs text-slate-400">Used to log in to your account</p>
+                        <FormMessage className="text-xs text-red-500" />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={registerForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-slate-700">Email</FormLabel>
+                        <FormControl>
+                          <input
+                            type="email"
+                            className={inputClass}
+                            placeholder="john.doe@example.com"
+                            disabled={isInvitation}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-xs text-red-500" />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={registerForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-slate-700">Password</FormLabel>
+                        <FormControl>
+                          <input type="password" className={inputClass} placeholder="••••••••" {...field} />
+                        </FormControl>
+                        <p className="text-xs text-slate-400">At least 6 characters</p>
+                        <FormMessage className="text-xs text-red-500" />
+                      </FormItem>
+                    )}
+                  />
+                  {!isInvitation && (
+                    <FormField
+                      control={registerForm.control}
+                      name="role"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium text-slate-700">Account Type</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="h-11 rounded-xl border-slate-200 focus:ring-teal-500/30 focus:border-teal-400 text-sm">
+                                <SelectValue placeholder="Select account type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="therapist">Mental Health Professional</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-slate-400">You'll be enrolled in the free trial automatically</p>
+                          <FormMessage className="text-xs text-red-500" />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                  {isInvitation && <input type="hidden" {...registerForm.register("role")} value="client" />}
+                  <Button
+                    type="submit"
+                    disabled={registerSubmitting}
+                    className="w-full h-11 rounded-xl bg-teal-800 hover:bg-teal-700 text-white font-semibold text-sm shadow-sm border-0 transition-all mt-2"
+                  >
+                    {registerSubmitting ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account…</>
+                    ) : "Create Account"}
+                  </Button>
+                  {!isInvitation && (
+                    <p className="text-center text-xs text-slate-400 pt-1">
+                      Already have an account?{" "}
+                      <button type="button" onClick={() => setActiveTab("login")} className="text-teal-700 font-semibold hover:underline">
+                        Sign in
+                      </button>
+                    </p>
+                  )}
+                </form>
+              </Form>
+            )}
+
           </div>
         </div>
       </div>
