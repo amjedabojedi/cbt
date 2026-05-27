@@ -141,18 +141,6 @@ export default function Clients() {
     refetchOnMount: true,
   });
 
-  useEffect(() => {
-    if (clients && Array.isArray(clients) && clients.length > 0 && selectedClientId === null) {
-      if (window.innerWidth >= 1024) {
-        const first = clients[0];
-        setSelectedClientId(first.id);
-        // Sync viewing client context so sidebar navigation always matches the highlighted client
-        setViewingClient(first.id, first.name || first.username);
-        localStorage.setItem("viewingClientId", first.id.toString());
-        localStorage.setItem("viewingClientName", first.name || first.username);
-      }
-    }
-  }, [clients]);
 
   const inviteForm = useForm<InviteClientFormValues>({
     resolver: zodResolver(inviteClientSchema),
