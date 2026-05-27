@@ -9,13 +9,15 @@ import { getSafeBaseUrl } from "../controllers/auth.controller";
 const router = Router();
 
 // GET /api/invitations — list all invitations sent by the logged-in therapist
-router.get("/invitations", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
+router.get("/invitations", authenticate, isTherapist, async (req, res) => {
   try {
-    const invitations = await storage.getClientInvitationsByTherapist(req.user.id);
-    res.json(invitations);
+    if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+    const therapistId = req.user.id;
+    const invitations = await storage.getClientInvitationsByTherapist(therapistId);
+    return res.json(Array.isArray(invitations) ? invitations : []);
   } catch (error) {
     console.error("Error fetching invitations:", error);
-    res.status(500).json({ message: "Failed to fetch invitations" });
+    return res.status(500).json({ message: "Failed to fetch invitations" });
   }
 });
 
