@@ -177,6 +177,8 @@ export default function Clients() {
   const { data: invitations, isLoading: invitationsLoading } = useQuery<any[]>({
     queryKey: ["/api/invitations"],
     enabled: !!user && (user.role === "therapist" || user.role === "admin"),
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   useEffect(() => {
@@ -207,6 +209,13 @@ export default function Clients() {
   const onInviteSubmit = (data: InviteClientFormValues) => inviteMutation.mutate(data);
 
   const setClient = (client: User) => {
+    // Invalidate all cached user-specific data so the new client's pages fetch fresh
+    queryClient.invalidateQueries({
+      predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return typeof key === "string" && key.includes("/api/users/");
+      },
+    });
     setViewingClient(client.id, client.name || client.username);
     localStorage.setItem("viewingClientId", client.id.toString());
     localStorage.setItem("viewingClientName", client.name || client.username);
