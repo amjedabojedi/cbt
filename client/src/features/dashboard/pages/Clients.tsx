@@ -141,6 +141,18 @@ export default function Clients() {
     refetchOnMount: true,
   });
 
+  useEffect(() => {
+    if (clients && Array.isArray(clients) && clients.length > 0 && selectedClientId === null) {
+      if (window.innerWidth >= 1024) {
+        const first = clients[0];
+        setSelectedClientId(first.id);
+        // Sync viewing client context so sidebar navigation always matches the highlighted client
+        setViewingClient(first.id, first.name || first.username);
+        localStorage.setItem("viewingClientId", first.id.toString());
+        localStorage.setItem("viewingClientName", first.name || first.username);
+      }
+    }
+  }, [clients]);
 
   const inviteForm = useForm<InviteClientFormValues>({
     resolver: zodResolver(inviteClientSchema),
@@ -419,6 +431,12 @@ export default function Clients() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95 }}
                           className="bg-white border border-slate-100 hover:border-teal-200 hover:shadow-md rounded-2xl p-3.5 flex items-center gap-3 shadow-sm transition-all duration-200 group"
+                          onClick={() => { setSelectedClientId(client.id); setClient(client); }}
+                          className={`w-full text-left p-3.5 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-3 shadow-sm ${
+                            isSelected
+                              ? "bg-teal-50 border-teal-200"
+                              : "bg-white border-slate-100 hover:border-teal-100 hover:bg-teal-50/30"
+                          }`}
                         >
                           {/* Avatar + name — click → client overview dashboard */}
                           <button
