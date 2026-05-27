@@ -183,7 +183,14 @@ export default function Clients() {
 
   useEffect(() => {
     if (clients && Array.isArray(clients) && clients.length > 0 && selectedClientId === null) {
-      if (window.innerWidth >= 1024) setSelectedClientId(clients[0].id);
+      if (window.innerWidth >= 1024) {
+        const first = clients[0];
+        setSelectedClientId(first.id);
+        // Sync viewing client context so sidebar navigation always matches the highlighted client
+        setViewingClient(first.id, first.name || first.username);
+        localStorage.setItem("viewingClientId", first.id.toString());
+        localStorage.setItem("viewingClientName", first.name || first.username);
+      }
     }
   }, [clients]);
 
@@ -466,7 +473,7 @@ export default function Clients() {
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95 }}
-                          onClick={() => setSelectedClientId(client.id)}
+                          onClick={() => { setSelectedClientId(client.id); setClient(client); }}
                           className={`w-full text-left p-3.5 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-3 shadow-sm ${
                             isSelected
                               ? "bg-teal-50 border-teal-200"
