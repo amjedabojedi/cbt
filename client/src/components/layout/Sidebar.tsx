@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { useLocalization } from "@/lib/localize";
 import { useClientContext } from "@/context/ClientContext";
+import { apiRequest } from "@/lib/queryClient";
 
 import {
   LayoutDashboard,
@@ -34,6 +35,7 @@ interface NavItem {
   label: string;
   icon: React.ReactNode;
   exact?: boolean;
+  isReturn?: boolean;
 }
 
 export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
@@ -41,7 +43,17 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
   const [location] = useLocation();
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const { currentLanguage, setLanguage, t, isRTL } = useLocalization();
-  const { viewingClientId, viewingClientName } = useClientContext();
+  const { viewingClientId, viewingClientName, setViewingClient } = useClientContext();
+
+  const handleReturnToClients = async () => {
+    setViewingClient(null, null);
+    setIsMobileExpanded(false);
+    try {
+      await apiRequest("POST", "/api/users/current-viewing-client", { clientId: null });
+    } catch {
+      // non-critical
+    }
+  };
 
   const isClinicalUser = true; // unified dark-purple theme for all roles
 
@@ -67,7 +79,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
   } else if (user?.role === "therapist") {
     if (isTherapistViewingClient) {
       navItems = [
-        { href: "/clients", label: "← My Clients", icon: <Users size={20} /> },
+        { href: "/clients", label: "← My Clients", icon: <Users size={20} />, isReturn: true },
         { href: "/dashboard", label: "Overview", icon: <LayoutDashboard size={20} /> },
         { href: "/emotions", label: "Emotions", icon: <Heart size={20} /> },
         { href: "/thoughts", label: "Thought Records", icon: <Brain size={20} /> },
@@ -285,38 +297,53 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                   "py-1 sm:py-1.5 transition-all duration-300",
                   isCollapsed ? "md:px-1 px-2 sm:px-4" : "px-2 sm:px-4"
                 )}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex items-center px-2 py-1.5 rounded-md transition-colors text-sm",
-                      isCollapsed && "md:justify-center md:px-0",
-                      (() => {
-                        if (item.exact) {
-                          return location === item.href;
-                        } else {
-                          return location === item.href || location.startsWith(item.href + '/');
-                        }
-                      })()
-                        ? isClinicalUser
-                          ? "text-white font-semibold bg-white/10 rounded-md"
-                          : "text-primary font-medium bg-primary/10"
-                        : isClinicalUser
+                  {item.isReturn ? (
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center px-2 py-1.5 rounded-md transition-colors text-sm w-full",
+                        isCollapsed && "md:justify-center md:px-0",
+                        isClinicalUser
                           ? "text-white/75 hover:text-white hover:bg-white/8"
                           : "text-neutral-600 hover:text-primary hover:bg-primary/5"
-                    )}
-                    onClick={() => setIsMobileExpanded(false)}
-                    title={isCollapsed ? t(item.label) : undefined}
-                  >
-                    <span className={iconMarginClass}>
-                      {item.icon}
-                    </span>
-                    <span className={cn(
-                      "truncate transition-all duration-300",
-                      isCollapsed && "md:hidden"
-                    )}>
-                      {t(item.label)}
-                    </span>
-                  </Link>
+                      )}
+                      onClick={handleReturnToClients}
+                      title={isCollapsed ? t(item.label) : undefined}
+                    >
+                      <span className={iconMarginClass}>{item.icon}</span>
+                      <span className={cn("truncate transition-all duration-300", isCollapsed && "md:hidden")}>
+                        {t(item.label)}
+                      </span>
+                    </Link>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center px-2 py-1.5 rounded-md transition-colors text-sm",
+                        isCollapsed && "md:justify-center md:px-0",
+                        (() => {
+                          if (item.exact) {
+                            return location === item.href;
+                          } else {
+                            return location === item.href || location.startsWith(item.href + '/');
+                          }
+                        })()
+                          ? isClinicalUser
+                            ? "text-white font-semibold bg-white/10 rounded-md"
+                            : "text-primary font-medium bg-primary/10"
+                          : isClinicalUser
+                            ? "text-white/75 hover:text-white hover:bg-white/8"
+                            : "text-neutral-600 hover:text-primary hover:bg-primary/5"
+                      )}
+                      onClick={() => setIsMobileExpanded(false)}
+                      title={isCollapsed ? t(item.label) : undefined}
+                    >
+                      <span className={iconMarginClass}>{item.icon}</span>
+                      <span className={cn("truncate transition-all duration-300", isCollapsed && "md:hidden")}>
+                        {t(item.label)}
+                      </span>
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
