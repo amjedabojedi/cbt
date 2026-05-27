@@ -768,6 +768,35 @@ export class DatabaseStorage implements IStorage {
   async deleteAiRecommendation(id: number): Promise<void> {
     return this.adminRepo.deleteAiRecommendation(id);
   }
+
+  // AI Recommendations
+  async createAiRecommendation(recommendation: InsertAiRecommendation): Promise<AiRecommendation> {
+    return this.adminRepo.createAiRecommendation(recommendation);
+  }
+  
+  async getAiRecommendationById(id: number): Promise<AiRecommendation | undefined> {
+    return this.adminRepo.getAiRecommendationById(id);
+  }
+  
+  async getAiRecommendationsByUser(userId: number): Promise<AiRecommendation[]> {
+    return this.adminRepo.getAiRecommendationsByUser(userId);
+  }
+  
+  async getPendingAiRecommendationsByProfessional(professionalId: number): Promise<AiRecommendation[]> {
+    return this.adminRepo.getPendingAiRecommendationsByProfessional(professionalId);
+  }
+
+  async getPendingAiRecommendationsByTherapist(therapistId: number): Promise<AiRecommendation[]> {
+    return this.adminRepo.getPendingAiRecommendationsByTherapist(therapistId);
+  }
+  
+  async updateAiRecommendationStatus(id: number, status: string, therapistNotes?: string): Promise<AiRecommendation> {
+    return this.adminRepo.updateAiRecommendationStatus(id, status, therapistNotes);
+  }
+  
+  async deleteAiRecommendation(id: number): Promise<void> {
+    return this.adminRepo.deleteAiRecommendation(id);
+  }
 }
 
 export const storage = new DatabaseStorage();

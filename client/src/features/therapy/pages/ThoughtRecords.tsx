@@ -40,7 +40,7 @@ import ThoughtInsights from "@/features/therapy/components/thought/ThoughtInsigh
 function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <span className="text-purple-950">{icon}</span>
+      <span className="text-teal-800">{icon}</span>
       <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{label}</span>
     </div>
   );
@@ -110,23 +110,23 @@ export default function ThoughtRecords() {
         <ClientDebug />
 
         {/* Premium Hero Banner */}
-        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden transition-all duration-300 border-b border-purple-900/30">
-          <div className="absolute -top-10 end-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 start-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-slate-800 via-teal-900 to-teal-700 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden transition-all duration-300 border-b border-teal-700/30">
+          <div className="absolute -top-10 end-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 start-12 w-52 h-52 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="max-w-5xl mx-auto relative">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="h-4 w-4 text-purple-400" />
-                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                  <Sparkles className="h-4 w-4 text-teal-300" />
+                  <span className="text-teal-300/80 text-xs font-bold tracking-widest uppercase">
                     {isViewingClientData ? t("Clinical Review") : t("Cognitive Reframing")}
                   </span>
                 </div>
                 <h1 className="font-bold text-white tracking-tight text-3xl md:text-4xl mb-2">
                   {pageTitle}
                 </h1>
-                <p className="text-purple-300/70 text-base max-w-md leading-relaxed line-clamp-2">
+                <p className="text-teal-100/70 text-base max-w-md leading-relaxed line-clamp-2">
                   {pageSubtitle}
                 </p>
               </div>
@@ -140,7 +140,7 @@ export default function ThoughtRecords() {
                   ].map((s, i) => (
                     <div key={i} className="text-center">
                       <div className="text-2xl font-bold text-white">{s.value}</div>
-                      <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
+                      <div className="text-xs text-teal-300/80 font-medium mt-0.5">{s.label}</div>
                     </div>
                   ))}
                 </div>
