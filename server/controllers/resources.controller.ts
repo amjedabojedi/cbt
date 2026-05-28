@@ -151,15 +151,28 @@ export async function getTherapistAssignments(req: Request, res: Response) {
 
     const assignments = await storage.getAssignmentsByTherapist(user.id);
 
-    // Enrich with resource and client data
+    // Batch-fetch feedback for each unique client so we can attach ratings to every assignment
+    const uniqueClientIds = [...new Set(assignments.map((a) => a.assignedTo))];
+    const clientFeedbackMap = new Map<number, { resourceId: number; rating: number; feedback?: string | null }[]>();
+    await Promise.all(
+      uniqueClientIds.map(async (clientId) => {
+        const fb = await storage.getResourceFeedbackByUser(clientId);
+        clientFeedbackMap.set(clientId, fb);
+      })
+    );
+
+    // Enrich with resource, client, and feedback data
     const enriched = await Promise.all(
       assignments.map(async (a) => {
         const resource = await storage.getResourceById(a.resourceId);
         const client = await storage.getUser(a.assignedTo);
+        const clientFeedback = clientFeedbackMap.get(a.assignedTo) || [];
+        const feedback = clientFeedback.find((f) => f.resourceId === a.resourceId) || null;
         return {
           ...a,
           resource: resource || null,
           client: client ? { id: client.id, name: client.name, username: client.username } : null,
+          feedback,
         };
       })
     );

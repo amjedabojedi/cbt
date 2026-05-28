@@ -1086,16 +1086,18 @@ export default function ResourceLibrary() {
                           </div>
 
                           {/* Client rating display */}
-                          {(a as any).feedback ? (
-                            <div className="flex items-center gap-1.5 mb-2">
-                              <div className="flex items-center gap-0.5">
-                                {[1,2,3,4,5].map((s) => (
-                                  <Star key={s} className={`h-3 w-3 ${s <= (a as any).feedback.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
-                                ))}
+                          {a.feedback ? (
+                            <div className="flex flex-col gap-1 mb-2">
+                              <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-0.5">
+                                  {[1,2,3,4,5].map((s) => (
+                                    <Star key={s} className={`h-3 w-3 ${s <= a.feedback!.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
+                                  ))}
+                                </div>
+                                <span className="text-[10px] text-slate-500">{a.feedback.rating}/5</span>
                               </div>
-                              <span className="text-[10px] text-slate-500">{(a as any).feedback.rating}/5</span>
-                              {(a as any).feedback.feedback && (
-                                <span className="text-[10px] text-slate-400 line-clamp-1 italic">— {(a as any).feedback.feedback}</span>
+                              {a.feedback.feedback && (
+                                <span className="text-[10px] text-slate-400 line-clamp-2 italic">— {a.feedback.feedback}</span>
                               )}
                             </div>
                           ) : (
@@ -1107,10 +1109,10 @@ export default function ResourceLibrary() {
                             </div>
                           )}
 
-                          {a.status === "completed" && (a as any).completedAt && (
+                          {a.status === "completed" && a.completedAt && (
                             <div className="flex items-center gap-1 mb-2 text-[10px] text-emerald-600">
                               <CheckCircle2 className="h-3 w-3" />
-                              {t("Completed")} {new Date((a as any).completedAt).toLocaleDateString(isRTL ? "ar-SA" : "en-US")}
+                              {t("Completed")} {new Date(a.completedAt).toLocaleDateString(isRTL ? "ar-SA" : "en-US")}
                             </div>
                           )}
 
@@ -1184,7 +1186,7 @@ export default function ResourceLibrary() {
                       const cat = getCat(a.resource?.category || "");
                       const isCompleted = a.status === "completed";
                       const isViewed = a.status === "viewed";
-                      const hasRating = !!(a as any).feedback;
+                      const hasRating = !!a.feedback;
                       const borderColor = isCompleted ? "border-l-emerald-400" : isViewed ? "border-l-blue-400" : "border-l-slate-300";
                       return (
                         <div key={a.id} className={`flex flex-col rounded-2xl bg-white border border-slate-100 border-l-4 ${borderColor} shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5`}>
@@ -1229,21 +1231,26 @@ export default function ResourceLibrary() {
 
                             {/* Rating display (if already rated) */}
                             {hasRating && (
-                              <div className="flex items-center gap-1.5 mb-2">
-                                <div className="flex items-center gap-0.5">
-                                  {[1,2,3,4,5].map((s) => (
-                                    <Star key={s} className={`h-3.5 w-3.5 ${s <= (a as any).feedback.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
-                                  ))}
+                              <div className="flex flex-col gap-1 mb-2">
+                                <div className="flex items-center gap-1.5">
+                                  <div className="flex items-center gap-0.5">
+                                    {[1,2,3,4,5].map((s) => (
+                                      <Star key={s} className={`h-3.5 w-3.5 ${s <= a.feedback!.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
+                                    ))}
+                                  </div>
+                                  <span className="text-xs text-slate-500">{t("Your rating")}</span>
                                 </div>
-                                <span className="text-xs text-slate-500">{t("Your rating")}</span>
+                                {a.feedback!.feedback && (
+                                  <span className="text-[11px] text-slate-400 line-clamp-2 italic">— {a.feedback!.feedback}</span>
+                                )}
                               </div>
                             )}
 
                             {/* Completion date */}
-                            {isCompleted && (a as any).completedAt && (
+                            {isCompleted && a.completedAt && (
                               <div className="flex items-center gap-1 text-[11px] text-emerald-600 mb-2">
                                 <CheckCircle2 className="h-3 w-3" />
-                                {t("Completed")} {new Date((a as any).completedAt).toLocaleDateString(isRTL ? "ar-SA" : "en-US")}
+                                {t("Completed")} {new Date(a.completedAt).toLocaleDateString(isRTL ? "ar-SA" : "en-US")}
                               </div>
                             )}
                           </div>
