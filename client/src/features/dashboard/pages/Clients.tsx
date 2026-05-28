@@ -128,6 +128,7 @@ export default function Clients() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<"directory" | "invitations">("directory");
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
 
   const { data: clients, isLoading: clientsLoading } = useQuery<User[]>({
     queryKey: ["/api/users/clients"],
@@ -418,13 +419,12 @@ export default function Clients() {
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95 }}
-                          className="bg-white border border-slate-100 hover:border-teal-200 hover:shadow-md rounded-2xl p-3.5 flex items-center gap-3 shadow-sm transition-all duration-200 group"
-                          onClick={() => { setSelectedClientId(client.id); setClient(client); }}
-                          className={`w-full text-left p-3.5 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-3 shadow-sm ${
-                            isSelected
+                          className={`w-full text-left p-3.5 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-3 shadow-sm cursor-pointer ${
+                            selectedClientId === client.id
                               ? "bg-teal-50 border-teal-200"
                               : "bg-white border-slate-100 hover:border-teal-100 hover:bg-teal-50/30"
                           }`}
+                          onClick={() => { setSelectedClientId(client.id); setClient(client); }}
                         >
                           {/* Avatar + name — click → client overview dashboard */}
                           <button
