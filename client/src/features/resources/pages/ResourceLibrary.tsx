@@ -264,6 +264,7 @@ export default function ResourceLibrary() {
   const [ratingComment, setRatingComment] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [resourceCategory, setResourceCategory] = useState("all");
+  const [assignmentFilter, setAssignmentFilter] = useState<"all" | "assigned" | "viewed" | "completed">("all");
 
   const [isAddingFactor, setIsAddingFactor] = useState(false);
   const [isEditingFactor, setIsEditingFactor] = useState(false);
@@ -1045,6 +1046,71 @@ export default function ResourceLibrary() {
                 <p className="text-sm text-slate-500">{t("Resources you've assigned to your clients")}</p>
               </div>
 
+              {/* ── Engagement summary stats bar ── */}
+              {!assignmentsLoading && clientAssignments.length > 0 && (() => {
+                const total = clientAssignments.length;
+                const viewed = clientAssignments.filter(a => a.status === "viewed").length;
+                const completed = clientAssignments.filter(a => a.status === "completed").length;
+                const assigned = total - viewed - completed;
+                const rated = clientAssignments.filter(a => a.feedback);
+                const avgRating = rated.length > 0
+                  ? (rated.reduce((sum, a) => sum + (a.feedback?.rating ?? 0), 0) / rated.length).toFixed(1)
+                  : null;
+
+                const filterBtns: { label: string; value: typeof assignmentFilter; color: string }[] = [
+                  { label: t("All"), value: "all", color: "bg-slate-100 text-slate-700 ring-slate-200" },
+                  { label: t("Assigned"), value: "assigned", color: "bg-amber-50 text-amber-700 ring-amber-200" },
+                  { label: t("Viewed"), value: "viewed", color: "bg-blue-50 text-blue-700 ring-blue-200" },
+                  { label: t("Completed"), value: "completed", color: "bg-emerald-50 text-emerald-700 ring-emerald-200" },
+                ];
+
+                return (
+                  <div className="mb-6 rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+                    {/* Stat tiles */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-slate-100">
+                      {[
+                        { label: t("Total assigned"), value: total, icon: <Users className="h-4 w-4 text-slate-400" /> },
+                        { label: t("Assigned"), value: assigned, icon: <BookOpen className="h-4 w-4 text-amber-400" /> },
+                        { label: t("Viewed"), value: viewed, icon: <Eye className="h-4 w-4 text-blue-400" /> },
+                        { label: t("Completed"), value: completed, icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" /> },
+                      ].map((stat) => (
+                        <div key={stat.label} className="px-5 py-4 flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5 text-xs text-slate-400">{stat.icon}{stat.label}</div>
+                          <span className="text-2xl font-bold text-slate-800">{stat.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Average rating + filter row */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 bg-slate-50 border-t border-slate-100">
+                      <div className="flex items-center gap-1.5">
+                        {avgRating ? (
+                          <>
+                            <div className="flex items-center gap-0.5">
+                              {[1,2,3,4,5].map(s => (
+                                <Star key={s} className={`h-3.5 w-3.5 ${s <= Math.round(Number(avgRating)) ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
+                              ))}
+                            </div>
+                            <span className="text-xs font-medium text-slate-600">{avgRating} {t("avg rating")} ({rated.length})</span>
+                          </>
+                        ) : (
+                          <span className="text-xs text-slate-400">{t("No ratings yet")}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {filterBtns.map(btn => (
+                          <button key={btn.value} onClick={() => setAssignmentFilter(btn.value)}
+                            className={`text-[11px] font-semibold px-3 py-1 rounded-full ring-1 transition-all ${
+                              assignmentFilter === btn.value ? btn.color + " ring-1" : "bg-white text-slate-500 ring-slate-200 hover:bg-slate-50"
+                            }`}>
+                            {btn.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {assignmentsLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {[...Array(3)].map((_, i) => (
@@ -1061,7 +1127,9 @@ export default function ResourceLibrary() {
                 </div>
               ) : clientAssignments.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {clientAssignments.map((a: ResourceAssignment) => {
+                  {clientAssignments
+                    .filter((a: ResourceAssignment) => assignmentFilter === "all" || a.status === assignmentFilter)
+                    .map((a: ResourceAssignment) => {
                     const borderColor = a.status === "completed" ? "border-l-emerald-400" : a.status === "viewed" ? "border-l-blue-400" : "border-l-slate-300";
                     return (
                       <div key={a.id} className={`group rounded-2xl bg-white border border-slate-100 border-l-4 ${borderColor} shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-teal-100`}>
