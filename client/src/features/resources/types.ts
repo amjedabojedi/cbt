@@ -30,14 +30,26 @@ export interface EducationalResource {
   isEditing?: boolean;
 }
 
+export interface ResourceFeedback {
+  id: number;
+  resourceId: number;
+  userId: number;
+  rating: number;
+  feedback?: string | null;
+  createdAt: string;
+}
+
 export interface ResourceAssignment {
   id: number;
   resourceId: number;
-  clientId: number;
+  assignedTo?: number;
+  clientId?: number;
   status: string;
   notes?: string;
   assignedAt: string;
+  completedAt?: string | null;
   resource: EducationalResource;
+  feedback?: ResourceFeedback | null;
   client?: {
     id: number;
     name?: string;

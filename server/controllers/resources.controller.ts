@@ -171,6 +171,97 @@ export async function getTherapistAssignments(req: Request, res: Response) {
   }
 }
 
+// GET /api/client/assignments
+export async function getClientAssignments(req: Request, res: Response) {
+  try {
+    const user = (req as any).user;
+    if (!user) return res.status(401).json({ message: "Unauthorized" });
+
+    const assignments = await storage.getAssignmentsByClient(user.id);
+
+    const allFeedback = await storage.getResourceFeedbackByUser(user.id);
+    const enriched = await Promise.all(
+      assignments.map(async (a) => {
+        const resource = await storage.getResourceById(a.resourceId);
+        const myFeedback = allFeedback.find((f) => f.resourceId === a.resourceId) || null;
+        return { ...a, resource: resource || null, feedback: myFeedback };
+      })
+    );
+
+    res.json(enriched);
+  } catch (error) {
+    console.error("getClientAssignments error:", error);
+    res.status(500).json({ message: "Failed to fetch assignments" });
+  }
+}
+
+// PATCH /api/resource-assignments/:id/status
+export async function updateResourceAssignmentStatus(req: Request, res: Response) {
+  try {
+    const user = (req as any).user;
+    if (!user) return res.status(401).json({ message: "Unauthorized" });
+
+    const assignmentId = parseInt(req.params.id);
+    if (isNaN(assignmentId)) return res.status(400).json({ message: "Invalid assignment ID" });
+
+    const { status } = req.body;
+    if (!status || !["viewed", "completed"].includes(status)) {
+      return res.status(400).json({ message: "status must be 'viewed' or 'completed'" });
+    }
+
+    const assignment = await storage.getResourceAssignmentById(assignmentId);
+    if (!assignment) return res.status(404).json({ message: "Assignment not found" });
+    if (assignment.assignedTo !== user.id) {
+      return res.status(403).json({ message: "Not authorised to update this assignment" });
+    }
+
+    const updated = await storage.updateAssignmentStatus(assignmentId, status);
+    res.json(updated);
+  } catch (error) {
+    console.error("updateResourceAssignmentStatus error:", error);
+    res.status(500).json({ message: "Failed to update assignment status" });
+  }
+}
+
+// POST /api/resource-assignments/:id/feedback
+export async function submitAssignmentFeedback(req: Request, res: Response) {
+  try {
+    const user = (req as any).user;
+    if (!user) return res.status(401).json({ message: "Unauthorized" });
+
+    const assignmentId = parseInt(req.params.id);
+    if (isNaN(assignmentId)) return res.status(400).json({ message: "Invalid assignment ID" });
+
+    const { rating, feedback } = req.body;
+    if (!rating || typeof rating !== "number" || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: "rating must be a number between 1 and 5" });
+    }
+
+    const assignment = await storage.getResourceAssignmentById(assignmentId);
+    if (!assignment) return res.status(404).json({ message: "Assignment not found" });
+    if (assignment.assignedTo !== user.id) {
+      return res.status(403).json({ message: "Not authorised to submit feedback for this assignment" });
+    }
+
+    const existing = await storage.getResourceFeedbackByUser(user.id);
+    const alreadyRated = existing.find((f) => f.resourceId === assignment.resourceId);
+    if (alreadyRated) {
+      return res.status(409).json({ message: "Feedback already submitted for this resource" });
+    }
+
+    const saved = await storage.createResourceFeedback({
+      resourceId: assignment.resourceId,
+      userId: user.id,
+      rating,
+      feedback: feedback || null,
+    });
+    res.status(201).json(saved);
+  } catch (error) {
+    console.error("submitAssignmentFeedback error:", error);
+    res.status(500).json({ message: "Failed to submit feedback" });
+  }
+}
+
 // DELETE /api/resource-assignments/:id
 export async function deleteResourceAssignment(req: Request, res: Response) {
   try {

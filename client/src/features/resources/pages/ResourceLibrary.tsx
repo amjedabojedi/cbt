@@ -37,7 +37,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   PlusCircle, Shield, Sparkles, Trash2, Edit, BookOpen,
   FileText, Search, Users, ChevronRight, ChevronLeft, Globe, Lock,
-  Eye, UserCheck, X, Layers, Brain, Activity, Zap,
+  Eye, UserCheck, X, Layers, Brain, Activity, Zap, Star, CheckCircle2,
+  MessageSquare,
 } from "lucide-react";
 
 import ResourceViewer from "@/features/resources/components/ResourceViewer";
@@ -50,11 +51,11 @@ import type {
 } from "@/features/resources/types";
 import {
   useProtectiveFactors, useCopingStrategies, useEducationalResources,
-  useTherapistClients, useResourceAssignments,
+  useTherapistClients, useResourceAssignments, useMyAssignments,
   useCreateProtectiveFactor, useUpdateProtectiveFactor, useDeleteProtectiveFactor,
   useCreateCopingStrategy, useUpdateCopingStrategy, useDeleteCopingStrategy,
   useCreateResource, useUpdateResource, useDeleteResource,
-  useAssignResource, useCloneResource,
+  useAssignResource, useCloneResource, useUpdateAssignmentStatus, useSubmitFeedback,
 } from "@/features/resources/hooks/useResources";
 
 // ─── Schemas ───
@@ -255,7 +256,12 @@ export default function ResourceLibrary() {
   const { toast } = useToast();
   const { t, isRTL, tNum } = useLocalization();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"educational-resources" | "protective-factors" | "coping-strategies" | "client-assignments">("educational-resources");
+  const [activeTab, setActiveTab] = useState<"educational-resources" | "protective-factors" | "coping-strategies" | "client-assignments" | "my-resources">("educational-resources");
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [ratingAssignment, setRatingAssignment] = useState<ResourceAssignment | null>(null);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [ratingHover, setRatingHover] = useState(0);
+  const [ratingComment, setRatingComment] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [resourceCategory, setResourceCategory] = useState("all");
 
@@ -308,6 +314,9 @@ export default function ResourceLibrary() {
   const { data: educationalResources, isLoading: resourcesLoading } = useEducationalResources(!!user);
   const { data: clients, isLoading: clientsLoading } = useTherapistClients(!!user && user.role === "therapist");
   const { data: clientAssignments = [], isLoading: assignmentsLoading } = useResourceAssignments(!!user && user.role === "therapist");
+  const { data: myAssignments = [], isLoading: myAssignmentsLoading } = useMyAssignments(!!user && user.role === "client");
+  const updateStatusMutation = useUpdateAssignmentStatus();
+  const submitFeedbackMutation = useSubmitFeedback();
 
   const createFactorMutation = useCreateProtectiveFactor(user?.id);
   const updateFactorMutation = useUpdateProtectiveFactor(user?.id);
@@ -368,6 +377,33 @@ export default function ResourceLibrary() {
         { onSuccess: () => { if (currentResource) setCurrentResource({ ...currentResource, isEditing: false }); } }
       );
     }
+  };
+
+  const openRatingDialog = (assignment: ResourceAssignment) => {
+    setRatingAssignment(assignment);
+    setRatingValue(0);
+    setRatingHover(0);
+    setRatingComment("");
+    setRatingDialogOpen(true);
+  };
+
+  const handleMarkViewed = (assignmentId: number) => {
+    updateStatusMutation.mutate({ id: assignmentId, status: "viewed" });
+  };
+
+  const handleMarkComplete = (assignment: ResourceAssignment) => {
+    updateStatusMutation.mutate(
+      { id: assignment.id, status: "completed" },
+      { onSuccess: () => openRatingDialog(assignment) }
+    );
+  };
+
+  const handleSubmitRating = () => {
+    if (!ratingAssignment || ratingValue === 0) return;
+    submitFeedbackMutation.mutate(
+      { id: ratingAssignment.id, rating: ratingValue, feedback: ratingComment || undefined },
+      { onSuccess: () => { setRatingDialogOpen(false); setRatingAssignment(null); } }
+    );
   };
 
   const personalFactors   = protectiveFactors?.filter((f: ProtectiveFactor) => !f.isGlobal || f.userId === user?.id);
@@ -549,6 +585,29 @@ export default function ResourceLibrary() {
                           : "bg-slate-100 text-slate-500"
                       )}>
                         {clientAssignments.length}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                )}
+                {user?.role === "client" && (
+                  <TabsTrigger
+                    value="my-resources"
+                    className={cn(
+                      "sm:flex-1 min-w-0 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-all",
+                      "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                    )}
+                  >
+                    <BookOpen className="h-4 w-4 me-2 inline" />
+                    {t("My Resources")}
+                    {myAssignments.length > 0 && (
+                      <span className={cn(
+                        "ms-1.5 text-xs px-1.5 py-0.5 rounded-full font-bold transition-all",
+                        activeTab === "my-resources"
+                          ? "bg-white/20 text-white"
+                          : "bg-slate-100 text-slate-500"
+                      )}>
+                        {myAssignments.length}
                       </span>
                     )}
                   </TabsTrigger>
@@ -975,7 +1034,7 @@ export default function ResourceLibrary() {
             </div>
           </TabsContent>
 
-          {/* ══ CLIENT ASSIGNMENTS ══ */}
+          {/* ══ CLIENT ASSIGNMENTS (therapist view) ══ */}
           {user?.role === "therapist" && (
             <TabsContent value="client-assignments" className="mt-0 focus-visible:outline-none">
               <div>
@@ -1003,10 +1062,9 @@ export default function ResourceLibrary() {
               ) : clientAssignments.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {clientAssignments.map((a: ResourceAssignment) => {
-                    const cat = getCat(a.resource.category);
+                    const borderColor = a.status === "completed" ? "border-l-emerald-400" : a.status === "viewed" ? "border-l-blue-400" : "border-l-slate-300";
                     return (
-                      <div key={a.id} className="group rounded-2xl bg-white border border-slate-100 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-teal-100">
-                        <div className={`h-1 bg-gradient-to-r from-slate-700 to-teal-600`} />
+                      <div key={a.id} className={`group rounded-2xl bg-white border border-slate-100 border-l-4 ${borderColor} shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-teal-100`}>
                         <div className="p-5">
                           <div className="flex items-start justify-between gap-3 mb-2">
                             <h3 className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2">
@@ -1014,11 +1072,11 @@ export default function ResourceLibrary() {
                             </h3>
                             <span className={`shrink-0 inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full ${
                               a.status === "completed" ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" :
-                              a.status === "in_progress" ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200" :
+                              a.status === "viewed" ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200" :
                               "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
                             }`}>{formatAssignmentStatus(a.status, t)}</span>
                           </div>
-                          <div className="flex items-center gap-2 mb-3">
+                          <div className="flex items-center gap-2 mb-2">
                             <div className="h-6 w-6 rounded-full bg-teal-100 flex items-center justify-center">
                               <Users className="h-3.5 w-3.5 text-teal-700" />
                             </div>
@@ -1026,16 +1084,43 @@ export default function ResourceLibrary() {
                               {(a.client && (a.client.name || a.client.username)) || t("Client unavailable")}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-400 line-clamp-2 mb-3">
-                            <DynamicTranslator text={a.resource.description || ""} />
-                          </p>
+
+                          {/* Client rating display */}
+                          {(a as any).feedback ? (
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <div className="flex items-center gap-0.5">
+                                {[1,2,3,4,5].map((s) => (
+                                  <Star key={s} className={`h-3 w-3 ${s <= (a as any).feedback.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
+                                ))}
+                              </div>
+                              <span className="text-[10px] text-slate-500">{(a as any).feedback.rating}/5</span>
+                              {(a as any).feedback.feedback && (
+                                <span className="text-[10px] text-slate-400 line-clamp-1 italic">— {(a as any).feedback.feedback}</span>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 mb-2">
+                              {[1,2,3,4,5].map((s) => (
+                                <Star key={s} className="h-3 w-3 text-slate-200" />
+                              ))}
+                              <span className="text-[10px] text-slate-400 ms-1">{t("Not rated yet")}</span>
+                            </div>
+                          )}
+
+                          {a.status === "completed" && (a as any).completedAt && (
+                            <div className="flex items-center gap-1 mb-2 text-[10px] text-emerald-600">
+                              <CheckCircle2 className="h-3 w-3" />
+                              {t("Completed")} {new Date((a as any).completedAt).toLocaleDateString(isRTL ? "ar-SA" : "en-US")}
+                            </div>
+                          )}
+
                           {a.notes && (
                             <div className="p-2.5 bg-teal-50 rounded-xl border border-teal-100 text-xs text-slate-600 mb-3">
                               <span className="font-medium text-teal-700 block mb-0.5">{t("Notes:")}</span>
                               <DynamicTranslator text={a.notes} />
                             </div>
                           )}
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between mt-2">
                             <span className="text-xs text-slate-400">
                               {new Date(a.assignedAt).toLocaleDateString(isRTL ? "ar-SA" : "en-US")}
                             </span>
@@ -1066,6 +1151,158 @@ export default function ResourceLibrary() {
               )}
             </div>
           </TabsContent>
+          )}
+
+          {/* ══ MY RESOURCES (client view) ══ */}
+          {user?.role === "client" && (
+            <TabsContent value="my-resources" className="mt-0 focus-visible:outline-none">
+              <div>
+                <div className="mb-7">
+                  <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-teal-700" /> {t("My Resources")}
+                  </h2>
+                  <p className="text-sm text-slate-500">{t("Resources assigned to you by your therapist")}</p>
+                </div>
+
+                {myAssignmentsLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="h-52 rounded-2xl bg-slate-200 animate-pulse overflow-hidden">
+                        <div className="h-1 w-full bg-slate-300" />
+                        <div className="p-5 space-y-3">
+                          <div className="h-4 w-3/4 rounded bg-slate-300" />
+                          <div className="h-3 w-full rounded bg-slate-300" />
+                          <div className="h-3 w-5/6 rounded bg-slate-300" />
+                          <div className="h-8 w-full rounded-xl bg-slate-300 mt-4" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : myAssignments.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {myAssignments.map((a: ResourceAssignment) => {
+                      const cat = getCat(a.resource?.category || "");
+                      const isCompleted = a.status === "completed";
+                      const isViewed = a.status === "viewed";
+                      const hasRating = !!(a as any).feedback;
+                      const borderColor = isCompleted ? "border-l-emerald-400" : isViewed ? "border-l-blue-400" : "border-l-slate-300";
+                      return (
+                        <div key={a.id} className={`flex flex-col rounded-2xl bg-white border border-slate-100 border-l-4 ${borderColor} shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:-translate-y-0.5`}>
+                          <div className="flex-grow p-5">
+                            {/* Header row */}
+                            <div className="flex items-start justify-between gap-2 mb-3">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ring-1 ${cat.pill}`}>
+                                  <span className={`h-1.5 w-1.5 rounded-full ${cat.dot}`} />
+                                  {formatResourceCategory(a.resource?.category || "", t)}
+                                </span>
+                                <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-slate-50 text-slate-600 ring-1 ring-slate-200">
+                                  {getTypeIcon(a.resource?.type || "")}
+                                  {formatResourceType(a.resource?.type || "", t)}
+                                </span>
+                              </div>
+                              <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                isCompleted ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" :
+                                isViewed ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200" :
+                                "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
+                              }`}>
+                                {isCompleted ? t("Completed") : isViewed ? t("Viewed") : t("New")}
+                              </span>
+                            </div>
+
+                            <h3 className="text-sm font-semibold text-slate-800 leading-snug mb-2">
+                              <DynamicTranslator text={a.resource?.title || ""} />
+                            </h3>
+                            <p className="text-xs text-slate-500 line-clamp-2 mb-3">
+                              <DynamicTranslator text={a.resource?.description || ""} />
+                            </p>
+
+                            {/* Therapist note */}
+                            {a.notes && (
+                              <div className="p-2.5 bg-teal-50 rounded-xl border border-teal-100 text-xs text-slate-600 mb-3">
+                                <span className="font-medium text-teal-700 block mb-0.5 flex items-center gap-1">
+                                  <MessageSquare className="h-3 w-3 inline" /> {t("Therapist note:")}
+                                </span>
+                                <DynamicTranslator text={a.notes} />
+                              </div>
+                            )}
+
+                            {/* Rating display (if already rated) */}
+                            {hasRating && (
+                              <div className="flex items-center gap-1.5 mb-2">
+                                <div className="flex items-center gap-0.5">
+                                  {[1,2,3,4,5].map((s) => (
+                                    <Star key={s} className={`h-3.5 w-3.5 ${s <= (a as any).feedback.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
+                                  ))}
+                                </div>
+                                <span className="text-xs text-slate-500">{t("Your rating")}</span>
+                              </div>
+                            )}
+
+                            {/* Completion date */}
+                            {isCompleted && (a as any).completedAt && (
+                              <div className="flex items-center gap-1 text-[11px] text-emerald-600 mb-2">
+                                <CheckCircle2 className="h-3 w-3" />
+                                {t("Completed")} {new Date((a as any).completedAt).toLocaleDateString(isRTL ? "ar-SA" : "en-US")}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Action footer */}
+                          <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center gap-2">
+                            {!isCompleted ? (
+                              <>
+                                <Button size="sm" variant="ghost"
+                                  onClick={() => {
+                                    if (!isViewed) handleMarkViewed(a.id);
+                                    setCurrentResource({ ...a.resource, isEditing: false });
+                                  }}
+                                  className="h-8 px-3 text-xs font-medium text-slate-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg flex-1">
+                                  <Eye className="h-3.5 w-3.5 me-1.5" /> {t("Open Resource")}
+                                </Button>
+                                {isViewed && (
+                                  <Button size="sm"
+                                    onClick={() => handleMarkComplete(a)}
+                                    disabled={updateStatusMutation.isPending}
+                                    className="h-8 px-3 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">
+                                    <CheckCircle2 className="h-3.5 w-3.5 me-1.5" /> {t("Mark as Ready")}
+                                  </Button>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <Button size="sm" variant="ghost"
+                                  onClick={() => setCurrentResource({ ...a.resource, isEditing: false })}
+                                  className="h-8 px-3 text-xs font-medium text-slate-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg flex-1">
+                                  <Eye className="h-3.5 w-3.5 me-1.5" /> {t("View Again")}
+                                </Button>
+                                {!hasRating && (
+                                  <Button size="sm" variant="outline"
+                                    onClick={() => openRatingDialog(a)}
+                                    className="h-8 px-3 text-xs font-medium text-amber-600 border-amber-200 hover:bg-amber-50 rounded-lg">
+                                    <Star className="h-3.5 w-3.5 me-1.5" /> {t("Rate")}
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="p-5 bg-teal-50 rounded-2xl mb-5 border border-teal-100">
+                      <BookOpen className="h-10 w-10 text-slate-800" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-700 mb-2">{t("No resources assigned yet")}</h3>
+                    <p className="text-sm text-slate-400 max-w-sm">
+                      {t("Your therapist will assign resources here for you to read and complete.")}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
           )}
         </Tabs>
       </div>
@@ -1112,6 +1349,66 @@ export default function ResourceLibrary() {
           assignmentNotes={assignmentNotes} onNotesChange={setAssignmentNotes}
           onAssign={() => { if (currentResource) assignResourceMutation.mutate({ resourceId: currentResource.id, clientIds: selectedClients, notes: assignmentNotes }, { onSuccess: () => { setIsAssigningResource(false); setSelectedClients([]); setAssignmentNotes(""); setCurrentResource(null); } }); }}
           isPending={assignResourceMutation.isPending} currentResource={currentResource} />
+
+        {/* ── Rating Dialog ── */}
+        <Dialog open={ratingDialogOpen} onOpenChange={(open) => { if (!open) { setRatingDialogOpen(false); setRatingAssignment(null); } }}>
+          <DialogContent className="max-w-sm rounded-2xl bg-white border border-slate-100 shadow-xl">
+            <DialogHeader>
+              <DialogTitle className="text-slate-800 text-lg">{t("How helpful was this resource?")}</DialogTitle>
+              <DialogDescription className="text-slate-500 text-sm">
+                {ratingAssignment?.resource?.title && <span className="font-medium text-slate-700">{ratingAssignment.resource.title}</span>}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              {/* Star selector */}
+              <div className="flex items-center justify-center gap-2">
+                {[1,2,3,4,5].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setRatingValue(s)}
+                    onMouseEnter={() => setRatingHover(s)}
+                    onMouseLeave={() => setRatingHover(0)}
+                    className="transition-transform hover:scale-110 focus:outline-none"
+                  >
+                    <Star className={`h-8 w-8 transition-colors ${
+                      s <= (ratingHover || ratingValue) ? "fill-amber-400 text-amber-400" : "text-slate-200"
+                    }`} />
+                  </button>
+                ))}
+              </div>
+              {ratingValue > 0 && (
+                <p className="text-center text-sm font-medium text-slate-600">
+                  {ratingValue === 1 ? t("Not helpful") : ratingValue === 2 ? t("Slightly helpful") : ratingValue === 3 ? t("Moderately helpful") : ratingValue === 4 ? t("Very helpful") : t("Extremely helpful")}
+                </p>
+              )}
+              {/* Optional comment */}
+              <div>
+                <label className="text-xs font-medium text-slate-500 mb-1.5 block flex items-center gap-1">
+                  <MessageSquare className="h-3 w-3" /> {t("Any comments for your therapist?")} <span className="text-slate-400">({t("optional")})</span>
+                </label>
+                <Textarea
+                  value={ratingComment}
+                  onChange={(e) => setRatingComment(e.target.value)}
+                  placeholder={t("Share what you found helpful or challenging…")}
+                  className="rounded-xl border-slate-200 text-sm resize-none h-20"
+                />
+              </div>
+            </div>
+            <DialogFooter className="gap-2">
+              <Button variant="ghost" size="sm" onClick={() => { setRatingDialogOpen(false); setRatingAssignment(null); }}
+                className="rounded-xl text-slate-500 hover:text-slate-700">
+                {t("Skip")}
+              </Button>
+              <Button size="sm"
+                disabled={ratingValue === 0 || submitFeedbackMutation.isPending}
+                onClick={handleSubmitRating}
+                className="rounded-xl bg-teal-800 hover:bg-teal-700 text-white font-semibold">
+                {submitFeedbackMutation.isPending ? t("Submitting…") : t("Submit Rating")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={isViewingAssignment} onOpenChange={setIsViewingAssignment}>
           <DialogContent

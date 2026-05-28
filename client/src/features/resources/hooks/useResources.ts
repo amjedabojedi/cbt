@@ -322,6 +322,51 @@ export function useAssignResource() {
   });
 }
 
+export function useMyAssignments(enabled: boolean) {
+  return useQuery<ResourceAssignment[]>({
+    queryKey: ["/api/client/assignments"],
+    enabled,
+    retry: 1,
+    retryDelay: 500,
+  });
+}
+
+export function useUpdateAssignmentStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: "viewed" | "completed" }) => {
+      const response = await apiRequest("PATCH", `/api/resource-assignments/${id}/status`, { status });
+      if (!response.ok) throw new Error("Failed to update status");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/client/assignments"] });
+    },
+  });
+}
+
+export function useSubmitFeedback() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async ({ id, rating, feedback }: { id: number; rating: number; feedback?: string }) => {
+      const response = await apiRequest("POST", `/api/resource-assignments/${id}/feedback`, { rating, feedback });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Failed to submit feedback");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/client/assignments"] });
+      toast({ title: "Feedback Submitted", description: "Thank you for rating this resource." });
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to submit feedback.", variant: "destructive" });
+    },
+  });
+}
+
 export function useCloneResource() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
