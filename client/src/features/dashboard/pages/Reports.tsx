@@ -9,6 +9,7 @@ import ActivityTimeline from "@/features/dashboard/components/progress/ActivityT
 import CBTTriangleConnections from "@/features/dashboard/components/progress/CBTTriangleConnections";
 import ProgressIndicators from "@/features/dashboard/components/progress/ProgressIndicators";
 import { useLocalization } from "@/lib/localize.tsx";
+import { useClientContext } from "@/context/ClientContext";
 
 import {
   Select,
@@ -18,21 +19,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Download, Sparkles, TrendingUp } from "lucide-react";
+import { Download, Sparkles, TrendingUp, User } from "lucide-react";
 type TimeRange = "week" | "month" | "all";
 
 export default function Reports() {
   const { user } = useAuth();
+  const { viewingClientId, viewingClientName } = useClientContext();
   const [timeRange, setTimeRange] = useState<TimeRange>("month");
   const { toast } = useToast();
   const [isExporting, setIsExporting] = useState(false);
   const { t, isRTL, tNum } = useLocalization();
 
-  const insights = useProgressInsights(user?.id, timeRange);
+  const isTherapistViewingClient = user?.role === "therapist" && !!viewingClientId;
+  const subjectId = isTherapistViewingClient ? viewingClientId! : user?.id;
+
+  const insights = useProgressInsights(subjectId, timeRange);
   const milestonePct = Math.min(100, Math.round((insights.totalActivities / 50) * 100));
 
   return (
-    <AppLayout title={t("My Progress")}>
+    <AppLayout title={isTherapistViewingClient ? t("Client Progress") : t("My Progress")}>
       <div
         className="min-h-screen bg-slate-50 pb-12"
         dir={isRTL ? "rtl" : "ltr"}
@@ -46,18 +51,26 @@ export default function Reports() {
               <div>
                 <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-900/40 border border-teal-800/40 text-teal-200 text-xs font-semibold mb-3 w-fit">
                   <Sparkles className="h-3.5 w-3.5 text-teal-300 animate-pulse" />
-                  <span>{t("Therapeutic Analytics")}</span>
+                  <span>{isTherapistViewingClient ? t("Client Analytics") : t("Therapeutic Analytics")}</span>
                 </div>
+                {isTherapistViewingClient && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="h-4 w-4 text-teal-300" />
+                    <span className="text-teal-200 text-sm font-medium">
+                      {t("Viewing progress for")} <span className="text-white font-semibold">{viewingClientName}</span>
+                    </span>
+                  </div>
+                )}
                 <h1
                   className="font-extrabold text-white tracking-tight text-3xl md:text-4xl mb-2"
                   data-testid="page-title"
                 >
-                  {t("My Progress")}
+                  {isTherapistViewingClient ? t("Client Progress") : t("My Progress")}
                 </h1>
                 <p className="text-teal-100/80 text-sm sm:text-base max-w-xl leading-relaxed">
-                  {t(
-                    "Evidence-based CBT analytics and clinical insights tracking your personal growth and mental wellness journey."
-                  )}
+                  {isTherapistViewingClient
+                    ? t("Evidence-based CBT analytics and clinical insights for your client's therapeutic journey.")
+                    : t("Evidence-based CBT analytics and clinical insights tracking your personal growth and mental wellness journey.")}
                 </p>
               </div>
 
