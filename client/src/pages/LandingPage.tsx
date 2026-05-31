@@ -9,6 +9,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import CbtToolsSection from '@/components/landing/CbtToolsSection';
 import FeatureFlowImage from '@/components/landing/FeatureFlowImage';
+import rdtLogo from '@assets/image_1780200780680.png';
 
 const BrainLogo = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
@@ -385,8 +386,19 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="border-t border-slate-700/50 pt-6 text-center text-slate-500 text-xs">
-            © {new Date().getFullYear()} ResilienceHub. All rights reserved.
+          <div className="border-t border-slate-700/50 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-slate-500 text-xs">
+              © {new Date().getFullYear()} ResilienceHub. All rights reserved.
+            </p>
+            <div className="flex items-center gap-2.5">
+              <span className="text-slate-600 text-xs">Built by</span>
+              <img
+                src={rdtLogo}
+                alt="Resilience Digital Transformation Inc"
+                className="h-7 object-contain opacity-80 hover:opacity-100 transition-opacity"
+              />
+              <span className="text-slate-400 text-xs font-medium">Resilience Digital Transformation Inc</span>
+            </div>
           </div>
         </div>
       </footer>
