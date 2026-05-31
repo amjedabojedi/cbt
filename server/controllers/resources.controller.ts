@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { storage } from "../storage";
+import { sendNotificationToUser } from "../services/websocket";
 
 // GET /api/resources
 export async function getAllResources(req: Request, res: Response) {
@@ -128,6 +129,22 @@ export async function assignResource(req: Request, res: Response) {
       status: "assigned",
       type: "resource",
     });
+
+    // Notify the client that a new resource has been assigned
+    try {
+      const resource = await storage.getResourceById(resourceId);
+      const resourceTitle = resource?.title ?? "a new resource";
+      const notification = await storage.createNotification({
+        userId: clientId,
+        title: "New Resource Assigned",
+        body: `Your therapist assigned you "${resourceTitle}". Check your library to view it.`,
+        type: "resource",
+      });
+      sendNotificationToUser(clientId, notification);
+    } catch (notifError) {
+      // Non-critical — assignment already succeeded
+      console.error("Failed to send resource assignment notification:", notifError);
+    }
 
     res.status(201).json(assignment);
   } catch (error) {
