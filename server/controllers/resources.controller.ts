@@ -5,6 +5,16 @@ import { storage } from "../storage";
 export async function getAllResources(req: Request, res: Response) {
   try {
     const user = (req as any).user;
+
+    // Clients only see resources that have been explicitly assigned to them
+    if (user?.role === "client") {
+      const assignments = await storage.getAssignmentsByClient(user.id);
+      const resources = await Promise.all(
+        assignments.map((a) => storage.getResourceById(a.resourceId))
+      );
+      return res.json(resources.filter(Boolean));
+    }
+
     const includeUnpublished = user?.role === "admin" || user?.role === "therapist";
     const allResources = await storage.getAllResources(includeUnpublished);
     res.json(allResources);

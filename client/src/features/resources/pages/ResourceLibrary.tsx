@@ -256,7 +256,8 @@ export default function ResourceLibrary() {
   const { toast } = useToast();
   const { t, isRTL, tNum } = useLocalization();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"educational-resources" | "protective-factors" | "coping-strategies" | "client-assignments" | "my-resources">("educational-resources");
+  const isClient = user?.role === "client";
+  const [activeTab, setActiveTab] = useState<"educational-resources" | "protective-factors" | "coping-strategies" | "client-assignments" | "my-resources">(user?.role === "client" ? "my-resources" : "educational-resources");
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [ratingAssignment, setRatingAssignment] = useState<ResourceAssignment | null>(null);
   const [ratingValue, setRatingValue] = useState(0);
@@ -504,27 +505,29 @@ export default function ResourceLibrary() {
           <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as any)} className="space-y-6">
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-1.5">
               <TabsList className="w-full h-auto bg-transparent p-0 gap-1 grid grid-cols-2 sm:flex">
-                <TabsTrigger
-                  value="educational-resources"
-                  className={cn(
-                    "sm:flex-1 min-w-0 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-all",
-                    "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
-                    "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
-                  )}
-                >
-                  <BookOpen className="h-4 w-4 me-2 inline" />
-                  {t("Educational Resources")}
-                  {educationalResources && educationalResources.length > 0 && (
-                    <span className={cn(
-                      "ms-1.5 text-xs px-1.5 py-0.5 rounded-full font-bold transition-all",
-                      activeTab === "educational-resources"
-                        ? "bg-white/20 text-white"
-                        : "bg-slate-100 text-slate-500"
-                    )}>
-                      {educationalResources.length}
-                    </span>
-                  )}
-                </TabsTrigger>
+                {!isClient && (
+                  <TabsTrigger
+                    value="educational-resources"
+                    className={cn(
+                      "sm:flex-1 min-w-0 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-all",
+                      "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
+                    )}
+                  >
+                    <BookOpen className="h-4 w-4 me-2 inline" />
+                    {t("Educational Resources")}
+                    {educationalResources && educationalResources.length > 0 && (
+                      <span className={cn(
+                        "ms-1.5 text-xs px-1.5 py-0.5 rounded-full font-bold transition-all",
+                        activeTab === "educational-resources"
+                          ? "bg-white/20 text-white"
+                          : "bg-slate-100 text-slate-500"
+                      )}>
+                        {educationalResources.length}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                )}
                 <TabsTrigger
                   value="protective-factors"
                   className={cn(
