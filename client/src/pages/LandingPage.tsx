@@ -391,14 +391,14 @@ export default function LandingPage() {
               © {new Date().getFullYear()} ResilienceHub. All rights reserved.
             </p>
             <div className="flex items-center gap-3">
-              <span className="text-teal-300/50 text-xs">Built by</span>
-              <div className="bg-white/10 rounded-lg px-2 py-1 flex items-center gap-2 border border-white/10">
+              <span className="text-teal-200/60 text-xs font-medium">Built by</span>
+              <div className="bg-white rounded-xl px-3 py-1.5 flex items-center gap-2.5 shadow-md">
                 <img
                   src={rdtLogo}
                   alt="Resilience Digital Transformation Inc"
-                  className="h-8 object-contain"
+                  className="h-7 object-contain"
                 />
-                <span className="text-white/90 text-xs font-semibold tracking-wide">Resilience Digital Transformation Inc</span>
+                <span className="text-teal-800 text-xs font-bold tracking-wide whitespace-nowrap">Resilience Digital Transformation Inc</span>
               </div>
             </div>
           </div>
