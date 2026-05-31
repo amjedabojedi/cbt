@@ -363,41 +363,43 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="bg-slate-900">
+      <footer className="bg-gradient-to-br from-teal-900 via-teal-800 to-slate-800 border-t border-teal-700/40">
         <div className="container mx-auto px-4 py-10">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-8">
             {/* Brand */}
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-white/10 border border-teal-500/30 flex items-center justify-center shrink-0">
                 <BrainLogo />
               </div>
               <div className="leading-none">
                 <p className="text-white font-bold text-sm">ResilienceHub</p>
-                <p className="text-slate-400 text-xs mt-0.5">Structured tools for tracking emotions, thoughts, and behaviours</p>
+                <p className="text-teal-200/60 text-xs mt-0.5">Structured tools for tracking emotions, thoughts, and behaviours</p>
               </div>
             </div>
 
             {/* Links */}
             <div className="flex flex-wrap gap-x-6 gap-y-2">
-              <Link href="/auth" className="text-slate-400 hover:text-white text-sm transition-colors">Log In / Register</Link>
-              <Link href="/m/login" className="text-slate-400 hover:text-white text-sm transition-colors">Mobile Login</Link>
-              <Link href="/privacy-policy" className="text-slate-400 hover:text-white text-sm transition-colors">Privacy Policy</Link>
-              <Link href="/terms-of-service" className="text-slate-400 hover:text-white text-sm transition-colors">Terms of Service</Link>
+              <Link href="/auth" className="text-teal-200/70 hover:text-white text-sm transition-colors">Log In / Register</Link>
+              <Link href="/m/login" className="text-teal-200/70 hover:text-white text-sm transition-colors">Mobile Login</Link>
+              <Link href="/privacy-policy" className="text-teal-200/70 hover:text-white text-sm transition-colors">Privacy Policy</Link>
+              <Link href="/terms-of-service" className="text-teal-200/70 hover:text-white text-sm transition-colors">Terms of Service</Link>
             </div>
           </div>
 
-          <div className="border-t border-slate-700/50 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-slate-500 text-xs">
+          <div className="border-t border-teal-600/30 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-teal-300/50 text-xs">
               © {new Date().getFullYear()} ResilienceHub. All rights reserved.
             </p>
-            <div className="flex items-center gap-2.5">
-              <span className="text-slate-600 text-xs">Built by</span>
-              <img
-                src={rdtLogo}
-                alt="Resilience Digital Transformation Inc"
-                className="h-7 object-contain opacity-80 hover:opacity-100 transition-opacity"
-              />
-              <span className="text-slate-400 text-xs font-medium">Resilience Digital Transformation Inc</span>
+            <div className="flex items-center gap-3">
+              <span className="text-teal-300/50 text-xs">Built by</span>
+              <div className="bg-white/10 rounded-lg px-2 py-1 flex items-center gap-2 border border-white/10">
+                <img
+                  src={rdtLogo}
+                  alt="Resilience Digital Transformation Inc"
+                  className="h-8 object-contain"
+                />
+                <span className="text-white/90 text-xs font-semibold tracking-wide">Resilience Digital Transformation Inc</span>
+              </div>
             </div>
           </div>
         </div>
