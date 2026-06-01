@@ -1021,6 +1021,11 @@ function generateFallbackAnalysis(title = "", content = ""): JournalAnalysisResu
   return result;
 }
 
+// Separate client for Whisper — uses direct OpenAI API (Replit integration proxy does not support audio endpoints)
+const openaiDirect = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 /**
  * Transcribes audio using OpenAI Whisper.
  * @param buffer   Raw audio bytes
@@ -1037,12 +1042,12 @@ export async function transcribeAudio(
   const ext = mimeType.split(";")[0].split("/")[1] || "webm";
   const file = await toFile(buffer, `audio.${ext}`, { type: mimeType });
 
-  const params: Parameters<typeof openai.audio.transcriptions.create>[0] = {
+  const params: Parameters<typeof openaiDirect.audio.transcriptions.create>[0] = {
     file,
     model: "whisper-1",
   };
   if (language) params.language = language;
 
-  const transcription = await openai.audio.transcriptions.create(params);
+  const transcription = await openaiDirect.audio.transcriptions.create(params);
   return transcription.text ?? "";
 }
