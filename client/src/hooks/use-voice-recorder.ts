@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface UseVoiceRecorderOptions {
   language?: string;
@@ -6,33 +6,12 @@ export interface UseVoiceRecorderOptions {
   onError?: (message: string) => void;
 }
 
-function pickMimeType(): string | undefined {
-  if (typeof MediaRecorder === "undefined") return undefined;
-  const candidates = [
-    "audio/webm;codecs=opus",
-    "audio/webm",
-    "audio/mp4",
-    "audio/ogg;codecs=opus",
-    "audio/ogg",
-  ];
-  for (const t of candidates) {
-    try {
-      if (MediaRecorder.isTypeSupported(t)) return t;
-    } catch {}
-  }
-  return undefined;
-}
-
 export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
   const { language, onTranscript, onError } = options;
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
 
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const mimeTypeRef = useRef<string | undefined>(undefined);
-
+  const recognitionRef = useRef<any>(null);
   const onTranscriptRef = useRef(onTranscript);
   const onErrorRef = useRef(onError);
   useEffect(() => {
@@ -40,132 +19,83 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
     onErrorRef.current = onError;
   });
 
-  const isSupported =
-    typeof window !== "undefined" &&
-    typeof navigator !== "undefined" &&
-    !!navigator.mediaDevices?.getUserMedia &&
-    typeof window.MediaRecorder !== "undefined";
-
-  const cleanupStream = useCallback(() => {
-    streamRef.current?.getTracks().forEach((t) => {
-      try {
-        t.stop();
-      } catch {}
-    });
-    streamRef.current = null;
-  }, []);
-
-  const transcribe = useCallback(
-    async (blob: Blob) => {
-      setIsTranscribing(true);
-      try {
-        const url = language
-          ? `/api/transcribe?language=${encodeURIComponent(language)}`
-          : "/api/transcribe";
-        const res = await fetch(url, {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": blob.type || "audio/webm",
-          },
-          body: blob,
-        });
-        if (!res.ok) {
-          let msg = `Transcription failed (${res.status})`;
-          try {
-            const data = await res.json();
-            if (data?.message) msg = data.message;
-          } catch {}
-          if (res.status === 429) msg = "Voice typing limit reached. Try again in an hour.";
-          if (res.status === 401) msg = "You need to be signed in to use voice typing.";
-          onErrorRef.current?.(msg);
-          return;
-        }
-        const data = await res.json();
-        const text: string = (data?.text || "").trim();
-        if (text) onTranscriptRef.current?.(text);
-      } catch (err: any) {
-        onErrorRef.current?.(err?.message || "Transcription request failed");
-      } finally {
-        setIsTranscribing(false);
-      }
-    },
-    [language],
+  const SpeechRecognitionClass = useMemo(
+    () =>
+      typeof window !== "undefined"
+        ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+        : null,
+    [],
   );
 
-  const start = useCallback(async () => {
-    if (!isSupported) {
-      onErrorRef.current?.("Voice typing is not supported in this browser.");
-      return;
-    }
-    if (isRecording) return;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      const mimeType = pickMimeType();
-      mimeTypeRef.current = mimeType;
-      const recorder = mimeType
-        ? new MediaRecorder(stream, { mimeType })
-        : new MediaRecorder(stream);
-      chunksRef.current = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
-      };
-      recorder.onstop = () => {
-        const type = mimeTypeRef.current || recorder.mimeType || "audio/webm";
-        const blob = new Blob(chunksRef.current, { type });
-        chunksRef.current = [];
-        cleanupStream();
-        setIsRecording(false);
-        if (blob.size > 0) {
-          void transcribe(blob);
-        }
-      };
-      recorder.onerror = (e: any) => {
-        onErrorRef.current?.(e?.error?.message || "Recording error");
-        cleanupStream();
-        setIsRecording(false);
-      };
-      recorder.start();
-      recorderRef.current = recorder;
-      setIsRecording(true);
-    } catch (err: any) {
-      const name = err?.name || "";
-      if (name === "NotAllowedError" || name === "SecurityError") {
-        onErrorRef.current?.("Microphone access was denied.");
-      } else if (name === "NotFoundError") {
-        onErrorRef.current?.("No microphone found on this device.");
-      } else {
-        onErrorRef.current?.(err?.message || "Could not start recording");
-      }
-      cleanupStream();
+  const isSupported = !!SpeechRecognitionClass;
+
+  const start = useCallback(() => {
+    if (!SpeechRecognitionClass || isRecording) return;
+
+    const recognition = new SpeechRecognitionClass();
+    recognition.lang = language || navigator.language || "en-US";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setIsRecording(true);
+
+    recognition.onresult = (event: any) => {
+      const transcript = Array.from(event.results as SpeechRecognitionResultList)
+        .map((r: any) => r[0].transcript)
+        .join(" ")
+        .trim();
+      if (transcript) onTranscriptRef.current?.(transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+      const code: string = event.error ?? "";
+      let msg = "Voice recognition failed. Please try again.";
+      if (code === "not-allowed" || code === "service-not-allowed")
+        msg = "Microphone access was denied.";
+      else if (code === "no-speech")
+        msg = "No speech detected. Please try again.";
+      else if (code === "network")
+        msg = "Network error during voice recognition.";
+      else if (code === "audio-capture")
+        msg = "No microphone found on this device.";
+      onErrorRef.current?.(msg);
       setIsRecording(false);
+      setIsTranscribing(false);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+      setIsTranscribing(false);
+    };
+
+    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+    } catch {
+      onErrorRef.current?.("Could not start voice recognition.");
     }
-  }, [isRecording, isSupported, cleanupStream, transcribe]);
+  }, [SpeechRecognitionClass, isRecording, language]);
 
   const stop = useCallback(() => {
-    const r = recorderRef.current;
-    if (r && r.state !== "inactive") {
-      try {
-        r.stop();
-      } catch {}
-    }
-    recorderRef.current = null;
+    try {
+      recognitionRef.current?.stop();
+    } catch {}
+    recognitionRef.current = null;
   }, []);
 
   const toggle = useCallback(() => {
     if (isRecording) stop();
-    else void start();
+    else start();
   }, [isRecording, start, stop]);
 
   useEffect(() => {
     return () => {
       try {
-        recorderRef.current?.stop();
+        recognitionRef.current?.stop();
       } catch {}
-      cleanupStream();
     };
-  }, [cleanupStream]);
+  }, []);
 
   return { isRecording, isTranscribing, isSupported, start, stop, toggle };
 }
