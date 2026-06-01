@@ -73,12 +73,20 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
         const url = language
           ? `/api/transcribe?language=${encodeURIComponent(language)}`
           : "/api/transcribe";
-        const res = await fetch(url, {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ audio: base64, mimeType: blob.type || "audio/webm" }),
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        let res: Response;
+        try {
+          res = await fetch(url, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ audio: base64, mimeType: blob.type || "audio/webm" }),
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
         if (!res.ok) {
           let msg = `Transcription failed (${res.status})`;
           try {
