@@ -114,7 +114,6 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        // If Deepgram key is not configured, show a friendly message instead of generic error
         if (data?.code === "NO_API_KEY") {
           onErrorRef.current?.(
             "Server transcription is not set up yet. Please use Chrome for voice typing.",
@@ -154,8 +153,14 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
       const recognition = new SpeechRecognitionClass();
       recognition.lang = language || navigator.language || "en-US";
       recognition.continuous = true;
-      recognition.interimResults = false;
+      // FIX #4: enable interim results so the last spoken phrase is not lost
+      // when the user clicks Stop before the browser finalises the segment.
+      recognition.interimResults = true;
       recognition.maxAlternatives = 1;
+
+      // Track the most recent interim result separately.
+      // If onend fires before it becomes final, we include it anyway.
+      let pendingInterim = "";
 
       recognition.onstart = () => setIsRecording(true);
 
@@ -164,6 +169,11 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
           if (event.results[i].isFinal) {
             const segment = event.results[i][0].transcript.trim();
             if (segment) accumulatedRef.current.push(segment);
+            pendingInterim = "";
+          } else {
+            // Keep the latest interim text; it will be promoted on onend if
+            // the session closes before the browser finalises the segment.
+            pendingInterim = event.results[i][0].transcript.trim();
           }
         }
       };
@@ -184,8 +194,11 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
       };
 
       recognition.onend = () => {
+        // FIX #3: clear the transcribing spinner now that we have the result.
         setIsRecording(false);
         setIsTranscribing(false);
+        // FIX #4: include any unfinalised interim text.
+        if (pendingInterim) accumulatedRef.current.push(pendingInterim);
         const full = accumulatedRef.current.join(" ").trim();
         if (full) onTranscriptRef.current?.(full);
         accumulatedRef.current = [];
@@ -257,6 +270,9 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
   // ── stop ──────────────────────────────────────────────────────────────────
   const stop = useCallback(() => {
     if (modeRef.current === "speech") {
+      // FIX #3: show spinner immediately so the user knows something is happening
+      // while the browser delivers the onend callback with the final transcript.
+      setIsTranscribing(true);
       try { recognitionRef.current?.stop(); } catch {}
       recognitionRef.current = null;
     } else {

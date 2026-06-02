@@ -29,19 +29,21 @@ const Textarea = React.forwardRef<
       const sep = current && !/\s$/.test(current) ? " " : ""
       const next = `${current}${sep}${trimmed}`
 
-      if (isControlled) {
+      if (isControlled && onChange) {
+        // Set DOM value then call onChange directly so react-hook-form
+        // and other controlled-input patterns pick up the new value.
         const setter = Object.getOwnPropertyDescriptor(
           window.HTMLTextAreaElement.prototype,
           "value",
         )?.set
         setter?.call(node, next)
-        node.dispatchEvent(new Event("input", { bubbles: true }))
+        onChange({ target: node } as React.ChangeEvent<HTMLTextAreaElement>)
       } else {
         node.value = next
         node.dispatchEvent(new Event("input", { bubbles: true }))
       }
     },
-    [isControlled, value],
+    [isControlled, value, onChange],
   )
 
   return (
