@@ -31,7 +31,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         const trimmed = text.trim()
         if (!trimmed) return
 
-        const current = isControlled ? String(value ?? "") : node.value
+        // Always read from the DOM node — it's always current regardless of
+        // React render timing, avoiding stale-closure "append old text" bugs.
+        const current = node.value
         const sep = current && !/\s$/.test(current) ? " " : ""
         const next = `${current}${sep}${trimmed}`
 
