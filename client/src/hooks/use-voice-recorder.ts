@@ -69,6 +69,12 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
 
   const isSupported = !!SpeechRecognitionClass || hasMediaRecorder;
 
+  // ── track if Web Speech API had a network failure this session ────────────
+  // Chrome's Web Speech API fails with "network" when running inside an iframe
+  // (e.g. Replit's preview pane) that hasn't granted microphone to the iframe.
+  // After one network failure we skip Web Speech and go straight to Deepgram.
+  const speechNetworkFailedRef = useRef(false);
+
   // ── refs for Web Speech API ───────────────────────────────────────────────
   const recognitionRef = useRef<any>(null);
   const accumulatedRef = useRef<string[]>([]);
@@ -79,7 +85,6 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
   const chunksRef = useRef<Blob[]>([]);
   const mimeTypeRef = useRef<string | undefined>(undefined);
 
-  // ── which mode are we using ───────────────────────────────────────────────
   // "speech" = Web Speech API  |  "media" = MediaRecorder + server
   const modeRef = useRef<"speech" | "media">("speech");
 
@@ -141,85 +146,12 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
     }
   }, [language]);
 
-  // ── start ─────────────────────────────────────────────────────────────────
-  const start = useCallback(async () => {
-    if (isRecording) return;
-
-    // ── branch A: Web Speech API (Chrome / Edge / Safari) ──────────────────
-    if (SpeechRecognitionClass) {
-      modeRef.current = "speech";
-      accumulatedRef.current = [];
-
-      const recognition = new SpeechRecognitionClass();
-      recognition.lang = language || navigator.language || "en-US";
-      recognition.continuous = true;
-      // FIX #4: enable interim results so the last spoken phrase is not lost
-      // when the user clicks Stop before the browser finalises the segment.
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
-
-      // Track the most recent interim result separately.
-      // If onend fires before it becomes final, we include it anyway.
-      let pendingInterim = "";
-
-      recognition.onstart = () => setIsRecording(true);
-
-      recognition.onresult = (event: any) => {
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          if (event.results[i].isFinal) {
-            const segment = event.results[i][0].transcript.trim();
-            if (segment) accumulatedRef.current.push(segment);
-            pendingInterim = "";
-          } else {
-            // Keep the latest interim text; it will be promoted on onend if
-            // the session closes before the browser finalises the segment.
-            pendingInterim = event.results[i][0].transcript.trim();
-          }
-        }
-      };
-
-      recognition.onerror = (event: any) => {
-        const code: string = event.error ?? "";
-        if (code === "no-speech") return;
-        let msg = "Voice recognition failed. Please try again.";
-        if (code === "not-allowed" || code === "service-not-allowed")
-          msg = "Microphone access was denied. Please allow microphone access in your browser settings.";
-        else if (code === "audio-capture")
-          msg = "No microphone found on this device.";
-        else if (code === "network")
-          msg = "Network error with voice recognition. Please try again.";
-        onErrorRef.current?.(msg);
-        setIsRecording(false);
-        setIsTranscribing(false);
-      };
-
-      recognition.onend = () => {
-        // FIX #3: clear the transcribing spinner now that we have the result.
-        setIsRecording(false);
-        setIsTranscribing(false);
-        // FIX #4: include any unfinalised interim text.
-        if (pendingInterim) accumulatedRef.current.push(pendingInterim);
-        const full = accumulatedRef.current.join(" ").trim();
-        if (full) onTranscriptRef.current?.(full);
-        accumulatedRef.current = [];
-      };
-
-      recognitionRef.current = recognition;
-      try {
-        recognition.start();
-      } catch {
-        onErrorRef.current?.("Could not start voice recognition. Please try again.");
-        setIsRecording(false);
-      }
-      return;
-    }
-
-    // ── branch B: MediaRecorder fallback (Firefox / unsupported browsers) ───
+  // ── MediaRecorder branch (extracted so it can be called as a fallback) ────
+  const startMediaRecorder = useCallback(async () => {
     if (!hasMediaRecorder) {
       onErrorRef.current?.("Voice typing is not supported in this browser. Please use Chrome.");
       return;
     }
-
     modeRef.current = "media";
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -265,13 +197,95 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
       cleanupStream();
       setIsRecording(false);
     }
-  }, [isRecording, SpeechRecognitionClass, hasMediaRecorder, language, cleanupStream, transcribeViaServer]);
+  }, [hasMediaRecorder, cleanupStream, transcribeViaServer]);
+
+  // ── start ─────────────────────────────────────────────────────────────────
+  const start = useCallback(async () => {
+    if (isRecording) return;
+
+    // ── branch A: Web Speech API (Chrome / Edge / Safari) ──────────────────
+    // Skip if it previously failed with a network error (e.g. iframe context).
+    if (SpeechRecognitionClass && !speechNetworkFailedRef.current) {
+      modeRef.current = "speech";
+      accumulatedRef.current = [];
+
+      const recognition = new SpeechRecognitionClass();
+      recognition.lang = language || navigator.language || "en-US";
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+
+      let pendingInterim = "";
+
+      recognition.onstart = () => setIsRecording(true);
+
+      recognition.onresult = (event: any) => {
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            const segment = event.results[i][0].transcript.trim();
+            if (segment) accumulatedRef.current.push(segment);
+            pendingInterim = "";
+          } else {
+            pendingInterim = event.results[i][0].transcript.trim();
+          }
+        }
+      };
+
+      recognition.onerror = async (event: any) => {
+        const code: string = event.error ?? "";
+        if (code === "no-speech") return;
+
+        if (code === "network") {
+          // Web Speech API is blocked in this context (common inside iframes such
+          // as Replit's preview pane). Mark it as failed so future calls skip it,
+          // then automatically fall back to MediaRecorder + Deepgram.
+          speechNetworkFailedRef.current = true;
+          try { recognition.abort(); } catch {}
+          recognitionRef.current = null;
+          setIsRecording(false);
+          setIsTranscribing(false);
+          // Start Deepgram path silently — no error shown to the user.
+          await startMediaRecorder();
+          return;
+        }
+
+        let msg = "Voice recognition failed. Please try again.";
+        if (code === "not-allowed" || code === "service-not-allowed")
+          msg = "Microphone access was denied. Please allow microphone access in your browser settings.";
+        else if (code === "audio-capture")
+          msg = "No microphone found on this device.";
+        onErrorRef.current?.(msg);
+        setIsRecording(false);
+        setIsTranscribing(false);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+        setIsTranscribing(false);
+        if (pendingInterim) accumulatedRef.current.push(pendingInterim);
+        const full = accumulatedRef.current.join(" ").trim();
+        if (full) onTranscriptRef.current?.(full);
+        accumulatedRef.current = [];
+      };
+
+      recognitionRef.current = recognition;
+      try {
+        recognition.start();
+      } catch {
+        onErrorRef.current?.("Could not start voice recognition. Please try again.");
+        setIsRecording(false);
+      }
+      return;
+    }
+
+    // ── branch B: MediaRecorder + Deepgram ───────────────────────────────
+    await startMediaRecorder();
+  }, [isRecording, SpeechRecognitionClass, language, startMediaRecorder]);
 
   // ── stop ──────────────────────────────────────────────────────────────────
   const stop = useCallback(() => {
     if (modeRef.current === "speech") {
-      // FIX #3: show spinner immediately so the user knows something is happening
-      // while the browser delivers the onend callback with the final transcript.
+      // Show spinner immediately while the browser delivers the final transcript.
       setIsTranscribing(true);
       try { recognitionRef.current?.stop(); } catch {}
       recognitionRef.current = null;
