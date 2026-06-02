@@ -1,16 +1,10 @@
 import { Router } from "express";
+import https from "https";
 import { authenticate } from "../middleware/auth";
-import OpenAI from "openai";
 
 const router = Router();
 
-// Use the Replit-managed integration client — chat completions endpoint is supported
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
-
-const RATE_LIMIT_MAX = 20;
+const RATE_LIMIT_MAX = 30;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
 const rateLimitMap = new Map<number, { count: number; resetAt: number }>();
 
@@ -26,22 +20,71 @@ function checkRateLimit(userId: number): boolean {
   return true;
 }
 
-// Map browser MIME type to a format accepted by the audio model
-function audioFormat(mimeType: string): string {
-  if (mimeType.includes("mp4")) return "mp4";
-  if (mimeType.includes("ogg")) return "ogg";
-  if (mimeType.includes("flac")) return "flac";
-  if (mimeType.includes("wav")) return "wav";
-  if (mimeType.includes("mp3") || mimeType.includes("mpeg")) return "mp3";
-  // webm/opus — treat as ogg (same codec, works in practice)
-  return "ogg";
+// Map browser MIME type → Deepgram mimetype param
+function deepgramMime(mimeType: string): string {
+  if (mimeType.includes("mp4")) return "audio/mp4";
+  if (mimeType.includes("ogg")) return "audio/ogg";
+  if (mimeType.includes("wav")) return "audio/wav";
+  if (mimeType.includes("mp3") || mimeType.includes("mpeg")) return "audio/mpeg";
+  return "audio/webm"; // default — webm/opus is what MediaRecorder produces in Chrome
 }
 
+function deepgramTranscribe(audioBuffer: Buffer, mimeType: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const apiKey = process.env.DEEPGRAM_API_KEY;
+    if (!apiKey) {
+      reject(new Error("DEEPGRAM_API_KEY is not configured"));
+      return;
+    }
+
+    const contentType = deepgramMime(mimeType);
+    const query = "model=nova-2&smart_format=true&punctuate=true";
+
+    const options: https.RequestOptions = {
+      hostname: "api.deepgram.com",
+      path: `/v1/listen?${query}`,
+      method: "POST",
+      headers: {
+        Authorization: `Token ${apiKey}`,
+        "Content-Type": contentType,
+        "Content-Length": audioBuffer.length,
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => {
+        if (res.statusCode !== 200) {
+          reject(new Error(`Deepgram returned ${res.statusCode}: ${data.slice(0, 200)}`));
+          return;
+        }
+        try {
+          const parsed = JSON.parse(data);
+          const transcript =
+            parsed?.results?.channels?.[0]?.alternatives?.[0]?.transcript ?? "";
+          resolve(transcript.trim());
+        } catch {
+          reject(new Error("Failed to parse Deepgram response"));
+        }
+      });
+    });
+
+    req.on("error", (err) => reject(err));
+    req.write(audioBuffer);
+    req.end();
+  });
+}
+
+// POST /api/transcribe
+// Body: { audio: <base64 string>, mimeType: <mime string> }
 router.post("/transcribe", authenticate, async (req, res) => {
   try {
     const userId = (req as any).user?.id as number;
     if (!checkRateLimit(userId)) {
-      return res.status(429).json({ message: "Voice typing limit reached. Try again in an hour." });
+      return res
+        .status(429)
+        .json({ message: "Voice typing limit reached. Try again in an hour." });
     }
 
     const { audio, mimeType = "audio/webm" } = req.body ?? {};
@@ -49,33 +92,15 @@ router.post("/transcribe", authenticate, async (req, res) => {
       return res.status(400).json({ message: "No audio data provided." });
     }
 
-    const language: string | undefined =
-      typeof req.query.language === "string" ? req.query.language : undefined;
+    if (!process.env.DEEPGRAM_API_KEY) {
+      return res.status(503).json({
+        message: "Server-side transcription is not configured (DEEPGRAM_API_KEY missing).",
+        code: "NO_API_KEY",
+      });
+    }
 
-    const format = audioFormat(mimeType);
-
-    const promptText = language
-      ? `Transcribe the audio exactly in ${language}. Return only the transcription, nothing else.`
-      : "Transcribe the audio exactly as spoken. Return only the transcription, nothing else.";
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-audio-preview",
-      modalities: ["text"],
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "input_audio",
-              input_audio: { data: audio, format },
-            } as any,
-            { type: "text", text: promptText },
-          ],
-        },
-      ],
-    } as any);
-
-    const text = (response.choices[0]?.message?.content ?? "").trim();
+    const audioBuffer = Buffer.from(audio, "base64");
+    const text = await deepgramTranscribe(audioBuffer, mimeType);
     res.json({ text });
   } catch (err: any) {
     console.error("Transcription error:", err?.message ?? err);
