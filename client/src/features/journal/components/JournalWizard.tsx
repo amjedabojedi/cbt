@@ -459,6 +459,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                                 onChange={(e) => setCustomTag(e.target.value)}
                                 placeholder={t("Enter a custom tag...")}
                                 className="h-9 text-sm border-teal-100 focus-visible:ring-teal-800 bg-white"
+                                voiceInput
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") {
                                     e.preventDefault();

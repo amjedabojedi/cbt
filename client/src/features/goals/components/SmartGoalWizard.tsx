@@ -642,6 +642,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                             onChange={(e) => setNewMilestone({ ...newMilestone, title: e.target.value })}
                             className="bg-white border-slate-200 rounded-xl"
                             data-testid="input-milestone-title"
+                            voiceInput
                           />
                           <Textarea
                             placeholder={t("Description (optional)")}

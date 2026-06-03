@@ -862,6 +862,7 @@ export default function ReflectionWizard({
                   placeholder="Enter new factor..."
                   value={newProtectiveFactor}
                   onChange={(e) => setNewProtectiveFactor(e.target.value)}
+                  voiceInput
                 />
                 <Button
                   size="sm"
@@ -1041,6 +1042,7 @@ export default function ReflectionWizard({
                   placeholder="Enter new strategy..."
                   value={newCopingStrategy}
                   onChange={(e) => setNewCopingStrategy(e.target.value)}
+                  voiceInput
                 />
                 <Button
                   size="sm"

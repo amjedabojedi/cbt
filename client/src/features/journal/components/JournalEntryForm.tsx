@@ -78,6 +78,7 @@ export function JournalEntryForm({
               onChange={(e) => onTitleChange(e.target.value)}
               placeholder={t("Give your entry a title…")}
               className="text-base font-medium border-slate-200 focus:border-teal-400 focus:ring-1 focus:ring-teal-400/30 rounded-xl h-11 bg-slate-50/60"
+              voiceInput
             />
           </div>
 
