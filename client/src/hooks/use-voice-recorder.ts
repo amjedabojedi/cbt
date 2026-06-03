@@ -121,7 +121,7 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
         const data = await res.json().catch(() => ({}));
         if (data?.code === "NO_API_KEY") {
           onErrorRef.current?.(
-            "Server transcription is not set up yet. Please use Chrome for voice typing.",
+            "Server transcription is not set up yet. Please use Chrome or Edge for voice typing.",
           );
           return;
         }
@@ -149,7 +149,7 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
   // ── MediaRecorder branch (extracted so it can be called as a fallback) ────
   const startMediaRecorder = useCallback(async () => {
     if (!hasMediaRecorder) {
-      onErrorRef.current?.("Voice typing is not supported in this browser. Please use Chrome.");
+      onErrorRef.current?.("Voice typing is not supported in this browser. Please use Chrome or Edge.");
       return;
     }
     modeRef.current = "media";
