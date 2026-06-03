@@ -20,14 +20,6 @@ function checkRateLimit(userId: number): boolean {
   return true;
 }
 
-function deepgramMime(mimeType: string): string {
-  if (mimeType.includes("mp4")) return "audio/mp4";
-  if (mimeType.includes("ogg")) return "audio/ogg";
-  if (mimeType.includes("wav")) return "audio/wav";
-  if (mimeType.includes("mp3") || mimeType.includes("mpeg")) return "audio/mpeg";
-  return "audio/webm";
-}
-
 function httpsPost(
   hostname: string,
   path: string,
@@ -49,10 +41,70 @@ function httpsPost(
   });
 }
 
-// ── Deepgram transcription via raw https module ──────────────────────────────
-// Probe confirmed: api.deepgram.com is reachable from Replit containers.
-// All api.openai.com calls are intercepted by Replit's WASM proxy regardless
-// of HTTP library (native fetch, https module, OpenAI SDK all fail with 401).
+// ── OpenAI Whisper via raw https (bypasses SDK proxy issues) ─────────────────
+async function whisperTranscribe(
+  audioBuffer: Buffer,
+  mimeType: string,
+  language?: string,
+): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OPENAI_API_KEY not set");
+
+  const boundary = "----WaveformBoundary" + Date.now();
+
+  // Determine file extension from mime type
+  let ext = "webm";
+  if (mimeType.includes("mp4")) ext = "mp4";
+  else if (mimeType.includes("ogg")) ext = "ogg";
+  else if (mimeType.includes("wav")) ext = "wav";
+  else if (mimeType.includes("mp3") || mimeType.includes("mpeg")) ext = "mp3";
+
+  // Build multipart/form-data body manually
+  const parts: Buffer[] = [];
+  const addField = (name: string, value: string) => {
+    parts.push(Buffer.from(
+      `--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`
+    ));
+  };
+  addField("model", "whisper-1");
+  if (language) addField("language", language.split("-")[0]); // whisper uses "en" not "en-US"
+
+  parts.push(Buffer.from(
+    `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="audio.${ext}"\r\nContent-Type: ${mimeType}\r\n\r\n`
+  ));
+  parts.push(audioBuffer);
+  parts.push(Buffer.from(`\r\n--${boundary}--\r\n`));
+
+  const body = Buffer.concat(parts);
+
+  const result = await httpsPost(
+    "api.openai.com",
+    "/v1/audio/transcriptions",
+    {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": `multipart/form-data; boundary=${boundary}`,
+      "Content-Length": body.length,
+    },
+    body,
+  );
+
+  if (result.status !== 200) {
+    throw new Error(`Whisper ${result.status}: ${result.body.slice(0, 200)}`);
+  }
+
+  const parsed = JSON.parse(result.body);
+  return (parsed?.text ?? "").trim();
+}
+
+// ── Deepgram transcription via raw https ─────────────────────────────────────
+function deepgramMime(mimeType: string): string {
+  if (mimeType.includes("mp4")) return "audio/mp4";
+  if (mimeType.includes("ogg")) return "audio/ogg";
+  if (mimeType.includes("wav")) return "audio/wav";
+  if (mimeType.includes("mp3") || mimeType.includes("mpeg")) return "audio/mpeg";
+  return "audio/webm";
+}
+
 function deepgramTranscribe(
   audioBuffer: Buffer,
   mimeType: string,
@@ -110,15 +162,10 @@ function deepgramTranscribe(
 }
 
 // ── GET /api/transcribe/probe  (authenticated) ───────────────────────────────
-// Tests every server-side transcription path and returns which ones are
-// reachable. Useful for diagnostics. Results are permanent for this environment:
-//   - OpenAI audio endpoints: BLOCKED (Replit WASM proxy substitutes key → 401)
-//   - Deepgram: REACHABLE (needs DEEPGRAM_API_KEY)
-//   - AssemblyAI: REACHABLE (needs ASSEMBLYAI_API_KEY)
 router.get("/transcribe/probe", authenticate, async (_req, res) => {
   const results: Record<string, { reachable: boolean; status: number; note: string }> = {};
 
-  // Path A: OpenAI Whisper via raw https (bypasses SDK — still intercepted by WASM proxy)
+  // Test Whisper
   try {
     const boundary = "probe" + Date.now();
     const body = Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\nwhisper-1\r\n--${boundary}--\r\n`);
@@ -138,16 +185,16 @@ router.get("/transcribe/probe", authenticate, async (_req, res) => {
       note: r.status === 200
         ? "WORKS"
         : r.status === 401
-        ? "BLOCKED — Replit proxy substitutes service account key"
+        ? "BLOCKED — proxy substitutes service account key"
         : r.status === 400
-        ? "BLOCKED — endpoint not supported by proxy"
-        : `status ${r.status}`,
+        ? "Reachable but bad request (expected in probe)"
+        : `status ${r.status}: ${r.body.slice(0, 100)}`,
     };
   } catch (e: any) {
     results["openai_whisper"] = { reachable: false, status: 0, note: e.message };
   }
 
-  // Path B: Deepgram — confirmed reachable
+  // Test Deepgram
   try {
     const r = await httpsPost(
       "api.deepgram.com",
@@ -174,48 +221,11 @@ router.get("/transcribe/probe", authenticate, async (_req, res) => {
     results["deepgram"] = { reachable: false, status: 0, note: e.message };
   }
 
-  // Path C: AssemblyAI — confirmed reachable
-  try {
-    const body = Buffer.from("{}");
-    const r = await httpsPost(
-      "api.assemblyai.com",
-      "/v2/transcript",
-      {
-        Authorization: process.env.ASSEMBLYAI_API_KEY ?? "MISSING",
-        "Content-Type": "application/json",
-        "Content-Length": body.length,
-      },
-      body,
-    );
-    results["assemblyai"] = {
-      reachable: true,
-      status: r.status,
-      note: r.status === 200
-        ? "WORKS"
-        : r.status === 401
-        ? process.env.ASSEMBLYAI_API_KEY
-          ? "Key invalid — check ASSEMBLYAI_API_KEY"
-          : "ASSEMBLYAI_API_KEY not set"
-        : `status ${r.status}`,
-    };
-  } catch (e: any) {
-    results["assemblyai"] = { reachable: false, status: 0, note: e.message };
-  }
-
-  const recommended = results["deepgram"]?.status === 200
-    ? "deepgram"
-    : results["assemblyai"]?.status === 200
-    ? "assemblyai"
-    : results["openai_whisper"]?.status === 200
-    ? "openai_whisper"
-    : "none — use browser Web Speech API";
-
-  res.json({ results, recommended });
+  res.json({ results });
 });
 
 // ── POST /api/transcribe  (authenticated) ─────────────────────────────────────
-// Body: { audio: <base64>, mimeType: <mime> }
-// Query: ?language=en-US  (optional, passed to Deepgram)
+// Strategy: try Whisper first; fall back to Deepgram if Whisper fails.
 router.post("/transcribe", authenticate, async (req, res) => {
   try {
     const userId = (req as any).user?.id as number;
@@ -230,19 +240,45 @@ router.post("/transcribe", authenticate, async (req, res) => {
       return res.status(400).json({ message: "No audio data provided." });
     }
 
-    if (!process.env.DEEPGRAM_API_KEY) {
+    const hasWhisper = !!process.env.OPENAI_API_KEY;
+    const hasDeepgram = !!process.env.DEEPGRAM_API_KEY;
+
+    if (!hasWhisper && !hasDeepgram) {
       return res.status(503).json({
-        message: "Server-side transcription is not configured (DEEPGRAM_API_KEY missing).",
+        message: "Server-side transcription is not configured.",
         code: "NO_API_KEY",
       });
     }
 
     const language = typeof req.query.language === "string" ? req.query.language : undefined;
     const audioBuffer = Buffer.from(audio, "base64");
-    const text = await deepgramTranscribe(audioBuffer, mimeType, language);
-    res.json({ text });
+
+    // Try Whisper first
+    if (hasWhisper) {
+      try {
+        const text = await whisperTranscribe(audioBuffer, mimeType, language);
+        console.log("[Transcribe] Used Whisper successfully");
+        return res.json({ text, engine: "whisper" });
+      } catch (whisperErr: any) {
+        console.warn("[Transcribe] Whisper failed, trying Deepgram fallback:", whisperErr?.message);
+        // Fall through to Deepgram
+      }
+    }
+
+    // Deepgram fallback
+    if (hasDeepgram) {
+      const text = await deepgramTranscribe(audioBuffer, mimeType, language);
+      console.log("[Transcribe] Used Deepgram (fallback)");
+      return res.json({ text, engine: "deepgram" });
+    }
+
+    return res.status(503).json({
+      message: "Server-side transcription is not configured.",
+      code: "NO_API_KEY",
+    });
+
   } catch (err: any) {
-    console.error("Transcription error:", err?.message ?? err);
+    console.error("[Transcribe] Error:", err?.message ?? err);
     res.status(500).json({ message: "Transcription failed. Please try again." });
   }
 });
