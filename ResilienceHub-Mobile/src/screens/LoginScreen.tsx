@@ -156,7 +156,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           {/* Header Section */}
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Ionicons name="globe-outline" size={36} color="#8B5CF6" />
+              <Ionicons name="globe-outline" size={36} color="#059669" />
             </View>
             <Text style={styles.title}>ResilienceHub</Text>
             <Text style={styles.subtitle}>Your Clinical CBT Companion</Text>
@@ -170,7 +170,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
               <View style={[styles.inputContainer, emailFocused && styles.inputContainerActive]}>
-                <Feather name="mail" size={16} color={emailFocused ? '#8B5CF6' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="mail" size={16} color={emailFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter email address"
@@ -190,7 +190,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>PASSWORD</Text>
               <View style={[styles.inputContainer, passwordFocused && styles.inputContainerActive]}>
-                <Feather name="lock" size={16} color={passwordFocused ? '#8B5CF6' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="lock" size={16} color={passwordFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter password"
@@ -244,7 +244,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             onPress={() => navigation.navigate('Register')}
             style={styles.registerLink}
           >
-            <Feather name="user-plus" size={14} color="#8B5CF6" style={{ marginRight: 6 }} />
+            <Feather name="user-plus" size={14} color="#059669" style={{ marginRight: 6 }} />
             <Text style={styles.registerLinkText}>Register as Professional (Therapist/Admin)</Text>
           </TouchableOpacity>
 
@@ -254,7 +254,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             onPress={() => navigation.navigate('Onboarding')}
             style={styles.guideLink}
           >
-            <Ionicons name="star-outline" size={14} color="#C084FC" style={{ marginRight: 6 }} />
+            <Ionicons name="star-outline" size={14} color="#34d399" style={{ marginRight: 6 }} />
             <Text style={styles.guideLinkText}>View Features Onboarding Guide</Text>
           </TouchableOpacity>
         </View>
@@ -287,7 +287,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
               <View style={[styles.inputContainer, resetEmailFocused && styles.inputContainerActive]}>
-                <Feather name="mail" size={16} color={resetEmailFocused ? '#8B5CF6' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="mail" size={16} color={resetEmailFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter recovery email"
@@ -327,7 +327,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#090514', // Matching dark theme background
+    backgroundColor: '#052e16', // Matching dark theme background
   },
   keyboardView: {
     flex: 1,
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     width: 260,
     height: 260,
     borderRadius: 130,
-    backgroundColor: 'rgba(139, 92, 246, 0.08)',
+    backgroundColor: 'rgba(5, 150, 105, 0.08)',
   },
   blob2: {
     position: 'absolute',
@@ -363,13 +363,13 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 22,
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    backgroundColor: 'rgba(5, 150, 105, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(139, 92, 246, 0.25)',
+    borderColor: 'rgba(5, 150, 105, 0.25)',
     marginBottom: 16,
-    shadowColor: '#8B5CF6',
+    shadowColor: '#059669',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.06)',
     padding: 24,
-    shadowColor: '#090514',
+    shadowColor: '#052e16',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#8B5CF6',
+    color: '#059669',
     letterSpacing: 0.8,
     marginBottom: 8,
   },
@@ -427,8 +427,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   inputContainerActive: {
-    borderColor: '#8B5CF6',
-    backgroundColor: 'rgba(139, 92, 246, 0.05)',
+    borderColor: '#059669',
+    backgroundColor: 'rgba(5, 150, 105, 0.05)',
   },
   inputIcon: {
     marginRight: 10,
@@ -443,21 +443,21 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   button: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
     borderRadius: 14,
     paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    shadowColor: '#8B5CF6',
+    shadowColor: '#059669',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 3,
   },
   buttonDisabled: {
-    backgroundColor: 'rgba(139, 92, 246, 0.4)',
+    backgroundColor: 'rgba(5, 150, 105, 0.4)',
   },
   buttonText: {
     color: '#FFFFFF',
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   guideLinkText: {
-    color: '#C084FC',
+    color: '#34d399',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   forgotPasswordText: {
-    color: '#8B5CF6',
+    color: '#059669',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   registerLinkText: {
-    color: '#8B5CF6',
+    color: '#059669',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -541,7 +541,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   modalSendBtn: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
     borderRadius: 14,
     paddingVertical: 13,
     alignItems: 'center',

@@ -248,7 +248,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
   if (loading) {
     return (
       <View style={s.centered}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#059669" />
         <Text style={s.loadingTitle}>Opening Reframe Coach...</Text>
       </View>
     );
@@ -271,7 +271,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
       <View style={s.header}>
         {/* Title row */}
         <View style={s.headerTagRow}>
-          <Feather name="zap" size={11} color="#C084FC" />
+          <Feather name="zap" size={11} color="#34d399" />
           <Text style={s.headerTag}>COGNITIVE REFRAMING</Text>
         </View>
         <Text style={s.headerTitle}>Reframe Coach</Text>
@@ -284,7 +284,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
           <View style={s.statsRow}>
             {[
               { v: `${totalSessions}`, l: 'Sessions' },
-              { v: `${avgScore}`,      l: 'Avg Score',  c: '#C084FC' },
+              { v: `${avgScore}`,      l: 'Avg Score',  c: '#34d399' },
               { v: `${streak}`,        l: 'Day Streak', c: '#34D399' },
             ].map((st, i) => (
               <View key={i} style={s.statItem}>
@@ -380,7 +380,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8B5CF6" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />
         }
       >
         <View style={s.card}>
@@ -394,7 +394,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
           {thoughtRecords.length === 0 ? (
             <View style={s.emptyState}>
               <View style={s.emptyIconCircle}>
-                <Feather name="shield" size={28} color="#8B5CF6" />
+                <Feather name="shield" size={28} color="#059669" />
               </View>
               <Text style={s.emptyTitle}>No Thought Records Yet</Text>
               <Text style={s.emptyDesc}>
@@ -458,7 +458,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
   function renderLoadingScenarios() {
     return (
       <View style={s.centered}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#059669" />
         <Text style={s.loadingTitle}>AI is generating reframing exercises...</Text>
         <Text style={s.loadingSubText}>
           Analysing your cognitive distortions to build custom scenarios.
@@ -521,7 +521,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
 
           {/* Question prompt */}
           <View style={s.questionRow}>
-            <Feather name="zap" size={13} color="#8B5CF6" />
+            <Feather name="zap" size={13} color="#059669" />
             <Text style={s.questionText}>HOW WOULD YOU REFRAME THIS THOUGHT?</Text>
           </View>
 
@@ -641,7 +641,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
         {/* Score cards */}
         <View style={s.scoreRow}>
           {[
-            { label: 'Points Earned', value: `${totalScore}`, color: '#8B5CF6', bg: '#F5F3FF', border: '#E9D5FF' },
+            { label: 'Points Earned', value: `${totalScore}`, color: '#059669', bg: '#ecfdf5', border: '#E9D5FF' },
             { label: 'Accuracy', value: `${accuracy}%`, color: '#10B981', bg: '#ECFDF5', border: '#A7F3D0' },
             { label: 'Answers', value: `${correct}/${scenarios.length}`, color: '#6366F1', bg: '#EEF2FF', border: '#C7D2FE' },
           ].map((sc, i) => (
@@ -670,10 +670,10 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
         {/* Level up */}
         {leveledUp && (
           <View style={[s.alertBox, s.alertPurple]}>
-            <Feather name="zap" size={18} color="#8B5CF6" />
+            <Feather name="zap" size={18} color="#059669" />
             <View style={{ flex: 1 }}>
-              <Text style={[s.alertTitle, { color: '#6D28D9' }]}>Level Up!</Text>
-              <Text style={[s.alertItem, { color: '#7C3AED' }]}>
+              <Text style={[s.alertTitle, { color: '#065f46' }]}>Level Up!</Text>
+              <Text style={[s.alertItem, { color: '#047857' }]}>
                 You reached Level {gameUpdates.newLevel}! Keep practicing to unlock more advanced exercises.
               </Text>
             </View>
@@ -776,7 +776,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8B5CF6" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />
         }
       >
         {/* ── Thought Records ────────────────────────────────────── */}
@@ -788,7 +788,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
 
           {thoughtRecords.length === 0 ? (
             <View style={s.emptyState}>
-              <MaterialCommunityIcons name="brain" size={32} color="#C084FC" />
+              <MaterialCommunityIcons name="brain" size={32} color="#34d399" />
               <Text style={s.emptyTitle}>No Thought Records Yet</Text>
               <Text style={s.emptyDesc}>Create a thought record to begin practicing.</Text>
             </View>
@@ -928,8 +928,8 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
                     <View key={p.id || idx} style={s.historyCard}>
                       <View style={s.historyCardTop}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                          <View style={[s.histSectionIcon, { backgroundColor: '#F5F3FF' }]}>
-                            <Feather name="bar-chart-2" size={12} color="#8B5CF6" />
+                          <View style={[s.histSectionIcon, { backgroundColor: '#ecfdf5' }]}>
+                            <Feather name="bar-chart-2" size={12} color="#059669" />
                           </View>
                           <View style={{ flex: 1 }}>
                             <Text style={s.historyCardTitle}>Practice Session</Text>
@@ -946,9 +946,9 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
 
                       <View style={s.historyStatsRow}>
                         {[
-                          { label: 'Score',    value: `${p.score ?? 0}`, color: '#8B5CF6' },
+                          { label: 'Score',    value: `${p.score ?? 0}`, color: '#059669' },
                           { label: 'Correct',  value: `${correct}/${total}`, color: '#6366F1' },
-                          { label: 'Accuracy', value: `${accuracy}%`, color: '#7C3AED' },
+                          { label: 'Accuracy', value: `${accuracy}%`, color: '#047857' },
                         ].map((st, i) => (
                           <View key={i} style={s.historyStatCell}>
                             <Text style={s.historyStatLabel}>{st.label}</Text>
@@ -961,7 +961,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
                         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 8 }}>
                           {sessionDistortions.map((d, i) => (
                             <View key={i} style={s.histDistortionBadge}>
-                              <MaterialCommunityIcons name="brain" size={10} color="#8B5CF6" style={{ marginRight: 3 }} />
+                              <MaterialCommunityIcons name="brain" size={10} color="#059669" style={{ marginRight: 3 }} />
                               <Text style={s.histDistortionBadgeText}>{fmtDistortion(d)}</Text>
                             </View>
                           ))}
@@ -1277,7 +1277,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
       return (
         <View style={s.centered}>
           <View style={s.emptyIconCircle}>
-            <MaterialCommunityIcons name="trophy-outline" size={32} color="#8B5CF6" />
+            <MaterialCommunityIcons name="trophy-outline" size={32} color="#059669" />
           </View>
           <Text style={s.emptyTitle}>Reframe Training</Text>
           <Text style={[s.emptyDesc, { maxWidth: 280 }]}>
@@ -1293,13 +1293,13 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
         contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8B5CF6" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />
         }
       >
         {/* ── 1. Key Metric Cards ── */}
         <View style={s.metricsRow}>
           {[
-            { icon: 'award' as const, iconColor: '#8B5CF6', bg: '#F5F3FF',
+            { icon: 'award' as const, iconColor: '#059669', bg: '#ecfdf5',
               label: 'Total Sessions', value: `${metrics.totalSessions}`, sub: 'Trainings completed' },
             { icon: 'trending-up' as const, iconColor: '#6366F1', bg: '#EEF2FF',
               label: 'Avg Score', value: `${metrics.avgScore}`, sub: 'Points per module' },
@@ -1324,8 +1324,8 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
           <View style={s.insightCardHeader}>
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <View style={[s.insightIconBox, { backgroundColor: '#F5F3FF' }]}>
-                  <Feather name="trending-up" size={14} color="#8B5CF6" />
+                <View style={[s.insightIconBox, { backgroundColor: '#ecfdf5' }]}>
+                  <Feather name="trending-up" size={14} color="#059669" />
                 </View>
                 <Text style={s.insightCardTitle}>Score Trends</Text>
               </View>
@@ -1349,7 +1349,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
             </View>
           </View>
           <View style={s.insightCardBody}>
-            {renderLineChart(scoreChartData, maxScore, '#8B5CF6', v => `${v}`)}
+            {renderLineChart(scoreChartData, maxScore, '#059669', v => `${v}`)}
           </View>
         </View>
 
@@ -1422,10 +1422,10 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
               {calendar.map((day, i) => {
                 let bg = '#F8FAFC', border = '#F1F5F9', txtColor = '#CBD5E1';
                 if (day.sessions > 0) {
-                  if (day.score < 80)       { bg = '#F3E8FF'; border = '#DDD6FE'; txtColor = '#7C3AED'; }
-                  else if (day.score < 150) { bg = '#DDD6FE'; border = '#C4B5FD'; txtColor = '#6D28D9'; }
-                  else if (day.score < 220) { bg = '#A78BFA'; border = '#8B5CF6'; txtColor = '#FFFFFF'; }
-                  else                      { bg = '#8B5CF6'; border = '#7C3AED'; txtColor = '#FFFFFF'; }
+                  if (day.score < 80)       { bg = '#F3E8FF'; border = '#a7f3d0'; txtColor = '#047857'; }
+                  else if (day.score < 150) { bg = '#a7f3d0'; border = '#C4B5FD'; txtColor = '#065f46'; }
+                  else if (day.score < 220) { bg = '#A78BFA'; border = '#059669'; txtColor = '#FFFFFF'; }
+                  else                      { bg = '#059669'; border = '#047857'; txtColor = '#FFFFFF'; }
                 }
                 return (
                   <View key={i} style={[s.calendarCell, { backgroundColor: bg, borderColor: border }]}>
@@ -1438,7 +1438,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
             <View style={s.calendarLegend}>
               <Text style={s.calendarLegendLabel}>Inactive</Text>
               <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
-                {['#F8FAFC', '#F3E8FF', '#DDD6FE', '#A78BFA', '#8B5CF6'].map((c, i) => (
+                {['#F8FAFC', '#F3E8FF', '#a7f3d0', '#A78BFA', '#059669'].map((c, i) => (
                   <View key={i} style={[s.calendarLegendDot, { backgroundColor: c,
                     borderColor: i === 0 ? '#E2E8F0' : c }]} />
                 ))}
@@ -1469,7 +1469,7 @@ const s = StyleSheet.create({
     marginTop: 16,
     fontSize: 15,
     fontWeight: 'bold',
-    color: '#090514',
+    color: '#052e16',
     textAlign: 'center',
   },
   loadingSubText: {
@@ -1482,7 +1482,7 @@ const s = StyleSheet.create({
 
   // ── Header ──────────────────────────────────────────────────────────────
   header: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 16,
@@ -1494,7 +1494,7 @@ const s = StyleSheet.create({
     marginBottom: 5,
   },
   headerTag: {
-    color: '#C084FC',
+    color: '#34d399',
     fontSize: 9.5,
     fontWeight: '800',
     letterSpacing: 1,
@@ -1564,9 +1564,9 @@ const s = StyleSheet.create({
     borderBottomColor: 'transparent',
     marginBottom: -1,
   },
-  tabBtnActive: { borderBottomColor: '#8B5CF6' },
+  tabBtnActive: { borderBottomColor: '#059669' },
   tabBtnText: { fontSize: 13, fontWeight: '700', color: '#94A3B8' },
-  tabBtnTextActive: { color: '#090514' },
+  tabBtnTextActive: { color: '#052e16' },
 
   // ── Cards ────────────────────────────────────────────────────────────────
   card: {
@@ -1589,7 +1589,7 @@ const s = StyleSheet.create({
     borderBottomColor: '#F1F5F9',
     backgroundColor: '#FAFAFA',
   },
-  cardTitle: { fontSize: 14.5, fontWeight: '800', color: '#090514', marginBottom: 2 },
+  cardTitle: { fontSize: 14.5, fontWeight: '800', color: '#052e16', marginBottom: 2 },
   cardDesc: { fontSize: 12, color: '#64748B' },
 
   // ── Empty state ──────────────────────────────────────────────────────────
@@ -1598,14 +1598,14 @@ const s = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
   },
-  emptyTitle: { fontSize: 15, fontWeight: '800', color: '#090514', marginBottom: 6, textAlign: 'center' },
+  emptyTitle: { fontSize: 15, fontWeight: '800', color: '#052e16', marginBottom: 6, textAlign: 'center' },
   emptyDesc: { fontSize: 12.5, color: '#64748B', textAlign: 'center', lineHeight: 18, marginBottom: 18 },
-  emptyBtn: { backgroundColor: '#090514', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 14 },
+  emptyBtn: { backgroundColor: '#052e16', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 14 },
   emptyBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
 
   // ── Thought record cards ─────────────────────────────────────────────────
@@ -1616,21 +1616,21 @@ const s = StyleSheet.create({
     borderColor: '#E2E8F0',
     padding: 14,
   },
-  thoughtQuote: { fontSize: 13.5, color: '#090514', fontStyle: 'italic', lineHeight: 20, marginBottom: 10 },
+  thoughtQuote: { fontSize: 13.5, color: '#052e16', fontStyle: 'italic', lineHeight: 20, marginBottom: 10 },
   pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
   pill: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     borderWidth: 1,
     borderColor: '#E9D5FF',
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 6,
   },
-  pillText: { fontSize: 9, fontWeight: '800', color: '#7C3AED' },
+  pillText: { fontSize: 9, fontWeight: '800', color: '#047857' },
   thoughtCardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   thoughtDate: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
   practiceBtn: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14,
@@ -1657,9 +1657,9 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 5,
   },
-  quizStepText: { fontSize: 10, fontWeight: '800', color: '#8B5CF6', letterSpacing: 0.4 },
+  quizStepText: { fontSize: 10, fontWeight: '800', color: '#059669', letterSpacing: 0.4 },
   distortionBadge: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     borderWidth: 1,
     borderColor: '#E9D5FF',
     paddingHorizontal: 7,
@@ -1667,24 +1667,24 @@ const s = StyleSheet.create({
     borderRadius: 6,
     maxWidth: 170,
   },
-  distortionBadgeText: { fontSize: 9, fontWeight: '800', color: '#7C3AED' },
+  distortionBadgeText: { fontSize: 9, fontWeight: '800', color: '#047857' },
   progressBg: { height: 4, backgroundColor: '#E2E8F0', borderRadius: 2, overflow: 'hidden' },
-  progressFill: { height: 4, backgroundColor: '#8B5CF6', borderRadius: 2 },
+  progressFill: { height: 4, backgroundColor: '#059669', borderRadius: 2 },
   closeBtn: { padding: 4 },
 
   // ── Scenario dark card ────────────────────────────────────────────────────
   scenarioDark: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     borderRadius: 18,
     padding: 16,
     marginBottom: 14,
-    shadowColor: '#090514',
+    shadowColor: '#052e16',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 10,
     elevation: 4,
   },
-  scenarioDarkText: { color: '#EDE9FE', fontSize: 14, fontStyle: 'italic', lineHeight: 21, fontWeight: '600' },
+  scenarioDarkText: { color: '#d1fae5', fontSize: 14, fontStyle: 'italic', lineHeight: 21, fontWeight: '600' },
 
   // ── Question / Options ────────────────────────────────────────────────────
   questionRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
@@ -1697,7 +1697,7 @@ const s = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
   },
-  optionSelected: { borderColor: '#8B5CF6', backgroundColor: '#F5F3FF' },
+  optionSelected: { borderColor: '#059669', backgroundColor: '#ecfdf5' },
   optionCorrect:  { borderColor: '#10B981', backgroundColor: '#ECFDF5' },
   optionWrong:    { borderColor: '#EF4444', backgroundColor: '#FEF2F2' },
 
@@ -1710,7 +1710,7 @@ const s = StyleSheet.create({
   },
   optionRadioSelected: {
     width: 20, height: 20, borderRadius: 10, borderWidth: 1.5,
-    borderColor: '#8B5CF6', backgroundColor: '#8B5CF6',
+    borderColor: '#059669', backgroundColor: '#059669',
     alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0,
   },
   optionRadioCorrect: {
@@ -1740,14 +1740,14 @@ const s = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   nextBtn: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     height: 52,
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    shadowColor: '#090514',
+    shadowColor: '#052e16',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
@@ -1760,13 +1760,13 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     borderRadius: 20,
     marginBottom: 14,
   },
   trophyCircle: {
     width: 60, height: 60, borderRadius: 30,
-    backgroundColor: 'rgba(139,92,246,0.2)',
+    backgroundColor: 'rgba(5,150,105,0.2)',
     alignItems: 'center', justifyContent: 'center', marginBottom: 10,
   },
   resultsTitle: { fontSize: 20, fontWeight: '900', color: '#FFFFFF', textAlign: 'center', marginBottom: 5 },
@@ -1782,15 +1782,15 @@ const s = StyleSheet.create({
     backgroundColor: '#FFFBEB', borderWidth: 1, borderColor: '#FDE68A',
     borderRadius: 14, padding: 12, marginBottom: 10,
   },
-  alertPurple: { backgroundColor: '#F5F3FF', borderColor: '#DDD6FE' },
+  alertPurple: { backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' },
   alertGreen:  { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' },
   alertTitle: { fontSize: 12.5, fontWeight: '800', color: '#92400E', marginBottom: 2 },
   alertItem:  { fontSize: 11.5, fontWeight: '500', color: '#B45309', lineHeight: 17 },
 
   primaryBtn: {
-    height: 50, borderRadius: 16, backgroundColor: '#090514',
+    height: 50, borderRadius: 16, backgroundColor: '#052e16',
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#090514', shadowOffset: { width: 0, height: 3 },
+    shadowColor: '#052e16', shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15, shadowRadius: 6, elevation: 3,
   },
   primaryBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
@@ -1809,16 +1809,16 @@ const s = StyleSheet.create({
     shadowOpacity: 0.02, shadowRadius: 4, elevation: 1,
   },
   historyCardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 },
-  historyCardTitle: { fontSize: 13, fontWeight: '800', color: '#090514', marginBottom: 2 },
+  historyCardTitle: { fontSize: 13, fontWeight: '800', color: '#052e16', marginBottom: 2 },
   historyCardDate: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
   xpBadge: { backgroundColor: '#F3E8FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  xpBadgeText: { fontSize: 10, fontWeight: '900', color: '#8B5CF6' },
+  xpBadgeText: { fontSize: 10, fontWeight: '900', color: '#059669' },
   historyStatsRow: { flexDirection: 'row', gap: 8 },
   historyStatCell: {
     flex: 1, backgroundColor: '#F8FAFC', borderRadius: 10,
     paddingVertical: 8, alignItems: 'center',
   },
-  historyStatValue: { fontSize: 14, fontWeight: '900', color: '#090514' },
+  historyStatValue: { fontSize: 14, fontWeight: '900', color: '#052e16' },
   historyStatLabel: { fontSize: 9.5, fontWeight: '700', color: '#94A3B8', marginTop: 1 },
 
   // ── History tab — thought record cards ───────────────────────────────────
@@ -1863,18 +1863,18 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(139,92,246,0.06)',
+    backgroundColor: 'rgba(5,150,105,0.06)',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(139,92,246,0.12)',
+    borderColor: 'rgba(5,150,105,0.12)',
   },
   lastPracticeLabel: { fontSize: 10, color: '#94A3B8', fontWeight: '600', marginBottom: 2 },
   lastPracticeTime: { fontSize: 12.5, fontWeight: '700', color: '#4C1D95' },
-  lastPracticeScore: { fontSize: 26, fontWeight: '900', color: '#8B5CF6' },
+  lastPracticeScore: { fontSize: 26, fontWeight: '900', color: '#059669' },
   histPracticeBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#8B5CF6', borderRadius: 12,
+    backgroundColor: '#059669', borderRadius: 12,
     paddingVertical: 12,
   },
   histPracticeBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
@@ -1886,11 +1886,11 @@ const s = StyleSheet.create({
   histPracticedBtnText: { fontSize: 13, fontWeight: '600', color: '#94A3B8' },
   histDistortionBadge: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#F5F3FF', borderRadius: 6,
+    backgroundColor: '#ecfdf5', borderRadius: 6,
     paddingHorizontal: 7, paddingVertical: 3,
-    borderWidth: 1, borderColor: '#DDD6FE',
+    borderWidth: 1, borderColor: '#a7f3d0',
   },
-  histDistortionBadgeText: { fontSize: 10, fontWeight: '700', color: '#7C3AED' },
+  histDistortionBadgeText: { fontSize: 10, fontWeight: '700', color: '#047857' },
   histStreakBox: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: '#FDF4FF', borderRadius: 10,
@@ -1911,12 +1911,12 @@ const s = StyleSheet.create({
   insightValue: { fontSize: 22, fontWeight: '900' },
   insightCellLabel: { fontSize: 10, fontWeight: '700', color: '#94A3B8', marginTop: 2 },
 
-  levelText: { fontSize: 22, fontWeight: '900', color: '#090514', marginBottom: 10 },
+  levelText: { fontSize: 22, fontWeight: '900', color: '#052e16', marginBottom: 10 },
   xpBarBg: {
     height: 8, backgroundColor: '#E2E8F0', borderRadius: 4,
     marginBottom: 6, overflow: 'hidden',
   },
-  xpBarFill: { height: 8, backgroundColor: '#8B5CF6', borderRadius: 4 },
+  xpBarFill: { height: 8, backgroundColor: '#059669', borderRadius: 4 },
   xpFooter: { fontSize: 10.5, color: '#94A3B8', fontWeight: '700' },
 
   achievementRow: {
@@ -2013,7 +2013,7 @@ const s = StyleSheet.create({
   insightCardTitle: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
   },
   insightCardDesc: {
     fontSize: 11,
@@ -2052,7 +2052,7 @@ const s = StyleSheet.create({
     color: '#64748B',
   },
   timeRangeBtnTextActive: {
-    color: '#090514',
+    color: '#052e16',
   },
 
   // 30-day calendar

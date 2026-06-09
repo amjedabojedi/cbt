@@ -63,23 +63,23 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#059669" />
         <Text style={styles.loadingText}>Loading admin panel...</Text>
       </View>
     );
   }
 
   const statCards = [
-    { icon: 'users', label: 'Total Users', value: stats.totalUsers ?? 0, sub: 'Registered accounts', color: '#8B5CF6' },
+    { icon: 'users', label: 'Total Users', value: stats.totalUsers ?? 0, sub: 'Registered accounts', color: '#059669' },
     { icon: 'user-check', label: 'Clients', value: stats.totalClients ?? 0, sub: 'Active client accounts', color: '#10B981' },
     { icon: 'briefcase', label: 'Therapists', value: stats.totalTherapists ?? 0, sub: 'Clinical staff', color: '#6366F1' },
     { icon: 'heart', label: 'Emotion Logs', value: stats.totalEmotions ?? 0, sub: 'All time entries', color: '#F59E0B' },
-    { icon: 'cpu', label: 'Thought Records', value: stats.totalThoughts ?? 0, sub: 'All time records', color: '#8B5CF6' },
+    { icon: 'cpu', label: 'Thought Records', value: stats.totalThoughts ?? 0, sub: 'All time records', color: '#059669' },
     { icon: 'target', label: 'Goals Created', value: stats.totalGoals ?? 0, sub: 'All time goals', color: '#EF4444' },
   ];
 
   const quickLinks = [
-    { icon: 'users', label: 'User Management', desc: 'Create, edit, and manage all users', screen: 'UserManagement', color: '#8B5CF6' },
+    { icon: 'users', label: 'User Management', desc: 'Create, edit, and manage all users', screen: 'UserManagement', color: '#059669' },
     { icon: 'book', label: 'Resource Library', desc: 'Manage clinical resources', screen: 'ResourceLibrary', color: '#6366F1' },
     { icon: 'settings', label: 'Settings', desc: 'System configuration', screen: 'Settings', color: '#64748B' },
   ];
@@ -93,7 +93,7 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
           <View style={styles.heroRow}>
             <View style={{ flex: 1 }}>
               <View style={styles.heroTagRow}>
-                <Ionicons name="shield-checkmark-outline" size={14} color="#C084FC" />
+                <Ionicons name="shield-checkmark-outline" size={14} color="#34d399" />
                 <Text style={styles.heroTag}>ADMIN PANEL</Text>
               </View>
               <Text style={styles.heroGreeting}>{timeGreeting},</Text>
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   loadingText: { marginTop: 12, fontSize: 14, color: '#64748B', fontWeight: '600' },
 
   heroBanner: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
@@ -221,17 +221,17 @@ const styles = StyleSheet.create({
   },
   heroRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   heroTagRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  heroTag: { color: '#C084FC', fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginLeft: 6 },
-  heroGreeting: { fontSize: 16, color: '#C084FC', fontWeight: '600' },
+  heroTag: { color: '#34d399', fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginLeft: 6 },
+  heroGreeting: { fontSize: 16, color: '#34d399', fontWeight: '600' },
   heroName: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginTop: 2 },
   heroSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 6, lineHeight: 18 },
   avatarBox: {
     width: 48, height: 48, borderRadius: 16,
-    backgroundColor: 'rgba(139,92,246,0.15)',
-    borderWidth: 1.5, borderColor: '#8B5CF6',
+    backgroundColor: 'rgba(5,150,105,0.15)',
+    borderWidth: 1.5, borderColor: '#059669',
     alignItems: 'center', justifyContent: 'center', marginTop: 8,
   },
-  avatarText: { color: '#C084FC', fontSize: 16, fontWeight: 'bold' },
+  avatarText: { color: '#34d399', fontSize: 16, fontWeight: 'bold' },
   topStatsRow: {
     flexDirection: 'row', justifyContent: 'space-around', marginTop: 20,
     backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 16,

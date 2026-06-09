@@ -229,7 +229,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
       <View style={styles.introContainer}>
         <View style={styles.heroSection}>
           <View style={styles.heroGradientCircle}>
-            <MaterialCommunityIcons name="brain" size={32} color="#8B5CF6" />
+            <MaterialCommunityIcons name="brain" size={32} color="#059669" />
           </View>
           <Text style={styles.heroTitle}>CBT Thought Record</Text>
           <Text style={styles.heroSubtitle}>
@@ -240,7 +240,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
         <View style={styles.featureList}>
           <View style={styles.featureItem}>
             <View style={styles.featureIconWrapper}>
-              <Feather name="edit-3" size={16} color="#8B5CF6" />
+              <Feather name="edit-3" size={16} color="#059669" />
             </View>
             <View style={styles.featureTextCol}>
               <Text style={styles.featureLabel}>Identify Automatic Thoughts</Text>
@@ -254,7 +254,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
 
           <View style={styles.featureItem}>
             <View style={styles.featureIconWrapper}>
-              <Feather name="shield" size={16} color="#8B5CF6" />
+              <Feather name="shield" size={16} color="#059669" />
             </View>
             <View style={styles.featureTextCol}>
               <Text style={styles.featureLabel}>Spot Cognitive Distortions</Text>
@@ -268,7 +268,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
 
           <View style={styles.featureItem}>
             <View style={styles.featureIconWrapper}>
-              <Feather name="check-circle" size={16} color="#8B5CF6" />
+              <Feather name="check-circle" size={16} color="#059669" />
             </View>
             <View style={styles.featureTextCol}>
               <Text style={styles.featureLabel}>Reflect and Reframe</Text>
@@ -325,7 +325,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
         </View>
 
         <View style={styles.infoBox}>
-          <Feather name="info" size={14} color="#8B5CF6" style={{ marginRight: 6 }} />
+          <Feather name="info" size={14} color="#059669" style={{ marginRight: 6 }} />
           <Text style={styles.infoBoxText}>
             Notice and simply log the raw thought without judging its accuracy. We will challenge it next.
           </Text>
@@ -366,7 +366,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
         </View>
 
         <View style={styles.infoBox}>
-          <Feather name="info" size={14} color="#8B5CF6" style={{ marginRight: 6 }} />
+          <Feather name="info" size={14} color="#059669" style={{ marginRight: 6 }} />
           <Text style={styles.infoBoxText}>
             Cognitive distortions are mental traps that make us believe false or exaggerated negative conclusions.
           </Text>
@@ -588,7 +588,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
             </View>
             <View style={{ marginVertical: 4, borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 6 }}>
               <Text style={styles.summaryDataLabel}>Alternative Reframe:</Text>
-              <Text style={[styles.summaryDataValue, { color: '#8B5CF6', marginTop: 2 }]} numberOfLines={2}>"{alternativePerspective || 'Not reframed yet'}"</Text>
+              <Text style={[styles.summaryDataValue, { color: '#059669', marginTop: 2 }]} numberOfLines={2}>"{alternativePerspective || 'Not reframed yet'}"</Text>
             </View>
           </View>
 
@@ -732,7 +732,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
     if (historyLoading && thoughtRecordsHistory.length === 0) {
       return (
         <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-          <ActivityIndicator size="small" color="#8B5CF6" />
+          <ActivityIndicator size="small" color="#059669" />
         </View>
       );
     }
@@ -949,7 +949,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
               cx={cx}
               cy={cy}
               r={r}
-              stroke="#8B5CF6"
+              stroke="#059669"
               strokeWidth={8}
               fill="none"
               strokeDasharray={`${filled} ${circumference - filled}`}
@@ -970,8 +970,8 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
         {/* KPI Grid */}
         <View style={styles.grid}>
           <View style={styles.kpiCard}>
-            <View style={[styles.kpiIconWrap, { backgroundColor: '#F5F3FF' }]}>
-              <MaterialCommunityIcons name="brain" size={16} color="#8B5CF6" />
+            <View style={[styles.kpiIconWrap, { backgroundColor: '#ecfdf5' }]}>
+              <MaterialCommunityIcons name="brain" size={16} color="#059669" />
             </View>
             <Text style={styles.kpiValue}>{totalThoughts}</Text>
             <Text style={styles.kpiLabel}>CBT Logs</Text>
@@ -1058,7 +1058,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
         ) : (
           <View style={styles.distortionEmptyCard}>
             <View style={styles.distortionEmptyIcon}>
-              <Feather name="shield" size={20} color="#8B5CF6" />
+              <Feather name="shield" size={20} color="#059669" />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.distortionEmptyTitle}>Build CBT Skills</Text>
@@ -1086,7 +1086,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
             <Feather 
               name="edit-3" 
               size={13} 
-              color={activeScreenTab === 'record' ? '#090514' : '#64748B'} 
+              color={activeScreenTab === 'record' ? '#052e16' : '#64748B'} 
               style={{ marginRight: 4 }}
             />
             <Text style={[styles.tabText, activeScreenTab === 'record' && styles.activeTabText]}>Record</Text>
@@ -1099,7 +1099,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
             <Feather 
               name="clock" 
               size={13} 
-              color={activeScreenTab === 'history' ? '#090514' : '#64748B'} 
+              color={activeScreenTab === 'history' ? '#052e16' : '#64748B'} 
               style={{ marginRight: 4 }}
             />
             <Text style={[styles.tabText, activeScreenTab === 'history' && styles.activeTabText]}>History</Text>
@@ -1112,7 +1112,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
             <Feather 
               name="trending-up" 
               size={13} 
-              color={activeScreenTab === 'insights' ? '#090514' : '#64748B'} 
+              color={activeScreenTab === 'insights' ? '#052e16' : '#64748B'} 
               style={{ marginRight: 4 }}
             />
             <Text style={[styles.tabText, activeScreenTab === 'insights' && styles.activeTabText]}>Insights</Text>
@@ -1140,7 +1140,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
           style={styles.scrollView} 
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} colors={['#8B5CF6']} />
+            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} colors={['#059669']} />
           }
         >
           {renderHistoryTab()}
@@ -1150,7 +1150,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
           style={styles.scrollView} 
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} colors={['#8B5CF6']} />
+            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} colors={['#059669']} />
           }
         >
           {renderInsightsTab()}
@@ -1194,8 +1194,8 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
                   openChallengeWizard(selectedThought);
                 }}
               >
-                <MaterialCommunityIcons name="brain" size={16} color="#8B5CF6" style={styles.menuItemIcon} />
-                <Text style={[styles.menuItemText, { color: '#8B5CF6' }]}>Challenge This Thought</Text>
+                <MaterialCommunityIcons name="brain" size={16} color="#059669" style={styles.menuItemIcon} />
+                <Text style={[styles.menuItemText, { color: '#059669' }]}>Challenge This Thought</Text>
               </TouchableOpacity>
             )}
 
@@ -1449,7 +1449,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
               </View>
 
               <TouchableOpacity
-                style={[styles.saveEditButton, { backgroundColor: '#8B5CF6' }]}
+                style={[styles.saveEditButton, { backgroundColor: '#059669' }]}
                 onPress={handleSaveEditThought}
                 disabled={updatingThought}
               >
@@ -1495,7 +1495,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
                     flex: 1,
                     height: 4,
                     borderRadius: 2,
-                    backgroundColor: i <= challengeStep ? '#8B5CF6' : '#E2E8F0',
+                    backgroundColor: i <= challengeStep ? '#059669' : '#E2E8F0',
                   }}
                 />
               ))}
@@ -1584,7 +1584,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
 
                 {challengeStep < 2 ? (
                   <TouchableOpacity
-                    style={[styles.saveEditButton, { flex: 1, backgroundColor: '#8B5CF6' }]}
+                    style={[styles.saveEditButton, { flex: 1, backgroundColor: '#059669' }]}
                     onPress={() => setChallengeStep(s => s + 1)}
                   >
                     <Text style={styles.saveEditText}>Next</Text>
@@ -1622,7 +1622,7 @@ const styles = StyleSheet.create({
   },
   appHeaderBar: {
     height: 56,
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -1681,7 +1681,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   activeTabText: {
-    color: '#090514',
+    color: '#052e16',
   },
 
   // Progress Bar Styles
@@ -1701,7 +1701,7 @@ const styles = StyleSheet.create({
   progressStepNum: {
     fontSize: 11,
     fontWeight: 'bold',
-    color: '#8B5CF6',
+    color: '#059669',
   },
   progressStepName: {
     fontSize: 11,
@@ -1716,7 +1716,7 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
     borderRadius: 2,
   },
 
@@ -1734,13 +1734,13 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     borderWidth: 1.5,
-    borderColor: '#DDD6FE',
+    borderColor: '#a7f3d0',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
-    shadowColor: '#8B5CF6',
+    shadowColor: '#059669',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -1749,7 +1749,7 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
     textAlign: 'center',
     marginBottom: 6,
     letterSpacing: 0.25,
@@ -1784,7 +1784,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 10,
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 1,
@@ -1810,13 +1810,13 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
   introStartButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
     flexDirection: 'row',
     height: 48,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#8B5CF6',
+    shadowColor: '#059669',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -1837,7 +1837,7 @@ const styles = StyleSheet.create({
   stepHeading: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#090514',
+    color: '#052e16',
     marginBottom: 2,
   },
   stepSubtitle: {
@@ -1910,20 +1910,20 @@ const styles = StyleSheet.create({
   },
   infoBox: {
     flexDirection: 'row',
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     borderRadius: 14,
     padding: 12,
     alignItems: 'center',
     marginTop: 8,
     borderLeftWidth: 4,
-    borderLeftColor: '#8B5CF6',
+    borderLeftColor: '#059669',
   },
   infoBoxText: {
     flex: 1,
     marginLeft: 8,
     fontSize: 12,
     fontWeight: '600',
-    color: '#5B21B6',
+    color: '#064e3b',
     lineHeight: 16,
   },
 
@@ -1943,8 +1943,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   distortionChipSelected: {
-    backgroundColor: '#8B5CF6',
-    borderColor: '#8B5CF6',
+    backgroundColor: '#059669',
+    borderColor: '#059669',
   },
   distortionText: {
     fontSize: 12,
@@ -1965,8 +1965,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   linkedEmotionCardActive: {
-    backgroundColor: '#F5F3FF',
-    borderColor: '#8B5CF6',
+    backgroundColor: '#ecfdf5',
+    borderColor: '#059669',
   },
   linkedEmotionText: {
     fontSize: 12.5,
@@ -2009,7 +2009,7 @@ const styles = StyleSheet.create({
   },
   navNextButton: {
     flexDirection: 'row',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 10,
@@ -2094,7 +2094,7 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#090514',
+    color: '#052e16',
     marginBottom: 4,
   },
   successDescription: {
@@ -2135,13 +2135,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   successConfirmBtn: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
     height: 44,
     borderRadius: 10,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#8B5CF6',
+    shadowColor: '#059669',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -2211,8 +2211,8 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   checkboxBoxChecked: {
-    backgroundColor: '#8B5CF6',
-    borderColor: '#8B5CF6',
+    backgroundColor: '#059669',
+    borderColor: '#059669',
   },
   checkboxBoxCompact: {
     width: 16,
@@ -2231,7 +2231,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#F1F5F9',
     borderLeftWidth: 5,
-    borderLeftColor: '#8B5CF6',
+    borderLeftColor: '#059669',
     padding: 16,
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 4 },
@@ -2252,7 +2252,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   trapBadge: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -2260,7 +2260,7 @@ const styles = StyleSheet.create({
   trapBadgeText: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#8B5CF6',
+    color: '#059669',
   },
   cardHeaderLabel: {
     fontSize: 8.5,
@@ -2293,22 +2293,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cardReframeContainer: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     borderRadius: 12,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#DDD6FE',
+    borderColor: '#a7f3d0',
   },
   cardReframeHeaderLabel: {
     fontSize: 8.5,
     fontWeight: '800',
-    color: '#8B5CF6',
+    color: '#059669',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   cardReframeText: {
     fontSize: 12,
-    color: '#5B21B6',
+    color: '#064e3b',
     lineHeight: 18,
     fontWeight: 'bold',
     fontStyle: 'italic',
@@ -2336,7 +2336,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
     borderRadius: 10,
     paddingVertical: 9,
     marginTop: 8,
@@ -2378,7 +2378,7 @@ const styles = StyleSheet.create({
   kpiValue: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
   },
   kpiLabel: {
     fontSize: 10.5,
@@ -2407,12 +2407,12 @@ const styles = StyleSheet.create({
   metricsTitle: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
   },
   metricsRateNum: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#8B5CF6',
+    color: '#059669',
   },
   metricsSub: {
     fontSize: 11,
@@ -2429,7 +2429,7 @@ const styles = StyleSheet.create({
   },
   rateBarFill: {
     height: 8,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
   },
   distortionCard: {
     backgroundColor: '#FFFFFF',
@@ -2450,7 +2450,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   distortionBadge: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -2458,7 +2458,7 @@ const styles = StyleSheet.create({
   distortionBadgeText: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#8B5CF6',
+    color: '#059669',
   },
   distortionStats: {
     fontSize: 10.5,
@@ -2468,7 +2468,7 @@ const styles = StyleSheet.create({
   distortionTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
     marginBottom: 6,
   },
   distortionDesc: {
@@ -2494,7 +2494,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -2502,7 +2502,7 @@ const styles = StyleSheet.create({
   distortionEmptyTitle: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
     marginBottom: 4,
   },
   distortionEmptyText: {
@@ -2524,7 +2524,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
   },
   sectionSubtitle: {
     fontSize: 11,
@@ -2646,7 +2646,7 @@ const styles = StyleSheet.create({
   modalHeaderTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
   },
   scrollDetails: {
     paddingHorizontal: 20,
@@ -2688,14 +2688,14 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   detailsCtaButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     height: 48,
     borderRadius: 14,
     marginTop: 20,
-    shadowColor: '#8B5CF6',
+    shadowColor: '#059669',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -2712,7 +2712,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 20,
-    shadowColor: '#8B5CF6',
+    shadowColor: '#059669',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,

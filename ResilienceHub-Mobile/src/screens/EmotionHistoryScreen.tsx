@@ -220,7 +220,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
           icon: "brain",
           iconFamily: "MaterialCommunityIcons",
           color: "#9333EA",
-          bgLight: "#F5F3FF",
+          bgLight: "#ecfdf5",
           detail: t.cognitiveDistortions && t.cognitiveDistortions.length > 0
             ? `Distortions: ${t.cognitiveDistortions.join(', ')}`
             : '',
@@ -394,8 +394,8 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
         <Svg width={chartWidth} height={chartHeight}>
           <Defs>
             <LinearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.25" />
-              <Stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.00" />
+              <Stop offset="0%" stopColor="#059669" stopOpacity="0.25" />
+              <Stop offset="100%" stopColor="#059669" stopOpacity="0.00" />
             </LinearGradient>
           </Defs>
 
@@ -431,11 +431,11 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
           )}
 
           {points.length > 1 && pathD && (
-            <Path d={pathD} fill="none" stroke="#8B5CF6" strokeWidth="3" />
+            <Path d={pathD} fill="none" stroke="#059669" strokeWidth="3" />
           )}
 
           {points.length === 1 && (
-            <Circle cx={points[0].x} cy={points[0].y} r="6" fill="#8B5CF6" />
+            <Circle cx={points[0].x} cy={points[0].y} r="6" fill="#059669" />
           )}
 
           {points.map((pt, idx) => (
@@ -445,7 +445,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
                 cy={pt.y}
                 r="4"
                 fill="#FFFFFF"
-                stroke="#8B5CF6"
+                stroke="#059669"
                 strokeWidth="2.5"
               />
               <SvgText
@@ -523,7 +523,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#059669" />
         <Text style={styles.loadingText}>Opening Clinical Logs...</Text>
       </View>
     );
@@ -542,7 +542,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
             <Feather 
               name="pie-chart" 
               size={14} 
-              color={activeTab === 'stats' ? '#090514' : '#64748B'} 
+              color={activeTab === 'stats' ? '#052e16' : '#64748B'} 
               style={{ marginRight: 6 }}
             />
             <Text style={[styles.tabText, activeTab === 'stats' && styles.activeTabText]}>Progress Stats</Text>
@@ -555,7 +555,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
             <Feather 
               name="clock" 
               size={14} 
-              color={activeTab === 'history' ? '#090514' : '#64748B'} 
+              color={activeTab === 'history' ? '#052e16' : '#64748B'} 
               style={{ marginRight: 6 }}
             />
             <Text style={[styles.tabText, activeTab === 'history' && styles.activeTabText]}>Activity History</Text>
@@ -568,7 +568,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#8B5CF6']} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#059669']} />
         }
       >
         {activeTab === 'stats' ? (
@@ -594,7 +594,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
             <View style={styles.milestoneCard}>
               <View style={styles.milestoneHeaderRow}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Feather name="trending-up" size={14} color="#8B5CF6" />
+                  <Feather name="trending-up" size={14} color="#059669" />
                   <Text style={styles.milestoneLabel}>CBT PROGRESS</Text>
                 </View>
                 <Text style={styles.milestonePercentageText}>{stats.milestonePct}% of first milestone</Text>
@@ -613,8 +613,8 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
               <View style={styles.kpiCard}>
                 <View style={styles.kpiCardHeader}>
                   <Text style={styles.kpiCardTitle}>ENGAGEMENT LEVEL</Text>
-                  <View style={[styles.kpiIconWrap, { backgroundColor: '#F5F3FF' }]}>
-                    <Feather name="activity" size={14} color="#8B5CF6" />
+                  <View style={[styles.kpiIconWrap, { backgroundColor: '#ecfdf5' }]}>
+                    <Feather name="activity" size={14} color="#059669" />
                   </View>
                 </View>
                 <Text style={styles.kpiCardValue}>{stats.totalActivities}</Text>
@@ -622,10 +622,10 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
                 <View style={styles.kpiCardFooter}>
                   <View style={styles.kpiFooterTextRow}>
                     <Text style={styles.kpiFooterLabel}>Behavioral Activation</Text>
-                    <Text style={[styles.kpiFooterValue, { color: '#8B5CF6' }]}>Active</Text>
+                    <Text style={[styles.kpiFooterValue, { color: '#059669' }]}>Active</Text>
                   </View>
                   <View style={styles.kpiMiniProgressBarBg}>
-                    <View style={[styles.kpiMiniProgressBarFill, { width: `${Math.min((stats.totalActivities / 20) * 100, 100)}%`, backgroundColor: '#8B5CF6' }]} />
+                    <View style={[styles.kpiMiniProgressBarFill, { width: `${Math.min((stats.totalActivities / 20) * 100, 100)}%`, backgroundColor: '#059669' }]} />
                   </View>
                 </View>
               </View>
@@ -744,7 +744,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
             ) : (
               <View style={styles.distortionEmptyCard}>
                 <View style={styles.distortionEmptyIcon}>
-                  <Feather name="shield" size={20} color="#8B5CF6" />
+                  <Feather name="shield" size={20} color="#059669" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.distortionEmptyTitle}>Build CBT Skills</Text>
@@ -910,7 +910,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   activeTabText: {
-    color: '#090514',
+    color: '#052e16',
   },
 
   tabContent: {
@@ -934,8 +934,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   activeFilterPill: {
-    backgroundColor: '#090514',
-    borderColor: '#090514',
+    backgroundColor: '#052e16',
+    borderColor: '#052e16',
   },
   filterPillText: {
     fontSize: 11.5,
@@ -948,11 +948,11 @@ const styles = StyleSheet.create({
 
   // Milestone Progress Card
   milestoneCard: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     borderRadius: 20,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#090514',
+    shadowColor: '#052e16',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -984,7 +984,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#8B5CF6', // Purple fill
+    backgroundColor: '#059669', // Purple fill
     borderRadius: 3,
   },
   milestoneDetailText: {
@@ -1036,7 +1036,7 @@ const styles = StyleSheet.create({
   kpiCardValue: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
     marginBottom: 2,
   },
   kpiCardDesc: {
@@ -1128,7 +1128,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
   },
   sectionSubtitle: {
     fontSize: 11,
@@ -1196,7 +1196,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   distortionBadge: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -1204,7 +1204,7 @@ const styles = StyleSheet.create({
   distortionBadgeText: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#8B5CF6',
+    color: '#059669',
   },
   distortionStats: {
     fontSize: 10.5,
@@ -1214,7 +1214,7 @@ const styles = StyleSheet.create({
   distortionTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
     marginBottom: 6,
   },
   distortionDesc: {
@@ -1240,7 +1240,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -1248,7 +1248,7 @@ const styles = StyleSheet.create({
   distortionEmptyTitle: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
     marginBottom: 4,
   },
   distortionEmptyText: {
@@ -1343,7 +1343,7 @@ const styles = StyleSheet.create({
   timelineItemTitle: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
     flex: 1,
     marginRight: 8,
   },
@@ -1401,14 +1401,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     borderRadius: 24,
     height: 48,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#090514',
+    shadowColor: '#052e16',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 8,

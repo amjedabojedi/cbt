@@ -67,7 +67,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#059669" />
         <Text style={styles.loadingText}>Loading client profile…</Text>
       </View>
     );
@@ -95,7 +95,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
     {
       code: 'M02', icon: 'cpu' as const, title: 'Thought Records',
       desc: 'Cognitive distortions & reframing',
-      count: thoughts.length, unit: 'records', color: '#8B5CF6', bg: '#F5F3FF',
+      count: thoughts.length, unit: 'records', color: '#059669', bg: '#ecfdf5',
       tab: 'thoughts',
     },
     {
@@ -115,7 +115,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
   const activityItems = [
     ...emotions.map((e: any) => ({ type: 'emotion', icon: 'heart' as const, color: '#3B82F6', bg: '#EFF6FF', title: e.coreEmotion || 'Emotion recorded', sub: e.specificEmotion, date: new Date(e.createdAt), label: 'Emotion' })),
     ...journals.map((j: any) => ({ type: 'journal', icon: 'book-open' as const, color: '#F59E0B', bg: '#FFFBEB', title: j.title || 'Journal entry', sub: undefined, date: new Date(j.createdAt), label: 'Journal' })),
-    ...thoughts.map((t: any) => ({ type: 'thought', icon: 'cpu' as const, color: '#8B5CF6', bg: '#F5F3FF', title: t.situation || t.automaticThought || 'Thought record', sub: undefined, date: new Date(t.createdAt), label: 'Thought' })),
+    ...thoughts.map((t: any) => ({ type: 'thought', icon: 'cpu' as const, color: '#059669', bg: '#ecfdf5', title: t.situation || t.automaticThought || 'Thought record', sub: undefined, date: new Date(t.createdAt), label: 'Thought' })),
     ...goals.map((g: any) => ({ type: 'goal', icon: 'target' as const, color: '#10B981', bg: '#F0FDF4', title: g.title || g.goal || 'Goal', sub: g.status, date: new Date(g.createdAt), label: 'Goal' })),
   ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 20);
 
@@ -211,7 +211,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
           <>
             {/* Section label */}
             <View style={styles.sectionRow}>
-              <Ionicons name="sparkles-outline" size={13} color="#8B5CF6" />
+              <Ionicons name="sparkles-outline" size={13} color="#059669" />
               <Text style={styles.sectionLabel}>CLINICAL MODULES</Text>
               <Text style={styles.sectionHint}>tap to open</Text>
             </View>
@@ -297,7 +297,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
         {activeTab === 'progress' && (
           <>
             <View style={styles.sectionRow}>
-              <Feather name="bar-chart-2" size={13} color="#8B5CF6" />
+              <Feather name="bar-chart-2" size={13} color="#059669" />
               <Text style={styles.sectionLabel}>ACTIVITY SUMMARY</Text>
             </View>
 
@@ -305,7 +305,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
             <View style={styles.statsGrid}>
               {[
                 { icon: 'heart' as const, label: 'Emotion Records', value: emotions.length, color: '#3B82F6', bg: '#EFF6FF' },
-                { icon: 'cpu' as const, label: 'Thought Records', value: thoughts.length, color: '#8B5CF6', bg: '#F5F3FF' },
+                { icon: 'cpu' as const, label: 'Thought Records', value: thoughts.length, color: '#059669', bg: '#ecfdf5' },
                 { icon: 'book-open' as const, label: 'Journal Entries', value: journals.length, color: '#F59E0B', bg: '#FFFBEB' },
                 { icon: 'target' as const, label: 'Goals Set', value: goals.length, color: '#10B981', bg: '#F0FDF4' },
               ].map((s, i) => (
@@ -324,7 +324,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
               {[
                 { val: String(totalActivities), label: 'Total Activities', sub: 'Across all modules', color: '#0F172A' },
                 { val: String(completedGoals), label: 'Goals Done', sub: goals.length > 0 ? `${Math.round((completedGoals / goals.length) * 100)}% rate` : 'No goals yet', color: '#10B981' },
-                { val: daysAsClient != null ? String(daysAsClient) : '—', label: 'Days Active', sub: 'Since registration', color: '#8B5CF6' },
+                { val: daysAsClient != null ? String(daysAsClient) : '—', label: 'Days Active', sub: 'Since registration', color: '#059669' },
               ].map((t, i) => (
                 <View key={i} style={[styles.totalCard, i === 1 && styles.totalCardMiddle]}>
                   <Text style={[styles.totalCardVal, { color: t.color }]}>{t.val}</Text>
@@ -338,7 +338,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
             {goals.length > 0 && (
               <>
                 <View style={[styles.sectionRow, { marginTop: 14 }]}>
-                  <Feather name="target" size={13} color="#8B5CF6" />
+                  <Feather name="target" size={13} color="#059669" />
                   <Text style={styles.sectionLabel}>GOALS</Text>
                 </View>
                 <View style={styles.goalsCard}>
@@ -385,7 +385,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
         {activeTab === 'activity' && (
           <>
             <View style={styles.sectionRow}>
-              <Feather name="activity" size={13} color="#8B5CF6" />
+              <Feather name="activity" size={13} color="#059669" />
               <Text style={styles.sectionLabel}>LATEST ENTRIES</Text>
             </View>
 
@@ -499,13 +499,13 @@ const styles = StyleSheet.create({
 
   // ── Hero ──
   hero: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     paddingBottom: 0,
     overflow: 'hidden',
   },
   heroCircle1: {
     position: 'absolute', width: 240, height: 240, borderRadius: 120,
-    backgroundColor: 'rgba(139,92,246,0.12)',
+    backgroundColor: 'rgba(5,150,105,0.12)',
     top: -80, right: -60,
   },
   heroCircle2: {
@@ -521,11 +521,11 @@ const styles = StyleSheet.create({
     padding: 2.5,
     borderRadius: 22,
     borderWidth: 1.5,
-    borderColor: 'rgba(139,92,246,0.5)',
+    borderColor: 'rgba(5,150,105,0.5)',
   },
   avatar: {
     width: 60, height: 60, borderRadius: 18,
-    backgroundColor: 'rgba(139,92,246,0.25)',
+    backgroundColor: 'rgba(5,150,105,0.25)',
     alignItems: 'center', justifyContent: 'center',
   },
   avatarText: { fontSize: 20, fontWeight: 'bold', color: '#FFFFFF' },
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     paddingVertical: 9, borderRadius: 12, gap: 5,
   },
-  tabBtnActive: { backgroundColor: '#090514' },
+  tabBtnActive: { backgroundColor: '#052e16' },
   tabBtnText: { fontSize: 11, fontWeight: '700', color: '#94A3B8' },
   tabBtnTextActive: { color: '#FFFFFF' },
 
@@ -607,9 +607,9 @@ const styles = StyleSheet.create({
   actionFill: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 8, paddingVertical: 14,
-    backgroundColor: '#090514', borderRadius: 14,
+    backgroundColor: '#052e16', borderRadius: 14,
     marginTop: 6, marginBottom: 24,
-    shadowColor: '#090514', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 4,
+    shadowColor: '#052e16', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 4,
   },
   actionFillText: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
 
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: '#F1F5F9', overflow: 'hidden',
     shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
-  timelineAccent: { height: 3, backgroundColor: '#090514' },
+  timelineAccent: { height: 3, backgroundColor: '#052e16' },
   timelineRow: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 14, paddingVertical: 12, gap: 10,

@@ -67,7 +67,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
             <Feather
               name={item.isRead ? "bell" : "bell-off"}
               size={16}
-              color={!item.isRead ? "#8B5CF6" : "#94A3B8"}
+              color={!item.isRead ? "#059669" : "#94A3B8"}
             />
           </View>
           <View style={styles.headerTextWrap}>
@@ -95,7 +95,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#059669" />
         <Text style={styles.loadingText}>Loading notifications...</Text>
       </View>
     );
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   },
   readAllText: {
     fontSize: 13,
-    color: '#8B5CF6',
+    color: '#059669',
     fontWeight: '700',
   },
   listContainer: {
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   unreadCard: {
     borderColor: '#E9D5FF',
     borderLeftWidth: 5,
-    borderLeftColor: '#8B5CF6',
+    borderLeftColor: '#059669',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   },
   markReadButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 8,
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   },
   markReadButtonText: {
     fontSize: 11,
-    color: '#8B5CF6',
+    color: '#059669',
     fontWeight: '700',
   },
   emptyContainer: {

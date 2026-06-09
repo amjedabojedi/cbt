@@ -128,7 +128,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Ionicons name="shield-checkmark-outline" size={32} color="#8B5CF6" />
+              <Ionicons name="shield-checkmark-outline" size={32} color="#059669" />
             </View>
             <Text style={styles.title}>Register Account</Text>
             <Text style={styles.subtitle}>ResilienceHub Portal Registration</Text>
@@ -147,7 +147,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                 <Ionicons 
                   name="medical-outline" 
                   size={16} 
-                  color="#8B5CF6" 
+                  color="#059669" 
                   style={styles.inputIcon} 
                 />
                 <Text style={styles.dropdownValue}>
@@ -161,7 +161,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>FULL NAME</Text>
               <View style={[styles.inputContainer, nameFocused && styles.inputContainerActive]}>
-                <Feather name="user" size={16} color={nameFocused ? '#8B5CF6' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="user" size={16} color={nameFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your full name"
@@ -178,7 +178,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
               <View style={[styles.inputContainer, emailFocused && styles.inputContainerActive]}>
-                <Feather name="mail" size={16} color={emailFocused ? '#8B5CF6' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="mail" size={16} color={emailFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter email address"
@@ -198,7 +198,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>CHOOSE USERNAME</Text>
               <View style={[styles.inputContainer, usernameFocused && styles.inputContainerActive]}>
-                <Feather name="at-sign" size={16} color={usernameFocused ? '#8B5CF6' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="at-sign" size={16} color={usernameFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Choose a username"
@@ -217,7 +217,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>PASSWORD</Text>
               <View style={[styles.inputContainer, passwordFocused && styles.inputContainerActive]}>
-                <Feather name="lock" size={16} color={passwordFocused ? '#8B5CF6' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="lock" size={16} color={passwordFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Choose password"
@@ -257,7 +257,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             onPress={() => navigation.navigate('Login')}
             style={styles.backLink}
           >
-            <Feather name="arrow-left" size={14} color="#8B5CF6" style={{ marginRight: 6 }} />
+            <Feather name="arrow-left" size={14} color="#059669" style={{ marginRight: 6 }} />
             <Text style={styles.backLinkText}>Back to Sign In</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -282,7 +282,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
               }}
               style={[styles.pickerOption, role === 'therapist' && styles.pickerOptionActive]}
             >
-              <Ionicons name="medical-outline" size={20} color={role === 'therapist' ? '#FFFFFF' : '#8B5CF6'} style={{ marginRight: 12 }} />
+              <Ionicons name="medical-outline" size={20} color={role === 'therapist' ? '#FFFFFF' : '#059669'} style={{ marginRight: 12 }} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.pickerOptionText, role === 'therapist' && styles.textWhite]}>Mental Health Professional</Text>
                 <Text style={styles.pickerOptionSub}>Manage clients, author resources, and assign worksheets.</Text>
@@ -306,7 +306,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#090514', // Matching dark theme background
+    backgroundColor: '#052e16', // Matching dark theme background
   },
   keyboardView: {
     flex: 1,
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     width: 260,
     height: 260,
     borderRadius: 130,
-    backgroundColor: 'rgba(139, 92, 246, 0.08)',
+    backgroundColor: 'rgba(5, 150, 105, 0.08)',
   },
   blob2: {
     position: 'absolute',
@@ -343,11 +343,11 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 20,
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    backgroundColor: 'rgba(5, 150, 105, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(139, 92, 246, 0.25)',
+    borderColor: 'rgba(5, 150, 105, 0.25)',
     marginBottom: 12,
   },
   title: {
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.06)',
     padding: 24,
-    shadowColor: '#090514',
+    shadowColor: '#052e16',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#8B5CF6',
+    color: '#059669',
     letterSpacing: 0.8,
     marginBottom: 8,
   },
@@ -432,8 +432,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   pickerOptionActive: {
-    backgroundColor: '#8B5CF6',
-    borderColor: '#8B5CF6',
+    backgroundColor: '#059669',
+    borderColor: '#059669',
   },
   pickerOptionText: {
     fontSize: 15,
@@ -471,8 +471,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   inputContainerActive: {
-    borderColor: '#8B5CF6',
-    backgroundColor: 'rgba(139, 92, 246, 0.05)',
+    borderColor: '#059669',
+    backgroundColor: 'rgba(5, 150, 105, 0.05)',
   },
   inputIcon: {
     marginRight: 10,
@@ -484,21 +484,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   button: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
     borderRadius: 14,
     paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    shadowColor: '#8B5CF6',
+    shadowColor: '#059669',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 3,
   },
   buttonDisabled: {
-    backgroundColor: 'rgba(139, 92, 246, 0.4)',
+    backgroundColor: 'rgba(5, 150, 105, 0.4)',
   },
   buttonText: {
     color: '#FFFFFF',
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   backLinkText: {
-    color: '#8B5CF6',
+    color: '#059669',
     fontSize: 13,
     fontWeight: '700',
   },

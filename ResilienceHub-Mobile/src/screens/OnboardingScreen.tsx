@@ -47,7 +47,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           description: "Access coping strategies, protective factors, and worksheets assigned directly by your therapist with custom instructions.",
           icon: "book-outline",
           iconFamily: "Ionicons",
-          color: "#C084FC",
+          color: "#34d399",
         }
       ];
     } else {
@@ -124,7 +124,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     return (
       <View style={styles.stepContent}>
         <View style={styles.iconHeaderBg}>
-          <Ionicons name="star" size={32} color="#C084FC" />
+          <Ionicons name="star" size={32} color="#34d399" />
         </View>
         <Text style={styles.mainTitle}>Choose Your Role</Text>
         <Text style={styles.mainSubtitle}>Select how you will be using ResilienceHub to customize your walkthrough</Text>
@@ -208,7 +208,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         </Text>
 
         <View style={styles.finalGuidanceCard}>
-          <Feather name="shield" size={18} color="#C084FC" style={{ marginRight: 12, marginTop: 2 }} />
+          <Feather name="shield" size={18} color="#34d399" style={{ marginRight: 12, marginTop: 2 }} />
           <View style={{ flex: 1 }}>
             <Text style={styles.finalGuidanceText}>
               All clinical check-ins, worksheets, goals, and records are fully encrypted and kept secure.
@@ -288,7 +288,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#090514', // Premium dark theme background
+    backgroundColor: '#052e16', // Premium dark theme background
   },
   topBar: {
     flexDirection: 'row',
@@ -328,10 +328,10 @@ const styles = StyleSheet.create({
   },
   progressBarDotActive: {
     width: 18,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
   },
   progressBarDotCompleted: {
-    backgroundColor: 'rgba(139, 92, 246, 0.4)',
+    backgroundColor: 'rgba(5, 150, 105, 0.4)',
   },
   mainContent: {
     flex: 1,
@@ -345,12 +345,12 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(192, 132, 252, 0.1)',
+    backgroundColor: 'rgba(52, 211, 153, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
     borderWidth: 1.5,
-    borderColor: 'rgba(192, 132, 252, 0.25)',
+    borderColor: 'rgba(52, 211, 153, 0.25)',
   },
   iconHeaderBgFinal: {
     width: 80,
@@ -393,8 +393,8 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   roleCardActive: {
-    borderColor: '#8B5CF6',
-    backgroundColor: 'rgba(139, 92, 246, 0.08)',
+    borderColor: '#059669',
+    backgroundColor: 'rgba(5, 150, 105, 0.08)',
   },
   roleCardIconBox: {
     width: 44,
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
   slideSubtitle: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#8B5CF6',
+    color: '#059669',
     letterSpacing: 1.5,
     marginBottom: 6,
   },
@@ -454,18 +454,18 @@ const styles = StyleSheet.create({
   },
   finalGuidanceCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(192, 132, 252, 0.05)',
+    backgroundColor: 'rgba(52, 211, 153, 0.05)',
     borderRadius: 16,
     padding: 14,
     alignItems: 'flex-start',
     borderWidth: 1,
-    borderColor: 'rgba(192, 132, 252, 0.15)',
+    borderColor: 'rgba(52, 211, 153, 0.15)',
     marginTop: 12,
     width: '100%',
   },
   finalGuidanceText: {
     fontSize: 11.5,
-    color: '#C084FC',
+    color: '#34d399',
     lineHeight: 17,
   },
   footer: {
@@ -473,14 +473,14 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   actionButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
     borderRadius: 16,
     paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    shadowColor: '#8B5CF6',
+    shadowColor: '#059669',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

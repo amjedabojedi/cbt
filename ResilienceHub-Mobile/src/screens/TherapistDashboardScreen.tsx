@@ -132,7 +132,7 @@ export default function TherapistDashboardScreen({ navigation }: TherapistDashbo
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#059669" />
         <Text style={styles.loadingText}>Loading your practice...</Text>
       </View>
     );
@@ -147,7 +147,7 @@ export default function TherapistDashboardScreen({ navigation }: TherapistDashbo
           <View style={styles.heroRow}>
             <View style={{ flex: 1 }}>
               <View style={styles.heroTagRow}>
-                <Ionicons name="medical-outline" size={14} color="#C084FC" />
+                <Ionicons name="medical-outline" size={14} color="#34d399" />
                 <Text style={styles.heroTag}>CLINICAL WORKSPACE</Text>
               </View>
               <Text style={styles.heroGreeting}>{timeGreeting},</Text>
@@ -182,11 +182,11 @@ export default function TherapistDashboardScreen({ navigation }: TherapistDashbo
           </View>
           <View style={styles.statsGrid}>
             {[
-              { icon: 'users', label: 'Total Clients', value: totalClients, sub: `${newClients} new in 14 days`, color: '#8B5CF6' },
+              { icon: 'users', label: 'Total Clients', value: totalClients, sub: `${newClients} new in 14 days`, color: '#059669' },
               { icon: 'user-check', label: 'Active Clients', value: activeClients, sub: `${activeRate}% engagement`, color: '#10B981' },
               { icon: 'user-plus', label: 'New Clients', value: newClients, sub: 'Last 14 days', color: '#6366F1' },
               { icon: 'book-open', label: 'Journal Entries', value: journalCount, sub: 'Across all clients', color: '#F59E0B' },
-              { icon: 'cpu', label: 'Thought Records', value: thoughtCount, sub: 'Across all clients', color: '#8B5CF6' },
+              { icon: 'cpu', label: 'Thought Records', value: thoughtCount, sub: 'Across all clients', color: '#059669' },
               { icon: 'target', label: 'Active Goals', value: goalCount, sub: 'Across all clients', color: '#EF4444' },
             ].map((stat, i) => (
               <View key={i} style={styles.statCard}>
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
 
   // Hero
   heroBanner: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
@@ -371,17 +371,17 @@ const styles = StyleSheet.create({
   },
   heroRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   heroTagRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  heroTag: { color: '#C084FC', fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginLeft: 6 },
-  heroGreeting: { fontSize: 16, color: '#C084FC', fontWeight: '600' },
+  heroTag: { color: '#34d399', fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginLeft: 6 },
+  heroGreeting: { fontSize: 16, color: '#34d399', fontWeight: '600' },
   heroName: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginTop: 2 },
   heroSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 6, lineHeight: 18 },
   avatarBox: {
     width: 48, height: 48, borderRadius: 16,
-    backgroundColor: 'rgba(139,92,246,0.15)',
-    borderWidth: 1.5, borderColor: '#8B5CF6',
+    backgroundColor: 'rgba(5,150,105,0.15)',
+    borderWidth: 1.5, borderColor: '#059669',
     alignItems: 'center', justifyContent: 'center', marginTop: 8,
   },
-  avatarText: { color: '#C084FC', fontSize: 16, fontWeight: 'bold' },
+  avatarText: { color: '#34d399', fontSize: 16, fontWeight: 'bold' },
   topStatsRow: {
     flexDirection: 'row', justifyContent: 'space-around', marginTop: 20,
     backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 16,
@@ -418,10 +418,10 @@ const styles = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 18,
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#090514',
+    shadowColor: '#052e16',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
@@ -446,13 +446,13 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#090514', borderRadius: 14,
+    backgroundColor: '#052e16', borderRadius: 14,
     paddingVertical: 14, marginTop: 20,
   },
   sendBtnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 15, marginLeft: 8 },
 
   // Recent Clients Carousel
-  viewAllLink: { fontSize: 12, fontWeight: '700', color: '#8B5CF6' },
+  viewAllLink: { fontSize: 12, fontWeight: '700', color: '#059669' },
   carouselSection: { paddingTop: 24 },
   carouselContent: { paddingHorizontal: 20, paddingBottom: 8, gap: 14 },
 
@@ -487,9 +487,9 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 16,
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     borderWidth: 1.5,
-    borderColor: '#EDE9FE',
+    borderColor: '#d1fae5',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -504,16 +504,16 @@ const styles = StyleSheet.create({
   // Empty State
   emptyState: { alignItems: 'center', paddingTop: 40, paddingBottom: 60, paddingHorizontal: 40 },
   emptyIconBox: {
-    width: 72, height: 72, borderRadius: 20, backgroundColor: '#F5F3FF',
-    borderWidth: 1, borderColor: '#EDE9FE',
+    width: 72, height: 72, borderRadius: 20, backgroundColor: '#ecfdf5',
+    borderWidth: 1, borderColor: '#d1fae5',
     alignItems: 'center', justifyContent: 'center', marginBottom: 16,
   },
   emptyTitle: { fontSize: 16, fontWeight: '700', color: '#1E293B', marginBottom: 6 },
   emptyDesc: { fontSize: 13, color: '#94A3B8', textAlign: 'center', lineHeight: 18, marginBottom: 20 },
   emptyButton: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#090514', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14,
-    shadowColor: '#090514', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8,
+    backgroundColor: '#052e16', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14,
+    shadowColor: '#052e16', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8,
   },
   emptyButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700', marginLeft: 8 },
 });

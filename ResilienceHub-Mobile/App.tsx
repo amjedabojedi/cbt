@@ -71,11 +71,11 @@ function MainTabs() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#8B5CF6', // Purple matching the redesigned dashboard theme
+        tabBarActiveTintColor: '#059669', // Purple matching the redesigned dashboard theme
         tabBarInactiveTintColor: 'gray',
         headerShown: true,
         headerStyle: {
-          backgroundColor: '#090514', // Dark purple AppBar background
+          backgroundColor: '#052e16', // Dark purple AppBar background
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -180,13 +180,13 @@ function CustomDrawerContent(props: any) {
   return (
     <DrawerContentScrollView 
       {...props} 
-      contentContainerStyle={{ flexGrow: 1, backgroundColor: '#090514' }}
-      style={{ backgroundColor: '#090514' }}
+      contentContainerStyle={{ flexGrow: 1, backgroundColor: '#052e16' }}
+      style={{ backgroundColor: '#052e16' }}
     >
       {/* Drawer Header */}
       <View style={{ padding: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.08)', marginBottom: 16, alignItems: 'center' }}>
-        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(192, 132, 252, 0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1.5, borderColor: '#C084FC' }}>
-          <Ionicons name="person-outline" size={26} color="#C084FC" />
+        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(52, 211, 153, 0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1.5, borderColor: '#34d399' }}>
+          <Ionicons name="person-outline" size={26} color="#34d399" />
         </View>
         <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' }}>ResilienceHub</Text>
         <Text style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: 11, marginTop: 4, letterSpacing: 0.5, textTransform: 'uppercase', fontWeight: '700' }}>Client Portal</Text>
@@ -200,7 +200,7 @@ function CustomDrawerContent(props: any) {
       {/* Language Switcher */}
       <View style={{ paddingHorizontal: 24, paddingVertical: 16, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-          <Ionicons name="globe-outline" size={14} color="#C084FC" style={{ marginRight: 6 }} />
+          <Ionicons name="globe-outline" size={14} color="#34d399" style={{ marginRight: 6 }} />
           <Text style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: 11, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' }}>Language</Text>
         </View>
         <View style={{ 
@@ -222,7 +222,7 @@ function CustomDrawerContent(props: any) {
               alignItems: 'center', 
               justifyContent: 'center', 
               borderRadius: 18, 
-              backgroundColor: selectedLanguage === 'en' ? '#8B5CF6' : 'transparent' 
+              backgroundColor: selectedLanguage === 'en' ? '#059669' : 'transparent' 
             }}
           >
             <Text style={{ color: selectedLanguage === 'en' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)', fontSize: 11.5, fontWeight: 'bold', textAlign: 'center' }}>English</Text>
@@ -236,7 +236,7 @@ function CustomDrawerContent(props: any) {
               alignItems: 'center', 
               justifyContent: 'center', 
               borderRadius: 18, 
-              backgroundColor: selectedLanguage === 'ar' ? '#8B5CF6' : 'transparent' 
+              backgroundColor: selectedLanguage === 'ar' ? '#059669' : 'transparent' 
             }}
           >
             <Text style={{ color: selectedLanguage === 'ar' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)', fontSize: 11.5, fontWeight: 'bold', textAlign: 'center' }}>العربية</Text>
@@ -275,7 +275,7 @@ function DrawerNavigator() {
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={({ navigation }) => ({
         headerStyle: {
-          backgroundColor: '#090514', // Dark purple AppBar background
+          backgroundColor: '#052e16', // Dark purple AppBar background
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -287,10 +287,10 @@ function DrawerNavigator() {
           </TouchableOpacity>
         ),
         drawerActiveTintColor: '#FFFFFF',
-        drawerActiveBackgroundColor: 'rgba(192, 132, 252, 0.15)',
+        drawerActiveBackgroundColor: 'rgba(52, 211, 153, 0.15)',
         drawerInactiveTintColor: 'rgba(255, 255, 255, 0.6)',
         drawerStyle: {
-          backgroundColor: '#090514',
+          backgroundColor: '#052e16',
           width: 270,
         },
         drawerLabelStyle: {
@@ -394,10 +394,10 @@ function TherapistTabs() {
           else iconName = 'circle';
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#8B5CF6',
+        tabBarActiveTintColor: '#059669',
         tabBarInactiveTintColor: 'gray',
         headerShown: true,
-        headerStyle: { backgroundColor: '#090514' },
+        headerStyle: { backgroundColor: '#052e16' },
         headerTintColor: '#fff',
         headerTitleStyle: { fontWeight: 'bold' },
         headerLeft: () => (
@@ -431,10 +431,10 @@ function TherapistDrawerContent(props: any) {
   };
 
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={{ flexGrow: 1, backgroundColor: '#090514' }} style={{ backgroundColor: '#090514' }}>
+    <DrawerContentScrollView {...props} contentContainerStyle={{ flexGrow: 1, backgroundColor: '#052e16' }} style={{ backgroundColor: '#052e16' }}>
       <View style={{ padding: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', marginBottom: 16, alignItems: 'center' }}>
-        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(192,132,252,0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1.5, borderColor: '#C084FC' }}>
-          <Ionicons name="medical-outline" size={26} color="#C084FC" />
+        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(52,211,153,0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1.5, borderColor: '#34d399' }}>
+          <Ionicons name="medical-outline" size={26} color="#34d399" />
         </View>
         <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' }}>ResilienceHub</Text>
         <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 4, letterSpacing: 0.5, textTransform: 'uppercase', fontWeight: '700' }}>Therapist Portal</Text>
@@ -457,13 +457,13 @@ function TherapistDrawerNavigator() {
     <Drawer.Navigator
       drawerContent={(props) => <TherapistDrawerContent {...props} />}
       screenOptions={{
-        headerStyle: { backgroundColor: '#090514' },
+        headerStyle: { backgroundColor: '#052e16' },
         headerTintColor: '#fff',
         headerTitleStyle: { fontWeight: 'bold' },
         drawerActiveTintColor: '#FFFFFF',
-        drawerActiveBackgroundColor: 'rgba(192,132,252,0.15)',
+        drawerActiveBackgroundColor: 'rgba(52,211,153,0.15)',
         drawerInactiveTintColor: 'rgba(255,255,255,0.6)',
-        drawerStyle: { backgroundColor: '#090514', width: 270 },
+        drawerStyle: { backgroundColor: '#052e16', width: 270 },
         drawerLabelStyle: { fontWeight: '700', fontSize: 14 },
       }}
     >
@@ -493,10 +493,10 @@ function AdminTabs() {
           else iconName = 'circle';
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#8B5CF6',
+        tabBarActiveTintColor: '#059669',
         tabBarInactiveTintColor: 'gray',
         headerShown: true,
-        headerStyle: { backgroundColor: '#090514' },
+        headerStyle: { backgroundColor: '#052e16' },
         headerTintColor: '#fff',
         headerTitleStyle: { fontWeight: 'bold' },
         headerLeft: () => (
@@ -531,10 +531,10 @@ function AdminDrawerContent(props: any) {
   };
 
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={{ flexGrow: 1, backgroundColor: '#090514' }} style={{ backgroundColor: '#090514' }}>
+    <DrawerContentScrollView {...props} contentContainerStyle={{ flexGrow: 1, backgroundColor: '#052e16' }} style={{ backgroundColor: '#052e16' }}>
       <View style={{ padding: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', marginBottom: 16, alignItems: 'center' }}>
-        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(192,132,252,0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1.5, borderColor: '#C084FC' }}>
-          <Ionicons name="shield-checkmark-outline" size={26} color="#C084FC" />
+        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(52,211,153,0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1.5, borderColor: '#34d399' }}>
+          <Ionicons name="shield-checkmark-outline" size={26} color="#34d399" />
         </View>
         <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' }}>ResilienceHub</Text>
         <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 4, letterSpacing: 0.5, textTransform: 'uppercase', fontWeight: '700' }}>Admin Panel</Text>
@@ -557,13 +557,13 @@ function AdminDrawerNavigator() {
     <Drawer.Navigator
       drawerContent={(props) => <AdminDrawerContent {...props} />}
       screenOptions={{
-        headerStyle: { backgroundColor: '#090514' },
+        headerStyle: { backgroundColor: '#052e16' },
         headerTintColor: '#fff',
         headerTitleStyle: { fontWeight: 'bold' },
         drawerActiveTintColor: '#FFFFFF',
-        drawerActiveBackgroundColor: 'rgba(192,132,252,0.15)',
+        drawerActiveBackgroundColor: 'rgba(52,211,153,0.15)',
         drawerInactiveTintColor: 'rgba(255,255,255,0.6)',
-        drawerStyle: { backgroundColor: '#090514', width: 270 },
+        drawerStyle: { backgroundColor: '#052e16', width: 270 },
         drawerLabelStyle: { fontWeight: '700', fontSize: 14 },
       }}
     >
@@ -612,7 +612,7 @@ export default function App() {
               options={{
                 headerShown: true,
                 title: 'Notifications',
-                headerStyle: { backgroundColor: '#090514' },
+                headerStyle: { backgroundColor: '#052e16' },
                 headerTintColor: '#fff',
                 headerTitleStyle: { fontWeight: 'bold' },
               }}
@@ -624,7 +624,7 @@ export default function App() {
               options={({ route }: any) => ({
                 headerShown: true,
                 title: route.params?.clientName || 'Client Profile',
-                headerStyle: { backgroundColor: '#090514' },
+                headerStyle: { backgroundColor: '#052e16' },
                 headerTintColor: '#fff',
                 headerTitleStyle: { fontWeight: 'bold' },
               })}
@@ -636,7 +636,7 @@ export default function App() {
               options={({ route }: any) => ({
                 headerShown: true,
                 title: route.params?.clientName || 'Client Data',
-                headerStyle: { backgroundColor: '#090514' },
+                headerStyle: { backgroundColor: '#052e16' },
                 headerTintColor: '#fff',
                 headerTitleStyle: { fontWeight: 'bold' },
               })}

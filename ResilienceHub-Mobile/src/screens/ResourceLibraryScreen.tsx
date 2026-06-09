@@ -143,7 +143,7 @@ function renderHTMLContent(html: string) {
 // ALL RESOURCES TAB — unified searchable list of every resource type
 // ─────────────────────────────────────────────────────────────────────────────
 const TYPE_META = {
-  educational: { label: 'Educational', color: '#8B5CF6', bg: '#F5F3FF', icon: 'book-open' as const },
+  educational: { label: 'Educational', color: '#059669', bg: '#ecfdf5', icon: 'book-open' as const },
   protective:  { label: 'Protective Factor', color: '#10B981', bg: '#ECFDF5', icon: 'shield' as const },
   coping:      { label: 'Coping Strategy', color: '#3B82F6', bg: '#EFF6FF', icon: 'zap' as const },
 };
@@ -234,7 +234,7 @@ function AllResourcesTab({
               style={[
                 allStyles.pill,
                 isActive
-                  ? { backgroundColor: theme?.color ?? '#090514', borderColor: theme?.color ?? '#090514' }
+                  ? { backgroundColor: theme?.color ?? '#052e16', borderColor: theme?.color ?? '#052e16' }
                   : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' },
               ]}
               onPress={() => setActiveCategory(cat)}
@@ -465,7 +465,7 @@ export default function ResourceLibraryScreen() {
   const getCategoryTheme = (cat: string) => {
     const category = cat?.toLowerCase() || '';
     if (category.includes('cbt basics')) {
-      return { color: '#8B5CF6', icon: 'brain', iconFamily: 'MaterialCommunityIcons', lightBg: '#F5F3FF', textColor: '#5B21B6' };
+      return { color: '#059669', icon: 'brain', iconFamily: 'MaterialCommunityIcons', lightBg: '#ecfdf5', textColor: '#064e3b' };
     } else if (category.includes('anxiety')) {
       return { color: '#EF4444', icon: 'activity', iconFamily: 'Feather', lightBg: '#FEF2F2', textColor: '#991B1B' };
     } else if (category.includes('depression')) {
@@ -783,13 +783,13 @@ export default function ResourceLibraryScreen() {
                   setAssignModalVisible(true);
                 }}
               >
-                <Feather name="user-check" size={13} color="#8B5CF6" />
+                <Feather name="user-check" size={13} color="#059669" />
                 <Text style={styles.cardActionBtnMiniText}>Assign</Text>
               </TouchableOpacity>
             )}
             <View style={styles.actionLinkRow}>
               <Text style={styles.readMoreText}>Open Tool</Text>
-              <Feather name="chevron-right" size={14} color="#8B5CF6" style={{ marginLeft: 2 }} />
+              <Feather name="chevron-right" size={14} color="#059669" style={{ marginLeft: 2 }} />
             </View>
           </View>
         </View>
@@ -800,8 +800,8 @@ export default function ResourceLibraryScreen() {
   const renderItemCard = (item: any, type: 'factor' | 'strategy') => {
     const isGlobal = item.isGlobal;
     const isPersonal = item.userId === profile?.id || (!isGlobal && item.userId);
-    const accentColor = isGlobal ? '#10B981' : '#8B5CF6';
-    const lightBg = isGlobal ? '#ECFDF5' : '#F5F3FF';
+    const accentColor = isGlobal ? '#10B981' : '#059669';
+    const lightBg = isGlobal ? '#ECFDF5' : '#ecfdf5';
 
     return (
       <View style={[styles.itemCard, { borderLeftColor: accentColor }]} key={item.id}>
@@ -865,7 +865,7 @@ export default function ResourceLibraryScreen() {
         <View style={styles.assignmentMetaRow}>
           <View style={styles.clientLabelRow}>
             <View style={styles.clientAvatarMini}>
-              <Feather name="user" size={11} color="#090514" />
+              <Feather name="user" size={11} color="#052e16" />
             </View>
             <Text style={styles.clientNameText}>
               {assignment.client?.name || assignment.client?.username || 'Client'}
@@ -900,7 +900,7 @@ export default function ResourceLibraryScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#059669" />
         <Text style={styles.loadingText}>Opening Resource Library...</Text>
       </View>
     );
@@ -1006,7 +1006,7 @@ export default function ResourceLibraryScreen() {
                       style={[
                         styles.categoryButton,
                         isSelected 
-                          ? { backgroundColor: '#090514', borderColor: '#090514' }
+                          ? { backgroundColor: '#052e16', borderColor: '#052e16' }
                           : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' }
                       ]}
                       onPress={() => setActiveCategory(cat)}
@@ -1278,7 +1278,7 @@ export default function ResourceLibraryScreen() {
                   value={pfIsGlobal}
                   onValueChange={setPfIsGlobal}
                   trackColor={{ false: '#CBD5E1', true: '#A78BFA' }}
-                  thumbColor={pfIsGlobal ? '#8B5CF6' : '#F1F5F9'}
+                  thumbColor={pfIsGlobal ? '#059669' : '#F1F5F9'}
                 />
               </View>
             )}
@@ -1359,7 +1359,7 @@ export default function ResourceLibraryScreen() {
                   value={csIsGlobal}
                   onValueChange={setCsIsGlobal}
                   trackColor={{ false: '#CBD5E1', true: '#A78BFA' }}
-                  thumbColor={csIsGlobal ? '#8B5CF6' : '#F1F5F9'}
+                  thumbColor={csIsGlobal ? '#059669' : '#F1F5F9'}
                 />
               </View>
             )}
@@ -1435,7 +1435,7 @@ export default function ResourceLibraryScreen() {
                         </Text>
                         <Text style={styles.clientSelectUsername}>@{client.username}</Text>
                       </View>
-                      {isSelected && <Feather name="check-circle" size={16} color="#8B5CF6" />}
+                      {isSelected && <Feather name="check-circle" size={16} color="#059669" />}
                     </TouchableOpacity>
                   );
                 })}
@@ -1508,10 +1508,10 @@ const styles = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 18,
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#090514',
+    shadowColor: '#052e16',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
@@ -1542,11 +1542,11 @@ const styles = StyleSheet.create({
   heroCard: {
     height: 170,
     borderRadius: 24,
-    backgroundColor: '#090514', // Brand deep purple
+    backgroundColor: '#052e16', // Brand deep purple
     padding: 16,
     justifyContent: 'space-between',
     overflow: 'hidden',
-    shadowColor: '#090514',
+    shadowColor: '#052e16',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -1572,7 +1572,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   heroBadgeText: {
-    color: '#090514',
+    color: '#052e16',
     fontSize: 10,
     fontWeight: 'bold',
   },
@@ -1749,23 +1749,23 @@ const styles = StyleSheet.create({
   },
   readMoreText: {
     fontSize: 12,
-    color: '#8B5CF6',
+    color: '#059669',
     fontWeight: 'bold',
   },
   cardActionBtnMini: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#EDE9FE',
+    borderColor: '#d1fae5',
   },
   cardActionBtnMiniText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#8B5CF6',
+    color: '#059669',
     marginLeft: 4,
   },
 
@@ -1891,7 +1891,7 @@ const styles = StyleSheet.create({
   htmlH1: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
     lineHeight: 26,
     marginTop: 18,
     marginBottom: 10,
@@ -1899,7 +1899,7 @@ const styles = StyleSheet.create({
   htmlH2: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
     lineHeight: 23,
     marginTop: 14,
     marginBottom: 8,
@@ -1907,7 +1907,7 @@ const styles = StyleSheet.create({
   htmlH3: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#090514',
+    color: '#052e16',
     lineHeight: 20,
     marginTop: 12,
     marginBottom: 6,
@@ -1920,7 +1920,7 @@ const styles = StyleSheet.create({
   },
   htmlBullet: {
     fontSize: 14.5,
-    color: '#8B5CF6',
+    color: '#059669',
     lineHeight: 22,
     marginRight: 6,
   },
@@ -1939,7 +1939,7 @@ const styles = StyleSheet.create({
   },
   modalAssignBtn: {
     flexDirection: 'row',
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     paddingVertical: 12,
     borderRadius: 14,
     alignItems: 'center',
@@ -1978,7 +1978,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   tabBtnActive: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
   },
   tabBtnText: {
     fontSize: 13,
@@ -2001,7 +2001,7 @@ const styles = StyleSheet.create({
   tabTitleText: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
   },
   tabSubtitleText: {
     fontSize: 12.5,
@@ -2013,7 +2013,7 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
@@ -2141,7 +2141,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#EDE9FE',
+    backgroundColor: '#d1fae5',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 6,
@@ -2166,7 +2166,7 @@ const styles = StyleSheet.create({
   assignmentNotesTitle: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#090514',
+    color: '#052e16',
     marginBottom: 2,
   },
   assignmentNotesText: {
@@ -2220,7 +2220,7 @@ const styles = StyleSheet.create({
   dialogTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
   },
   dialogField: {
     marginBottom: 14,
@@ -2292,7 +2292,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   dialogSaveBtn: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 12,
@@ -2331,7 +2331,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F1F5F9',
   },
   clientSelectRowSelected: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
   },
   clientAvatarCircle: {
     width: 28,
@@ -2343,7 +2343,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   clientAvatarCircleSelected: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
   },
   clientAvatarCircleText: {
     fontSize: 10,
@@ -2359,7 +2359,7 @@ const styles = StyleSheet.create({
     color: '#334155',
   },
   clientSelectNameSelected: {
-    color: '#8B5CF6',
+    color: '#059669',
     fontWeight: '700',
   },
   clientSelectUsername: {

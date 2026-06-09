@@ -49,10 +49,10 @@ interface Milestone {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const STATUS_COLOR: Record<string, string> = {
-  completed: '#10B981', approved: '#10B981', in_progress: '#8B5CF6', pending: '#F59E0B',
+  completed: '#10B981', approved: '#10B981', in_progress: '#059669', pending: '#F59E0B',
 };
 const STATUS_BG: Record<string, string> = {
-  completed: '#ECFDF5', approved: '#ECFDF5', in_progress: '#F5F3FF', pending: '#FFFBEB',
+  completed: '#ECFDF5', approved: '#ECFDF5', in_progress: '#ecfdf5', pending: '#FFFBEB',
 };
 const STATUS_LABEL: Record<string, string> = {
   completed: 'Completed', approved: 'Approved', in_progress: 'In Progress', pending: 'Pending Review',
@@ -63,7 +63,7 @@ const SMART_META = [
   { key: 'measurable', letter: 'M', label: 'Measurable', color: '#3B82F6', bg: '#EFF6FF' },
   { key: 'achievable', letter: 'A', label: 'Achievable', color: '#10B981', bg: '#ECFDF5' },
   { key: 'relevant',   letter: 'R', label: 'Relevant',   color: '#F59E0B', bg: '#FFFBEB' },
-  { key: 'timebound',  letter: 'T', label: 'Time-bound', color: '#8B5CF6', bg: '#F5F3FF' },
+  { key: 'timebound',  letter: 'T', label: 'Time-bound', color: '#059669', bg: '#ecfdf5' },
 ] as const;
 
 // ─── Insights Panel ───────────────────────────────────────────────────────────
@@ -83,13 +83,13 @@ function InsightsPanel({ goals, allMilestones }: { goals: Goal[]; allMilestones:
 
   const segments = [
     { label: 'Completed',   count: completed,  color: '#10B981', pct: total > 0 ? (completed  / total) * 100 : 0 },
-    { label: 'In Progress', count: inProgress, color: '#8B5CF6', pct: total > 0 ? (inProgress / total) * 100 : 0 },
+    { label: 'In Progress', count: inProgress, color: '#059669', pct: total > 0 ? (inProgress / total) * 100 : 0 },
     { label: 'Pending',     count: pending,    color: '#F59E0B', pct: total > 0 ? (pending    / total) * 100 : 0 },
   ];
 
   if (!total) return (
     <View style={ins.empty}>
-      <View style={ins.emptyIcon}><Feather name="bar-chart-2" size={28} color="#8B5CF6" /></View>
+      <View style={ins.emptyIcon}><Feather name="bar-chart-2" size={28} color="#059669" /></View>
       <Text style={ins.emptyTitle}>No Data Yet</Text>
       <Text style={ins.emptyBody}>Create SMART goals to unlock visual insights.</Text>
     </View>
@@ -104,7 +104,7 @@ function InsightsPanel({ goals, allMilestones }: { goals: Goal[]; allMilestones:
           <View style={ins.ringWrap}>
             <Svg width={RING} height={RING} style={StyleSheet.absoluteFillObject}>
               <Circle cx={RING/2} cy={RING/2} r={R} stroke="rgba(255,255,255,0.10)" strokeWidth={STROKE} fill="none" />
-              <Circle cx={RING/2} cy={RING/2} r={R} stroke="#8B5CF6" strokeWidth={STROKE} fill="none"
+              <Circle cx={RING/2} cy={RING/2} r={R} stroke="#059669" strokeWidth={STROKE} fill="none"
                 strokeLinecap="round" strokeDasharray={`${CIRC}`} strokeDashoffset={CIRC - dash}
                 rotation={-90} origin={`${RING/2},${RING/2}`} />
             </Svg>
@@ -114,7 +114,7 @@ function InsightsPanel({ goals, allMilestones }: { goals: Goal[]; allMilestones:
           <View style={ins.heroStats}>
             <Text style={ins.heroTitle}>Goal Progress</Text>
             <Text style={ins.heroSub}>Your SMART Goals overview</Text>
-            {[{ c: completed, l: 'Completed', col: '#10B981' }, { c: inProgress, l: 'In Progress', col: '#8B5CF6' }, { c: pending, l: 'Pending', col: '#F59E0B' }].map(x => (
+            {[{ c: completed, l: 'Completed', col: '#10B981' }, { c: inProgress, l: 'In Progress', col: '#059669' }, { c: pending, l: 'Pending', col: '#F59E0B' }].map(x => (
               <View key={x.l} style={ins.statRow}>
                 <View style={[ins.dot, { backgroundColor: x.col }]} />
                 <Text style={ins.statLbl}>{x.l}</Text>
@@ -133,7 +133,7 @@ function InsightsPanel({ goals, allMilestones }: { goals: Goal[]; allMilestones:
       {/* Distribution */}
       <View style={ins.card}>
         <View style={ins.cardHeader}>
-          <View style={[ins.cardIcon, { backgroundColor: '#F5F3FF' }]}><Feather name="pie-chart" size={13} color="#8B5CF6" /></View>
+          <View style={[ins.cardIcon, { backgroundColor: '#ecfdf5' }]}><Feather name="pie-chart" size={13} color="#059669" /></View>
           <Text style={ins.cardTitle}>Status Distribution</Text>
         </View>
         <View style={ins.segBar}>
@@ -181,7 +181,7 @@ function InsightsPanel({ goals, allMilestones }: { goals: Goal[]; allMilestones:
       </View>
 
       <View style={ins.chips}>
-        {[{ i: 'check-circle' as const, l: `${rate}% Done`, col: '#10B981', bg: '#ECFDF5' }, { i: 'trending-up' as const, l: `${inProgress} Active`, col: '#8B5CF6', bg: '#F5F3FF' }, { i: 'award' as const, l: `${msCompleted} Achieved`, col: '#3B82F6', bg: '#EFF6FF' }].map(x => (
+        {[{ i: 'check-circle' as const, l: `${rate}% Done`, col: '#10B981', bg: '#ECFDF5' }, { i: 'trending-up' as const, l: `${inProgress} Active`, col: '#059669', bg: '#ecfdf5' }, { i: 'award' as const, l: `${msCompleted} Achieved`, col: '#3B82F6', bg: '#EFF6FF' }].map(x => (
           <View key={x.l} style={[ins.chip, { backgroundColor: x.bg }]}>
             <Feather name={x.i} size={12} color={x.col} />
             <Text style={[ins.chipText, { color: x.col }]}>{x.l}</Text>
@@ -195,11 +195,11 @@ function InsightsPanel({ goals, allMilestones }: { goals: Goal[]; allMilestones:
 const ins = StyleSheet.create({
   wrap: { paddingHorizontal: 16, paddingBottom: 16, gap: 12 },
   empty: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32, gap: 12 },
-  emptyIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#F5F3FF', alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#ecfdf5', alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { fontSize: 16, fontWeight: '800', color: '#475569' },
   emptyBody: { fontSize: 12, color: '#94A3B8', textAlign: 'center', lineHeight: 18 },
   heroCard: { backgroundColor: '#0F0720', borderRadius: 24, padding: 20, overflow: 'hidden' },
-  heroBlob1: { position: 'absolute', width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(139,92,246,0.12)', top: -40, right: -40 },
+  heroBlob1: { position: 'absolute', width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(5,150,105,0.12)', top: -40, right: -40 },
   heroBlob2: { position: 'absolute', width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(59,130,246,0.08)', bottom: -20, left: 20 },
   heroRow: { flexDirection: 'row', alignItems: 'center', gap: 20, marginBottom: 16 },
   ringWrap: { width: 110, height: 110, alignItems: 'center', justifyContent: 'center' },
@@ -217,7 +217,7 @@ const ins = StyleSheet.create({
   card: { backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9', padding: 16, gap: 12, shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 6, elevation: 1 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cardIcon: { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  cardTitle: { fontSize: 14, fontWeight: '800', color: '#090514' },
+  cardTitle: { fontSize: 14, fontWeight: '800', color: '#052e16' },
   segBar: { flexDirection: 'row', height: 10, borderRadius: 8, overflow: 'hidden', backgroundColor: '#F1F5F9', gap: 2 },
   segFill: { height: '100%' },
   segRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -269,7 +269,7 @@ function GoalDetailModal({
         {/* Header */}
         <View style={gd.header}>
           <TouchableOpacity style={gd.backBtn} onPress={onClose} activeOpacity={0.8}>
-            <Feather name="arrow-left" size={20} color="#090514" />
+            <Feather name="arrow-left" size={20} color="#052e16" />
           </TouchableOpacity>
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={gd.headerTitle} numberOfLines={2}>{goal.title}</Text>
@@ -340,13 +340,13 @@ function GoalDetailModal({
                 )}
               </View>
               <TouchableOpacity style={gd.addMsBtn} onPress={onAddMilestone} activeOpacity={0.8}>
-                <Feather name="plus" size={14} color="#8B5CF6" />
+                <Feather name="plus" size={14} color="#059669" />
                 <Text style={gd.addMsBtnText}>Add Milestone</Text>
               </TouchableOpacity>
             </View>
 
             {msLoading ? (
-              <ActivityIndicator size="small" color="#8B5CF6" style={{ marginVertical: 16 }} />
+              <ActivityIndicator size="small" color="#059669" style={{ marginVertical: 16 }} />
             ) : milestones.length === 0 ? (
               <View style={gd.msEmpty}>
                 <View style={gd.msEmptyIcon}><Feather name="flag" size={22} color="#CBD5E1" /></View>
@@ -403,7 +403,7 @@ const gd = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F8FAFC' },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   backBtn: { width: 36, height: 36, borderRadius: 12, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: '#090514', flexShrink: 1 },
+  headerTitle: { fontSize: 16, fontWeight: '800', color: '#052e16', flexShrink: 1 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, marginLeft: 8 },
   statusBadgeText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.3 },
   progressStrip: { marginHorizontal: 16, marginTop: 14, backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9', padding: 14, gap: 8 },
@@ -425,15 +425,15 @@ const gd = StyleSheet.create({
   feedbackTitle: { fontSize: 13, fontWeight: '800', color: '#92400E' },
   feedbackText: { fontSize: 13, color: '#92400E', lineHeight: 19 },
   milestoneHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  msBadge: { backgroundColor: '#EDE9FE', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
-  msBadgeText: { fontSize: 10, fontWeight: '800', color: '#7C3AED' },
-  addMsBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#F5F3FF', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, borderWidth: 1, borderColor: '#EDE9FE' },
-  addMsBtnText: { fontSize: 12.5, fontWeight: '800', color: '#8B5CF6' },
+  msBadge: { backgroundColor: '#d1fae5', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
+  msBadgeText: { fontSize: 10, fontWeight: '800', color: '#047857' },
+  addMsBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#ecfdf5', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, borderWidth: 1, borderColor: '#d1fae5' },
+  addMsBtnText: { fontSize: 12.5, fontWeight: '800', color: '#059669' },
   msEmpty: { alignItems: 'center', paddingVertical: 36, gap: 8 },
   msEmptyIcon: { width: 52, height: 52, borderRadius: 26, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
   msEmptyTitle: { fontSize: 15, fontWeight: '800', color: '#475569' },
   msEmptyBody: { fontSize: 12, color: '#94A3B8', textAlign: 'center', lineHeight: 17 },
-  msEmptyBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#090514', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, marginTop: 6 },
+  msEmptyBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#052e16', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, marginTop: 6 },
   msEmptyBtnText: { fontSize: 13, fontWeight: '800', color: '#FFF' },
   msList: { gap: 8 },
   msCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9', padding: 14, shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 4, elevation: 1 },
@@ -479,7 +479,7 @@ function AddMilestoneModal({
 
           {/* Header */}
           <View style={ms.header}>
-            <View style={ms.headerIcon}><Feather name="flag" size={16} color="#8B5CF6" /></View>
+            <View style={ms.headerIcon}><Feather name="flag" size={16} color="#059669" /></View>
             <View style={{ flex: 1 }}>
               <Text style={ms.headerTitle}>Add Milestone</Text>
               <Text style={ms.headerSub}>Break your goal into a smaller, trackable step</Text>
@@ -526,7 +526,7 @@ function AddMilestoneModal({
                 onPress={() => setShowPicker(v => !v)}
               >
                 <View style={ms.dateBtnIcon}>
-                  <Feather name="calendar" size={16} color={dueDate ? '#8B5CF6' : '#94A3B8'} />
+                  <Feather name="calendar" size={16} color={dueDate ? '#059669' : '#94A3B8'} />
                 </View>
                 <Text style={[ms.dateBtnText, dueDate && ms.dateBtnTextSel]}>
                   {dueDate
@@ -548,7 +548,7 @@ function AddMilestoneModal({
                     display={Platform.OS === 'ios' ? 'inline' : 'default'}
                     minimumDate={new Date()}
                     themeVariant="light"
-                    accentColor="#8B5CF6"
+                    accentColor="#059669"
                     onChange={(_e: any, sel?: Date) => {
                       if (Platform.OS !== 'ios') setShowPicker(false);
                       if (sel) setDueDate(sel);
@@ -570,7 +570,7 @@ function AddMilestoneModal({
 
             {/* Tip card */}
             <View style={ms.tipCard}>
-              <Feather name="info" size={13} color="#7C3AED" style={{ marginTop: 1 }} />
+              <Feather name="info" size={13} color="#047857" style={{ marginTop: 1 }} />
               <Text style={ms.tipText}>Good milestones are specific, measurable actions that move you closer to your goal.</Text>
             </View>
 
@@ -598,8 +598,8 @@ const ms = StyleSheet.create({
   sheet: { backgroundColor: '#F8FAFC', borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: H * 0.92, overflow: 'hidden' },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1', alignSelf: 'center', marginTop: 10 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#FFF' },
-  headerIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#F5F3FF', borderWidth: 1, borderColor: '#EDE9FE', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#090514' },
+  headerIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#d1fae5', alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: '#052e16' },
   headerSub: { fontSize: 11.5, color: '#94A3B8', marginTop: 1 },
   closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
   body: { padding: 20, gap: 16, paddingBottom: 36 },
@@ -609,18 +609,18 @@ const ms = StyleSheet.create({
   input: { backgroundColor: '#FFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, fontSize: 14, color: '#1E293B', shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1 },
   textArea: { backgroundColor: '#FFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, paddingTop: 13, paddingBottom: 13, fontSize: 14, color: '#1E293B', minHeight: 100, lineHeight: 21, shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1 },
   dateBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#FFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1 },
-  dateBtnIcon: { width: 30, height: 30, borderRadius: 9, backgroundColor: '#F5F3FF', alignItems: 'center', justifyContent: 'center' },
+  dateBtnIcon: { width: 30, height: 30, borderRadius: 9, backgroundColor: '#ecfdf5', alignItems: 'center', justifyContent: 'center' },
   dateBtnText: { flex: 1, fontSize: 14, color: '#94A3B8', fontWeight: '500' },
   dateBtnTextSel: { color: '#1E293B', fontWeight: '600' },
   pickerWrap: { backgroundColor: '#FFF', borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0', overflow: 'hidden', marginTop: 4 },
   pickerActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, padding: 12, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
   pickerClear: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: '#F1F5F9' },
   pickerClearText: { fontSize: 13, fontWeight: '700', color: '#64748B' },
-  pickerDone: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 10, backgroundColor: '#090514' },
+  pickerDone: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 10, backgroundColor: '#052e16' },
   pickerDoneText: { fontSize: 13, fontWeight: '700', color: '#FFF' },
-  tipCard: { flexDirection: 'row', gap: 10, backgroundColor: 'rgba(237,233,254,0.35)', borderRadius: 14, borderWidth: 1, borderColor: '#EDE9FE', padding: 13 },
+  tipCard: { flexDirection: 'row', gap: 10, backgroundColor: 'rgba(237,233,254,0.35)', borderRadius: 14, borderWidth: 1, borderColor: '#d1fae5', padding: 13 },
   tipText: { flex: 1, fontSize: 12, color: '#475569', lineHeight: 18 },
-  saveBtn: { backgroundColor: '#090514', borderRadius: 16, height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', shadowColor: '#090514', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 4 },
+  saveBtn: { backgroundColor: '#052e16', borderRadius: 16, height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', shadowColor: '#052e16', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 4 },
   saveBtnDisabled: { backgroundColor: '#CBD5E1' },
   saveBtnText: { color: '#FFF', fontSize: 15, fontWeight: '800' },
 });
@@ -635,8 +635,8 @@ const STEPS = [
   { step: 6, letter: 'T',   letterStyle: 'T' as const,   title: 'Time-bound',    desc: 'What is the timeline or deadline for this goal?',                                                      placeholder: 'E.g., Daily for the next 2 weeks',                                  field: 'timebound',  multiline: false },
 ];
 
-const LETTER_COLORS: Record<string, string> = { S: '#EF4444', M: '#3B82F6', A: '#10B981', R: '#F59E0B', T: '#8B5CF6' };
-const LETTER_BG:    Record<string, string> = { S: '#FEF2F2', M: '#EFF6FF', A: '#ECFDF5', R: '#FFFBEB', T: '#F5F3FF' };
+const LETTER_COLORS: Record<string, string> = { S: '#EF4444', M: '#3B82F6', A: '#10B981', R: '#F59E0B', T: '#059669' };
+const LETTER_BG:    Record<string, string> = { S: '#FEF2F2', M: '#EFF6FF', A: '#ECFDF5', R: '#FFFBEB', T: '#ecfdf5' };
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function GoalsScreen({ navigation }: { navigation: any }) {
@@ -759,7 +759,7 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
   const completionPct = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
 
   if (loading) return (
-    <View style={s.loadingBox}><ActivityIndicator size="large" color="#8B5CF6" /></View>
+    <View style={s.loadingBox}><ActivityIndicator size="large" color="#059669" /></View>
   );
 
   // ── Goal Card ─────────────────────────────────────────────────────────────
@@ -811,7 +811,7 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
           </View>
           <View style={s.viewBtn}>
             <Text style={s.viewBtnText}>View Details</Text>
-            <Feather name="chevron-right" size={13} color="#8B5CF6" />
+            <Feather name="chevron-right" size={13} color="#059669" />
           </View>
         </View>
       </TouchableOpacity>
@@ -824,7 +824,7 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 140 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8B5CF6" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />}
       >
         {/* ── Hero Header ── */}
         <View style={s.hero}>
@@ -983,7 +983,7 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
             <View style={s.modalHandle} />
             {/* Header */}
             <View style={s.modalHeader}>
-              <View style={s.modalHeaderIcon}><Feather name="target" size={16} color="#8B5CF6" /></View>
+              <View style={s.modalHeaderIcon}><Feather name="target" size={16} color="#059669" /></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.modalTitle}>Set SMART Goal</Text>
                 <Text style={s.modalSub}>Step {currentStep} of {STEPS.length}</Text>
@@ -1014,7 +1014,7 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
                         ? <View style={[s.stepLetterBox, { backgroundColor: LETTER_BG[stepDef.letter] }]}>
                             <Text style={[s.stepLetter, { color: LETTER_COLORS[stepDef.letter] }]}>{stepDef.letter}</Text>
                           </View>
-                        : <View style={s.stepIconBox}><Feather name="target" size={18} color="#8B5CF6" /></View>
+                        : <View style={s.stepIconBox}><Feather name="target" size={18} color="#059669" /></View>
                       }
                       <Text style={s.stepTitle}>{stepDef.title}</Text>
                     </View>
@@ -1074,7 +1074,7 @@ const s = StyleSheet.create({
   loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
 
   // Hero
-  hero:    { backgroundColor: '#090514', paddingBottom: 22, overflow: 'hidden' },
+  hero:    { backgroundColor: '#052e16', paddingBottom: 22, overflow: 'hidden' },
   heroBlob1: { position: 'absolute', top: -40, right: 20, width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(124,58,237,0.08)' },
   heroBlob2: { position: 'absolute', bottom: 0, left: 40, width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(99,102,241,0.07)' },
   heroInner: { paddingHorizontal: 20, paddingTop: 20 },
@@ -1098,7 +1098,7 @@ const s = StyleSheet.create({
   tabWrap: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4 },
   tabBar:  { flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 14, padding: 4, gap: 4 },
   tabBtn:  { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 11 },
-  tabBtnActive: { backgroundColor: '#090514', shadowColor: '#090514', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  tabBtnActive: { backgroundColor: '#052e16', shadowColor: '#052e16', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
   tabBtnText:   { fontSize: 12.5, fontWeight: '700', color: '#64748B' },
   tabBtnTextActive: { color: '#FFF' },
 
@@ -1107,7 +1107,7 @@ const s = StyleSheet.create({
   emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   emptyTitle:{ fontSize: 18, fontWeight: '800', color: '#475569', marginBottom: 6 },
   emptySub:  { fontSize: 13, color: '#94A3B8', textAlign: 'center', lineHeight: 19, marginBottom: 22 },
-  emptyBtn:  { flexDirection: 'row', alignItems: 'center', backgroundColor: '#090514', paddingHorizontal: 22, paddingVertical: 13, borderRadius: 14 },
+  emptyBtn:  { flexDirection: 'row', alignItems: 'center', backgroundColor: '#052e16', paddingHorizontal: 22, paddingVertical: 13, borderRadius: 14 },
   emptyBtnText: { color: '#FFF', fontSize: 14, fontWeight: '800' },
 
   // Goals list
@@ -1118,7 +1118,7 @@ const s = StyleSheet.create({
   // Goal Card
   goalCard: { backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9', borderLeftWidth: 5, padding: 16, shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },
   goalCardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
-  goalCardTitle: { fontSize: 15, fontWeight: '800', color: '#090514', marginBottom: 4 },
+  goalCardTitle: { fontSize: 15, fontWeight: '800', color: '#052e16', marginBottom: 4 },
   goalCardSpecific: { fontSize: 12.5, color: '#64748B', lineHeight: 18 },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, flexShrink: 0 },
   statusBadgeText: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.3 },
@@ -1134,10 +1134,10 @@ const s = StyleSheet.create({
   smartPillText: { fontSize: 10, fontWeight: '900' },
   smartPillMore: { fontSize: 10, fontWeight: '700', color: '#94A3B8', marginLeft: 2 },
   viewBtn: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  viewBtnText: { fontSize: 12, fontWeight: '700', color: '#8B5CF6' },
+  viewBtnText: { fontSize: 12, fontWeight: '700', color: '#059669' },
 
   // FAB
-  fab: { position: 'absolute', bottom: 16, right: 20, backgroundColor: '#090514', borderRadius: 28, height: 50, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 6, shadowColor: '#090514', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 6 },
+  fab: { position: 'absolute', bottom: 16, right: 20, backgroundColor: '#052e16', borderRadius: 28, height: 50, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 6, shadowColor: '#052e16', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 6 },
   fabText: { color: '#FFF', fontSize: 14, fontWeight: '800' },
 
   // Bottom nav
@@ -1150,30 +1150,30 @@ const s = StyleSheet.create({
   modalSheet:    { backgroundColor: '#F8FAFC', borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: H * 0.90, overflow: 'hidden' },
   modalHandle:   { width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1', alignSelf: 'center', marginTop: 10 },
   modalHeader:   { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#FFF' },
-  modalHeaderIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#F5F3FF', borderWidth: 1, borderColor: '#EDE9FE', alignItems: 'center', justifyContent: 'center' },
-  modalTitle:    { fontSize: 17, fontWeight: '800', color: '#090514' },
+  modalHeaderIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#d1fae5', alignItems: 'center', justifyContent: 'center' },
+  modalTitle:    { fontSize: 17, fontWeight: '800', color: '#052e16' },
   modalSub:      { fontSize: 11.5, color: '#94A3B8', marginTop: 1 },
   modalCloseBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
   modalProgressWrap: { backgroundColor: '#FFF', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   modalProgressBg:   { height: 6, backgroundColor: '#F1F5F9', borderRadius: 3, overflow: 'hidden', marginBottom: 10 },
-  modalProgressFill: { height: '100%', backgroundColor: '#8B5CF6', borderRadius: 3 },
+  modalProgressFill: { height: '100%', backgroundColor: '#059669', borderRadius: 3 },
   modalStepDots: { flexDirection: 'row', gap: 6 },
   stepDot:       { width: 6, height: 6, borderRadius: 3, backgroundColor: '#E2E8F0' },
-  stepDotDone:   { backgroundColor: '#8B5CF6' },
-  stepDotActive: { width: 18, backgroundColor: '#8B5CF6' },
+  stepDotDone:   { backgroundColor: '#059669' },
+  stepDotActive: { width: 18, backgroundColor: '#059669' },
   modalBody:     { padding: 20, paddingBottom: 36 },
   stepHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   stepLetterBox: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   stepLetter:    { fontSize: 18, fontWeight: '900' },
-  stepIconBox:   { width: 38, height: 38, borderRadius: 12, backgroundColor: '#F5F3FF', alignItems: 'center', justifyContent: 'center' },
-  stepTitle:     { fontSize: 18, fontWeight: '800', color: '#090514' },
+  stepIconBox:   { width: 38, height: 38, borderRadius: 12, backgroundColor: '#ecfdf5', alignItems: 'center', justifyContent: 'center' },
+  stepTitle:     { fontSize: 18, fontWeight: '800', color: '#052e16' },
   stepDesc:      { fontSize: 13, color: '#64748B', lineHeight: 19, marginBottom: 16 },
   modalInput:    { backgroundColor: '#FFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, fontSize: 14, color: '#1E293B', shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1 },
   modalTextArea: { backgroundColor: '#FFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, paddingTop: 13, paddingBottom: 13, fontSize: 14, color: '#1E293B', minHeight: 120, lineHeight: 21, shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1 },
   navRow:  { flexDirection: 'row', gap: 10, marginTop: 22 },
   prevBtn: { flex: 1, height: 50, borderRadius: 14, borderWidth: 1.5, borderColor: '#E2E8F0', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF' },
   prevBtnText: { fontSize: 14, fontWeight: '700', color: '#475569' },
-  nextBtn: { flex: 1, height: 50, borderRadius: 14, backgroundColor: '#090514', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  nextBtn: { flex: 1, height: 50, borderRadius: 14, backgroundColor: '#052e16', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   nextBtnDisabled: { backgroundColor: '#CBD5E1' },
   nextBtnText: { fontSize: 14, fontWeight: '800', color: '#FFF' },
 });

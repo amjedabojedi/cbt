@@ -260,7 +260,7 @@ function EntryCard({ entry, onView, onEdit, onDelete }: {
       </View>
       {/* Date */}
       <View style={ec.dateRow}>
-        <Feather name="calendar" size={11} color="#8B5CF6" />
+        <Feather name="calendar" size={11} color="#059669" />
         <Text style={ec.dateText}>{fmtDate(entry.createdAt)}</Text>
       </View>
       {/* Content preview */}
@@ -306,10 +306,10 @@ const ec = StyleSheet.create({
     shadowOpacity: 0.04, shadowRadius: 6, elevation: 1,
   },
   headerRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title:         { fontSize: 15, fontWeight: '800', color: '#090514', flex: 1, marginRight: 8 },
+  title:         { fontSize: 15, fontWeight: '800', color: '#052e16', flex: 1, marginRight: 8 },
   moreBtn:       { fontSize: 20, color: '#94A3B8', lineHeight: 22 },
   dateRow:       { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  dateText:      { fontSize: 11, fontWeight: '600', color: '#8B5CF6' },
+  dateText:      { fontSize: 11, fontWeight: '600', color: '#059669' },
   preview:       { fontSize: 13, color: '#64748B', lineHeight: 19, fontWeight: '400' },
   tagsRow:       { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   tag:           { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 },
@@ -317,7 +317,7 @@ const ec = StyleSheet.create({
   moreTagBadge:  { backgroundColor: '#EEF2FF', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 },
   moreTagText:   { fontSize: 10, fontWeight: '700', color: '#6366F1' },
   footer:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 },
-  viewLink:      { fontSize: 12, fontWeight: '700', color: '#8B5CF6' },
+  viewLink:      { fontSize: 12, fontWeight: '700', color: '#059669' },
   commentBadge:  { flexDirection: 'row', alignItems: 'center', gap: 4 },
   commentCount:  { fontSize: 11, fontWeight: '600', color: '#94A3B8' },
 });
@@ -331,7 +331,7 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
     return (
       <View style={ip.empty}>
         <View style={ip.emptyIconRing}>
-          <Feather name="book-open" size={26} color="#8B5CF6" />
+          <Feather name="book-open" size={26} color="#059669" />
         </View>
         <Text style={ip.emptyTitle}>No Insights Yet</Text>
         <Text style={ip.emptyBody}>Write your first journal entry to unlock sentiment trends, emotion patterns and topic analysis.</Text>
@@ -353,7 +353,7 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
   const emotionData: PieSlice[] = Object.entries(emotionMap)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 6)
-    .map(([name, value]) => ({ name, value, color: EMOTION_COLORS[name] ?? '#8B5CF6' }));
+    .map(([name, value]) => ({ name, value, color: EMOTION_COLORS[name] ?? '#059669' }));
   const topEmotion = emotionData[0]?.name ?? 'None';
 
   const topicMap: Record<string, number> = {};
@@ -435,7 +435,7 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
     <View style={ip.container}>
       <View style={ip.statRow}>
         {[
-          { icon: 'book-open' as const, label: 'Total Entries', value: `${total}`, sub: 'Logs recorded', color: '#8B5CF6', bg: '#F5F3FF' },
+          { icon: 'book-open' as const, label: 'Total Entries', value: `${total}`, sub: 'Logs recorded', color: '#059669', bg: '#ecfdf5' },
           { icon: 'heart' as const,     label: 'Avg Positivity', value: `${avgPos}%`, sub: 'Positive sentiment', color: '#10B981', bg: '#ECFDF5' },
           { icon: 'trending-up' as const, label: 'Top Emotion', value: topEmotion, sub: 'Most common vibe', color: '#EC4899', bg: '#FDF2F8' },
         ].map(({ icon, label, value, sub, color, bg }) => (
@@ -452,8 +452,8 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
 
       <View style={ip.sectionCard}>
         <View style={ip.sectionHeader}>
-          <View style={[ip.sectionIcon, { backgroundColor: '#F5F3FF' }]}>
-            <Feather name="activity" size={13} color="#8B5CF6" />
+          <View style={[ip.sectionIcon, { backgroundColor: '#ecfdf5' }]}>
+            <Feather name="activity" size={13} color="#059669" />
           </View>
           <View>
             <Text style={ip.sectionTitle}>Overall Sentiment</Text>
@@ -593,9 +593,9 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
           {calendarDays.map((d, i) => {
             let bg = '#F1F5F9';
             let textColor = '#CBD5E1';
-            if (d.count === 1) { bg = '#EDE9FE'; textColor = '#7C3AED'; }
+            if (d.count === 1) { bg = '#d1fae5'; textColor = '#047857'; }
             else if (d.count === 2) { bg = '#C4B5FD'; textColor = '#4C1D95'; }
-            else if (d.count >= 3) { bg = '#8B5CF6'; textColor = '#FFFFFF'; }
+            else if (d.count >= 3) { bg = '#059669'; textColor = '#FFFFFF'; }
             const cellSize = (SCREEN_WIDTH - 64 - 9 * 4) / 10;
             return (
               <View key={i} style={{ width: cellSize, height: cellSize, borderRadius: 6, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
@@ -605,7 +605,7 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
           })}
         </View>
         <View style={{ flexDirection: 'row', gap: 12, flexWrap: 'wrap', marginTop: 4 }}>
-          {[['#F1F5F9', '#CBD5E1', 'None'], ['#EDE9FE', '#7C3AED', '1 Entry'], ['#C4B5FD', '#4C1D95', '2 Entries'], ['#8B5CF6', '#FFFFFF', '3+ Entries']].map(([bg, tc, label]) => (
+          {[['#F1F5F9', '#CBD5E1', 'None'], ['#d1fae5', '#047857', '1 Entry'], ['#C4B5FD', '#4C1D95', '2 Entries'], ['#059669', '#FFFFFF', '3+ Entries']].map(([bg, tc, label]) => (
             <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
               <View style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: bg }} />
               <Text style={{ fontSize: 10, fontWeight: '600', color: '#64748B' }}>{label}</Text>
@@ -620,7 +620,7 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
 const ip = StyleSheet.create({
   container:      { gap: 12, paddingHorizontal: 16, paddingBottom: 24 },
   empty:          { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32, gap: 12 },
-  emptyIconRing:  { width: 60, height: 60, borderRadius: 30, backgroundColor: '#F5F3FF', alignItems: 'center', justifyContent: 'center' },
+  emptyIconRing:  { width: 60, height: 60, borderRadius: 30, backgroundColor: '#ecfdf5', alignItems: 'center', justifyContent: 'center' },
   emptyTitle:     { fontSize: 16, fontWeight: '800', color: '#475569' },
   emptyBody:      { fontSize: 12, color: '#94A3B8', textAlign: 'center', lineHeight: 18 },
 
@@ -634,7 +634,7 @@ const ip = StyleSheet.create({
   sectionCard:    { backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#F1F5F9', padding: 16, gap: 14 },
   sectionHeader:  { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   sectionIcon:    { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  sectionTitle:   { fontSize: 13, fontWeight: '800', color: '#090514' },
+  sectionTitle:   { fontSize: 13, fontWeight: '800', color: '#052e16' },
   sectionSub:     { fontSize: 10, color: '#94A3B8', fontWeight: '500', marginTop: 1 },
 
   gaugesRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
@@ -644,7 +644,7 @@ const ip = StyleSheet.create({
   rangePill:      { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   rangePillActive:{ backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 2, elevation: 1 },
   rangePillText:  { fontSize: 10, fontWeight: '700', color: '#64748B' },
-  rangePillTextActive: { color: '#090514' },
+  rangePillTextActive: { color: '#052e16' },
 });
 
 // ─── Entry Detail Modal ───────────────────────────────────────────────────────
@@ -782,7 +782,7 @@ function EntryDetailModal({ entry, onClose, onUpdated, onDeleted, onEditRequest 
         {/* Footer actions */}
         <View style={dm.footer}>
           <TouchableOpacity style={dm.editBtn} onPress={onEditRequest} activeOpacity={0.85}>
-            <Feather name="edit-2" size={14} color="#8B5CF6" />
+            <Feather name="edit-2" size={14} color="#059669" />
             <Text style={dm.editBtnText}>Edit Entry</Text>
           </TouchableOpacity>
           <TouchableOpacity style={dm.deleteBtn} onPress={handleDelete} activeOpacity={0.85}>
@@ -798,11 +798,11 @@ function EntryDetailModal({ entry, onClose, onUpdated, onDeleted, onEditRequest 
 const dm = StyleSheet.create({
   container:    { flex: 1, backgroundColor: '#F8FAFC' },
   header:       {
-    backgroundColor: '#090514', paddingTop: 56, paddingBottom: 24,
+    backgroundColor: '#052e16', paddingTop: 56, paddingBottom: 24,
     paddingHorizontal: 20, gap: 10, overflow: 'hidden', position: 'relative',
     alignItems: 'flex-start',
   },
-  orb1:         { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(139,92,246,0.15)', top: -80, right: -60 },
+  orb1:         { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(5,150,105,0.15)', top: -80, right: -60 },
   orb2:         { position: 'absolute', width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(99,102,241,0.1)', bottom: -30, left: 20 },
   closeBtn:     { position: 'absolute', top: 54, right: 20, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
   bookIconWrap: { width: 48, height: 48, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
@@ -824,8 +824,8 @@ const dm = StyleSheet.create({
   indigoPill:   { backgroundColor: '#EEF2FF', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: '#C7D2FE' },
   indigoPillText:{ fontSize: 11, fontWeight: '600', color: '#4338CA' },
   footer:       { flexDirection: 'row', gap: 12, padding: 16, borderTopWidth: 1, borderTopColor: '#F1F5F9', backgroundColor: '#FFFFFF' },
-  editBtn:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 46, borderRadius: 14, borderWidth: 1.5, borderColor: '#8B5CF6' },
-  editBtnText:  { fontSize: 14, fontWeight: '700', color: '#8B5CF6' },
+  editBtn:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 46, borderRadius: 14, borderWidth: 1.5, borderColor: '#059669' },
+  editBtnText:  { fontSize: 14, fontWeight: '700', color: '#059669' },
   deleteBtn:    { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 46, borderRadius: 14, backgroundColor: '#EF4444' },
   deleteBtnText:{ fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
 });
@@ -875,7 +875,7 @@ function EditEntryModal({ entry, onClose, onUpdated }: EditEntryModalProps) {
       <View style={em.container}>
         <View style={em.header}>
           <TouchableOpacity style={em.backBtn} onPress={onClose} activeOpacity={0.8}>
-            <Feather name="arrow-left" size={18} color="#090514" />
+            <Feather name="arrow-left" size={18} color="#052e16" />
           </TouchableOpacity>
           <Text style={em.headerTitle}>Edit Entry</Text>
           <TouchableOpacity style={em.saveBtn} onPress={handleSave} disabled={saving} activeOpacity={0.85}>
@@ -918,13 +918,13 @@ const em = StyleSheet.create({
   container:    { flex: 1, backgroundColor: '#F8FAFC' },
   header:       { flexDirection: 'row', alignItems: 'center', paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, gap: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   backBtn:      { width: 36, height: 36, borderRadius: 12, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
-  headerTitle:  { flex: 1, fontSize: 17, fontWeight: '800', color: '#090514' },
-  saveBtn:      { backgroundColor: '#8B5CF6', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 },
+  headerTitle:  { flex: 1, fontSize: 17, fontWeight: '800', color: '#052e16' },
+  saveBtn:      { backgroundColor: '#059669', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 },
   saveBtnText:  { fontSize: 13, fontWeight: '800', color: '#FFFFFF' },
   body:         { padding: 20, gap: 20, paddingBottom: 60 },
   fieldGroup:   { gap: 8 },
   fieldLabel:   { fontSize: 12, fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5 },
-  titleInput:   { backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, color: '#090514', fontWeight: '600' },
+  titleInput:   { backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, color: '#052e16', fontWeight: '600' },
   contentInput: { backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, paddingTop: 13, paddingBottom: 13, fontSize: 14, color: '#1E293B', minHeight: 220, lineHeight: 22 },
 });
 
@@ -1060,7 +1060,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
       {step === 0 && (
         <View style={wz.body}>
           <View style={wz.introCenter}>
-            <Feather name="send" size={22} color="#8B5CF6" />
+            <Feather name="send" size={22} color="#059669" />
             <Text style={wz.introTitle}>Welcome to Journaling</Text>
             <Text style={wz.introSub}>
               Express your thoughts and feelings in a safe, private space. Our AI will help identify patterns and provide insights.
@@ -1081,7 +1081,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
                 {row.map(item => (
                   <View key={item.label} style={wz.introCard}>
                     <View style={wz.introCardIcon}>
-                      <Feather name={item.icon} size={15} color="#7C3AED" />
+                      <Feather name={item.icon} size={15} color="#047857" />
                     </View>
                     <Text style={wz.introCardLabel}>{item.label}</Text>
                     <Text style={wz.introCardDesc}>{item.desc}</Text>
@@ -1092,7 +1092,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
           </View>
           <View style={wz.nextStepsCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-              <Feather name="help-circle" size={14} color="#7C3AED" />
+              <Feather name="help-circle" size={14} color="#047857" />
               <Text style={wz.nextStepsTitle}>What You'll Do Next</Text>
             </View>
             {[
@@ -1130,7 +1130,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
             </View>
             <View style={wz.tipCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                <Feather name="help-circle" size={13} color="#7C3AED" />
+                <Feather name="help-circle" size={13} color="#047857" />
                 <Text style={wz.tipTitle}>Why Title Your Entry?</Text>
               </View>
               <Text style={wz.tipText}>
@@ -1165,7 +1165,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
             </View>
             <View style={wz.tipCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                <Feather name="help-circle" size={13} color="#7C3AED" />
+                <Feather name="help-circle" size={13} color="#047857" />
                 <Text style={wz.tipTitle}>Why Journal?</Text>
               </View>
               <Text style={wz.tipText}>
@@ -1181,7 +1181,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
         <View style={wz.body}>
           {analyzing ? (
             <View style={wz.analyzingBox}>
-              <ActivityIndicator size="large" color="#8B5CF6" />
+              <ActivityIndicator size="large" color="#059669" />
               <Text style={wz.analyzingTitle}>AI is analyzing your entry...</Text>
               <Text style={wz.analyzingSubText}>Detecting emotions and themes</Text>
             </View>
@@ -1192,7 +1192,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
                 {createdEntry.aiAnalysis ? (
                   <View style={wz.aiInsightCard}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                      <Feather name="zap" size={13} color="#7C3AED" />
+                      <Feather name="zap" size={13} color="#047857" />
                       <Text style={wz.aiInsightTitle}>AI Insights</Text>
                     </View>
                     <Text style={wz.aiInsightText}>{createdEntry.aiAnalysis}</Text>
@@ -1200,7 +1200,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
                 ) : (
                   <View style={wz.aiInsightCard}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                      <Feather name="zap" size={13} color="#7C3AED" />
+                      <Feather name="zap" size={13} color="#047857" />
                       <Text style={wz.aiInsightTitle}>AI Insights</Text>
                     </View>
                     <Text style={[wz.aiInsightText, { fontStyle: 'italic', color: '#94A3B8' }]}>Processing insights for your entry...</Text>
@@ -1209,7 +1209,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
                 {/* Custom tag input */}
                 <View style={wz.customTagCard}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                    <Feather name="plus" size={13} color="#7C3AED" />
+                    <Feather name="plus" size={13} color="#047857" />
                     <Text style={wz.aiInsightTitle}>Add Custom Tag</Text>
                   </View>
                   <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -1237,7 +1237,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
               {/* Right: Tag selection */}
               <View style={wz.tagSelectCard}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                  <Feather name="tag" size={13} color="#7C3AED" />
+                  <Feather name="tag" size={13} color="#047857" />
                   <Text style={wz.aiInsightTitle}>Review & Select Tags</Text>
                 </View>
 
@@ -1292,9 +1292,9 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
                 )}
 
                 {/* Selected tags summary */}
-                <View style={{ borderTopWidth: 1, borderTopColor: '#EDE9FE', paddingTop: 10 }}>
+                <View style={{ borderTopWidth: 1, borderTopColor: '#d1fae5', paddingTop: 10 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 6 }}>
-                    <Feather name="check-square" size={11} color="#7C3AED" />
+                    <Feather name="check-square" size={11} color="#047857" />
                     <Text style={wz.tagGroupLabel}>Selected Tags ({selTags.length})</Text>
                   </View>
                   {selTags.length > 0 ? (
@@ -1307,7 +1307,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
                           activeOpacity={0.8}
                         >
                           <Text style={wz.selTagPillText}>{tag}</Text>
-                          <Feather name="x" size={10} color="#6D28D9" style={{ marginLeft: 3 }} />
+                          <Feather name="x" size={10} color="#065f46" style={{ marginLeft: 3 }} />
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -1382,35 +1382,35 @@ const wz = StyleSheet.create({
   card: { backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9', overflow: 'hidden', shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },
   progressHeader: { backgroundColor: '#F8FAFC', borderBottomWidth: 1, borderBottomColor: '#F1F5F9', paddingHorizontal: 18, paddingTop: 16, paddingBottom: 14 },
   progressTitleRow: { marginBottom: 10 },
-  progressTitle: { fontSize: 16, fontWeight: '800', color: '#090514' },
+  progressTitle: { fontSize: 16, fontWeight: '800', color: '#052e16' },
   progressStep: { fontSize: 12, color: '#64748B', marginTop: 1 },
   progressBarBg: { height: 6, backgroundColor: '#E2E8F0', borderRadius: 3, overflow: 'hidden', marginBottom: 8 },
-  progressBarFill: { height: 6, backgroundColor: '#8B5CF6', borderRadius: 3 },
+  progressBarFill: { height: 6, backgroundColor: '#059669', borderRadius: 3 },
   stepLabelsRow: { flexDirection: 'row', justifyContent: 'space-between' },
   stepLabel: { fontSize: 10, color: '#94A3B8', fontWeight: '600' },
-  stepLabelActive: { color: '#8B5CF6', fontWeight: '700' },
+  stepLabelActive: { color: '#059669', fontWeight: '700' },
   body: { padding: 16, gap: 12 },
   // Intro step
   introCenter: { alignItems: 'center', gap: 6, paddingVertical: 8 },
-  introTitle: { fontSize: 18, fontWeight: '800', color: '#090514', textAlign: 'center' },
+  introTitle: { fontSize: 18, fontWeight: '800', color: '#052e16', textAlign: 'center' },
   introSub: { fontSize: 12.5, color: '#64748B', textAlign: 'center', lineHeight: 18, maxWidth: 280 },
   introGrid: { gap: 8 },
   introRow: { flexDirection: 'row', gap: 8 },
-  introCard: { flex: 1, backgroundColor: '#FAF5FF', borderRadius: 14, borderWidth: 1, borderColor: '#EDE9FE', padding: 12 },
-  introCardIcon: { width: 28, height: 28, borderRadius: 8, backgroundColor: '#EDE9FE', alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  introCard: { flex: 1, backgroundColor: '#FAF5FF', borderRadius: 14, borderWidth: 1, borderColor: '#d1fae5', padding: 12 },
+  introCardIcon: { width: 28, height: 28, borderRadius: 8, backgroundColor: '#d1fae5', alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
   introCardLabel: { fontSize: 12, fontWeight: '800', color: '#1E1B4B', marginBottom: 3 },
   introCardDesc: { fontSize: 10.5, color: '#64748B', lineHeight: 15 },
-  nextStepsCard: { backgroundColor: 'rgba(237,233,254,0.3)', borderRadius: 14, borderWidth: 1, borderColor: '#EDE9FE', padding: 14 },
-  nextStepsTitle: { fontSize: 12.5, fontWeight: '800', color: '#090514' },
-  nextStepNum: { fontSize: 12, fontWeight: '700', color: '#7C3AED', width: 14 },
+  nextStepsCard: { backgroundColor: 'rgba(237,233,254,0.3)', borderRadius: 14, borderWidth: 1, borderColor: '#d1fae5', padding: 14 },
+  nextStepsTitle: { fontSize: 12.5, fontWeight: '800', color: '#052e16' },
+  nextStepNum: { fontSize: 12, fontWeight: '700', color: '#047857', width: 14 },
   nextStepText: { fontSize: 12, color: '#475569', flex: 1, lineHeight: 17 },
   // Step row layout
   stepRow: { gap: 12 },
   stepMain: { gap: 6 },
-  tipCard: { backgroundColor: 'rgba(237,233,254,0.3)', borderRadius: 14, borderWidth: 1, borderColor: '#EDE9FE', padding: 13 },
-  tipTitle: { fontSize: 12, fontWeight: '700', color: '#090514' },
+  tipCard: { backgroundColor: 'rgba(237,233,254,0.3)', borderRadius: 14, borderWidth: 1, borderColor: '#d1fae5', padding: 13 },
+  tipTitle: { fontSize: 12, fontWeight: '700', color: '#052e16' },
   tipText: { fontSize: 11.5, color: '#64748B', lineHeight: 17 },
-  fieldLabel: { fontSize: 14, fontWeight: '700', color: '#090514' },
+  fieldLabel: { fontSize: 14, fontWeight: '700', color: '#052e16' },
   textInput: { backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#1E293B' },
   textArea: { backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12, fontSize: 14, color: '#1E293B', minHeight: 160, lineHeight: 21, textAlignVertical: 'top' },
   inputError: { borderColor: '#FCA5A5' },
@@ -1420,44 +1420,44 @@ const wz = StyleSheet.create({
   // Step 3 — review grid
   reviewGrid: { gap: 10 },
   reviewLeft: { gap: 10 },
-  aiInsightCard: { backgroundColor: 'rgba(237,233,254,0.3)', borderRadius: 14, borderWidth: 1, borderColor: '#EDE9FE', padding: 13 },
-  aiInsightTitle: { fontSize: 12.5, fontWeight: '700', color: '#090514' },
+  aiInsightCard: { backgroundColor: 'rgba(237,233,254,0.3)', borderRadius: 14, borderWidth: 1, borderColor: '#d1fae5', padding: 13 },
+  aiInsightTitle: { fontSize: 12.5, fontWeight: '700', color: '#052e16' },
   aiInsightText: { fontSize: 12, color: '#475569', lineHeight: 17 },
   customTagCard: { backgroundColor: '#F8FAFC', borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0', padding: 13 },
   customTagInput: { flex: 1, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13, color: '#1E293B' },
-  addTagBtn: { backgroundColor: '#090514', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center', justifyContent: 'center' },
+  addTagBtn: { backgroundColor: '#052e16', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center', justifyContent: 'center' },
   addTagBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
-  tagSelectCard: { backgroundColor: 'rgba(237,233,254,0.2)', borderRadius: 14, borderWidth: 1, borderColor: '#EDE9FE', padding: 13 },
+  tagSelectCard: { backgroundColor: 'rgba(237,233,254,0.2)', borderRadius: 14, borderWidth: 1, borderColor: '#d1fae5', padding: 13 },
   tagGroupLabel: { fontSize: 11, fontWeight: '700', color: '#475569' },
   tagWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   tagChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#CBD5E1' },
-  tagChipSel: { backgroundColor: '#090514', borderColor: '#090514' },
+  tagChipSel: { backgroundColor: '#052e16', borderColor: '#052e16' },
   tagChipText: { fontSize: 12, fontWeight: '600', color: '#475569' },
   tagChipTextSel: { color: '#FFFFFF' },
-  selTagPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EDE9FE', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4, borderWidth: 1, borderColor: '#DDD6FE' },
-  selTagPillText: { fontSize: 11.5, fontWeight: '600', color: '#6D28D9' },
-  tagPill: { backgroundColor: '#EDE9FE', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4 },
-  tagPillText: { fontSize: 11.5, fontWeight: '600', color: '#6D28D9' },
+  selTagPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#d1fae5', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4, borderWidth: 1, borderColor: '#a7f3d0' },
+  selTagPillText: { fontSize: 11.5, fontWeight: '600', color: '#065f46' },
+  tagPill: { backgroundColor: '#d1fae5', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4 },
+  tagPillText: { fontSize: 11.5, fontWeight: '600', color: '#065f46' },
   // Analyzing
   analyzingBox: { alignItems: 'center', paddingVertical: 40, gap: 10 },
-  analyzingTitle: { fontSize: 15, fontWeight: '800', color: '#090514' },
+  analyzingTitle: { fontSize: 15, fontWeight: '800', color: '#052e16' },
   analyzingSubText: { fontSize: 12, color: '#94A3B8' },
   // Nav row
   navRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
   prevBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#FFFFFF' },
   prevBtnText: { fontSize: 13.5, fontWeight: '700', color: '#334155' },
-  primaryBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#090514', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 11 },
+  primaryBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#052e16', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 11 },
   primaryBtnText: { fontSize: 13.5, fontWeight: '700', color: '#FFFFFF' },
   outlineBtn: { flex: 1, alignItems: 'center', paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#FFFFFF' },
   outlineBtnText: { fontSize: 14, fontWeight: '700', color: '#334155' },
   // Success screen
   successHeader: { alignItems: 'center', paddingTop: 28, paddingBottom: 18, paddingHorizontal: 20 },
   successIconRing: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#ECFDF5', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  successTitle: { fontSize: 20, fontWeight: '900', color: '#090514', marginBottom: 4 },
+  successTitle: { fontSize: 20, fontWeight: '900', color: '#052e16', marginBottom: 4 },
   successSub: { fontSize: 13, color: '#64748B', textAlign: 'center' },
   summaryCard: { marginHorizontal: 16, marginBottom: 14, backgroundColor: '#F8FAFC', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#E2E8F0' },
   summaryLabel: { fontSize: 9, fontWeight: '800', color: '#94A3B8', letterSpacing: 1, marginBottom: 6 },
-  summaryTitle: { fontSize: 15, fontWeight: '800', color: '#090514', marginBottom: 4 },
+  summaryTitle: { fontSize: 15, fontWeight: '800', color: '#052e16', marginBottom: 4 },
   summaryContent: { fontSize: 12.5, color: '#64748B', lineHeight: 18 },
   sectionLabel: { fontSize: 10, fontWeight: '800', color: '#94A3B8', letterSpacing: 0.8, marginBottom: 8 },
   successBtns: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 },
@@ -1546,7 +1546,7 @@ export default function JournalScreen({ navigation }: JournalScreenProps) {
 
             {/* Tag row */}
             <View style={s.tagRow}>
-              <Feather name="zap" size={11} color="#C084FC" />
+              <Feather name="zap" size={11} color="#34d399" />
               <Text style={s.tagLabel}>SELF REFLECTION</Text>
             </View>
 
@@ -1630,7 +1630,7 @@ export default function JournalScreen({ navigation }: JournalScreenProps) {
           {/* ── My Journal Tab ── */}
           {activeTab === 'entries' && (
             loading ? (
-              <View style={s.center}><ActivityIndicator size="large" color="#8B5CF6" /></View>
+              <View style={s.center}><ActivityIndicator size="large" color="#059669" /></View>
             ) : entries.length === 0 ? (
               <View style={s.emptyState}>
                 <View style={s.emptyIconRing}>
@@ -1647,7 +1647,7 @@ export default function JournalScreen({ navigation }: JournalScreenProps) {
                 contentContainerStyle={s.entriesList}
                 showsVerticalScrollIndicator={false}
                 scrollEnabled={false}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8B5CF6" />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />}
               >
                 {entries.map(entry => (
                   <EntryCard
@@ -1677,7 +1677,7 @@ export default function JournalScreen({ navigation }: JournalScreenProps) {
           {/* ── Insights Tab ── */}
           {activeTab === 'insights' && (
             loading ? (
-              <View style={s.center}><ActivityIndicator size="large" color="#8B5CF6" /></View>
+              <View style={s.center}><ActivityIndicator size="large" color="#059669" /></View>
             ) : (
               <View style={{ paddingTop: 16, paddingBottom: 24 }}>
                 <InsightsPanel entries={entries} />
@@ -1738,14 +1738,14 @@ const s = StyleSheet.create({
 
   // Header
   header:      {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     paddingTop: 56, paddingBottom: 24, paddingHorizontal: 20,
     gap: 12, overflow: 'hidden', position: 'relative',
   },
-  orb1:        { position: 'absolute', width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(139,92,246,0.12)', top: -80, right: -50 },
+  orb1:        { position: 'absolute', width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(5,150,105,0.12)', top: -80, right: -50 },
   orb2:        { position: 'absolute', width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(99,102,241,0.08)', bottom: -40, left: 10 },
   tagRow:      { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  tagLabel:    { fontSize: 11, fontWeight: '700', color: '#C084FC', letterSpacing: 1.2, textTransform: 'uppercase' },
+  tagLabel:    { fontSize: 11, fontWeight: '700', color: '#34d399', letterSpacing: 1.2, textTransform: 'uppercase' },
   heroTitle:   { fontSize: 32, fontWeight: '800', color: '#FFFFFF', marginTop: 2 },
   heroSubtitle:{ fontSize: 13, color: 'rgba(196,181,253,0.7)', lineHeight: 19, fontWeight: '400' },
 
@@ -1768,7 +1768,7 @@ const s = StyleSheet.create({
   tabBarWrap:  { backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   tabBar:      { flexDirection: 'row', backgroundColor: '#F8FAFC', borderRadius: 14, padding: 4, gap: 2 },
   tabItem:     { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 9, borderRadius: 10 },
-  tabItemActive:{ backgroundColor: '#090514' },
+  tabItemActive:{ backgroundColor: '#052e16' },
   tabLabel:    { fontSize: 11, fontWeight: '600', color: '#94A3B8' },
   tabLabelActive:{ color: '#FFFFFF' },
 
@@ -1776,19 +1776,19 @@ const s = StyleSheet.create({
   writeContent:   { padding: 16, gap: 12, paddingBottom: 40 },
   formCard:       { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9', padding: 14, gap: 10 },
   fieldLabel:     { fontSize: 11, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.6 },
-  titleInput:     { fontSize: 16, color: '#090514', fontWeight: '600', paddingVertical: 4 },
+  titleInput:     { fontSize: 16, color: '#052e16', fontWeight: '600', paddingVertical: 4 },
   contentInput:   { fontSize: 14, color: '#1E293B', minHeight: 140, lineHeight: 22 },
   charCount:      { fontSize: 10, color: '#CBD5E1', fontWeight: '600', textAlign: 'right' },
   promptsScroll:  { gap: 8, paddingBottom: 2 },
-  promptChip:     { backgroundColor: '#F5F3FF', borderWidth: 1, borderColor: '#DDD6FE', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
-  promptChipText: { fontSize: 11, fontWeight: '600', color: '#7C3AED', maxWidth: 180 },
+  promptChip:     { backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#a7f3d0', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
+  promptChipText: { fontSize: 11, fontWeight: '600', color: '#047857', maxWidth: 180 },
   tagsWrap:       { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tagChip:        { borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: '#FFFFFF' },
-  tagChipActive:  { backgroundColor: '#8B5CF6', borderColor: '#8B5CF6' },
+  tagChipActive:  { backgroundColor: '#059669', borderColor: '#059669' },
   tagChipText:    { fontSize: 11, fontWeight: '700', color: '#475569' },
   tagChipTextActive:{ color: '#FFFFFF' },
-  customTagInput: { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13, color: '#090514' },
-  saveBtn:        { backgroundColor: '#8B5CF6', height: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4 },
+  customTagInput: { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13, color: '#052e16' },
+  saveBtn:        { backgroundColor: '#059669', height: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4 },
   saveBtnDisabled:{ backgroundColor: '#CBD5E1' },
   saveBtnText:    { fontSize: 15, fontWeight: '800', color: '#FFFFFF' },
 
@@ -1799,7 +1799,7 @@ const s = StyleSheet.create({
   emptyIconRing:  { width: 64, height: 64, borderRadius: 32, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
   emptyTitle:     { fontSize: 17, fontWeight: '800', color: '#475569' },
   emptySub:       { fontSize: 13, color: '#94A3B8', textAlign: 'center', lineHeight: 19 },
-  emptyBtn:       { backgroundColor: '#8B5CF6', borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12, marginTop: 4 },
+  emptyBtn:       { backgroundColor: '#059669', borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12, marginTop: 4 },
   emptyBtnText:   { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
 
   // Bottom Navbar

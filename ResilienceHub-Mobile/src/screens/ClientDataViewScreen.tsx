@@ -20,7 +20,7 @@ type ModuleTab = 'emotions' | 'thoughts' | 'journal' | 'goals';
 
 const TAB_CONFIG: { key: ModuleTab; icon: any; label: string; color: string; bg: string }[] = [
   { key: 'emotions', icon: 'heart',     label: 'Emotions', color: '#3B82F6', bg: '#EFF6FF' },
-  { key: 'thoughts', icon: 'cpu',       label: 'Thoughts', color: '#8B5CF6', bg: '#F5F3FF' },
+  { key: 'thoughts', icon: 'cpu',       label: 'Thoughts', color: '#059669', bg: '#ecfdf5' },
   { key: 'journal',  icon: 'book-open', label: 'Journal',  color: '#F59E0B', bg: '#FFFBEB' },
   { key: 'goals',    icon: 'target',    label: 'Goals',    color: '#10B981', bg: '#F0FDF4' },
 ];
@@ -34,7 +34,7 @@ const INTENSITY_COLOR = (n: number) => {
 const GOAL_STATUS: Record<string, { label: string; color: string; bg: string }> = {
   pending:     { label: 'Pending',     color: '#94A3B8', bg: '#F1F5F9' },
   in_progress: { label: 'In Progress', color: '#2563EB', bg: '#DBEAFE' },
-  approved:    { label: 'Approved',    color: '#7C3AED', bg: '#EDE9FE' },
+  approved:    { label: 'Approved',    color: '#047857', bg: '#d1fae5' },
   completed:   { label: 'Completed',   color: '#059669', bg: '#DCFCE7' },
 };
 
@@ -119,8 +119,8 @@ function ThoughtCard({ item }: { item: any }) {
     <TouchableOpacity activeOpacity={0.85} style={card.wrap} onPress={() => setExpanded((v) => !v)}>
       {/* Header */}
       <View style={card.header}>
-        <View style={[card.iconBox, { backgroundColor: '#F5F3FF' }]}>
-          <Feather name="cpu" size={16} color="#8B5CF6" />
+        <View style={[card.iconBox, { backgroundColor: '#ecfdf5' }]}>
+          <Feather name="cpu" size={16} color="#059669" />
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={card.primary} numberOfLines={expanded ? undefined : 2}>
@@ -135,7 +135,7 @@ function ThoughtCard({ item }: { item: any }) {
 
       {/* Situation */}
       {item.situation && item.automaticThought && (
-        <View style={[card.infoBox, { borderLeftColor: '#8B5CF6' }]}>
+        <View style={[card.infoBox, { borderLeftColor: '#059669' }]}>
           <Text style={card.infoBoxLabel}>Situation</Text>
           <Text style={card.infoBoxText} numberOfLines={expanded ? undefined : 1}>{item.situation}</Text>
         </View>
@@ -147,12 +147,12 @@ function ThoughtCard({ item }: { item: any }) {
           <Text style={card.tagLabel}>Distortions</Text>
           <View style={card.tagsRow}>
             {distortions.slice(0, expanded ? 99 : 3).map((d, i) => (
-              <View key={i} style={[card.tag, { backgroundColor: '#EDE9FE' }]}>
-                <Text style={[card.tagText, { color: '#5B21B6' }]}>{d}</Text>
+              <View key={i} style={[card.tag, { backgroundColor: '#d1fae5' }]}>
+                <Text style={[card.tagText, { color: '#064e3b' }]}>{d}</Text>
               </View>
             ))}
             {!expanded && distortions.length > 3 && (
-              <View style={[card.tag, { backgroundColor: '#F5F3FF' }]}>
+              <View style={[card.tag, { backgroundColor: '#ecfdf5' }]}>
                 <Text style={[card.tagText, { color: '#94A3B8' }]}>+{distortions.length - 3}</Text>
               </View>
             )}
@@ -408,7 +408,7 @@ export default function ClientDataViewScreen({ route }: { route: any }) {
             <Text style={styles.headerSub}>Read-only clinical view</Text>
           </View>
           <View style={styles.readOnlyBadge}>
-            <Feather name="eye" size={10} color="#C084FC" />
+            <Feather name="eye" size={10} color="#34d399" />
             <Text style={styles.readOnlyText}>View Only</Text>
           </View>
         </View>
@@ -567,8 +567,8 @@ const jm = StyleSheet.create({
   },
   content: { fontSize: 15, color: '#334155', lineHeight: 26 },
   tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingBottom: 40 },
-  tag: { backgroundColor: '#F5F3FF', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
-  tagText: { fontSize: 12, fontWeight: '600', color: '#6D28D9' },
+  tag: { backgroundColor: '#ecfdf5', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
+  tagText: { fontSize: 12, fontWeight: '600', color: '#065f46' },
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -579,13 +579,13 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     paddingHorizontal: 20, paddingTop: 16, paddingBottom: 18,
     overflow: 'hidden',
   },
   headerCircle1: {
     position: 'absolute', width: 200, height: 200, borderRadius: 100,
-    backgroundColor: 'rgba(139,92,246,0.1)', top: -60, right: -50,
+    backgroundColor: 'rgba(5,150,105,0.1)', top: -60, right: -50,
   },
   headerCircle2: {
     position: 'absolute', width: 120, height: 120, borderRadius: 60,
@@ -598,11 +598,11 @@ const styles = StyleSheet.create({
   readOnlyBadge: {
     marginLeft: 'auto',
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(192,132,252,0.12)',
-    borderWidth: 1, borderColor: 'rgba(192,132,252,0.2)',
+    backgroundColor: 'rgba(52,211,153,0.12)',
+    borderWidth: 1, borderColor: 'rgba(52,211,153,0.2)',
     paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20,
   },
-  readOnlyText: { fontSize: 9, fontWeight: '700', color: '#C084FC', textTransform: 'uppercase', letterSpacing: 0.8 },
+  readOnlyText: { fontSize: 9, fontWeight: '700', color: '#34d399', textTransform: 'uppercase', letterSpacing: 0.8 },
 
   // Tab bar
   tabBar: {

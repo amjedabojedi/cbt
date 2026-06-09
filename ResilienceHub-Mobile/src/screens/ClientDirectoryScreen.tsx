@@ -17,7 +17,7 @@ import { ApiService } from '../services/api';
 const { width } = Dimensions.get('window');
 
 const AVATAR_PALETTES = [
-  { bg: '#F5F3FF', text: '#6D28D9', border: '#DDD6FE' },
+  { bg: '#ecfdf5', text: '#065f46', border: '#a7f3d0' },
   { bg: '#EEF2FF', text: '#3730A3', border: '#C7D2FE' },
   { bg: '#FDF4FF', text: '#86198F', border: '#F0ABFC' },
   { bg: '#F0FDF4', text: '#166534', border: '#86EFAC' },
@@ -50,7 +50,7 @@ function timeAgo(dateStr: string | undefined) {
 
 const ACTIVITY_CHIPS = [
   { key: 'emotionsCount', icon: 'heart',     color: '#3B82F6', bg: '#EFF6FF' },
-  { key: 'thoughtsCount', icon: 'cpu',       color: '#8B5CF6', bg: '#F5F3FF' },
+  { key: 'thoughtsCount', icon: 'cpu',       color: '#059669', bg: '#ecfdf5' },
   { key: 'journalsCount', icon: 'book-open', color: '#F59E0B', bg: '#FFFBEB' },
   { key: 'goalsCount',    icon: 'target',    color: '#10B981', bg: '#F0FDF4' },
 ] as const;
@@ -223,8 +223,8 @@ export default function ClientDirectoryScreen({ navigation }: { navigation: any 
           activeOpacity={0.75}
         >
           {resendingId === inv.id
-            ? <ActivityIndicator size="small" color="#8B5CF6" />
-            : <><Feather name="send" size={12} color="#8B5CF6" /><Text style={styles.resendBtnText}>Resend</Text></>
+            ? <ActivityIndicator size="small" color="#059669" />
+            : <><Feather name="send" size={12} color="#059669" /><Text style={styles.resendBtnText}>Resend</Text></>
           }
         </TouchableOpacity>
       </View>
@@ -244,7 +244,7 @@ export default function ClientDirectoryScreen({ navigation }: { navigation: any 
         {/* Top label row */}
         <View style={styles.heroTopRow}>
           <View style={styles.heroLabelBadge}>
-            <Feather name="users" size={11} color="#C084FC" />
+            <Feather name="users" size={11} color="#34d399" />
             <Text style={styles.heroLabelText}>CLIENT ROSTER</Text>
           </View>
         </View>
@@ -294,7 +294,7 @@ export default function ClientDirectoryScreen({ navigation }: { navigation: any 
       {/* ── BODY ──────────────────────────────────────────────────── */}
       {loading ? (
         <View style={styles.loadingBox}>
-          <ActivityIndicator size="large" color="#8B5CF6" />
+          <ActivityIndicator size="large" color="#059669" />
           <Text style={styles.loadingText}>Syncing practice data…</Text>
         </View>
       ) : activeTab === 'directory' ? (
@@ -351,7 +351,7 @@ export default function ClientDirectoryScreen({ navigation }: { navigation: any 
         <>
           <View style={styles.pendingHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Feather name="clock" size={14} color="#8B5CF6" />
+              <Feather name="clock" size={14} color="#059669" />
               <Text style={styles.pendingTitle}>Pending Connections</Text>
               <View style={styles.pendingBadge}>
                 <Text style={styles.pendingBadgeText}>{pendingCount}</Text>
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
 
   // ── Hero header ──────────────────────────────────────────────────
   hero: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 18,
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
   },
   heroCircle1: {
     position: 'absolute', width: 220, height: 220, borderRadius: 110,
-    backgroundColor: 'rgba(139,92,246,0.08)', top: -80, right: -50,
+    backgroundColor: 'rgba(5,150,105,0.08)', top: -80, right: -50,
   },
   heroCircle2: {
     position: 'absolute', width: 150, height: 150, borderRadius: 75,
@@ -410,11 +410,11 @@ const styles = StyleSheet.create({
   heroTopRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   heroLabelBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: 'rgba(192,132,252,0.1)',
-    borderWidth: 1, borderColor: 'rgba(192,132,252,0.18)',
+    backgroundColor: 'rgba(52,211,153,0.1)',
+    borderWidth: 1, borderColor: 'rgba(52,211,153,0.18)',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
   },
-  heroLabelText: { fontSize: 9, fontWeight: '800', color: '#C084FC', letterSpacing: 1.2, textTransform: 'uppercase' },
+  heroLabelText: { fontSize: 9, fontWeight: '800', color: '#34d399', letterSpacing: 1.2, textTransform: 'uppercase' },
 
   statsRow: {
     flexDirection: 'row',
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     paddingVertical: 9, borderRadius: 12, gap: 6,
   },
-  tabBtnActive: { backgroundColor: '#090514' },
+  tabBtnActive: { backgroundColor: '#052e16' },
   tabBtnText: { fontSize: 12, fontWeight: '700', color: '#64748B' },
   tabBtnTextActive: { color: '#FFFFFF' },
   tabCount: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10, backgroundColor: '#F1F5F9' },
@@ -515,8 +515,8 @@ const styles = StyleSheet.create({
   // ── Pending invitations ──────────────────────────────────────────
   pendingHeader: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 10 },
   pendingTitle: { fontSize: 15, fontWeight: '700', color: '#1E293B' },
-  pendingBadge: { backgroundColor: '#F5F3FF', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10 },
-  pendingBadgeText: { fontSize: 11, fontWeight: '700', color: '#7C3AED' },
+  pendingBadge: { backgroundColor: '#ecfdf5', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10 },
+  pendingBadgeText: { fontSize: 11, fontWeight: '700', color: '#047857' },
   pendingSubtitle: { fontSize: 12, color: '#94A3B8', marginTop: 4 },
 
   invRow: {
@@ -527,10 +527,10 @@ const styles = StyleSheet.create({
   },
   invAvatar: {
     width: 44, height: 44, borderRadius: 13,
-    backgroundColor: '#F5F3FF', borderWidth: 1.5, borderColor: '#DDD6FE',
+    backgroundColor: '#ecfdf5', borderWidth: 1.5, borderColor: '#a7f3d0',
     alignItems: 'center', justifyContent: 'center', marginRight: 12,
   },
-  invAvatarText: { fontSize: 13, fontWeight: 'bold', color: '#6D28D9' },
+  invAvatarText: { fontSize: 13, fontWeight: 'bold', color: '#065f46' },
   invInfo: { flex: 1, gap: 2 },
   invName: { fontSize: 14, fontWeight: '700', color: '#1E293B' },
   invEmail: { fontSize: 11, color: '#94A3B8' },
@@ -542,11 +542,11 @@ const styles = StyleSheet.create({
   invTimeText: { fontSize: 10, color: '#94A3B8', fontWeight: '500' },
   resendBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    borderWidth: 1, borderColor: '#DDD6FE', borderRadius: 10,
+    borderWidth: 1, borderColor: '#a7f3d0', borderRadius: 10,
     paddingHorizontal: 10, paddingVertical: 7,
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
   },
-  resendBtnText: { fontSize: 11, fontWeight: '700', color: '#7C3AED' },
+  resendBtnText: { fontSize: 11, fontWeight: '700', color: '#047857' },
 
   // ── Empty state ──────────────────────────────────────────────────
   emptyBox: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60, paddingHorizontal: 40 },

@@ -194,7 +194,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   // Today's Focus Action Steps
   const todayFocus = [
     { label: 'Track Emotion', screen: 'EmotionTracking', done: stats.emotions.total > 0, color: '#EF4444', icon: 'heart' },
-    { label: 'Record Thought', screen: 'ThoughtRecord', done: stats.thoughts.total > 0, color: '#8B5CF6', icon: 'brain' },
+    { label: 'Record Thought', screen: 'ThoughtRecord', done: stats.thoughts.total > 0, color: '#059669', icon: 'brain' },
     { label: 'Reframe Coach', screen: 'ReframeCoach', done: stats.reframe.totalPractices > 0, color: '#10B981', icon: 'zap' },
     { label: 'Write Journal', screen: 'Journal', done: stats.journal.total > 0, color: '#F59E0B', icon: 'book-open' },
     { label: 'Set a Goal', screen: 'Goals', done: stats.goals.total > 0, color: '#6366F1', icon: 'target' },
@@ -223,9 +223,9 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
       screen: 'ThoughtRecord',
       stat: `${stats.thoughts.total} logs`,
       insight: stats.thoughts.topANT !== 'None' ? `${stats.thoughts.topANT}` : 'No pattern',
-      iconColor: '#8B5CF6',
-      bg: '#F5F3FF',
-      border: '#EDE9FE',
+      iconColor: '#059669',
+      bg: '#ecfdf5',
+      border: '#d1fae5',
       icon: 'brain',
       isFeather: false
     },
@@ -278,7 +278,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#059669" />
         <Text style={styles.loadingText}>Loading your space...</Text>
       </View>
     );
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
 
   // Mobile Hero Header
   heroBanner: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
   },
   heroGreeting: {
     fontSize: 16,
-    color: '#C084FC',
+    color: '#34d399',
     fontWeight: '600',
   },
   heroName: {
@@ -497,16 +497,16 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(192, 132, 252, 0.15)',
+    backgroundColor: 'rgba(52, 211, 153, 0.15)',
     borderWidth: 1.5,
-    borderColor: '#C084FC',
+    borderColor: '#34d399',
     alignItems: 'center',
     justifyContent: 'center',
   },
   profileInitials: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#C084FC',
+    color: '#34d399',
   },
   heroQuote: {
     fontSize: 13,
@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   milestoneScore: {
-    color: '#C084FC',
+    color: '#34d399',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
   },
   progressIndicator: {
     height: '100%',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
     borderRadius: 4,
   },
   milestoneDescription: {
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
   },
   sectionLinkText: {
     fontSize: 13,
-    color: '#8B5CF6',
+    color: '#059669',
     fontWeight: '700',
   },
 
@@ -711,7 +711,7 @@ const styles = StyleSheet.create({
 
   // Native Banner
   nativeBanner: {
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     marginHorizontal: 20,
     marginBottom: 40,
     borderRadius: 24,
@@ -755,10 +755,10 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#059669',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#8B5CF6',
+    shadowColor: '#059669',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,

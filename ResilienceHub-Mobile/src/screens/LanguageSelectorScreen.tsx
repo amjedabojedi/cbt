@@ -57,7 +57,7 @@ export default function LanguageSelectorScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+        <ActivityIndicator size="large" color="#059669" />
       </View>
     );
   }
@@ -81,7 +81,7 @@ export default function LanguageSelectorScreen() {
             <Text style={styles.translatedLabel}>English</Text>
           </View>
           {selectedLanguage === 'en' && (
-            <Ionicons name="checkmark-circle" size={24} color="#8B5CF6" />
+            <Ionicons name="checkmark-circle" size={24} color="#059669" />
           )}
         </TouchableOpacity>
 
@@ -96,14 +96,14 @@ export default function LanguageSelectorScreen() {
             <Text style={styles.translatedLabel}>Arabic</Text>
           </View>
           {selectedLanguage === 'ar' && (
-            <Ionicons name="checkmark-circle" size={24} color="#8B5CF6" />
+            <Ionicons name="checkmark-circle" size={24} color="#059669" />
           )}
         </TouchableOpacity>
       </View>
 
       {/* Guidance box */}
       <View style={styles.guidanceBox}>
-        <Feather name="info" size={16} color="#8B5CF6" style={{ marginRight: 10, marginTop: 2 }} />
+        <Feather name="info" size={16} color="#059669" style={{ marginRight: 10, marginTop: 2 }} />
         <View style={{ flex: 1 }}>
           <Text style={styles.guidanceText}>
             Local translations apply to navigation tabs, dashboards, and instructions. Custom user logs remain in the text input language.
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#090514',
+    color: '#052e16',
   },
   subtitle: {
     fontSize: 14,
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   activeOptionRow: {
-    borderColor: '#8B5CF6',
+    borderColor: '#059669',
   },
   labelContainer: {
     flex: 1,
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   nativeLabel: {
     fontSize: 15.5,
     fontWeight: '800',
-    color: '#090514',
+    color: '#052e16',
   },
   translatedLabel: {
     fontSize: 11.5,
@@ -177,17 +177,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   guidanceBox: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#ecfdf5',
     borderRadius: 16,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'flex-start',
     borderWidth: 1,
-    borderColor: '#EDE9FE',
+    borderColor: '#d1fae5',
   },
   guidanceText: {
     fontSize: 12,
-    color: '#5B21B6',
+    color: '#064e3b',
     lineHeight: 18,
   },
 });

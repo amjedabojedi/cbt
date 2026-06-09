@@ -24,13 +24,13 @@ interface UserManagementScreenProps {
 
 const ROLE_COLORS: Record<string, string> = {
   admin: '#EF4444',
-  therapist: '#8B5CF6',
+  therapist: '#059669',
   client: '#10B981',
 };
 
 const ROLE_BG: Record<string, string> = {
   admin: '#FEF2F2',
-  therapist: '#F5F3FF',
+  therapist: '#ecfdf5',
   client: '#F0FDF4',
 };
 
@@ -221,7 +221,7 @@ export default function UserManagementScreen({ navigation }: UserManagementScree
             onPress={() => handleOpenEdit(item)}
             activeOpacity={0.7}
           >
-            <Feather name="edit-2" size={14} color="#8B5CF6" />
+            <Feather name="edit-2" size={14} color="#059669" />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionBtn, { marginTop: 6 }]}
@@ -294,7 +294,7 @@ export default function UserManagementScreen({ navigation }: UserManagementScree
       {/* User List */}
       {loading ? (
         <View style={styles.loadingBox}>
-          <ActivityIndicator size="large" color="#8B5CF6" />
+          <ActivityIndicator size="large" color="#059669" />
         </View>
       ) : filteredUsers.length === 0 ? (
         <View style={styles.emptyBox}>
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
   addButton: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#090514',
+    backgroundColor: '#052e16',
     paddingHorizontal: 14, paddingVertical: 9,
     borderRadius: 12,
   },
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20,
     backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
   },
-  chipActive: { backgroundColor: '#090514', borderColor: '#090514' },
+  chipActive: { backgroundColor: '#052e16', borderColor: '#052e16' },
   chipText: { fontSize: 12, fontWeight: '600', color: '#64748B' },
   chipTextActive: { color: '#FFFFFF' },
 
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
   },
   rolePickText: { fontSize: 13, fontWeight: '700', color: '#64748B' },
   submitBtn: {
-    backgroundColor: '#090514', borderRadius: 14,
+    backgroundColor: '#052e16', borderRadius: 14,
     paddingVertical: 14, alignItems: 'center', marginTop: 20, marginBottom: 10,
   },
   submitBtnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 15 },
