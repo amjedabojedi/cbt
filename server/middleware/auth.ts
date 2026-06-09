@@ -4,7 +4,7 @@ import { User } from '@shared/schema';
 
 // Helper function to create consistent cookie options for all session cookies
 // This ensures mobile and cross-device compatibility
-export function getSessionCookieOptions(): CookieOptions {
+export function getSessionCookieOptions(req?: Request): CookieOptions {
   const isDevelopment = process.env.NODE_ENV === "development";
   const isProduction = !isDevelopment;
   
@@ -26,15 +26,33 @@ export function getSessionCookieOptions(): CookieOptions {
   // Make the cookie more persistent with a longer expiration
   cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days instead of 7
   
+  // Check if request is from mobile or local testing
+  const isMobile = req && (
+    req.headers["x-requested-with"] === "ResilienceHub-Mobile" ||
+    req.headers["x-app-platform"] === "mobile" ||
+    req.get?.("User-Agent")?.includes("Expo")
+  );
+  
+  const host = req ? (req.headers["x-forwarded-host"] as string || req.headers.host || "") : "";
+  const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1") || host.includes("192.168.");
+  
+  console.log(`[COOKIE_DBG] req exists: ${!!req}`);
+  if (req) {
+    console.log(`[COOKIE_DBG] headers: ${JSON.stringify(req.headers)}`);
+    console.log(`[COOKIE_DBG] host: ${host}`);
+  }
+  console.log(`[COOKIE_DBG] FORCE_INSECURE_COOKIES: ${process.env.FORCE_INSECURE_COOKIES}`);
+  console.log(`[COOKIE_DBG] isMobile: ${isMobile}, isLocalhost: ${isLocalhost}`);
+
   // Handle special override for different environments
   if (process.env.REPLIT_DOMAINS) {
     cookieOptions.secure = true;
     cookieOptions.sameSite = 'none';
     console.log('Using Replit-compatible cookie settings');
-  } else if (isDevelopment && process.env.FORCE_INSECURE_COOKIES === 'true') {
+  } else if (process.env.FORCE_INSECURE_COOKIES === 'true' || isMobile || isLocalhost) {
     cookieOptions.secure = false;
     cookieOptions.sameSite = 'lax';
-    console.log('Using insecure cookies for local testing (not recommended)');
+    console.log(`Using insecure cookies (secure=false, sameSite=lax) for ${isMobile ? 'mobile' : isLocalhost ? 'local' : 'FORCE_INSECURE_COOKIES'}`);
   }
   
   console.log(`Cookie options: secure=${cookieOptions.secure}, sameSite=${cookieOptions.sameSite}, domain=${cookieOptions.domain || 'not set'}`);
@@ -75,6 +93,11 @@ declare global {
  * Authenticate the user based on their session cookie
  */
 export async function authenticate(req: Request, res: Response, next: NextFunction) {
+  console.log(`[AUTH] Authenticating request: ${req.method} ${req.originalUrl}`);
+  console.log(`[AUTH] Headers: ${JSON.stringify(req.headers)}`);
+  console.log(`[AUTH] Cookies in req.cookies: ${JSON.stringify(req.cookies)}`);
+  console.log(`[AUTH] Raw Cookie Header: ${req.headers.cookie}`);
+
   let sessionId = req.cookies?.sessionId;
   
   // Try to parse manually from headers if it's missing from req.cookies
@@ -89,12 +112,24 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
         const signedMatch = sessionId.match(/^s:([^.]+)/);
         sessionId = signedMatch ? signedMatch[1] : sessionId.slice(2);
       }
-      console.log("Manually parsed sessionId from headers");
+      console.log(`[AUTH] Manually parsed sessionId from headers: ${sessionId}`);
+    }
+  }
+
+  // Try to parse from Authorization header (e.g. Authorization: Bearer <sessionId>)
+  if (!sessionId && req.headers.authorization) {
+    const authHeader = req.headers.authorization;
+    if (authHeader.startsWith('Bearer ')) {
+      sessionId = authHeader.substring(7).trim();
+      console.log(`[AUTH] Parsed sessionId from Authorization Bearer header: ${sessionId}`);
     }
   }
   
+  console.log(`[AUTH] Resolved sessionId: ${sessionId}`);
+  
   // SECURITY: Only session-based authentication is allowed
   if (!sessionId) {
+    console.log(`[AUTH] Authentication failed: No sessionId found`);
     return res.status(401).json({ message: 'Authentication required' });
   }
   
@@ -116,7 +151,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     
     if (!session) {
       // Clear the invalid cookie to prevent future issues
-      const clearOptions = getSessionCookieOptions();
+      const clearOptions = getSessionCookieOptions(req);
       delete clearOptions.maxAge; // Remove maxAge to ensure cookie gets deleted
       res.clearCookie("sessionId", clearOptions);
       return res.status(401).json({ message: 'Invalid session' });
@@ -126,7 +161,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     if (new Date(session.expiresAt) < new Date()) {
       await storage.deleteSession(sessionId);
       // Clear the expired cookie with consistent options
-      const clearOptions = getSessionCookieOptions();
+      const clearOptions = getSessionCookieOptions(req);
       delete clearOptions.maxAge; // Remove maxAge to ensure cookie gets deleted
       res.clearCookie("sessionId", clearOptions);
       return res.status(401).json({ message: 'Session expired' });

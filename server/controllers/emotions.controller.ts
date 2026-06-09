@@ -4,6 +4,7 @@ import { db } from "../db";
 import { emotionRecords, insertEmotionRecordSchema } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import * as emotionMapping from "../services/emotionMapping";
+import { z } from "zod";
 
 // Helper function to get emotion color by name
 function getEmotionColor(emotion: string): string {
@@ -167,5 +168,56 @@ export async function getEmotionStats(req: Request, res: Response) {
   } catch (error) {
     console.error("Error fetching emotion statistics:", error);
     res.status(500).json({ message: "Failed to fetch emotion statistics" });
+  }
+}
+
+// Update emotion record
+export async function updateEmotionRecord(req: Request, res: Response) {
+  try {
+    const userId = parseInt(req.params.userId);
+    const emotionId = parseInt(req.params.emotionId);
+    
+    // Validate the update data
+    const updateSchema = z.object({
+      intensity: z.number().min(1).max(10).optional(),
+      situation: z.string().optional(),
+      location: z.string().nullable().optional(),
+      company: z.string().nullable().optional(),
+    });
+    
+    const validatedUpdate = updateSchema.parse(req.body);
+    
+    // Get the existing emotion record
+    const existingEmotion = await storage.getEmotionRecordById(emotionId);
+    if (!existingEmotion) {
+      return res.status(404).json({ message: "Emotion record not found" });
+    }
+    
+    // Verify ownership
+    if (existingEmotion.userId !== userId) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    
+    // Update only the fields that are provided
+    const updateData = {
+      ...(validatedUpdate.intensity !== undefined && { intensity: validatedUpdate.intensity }),
+      ...(validatedUpdate.situation !== undefined && { situation: validatedUpdate.situation }),
+      ...(validatedUpdate.location !== undefined && { location: validatedUpdate.location }),
+      ...(validatedUpdate.company !== undefined && { company: validatedUpdate.company }),
+    };
+    
+    // Update in database
+    const [updatedEmotion] = await db.update(emotionRecords)
+      .set(updateData)
+      .where(eq(emotionRecords.id, emotionId))
+      .returning();
+    
+    res.status(200).json(updatedEmotion);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid data", errors: error.errors });
+    }
+    console.error("Update emotion record error:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 }

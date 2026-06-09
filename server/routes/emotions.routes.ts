@@ -5,7 +5,8 @@ import {
   createEmotionRecord,
   getEmotions,
   deleteEmotionRecord,
-  getEmotionStats
+  getEmotionStats,
+  updateEmotionRecord
 } from "../controllers/emotions.controller";
 
 const router = Router({ mergeParams: true }); // Important: mergeParams needed if mounted at /api/users/:userId/emotions
@@ -15,6 +16,9 @@ router.get("/count", authenticate, checkUserAccess, getEmotionsCount);
 
 // Create new emotion record
 router.post("/", authenticate, checkUserAccess, isClientOrAdmin, createEmotionRecord);
+
+// Update emotion record
+router.patch("/:emotionId", authenticate, checkUserAccess, updateEmotionRecord);
 
 // Get all emotions for a user
 router.get("/", authenticate, checkUserAccess, getEmotions);

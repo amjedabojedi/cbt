@@ -7,7 +7,7 @@ export default {
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     splash: {
-      image: "./assets/splash.png",
+      image: "./assets/splash-icon.png",
       resizeMode: "contain",
       backgroundColor: "#3B82F6"
     },
@@ -29,8 +29,7 @@ export default {
     extra: {
       apiBaseUrl: process.env.EXPO_PUBLIC_API_URL || (process.env.REPL_SLUG 
         ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
-        : "http://127.0.0.1:5000")
-    },
-    sdkVersion: "53.0.0"
+        : "http://127.0.0.1:5005")
+    }
   }
 };

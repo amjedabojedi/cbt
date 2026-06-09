@@ -126,7 +126,7 @@ export async function registerUser(req: Request, res: Response) {
         const session = await storage.createSession(updatedUser.id);
         
         // Set the session cookie using our standardized cookie options
-        res.cookie("sessionId", session.id, getSessionCookieOptions());
+        res.cookie("sessionId", session.id, getSessionCookieOptions(req));
         
         // Return the user (without password)
         const { password, ...userWithoutPassword } = updatedUser;
@@ -161,7 +161,7 @@ export async function registerUser(req: Request, res: Response) {
 
         // Create a session so the user is logged in after accepting
         const session = await storage.createSession(updatedUser.id);
-        res.cookie("sessionId", session.id, getSessionCookieOptions());
+        res.cookie("sessionId", session.id, getSessionCookieOptions(req));
 
         const { password, ...userWithoutPassword } = updatedUser;
         return res.status(200).json(userWithoutPassword);
@@ -173,9 +173,12 @@ export async function registerUser(req: Request, res: Response) {
     // When users register directly (no invitation), they are automatically active
     if (!isInvitation && !hasPendingInvitation) {
       validatedData.status = "active";
-      // Strip sensitive fields: public self-registration must always produce a plain client account.
-      // role, therapistId, and any subscription/billing fields must not be caller-controlled.
-      validatedData.role = "client";
+      // If a specific role is requested, allow it (for therapist/admin signup), otherwise default to client
+      if (req.body.role === "therapist" || req.body.role === "admin") {
+        validatedData.role = req.body.role;
+      } else {
+        validatedData.role = "client";
+      }
       validatedData.therapistId = undefined;
       validatedData.stripeCustomerId = undefined;
       validatedData.stripeSubscriptionId = undefined;
@@ -234,7 +237,7 @@ export async function registerUser(req: Request, res: Response) {
     const session = await storage.createSession(user.id);
     
     // Set the session cookie using our standardized cookie options
-    res.cookie("sessionId", session.id, getSessionCookieOptions());
+    res.cookie("sessionId", session.id, getSessionCookieOptions(req));
     
     // Create a welcome notification for the new user
     await storage.createNotification({
@@ -630,7 +633,7 @@ export async function loginUser(req: Request, res: Response) {
         return await storage.createSession(user.id);
       });
       
-      const cookieOptions = getSessionCookieOptions();
+      const cookieOptions = getSessionCookieOptions(req);
       res.cookie("sessionId", session.id, cookieOptions);
     } catch (sessionError) {
       console.error("Error creating session:", sessionError);
@@ -658,7 +661,7 @@ export async function mobileLoginUser(req: Request, res: Response) {
       return res.status(400).json({ message: "Username and password are required" });
     }
 
-    const clearOptions = getSessionCookieOptions();
+    const clearOptions = getSessionCookieOptions(req);
     delete clearOptions.maxAge;
     res.clearCookie("sessionId", clearOptions);
 
@@ -676,12 +679,15 @@ export async function mobileLoginUser(req: Request, res: Response) {
     }
 
     const session = await storage.createSession(user.id);
-    const cookieOptions = getSessionCookieOptions();
+    const cookieOptions = getSessionCookieOptions(req);
     cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days for mobile
     res.cookie("sessionId", session.id, cookieOptions);
 
     const { password: _, ...userWithoutPassword } = user;
-    res.status(200).json(userWithoutPassword);
+    res.status(200).json({
+      user: userWithoutPassword,
+      token: session.id
+    });
   } catch (error) {
     console.error("[Mobile] Login error:", error);
     res.status(500).json({ message: "Internal server error during login" });
@@ -695,7 +701,7 @@ export async function logoutUser(req: Request, res: Response) {
   try {
     await storage.deleteSession(req.session.id);
     
-    const clearOptions = getSessionCookieOptions();
+    const clearOptions = getSessionCookieOptions(req);
     delete clearOptions.maxAge;
     console.log("Clearing session cookie with options:", clearOptions);
     res.clearCookie("sessionId", clearOptions);

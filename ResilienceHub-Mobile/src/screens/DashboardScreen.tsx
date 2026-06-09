@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,13 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import { Feather, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
+import { ApiService } from '../services/api';
 
 interface DashboardScreenProps {
   navigation: any;
@@ -16,134 +21,428 @@ interface DashboardScreenProps {
 const { width } = Dimensions.get('window');
 
 export default function DashboardScreen({ navigation }: DashboardScreenProps) {
-  const quickActions = [
-    {
-      title: 'Track Emotions',
-      description: 'Record how you feel right now',
-      color: '#3B82F6',
-      screen: 'EmotionTracking',
-      icon: '😊',
-    },
-    {
-      title: 'View History',
-      description: 'See your emotional journey',
-      color: '#10B981',
-      screen: 'EmotionHistory',
-      icon: '📊',
-    },
-    {
-      title: 'Write Journal',
-      description: 'Reflect on your thoughts',
-      color: '#F59E0B',
-      screen: 'Journal',
-      icon: '📝',
-    },
-    {
-      title: 'Thought Record',
-      description: 'Challenge negative thoughts',
-      color: '#8B5CF6',
-      screen: 'ThoughtRecord',
-      icon: '🧠',
-    },
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [stats, setStats] = useState({
+    emotions: { total: 0, averageIntensity: 0, mostCommon: 'None' },
+    thoughts: { total: 0, challengedPercentage: 0, topANT: 'None' },
+    journal: { total: 0, emotionsDetected: 0 },
+    goals: { total: 0, completed: 0, completedPercentage: 0 },
+    reframe: { totalPractices: 0, averageScore: 0 },
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+
+      const fetchDashboardData = async () => {
+        try {
+          const userResponse = await ApiService.getCurrentUser();
+          if (!userResponse.data || userResponse.error) {
+            setLoading(false);
+            navigation.navigate('Login');
+            return;
+          }
+
+          if (isMounted) {
+            setUser(userResponse.data);
+          }
+
+          const userId = userResponse.data.id;
+
+          const [
+            emotionsRes,
+            thoughtsRes,
+            journalsRes,
+            goalsRes,
+            reframesRes
+          ] = await Promise.all([
+            ApiService.getEmotions(userId),
+            ApiService.getThoughtRecords(userId),
+            ApiService.getJournalEntries(userId),
+            ApiService.getGoals(userId),
+            ApiService.getReframePractices(userId),
+          ]);
+
+          if (!isMounted) return;
+
+          const emotions = emotionsRes.data || [];
+          const thoughts = thoughtsRes.data || [];
+          const journalEntries = journalsRes.data || [];
+          const goals = goalsRes.data || [];
+          const reframePractices = reframesRes.data || [];
+
+          // Mood calculation
+          const emotionCounts = emotions.reduce((acc: any, e: any) => {
+            const mood = e.coreEmotion || e.primaryEmotion || e.emotion || 'Unknown';
+            acc[mood] = (acc[mood] || 0) + 1;
+            return acc;
+          }, {});
+          const sortedEmotions = Object.entries(emotionCounts).sort((a: any, b: any) => b[1] - a[1]);
+          const mostCommon = sortedEmotions.length > 0 ? sortedEmotions[0][0] : 'None';
+          const avgIntensity = emotions.length > 0
+            ? Math.round(emotions.reduce((sum: number, e: any) => sum + (e.intensity || 0), 0) / emotions.length)
+            : 0;
+
+          // ANT pattern calculation
+          const thoughtCategoryLabels: Record<string, string> = {
+            all_or_nothing: "All or Nothing",
+            mental_filter: "Mental Filter",
+            mind_reading: "Mind Reading",
+            fortune_telling: "Fortune Telling",
+            labelling: "Labelling",
+            magnification: "Magnification",
+            catastrophizing: "Catastrophizing",
+            emotional_reasoning: "Emotional Reasoning",
+            should_statements: "Should Statements",
+            personalization: "Personalization",
+            overgeneralization: "Overgeneralization",
+            disqualifying_positive: "Disqualifying Positive",
+          };
+          const challengedThoughts = thoughts.filter((t: any) => t.evidenceFor || t.evidenceAgainst || t.alternativePerspective);
+          const antCounts = thoughts.reduce((acc: any, thought: any) => {
+            if (thought.thoughtCategory) {
+              const categories = Array.isArray(thought.thoughtCategory)
+                ? thought.thoughtCategory
+                : typeof thought.thoughtCategory === 'string'
+                  ? [thought.thoughtCategory]
+                  : [];
+              categories.forEach((category: string) => {
+                const label = thoughtCategoryLabels[category] || category;
+                acc[label] = (acc[label] || 0) + 1;
+              });
+            }
+            return acc;
+          }, {});
+          const sortedANTs = Object.entries(antCounts).sort((a: any, b: any) => b[1] - a[1]);
+          const topANT = sortedANTs.length > 0 ? sortedANTs[0][0] : 'None';
+
+          const journalStats = {
+            total: journalEntries.length,
+            emotionsDetected: journalEntries.reduce((sum: number, entry: any) => {
+              const tagCount = entry.userSelectedTags ? entry.userSelectedTags.length : 0;
+              return sum + (tagCount > 0 ? 1 : 0);
+            }, 0),
+          };
+
+          const completedGoals = goals.filter((g: any) => g.status === 'completed');
+          const goalsStats = {
+            total: goals.length,
+            completed: completedGoals.length,
+            completedPercentage: goals.length > 0
+              ? Math.round((completedGoals.length / goals.length) * 100)
+              : 0
+          };
+
+          const scores = reframePractices.filter((p: any) => p.score).map((p: any) => p.score);
+          const reframeStats = {
+            totalPractices: reframePractices.length,
+            averageScore: scores.length > 0
+              ? Math.round(scores.reduce((sum: number, s: number) => sum + s, 0) / scores.length)
+              : 0
+          };
+
+          setStats({
+            emotions: { total: emotions.length, averageIntensity: avgIntensity, mostCommon },
+            thoughts: { total: thoughts.length, challengedPercentage: thoughts.length > 0 ? Math.round((challengedThoughts.length / thoughts.length) * 100) : 0, topANT },
+            journal: journalStats,
+            goals: goalsStats,
+            reframe: reframeStats
+          });
+
+          setLoading(false);
+        } catch (error) {
+          console.error('Error fetching dashboard statistics:', error);
+          setLoading(false);
+        }
+      };
+
+      fetchDashboardData();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [])
+  );
+
+  const totalActivities =
+    stats.emotions.total +
+    stats.thoughts.total +
+    stats.journal.total +
+    stats.goals.total +
+    stats.reframe.totalPractices;
+
+  const engagementScore = Math.min(100, Math.round((totalActivities / 50) * 100));
+
+  const hour = new Date().getHours();
+  const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const displayName = user?.name ? user.name.split(' ')[0] : 'there';
+  const userInitials = user?.name
+    ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+    : user?.username?.slice(0, 2).toUpperCase() || 'RH';
+
+  const motivationalLines = [
+    "Every small step forward is progress worth celebrating.",
+    "Your mental wellness journey is uniquely yours.",
+    "Today is a new opportunity to understand yourself better.",
+    "Consistency is the foundation of lasting change.",
+    "Awareness is the first step to transformation.",
+    "You have the strength to face what comes.",
+  ];
+  const motivationalLine = motivationalLines[new Date().getDay() % motivationalLines.length];
+
+  // Today's Focus Action Steps
+  const todayFocus = [
+    { label: 'Track Emotion', screen: 'EmotionTracking', done: stats.emotions.total > 0, color: '#EF4444', icon: 'heart' },
+    { label: 'Record Thought', screen: 'ThoughtRecord', done: stats.thoughts.total > 0, color: '#8B5CF6', icon: 'brain' },
+    { label: 'Reframe Coach', screen: 'ReframeCoach', done: stats.reframe.totalPractices > 0, color: '#10B981', icon: 'zap' },
+    { label: 'Write Journal', screen: 'Journal', done: stats.journal.total > 0, color: '#F59E0B', icon: 'book-open' },
+    { label: 'Set a Goal', screen: 'Goals', done: stats.goals.total > 0, color: '#6366F1', icon: 'target' },
   ];
 
-  const todayStats = {
-    emotionsTracked: 3,
-    journalEntries: 1,
-    avgMood: 7.2,
+  const completedSteps = todayFocus.filter(f => f.done).length;
+
+  const handleActionPress = (screenName: string) => {
+    navigation.navigate(screenName);
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.welcomeText}>Welcome back!</Text>
-          <Text style={styles.dateText}>
-            {new Date().toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
-          </Text>
-        </View>
+  const clientModules = [
+    {
+      label: 'Emotion Tracker',
+      screen: 'EmotionTracking',
+      stat: `${stats.emotions.total} logs`,
+      insight: stats.emotions.mostCommon !== 'None' ? `${stats.emotions.mostCommon}` : 'No pattern',
+      iconColor: '#EF4444',
+      bg: '#FEF2F2',
+      border: '#FEE2E2',
+      icon: 'heart',
+      isFeather: true
+    },
+    {
+      label: 'Thought Records',
+      screen: 'ThoughtRecord',
+      stat: `${stats.thoughts.total} logs`,
+      insight: stats.thoughts.topANT !== 'None' ? `${stats.thoughts.topANT}` : 'No pattern',
+      iconColor: '#8B5CF6',
+      bg: '#F5F3FF',
+      border: '#EDE9FE',
+      icon: 'brain',
+      isFeather: false
+    },
+    {
+      label: 'Reframe Coach',
+      screen: 'ReframeCoach',
+      stat: `${stats.reframe.totalPractices} sessions`,
+      insight: stats.reframe.averageScore > 0 ? `Avg: ${stats.reframe.averageScore}` : 'Start session',
+      iconColor: '#10B981',
+      bg: '#ECFDF5',
+      border: '#D1FAE5',
+      icon: 'zap',
+      isFeather: true
+    },
+    {
+      label: 'Journal Entry',
+      screen: 'Journal',
+      stat: `${stats.journal.total} entries`,
+      insight: stats.journal.emotionsDetected > 0 ? `${stats.journal.emotionsDetected} emotions` : 'Process day',
+      iconColor: '#F59E0B',
+      bg: '#FFFBEB',
+      border: '#FEF3C7',
+      icon: 'book-open',
+      isFeather: true
+    },
+    {
+      label: 'SMART Goals',
+      screen: 'Goals',
+      stat: `${stats.goals.total} goals`,
+      insight: stats.goals.total > 0 ? `${stats.goals.completedPercentage}% done` : 'Set milestone',
+      iconColor: '#6366F1',
+      bg: '#EEF2FF',
+      border: '#E0E7FF',
+      icon: 'target',
+      isFeather: true
+    },
+    {
+      label: 'CBT Library',
+      screen: 'ResourceLibrary',
+      stat: 'Guides & Tools',
+      insight: 'Explore CBT',
+      iconColor: '#0D9488',
+      bg: '#F0FDFA',
+      border: '#CCFBF1',
+      icon: 'book',
+      isFeather: true
+    }
+  ];
 
-        {/* Today's Summary */}
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>Today's Progress</Text>
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{todayStats.emotionsTracked}</Text>
-              <Text style={styles.statLabel}>Emotions</Text>
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#8B5CF6" />
+        <Text style={styles.loadingText}>Loading your space...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        
+        {/* Sleek Mobile Hero Header */}
+        <View style={styles.heroBanner}>
+          <View style={styles.heroHeaderRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.heroGreeting}>{timeGreeting},</Text>
+              <Text style={styles.heroName}>{displayName}</Text>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{todayStats.journalEntries}</Text>
-              <Text style={styles.statLabel}>Journals</Text>
+            <View style={styles.profileAvatar}>
+              <Text style={styles.profileInitials}>{userInitials}</Text>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{todayStats.avgMood}</Text>
-              <Text style={styles.statLabel}>Avg Mood</Text>
+          </View>
+
+          <Text style={styles.heroQuote}>"{motivationalLine}"</Text>
+
+          {/* Simple Mobile Progress Bar */}
+          <View style={styles.milestoneCard}>
+            <View style={styles.milestoneMeta}>
+              <View style={styles.milestoneTitleContainer}>
+                <MaterialCommunityIcons name="fire" size={16} color="#F97316" />
+                <Text style={styles.milestoneTitle}>Resilience Milestone</Text>
+              </View>
+              <Text style={styles.milestoneScore}>{totalActivities} activities</Text>
             </View>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressIndicator, { width: `${engagementScore}%` }]} />
+            </View>
+            <Text style={styles.milestoneDescription}>
+              Streak Goal: 50 activities • {engagementScore}% complete
+            </Text>
           </View>
         </View>
 
-        {/* Quick Actions */}
+        {/* Swipeable "Today's Focus" — Native Mobile UI Pattern */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.actionsGrid}>
-            {quickActions.map((action, index) => (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today's Focus</Text>
+            <Text style={styles.sectionValue}>{completedSteps}/5 Completed</Text>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalScroll}
+          >
+            {todayFocus.map((focus, index) => (
               <TouchableOpacity
                 key={index}
-                style={[styles.actionCard, { backgroundColor: action.color }]}
-                onPress={() => navigation.navigate(action.screen)}
+                activeOpacity={0.7}
+                style={[
+                  styles.focusCard,
+                  { borderTopColor: focus.done ? '#10B981' : focus.color },
+                  focus.done ? styles.focusCardCompleted : styles.focusCardPending
+                ]}
+                onPress={() => handleActionPress(focus.screen)}
               >
-                <Text style={styles.actionIcon}>{action.icon}</Text>
-                <Text style={styles.actionTitle}>{action.title}</Text>
-                <Text style={styles.actionDescription}>{action.description}</Text>
+                <View style={styles.focusCardHeader}>
+                  <View style={[
+                    styles.focusIconBox,
+                    { backgroundColor: focus.done ? 'rgba(16, 185, 129, 0.1)' : `${focus.color}10` }
+                  ]}>
+                    {focus.icon === 'brain' ? (
+                      <MaterialCommunityIcons name="brain" size={16} color={focus.done ? '#10B981' : focus.color} />
+                    ) : (
+                      <Feather name={focus.icon as any} size={16} color={focus.done ? '#10B981' : focus.color} />
+                    )}
+                  </View>
+                  {focus.done ? (
+                    <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+                  ) : (
+                    <Feather name="arrow-right-circle" size={18} color={focus.color} />
+                  )}
+                </View>
+                
+                <Text style={styles.focusCardLabel} numberOfLines={2}>
+                  {focus.label}
+                </Text>
+                
+                <Text style={[
+                  styles.focusCardStatusText,
+                  focus.done ? { color: '#10B981' } : { color: '#64748B' }
+                ]}>
+                  {focus.done ? 'Completed' : 'Tap to start'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* 2-Column Mobile Module Grid */}
+        <View style={[styles.section, { paddingBottom: 24 }]}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Your CBT Studio</Text>
+          </View>
+          
+          <View style={styles.modulesGrid}>
+            {clientModules.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                activeOpacity={0.75}
+                style={[styles.gridCard, { borderLeftColor: item.iconColor }]}
+                onPress={() => handleActionPress(item.screen)}
+              >
+                <View style={styles.gridCardHeader}>
+                  <View style={[styles.gridIconBox, { backgroundColor: item.bg }]}>
+                    {item.isFeather ? (
+                      <Feather name={item.icon as any} size={18} color={item.iconColor} />
+                    ) : (
+                      <MaterialCommunityIcons name={item.icon as any} size={18} color={item.iconColor} />
+                    )}
+                  </View>
+                  <Feather name="arrow-up-right" size={14} color="#94A3B8" />
+                </View>
+                
+                <View style={styles.gridCardBody}>
+                  <Text style={styles.gridCardTitle} numberOfLines={1}>
+                    {item.label}
+                  </Text>
+                  <Text style={styles.gridCardStat}>
+                    {item.stat}
+                  </Text>
+                </View>
+                
+                <View style={[styles.gridCardFooter, { backgroundColor: `${item.iconColor}08` }]}>
+                  <Text style={[styles.gridCardInsight, { color: item.iconColor }]} numberOfLines={1}>
+                    {item.insight}
+                  </Text>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        {/* Recent Activity */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <View style={styles.activityCard}>
-            <View style={styles.activityItem}>
-              <View style={styles.activityIcon}>
-                <Text style={styles.activityEmoji}>😊</Text>
-              </View>
-              <View style={styles.activityContent}>
-                <Text style={styles.activityTitle}>Tracked Joy</Text>
-                <Text style={styles.activityTime}>2 hours ago</Text>
-              </View>
+        {/* Highly Visual Native Banner */}
+        <TouchableOpacity
+          activeOpacity={0.9}
+          style={styles.nativeBanner}
+          onPress={() => navigation.navigate('EmotionHistory')}
+        >
+          <View style={styles.bannerLeft}>
+            <View style={styles.bannerBadge}>
+              <Feather name="star" size={10} color="#F59E0B" style={{ marginRight: 4 }} />
+              <Text style={styles.bannerBadgeText}>INSIGHT WEEK</Text>
             </View>
-            
-            <View style={styles.activityItem}>
-              <View style={styles.activityIcon}>
-                <Text style={styles.activityEmoji}>📝</Text>
-              </View>
-              <View style={styles.activityContent}>
-                <Text style={styles.activityTitle}>Morning Journal</Text>
-                <Text style={styles.activityTime}>This morning</Text>
-              </View>
-            </View>
-            
-            <TouchableOpacity style={styles.viewAllButton}>
-              <Text style={styles.viewAllText}>View All Activity</Text>
-            </TouchableOpacity>
+            <Text style={styles.bannerHeading}>Explore Mood Insights</Text>
+            <Text style={styles.bannerParagraph}>
+              See your emotional trends and identify triggers over the last 30 days.
+            </Text>
           </View>
-        </View>
+          <View style={styles.bannerRightCircle}>
+            <Feather name="arrow-right" size={18} color="#FFFFFF" />
+          </View>
+        </TouchableOpacity>
 
-        {/* Motivational Message */}
-        <View style={styles.motivationCard}>
-          <Text style={styles.motivationText}>
-            "Progress, not perfection. Every step forward counts on your wellness journey."
-          </Text>
-        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -155,156 +454,313 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  header: {
-    padding: 20,
-    paddingBottom: 10,
-  },
-  welcomeText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1E293B',
-    marginBottom: 4,
-  },
-  dateText: {
-    fontSize: 16,
-    color: '#64748B',
-  },
-  summaryCard: {
-    backgroundColor: 'white',
-    margin: 20,
-    marginTop: 10,
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 16,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F8FAFC',
   },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#3B82F6',
-  },
-  statLabel: {
+  loadingText: {
+    marginTop: 12,
     fontSize: 14,
     color: '#64748B',
-    marginTop: 4,
-  },
-  section: {
-    padding: 20,
-    paddingTop: 0,
-  },
-  sectionTitle: {
-    fontSize: 20,
     fontWeight: '600',
-    color: '#1E293B',
+  },
+
+  // Mobile Hero Header
+  heroBanner: {
+    backgroundColor: '#090514',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+  },
+  heroHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
-  actionsGrid: {
+  heroGreeting: {
+    fontSize: 16,
+    color: '#C084FC',
+    fontWeight: '600',
+  },
+  heroName: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginTop: 2,
+  },
+  profileAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(192, 132, 252, 0.15)',
+    borderWidth: 1.5,
+    borderColor: '#C084FC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileInitials: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#C084FC',
+  },
+  heroQuote: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.65)',
+    lineHeight: 18,
+    fontStyle: 'italic',
+    marginBottom: 20,
+  },
+  milestoneCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 16,
+  },
+  milestoneMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  milestoneTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  milestoneTitle: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+    marginLeft: 6,
+  },
+  milestoneScore: {
+    color: '#C084FC',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  progressTrack: {
+    height: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressIndicator: {
+    height: '100%',
+    backgroundColor: '#8B5CF6',
+    borderRadius: 4,
+  },
+  milestoneDescription: {
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '500',
+  },
+
+  // Sections
+  section: {
+    paddingTop: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#1E293B',
+    letterSpacing: -0.3,
+  },
+  sectionValue: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '700',
+  },
+  sectionLinkText: {
+    fontSize: 13,
+    color: '#8B5CF6',
+    fontWeight: '700',
+  },
+
+  // Horizontal Scroll for Today's Focus
+  horizontalScroll: {
+    paddingLeft: 20,
+    paddingRight: 10,
+    paddingBottom: 8,
+  },
+  focusCard: {
+    width: 130,
+    height: 115,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderTopWidth: 4, // Top accent colored border line
+    marginRight: 12,
+    padding: 12,
+    justifyContent: 'space-between',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  focusCardPending: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+  },
+  focusCardCompleted: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+  },
+  focusCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  focusIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  focusCardLabel: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#1E293B',
+    lineHeight: 16,
+  },
+  focusCardStatusText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+
+  // 2-Column Modules Grid
+  modulesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginTop: 12,
   },
-  actionCard: {
-    width: (width - 60) / 2,
-    padding: 20,
+  gridCard: {
+    width: (width - 52) / 2,
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    marginBottom: 16,
-    alignItems: 'center',
-  },
-  actionIcon: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  actionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  actionDescription: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.8)',
-    textAlign: 'center',
-  },
-  activityCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    borderWidth: 1,
+    borderLeftWidth: 4, // Left accent colored border line
+    borderColor: '#E2E8F0',
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    marginBottom: 12,
+    justifyContent: 'space-between',
+    overflow: 'hidden',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.02,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 2,
   },
-  activityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  activityIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
+  gridIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  gridCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  gridCardBody: {
+    marginBottom: 10,
+  },
+  gridCardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  gridCardStat: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  gridCardFooter: {
+    marginHorizontal: -16,
+    marginBottom: -12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gridCardInsight: {
+    fontSize: 10,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+
+  // Native Banner
+  nativeBanner: {
+    backgroundColor: '#090514',
+    marginHorizontal: 20,
+    marginBottom: 40,
+    borderRadius: 24,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  bannerLeft: {
+    flex: 1,
     marginRight: 12,
   },
-  activityEmoji: {
-    fontSize: 20,
-  },
-  activityContent: {
-    flex: 1,
-  },
-  activityTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1E293B',
-  },
-  activityTime: {
-    fontSize: 14,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  viewAllButton: {
-    marginTop: 16,
+  bannerBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginBottom: 8,
+    alignSelf: 'flex-start',
   },
-  viewAllText: {
+  bannerBadgeText: {
+    color: '#F59E0B',
+    fontSize: 9,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  bannerHeading: {
     fontSize: 16,
-    color: '#3B82F6',
-    fontWeight: '500',
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 6,
   },
-  motivationCard: {
-    backgroundColor: '#3B82F6',
-    margin: 20,
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 40,
+  bannerParagraph: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 11,
+    lineHeight: 16,
   },
-  motivationText: {
-    fontSize: 16,
-    color: 'white',
-    textAlign: 'center',
-    fontStyle: 'italic',
-    lineHeight: 24,
+  bannerRightCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#8B5CF6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
 });

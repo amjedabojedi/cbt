@@ -37,6 +37,14 @@ const allowlist = getAllowedHosts();
 export function verifyOrigin(req: Request, res: Response, next: NextFunction) {
   if (SAFE_METHODS.has(req.method)) return next();
 
+  // Bypass CSRF check for native mobile app requests (not in a browser context)
+  if (
+    req.headers["x-requested-with"] === "ResilienceHub-Mobile" ||
+    req.headers["x-app-platform"] === "mobile"
+  ) {
+    return next();
+  }
+
   const origin = (req.headers.origin as string | undefined) || "";
   const referer = (req.headers.referer as string | undefined) || "";
   const source = origin || referer;

@@ -36,6 +36,11 @@ class RateLimiter {
   }
   
   middleware = (req: Request, res: Response, next: NextFunction) => {
+    // Bypass rate limiting in development or local/testing environments
+    if (process.env.NODE_ENV === 'development' || process.env.FORCE_INSECURE_COOKIES === 'true') {
+      return next();
+    }
+
     const clientId = this.getClientId(req);
     const allowed = this.tryConsume(clientId);
 
