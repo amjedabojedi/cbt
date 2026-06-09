@@ -7,6 +7,8 @@ const RESOURCE_TYPE_KEYS: Record<string, string> = {
 };
 
 const ASSIGNMENT_STATUS_KEYS: Record<string, string> = {
+  assigned: "Assigned",
+  viewed: "Viewed",
   completed: "Completed",
   in_progress: "In progress",
   pending: "Pending",

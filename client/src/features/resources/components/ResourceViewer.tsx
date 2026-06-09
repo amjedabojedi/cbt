@@ -30,12 +30,12 @@ const categoryMap: Record<string, { pill: string; dot: string }> = {
   "Stress Management":    { pill: "bg-emerald-50 text-emerald-700 ring-emerald-200", dot: "bg-emerald-500" },
   "Mindfulness":          { pill: "bg-teal-50    text-teal-700    ring-teal-200",    dot: "bg-teal-500"    },
   "Emotional Regulation": { pill: "bg-violet-50  text-violet-700  ring-violet-200",  dot: "bg-violet-500"  },
-  "Relationships":        { pill: "bg-purple-50  text-purple-800  ring-purple-200",  dot: "bg-purple-700"  },
+  "Relationships":        { pill: "bg-teal-50  text-teal-800  ring-purple-200",  dot: "bg-purple-700"  },
   "Trauma":               { pill: "bg-orange-50  text-orange-700  ring-orange-200",  dot: "bg-orange-500"  },
   "Self Care":            { pill: "bg-lime-50    text-lime-700    ring-lime-200",    dot: "bg-lime-500"    },
 };
 function getCat(cat: string) {
-  return categoryMap[cat] ?? { pill: "bg-purple-50 text-purple-900 ring-purple-200", dot: "bg-purple-800" };
+  return categoryMap[cat] ?? { pill: "bg-teal-50 text-teal-700 ring-purple-200", dot: "bg-purple-800" };
 }
 
 function getTypeIcon(type: string) {
@@ -68,7 +68,7 @@ export default function ResourceViewer({
       >
         <DialogTitle className="sr-only">{t("Resource Library")}</DialogTitle>
 
-        <div className="relative bg-gradient-to-r from-[#090514] via-purple-950 to-indigo-950 px-6 pt-6 pb-5 shrink-0">
+        <div className="relative bg-gradient-to-r from-slate-800 via-teal-900 to-teal-700 px-6 pt-6 pb-5 shrink-0">
           <div
             className="absolute inset-0 opacity-20 pointer-events-none"
             style={{
@@ -113,7 +113,7 @@ export default function ResourceViewer({
         <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <BookOpen className="h-4 w-4 text-purple-900" />
+              <BookOpen className="h-4 w-4 text-teal-700" />
               <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                 {t("Content")}
               </span>
@@ -128,7 +128,7 @@ export default function ResourceViewer({
           {resource.pdfUrl && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <FileText className="h-4 w-4 text-purple-900" />
+                <FileText className="h-4 w-4 text-teal-700" />
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                   {t("Attached PDF")}
                 </span>
@@ -137,19 +137,19 @@ export default function ResourceViewer({
                 href={resource.pdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center justify-between p-3.5 bg-white rounded-xl border border-slate-200 hover:border-purple-300 hover:bg-purple-50/30 transition-all shadow-sm"
+                className="group flex items-center justify-between p-3.5 bg-white rounded-xl border border-slate-200 hover:border-teal-300 hover:bg-teal-50/30 transition-all shadow-sm"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-purple-50 border border-purple-100 text-[#090514]">
+                  <div className="p-2 rounded-lg bg-teal-50 border border-teal-100 text-slate-800">
                     <FileText className="h-4 w-4" />
                   </div>
-                  <span className="text-sm font-medium text-slate-700 group-hover:text-purple-900 transition-colors">
+                  <span className="text-sm font-medium text-slate-700 group-hover:text-teal-700 transition-colors">
                     {t("Open PDF document")}
                   </span>
                 </div>
                 <ChevronRight
                   className={cn(
-                    "h-4 w-4 text-slate-300 group-hover:text-purple-500 transition-colors",
+                    "h-4 w-4 text-slate-300 group-hover:text-teal-500 transition-colors",
                     isRTL && "rotate-180"
                   )}
                 />
@@ -160,7 +160,7 @@ export default function ResourceViewer({
           {resource.tags && resource.tags.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <Tag className="h-4 w-4 text-purple-900" />
+                <Tag className="h-4 w-4 text-teal-700" />
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
                   {t("Tags")}
                 </span>
@@ -169,7 +169,7 @@ export default function ResourceViewer({
                 {resource.tags.map((tag: string, idx: number) => (
                   <span
                     key={idx}
-                    className="text-xs px-2.5 py-1 rounded-full bg-purple-50 text-purple-900 ring-1 ring-purple-100 font-medium"
+                    className="text-xs px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 ring-1 ring-purple-100 font-medium"
                   >
                     #<DynamicTranslator text={tag} />
                   </span>
@@ -221,7 +221,7 @@ export default function ResourceViewer({
               <Button
                 size="sm"
                 onClick={onEdit}
-                className="h-9 px-4 rounded-xl bg-[#090514] hover:bg-purple-950 text-white font-semibold text-sm gap-2 shadow-sm"
+                className="h-9 px-4 rounded-xl bg-teal-800 hover:bg-teal-700 text-white font-semibold text-sm gap-2 shadow-sm"
               >
                 <Edit className="h-4 w-4" /> {t("Edit Resource")}
               </Button>

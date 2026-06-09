@@ -3,6 +3,8 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { useLocalization } from "@/lib/localize";
+import { useClientContext } from "@/context/ClientContext";
+import { apiRequest } from "@/lib/queryClient";
 
 import {
   LayoutDashboard,
@@ -33,6 +35,7 @@ interface NavItem {
   label: string;
   icon: React.ReactNode;
   exact?: boolean;
+  isReturn?: boolean;
 }
 
 export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
@@ -40,8 +43,25 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
   const [location] = useLocation();
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const { currentLanguage, setLanguage, t, isRTL } = useLocalization();
+  const { viewingClientId, viewingClientName, setViewingClient } = useClientContext();
+
+  const handleReturnToClients = async () => {
+    setViewingClient(null, null);
+    setIsMobileExpanded(false);
+    try {
+      await apiRequest("POST", "/api/users/current-viewing-client", { clientId: null });
+    } catch {
+      // non-critical
+    }
+  };
 
   const isClinicalUser = true; // unified dark-purple theme for all roles
+
+  // When therapist is viewing a specific client (and not on the /clients page itself),
+  // show module shortcuts so they can switch modules without going back to the client list.
+  const isOnClientsPage = location === "/clients" || location.startsWith("/clients");
+  const isTherapistViewingClient =
+    user?.role === "therapist" && !!viewingClientId && !!viewingClientName && !isOnClientsPage;
 
   let navItems: NavItem[] = [];
 
@@ -57,11 +77,24 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
     ];
   } else if (user?.role === "therapist") {
-    navItems = [
-      { href: "/dashboard", label: "Therapist Dashboard", icon: <LayoutDashboard size={20} /> },
-      { href: "/clients", label: "My Clients", icon: <Users size={20} /> },
-      { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
-    ];
+    if (isTherapistViewingClient) {
+      navItems = [
+        { href: "/clients", label: "← My Clients", icon: <Users size={20} />, isReturn: true },
+        { href: "/dashboard", label: "Overview", icon: <LayoutDashboard size={20} /> },
+        { href: "/emotions", label: "Emotions", icon: <Heart size={20} /> },
+        { href: "/thoughts", label: "Thought Records", icon: <Brain size={20} /> },
+        { href: "/journal", label: "Journal", icon: <BookMarked size={20} /> },
+        { href: "/goals", label: "Smart Goals", icon: <Flag size={20} /> },
+        { href: "/reframe-coach", label: "Reframe Coach", icon: <Lightbulb size={20} /> },
+        { href: "/reports", label: "Progress", icon: <BarChart size={20} /> },
+      ];
+    } else {
+      navItems = [
+        { href: "/dashboard", label: "Therapist Dashboard", icon: <LayoutDashboard size={20} /> },
+        { href: "/clients", label: "My Clients", icon: <Users size={20} /> },
+        { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
+      ];
+    }
   } else {
     navItems = [
       { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
@@ -94,7 +127,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
     isCollapsed
       ? isRTL ? "ml-2 sm:ml-3 md:ml-0" : "mr-2 sm:mr-3 md:mr-0"
       : isRTL ? "ml-2 sm:ml-3" : "mr-2 sm:mr-3",
-    isClinicalUser && "text-purple-400"
+    isClinicalUser && "text-teal-300"
   );
 
   const profileTextMarginClass = cn(
@@ -120,12 +153,12 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
           "transition-all duration-300 ease-in-out",
           "w-64",
           isCollapsed && "md:w-16",
-          isClinicalUser ? "bg-[#090514] border-purple-950/80" : "bg-white border-neutral-200",
+          isClinicalUser ? "bg-teal-800 border-teal-800/80" : "bg-white border-neutral-200",
 
           // Deterministic positioning and borders
           isRTL
-            ? "right-0 border-l shadow-[-4px_0_24px_rgba(124,58,237,0.06)]"
-            : "left-0 border-r shadow-[4px_0_24px_rgba(124,58,237,0.06)]",
+            ? "right-0 border-l shadow-md"
+            : "left-0 border-r shadow-md",
 
           // Deterministic mobile hiding/showing translate
           isMobileExpanded
@@ -143,9 +176,9 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
               "hidden md:flex absolute top-5 z-20",
               "w-7 h-7 rounded-full items-center justify-center",
               "shadow-lg transition-all duration-200",
-              "bg-white border-2 text-[#090514]",
+              "bg-white border-2 text-slate-800",
               isClinicalUser
-                ? "border-purple-300 hover:border-[#090514] hover:shadow-purple-200/60"
+                ? "border-teal-300 hover:border-teal-700 hover:shadow-teal-200/60"
                 : "border-slate-300 hover:border-slate-500",
 
               // Dynamic toggle placement
@@ -164,7 +197,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
             "border-b transition-all duration-300",
             isCollapsed ? "md:p-2" : "p-3 sm:p-4",
             "p-3 sm:p-4",
-            isClinicalUser ? "border-purple-950/80" : "border-neutral-200"
+            isClinicalUser ? "border-teal-800/80" : "border-neutral-200"
           )}>
             <div className={cn(
               "flex items-center transition-all duration-300",
@@ -174,7 +207,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 "rounded flex items-center justify-center flex-shrink-0 transition-all",
                 "w-8 h-8 sm:w-10 sm:h-10",
                 isClinicalUser
-                  ? "bg-gradient-to-tr from-purple-600 to-indigo-600 text-white shadow-[0_0_15px_rgba(124,58,237,0.4)]"
+                  ? "bg-white/15 text-white"
                   : "bg-primary/20 text-primary"
               )}>
                 <Brain size={20} className="sm:w-6 sm:h-6" />
@@ -184,14 +217,12 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 isCollapsed && "md:hidden"
               )}>
                 <h1 className={cn(
-                  "text-lg sm:text-xl font-black tracking-wide whitespace-nowrap",
-                  isClinicalUser
-                    ? "bg-gradient-to-r from-purple-300 via-indigo-200 to-purple-400 bg-clip-text text-transparent"
-                    : "text-primary"
+                  "text-lg sm:text-xl font-bold tracking-wide whitespace-nowrap",
+                  isClinicalUser ? "text-white" : "text-primary"
                 )}>
                   ResilienceHub
                 </h1>
-                <span className="text-[9px] font-bold tracking-widest text-purple-400/90 uppercase block mt-0.5">
+                <span className="text-[9px] font-semibold tracking-widest text-white/50 uppercase block mt-0.5">
                   {user?.role === "admin" ? t("Clinical Admin") : user?.role === "therapist" ? t("Therapist Suite") : t("Client Portal")}
                 </span>
               </div>
@@ -203,7 +234,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
             "border-b transition-all duration-300",
             isCollapsed ? "md:p-2" : "p-3 sm:p-4",
             "p-3 sm:p-4",
-            isClinicalUser ? "border-purple-950/80 bg-purple-950/10" : "border-neutral-200"
+            isClinicalUser ? "border-teal-800/80 bg-teal-800/10" : "border-neutral-200"
           )}>
             <div className={cn(
               "flex items-center transition-all duration-300",
@@ -213,27 +244,50 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 "rounded-full flex items-center justify-center font-bold flex-shrink-0 transition-all",
                 isCollapsed ? "md:w-9 md:h-9 w-8 h-8 sm:w-10 sm:h-10" : "w-8 h-8 sm:w-10 sm:h-10",
                 isClinicalUser
-                  ? "bg-gradient-to-tr from-purple-500/20 to-indigo-500/20 text-purple-300 border border-purple-500/35 shadow-[0_0_12px_rgba(168,85,247,0.15)]"
+                  ? "bg-white/15 text-white border border-white/20"
                   : "bg-primary-light text-primary"
               )}>
                 {user?.name?.charAt(0) || "U"}
               </div>
               <div className={profileTextMarginClass}>
                 <p className={cn(
-                  "font-bold text-xs sm:text-sm truncate max-w-[130px]",
-                  isClinicalUser ? "text-purple-100" : "text-neutral-900"
+                  "font-semibold text-xs sm:text-sm truncate max-w-[130px]",
+                  isClinicalUser ? "text-white" : "text-neutral-900"
                 )}>
                   {user?.name}
                 </p>
                 <p className={cn(
-                  "text-[10px] font-semibold uppercase tracking-wider",
-                  isClinicalUser ? "text-purple-400" : "text-neutral-500 capitalize"
+                  "text-[10px] font-medium uppercase tracking-wider",
+                  isClinicalUser ? "text-white/50" : "text-neutral-500 capitalize"
                 )}>
                   {user?.role === "therapist" ? t("Therapist Suite") : t(user?.role || "")}
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Viewing-client badge — therapist module navigation context */}
+          {isTherapistViewingClient && (
+            <div className={cn(
+              "border-b border-teal-700/60 bg-white/5 transition-all duration-300",
+              isCollapsed ? "md:px-2 md:py-2 px-3 py-3" : "px-4 py-3"
+            )}>
+              <div className={cn(
+                "transition-all duration-300",
+                isCollapsed ? "md:flex md:justify-center hidden" : "block"
+              )}>
+                <p className="text-[9px] font-bold tracking-widest uppercase text-teal-300/70 mb-0.5">{t("Viewing")}</p>
+                <p className="text-xs font-semibold text-white truncate leading-tight">{viewingClientName}</p>
+              </div>
+              {isCollapsed && (
+                <div className="hidden md:flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-lg bg-teal-600/60 text-white text-[10px] font-bold flex items-center justify-center border border-teal-500/40">
+                    {(viewingClientName || "?").slice(0, 2).toUpperCase()}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Navigation */}
           <nav className="flex-grow py-2 sm:py-4 overflow-y-auto">
@@ -243,57 +297,68 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                   "py-1 sm:py-1.5 transition-all duration-300",
                   isCollapsed ? "md:px-1 px-2 sm:px-4" : "px-2 sm:px-4"
                 )}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex items-center px-2 py-1.5 rounded-md transition-colors text-sm",
-                      isCollapsed && "md:justify-center md:px-0",
-                      (() => {
-                        if (item.exact) {
-                          return location === item.href;
-                        } else {
-                          return location === item.href || location.startsWith(item.href + '/');
-                        }
-                      })()
-                        ? isClinicalUser
-                          ? cn(
-                            "text-purple-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 shadow-[0_0_15px_rgba(168,85,247,0.12)] border-purple-500",
-                            isRTL ? "border-r-[3px]" : "border-l-[3px]"
-                          )
-                          : "text-primary font-medium bg-primary/10"
-                        : isClinicalUser
-                          ? "text-purple-300/70 hover:text-purple-200 hover:bg-purple-950/20"
+                  {item.isReturn ? (
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center px-2 py-1.5 rounded-md transition-colors text-sm w-full",
+                        isCollapsed && "md:justify-center md:px-0",
+                        isClinicalUser
+                          ? "text-white/75 hover:text-white hover:bg-white/8"
                           : "text-neutral-600 hover:text-primary hover:bg-primary/5"
-                    )}
-                    onClick={() => setIsMobileExpanded(false)}
-                    title={isCollapsed ? t(item.label) : undefined}
-                  >
-                    <span className={iconMarginClass}>
-                      {item.icon}
-                    </span>
-                    <span className={cn(
-                      "truncate transition-all duration-300",
-                      isCollapsed && "md:hidden"
-                    )}>
-                      {t(item.label)}
-                    </span>
-                  </Link>
+                      )}
+                      onClick={handleReturnToClients}
+                      title={isCollapsed ? t(item.label) : undefined}
+                    >
+                      <span className={iconMarginClass}>{item.icon}</span>
+                      <span className={cn("truncate transition-all duration-300", isCollapsed && "md:hidden")}>
+                        {t(item.label)}
+                      </span>
+                    </Link>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center px-2 py-1.5 rounded-md transition-colors text-sm",
+                        isCollapsed && "md:justify-center md:px-0",
+                        (() => {
+                          if (item.exact) {
+                            return location === item.href;
+                          } else {
+                            return location === item.href || location.startsWith(item.href + '/');
+                          }
+                        })()
+                          ? isClinicalUser
+                            ? "text-white font-semibold bg-white/10 rounded-md"
+                            : "text-primary font-medium bg-primary/10"
+                          : isClinicalUser
+                            ? "text-white/75 hover:text-white hover:bg-white/8"
+                            : "text-neutral-600 hover:text-primary hover:bg-primary/5"
+                      )}
+                      onClick={() => setIsMobileExpanded(false)}
+                      title={isCollapsed ? t(item.label) : undefined}
+                    >
+                      <span className={iconMarginClass}>{item.icon}</span>
+                      <span className={cn("truncate transition-all duration-300", isCollapsed && "md:hidden")}>
+                        {t(item.label)}
+                      </span>
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
           </nav>
 
-          Settings & Logout
           <div className={cn(
             "border-t transition-all duration-300",
             isCollapsed ? "md:p-1 p-2 sm:p-4" : "p-2 sm:p-4",
-            isClinicalUser ? "border-purple-950/80 bg-purple-950/5" : "border-neutral-200"
+            isClinicalUser ? "border-teal-800/80 bg-teal-800/5" : "border-neutral-200"
           )}>
             {/* Language Switcher Component */}
             <div className={cn(
               "mb-2 border-b pb-2 transition-all duration-300",
               isCollapsed ? "md:px-0" : "px-2",
-              isClinicalUser ? "border-purple-950/40" : "border-neutral-200"
+              isClinicalUser ? "border-teal-800/40" : "border-neutral-200"
             )}>
               {isCollapsed ? (
                 /* Collapsed state: Beautiful Globe icon that toggles on click */
@@ -302,7 +367,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                   className={cn(
                     "flex items-center justify-center w-10 h-10 mx-auto rounded-md transition-all duration-300",
                     isClinicalUser
-                      ? "bg-purple-950/30 text-purple-400 hover:text-purple-200 hover:bg-purple-900/40 border border-purple-800/10 hover:border-purple-600/30 shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
+                      ? "bg-teal-800/30 text-teal-300 hover:text-teal-200 hover:bg-teal-900/40 border border-teal-700/20 hover:border-teal-500/30 shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
                       : "bg-neutral-100 text-neutral-600 hover:text-primary hover:bg-primary/10 border border-neutral-200"
                   )}
                   title={currentLanguage === "en" ? t("Switch to Arabic") : t("Switch to English")}
@@ -315,7 +380,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 <div className="flex flex-col space-y-1">
                   <span className={cn(
                     "text-[10px] font-bold tracking-widest uppercase mb-1 flex items-center gap-1.5",
-                    isClinicalUser ? "text-purple-400/90" : "text-neutral-500"
+                    isClinicalUser ? "text-teal-300/90" : "text-neutral-500"
                   )}>
                     <Globe size={12} className="animate-[spin_6s_linear_infinite]" />
                     {t("Language")}
@@ -323,7 +388,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                   <div className={cn(
                     "flex p-0.5 rounded-lg border transition-all duration-300",
                     isClinicalUser
-                      ? "bg-purple-950/40 border-purple-900/60 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
+                      ? "bg-teal-800/40 border-teal-700/60 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
                       : "bg-neutral-100 border-neutral-200"
                   )}>
                     <button
@@ -332,10 +397,10 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                         "flex-1 text-xs py-1 px-2 rounded-md font-bold transition-all duration-300 text-center",
                         currentLanguage === "en"
                           ? isClinicalUser
-                            ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(124,58,237,0.4)]"
+                            ? "bg-gradient-to-r from-teal-700 to-teal-600 text-white shadow-[0_2px_8px_rgba(20,184,166,0.4)]"
                             : "bg-white text-primary shadow-sm"
                           : isClinicalUser
-                            ? "text-purple-400/80 hover:text-purple-200 hover:bg-purple-900/20"
+                            ? "text-teal-300/80 hover:text-teal-200 hover:bg-teal-900/20"
                             : "text-neutral-600 hover:text-neutral-900"
                       )}
                     >
@@ -348,10 +413,10 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                         "flex-1 text-xs py-1 px-2 rounded-md font-bold transition-all duration-300 text-center font-noto-arabic",
                         currentLanguage === "ar"
                           ? isClinicalUser
-                            ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(124,58,237,0.4)]"
+                            ? "bg-gradient-to-r from-teal-700 to-teal-600 text-white shadow-[0_2px_8px_rgba(20,184,166,0.4)]"
                             : "bg-white text-primary shadow-sm"
                           : isClinicalUser
-                            ? "text-purple-400/80 hover:text-purple-200 hover:bg-purple-900/20"
+                            ? "text-teal-300/80 hover:text-teal-200 hover:bg-teal-900/20"
                             : "text-neutral-600 hover:text-neutral-900"
                       )}
                     >
@@ -374,13 +439,10 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                     isCollapsed && "md:justify-center md:px-0",
                     location === "/settings"
                       ? isClinicalUser
-                        ? cn(
-                          "text-purple-200 font-bold bg-gradient-to-r from-purple-900/40 to-indigo-950/20 shadow-[0_0_15px_rgba(168,85,247,0.12)] border-purple-500",
-                          isRTL ? "border-r-[3px]" : "border-l-[3px]"
-                        )
+                        ? "text-white font-semibold bg-white/10 rounded-md"
                         : "text-primary font-medium bg-primary/10"
                       : isClinicalUser
-                        ? "text-purple-300/70 hover:text-purple-200 hover:bg-purple-950/20"
+                        ? "text-white/75 hover:text-white hover:bg-white/8"
                         : "text-neutral-600 hover:text-primary hover:bg-primary/5"
                   )}
                   onClick={() => setIsMobileExpanded(false)}
@@ -432,7 +494,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
       {/* Mobile toggle button */}
       <button
         className={cn(
-          "fixed bottom-20 md:hidden bg-gradient-to-tr from-purple-600 to-indigo-600 text-white p-3 rounded-full shadow-lg z-50 animate-bounce",
+          "fixed bottom-20 md:hidden bg-gradient-to-tr from-teal-700 to-teal-600 text-white p-3 rounded-full shadow-lg z-50 animate-bounce",
           isRTL ? "left-4" : "right-4"
         )}
         onClick={() => setIsMobileExpanded(!isMobileExpanded)}

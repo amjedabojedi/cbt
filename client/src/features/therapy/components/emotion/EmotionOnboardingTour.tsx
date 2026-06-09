@@ -36,14 +36,14 @@ export default function EmotionOnboardingTour({ onComplete }: EmotionOnboardingT
       icon: Heart,
       content: (
         <div className="space-y-4">
-          <div className="bg-purple-50 p-4 rounded-lg">
+          <div className="bg-teal-50 p-4 rounded-lg">
             <p className="text-sm text-gray-700">
               {t("Tracking emotions helps you understand patterns in your mental health. Research shows that people who can identify specific emotions are better at managing stress and react less impulsively to difficult situations.")}
             </p>
           </div>
           <div className="flex items-start gap-3">
-            <div className="bg-purple-100 p-2 rounded-full">
-              <Heart className="h-5 w-5 text-purple-600" />
+            <div className="bg-teal-100 p-2 rounded-full">
+              <Heart className="h-5 w-5 text-teal-700" />
             </div>
             <div>
               <h4 className="font-medium text-sm">{t("What you'll learn:")}</h4>
@@ -113,33 +113,33 @@ export default function EmotionOnboardingTour({ onComplete }: EmotionOnboardingT
             <h4 className="font-medium text-sm mb-3">{t("Follow these simple steps:")}</h4>
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+                <div className="bg-teal-700 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
                   {tNum(1)}
                 </div>
                 <p className="text-sm text-gray-700">{t("Select your emotion from the wheel")}</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+                <div className="bg-teal-700 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
                   {tNum(2)}
                 </div>
                 <p className="text-sm text-gray-700">{t("Rate how intensely you felt it (1-10)")}</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+                <div className="bg-teal-700 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
                   {tNum(3)}
                 </div>
                 <p className="text-sm text-gray-700">{t("Describe what happened (the situation)")}</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+                <div className="bg-teal-700 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
                   {tNum(4)}
                 </div>
                 <p className="text-sm text-gray-700">{t("Add optional details (where, when, who)")}</p>
               </div>
             </div>
           </div>
-          <div className="bg-purple-50 p-3 rounded-lg border border-purple-200">
-            <p className="text-sm text-purple-900 font-medium">
+          <div className="bg-teal-50 p-3 rounded-lg border border-teal-200">
+            <p className="text-sm text-teal-700 font-medium">
               🎯 {t("Track at least 3 emotions to start seeing patterns and insights!")}
             </p>
           </div>
@@ -186,8 +186,8 @@ export default function EmotionOnboardingTour({ onComplete }: EmotionOnboardingT
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-purple-100 p-2 rounded-full">
-                <Icon className="h-6 w-6 text-purple-600" />
+              <div className="bg-teal-100 p-2 rounded-full">
+                <Icon className="h-6 w-6 text-teal-700" />
               </div>
               <div>
                 <DialogTitle className="text-xl">{currentSlideData.title}</DialogTitle>
@@ -218,7 +218,7 @@ export default function EmotionOnboardingTour({ onComplete }: EmotionOnboardingT
               <span>{t("Step")} {tNum(currentSlide + 1)} {t("of")} {tNum(TOUR_SLIDES.length)}</span>
               <span>{tNum(Math.round(progress))}٪ {t("complete")}</span>
             </div>
-            <Progress value={progress} className="h-2 [&>div]:bg-purple-600" />
+            <Progress value={progress} className="h-2 [&>div]:bg-teal-600" />
           </div>
 
           <div className="flex items-center justify-between w-full gap-2">

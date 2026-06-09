@@ -687,7 +687,7 @@ export default function ReflectionWizard({
                     <FormControl>
                       <Checkbox
                         checked={isChecked}
-                        className="border-purple-400 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                        className="border-teal-400 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
                         onCheckedChange={(checked) => {
                           const current = form.getValues("cognitiveDistortions") || [];
                           const updated = checked
@@ -706,7 +706,7 @@ export default function ReflectionWizard({
                     </FormControl>
                     <div className="space-y-1">
                       <FormLabel 
-                        className={`font-medium cursor-pointer ${isChecked ? "text-purple-600" : ""}`}
+                        className={`font-medium cursor-pointer ${isChecked ? "text-teal-700" : ""}`}
                         onClick={() => setSelectedDistortion(selectedDistortion === distortion.value ? null : distortion.value)}
                       >
                         {distortion.label}
@@ -820,7 +820,7 @@ export default function ReflectionWizard({
             variant="ghost" 
             size="sm"
             type="button"
-            className="text-purple-600 hover:text-purple-700"
+            className="text-teal-700 hover:text-teal-700"
             onClick={(e) => {
               // Prevent default button behavior that might submit forms
               e.preventDefault();
@@ -846,8 +846,8 @@ export default function ReflectionWizard({
                 key={factor.id}
                 className={`px-3 py-2 text-sm border rounded-full cursor-pointer transition-colors ${
                   selectedProtectiveFactors.includes(factor.id)
-                    ? "bg-purple-600 text-white border-purple-600"
-                    : "bg-white text-neutral-700 border-neutral-300 hover:border-purple-400"
+                    ? "bg-teal-700 text-white border-teal-700"
+                    : "bg-white text-neutral-700 border-neutral-300 hover:border-teal-400"
                 }`}
                 onClick={() => toggleProtectiveFactor(factor.id)}
               >
@@ -862,11 +862,12 @@ export default function ReflectionWizard({
                   placeholder="Enter new factor..."
                   value={newProtectiveFactor}
                   onChange={(e) => setNewProtectiveFactor(e.target.value)}
+                  voiceInput
                 />
                 <Button
                   size="sm"
                   type="button"
-                  className="bg-purple-600 hover:bg-purple-700 border-0 text-white"
+                  className="bg-teal-700 hover:bg-teal-600 border-0 text-white"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -925,7 +926,7 @@ export default function ReflectionWizard({
                         min={1}
                         max={10}
                         step={1}
-                        className="[&>span>span]:bg-purple-600 [&>[role=slider]]:border-purple-600"
+                        className="[&>span>span]:bg-teal-600 [&>[role=slider]]:border-teal-600"
                         onValueChange={(values) => updateProtectiveFactorRating(factorId, values[0])}
                       />
                     </div>
@@ -999,7 +1000,7 @@ export default function ReflectionWizard({
             variant="ghost" 
             size="sm"
             type="button"
-            className="text-purple-600 hover:text-purple-700"
+            className="text-teal-700 hover:text-teal-700"
             onClick={(e) => {
               // Prevent default button behavior that might submit forms
               e.preventDefault();
@@ -1025,8 +1026,8 @@ export default function ReflectionWizard({
                 key={strategy.id}
                 className={`px-3 py-2 text-sm border rounded-full cursor-pointer transition-colors ${
                   selectedCopingStrategies.includes(strategy.id)
-                    ? "bg-purple-600 text-white border-purple-600"
-                    : "bg-white text-neutral-700 border-neutral-300 hover:border-purple-400"
+                    ? "bg-teal-700 text-white border-teal-700"
+                    : "bg-white text-neutral-700 border-neutral-300 hover:border-teal-400"
                 }`}
                 onClick={() => toggleCopingStrategy(strategy.id)}
               >
@@ -1041,11 +1042,12 @@ export default function ReflectionWizard({
                   placeholder="Enter new strategy..."
                   value={newCopingStrategy}
                   onChange={(e) => setNewCopingStrategy(e.target.value)}
+                  voiceInput
                 />
                 <Button
                   size="sm"
                   type="button"
-                  className="bg-purple-600 hover:bg-purple-700 border-0 text-white"
+                  className="bg-teal-700 hover:bg-teal-600 border-0 text-white"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1104,7 +1106,7 @@ export default function ReflectionWizard({
                         min={1}
                         max={10}
                         step={1}
-                        className="[&>span>span]:bg-purple-600 [&>[role=slider]]:border-purple-600"
+                        className="[&>span>span]:bg-teal-600 [&>[role=slider]]:border-teal-600"
                         onValueChange={(values) => updateCopingStrategyRating(strategyId, values[0])}
                       />
                     </div>
@@ -1184,7 +1186,7 @@ export default function ReflectionWizard({
                   max={10}
                   step={1}
                   defaultValue={[5]}
-                  className="[&>span>span]:bg-purple-600 [&>[role=slider]]:border-purple-600"
+                  className="[&>span>span]:bg-teal-600 [&>[role=slider]]:border-teal-600"
                   onValueChange={(values) => {
                     field.onChange(values[0]);
                     form.setValue("reflectionRating", values[0], {
@@ -1199,7 +1201,7 @@ export default function ReflectionWizard({
                   <span>Somewhat helpful</span>
                   <span>Very helpful</span>
                 </div>
-                <div className="text-center text-lg font-medium text-purple-600">
+                <div className="text-center text-lg font-medium text-teal-700">
                   {field.value || 5}/10
                 </div>
               </div>
@@ -1321,9 +1323,9 @@ export default function ReflectionWizard({
         {/* ── Dark gradient header ── */}
         <div
           className="relative overflow-hidden px-7 py-5 shrink-0"
-          style={{ background: "linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)" }}
+          style={{ background: "linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)" }}
         >
-          <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+          <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-teal-500/20 blur-3xl pointer-events-none" />
           <div className="absolute -left-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/15 blur-2xl pointer-events-none" />
 
           <div className="relative z-10 flex items-center gap-3.5">
@@ -1331,13 +1333,13 @@ export default function ReflectionWizard({
               className="w-10 h-10 rounded-xl border border-white/20 backdrop-blur-sm flex items-center justify-center shrink-0"
               style={{ backgroundColor: emotion.coreEmotion ? getEmotionColor(emotion.primaryEmotion || emotion.coreEmotion) + "33" : "rgba(255,255,255,0.1)" }}
             >
-              <HelpCircle className="h-5 w-5 text-purple-200" />
+              <HelpCircle className="h-5 w-5 text-teal-200" />
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-lg font-bold text-white tracking-tight leading-tight">
                 {isEditMode ? "Edit Thought Record" : `Reflect on ${emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion || "Emotion"}`}
               </h2>
-              <p className="text-purple-300/80 text-xs mt-0.5 font-medium">
+              <p className="text-teal-100/80 text-xs mt-0.5 font-medium">
                 {emotion.timestamp ? new Date(emotion.timestamp).toLocaleString() : ""}
                 {" · "}Step {step} of {totalSteps}
               </p>
@@ -1354,20 +1356,20 @@ export default function ReflectionWizard({
                   <div key={label} className="flex items-center flex-1">
                     <div className="flex flex-col items-center">
                       <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
-                        isCompleted ? "bg-purple-400 text-white" :
-                        isActive    ? "bg-white text-[#090514]" :
+                        isCompleted ? "bg-teal-400 text-white" :
+                        isActive    ? "bg-white text-slate-800" :
                                       "bg-white/20 text-white/40"
                       }`}>
                         {isCompleted ? "✓" : idx + 1}
                       </div>
                       <span className={`text-[10px] font-medium mt-1 transition-colors ${
-                        isActive || isCompleted ? "text-purple-300" : "text-white/30"
+                        isActive || isCompleted ? "text-teal-100" : "text-white/30"
                       }`}>
                         {label}
                       </span>
                     </div>
                     {idx < stepLabels.length - 1 && (
-                      <div className={`flex-1 h-px mx-1 mb-4 transition-colors ${isCompleted ? "bg-purple-400" : "bg-white/15"}`} />
+                      <div className={`flex-1 h-px mx-1 mb-4 transition-colors ${isCompleted ? "bg-teal-400" : "bg-white/15"}`} />
                     )}
                   </div>
                 );
@@ -1417,7 +1419,7 @@ export default function ReflectionWizard({
                 type="button"
                 onClick={handleNext}
                 disabled={isSubmitting}
-                className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-9 px-5"
+                className="rounded-xl bg-teal-800 hover:bg-teal-700 text-white border-0 shadow-md h-9 px-5"
               >
                 Next
               </Button>
@@ -1438,7 +1440,7 @@ export default function ReflectionWizard({
                   form.handleSubmit(onSubmit)();
                 }}
                 disabled={isSubmitting}
-                className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-9 px-5 gap-2"
+                className="rounded-xl bg-teal-800 hover:bg-teal-700 text-white border-0 shadow-md h-9 px-5 gap-2"
               >
                 {isSubmitting ? (
                   <>

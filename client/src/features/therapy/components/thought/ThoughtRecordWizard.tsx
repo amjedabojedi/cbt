@@ -315,7 +315,7 @@ export default function ThoughtRecordWizard({
       <div className="md:col-span-7 space-y-3">
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-            <Brain className="h-4.5 w-4.5 text-purple-600" />
+            <Brain className="h-4.5 w-4.5 text-teal-700" />
             {t("What thought went through your mind?")} <span className="text-red-500">*</span>
           </label>
           <p className="text-xs text-slate-500">
@@ -345,19 +345,19 @@ export default function ThoughtRecordWizard({
       </div>
 
       <div className="md:col-span-5">
-        <div className="bg-purple-50/40 border border-purple-100 p-3.5 rounded-xl space-y-3 shadow-2xs">
+        <div className="bg-teal-50/40 border border-teal-100 p-3.5 rounded-xl space-y-3 shadow-2xs">
           <div className={`flex items-start ${isRTL ? "flex-row-reverse" : ""}`}>
-            <Info className={`h-4.5 w-4.5 text-purple-600 mt-0.5 shrink-0 me-2`} />
+            <Info className={`h-4.5 w-4.5 text-teal-700 mt-0.5 shrink-0 me-2`} />
             <div>
-              <h4 className="font-bold text-purple-900 text-xs mb-0.5">{t("💡 Why This Step?")}</h4>
-              <p className="text-[11px] text-purple-800/80 leading-relaxed">
+              <h4 className="font-bold text-teal-700 text-xs mb-0.5">{t("💡 Why This Step?")}</h4>
+              <p className="text-[11px] text-teal-800/80 leading-relaxed">
                 {t("Simply capture what went through your mind exactly as you thought it. Don't worry about accuracy yet.")}
               </p>
             </div>
           </div>
-          <div className="border-t border-purple-100/50 pt-2.5">
-            <h4 className="font-bold text-purple-950 text-xs mb-1.5">{t("Common Examples:")}</h4>
-            <ul className="text-[11px] text-purple-900/70 space-y-1">
+          <div className="border-t border-teal-100/50 pt-2.5">
+            <h4 className="font-bold text-teal-800 text-xs mb-1.5">{t("Common Examples:")}</h4>
+            <ul className="text-[11px] text-teal-700/70 space-y-1">
               <li>• {t("\"I'm not good enough\"")}</li>
               <li>• {t("\"Everyone will judge me\"")}</li>
               <li>• {t("\"I'll never succeed\"")}</li>
@@ -373,11 +373,11 @@ export default function ThoughtRecordWizard({
   const renderStep2 = () => (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-4" data-testid="step-learn-automatic-thoughts">
       <div className="md:col-span-6">
-        <div className="bg-gradient-to-br from-purple-50 to-blue-50/30 border border-purple-100 p-3.5 rounded-xl shadow-2xs">
+        <div className="bg-gradient-to-br from-purple-50 to-blue-50/30 border border-teal-100 p-3.5 rounded-xl shadow-2xs">
           <div className="flex items-start gap-2.5">
-            <Sparkles className="h-5 w-5 text-purple-600 mt-0.5 shrink-0" />
+            <Sparkles className="h-5 w-5 text-teal-700 mt-0.5 shrink-0" />
             <div>
-              <h3 className="text-sm font-bold text-purple-900 mb-1.5">
+              <h3 className="text-sm font-bold text-teal-700 mb-1.5">
                 {t("What Are \"Automatic Thoughts\"?")}
               </h3>
               <p className="text-[11px] text-slate-600 leading-relaxed mb-2">
@@ -401,7 +401,7 @@ export default function ThoughtRecordWizard({
         <h4 className="font-semibold text-slate-800 text-xs">{t("The 3-Step CBT Method:")}</h4>
         <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
           <h4 className="font-bold text-slate-900 text-xs mb-0.5 flex items-center gap-1.5">
-            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-purple-100 text-[10px] font-bold text-purple-700">{tNum(1)}</span>
+            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-teal-100 text-[10px] font-bold text-teal-700">{tNum(1)}</span>
             {t("Catch the Thought")}
           </h4>
           <p className="text-[10px] text-slate-500 leading-normal">{t("Notice immediate negative thoughts exactly as they occur.")}</p>
@@ -409,7 +409,7 @@ export default function ThoughtRecordWizard({
 
         <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
           <h4 className="font-bold text-slate-900 text-xs mb-0.5 flex items-center gap-1.5">
-            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-purple-100 text-[10px] font-bold text-purple-700">{tNum(2)}</span>
+            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-teal-100 text-[10px] font-bold text-teal-700">{tNum(2)}</span>
             {t("Identify the Pattern")}
           </h4>
           <p className="text-[10px] text-slate-500 leading-normal">{t("Categorize which unhelpful thinking pattern (ANT) it represents.")}</p>
@@ -417,7 +417,7 @@ export default function ThoughtRecordWizard({
 
         <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
           <h4 className="font-bold text-slate-900 text-xs mb-0.5 flex items-center gap-1.5">
-            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-purple-100 text-[10px] font-bold text-purple-700">{tNum(3)}</span>
+            <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-teal-100 text-[10px] font-bold text-teal-700">{tNum(3)}</span>
             {t("Challenge & Reframe")}
           </h4>
           <p className="text-[10px] text-slate-500 leading-normal">{t("Examine evidence and develop a balanced, healthy perspective.")}</p>
@@ -430,8 +430,8 @@ export default function ThoughtRecordWizard({
   const renderStep3 = () => (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-4" data-testid="step-categorize-thought">
       <div className="md:col-span-8 space-y-3 flex flex-col">
-        <div className="bg-purple-50/70 border border-purple-100/50 p-2.5 rounded-xl shadow-2xs">
-          <p className="text-[10.5px] font-semibold text-purple-900 mb-0.5">{t("Your automatic thought:")}</p>
+        <div className="bg-teal-50/70 border border-teal-100/50 p-2.5 rounded-xl shadow-2xs">
+          <p className="text-[10.5px] font-semibold text-teal-700 mb-0.5">{t("Your automatic thought:")}</p>
           <p className="text-[11px] italic text-slate-700">"{watchedValues.automaticThought}"</p>
         </div>
 
@@ -455,8 +455,8 @@ export default function ThoughtRecordWizard({
                     render={({ field }) => (
                       <div className={`group relative p-2.5 rounded-lg border transition-all duration-200 cursor-pointer ${
                         field.value?.includes(category.value)
-                          ? 'border-purple-500 bg-purple-50/60 shadow-2xs'
-                          : 'border-slate-200 bg-white hover:border-purple-300 hover:shadow-3xs'
+                          ? 'border-purple-500 bg-teal-50/60 shadow-2xs'
+                          : 'border-slate-200 bg-white hover:border-teal-300 hover:shadow-3xs'
                       }`}>
                         <div className={`flex items-start ${isRTL ? "space-x-reverse" : ""} space-x-2.5`}>
                           <Checkbox
@@ -478,7 +478,7 @@ export default function ThoughtRecordWizard({
                             <p className="text-[10.5px] text-slate-500 leading-normal">
                               {t(category.description)}
                             </p>
-                            <span className="block mt-1 text-[10px] text-purple-600 font-medium italic">
+                            <span className="block mt-1 text-[10px] text-teal-700 font-medium italic">
                               {t("Example:")} "{t(category.examples[0])}"
                             </span>
                           </div>
@@ -499,15 +499,15 @@ export default function ThoughtRecordWizard({
       </div>
 
       <div className="md:col-span-4">
-        <div className="bg-purple-50/40 border border-purple-100 p-3.5 rounded-xl shadow-2xs">
+        <div className="bg-teal-50/40 border border-teal-100 p-3.5 rounded-xl shadow-2xs">
           <div className={`flex items-start ${isRTL ? "flex-row-reverse" : ""}`}>
-            <Info className={`h-4.5 w-4.5 text-purple-600 mt-0.5 shrink-0 me-2`} />
+            <Info className={`h-4.5 w-4.5 text-teal-700 mt-0.5 shrink-0 me-2`} />
             <div>
-              <h4 className="font-bold text-purple-900 text-xs mb-0.5">{t("💡 What are ANTs?")}</h4>
-              <p className="text-[11px] text-purple-800/80 leading-relaxed mb-2">
+              <h4 className="font-bold text-teal-700 text-xs mb-0.5">{t("💡 What are ANTs?")}</h4>
+              <p className="text-[11px] text-teal-800/80 leading-relaxed mb-2">
                 {t("Automatic thoughts can be unhelpful patterns called ANTs (Automatic Negative Thoughts).")}
               </p>
-              <p className="text-[11px] text-purple-800/80 leading-relaxed font-medium">
+              <p className="text-[11px] text-teal-800/80 leading-relaxed font-medium">
                 {t("Recognizing these styles is half the battle to reframing your mind!")}
               </p>
             </div>
@@ -654,12 +654,12 @@ export default function ThoughtRecordWizard({
       </div>
 
       <div className="md:col-span-5">
-        <div className="bg-purple-50/40 border border-purple-100 p-3.5 rounded-xl shadow-2xs">
+        <div className="bg-teal-50/40 border border-teal-100 p-3.5 rounded-xl shadow-2xs">
           <div className={`flex items-start ${isRTL ? "flex-row-reverse" : ""}`}>
-            <Info className={`h-4.5 w-4.5 text-purple-600 mt-0.5 shrink-0 me-2`} />
+            <Info className={`h-4.5 w-4.5 text-teal-700 mt-0.5 shrink-0 me-2`} />
             <div>
-              <h4 className="font-bold text-purple-900 text-xs mb-0.5">{t("💡 Why Link to Emotion?")}</h4>
-              <p className="text-[11px] text-purple-800/80 leading-relaxed">
+              <h4 className="font-bold text-teal-700 text-xs mb-0.5">{t("💡 Why Link to Emotion?")}</h4>
+              <p className="text-[11px] text-teal-800/80 leading-relaxed">
                 {t("Connecting thoughts to your tracked emotions reveals patterns between what you think and how you feel.")}
               </p>
             </div>
@@ -721,7 +721,7 @@ export default function ThoughtRecordWizard({
         <div className="grid grid-cols-2 gap-2.5 h-full">
           {[
             { icon: Sparkles, color: "text-indigo-600 bg-indigo-50", titleKey: "Notice Thoughts", descKey: "Catch thoughts triggering moods." },
-            { icon: BrainCircuit, color: "text-purple-600 bg-purple-50", titleKey: "Identify Patterns", descKey: "Recognize ANTs categories." },
+            { icon: BrainCircuit, color: "text-teal-700 bg-teal-50", titleKey: "Identify Patterns", descKey: "Recognize ANTs categories." },
             { icon: Scale, color: "text-blue-600 bg-blue-50", titleKey: "Examine Evidence", descKey: "Examine facts for & against." },
             { icon: Lightbulb, color: "text-amber-600 bg-amber-50", titleKey: "Gain Insights", descKey: "Develop healthy reframes." }
           ].map((item, idx) => (
@@ -790,8 +790,8 @@ export default function ThoughtRecordWizard({
                 submitLabel="Record Thought"
                 introNextLabel="Get Started"
                 submitIcon={CheckCircle2}
-                nextButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl border-0 transition-all shadow-md"
-                submitButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl border-0 transition-all shadow-md"
+                nextButtonClassName="bg-teal-800 hover:bg-teal-700 text-white rounded-xl border-0 transition-all shadow-md"
+                submitButtonClassName="bg-teal-800 hover:bg-teal-700 text-white rounded-xl border-0 transition-all shadow-md"
                 extraActions={
                   <>
                     {currentStep === totalSteps - 1 && (
@@ -823,7 +823,7 @@ export default function ThoughtRecordWizard({
         <div className="flex flex-col gap-2.5">
           <Button
             size="lg"
-            className="flex items-center justify-center gap-2 h-11 bg-[#090514] hover:bg-purple-950 text-white rounded-xl text-sm font-semibold"
+            className="flex items-center justify-center gap-2 h-11 bg-teal-800 hover:bg-teal-700 text-white rounded-xl text-sm font-semibold"
             onClick={() => {
               setShowSuccessDialog(false);
               setShowChallengeWizard(true);
@@ -837,7 +837,7 @@ export default function ThoughtRecordWizard({
           <Button
             size="lg"
             variant="outline"
-            className="flex items-center justify-center gap-2 h-11 rounded-xl border-slate-200 hover:border-purple-200 hover:bg-purple-50 text-sm"
+            className="flex items-center justify-center gap-2 h-11 rounded-xl border-slate-200 hover:border-teal-200 hover:bg-teal-50 text-sm"
             onClick={() => {
               handleReset();
             }}
@@ -850,7 +850,7 @@ export default function ThoughtRecordWizard({
           <Button
             size="lg"
             variant="outline"
-            className="flex items-center justify-center gap-2 h-11 rounded-xl border-slate-200 hover:border-purple-200 hover:bg-purple-50 text-sm"
+            className="flex items-center justify-center gap-2 h-11 rounded-xl border-slate-200 hover:border-teal-200 hover:bg-teal-50 text-sm"
             onClick={() => {
               setShowSuccessDialog(false);
               onClose();

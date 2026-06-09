@@ -681,7 +681,7 @@ The ResilienceHub Team`}
                   <CardTitle className="text-sm font-medium">Notifications Sent</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-purple-600">{stats.totalNotificationsSent}</div>
+                  <div className="text-2xl font-bold text-teal-700">{stats.totalNotificationsSent}</div>
                 </CardContent>
               </Card>
             </div>

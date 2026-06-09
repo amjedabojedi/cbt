@@ -1,0 +1,1 @@
+- [Replit AI integration proxy limits](replit-ai-proxy-limits.md) — proxy supports chat completions only; Whisper/audio endpoints must use a separate direct OpenAI client with OPENAI_API_KEY.

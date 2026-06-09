@@ -789,6 +789,7 @@ export async function inviteClient(req: Request, res: Response) {
         try {
           await storage.createClientInvitation({
             email: existingUser.email,
+            name: existingUser.name || name,
             therapistId: req.user!.id,
             status: emailSent ? "email_sent" : "email_failed",
             tempUsername: existingUser.username,

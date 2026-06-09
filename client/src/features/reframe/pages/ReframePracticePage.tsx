@@ -257,16 +257,16 @@ const ReframePracticePage = () => {
     <AppLayout title={title}>
       <div dir={isRTL ? "rtl" : "ltr"} className="min-h-screen bg-slate-50">
         {/* Premium Hero Banner */}
-        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-8 relative overflow-hidden transition-all duration-300 border-b border-purple-900/30">
-          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-slate-800 via-teal-900 to-teal-700 px-6 sm:px-10 pt-8 pb-8 relative overflow-hidden transition-all duration-300 border-b border-teal-700/30">
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="max-w-5xl mx-auto relative">
             <div className="flex flex-col gap-4">
               <div>
                 <Button
                   variant="ghost"
-                  className="text-purple-300 hover:text-white hover:bg-white/10 -ml-2 mb-2 font-medium"
+                  className="text-teal-100 hover:text-white hover:bg-white/10 -ml-2 mb-2 font-medium"
                   onClick={() => window.history.back()}
                 >
                   <ArrowLeft className="me-2 h-4 w-4" />
@@ -275,15 +275,15 @@ const ReframePracticePage = () => {
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="h-4 w-4 text-purple-400 animate-pulse" />
-                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                  <Sparkles className="h-4 w-4 text-teal-300 animate-pulse" />
+                  <span className="text-teal-300/80 text-xs font-bold tracking-widest uppercase">
                     {t("Interactive Restructuring")}
                   </span>
                 </div>
                 <h1 className="font-extrabold text-white tracking-tight text-2xl md:text-3xl mb-2">
                   {title}
                 </h1>
-                <p className="text-purple-200/70 text-sm md:text-base max-w-2xl leading-relaxed">
+                <p className="text-teal-200/70 text-sm md:text-base max-w-2xl leading-relaxed">
                   {t("Challenge unhelpful automatic patterns, identify cognitive distortions, and practice building balanced reframes.")}
                 </p>
               </div>
@@ -303,7 +303,7 @@ const ReframePracticePage = () => {
           
           {isLoading || isLoadingScenarios ? (
             <div className="flex flex-col justify-center items-center py-16 bg-white border border-slate-100 shadow-sm rounded-2xl p-8">
-              <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
+              <Loader2 className="h-8 w-8 animate-spin text-teal-700 mb-4" />
               <p className="text-slate-600 text-center font-semibold text-sm">
                 {isLoadingScenarios ? (
                   isFromCache
@@ -313,7 +313,7 @@ const ReframePracticePage = () => {
               </p>
               {isLoadingScenarios && !isFromCache && (
                 <div className="max-w-md mt-6 w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                  <div className="bg-purple-600 h-2.5 rounded-full animate-progress"></div>
+                  <div className="bg-teal-600 h-2.5 rounded-full animate-progress"></div>
                 </div>
               )}
               {isLoadingScenarios && isFromCache && (
@@ -390,7 +390,7 @@ const ReframePracticePage = () => {
                   </Button>
                   <Button
                     variant="default"
-                    className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl font-semibold shadow-xs"
+                    className="bg-teal-800 hover:bg-teal-700 text-white rounded-xl font-semibold shadow-xs"
                     onClick={() => window.location.href = isQuickPractice ? `/users/${userId}/thoughts` : '/reframe-coach'}
                   >
                     {isQuickPractice ? t("Return to Thought Records") : t("Return to Reframe Coach")}
@@ -403,12 +403,12 @@ const ReframePracticePage = () => {
               {/* Introduction card */}
               <Card className="border border-slate-100 shadow-sm rounded-2xl bg-white">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-bold text-[#090514]">{t("Cognitive Restructuring Practice")}</CardTitle>
+                  <CardTitle className="text-lg font-bold text-slate-800">{t("Cognitive Restructuring Practice")}</CardTitle>
                   {isQuickPractice && thoughtRecordData.automaticThoughts && thoughtRecordData.automaticThoughts !== "No thought content available" && (
                     <div className="mt-3">
                       <p className="text-xxs font-bold text-slate-400 uppercase tracking-wider mb-1.5">{t("Original Automatic Thought:")}</p>
-                      <div className="rounded-xl bg-purple-50/40 border border-purple-100/50 p-4 relative overflow-hidden">
-                        <div className="absolute top-0 end-0 w-16 h-16 bg-purple-600/5 rounded-full blur-lg pointer-events-none" />
+                      <div className="rounded-xl bg-teal-50/40 border border-teal-100/50 p-4 relative overflow-hidden">
+                        <div className="absolute top-0 end-0 w-16 h-16 bg-teal-600/5 rounded-full blur-lg pointer-events-none" />
                         <p className="text-slate-700 italic font-semibold text-sm leading-relaxed">
                           "<DynamicTranslator text={thoughtRecordData.automaticThoughts} />"
                         </p>
@@ -422,8 +422,8 @@ const ReframePracticePage = () => {
                   </p>
                   
                   {isQuickPractice && practiceScenarios && Array.isArray((practiceScenarios as any)?.scenarios) && (practiceScenarios as any).scenarios.length > 0 ? (
-                    <div className="mt-4 p-4 rounded-2xl bg-purple-50/20 border border-purple-100/50">
-                      <h4 className="text-xs font-bold text-purple-800 uppercase tracking-wider mb-2">{t("Cognitive Distortions Identified:")}</h4>
+                    <div className="mt-4 p-4 rounded-2xl bg-teal-50/20 border border-teal-100/50">
+                      <h4 className="text-xs font-bold text-teal-800 uppercase tracking-wider mb-2">{t("Cognitive Distortions Identified:")}</h4>
                       <div className="flex flex-wrap gap-1.5">
                         {(() => {
                           const uniqueDistortionKeys = new Set<string>();
@@ -453,7 +453,7 @@ const ReframePracticePage = () => {
                             .map((label, idx) => (
                             <span 
                               key={`distortion-${idx}`} 
-                              className="px-2.5 py-1 text-xs rounded-lg bg-purple-50 text-purple-700 border border-purple-100/60 font-semibold shadow-2xs"
+                              className="px-2.5 py-1 text-xs rounded-lg bg-teal-50 text-teal-700 border border-teal-100/60 font-semibold shadow-2xs"
                             >
                               {label}
                             </span>
@@ -483,7 +483,7 @@ const ReframePracticePage = () => {
                 ) : (
                   // Show loading state while waiting for scenarios to be generated
                   <div className="flex justify-center items-center py-16 bg-white border border-slate-100 shadow-sm rounded-2xl p-8">
-                    <Loader2 className="h-7 w-7 animate-spin text-purple-600" />
+                    <Loader2 className="h-7 w-7 animate-spin text-teal-700" />
                     <span className="ms-3 text-slate-600 font-semibold text-sm">{t("Generating relevant practice scenarios...")}</span>
                   </div>
                 )

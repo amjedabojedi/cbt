@@ -40,7 +40,7 @@ import ThoughtInsights from "@/features/therapy/components/thought/ThoughtInsigh
 function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <span className="text-purple-950">{icon}</span>
+      <span className="text-teal-800">{icon}</span>
       <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{label}</span>
     </div>
   );
@@ -110,23 +110,23 @@ export default function ThoughtRecords() {
         <ClientDebug />
 
         {/* Premium Hero Banner */}
-        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden transition-all duration-300 border-b border-purple-900/30">
-          <div className="absolute -top-10 end-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 start-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-slate-800 via-teal-900 to-teal-700 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden transition-all duration-300 border-b border-teal-700/30">
+          <div className="absolute -top-10 end-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 start-12 w-52 h-52 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="max-w-5xl mx-auto relative">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="h-4 w-4 text-purple-400" />
-                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                  <Sparkles className="h-4 w-4 text-teal-300" />
+                  <span className="text-teal-300/80 text-xs font-bold tracking-widest uppercase">
                     {isViewingClientData ? t("Clinical Review") : t("Cognitive Reframing")}
                   </span>
                 </div>
                 <h1 className="font-bold text-white tracking-tight text-3xl md:text-4xl mb-2">
                   {pageTitle}
                 </h1>
-                <p className="text-purple-300/70 text-base max-w-md leading-relaxed line-clamp-2">
+                <p className="text-teal-100/70 text-base max-w-md leading-relaxed line-clamp-2">
                   {pageSubtitle}
                 </p>
               </div>
@@ -140,7 +140,7 @@ export default function ThoughtRecords() {
                   ].map((s, i) => (
                     <div key={i} className="text-center">
                       <div className="text-2xl font-bold text-white">{s.value}</div>
-                      <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
+                      <div className="text-xs text-teal-300/80 font-medium mt-0.5">{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -151,16 +151,16 @@ export default function ThoughtRecords() {
             <div className="mt-6 bg-white/5 rounded-xl border border-white/10 p-4">
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
-                  <Brain className="h-3.5 w-3.5 text-purple-400" />
-                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">{t("Thought Challenge Rate")}</span>
+                  <Brain className="h-3.5 w-3.5 text-teal-300" />
+                  <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">{t("Thought Challenge Rate")}</span>
                 </div>
-                <span className="text-xs text-purple-400">{tNum(`${totalThoughts > 0 ? Math.round((challengedThoughts / totalThoughts) * 100) : 0}%`)} {t("challenged")}</span>
+                <span className="text-xs text-teal-300">{tNum(`${totalThoughts > 0 ? Math.round((challengedThoughts / totalThoughts) * 100) : 0}%`)} {t("challenged")}</span>
               </div>
               {/* Progress bar always grows left-to-right regardless of language */}
               <div dir="ltr" className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full transition-all duration-700" style={{ width: `${totalThoughts > 0 ? Math.round((challengedThoughts / totalThoughts) * 100) : 0}%` }} />
+                <div className="h-full bg-gradient-to-r from-teal-500 to-sky-400 rounded-full transition-all duration-700" style={{ width: `${totalThoughts > 0 ? Math.round((challengedThoughts / totalThoughts) * 100) : 0}%` }} />
               </div>
-              <p className="text-[11px] text-purple-400/60 mt-1.5">{tNum(challengedThoughts)} {t("of")} {tNum(totalThoughts)} {t("thoughts challenged — reframing builds cognitive flexibility.")}</p>
+              <p className="text-[11px] text-teal-300/60 mt-1.5">{tNum(challengedThoughts)} {t("of")} {tNum(totalThoughts)} {t("thoughts challenged — reframing builds cognitive flexibility.")}</p>
             </div>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function ThoughtRecords() {
                     value="record"
                     className={cn(
                       "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
-                      "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                       "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                     )}
                   >
@@ -190,7 +190,7 @@ export default function ThoughtRecords() {
                   value="history"
                   className={cn(
                     "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
-                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                     "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                   )}
                 >
@@ -201,7 +201,7 @@ export default function ThoughtRecords() {
                   value="insights"
                   className={cn(
                     "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
-                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                     "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                   )}
                 >

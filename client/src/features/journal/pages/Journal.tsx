@@ -420,23 +420,23 @@ export default function Journal() {
         <ClientDebug />
 
         {/* Premium Hero Banner */}
-        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 relative overflow-hidden transition-all duration-300 pt-8 pb-10">
-          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-slate-800 via-teal-900 to-teal-700 px-6 sm:px-10 relative overflow-hidden transition-all duration-300 pt-8 pb-10">
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="max-w-5xl mx-auto relative text-start">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="h-4 w-4 text-purple-400" />
-                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">
+                  <Sparkles className="h-4 w-4 text-teal-300" />
+                  <span className="text-teal-300/80 text-xs font-bold tracking-widest uppercase">
                     {isViewingSelf || user?.role === 'client' ? t("Self Reflection") : t("Clinical Review")}
                   </span>
                 </div>
                 <h1 className="font-bold text-white tracking-tight text-3xl md:text-4xl mb-2">
                   {pageTitle}
                 </h1>
-                <p className="text-purple-300/70 text-base max-w-md leading-relaxed">
+                <p className="text-teal-100/70 text-base max-w-md leading-relaxed">
                   {pageSubtitle}
                 </p>
               </div>
@@ -450,7 +450,7 @@ export default function Journal() {
                   ].map((s, i) => (
                     <div key={i} className="text-center">
                       <div className="text-2xl font-bold text-white">{s.value}</div>
-                      <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
+                      <div className="text-xs text-teal-300/80 font-medium mt-0.5">{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -462,14 +462,14 @@ export default function Journal() {
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
                   <Book className="h-3.5 w-3.5 text-amber-400" />
-                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">{t("Journaling Habit")}</span>
+                  <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">{t("Journaling Habit")}</span>
                 </div>
-                <span className="text-xs text-purple-400">{tNum(stats.totalEntries)} {t("of")} {tNum(30)} {t("entries")}</span>
+                <span className="text-xs text-teal-300">{tNum(stats.totalEntries)} {t("of")} {tNum(30)} {t("entries")}</span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-amber-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.round((stats.totalEntries / 30) * 100))}%` }} />
+                <div className="h-full bg-gradient-to-r from-amber-500 to-teal-400 rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.round((stats.totalEntries / 30) * 100))}%` }} />
               </div>
-              <p className="text-[11px] text-purple-400/60 mt-1.5">{t("Regular journaling deepens self-awareness and supports emotional processing and healing.")}</p>
+              <p className="text-[11px] text-teal-300/60 mt-1.5">{t("Regular journaling deepens self-awareness and supports emotional processing and healing.")}</p>
             </div>
           </div>
         </div>
@@ -494,7 +494,7 @@ export default function Journal() {
                     value="write"
                     className={cn(
                       "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
-                      "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                      "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                       "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                     )}
                   >
@@ -506,7 +506,7 @@ export default function Journal() {
                   value="history"
                   className={cn(
                     "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
-                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                     "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                   )}
                 >
@@ -517,7 +517,7 @@ export default function Journal() {
                   value="insights"
                   className={cn(
                     "flex-1 min-w-[120px] rounded-xl py-2.5 text-sm font-semibold transition-all",
-                    "data-[state=active]:bg-[#090514] data-[state=active]:text-white data-[state=active]:shadow-sm",
+                    "data-[state=active]:bg-teal-800 data-[state=active]:text-white data-[state=active]:shadow-sm",
                     "data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700 data-[state=inactive]:hover:bg-slate-50"
                   )}
                 >
@@ -1524,7 +1524,7 @@ export default function Journal() {
                 <Card>
                   <CardHeader className="py-3">
                     <CardTitle className="text-sm flex items-center">
-                      <CheckSquare className="h-4 w-4 me-2 text-purple-500" />
+                      <CheckSquare className="h-4 w-4 me-2 text-teal-600" />
                       {t("Selected Tags")}
                     </CardTitle>
                   </CardHeader>
@@ -1601,13 +1601,13 @@ export default function Journal() {
             {/* Luxury gradient header */}
             <div
               className="relative overflow-hidden px-7 py-5"
-              style={{ background: 'linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)' }}
             >
-              <div className="absolute -end-12 -top-12 w-36 h-36 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+              <div className="absolute -end-12 -top-12 w-36 h-36 rounded-full bg-teal-500/20 blur-3xl pointer-events-none" />
               <div className="absolute -start-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/20 blur-2xl pointer-events-none" />
               <div className="relative z-10 flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Book className="h-5 w-5 text-purple-300" />
+                <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center">
+                  <Book className="h-5 w-5 text-teal-100" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white truncate max-w-sm">
@@ -1722,16 +1722,16 @@ export default function Journal() {
                   {/* Cognitive Distortions */}
                   {selectedViewEntry.userSelectedDistortions && selectedViewEntry.userSelectedDistortions.length > 0 && (
                     <div className="flex gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0 mt-0.5">
-                        <BrainCircuit className="h-4 w-4 text-purple-600" />
+                      <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <BrainCircuit className="h-4 w-4 text-teal-700" />
                       </div>
                       <div className="flex-1">
                         <h3 className="text-sm font-semibold text-slate-800 mb-2">{t("Cognitive Distortions")}</h3>
                         <div className="space-y-2">
                           {selectedViewEntry.userSelectedDistortions.map((distortion, index) => (
-                            <div key={index} className="text-sm bg-purple-50/60 border border-purple-100 rounded-xl px-3.5 py-2.5">
-                              <span className="font-semibold text-purple-800">{formatDistortionTag(distortion, t)}:</span>{" "}
-                              <span className="text-purple-700">{getDistortionDescription(distortion, t)}</span>
+                            <div key={index} className="text-sm bg-teal-50/60 border border-teal-100 rounded-xl px-3.5 py-2.5">
+                              <span className="font-semibold text-teal-800">{formatDistortionTag(distortion, t)}:</span>{" "}
+                              <span className="text-teal-700">{getDistortionDescription(distortion, t)}</span>
                             </div>
                           ))}
                         </div>

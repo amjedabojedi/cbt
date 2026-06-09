@@ -88,7 +88,7 @@ function getEmotionBadgeColor(emotion: string): string {
   const colorMap: Record<string, string> = {
     "Anger": "bg-red-100 text-red-800",
     "Sadness": "bg-blue-100 text-blue-800",
-    "Surprise": "bg-purple-100 text-purple-800",
+    "Surprise": "bg-teal-100 text-teal-800",
     "Joy": "bg-yellow-100 text-yellow-800",
     "Love": "bg-pink-100 text-pink-800",
     "Fear": "bg-green-100 text-green-800",
@@ -282,7 +282,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
     return (
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
         <div className="h-12 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#090514]"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-teal-700"></div>
         </div>
       </div>
     );
@@ -315,7 +315,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
             <Button 
               variant="ghost" 
               onClick={() => setShowFullHistory(true)}
-              className="text-sm text-purple-900 hover:text-[#090514] hover:bg-purple-50 rounded-xl"
+              className="text-sm text-teal-700 hover:text-slate-800 hover:bg-teal-50 rounded-xl"
             >
               {t("View All")}
             </Button>
@@ -337,7 +337,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               {displayEmotions?.map((emotion) => (
                 <div
                   key={emotion.id}
-                  className="overflow-hidden rounded-xl border border-slate-100 hover:border-purple-200 hover:shadow-sm transition-all duration-200 bg-slate-50/30 text-start"
+                  className="overflow-hidden rounded-xl border border-slate-100 hover:border-teal-200 hover:shadow-sm transition-all duration-200 bg-slate-50/30 text-start"
                 >
                   <div className="px-4 pt-4 pb-2">
                     <div className="flex items-center justify-between">
@@ -395,7 +395,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                       {/* Intensity */}
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-slate-500">{t("Intensity:")}</span>
-                        <span className="text-sm font-bold text-[#090514]">{tNum(`${emotion.intensity}/10`)}</span>
+                        <span className="text-sm font-bold text-slate-800">{tNum(`${emotion.intensity}/10`)}</span>
                       </div>
                       
                       {/* Situation */}
@@ -422,28 +422,28 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
             {/* ── Luxury gradient header ── */}
             <div
               className="relative overflow-hidden px-7 py-5"
-              style={{ background: 'linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)' }}
             >
               {/* Ambient orbs */}
-              <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-purple-600/25 blur-3xl pointer-events-none" />
-              <div className="absolute -left-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/20 blur-2xl pointer-events-none" />
+              <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-teal-500/25 blur-3xl pointer-events-none" />
+              <div className="absolute -left-8 -bottom-8 w-28 h-28 rounded-full bg-sky-700/20 blur-2xl pointer-events-none" />
  
               <div className="relative z-10 flex items-center gap-3.5">
                 {/* Glassmorphic emotion icon orb */}
-                <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
-                  {selectedEmotion.coreEmotion === 'Joy'     && <Smile      className="h-5 w-5 text-purple-200" />}
-                  {selectedEmotion.coreEmotion === 'Sadness' && <Frown      className="h-5 w-5 text-purple-200" />}
-                  {selectedEmotion.coreEmotion === 'Anger'   && <Flame      className="h-5 w-5 text-purple-200" />}
-                  {selectedEmotion.coreEmotion === 'Fear'    && <AlertCircle className="h-5 w-5 text-purple-200" />}
-                  {selectedEmotion.coreEmotion === 'Surprise'&& <Sparkles   className="h-5 w-5 text-purple-200" />}
-                  {selectedEmotion.coreEmotion === 'Disgust' && <ThumbsDown className="h-5 w-5 text-purple-200" />}
+                <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shrink-0">
+                  {selectedEmotion.coreEmotion === 'Joy'     && <Smile      className="h-5 w-5 text-teal-200" />}
+                  {selectedEmotion.coreEmotion === 'Sadness' && <Frown      className="h-5 w-5 text-teal-200" />}
+                  {selectedEmotion.coreEmotion === 'Anger'   && <Flame      className="h-5 w-5 text-teal-200" />}
+                  {selectedEmotion.coreEmotion === 'Fear'    && <AlertCircle className="h-5 w-5 text-teal-200" />}
+                  {selectedEmotion.coreEmotion === 'Surprise'&& <Sparkles   className="h-5 w-5 text-teal-200" />}
+                  {selectedEmotion.coreEmotion === 'Disgust' && <ThumbsDown className="h-5 w-5 text-teal-200" />}
                   {!['Joy','Sadness','Anger','Fear','Surprise','Disgust'].includes(selectedEmotion.coreEmotion) && (
-                    <Heart className="h-5 w-5 text-purple-200" />
+                    <Heart className="h-5 w-5 text-teal-200" />
                   )}
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white">{t("Emotion Details")}</h2>
-                  <p className="text-purple-300/80 text-xs mt-0.5">
+                  <p className="text-teal-100/80 text-xs mt-0.5">
                     {t("Recorded on")} {formatDate(selectedEmotion.timestamp)}
                   </p>
                 </div>
@@ -465,10 +465,10 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
  
                 const emotionBg =
                   selectedEmotion.coreEmotion === 'Joy'     ? 'bg-yellow-50/60'  :
-                  selectedEmotion.coreEmotion === 'Sadness' ? 'bg-purple-50/60'  :
+                  selectedEmotion.coreEmotion === 'Sadness' ? 'bg-teal-50/60'  :
                   selectedEmotion.coreEmotion === 'Anger'   ? 'bg-red-50/60'     :
                   selectedEmotion.coreEmotion === 'Fear'    ? 'bg-green-50/60'   :
-                  selectedEmotion.coreEmotion === 'Surprise'? 'bg-purple-50/60'  :
+                  selectedEmotion.coreEmotion === 'Surprise'? 'bg-teal-50/60'  :
                   selectedEmotion.coreEmotion === 'Disgust' ? 'bg-amber-50/60'   : 'bg-slate-50/60';
  
                 return (
@@ -564,7 +564,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                   {!isViewingClientData && (
                     <Button
                       variant="default"
-                      className="rounded-xl h-9 px-5 text-sm gap-2 text-white border-0 bg-[#090514] hover:bg-purple-950"
+                      className="rounded-xl h-9 px-5 text-sm gap-2 text-white border-0 bg-teal-800 hover:bg-teal-700"
                       onClick={() => {
                         setShowReflectionWizard(true);
                       }}
@@ -603,25 +603,25 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
             {/* ── Dark gradient header ── */}
             <div
               className="relative overflow-hidden px-7 py-5"
-              style={{ background: 'linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)' }}
             >
-              <div className="absolute -right-10 -top-10 w-32 h-32 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
-              <div className="absolute -left-8 -bottom-8 w-24 h-24 rounded-full bg-indigo-700/15 blur-2xl pointer-events-none" />
+              <div className="absolute -right-10 -top-10 w-32 h-32 rounded-full bg-teal-500/20 blur-3xl pointer-events-none" />
+              <div className="absolute -left-8 -bottom-8 w-24 h-24 rounded-full bg-sky-700/15 blur-2xl pointer-events-none" />
               <div className="relative z-10 flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
-                  {selectedEmotion.coreEmotion === 'Joy'      && <Smile       className="h-5 w-5 text-purple-200" />}
-                  {selectedEmotion.coreEmotion === 'Sadness'  && <Frown       className="h-5 w-5 text-purple-200" />}
-                  {selectedEmotion.coreEmotion === 'Anger'    && <Flame       className="h-5 w-5 text-purple-200" />}
-                  {selectedEmotion.coreEmotion === 'Fear'     && <AlertCircle className="h-5 w-5 text-purple-200" />}
-                  {selectedEmotion.coreEmotion === 'Surprise' && <Sparkles   className="h-5 w-5 text-purple-200" />}
-                  {selectedEmotion.coreEmotion === 'Disgust'  && <ThumbsDown className="h-5 w-5 text-purple-200" />}
+                <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shrink-0">
+                  {selectedEmotion.coreEmotion === 'Joy'      && <Smile       className="h-5 w-5 text-teal-200" />}
+                  {selectedEmotion.coreEmotion === 'Sadness'  && <Frown       className="h-5 w-5 text-teal-200" />}
+                  {selectedEmotion.coreEmotion === 'Anger'    && <Flame       className="h-5 w-5 text-teal-200" />}
+                  {selectedEmotion.coreEmotion === 'Fear'     && <AlertCircle className="h-5 w-5 text-teal-200" />}
+                  {selectedEmotion.coreEmotion === 'Surprise' && <Sparkles   className="h-5 w-5 text-teal-200" />}
+                  {selectedEmotion.coreEmotion === 'Disgust'  && <ThumbsDown className="h-5 w-5 text-teal-200" />}
                   {!['Joy','Sadness','Anger','Fear','Surprise','Disgust'].includes(selectedEmotion.coreEmotion) && (
-                    <Heart className="h-5 w-5 text-purple-200" />
+                    <Heart className="h-5 w-5 text-teal-200" />
                   )}
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white tracking-tight leading-tight">{t("Edit Emotion Record")}</h2>
-                  <p className="text-purple-300/80 text-xs mt-0.5 font-medium">
+                  <p className="text-teal-100/80 text-xs mt-0.5 font-medium">
                     {t("Recorded on")} {formatDate(selectedEmotion.timestamp)}
                   </p>
                 </div>
@@ -681,7 +681,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                       min="1"
                       max="10"
                       defaultValue={selectedEmotion.intensity}
-                      className="w-16 text-center text-sm font-semibold border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 outline-none"
+                      className="w-16 text-center text-sm font-semibold border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:border-teal-400 focus:ring-1 focus:ring-teal-400/30 outline-none"
                     />
                   </div>
                 </div>
@@ -696,7 +696,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                     name="situation"
                     defaultValue={selectedEmotion.situation}
                     placeholder="Describe what was happening when you felt this emotion…"
-                    className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl min-h-[90px] bg-slate-50/60 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 outline-none resize-none leading-relaxed"
+                    className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl min-h-[90px] bg-slate-50/60 focus:border-teal-400 focus:ring-1 focus:ring-teal-400/30 outline-none resize-none leading-relaxed"
                   />
                 </div>
  
@@ -712,7 +712,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                       name="location"
                       defaultValue={selectedEmotion.location || ''}
                       placeholder="e.g. Home, Work…"
-                      className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50/60 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 outline-none"
+                      className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50/60 focus:border-teal-400 focus:ring-1 focus:ring-teal-400/30 outline-none"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -725,7 +725,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                       name="company"
                       defaultValue={selectedEmotion.company || ''}
                       placeholder="e.g. Alone, Friends…"
-                      className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50/60 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 outline-none"
+                      className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50/60 focus:border-teal-400 focus:ring-1 focus:ring-teal-400/30 outline-none"
                     />
                   </div>
                 </div>
@@ -745,7 +745,7 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
                 <Button
                   type="submit"
                   disabled={updateEmotionMutation.isPending}
-                  className="rounded-xl bg-[#090514] hover:bg-purple-950 text-white border-0 shadow-md h-9 px-5 gap-2"
+                  className="rounded-xl bg-teal-800 hover:bg-teal-700 text-white border-0 shadow-md h-9 px-5 gap-2"
                 >
                   {updateEmotionMutation.isPending ? (
                     <>

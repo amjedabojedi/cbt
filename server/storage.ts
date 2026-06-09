@@ -53,22 +53,22 @@ export interface IStorage {
   countTherapistClients(therapistId: number): Promise<number>;
   deleteUser(userId: number, adminId?: number): Promise<void>;
   updateUserTherapist(userId: number, therapistId: number): Promise<User>;
-  
+
   // Additional methods needed for our fixes
   getClientsByTherapistId(therapistId: number): Promise<User[]>;
   getClient(clientId: number): Promise<User | undefined>;
   getSession(sessionId: string): Promise<{ userId: number } | null>;
-  
+
   // System logs
   createSystemLog(log: InsertSystemLog): Promise<SystemLog>;
-  
+
   // Admin statistics methods
   getAllEmotionRecords(): Promise<EmotionRecord[]>;
   getAllThoughtRecords(): Promise<ThoughtRecord[]>;
   getAllGoals(): Promise<Goal[]>;
-  
+
   getAllResourceAssignments(): Promise<ResourceAssignment[]>;
-  
+
   // Subscription plans management
   createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan>;
   getSubscriptionPlans(activeOnly?: boolean): Promise<SubscriptionPlan[]>;
@@ -77,60 +77,60 @@ export interface IStorage {
   getDefaultSubscriptionPlan(): Promise<SubscriptionPlan | undefined>;
   setDefaultSubscriptionPlan(id: number): Promise<SubscriptionPlan>;
   deactivateSubscriptionPlan(id: number): Promise<SubscriptionPlan>;
-  
+
   // Session management
   createSession(userId: number): Promise<Session>;
   getSessionById(sessionId: string): Promise<Session | undefined>;
   deleteSession(sessionId: string): Promise<void>;
-  
+
   // Emotion records
   createEmotionRecord(record: InsertEmotionRecord): Promise<EmotionRecord>;
   getEmotionRecordsByUser(userId: number): Promise<EmotionRecord[]>;
   getEmotionRecordById(id: number): Promise<EmotionRecord | undefined>;
   deleteEmotionRecord(id: number): Promise<void>;
-  
+
   // Thought records
   createThoughtRecord(record: InsertThoughtRecord): Promise<ThoughtRecord>;
   getThoughtRecordsByUser(userId: number): Promise<ThoughtRecord[]>;
   getThoughtRecordById(id: number): Promise<ThoughtRecord | undefined>;
   getThoughtRecordsByEmotionId(emotionRecordId: number): Promise<ThoughtRecord[]>;
   deleteThoughtRecord(id: number): Promise<void>;
-  
+
   // Protective factors
   createProtectiveFactor(factor: InsertProtectiveFactor): Promise<ProtectiveFactor>;
   getProtectiveFactorsByUser(userId: number, includeGlobal?: boolean): Promise<ProtectiveFactor[]>;
   getProtectiveFactorById(id: number): Promise<ProtectiveFactor | undefined>;
   updateProtectiveFactor(id: number, data: Partial<InsertProtectiveFactor>): Promise<ProtectiveFactor>;
   deleteProtectiveFactor(id: number): Promise<void>;
-  
+
   // Protective factor usage
   addProtectiveFactorUsage(usage: InsertProtectiveFactorUsage): Promise<ProtectiveFactorUsage>;
-  
+
   // Coping strategies
   createCopingStrategy(strategy: InsertCopingStrategy): Promise<CopingStrategy>;
   getCopingStrategiesByUser(userId: number, includeGlobal?: boolean): Promise<CopingStrategy[]>;
   getCopingStrategyById(id: number): Promise<CopingStrategy | undefined>;
   updateCopingStrategy(id: number, data: Partial<InsertCopingStrategy>): Promise<CopingStrategy>;
   deleteCopingStrategy(id: number): Promise<void>;
-  
+
   // Coping strategy usage
   addCopingStrategyUsage(usage: InsertCopingStrategyUsage): Promise<CopingStrategyUsage>;
-  
+
   // Goals
   createGoal(goal: InsertGoal): Promise<Goal>;
   getGoalsByUser(userId: number): Promise<Goal[]>;
   updateGoalStatus(id: number, status: string, therapistComments?: string): Promise<Goal>;
-  
+
   // Goal milestones
   createGoalMilestone(milestone: InsertGoalMilestone): Promise<GoalMilestone>;
   getGoalMilestonesByGoal(goalId: number): Promise<GoalMilestone[]>;
   updateGoalMilestoneCompletion(id: number, isCompleted: boolean): Promise<GoalMilestone>;
-  
+
   // Actions
   createAction(action: InsertAction): Promise<Action>;
   getActionsByUser(userId: number): Promise<Action[]>;
   updateActionCompletion(id: number, isCompleted: boolean, moodAfter?: number, reflection?: string): Promise<Action>;
-  
+
   // Resources
   createResource(resource: InsertResource): Promise<Resource>;
   getResourceById(id: number): Promise<Resource | undefined>;
@@ -140,7 +140,7 @@ export interface IStorage {
   updateResource(id: number, data: Partial<InsertResource>): Promise<Resource>;
   deleteResource(id: number): Promise<void>;
   cloneResource(resourceId: number, userId: number): Promise<Resource>;
-  
+
   // Resource assignments
   assignResourceToClient(assignment: InsertResourceAssignment): Promise<ResourceAssignment>;
   getResourceAssignmentById(id: number): Promise<ResourceAssignment | undefined>;
@@ -148,38 +148,38 @@ export interface IStorage {
   getAssignmentsByTherapist(therapistId: number): Promise<ResourceAssignment[]>;
   updateAssignmentStatus(id: number, status: string): Promise<ResourceAssignment>;
   deleteResourceAssignment(id: number): Promise<void>;
-  
+
   // Resource feedback
   createResourceFeedback(feedback: InsertResourceFeedback): Promise<ResourceFeedback>;
   getResourceFeedbackByResource(resourceId: number): Promise<ResourceFeedback[]>;
   getResourceFeedbackByUser(userId: number): Promise<ResourceFeedback[]>;
-  
+
   // Journal entries
   createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry>;
   getJournalEntryById(id: number): Promise<JournalEntry | undefined>;
   getJournalEntriesByUser(userId: number): Promise<JournalEntry[]>;
   updateJournalEntry(id: number, data: Partial<InsertJournalEntry>): Promise<JournalEntry>;
   deleteJournalEntry(id: number): Promise<void>;
-  
+
   // Journal comments (therapist feedback)
   createJournalComment(comment: InsertJournalComment): Promise<JournalComment>;
   getJournalCommentsByEntry(journalEntryId: number): Promise<JournalComment[]>;
   updateJournalComment(id: number, data: Partial<InsertJournalComment>): Promise<JournalComment>;
   deleteJournalComment(id: number): Promise<void>;
-  
+
   // Cognitive distortions
   createCognitiveDistortion(distortion: InsertCognitiveDistortion): Promise<CognitiveDistortion>;
   getCognitiveDistortions(): Promise<CognitiveDistortion[]>;
   getCognitiveDistortionById(id: number): Promise<CognitiveDistortion | undefined>;
   updateCognitiveDistortion(id: number, data: Partial<InsertCognitiveDistortion>): Promise<CognitiveDistortion>;
   deleteCognitiveDistortion(id: number): Promise<void>;
-  
+
   // Integration: Journal entries <-> Thought records
   linkJournalToThoughtRecord(journalId: number, thoughtRecordId: number): Promise<void>;
   unlinkJournalFromThoughtRecord(journalId: number, thoughtRecordId: number): Promise<void>;
   getRelatedThoughtRecords(journalId: number): Promise<ThoughtRecord[]>;
   getRelatedJournalEntries(thoughtRecordId: number): Promise<JournalEntry[]>;
-  
+
   // Notification management
   createNotification(notification: InsertNotification): Promise<Notification>;
   getNotificationsByUser(userId: number, limit?: number): Promise<Notification[]>;
@@ -188,12 +188,12 @@ export interface IStorage {
   markNotificationAsRead(id: number): Promise<Notification>;
   markAllNotificationsAsRead(userId: number): Promise<void>;
   deleteNotification(id: number): Promise<void>;
-  
+
   // Notification preferences
   getNotificationPreferences(userId: number): Promise<NotificationPreferences | undefined>;
   createNotificationPreferences(preferences: InsertNotificationPreferences): Promise<NotificationPreferences>;
   updateNotificationPreferences(userId: number, preferences: Partial<InsertNotificationPreferences>): Promise<NotificationPreferences>;
-  
+
   // Client invitations
   createClientInvitation(invitation: InsertClientInvitation): Promise<ClientInvitation>;
   getClientInvitationById(id: number): Promise<ClientInvitation | undefined>;
@@ -201,7 +201,7 @@ export interface IStorage {
   getClientInvitationsByTherapist(therapistId: number): Promise<ClientInvitation[]>;
   updateClientInvitationStatus(id: number, status: string): Promise<ClientInvitation>;
   deleteClientInvitation(id: number): Promise<boolean>;
-  
+
   // AI Recommendations
   createAiRecommendation(recommendation: InsertAiRecommendation): Promise<AiRecommendation>;
   getAiRecommendationById(id: number): Promise<AiRecommendation | undefined>;
@@ -209,7 +209,7 @@ export interface IStorage {
   getPendingAiRecommendationsByTherapist(therapistId: number): Promise<AiRecommendation[]>;
   updateAiRecommendationStatus(id: number, status: string, therapistNotes?: string): Promise<AiRecommendation>;
   deleteAiRecommendation(id: number): Promise<void>;
-  
+
   // Engagement Settings
   getEngagementSettings(): Promise<EngagementSettings | undefined>;
   updateEngagementSettings(settings: Partial<InsertEngagementSettings>): Promise<EngagementSettings>;
@@ -250,31 +250,31 @@ export class DatabaseStorage implements IStorage {
   async getClients(therapistId: number): Promise<User[]> {
     return this.usersRepo.getClients(therapistId);
   }
-  
+
   async getClientsByTherapistId(therapistId: number): Promise<User[]> {
     return this.usersRepo.getClientsByTherapistId(therapistId);
   }
-  
+
   async getClient(clientId: number): Promise<User | undefined> {
     return this.usersRepo.getClient(clientId);
   }
-  
+
   async getSession(sessionId: string): Promise<{ userId: number } | null> {
     return this.usersRepo.getSession(sessionId);
   }
-  
+
   async getClientByIdAndTherapist(clientId: number, therapistId: number): Promise<User | undefined> {
     return this.usersRepo.getClientByIdAndTherapist(clientId, therapistId);
   }
-  
+
   async getAllUsers(): Promise<User[]> {
     return this.usersRepo.getAllUsers();
   }
-  
+
   async updateCurrentViewingClient(userId: number, clientId: number | null): Promise<User> {
     return this.usersRepo.updateCurrentViewingClient(userId, clientId);
   }
-  
+
   async getCurrentViewingClient(userId: number): Promise<number | null> {
     return this.usersRepo.getCurrentViewingClient(userId);
   }
@@ -286,19 +286,19 @@ export class DatabaseStorage implements IStorage {
   async countProfessionalClients(professionalId: number): Promise<number> {
     return this.usersRepo.countProfessionalClients(professionalId);
   }
-  
+
   async updateUserTherapist(userId: number, therapistId: number): Promise<User> {
     return this.usersRepo.updateUserTherapist(userId, therapistId);
   }
-  
+
   async updateUserStatus(userId: number, status: string): Promise<User> {
     return this.usersRepo.updateUserStatus(userId, status);
   }
-  
+
   async removeClientFromTherapist(clientId: number, therapistId: number): Promise<User | null> {
     return this.usersRepo.removeClientFromTherapist(clientId, therapistId);
   }
-  
+
   async deleteUser(userId: number, adminId?: number): Promise<void> {
     return this.usersRepo.deleteUser(userId, adminId);
   }
@@ -379,7 +379,7 @@ export class DatabaseStorage implements IStorage {
   async getEmotionRecordById(id: number): Promise<EmotionRecord | undefined> {
     return this.therapyRepo.getEmotionRecordById(id);
   }
-  
+
   async deleteEmotionRecord(id: number): Promise<void> {
     return this.therapyRepo.deleteEmotionRecord(id);
   }
@@ -396,11 +396,11 @@ export class DatabaseStorage implements IStorage {
   async getThoughtRecordById(id: number): Promise<ThoughtRecord | undefined> {
     return this.therapyRepo.getThoughtRecordById(id);
   }
-  
+
   async getThoughtRecordsByEmotionId(emotionRecordId: number): Promise<ThoughtRecord[]> {
     return this.therapyRepo.getThoughtRecordsByEmotionId(emotionRecordId);
   }
-  
+
   async deleteThoughtRecord(id: number): Promise<void> {
     return this.therapyRepo.deleteThoughtRecord(id);
   }
@@ -413,11 +413,11 @@ export class DatabaseStorage implements IStorage {
   async getProtectiveFactorsByUser(userId: number, includeGlobal?: boolean): Promise<ProtectiveFactor[]> {
     return this.therapyRepo.getProtectiveFactorsByUser(userId, includeGlobal);
   }
-  
+
   async getProtectiveFactorById(id: number): Promise<ProtectiveFactor | undefined> {
     return this.therapyRepo.getProtectiveFactorById(id);
   }
-  
+
   async updateProtectiveFactor(id: number, data: Partial<InsertProtectiveFactor>): Promise<ProtectiveFactor> {
     return this.therapyRepo.updateProtectiveFactor(id, data);
   }
@@ -439,11 +439,11 @@ export class DatabaseStorage implements IStorage {
   async getCopingStrategiesByUser(userId: number, includeGlobal?: boolean): Promise<CopingStrategy[]> {
     return this.therapyRepo.getCopingStrategiesByUser(userId, includeGlobal);
   }
-  
+
   async getCopingStrategyById(id: number): Promise<CopingStrategy | undefined> {
     return this.therapyRepo.getCopingStrategyById(id);
   }
-  
+
   async updateCopingStrategy(id: number, data: Partial<InsertCopingStrategy>): Promise<CopingStrategy> {
     return this.therapyRepo.updateCopingStrategy(id, data);
   }
@@ -738,6 +738,35 @@ export class DatabaseStorage implements IStorage {
 
   async updateEngagementSettings(settings: Partial<InsertEngagementSettings>): Promise<EngagementSettings> {
     return this.adminRepo.updateEngagementSettings(settings);
+  }
+
+  // AI Recommendations
+  async createAiRecommendation(recommendation: InsertAiRecommendation): Promise<AiRecommendation> {
+    return this.adminRepo.createAiRecommendation(recommendation);
+  }
+  
+  async getAiRecommendationById(id: number): Promise<AiRecommendation | undefined> {
+    return this.adminRepo.getAiRecommendationById(id);
+  }
+  
+  async getAiRecommendationsByUser(userId: number): Promise<AiRecommendation[]> {
+    return this.adminRepo.getAiRecommendationsByUser(userId);
+  }
+  
+  async getPendingAiRecommendationsByProfessional(professionalId: number): Promise<AiRecommendation[]> {
+    return this.adminRepo.getPendingAiRecommendationsByProfessional(professionalId);
+  }
+
+  async getPendingAiRecommendationsByTherapist(therapistId: number): Promise<AiRecommendation[]> {
+    return this.adminRepo.getPendingAiRecommendationsByTherapist(therapistId);
+  }
+  
+  async updateAiRecommendationStatus(id: number, status: string, therapistNotes?: string): Promise<AiRecommendation> {
+    return this.adminRepo.updateAiRecommendationStatus(id, status, therapistNotes);
+  }
+  
+  async deleteAiRecommendation(id: number): Promise<void> {
+    return this.adminRepo.deleteAiRecommendation(id);
   }
 
   // AI Recommendations

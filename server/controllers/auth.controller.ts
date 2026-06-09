@@ -12,7 +12,7 @@ import { sendPasswordResetEmail, sendEmail, sendProfessionalWelcomeEmail, sendCl
 /**
  * Get a safe base URL for link generation to prevent Host-Header poisoning
  */
-function getSafeBaseUrl(req: Request): string {
+export function getSafeBaseUrl(req: Request): string {
   if (process.env.APP_URL) {
     return process.env.APP_URL.trim();
   }
@@ -380,6 +380,7 @@ export async function inviteClient(req: Request, res: Response) {
     // Create the invitation
     await storage.createClientInvitation({
       email,
+      name,
       therapistId: req.user!.id,
       tempUsername,
       tempPassword: hashedTempPassword,

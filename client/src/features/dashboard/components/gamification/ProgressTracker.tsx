@@ -140,15 +140,15 @@ export default function ProgressTracker() {
               </div>
             </div>
             
-            <div className="bg-purple-50 rounded-lg p-3">
+            <div className="bg-teal-50 rounded-lg p-3">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-medium text-purple-700">Total XP</div>
-                <Star className="h-4 w-4 text-purple-500" />
+                <div className="text-sm font-medium text-teal-700">Total XP</div>
+                <Star className="h-4 w-4 text-teal-600" />
               </div>
-              <div className="mt-1 text-2xl font-bold text-purple-700">
+              <div className="mt-1 text-2xl font-bold text-teal-700">
                 {sampleUserStats.totalPoints}
               </div>
-              <div className="text-xs text-purple-500/80">
+              <div className="text-xs text-teal-600/80">
                 Level {formatLevel(sampleUserStats.level)}
               </div>
             </div>
@@ -224,7 +224,7 @@ export default function ProgressTracker() {
           </div>
           
           {/* Daily Challenge */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100">
+          <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-lg p-4 border border-blue-100">
             <div className="flex justify-between items-start mb-2">
               <h3 className="text-sm font-medium text-blue-800 flex items-center gap-1">
                 <Gift className="h-4 w-4" />

@@ -233,7 +233,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                 <div className="space-y-4" data-testid="step-intro">
                   <div className="text-center space-y-2 py-2">
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center justify-center gap-2">
-                      <Send className="h-6 w-6 text-purple-600" /> {t("Welcome to Journaling")}
+                      <Send className="h-6 w-6 text-teal-700" /> {t("Welcome to Journaling")}
                     </h2>
                     <p className="text-gray-600 text-sm max-w-2xl mx-auto">
                       {t("Express your thoughts and feelings in a safe, private space. Our AI will help identify patterns and provide insights.")}
@@ -243,9 +243,9 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Left Column: Concept Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 h-full">
-                      <Card className="border-purple-100 bg-purple-50/30 flex flex-col justify-center p-3.5 h-full">
+                      <Card className="border-teal-100 bg-teal-50/30 flex flex-col justify-center p-3.5 h-full">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <Heart className="h-4.5 w-4.5 text-purple-700 shrink-0" />
+                          <Heart className="h-4.5 w-4.5 text-teal-700 shrink-0" />
                           <h4 className="font-bold text-xs sm:text-sm text-gray-900">{t("Process Emotions")}</h4>
                         </div>
                         <p className="text-[11px] sm:text-xs text-gray-600 leading-normal">
@@ -253,9 +253,9 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                         </p>
                       </Card>
 
-                      <Card className="border-purple-100 bg-purple-50/30 flex flex-col justify-center p-3.5 h-full">
+                      <Card className="border-teal-100 bg-teal-50/30 flex flex-col justify-center p-3.5 h-full">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <Sparkles className="h-4.5 w-4.5 text-purple-700 shrink-0" />
+                          <Sparkles className="h-4.5 w-4.5 text-teal-700 shrink-0" />
                           <h4 className="font-bold text-xs sm:text-sm text-gray-900">{t("AI Insights")}</h4>
                         </div>
                         <p className="text-[11px] sm:text-xs text-gray-600 leading-normal">
@@ -263,9 +263,9 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                         </p>
                       </Card>
 
-                      <Card className="border-purple-100 bg-purple-50/30 flex flex-col justify-center p-3.5 h-full">
+                      <Card className="border-teal-100 bg-teal-50/30 flex flex-col justify-center p-3.5 h-full">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <Tag className="h-4.5 w-4.5 text-purple-700 shrink-0" />
+                          <Tag className="h-4.5 w-4.5 text-teal-700 shrink-0" />
                           <h4 className="font-bold text-xs sm:text-sm text-gray-900">{t("Track Patterns")}</h4>
                         </div>
                         <p className="text-[11px] sm:text-xs text-gray-600 leading-normal">
@@ -273,9 +273,9 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                         </p>
                       </Card>
 
-                      <Card className="border-purple-100 bg-purple-50/30 flex flex-col justify-center p-3.5 h-full">
+                      <Card className="border-teal-100 bg-teal-50/30 flex flex-col justify-center p-3.5 h-full">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <CheckSquare className="h-4.5 w-4.5 text-purple-700 shrink-0" />
+                          <CheckSquare className="h-4.5 w-4.5 text-teal-700 shrink-0" />
                           <h4 className="font-bold text-xs sm:text-sm text-gray-900">{t("Private & Secure")}</h4>
                         </div>
                         <p className="text-[11px] sm:text-xs text-gray-600 leading-normal">
@@ -285,23 +285,23 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                     </div>
 
                     {/* Right Column: What You'll Do Next */}
-                    <Card className="border-purple-100 bg-gradient-to-br from-purple-50/30 to-indigo-50/30 flex flex-col justify-between p-4 h-full">
+                    <Card className="border-teal-100 bg-gradient-to-br from-purple-50/30 to-indigo-50/30 flex flex-col justify-between p-4 h-full">
                       <div>
                         <h3 className="font-bold text-gray-900 text-sm mb-3.5 flex items-center gap-2">
-                          <HelpCircle className="h-4 w-4 text-purple-700" />
+                          <HelpCircle className="h-4 w-4 text-teal-700" />
                           {t("What You'll Do Next")}
                         </h3>
                         <ol className="space-y-3 text-xs sm:text-sm text-gray-700">
                           <li className="flex items-start gap-2">
-                            <span className="font-semibold text-purple-700 mt-0.5 shrink-0">1.</span>
+                            <span className="font-semibold text-teal-700 mt-0.5 shrink-0">1.</span>
                             <span>{t("Create a title that captures the main theme of your entry.")}</span>
                           </li>
                           <li className="flex items-start gap-2">
-                            <span className="font-semibold text-purple-700 mt-0.5 shrink-0">2.</span>
+                            <span className="font-semibold text-teal-700 mt-0.5 shrink-0">2.</span>
                             <span>{t("Write freely about your thoughts, feelings, and experiences.")}</span>
                           </li>
                           <li className="flex items-start gap-2">
-                            <span className="font-semibold text-purple-700 mt-0.5 shrink-0">3.</span>
+                            <span className="font-semibold text-teal-700 mt-0.5 shrink-0">3.</span>
                             <span>{t("Review AI-detected emotions and topics, customize your tags.")}</span>
                           </li>
                         </ol>
@@ -326,7 +326,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                           <FormControl>
                             <Input
                               placeholder={t("e.g., A Challenging Day at Work, Weekend Reflections...")}
-                              className="text-base h-11 border-purple-100 focus-visible:ring-purple-950"
+                              className="text-base h-11 border-teal-100 focus-visible:ring-teal-800"
                               voiceInput
                               {...field}
                               data-testid="input-journal-title"
@@ -341,9 +341,9 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                     />
                   </div>
 
-                  <div className="md:col-span-4 bg-purple-50/30 p-4 rounded-xl border border-purple-100 flex flex-col justify-center">
+                  <div className="md:col-span-4 bg-teal-50/30 p-4 rounded-xl border border-teal-100 flex flex-col justify-center">
                     <h3 className="font-semibold text-xs sm:text-sm text-gray-900 mb-1.5 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4 text-purple-700" />
+                      <HelpCircle className="h-4 w-4 text-teal-700" />
                       {t("Why Title Your Entry?")}
                     </h3>
                     <p className="text-xs text-gray-600 leading-normal">
@@ -368,7 +368,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                           <FormControl>
                             <Textarea
                               placeholder={t("Write about your thoughts, feelings, experiences... Be as detailed as you like.")}
-                              className="resize-none min-h-[140px] text-base border-purple-100 focus-visible:ring-purple-950"
+                              className="resize-none min-h-[140px] text-base border-teal-100 focus-visible:ring-teal-800"
                               rows={5}
                               {...field}
                               data-testid="textarea-journal-content"
@@ -388,9 +388,9 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                     />
                   </div>
 
-                  <div className="md:col-span-4 bg-purple-50/30 p-4 rounded-xl border border-purple-100 flex flex-col justify-center">
+                  <div className="md:col-span-4 bg-teal-50/30 p-4 rounded-xl border border-teal-100 flex flex-col justify-center">
                     <h3 className="font-semibold text-xs sm:text-sm text-gray-900 mb-1.5 flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4 text-purple-700" />
+                      <HelpCircle className="h-4 w-4 text-teal-700" />
                       {t("Why Journal?")}
                     </h3>
                     <p className="text-xs text-gray-600 leading-normal">
@@ -405,7 +405,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                 <div className="space-y-3 font-sans" data-testid="step-review">
                   {isAnalyzing ? (
                     <div className="flex flex-col items-center justify-center py-10 space-y-3">
-                      <div className="animate-spin h-10 w-10 border-4 border-[#090514] border-t-transparent rounded-full" />
+                      <div className="animate-spin h-10 w-10 border-4 border-teal-700 border-t-transparent rounded-full" />
                       <p className="text-base font-bold text-gray-900">{t("AI is analyzing your entry...")}</p>
                       <p className="text-xs text-gray-500">{t("Detecting emotions and themes")}</p>
                     </div>
@@ -415,10 +415,10 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                       <div className="md:col-span-6 flex flex-col gap-3">
                         {/* AI Insights Summary */}
                         {createdEntry.aiAnalysis ? (
-                          <Card className="border-purple-100 bg-purple-50/20 flex flex-col justify-between flex-1">
+                          <Card className="border-teal-100 bg-teal-50/20 flex flex-col justify-between flex-1">
                             <CardHeader className="p-3.5 pb-2">
                               <CardTitle className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                                <Sparkles className="h-4 w-4 text-purple-700" />
+                                <Sparkles className="h-4 w-4 text-teal-700" />
                                 {t("AI Insights")}
                               </CardTitle>
                             </CardHeader>
@@ -429,10 +429,10 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                             </CardContent>
                           </Card>
                         ) : (
-                          <Card className="border-purple-100 bg-purple-50/20 flex flex-col justify-between flex-1">
+                          <Card className="border-teal-100 bg-teal-50/20 flex flex-col justify-between flex-1">
                             <CardHeader className="p-3.5 pb-2">
                               <CardTitle className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                                <Sparkles className="h-4 w-4 text-purple-700" />
+                                <Sparkles className="h-4 w-4 text-teal-700" />
                                 {t("AI Insights")}
                               </CardTitle>
                             </CardHeader>
@@ -445,10 +445,10 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                         )}
 
                         {/* Custom Tag Input */}
-                        <Card className="border-purple-100 bg-purple-50/20">
+                        <Card className="border-teal-100 bg-teal-50/20">
                           <CardHeader className="p-3.5 pb-2">
                             <CardTitle className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                              <Plus className="h-4 w-4 text-purple-700" />
+                              <Plus className="h-4 w-4 text-teal-700" />
                               {t("Add Custom Tag")}
                             </CardTitle>
                           </CardHeader>
@@ -458,7 +458,8 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                                 value={customTag}
                                 onChange={(e) => setCustomTag(e.target.value)}
                                 placeholder={t("Enter a custom tag...")}
-                                className="h-9 text-sm border-purple-100 focus-visible:ring-purple-950 bg-white"
+                                className="h-9 text-sm border-teal-100 focus-visible:ring-teal-800 bg-white"
+                                voiceInput
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") {
                                     e.preventDefault();
@@ -471,7 +472,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                                 onClick={handleAddCustomTag}
                                 disabled={!customTag.trim()}
                                 size="sm"
-                                className="bg-[#090514] hover:bg-purple-950 text-white rounded-lg h-9"
+                                className="bg-teal-800 hover:bg-teal-700 text-white rounded-lg h-9"
                               >
                                 {t("Add")}
                               </Button>
@@ -481,10 +482,10 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                       </div>
 
                       {/* Right Column: Unified Card for Tag Selection & Review */}
-                      <Card className="md:col-span-6 border-purple-100 bg-gradient-to-br from-purple-50/20 to-indigo-50/20 flex flex-col justify-between">
+                      <Card className="md:col-span-6 border-teal-100 bg-gradient-to-br from-purple-50/20 to-indigo-50/20 flex flex-col justify-between">
                         <CardHeader className="p-3.5 pb-2">
                           <CardTitle className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                            <Tag className="h-4 w-4 text-purple-700" />
+                            <Tag className="h-4 w-4 text-teal-700" />
                             {t("Review & Select Tags")}
                           </CardTitle>
                         </CardHeader>
@@ -506,7 +507,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                                     className={cn(
                                       "cursor-pointer hover:opacity-90 transition-all font-medium py-1 px-2.5 rounded-lg text-xs",
                                       isSelected
-                                        ? "bg-[#090514] hover:bg-purple-950 text-white border-transparent shadow-sm"
+                                        ? "bg-teal-800 hover:bg-teal-700 text-white border-transparent shadow-sm"
                                         : cn("bg-white border-slate-200 text-slate-700", color)
                                     )}
                                     onClick={() => toggleTagSelection(emotion)}
@@ -541,7 +542,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                                     className={cn(
                                       "cursor-pointer hover:opacity-90 transition-all font-medium py-1 px-2.5 rounded-lg text-xs",
                                       isSelected
-                                        ? "bg-[#090514] hover:bg-purple-950 text-white border-transparent shadow-sm"
+                                        ? "bg-teal-800 hover:bg-teal-700 text-white border-transparent shadow-sm"
                                         : cn("bg-white border-slate-200 text-slate-700", color)
                                     )}
                                     onClick={() => toggleTagSelection(topic)}
@@ -560,9 +561,9 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                           </div>
 
                           {/* Selected Tags Summary */}
-                          <div className="border-t border-purple-100/50 pt-2.5">
+                          <div className="border-t border-teal-100/50 pt-2.5">
                             <h4 className="flex items-center gap-1.5 text-xs font-bold text-gray-900 mb-1.5">
-                              <CheckSquare className="h-3.5 w-3.5 text-purple-700 shrink-0" />
+                              <CheckSquare className="h-3.5 w-3.5 text-teal-700 shrink-0" />
                               {t("Selected Tags ({count})").replace("{count}", String(selectedTags.length))}
                             </h4>
                             <div className="max-h-[70px] overflow-y-auto pr-1 flex flex-wrap gap-1.5 custom-scrollbar">
@@ -570,11 +571,11 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                                 selectedTags.map((tag, i) => (
                                   <Badge
                                     key={`selected-${tag}-${i}`}
-                                    className="bg-purple-50 hover:bg-purple-100 text-purple-950 border border-purple-200/60 font-medium py-1 px-2 rounded-lg text-xs cursor-pointer flex items-center gap-1 transition-all"
+                                    className="bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200/60 font-medium py-1 px-2 rounded-lg text-xs cursor-pointer flex items-center gap-1 transition-all"
                                     onClick={() => toggleTagSelection(tag)}
                                   >
                                     <JournalTag text={tag} />
-                                    <X className="h-3 w-3 text-purple-700 shrink-0" />
+                                    <X className="h-3 w-3 text-teal-700 shrink-0" />
                                   </Badge>
                                 ))
                               ) : (
@@ -600,8 +601,8 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                 isSubmitting={isAnalyzing}
                 nextLabel={currentStep === 2 ? "Analyze Entry" : "Next"}
                 submitLabel="Save Entry"
-                nextButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl shadow-md border-0 transition-colors py-2 px-5 font-semibold text-sm"
-                submitButtonClassName="bg-[#090514] hover:bg-purple-950 text-white rounded-xl shadow-md border-0 transition-colors py-2 px-5 font-semibold text-sm"
+                nextButtonClassName="bg-teal-800 hover:bg-teal-700 text-white rounded-xl shadow-md border-0 transition-colors py-2 px-5 font-semibold text-sm"
+                submitButtonClassName="bg-teal-800 hover:bg-teal-700 text-white rounded-xl shadow-md border-0 transition-colors py-2 px-5 font-semibold text-sm"
               />
             </div>
           </Form>
@@ -643,7 +644,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                 <Badge
                   key={i}
                   variant="secondary"
-                  className="bg-purple-50 text-purple-950 border-0 text-xs py-0.5 px-2.5 rounded-md font-medium"
+                  className="bg-teal-50 text-teal-800 border-0 text-xs py-0.5 px-2.5 rounded-md font-medium"
                 >
                   <JournalTag text={tag} />
                 </Badge>
@@ -662,7 +663,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
           </Button>
           <Button
             onClick={handleReset}
-            className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl shadow-md border-0 font-medium flex-1"
+            className="bg-teal-800 hover:bg-teal-700 text-white rounded-xl shadow-md border-0 font-medium flex-1"
           >
             {t("Write Another Entry")}
           </Button>

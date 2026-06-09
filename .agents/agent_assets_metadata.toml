@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "qWVsyVkiM1vfOqTCCvuKd"
+uri = "file://docs/CHANGELOG_RESOURCE_ASSIGNMENTS.md"
+type = "text"
+title = "Resource Assignments — Changelog & Documentation"

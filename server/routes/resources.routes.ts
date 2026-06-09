@@ -9,6 +9,9 @@ import {
   cloneResource,
   getTherapistAssignments,
   deleteResourceAssignment,
+  getClientAssignments,
+  updateResourceAssignmentStatus,
+  submitAssignmentFeedback,
 } from "../controllers/resources.controller";
 
 const router = Router();
@@ -24,5 +27,10 @@ router.post("/resources/:id/clone", authenticate, cloneResource);
 // Therapist resource assignments
 router.get("/therapist/assignments", authenticate, getTherapistAssignments);
 router.delete("/resource-assignments/:id", authenticate, deleteResourceAssignment);
+
+// Client resource assignments
+router.get("/client/assignments", authenticate, getClientAssignments);
+router.patch("/resource-assignments/:id/status", authenticate, updateResourceAssignmentStatus);
+router.post("/resource-assignments/:id/feedback", authenticate, submitAssignmentFeedback);
 
 export default router;

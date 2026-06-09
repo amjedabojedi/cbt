@@ -73,7 +73,7 @@ export const createRateLimiter = (config: RateLimitConfig) =>
 // Common rate limiters (already bound middleware functions)
 export const authRateLimit = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 5,
+  maxRequests: 20,
   message: 'Too many authentication attempts'
 });
 

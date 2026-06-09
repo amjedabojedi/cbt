@@ -524,17 +524,17 @@ export default function ThoughtRecordsList({
                     {showPracticeButton && !isViewingClientData && (
                       <div className="mt-4 pt-4 border-t space-y-3 text-start">
                         {lastPractice && (
-                          <div className="bg-purple-50/50 dark:bg-purple-950/20 rounded-lg p-3 text-sm text-start">
+                          <div className="bg-teal-50/50 dark:bg-teal-800/20 rounded-lg p-3 text-sm text-start">
                             <div className="flex items-center justify-between">
                               <div className="text-start">
                                 <p className="text-xs text-muted-foreground mb-1">{t("Last practiced")}</p>
-                                <p className="font-medium text-purple-900 dark:text-purple-100">
+                                <p className="font-medium text-teal-700 dark:text-purple-100">
                                   {formatDistanceToNow(new Date(lastPractice.createdAt), { addSuffix: true, ...(isRTL ? { locale: arLocale } : {}) })}
                                 </p>
                               </div>
                               <div className="text-center">
                                 <p className="text-xs text-muted-foreground mb-1">{t("Score")}</p>
-                                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                <p className="text-2xl font-bold text-teal-700 dark:text-teal-300">
                                   {tNum(lastPractice.score || 0)}
                                 </p>
                               </div>
@@ -545,7 +545,7 @@ export default function ThoughtRecordsList({
                         {canPractice ? (
                           <Button 
                             onClick={() => navigate(`/reframe-coach/practice/quick/${record.id}?userId=${targetUserId}`)}
-                            className="w-full bg-purple-600 hover:bg-purple-700 text-white animate-none text-center"
+                            className="w-full bg-teal-700 hover:bg-teal-600 text-white animate-none text-center"
                             size="lg"
                             data-testid={`button-practice-${record.id}`}
                           >
@@ -588,18 +588,18 @@ export default function ThoughtRecordsList({
             {/* ── Luxury gradient header ── */}
             <div
               className="relative overflow-hidden px-7 py-5"
-              style={{ background: 'linear-gradient(135deg, #090514 0%, #1a0838 50%, #0c071a 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)' }}
             >
               {/* Glowing orb backdrops */}
-              <div className="absolute -end-12 -top-12 w-36 h-36 rounded-full bg-purple-600/25 blur-3xl pointer-events-none" />
+              <div className="absolute -end-12 -top-12 w-36 h-36 rounded-full bg-teal-500/25 blur-3xl pointer-events-none" />
               <div className="absolute -start-8 -bottom-8 w-28 h-28 rounded-full bg-indigo-700/20 blur-2xl pointer-events-none" />
               <div className="relative z-10 flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-purple-900/40 shrink-0">
-                  <Brain className="h-5 w-5 text-purple-300" />
+                <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-purple-900/40 shrink-0">
+                  <Brain className="h-5 w-5 text-teal-100" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white tracking-tight">{t("Record Details Dialog")}</h2>
-                  <p className="text-purple-300/80 text-xs mt-0.5">{t("Recorded on")} {formatDate(selectedRecord.createdAt)}</p>
+                  <p className="text-teal-100/80 text-xs mt-0.5">{t("Recorded on")} {formatDate(selectedRecord.createdAt)}</p>
                 </div>
               </div>
             </div>

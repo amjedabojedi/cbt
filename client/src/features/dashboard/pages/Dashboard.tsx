@@ -32,7 +32,7 @@ function QuickActionCard({
 }) {
   const { isRTL } = useLocalization();
   const accentMap = {
-    purple: "group-hover:bg-[#090514] group-hover:text-white bg-purple-50 text-[#090514] border-purple-100 group-hover:border-[#090514] group-hover:shadow-[0_0_12px_rgba(9,5,20,0.2)]",
+    purple: "group-hover:bg-teal-800 group-hover:text-white bg-teal-50 text-slate-800 border-teal-100 group-hover:border-teal-700 group-hover:shadow-[0_0_12px_rgba(9,5,20,0.2)]",
     indigo: "group-hover:bg-indigo-900 group-hover:text-white bg-indigo-50 text-indigo-900 border-indigo-100 group-hover:border-indigo-900",
     violet: "group-hover:bg-violet-900 group-hover:text-white bg-violet-50 text-violet-900 border-violet-100 group-hover:border-violet-900",
     slate: "group-hover:bg-slate-800 group-hover:text-white bg-slate-100 text-slate-700 border-slate-200 group-hover:border-slate-800",
@@ -40,7 +40,7 @@ function QuickActionCard({
   return (
     <button
       onClick={onClick}
-      className="group w-full bg-white border border-slate-100 hover:border-purple-200 hover:shadow-md p-4 rounded-2xl text-start transition-all duration-300 hover:-translate-y-0.5 focus:outline-none flex items-center justify-between gap-3 h-[82px] shadow-sm"
+      className="group w-full bg-white border border-slate-100 hover:border-teal-200 hover:shadow-md p-4 rounded-2xl text-start transition-all duration-300 hover:-translate-y-0.5 focus:outline-none flex items-center justify-between gap-3 h-[82px] shadow-sm"
     >
       <div className="flex items-center gap-3 min-w-0">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 border ${accentMap[accent]}`}>
@@ -52,9 +52,9 @@ function QuickActionCard({
         </div>
       </div>
       {isRTL ? (
-        <ChevronLeft className="h-4 w-4 text-slate-300 group-hover:text-purple-500 group-hover:-translate-x-0.5 transition-all shrink-0" />
+        <ChevronLeft className="h-4 w-4 text-slate-300 group-hover:text-teal-500 group-hover:-translate-x-0.5 transition-all shrink-0" />
       ) : (
-        <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-purple-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+        <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all shrink-0" />
       )}
     </button>
   );
@@ -73,14 +73,14 @@ function StatCard({
   const { tNum } = useLocalization();
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-start gap-4">
-      <div className="p-2.5 rounded-xl bg-purple-50 text-[#090514] border border-purple-100 shrink-0">
+      <div className="p-2.5 rounded-xl bg-teal-50 text-slate-800 border border-teal-100 shrink-0">
         {icon}
       </div>
       <div className="min-w-0">
         {loading ? (
           <div className="h-7 w-14 bg-slate-100 rounded animate-pulse mb-1" />
         ) : (
-          <p className="text-2xl font-bold text-[#090514] leading-tight">{tNum(value)}</p>
+          <p className="text-2xl font-bold text-slate-800 leading-tight">{tNum(value)}</p>
         )}
         <p className="text-sm font-medium text-slate-500 mt-0.5">{label}</p>
         {sub && <p className="text-xs text-slate-400 mt-0.5">{tNum(sub)}</p>}
@@ -93,7 +93,7 @@ function StatCard({
 function SectionHeading({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <span className="text-purple-900">{icon}</span>
+      <span className="text-teal-700">{icon}</span>
       <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{label}</span>
     </div>
   );
@@ -180,10 +180,10 @@ export default function Dashboard() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2.5 bg-[#090514] rounded-xl shadow-lg shadow-purple-950/20">
+                    <div className="p-2.5 bg-teal-800 rounded-xl shadow-lg shadow-teal-900/20">
                       <LayoutDashboard className="h-6 w-6 text-white" />
                     </div>
-                    <span className="text-purple-900 text-sm font-bold tracking-widest uppercase">{t("System Control")}</span>
+                    <span className="text-teal-700 text-sm font-bold tracking-widest uppercase">{t("System Control")}</span>
                   </div>
                   <h1 className="text-3xl md:text-4xl font-bold mb-2 tracking-tight text-slate-800 font-sans">
                     {t("Admin Dashboard")}
@@ -201,7 +201,7 @@ export default function Dashboard() {
                     { value: adminStats?.totalTherapists ?? "—", label: t("Therapists") },
                   ].map((s, i) => (
                     <div key={i} className="text-center">
-                      <div className="text-2xl font-bold text-[#090514]">{adminLoading ? "…" : tNum(s.value)}</div>
+                      <div className="text-2xl font-bold text-slate-800">{adminLoading ? "…" : tNum(s.value)}</div>
                       <div className="text-xs text-slate-400 font-medium mt-0.5">{s.label}</div>
                     </div>
                   ))}
@@ -265,10 +265,10 @@ export default function Dashboard() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2.5 bg-[#090514] rounded-xl shadow-lg shadow-purple-950/20">
+                    <div className="p-2.5 bg-teal-800 rounded-xl shadow-lg shadow-teal-900/20">
                       <LayoutDashboard className="h-6 w-6 text-white" />
                     </div>
-                    <span className="text-purple-900 text-sm font-bold tracking-widest uppercase">{t("Clinical Workspace")}</span>
+                    <span className="text-teal-700 text-sm font-bold tracking-widest uppercase">{t("Clinical Workspace")}</span>
                   </div>
                   <h1 className="text-3xl md:text-4xl font-bold mb-2 tracking-tight text-slate-800">
                     {t("Good morning") === "Good morning" ? `Welcome back, ${displayName}` : `مرحباً بعودتك، ${displayName}`}
@@ -286,7 +286,7 @@ export default function Dashboard() {
                     { value: newClients,    label: t("New Clients") },
                   ].map((s, i) => (
                     <div key={i} className="text-center">
-                      <div className="text-2xl font-bold text-[#090514]">{clientsLoading ? "…" : tNum(s.value)}</div>
+                      <div className="text-2xl font-bold text-slate-800">{clientsLoading ? "…" : tNum(s.value)}</div>
                       <div className="text-xs text-slate-400 font-medium mt-0.5">{s.label}</div>
                     </div>
                   ))}
@@ -350,12 +350,12 @@ export default function Dashboard() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-purple-900" />
+                    <Sparkles className="h-4 w-4 text-teal-700" />
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Recent Clients")}</span>
                   </div>
                   <button
                     onClick={() => navigate("/clients")}
-                    className="flex items-center gap-1 text-xs font-semibold text-purple-900 hover:text-[#090514] transition-colors"
+                    className="flex items-center gap-1 text-xs font-semibold text-teal-700 hover:text-slate-800 transition-colors"
                   >
                     {t("View all")} <ArrowUpRight className="h-3.5 w-3.5" />
                   </button>
@@ -378,7 +378,7 @@ export default function Dashboard() {
                         onClick={() => navigate("/clients")}
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-9 h-9 rounded-xl bg-purple-50 text-[#090514] border border-purple-100 flex items-center justify-center text-xs font-bold shrink-0">
+                          <div className="w-9 h-9 rounded-xl bg-teal-50 text-slate-800 border border-teal-100 flex items-center justify-center text-xs font-bold shrink-0">
                             {initials}
                           </div>
                           <div className="min-w-0">
@@ -391,7 +391,7 @@ export default function Dashboard() {
                             <span className="h-2 w-2 rounded-full bg-emerald-500" />
                           )}
                           <span className="text-xs text-slate-400 font-medium capitalize">{t(client.status)}</span>
-                          <ChevronIcon className="h-4 w-4 text-slate-300 group-hover:text-purple-500 transition-colors" />
+                          <ChevronIcon className="h-4 w-4 text-slate-300 group-hover:text-teal-500 transition-colors" />
                         </div>
                       </motion.div>
                     );
@@ -403,8 +403,8 @@ export default function Dashboard() {
             {/* Empty clients state */}
             {!clientsLoading && (!clients || clients.length === 0) && (
               <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white p-10 flex flex-col items-center text-center">
-                <div className="p-4 bg-purple-50 rounded-2xl mb-4 border border-purple-100">
-                  <Sparkles className="h-8 w-8 text-purple-900" />
+                <div className="p-4 bg-teal-50 rounded-2xl mb-4 border border-teal-100">
+                  <Sparkles className="h-8 w-8 text-teal-700" />
                 </div>
                 <h3 className="text-base font-bold text-slate-700 mb-1">{t("No clients yet")}</h3>
                 <p className="text-sm text-slate-400 mb-5 max-w-xs">
@@ -412,7 +412,7 @@ export default function Dashboard() {
                 </p>
                 <button
                   onClick={() => navigate("/clients")}
-                  className="h-10 px-5 bg-[#090514] hover:bg-purple-950 text-white font-semibold rounded-xl shadow-sm text-sm flex items-center gap-2 transition-all"
+                  className="h-10 px-5 bg-teal-800 hover:bg-teal-700 text-white font-semibold rounded-xl shadow-sm text-sm flex items-center gap-2 transition-all"
                 >
                   <UserPlus className="h-4 w-4" /> {t("Invite Your First Client")}
                 </button>
@@ -458,10 +458,10 @@ export default function Dashboard() {
               <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                 <div>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2.5 bg-[#090514] rounded-xl shadow-lg shadow-purple-950/20">
+                    <div className="p-2.5 bg-teal-800 rounded-xl shadow-lg shadow-teal-900/20">
                       <BarChart3 className="h-6 w-6 text-white" />
                     </div>
-                    <span className="text-purple-900 text-sm font-bold tracking-widest uppercase">{t("Client Analytics")}</span>
+                    <span className="text-teal-700 text-sm font-bold tracking-widest uppercase">{t("Client Analytics")}</span>
                   </div>
                   <h1 className="text-3xl md:text-4xl font-bold mb-2 tracking-tight text-slate-800">
                     {isRTL ? `${t("Dashboard")} - ${displayName}` : `${displayName} - ${t("Dashboard")}`}
@@ -479,7 +479,7 @@ export default function Dashboard() {
                     { value: moduleStats.goals.total,  label: t("Goals")       },
                   ].map((s, i) => (
                     <div key={i} className="text-center">
-                      <div className="text-2xl font-bold text-[#090514]">{tNum(s.value)}</div>
+                      <div className="text-2xl font-bold text-slate-800">{tNum(s.value)}</div>
                       <div className="text-xs text-slate-400 font-medium mt-0.5">{s.label}</div>
                     </div>
                   ))}
@@ -505,10 +505,10 @@ export default function Dashboard() {
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-purple-900" />
+                  <TrendingUp className="h-4 w-4 text-teal-700" />
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Engagement Score")}</span>
                 </div>
-                <span className="text-2xl font-bold text-[#090514]">{tNum(`${engagementScore}%`)}</span>
+                <span className="text-2xl font-bold text-slate-800">{tNum(`${engagementScore}%`)}</span>
               </div>
               <Progress value={engagementScore} className="h-2.5 mb-3" />
               <p className="text-xs text-slate-400">{t("total activities logged across all clinical modules")}</p>
@@ -517,7 +517,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-5 gap-2 mt-5 pt-4 border-t border-slate-100">
                 {[
                   { val: moduleStats.emotions.total,         label: t("Emotions"),  color: "text-rose-500"   },
-                  { val: moduleStats.thoughts.total,         label: t("Thoughts"),  color: "text-purple-600" },
+                  { val: moduleStats.thoughts.total,         label: t("Thoughts"),  color: "text-teal-700" },
                   { val: moduleStats.reframe.totalPractices, label: t("Reframes"),  color: "text-emerald-600"},
                   { val: moduleStats.journal.total,          label: t("Journal"),   color: "text-amber-600"  },
                   { val: moduleStats.goals.total,            label: t("Goals"),     color: "text-indigo-600" },
@@ -568,7 +568,7 @@ export default function Dashboard() {
             <div className="flex justify-center pt-2">
               <button
                 onClick={() => navigate(`/client/${activeUserId}`)}
-                className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-[#090514] transition-colors group"
+                className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors group"
               >
                 <User className="h-4 w-4" />
                 {t("View Full Client Profile")}
@@ -600,7 +600,7 @@ export default function Dashboard() {
 
   const todayFocus = [
     { Icon: Heart,     label: t("Track Emotion"),  href: "/emotions",      done: moduleStats.emotions.total > 0,         color: "text-rose-500",    bg: "bg-rose-50",    border: "border-rose-200"   },
-    { Icon: Brain,     label: t("Record Thought"), href: "/thoughts",      done: moduleStats.thoughts.total > 0,         color: "text-purple-600",  bg: "bg-purple-50",  border: "border-purple-200" },
+    { Icon: Brain,     label: t("Record Thought"), href: "/thoughts",      done: moduleStats.thoughts.total > 0,         color: "text-teal-700",  bg: "bg-teal-50",  border: "border-teal-200" },
     { Icon: Lightbulb, label: t("Reframe Coach"),  href: "/reframe-coach", done: moduleStats.reframe.totalPractices > 0, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200"},
     { Icon: BookOpen,  label: t("Write Journal"),  href: "/journal",       done: moduleStats.journal.total > 0,          color: "text-amber-600",   bg: "bg-amber-50",   border: "border-amber-200"  },
     { Icon: Target,    label: t("Set a Goal"),     href: "/goals",         done: moduleStats.goals.total > 0,            color: "text-indigo-600",  bg: "bg-indigo-50",  border: "border-indigo-200" },
@@ -629,10 +629,10 @@ export default function Dashboard() {
       stat: moduleStats.thoughts.total,
       statLabel: t("records logged"),
       insight: moduleStats.thoughts.topANT !== "None" ? `${t("Top pattern: ")}${t(moduleStats.thoughts.topANT)}` : t("Log thoughts to find patterns"),
-      iconColor: "text-purple-600",
-      bg: "bg-purple-50",
-      border: "border-purple-100",
-      barColor: "bg-purple-500",
+      iconColor: "text-teal-700",
+      bg: "bg-teal-50",
+      border: "border-teal-100",
+      barColor: "bg-teal-500",
     },
     {
       Icon: Lightbulb,
@@ -694,23 +694,23 @@ export default function Dashboard() {
         <ClientDebug />
 
         {/* ── Hero banner — negative margins cancel the main element's px-2 sm:px-4 padding ── */}
-        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-[#090514] via-purple-950 to-indigo-950 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden">
+        <div className="-mx-2 sm:-mx-4 bg-gradient-to-br from-slate-800 via-teal-900 to-teal-700 px-6 sm:px-10 pt-8 pb-10 relative overflow-hidden">
           {/* Decorative glows */}
-          <div className="absolute -top-10 right-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-12 w-52 h-52 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-10 right-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-52 h-52 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="max-w-5xl mx-auto relative">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
               {/* Greeting */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="h-4 w-4 text-purple-400" />
-                  <span className="text-purple-400/80 text-xs font-bold tracking-widest uppercase">{t("Your Wellness Space")}</span>
+                  <Sparkles className="h-4 w-4 text-teal-300" />
+                  <span className="text-teal-300/80 text-xs font-bold tracking-widest uppercase">{t("Your Wellness Space")}</span>
                 </div>
                 <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
                   {isRTL ? `${timeGreeting}، ${displayName}` : `${timeGreeting}, ${displayName}`}
                 </h1>
-                <p className="text-purple-300/70 text-base max-w-md leading-relaxed">
+                <p className="text-teal-100/70 text-base max-w-md leading-relaxed">
                   {motivationalLine}
                 </p>
               </div>
@@ -724,7 +724,7 @@ export default function Dashboard() {
                 ].map((s, i) => (
                   <div key={i} className="text-center">
                     <div className="text-2xl font-bold text-white">{tNum(s.value)}</div>
-                    <div className="text-xs text-purple-400/80 font-medium mt-0.5">{s.label}</div>
+                    <div className="text-xs text-teal-300/80 font-medium mt-0.5">{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -735,17 +735,17 @@ export default function Dashboard() {
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
                   <Flame className="h-3.5 w-3.5 text-orange-400" />
-                  <span className="text-xs font-bold text-purple-200 uppercase tracking-widest">{t("Journey Milestone")}</span>
+                  <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">{t("Journey Milestone")}</span>
                 </div>
-                <span className="text-xs text-purple-400">{tNum(`${engagementScore}%`)} {t("of first milestone")}</span>
+                <span className="text-xs text-teal-300">{tNum(`${engagementScore}%`)} {t("of first milestone")}</span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full transition-all duration-700"
+                  className="h-full bg-gradient-to-r from-teal-500 to-sky-400 rounded-full transition-all duration-700"
                   style={{ width: `${engagementScore}%` }}
                 />
               </div>
-              <p className="text-[11px] text-purple-400/60 mt-1.5">{tNum(totalActivities)} {t("activities. Keep going — consistency builds resilience.")}</p>
+              <p className="text-[11px] text-teal-300/60 mt-1.5">{tNum(totalActivities)} {t("activities. Keep going — consistency builds resilience.")}</p>
             </div>
           </div>
         </div>
@@ -757,7 +757,7 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-purple-900" />
+                <Zap className="h-4 w-4 text-teal-700" />
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Today's Focus")}</span>
               </div>
               <span className="text-xs font-semibold text-slate-400">{tNum(`${completedSteps}/5`)} {t("done")}</span>
@@ -769,7 +769,7 @@ export default function Dashboard() {
                     "relative flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
                     done
                       ? "border-emerald-200 bg-emerald-50/60"
-                      : cn(border, bg, "hover:border-purple-200 hover:bg-white")
+                      : cn(border, bg, "hover:border-teal-200 hover:bg-white")
                   )}>
                     {done && (
                       <CheckCircle2 className="absolute top-2 right-2 h-3 w-3 text-emerald-500" />
@@ -793,12 +793,12 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-purple-900" />
+                <TrendingUp className="h-4 w-4 text-teal-700" />
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("My Progress")}</span>
               </div>
               <button
                 onClick={() => navigate("/reports")}
-                className="flex items-center gap-1 text-xs font-semibold text-purple-900 hover:text-[#090514] transition-colors"
+                className="flex items-center gap-1 text-xs font-semibold text-teal-700 hover:text-slate-800 transition-colors"
               >
                 {t("View Report")} <ArrowUpRight className="h-3 w-3" />
               </button>
@@ -807,16 +807,16 @@ export default function Dashboard() {
             <div className="mb-5">
               <div className="flex justify-between mb-2">
                 <span className="text-sm font-medium text-slate-600">{t("Engagement Score")}</span>
-                <span className="text-sm font-bold text-[#090514]">{tNum(`${engagementScore}%`)}</span>
+                <span className="text-sm font-bold text-slate-800">{tNum(`${engagementScore}%`)}</span>
               </div>
-              <Progress value={engagementScore} className="h-2 [&>div]:bg-purple-600" />
+              <Progress value={engagementScore} className="h-2 [&>div]:bg-teal-600" />
               <p className="text-xs text-slate-400 mt-1.5">{tNum(totalActivities)} {t("total activities across all modules")}</p>
             </div>
 
             <div className="grid grid-cols-5 gap-3 pt-4 border-t border-slate-100">
               {[
                 { val: moduleStats.emotions.total,          label: t("Emotions"),  color: "text-rose-500",    bg: "bg-rose-50"    },
-                { val: moduleStats.thoughts.total,          label: t("Thoughts"),  color: "text-purple-600",  bg: "bg-purple-50"  },
+                { val: moduleStats.thoughts.total,          label: t("Thoughts"),  color: "text-sky-600",  bg: "bg-sky-50"  },
                 { val: moduleStats.reframe.totalPractices,  label: t("Reframes"),  color: "text-emerald-600", bg: "bg-emerald-50" },
                 { val: moduleStats.journal.total,           label: t("Journal"),   color: "text-amber-600",   bg: "bg-amber-50"   },
                 { val: moduleStats.goals.total,             label: t("Goals"),     color: "text-indigo-600",  bg: "bg-indigo-50"  },
@@ -832,18 +832,18 @@ export default function Dashboard() {
           {/* Module cards */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <LayoutDashboard className="h-4 w-4 text-purple-900" />
+              <LayoutDashboard className="h-4 w-4 text-teal-700" />
               <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Your Modules")}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {clientModules.map(({ Icon, label, description, href, stat, statLabel, insight, iconColor, bg, border }) => (
                 <Link key={href} href={href}>
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 cursor-pointer hover:border-purple-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group h-full flex flex-col">
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 cursor-pointer hover:border-teal-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group h-full flex flex-col">
                     <div className="flex items-start justify-between mb-4">
                       <div className={cn("p-2.5 rounded-xl border", bg, border)}>
                         <Icon className={cn("h-5 w-5", iconColor)} />
                       </div>
-                      <ChevronIcon className="h-4 w-4 text-slate-300 group-hover:text-purple-500 group-hover:translate-x-0.5 transition-all mt-0.5" />
+                      <ChevronIcon className="h-4 w-4 text-slate-300 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all mt-0.5" />
                     </div>
                     <h3 className="font-bold text-slate-700 text-sm mb-1">{label}</h3>
                     <p className="text-xs text-slate-400 leading-relaxed flex-1">{description}</p>
@@ -865,11 +865,11 @@ export default function Dashboard() {
           </div>
 
           {/* Motivational footer nudge */}
-          <div className="bg-gradient-to-r from-[#090514] via-purple-950 to-indigo-950 rounded-2xl p-5 flex items-center justify-between gap-4">
+          <div className="bg-gradient-to-r from-slate-800 via-teal-900 to-teal-700 rounded-2xl p-5 flex items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Star className="h-3.5 w-3.5 text-purple-400" />
-                <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">{t("Insight")}</span>
+                <Star className="h-3.5 w-3.5 text-teal-300" />
+                <span className="text-[10px] font-bold text-teal-300 uppercase tracking-widest">{t("Insight")}</span>
               </div>
               <p className="text-white text-sm font-medium max-w-md leading-relaxed">
                 {isRTL 

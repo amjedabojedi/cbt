@@ -176,7 +176,7 @@ export default function CreatorPanel({
               >
                 {t("Cancel")}
               </Button>
-              <Button type="submit" disabled={isPending} className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl">
+              <Button type="submit" disabled={isPending} className="bg-teal-800 hover:bg-teal-700 text-white rounded-xl">
                 {isPending ? t("Creating...") : t("Create Resource")}
               </Button>
             </DialogFooter>
@@ -326,7 +326,7 @@ export default function CreatorPanel({
             >
               {t("Cancel")}
             </Button>
-            <Button type="submit" disabled={isPending} className="bg-[#090514] hover:bg-purple-950 text-white rounded-xl">
+            <Button type="submit" disabled={isPending} className="bg-teal-800 hover:bg-teal-700 text-white rounded-xl">
               {isPending ? t("Saving...") : t("Save Changes")}
             </Button>
           </DialogFooter>
