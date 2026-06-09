@@ -51,7 +51,14 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         const token = await SecureStore.getItemAsync('authToken');
         if (token) {
           ApiService.setAuthToken(token);
-          navigation.replace('MainTabs');
+          const role = await SecureStore.getItemAsync('userRole');
+          if (role === 'admin') {
+            navigation.replace('AdminTabs');
+          } else if (role === 'therapist') {
+            navigation.replace('TherapistTabs');
+          } else {
+            navigation.replace('MainTabs');
+          }
         }
       } catch (e) {
         console.log('Error verifying launch state:', e);
@@ -74,15 +81,23 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         // Store user data securely
         await SecureStore.setItemAsync('userId', response.data.user.id.toString());
         await SecureStore.setItemAsync('userEmail', response.data.user.email);
-        
+        await SecureStore.setItemAsync('userRole', response.data.user.role || 'client');
+
         // Set auth token if provided (stored securely)
         if (response.data.token) {
           await SecureStore.setItemAsync('authToken', response.data.token);
           ApiService.setAuthToken(response.data.token);
         }
-        
-        // Navigate to main app tabs
-        navigation.replace('MainTabs');
+
+        // Route based on role
+        const role = response.data.user.role;
+        if (role === 'admin') {
+          navigation.replace('AdminTabs');
+        } else if (role === 'therapist') {
+          navigation.replace('TherapistTabs');
+        } else {
+          navigation.replace('MainTabs');
+        }
       } else {
         Alert.alert('Login Failed', response.error || 'Invalid email or password');
       }

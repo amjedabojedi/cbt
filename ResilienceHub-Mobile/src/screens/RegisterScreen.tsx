@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Dimensions,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -28,8 +29,11 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'therapist' | 'admin'>('therapist');
+  const [role, setRole] = useState<'therapist'>('therapist');
   const [loading, setLoading] = useState(false);
+
+  // Modal visibility for account type selection
+  const [roleModalVisible, setRoleModalVisible] = useState(false);
 
   // Focus states
   const [nameFocused, setNameFocused] = useState(false);
@@ -127,29 +131,29 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
               <Ionicons name="shield-checkmark-outline" size={32} color="#8B5CF6" />
             </View>
             <Text style={styles.title}>Register Account</Text>
-            <Text style={styles.subtitle}>ResilienceHub Professional Portal</Text>
+            <Text style={styles.subtitle}>ResilienceHub Portal Registration</Text>
           </View>
 
           {/* Form Card */}
           <View style={styles.formCard}>
-            {/* Role selector */}
-            <Text style={styles.inputLabel}>PROFESSIONAL ROLE</Text>
-            <View style={styles.roleToggleGroup}>
+            {/* Account Type Selector Dropdown */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.inputLabel}>ACCOUNT TYPE</Text>
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => setRole('therapist')}
-                style={[styles.roleToggleBtn, role === 'therapist' && styles.roleToggleBtnActive]}
+                onPress={() => setRoleModalVisible(true)}
+                style={styles.dropdownTrigger}
               >
-                <Ionicons name="medical-outline" size={16} color={role === 'therapist' ? '#FFFFFF' : 'rgba(255,255,255,0.4)'} style={{ marginRight: 6 }} />
-                <Text style={[styles.roleToggleText, role === 'therapist' && styles.textWhite]}>Therapist</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setRole('admin')}
-                style={[styles.roleToggleBtn, role === 'admin' && styles.roleToggleBtnActive]}
-              >
-                <Ionicons name="shield-outline" size={16} color={role === 'admin' ? '#FFFFFF' : 'rgba(255,255,255,0.4)'} style={{ marginRight: 6 }} />
-                <Text style={[styles.roleToggleText, role === 'admin' && styles.textWhite]}>Admin</Text>
+                <Ionicons 
+                  name="medical-outline" 
+                  size={16} 
+                  color="#8B5CF6" 
+                  style={styles.inputIcon} 
+                />
+                <Text style={styles.dropdownValue}>
+                  Mental Health Professional
+                </Text>
+                <Feather name="chevron-down" size={16} color="rgba(255,255,255,0.4)" style={{ marginLeft: 'auto' }} />
               </TouchableOpacity>
             </View>
 
@@ -240,7 +244,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <>
-                  <Text style={styles.buttonText}>Register Professional Account</Text>
+                  <Text style={styles.buttonText}>Register Account</Text>
                   <Feather name="arrow-right" size={16} color="#FFFFFF" style={{ marginLeft: 6 }} />
                 </>
               )}
@@ -258,6 +262,43 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Account Type Dropdown Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={roleModalVisible}
+        onRequestClose={() => setRoleModalVisible(false)}
+      >
+        <View style={styles.pickerOverlay}>
+          <View style={styles.pickerContent}>
+            <Text style={styles.pickerTitle}>Select Account Type</Text>
+            
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                setRole('therapist');
+                setRoleModalVisible(false);
+              }}
+              style={[styles.pickerOption, role === 'therapist' && styles.pickerOptionActive]}
+            >
+              <Ionicons name="medical-outline" size={20} color={role === 'therapist' ? '#FFFFFF' : '#8B5CF6'} style={{ marginRight: 12 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.pickerOptionText, role === 'therapist' && styles.textWhite]}>Mental Health Professional</Text>
+                <Text style={styles.pickerOptionSub}>Manage clients, author resources, and assign worksheets.</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setRoleModalVisible(false)}
+              style={styles.pickerCloseBtn}
+            >
+              <Text style={styles.pickerCloseBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -343,30 +384,79 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     marginBottom: 8,
   },
-  roleToggleGroup: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: 14,
-    padding: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    marginBottom: 16,
-  },
-  roleToggleBtn: {
-    flex: 1,
+  dropdownTrigger: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 11,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 8,
   },
-  roleToggleBtnActive: {
-    backgroundColor: '#8B5CF6',
-  },
-  roleToggleText: {
-    fontSize: 13,
+  dropdownValue: {
+    color: '#FFFFFF',
+    fontSize: 14,
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.4)',
+  },
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(9, 5, 20, 0.85)',
+    justifyContent: 'flex-end',
+  },
+  pickerContent: {
+    backgroundColor: '#1C1926',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.08)',
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+  },
+  pickerTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  pickerOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    marginBottom: 12,
+  },
+  pickerOptionActive: {
+    backgroundColor: '#8B5CF6',
+    borderColor: '#8B5CF6',
+  },
+  pickerOptionText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  pickerOptionSub: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.4)',
+    marginTop: 2,
+  },
+  pickerCloseBtn: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  pickerCloseBtnText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 14,
+    fontWeight: '800',
   },
   textWhite: {
     color: '#FFFFFF',

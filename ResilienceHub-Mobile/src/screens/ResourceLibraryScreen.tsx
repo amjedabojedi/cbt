@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import { ApiService } from '../services/api';
 
 const { width, height } = Dimensions.get('window');
@@ -138,10 +139,220 @@ function renderHTMLContent(html: string) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ALL RESOURCES TAB — unified searchable list of every resource type
+// ─────────────────────────────────────────────────────────────────────────────
+const TYPE_META = {
+  educational: { label: 'Educational', color: '#8B5CF6', bg: '#F5F3FF', icon: 'book-open' as const },
+  protective:  { label: 'Protective Factor', color: '#10B981', bg: '#ECFDF5', icon: 'shield' as const },
+  coping:      { label: 'Coping Strategy', color: '#3B82F6', bg: '#EFF6FF', icon: 'zap' as const },
+};
+
+const DEFAULT_CATEGORIES = [
+  'CBT Basics', 'Anxiety', 'Depression', 'Stress Management',
+  'Mindfulness', 'Emotional Regulation', 'Relationships', 'Trauma', 'Self Care',
+];
+
+function AllResourcesTab({
+  resources, protectiveFactors, copingStrategies,
+  getCategoryTheme, renderIcon, onSelectResource,
+}: {
+  resources: any[]; protectiveFactors: any[]; copingStrategies: any[];
+  getCategoryTheme: (c: string) => any; renderIcon: (t: any, s: number) => any;
+  onSelectResource: (r: any) => void;
+}) {
+  const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
+
+  // Build category list from defaults + any extra categories present in data
+  const categories = [
+    'All',
+    ...Array.from(new Set([
+      ...DEFAULT_CATEGORIES,
+      ...resources.map((r) => r.category).filter(Boolean),
+    ])),
+  ];
+
+  const combined = [
+    ...resources.map((r) => ({ ...r, _type: 'educational' as const })),
+    ...protectiveFactors.map((f) => ({
+      id: `pf-${f.id}`, title: f.name, description: f.description,
+      category: null, _type: 'protective' as const,
+    })),
+    ...copingStrategies.map((s) => ({
+      id: `cs-${s.id}`, title: s.name, description: s.description,
+      category: null, _type: 'coping' as const,
+    })),
+  ];
+
+  const filtered = combined.filter((item) => {
+    const q = search.toLowerCase();
+    const matchSearch = !q
+      || (item.title || '').toLowerCase().includes(q)
+      || (item.description || '').toLowerCase().includes(q);
+    // Category filter only applies to educational resources; PF/CS always show
+    const matchCat = activeCategory === 'All'
+      || item._type !== 'educational'
+      || item.category === activeCategory;
+    return matchSearch && matchCat;
+  });
+
+  return (
+    <View style={{ flex: 1 }}>
+      {/* Search */}
+      <View style={allStyles.searchWrap}>
+        <View style={allStyles.searchBox}>
+          <Feather name="search" size={15} color="#94A3B8" style={{ marginRight: 8 }} />
+          <TextInput
+            style={allStyles.searchInput}
+            placeholder="Search all resources…"
+            placeholderTextColor="#94A3B8"
+            value={search}
+            onChangeText={setSearch}
+          />
+          {search.length > 0 && (
+            <TouchableOpacity onPress={() => setSearch('')}>
+              <View style={allStyles.clearBtn}><Feather name="x" size={10} color="#64748B" /></View>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Category pills — horizontally scrollable, matching web app */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={allStyles.pillsScroll}
+        style={allStyles.pillsContainer}
+      >
+        {categories.map((cat) => {
+          const isActive = activeCategory === cat;
+          const theme = cat !== 'All' ? getCategoryTheme(cat) : null;
+          return (
+            <TouchableOpacity
+              key={cat}
+              style={[
+                allStyles.pill,
+                isActive
+                  ? { backgroundColor: theme?.color ?? '#090514', borderColor: theme?.color ?? '#090514' }
+                  : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' },
+              ]}
+              onPress={() => setActiveCategory(cat)}
+              activeOpacity={0.8}
+            >
+              {cat !== 'All' && theme && (
+                <View style={{ marginRight: 5 }}>{renderIcon(theme, 11)}</View>
+              )}
+              {cat === 'All' && (
+                <Feather name="layers" size={11} color={isActive ? '#fff' : '#64748B'} style={{ marginRight: 5 }} />
+              )}
+              <Text style={[allStyles.pillText, isActive && { color: '#FFFFFF' }]}>{cat}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {/* Count hint */}
+      <View style={allStyles.hintRow}>
+        <Text style={allStyles.hintText}>{filtered.length} resource{filtered.length !== 1 ? 's' : ''}</Text>
+      </View>
+
+      {/* List */}
+      {filtered.length === 0 ? (
+        <View style={allStyles.empty}>
+          <Feather name="layers" size={32} color="#CBD5E1" />
+          <Text style={allStyles.emptyTitle}>No resources found</Text>
+          <Text style={allStyles.emptyDesc}>Try a different search or category.</Text>
+        </View>
+      ) : (
+        filtered.map((item) => {
+          const meta = TYPE_META[item._type];
+          const theme = item._type === 'educational' ? getCategoryTheme(item.category) : null;
+          return (
+            <TouchableOpacity
+              key={item.id}
+              style={allStyles.card}
+              activeOpacity={0.8}
+              onPress={() => item._type === 'educational' ? onSelectResource(item) : undefined}
+            >
+              {/* Type badge */}
+              <View style={[allStyles.typeBadge, { backgroundColor: meta.bg }]}>
+                <Feather name={meta.icon} size={11} color={meta.color} />
+                <Text style={[allStyles.typeBadgeText, { color: meta.color }]}>{meta.label}</Text>
+              </View>
+
+              {/* Content row */}
+              <View style={allStyles.cardContent}>
+                <View style={[allStyles.cardIconBox, { backgroundColor: theme?.lightBg ?? meta.bg }]}>
+                  {theme ? renderIcon(theme, 18) : <Feather name={meta.icon} size={18} color={meta.color} />}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={allStyles.cardTitle} numberOfLines={1}>{item.title || '—'}</Text>
+                  {item.description ? (
+                    <Text style={allStyles.cardDesc} numberOfLines={2}>{item.description}</Text>
+                  ) : null}
+                  {item.category ? (
+                    <Text style={[allStyles.cardCategory, { color: theme?.color ?? meta.color }]}>{item.category}</Text>
+                  ) : null}
+                </View>
+                {item._type === 'educational' && (
+                  <Feather name="chevron-right" size={16} color="#CBD5E1" />
+                )}
+              </View>
+            </TouchableOpacity>
+          );
+        })
+      )}
+    </View>
+  );
+}
+
+const allStyles = StyleSheet.create({
+  searchWrap: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6 },
+  searchBox: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#FFFFFF', borderRadius: 14,
+    borderWidth: 1, borderColor: '#E2E8F0',
+    paddingHorizontal: 14, paddingVertical: 11,
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1,
+  },
+  searchInput: { flex: 1, fontSize: 14, color: '#1E293B' },
+  clearBtn: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' },
+  pillsContainer: { maxHeight: 48 },
+  pillsScroll: { paddingHorizontal: 16, paddingVertical: 8, gap: 8, alignItems: 'center' },
+  pill: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
+    borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: '#FFFFFF',
+    flexShrink: 0,
+  },
+  pillText: { fontSize: 11, fontWeight: '700', color: '#64748B' },
+  hintRow: { paddingHorizontal: 20, paddingBottom: 8 },
+  hintText: { fontSize: 11, color: '#94A3B8', fontWeight: '500' },
+  card: {
+    marginHorizontal: 16, marginBottom: 10,
+    backgroundColor: '#FFFFFF', borderRadius: 16,
+    borderWidth: 1, borderColor: '#F1F5F9',
+    padding: 14,
+    shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1,
+  },
+  typeBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginBottom: 10 },
+  typeBadgeText: { fontSize: 9, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
+  cardContent: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  cardIconBox: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  cardTitle: { fontSize: 14, fontWeight: '700', color: '#0F172A', marginBottom: 3 },
+  cardDesc: { fontSize: 12, color: '#64748B', lineHeight: 17 },
+  cardCategory: { fontSize: 10, fontWeight: '700', marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
+  empty: { alignItems: 'center', paddingTop: 60, gap: 10 },
+  emptyTitle: { fontSize: 15, fontWeight: '700', color: '#1E293B' },
+  emptyDesc: { fontSize: 13, color: '#94A3B8' },
+});
+
 export default function ResourceLibraryScreen() {
   const [profile, setProfile] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>('educational-resources');
+  const [activeTab, setActiveTab] = useState<string>('all-resources');
 
   // Educational resources states
   const [resources, setResources] = useState<any[]>([]);
@@ -179,7 +390,9 @@ export default function ResourceLibraryScreen() {
   const [assignNotes, setAssignNotes] = useState('');
   const [submittingAssign, setSubmittingAssign] = useState(false);
 
-  const isTherapist = profile?.role === 'therapist' || profile?.role === 'admin';
+  const isTherapist =
+    profile?.role === 'therapist' || profile?.role === 'admin' ||
+    userRole === 'therapist' || userRole === 'admin';
 
   const fetchProtectiveFactors = async (userId: number) => {
     try {
@@ -244,6 +457,7 @@ export default function ResourceLibraryScreen() {
   };
 
   useEffect(() => {
+    SecureStore.getItemAsync('userRole').then((r) => { if (r) setUserRole(r); });
     loadData();
   }, []);
 
@@ -496,11 +710,13 @@ export default function ResourceLibraryScreen() {
     const pfCount = protectiveFactors.filter(f => !f.isGlobal || f.userId === profile?.id).length;
     const csCount = copingStrategies.filter(s => !s.isGlobal || s.userId === profile?.id).length;
 
+    const totalAll = resources.length + pfCount + csCount;
     const tabs = [
-      { id: 'educational-resources', label: `Educational Resources (${resources.length})`, icon: 'book-open' },
+      { id: 'all-resources', label: `All Resources (${totalAll})`, icon: 'layers' },
+      { id: 'educational-resources', label: `Educational (${resources.length})`, icon: 'book-open' },
       { id: 'protective-factors', label: `Protective Factors (${pfCount})`, icon: 'shield' },
       { id: 'coping-strategies', label: `Coping Strategies (${csCount})`, icon: 'brain' },
-      ...(isTherapist ? [{ id: 'client-assignments', label: `Client Assignments (${assignments.length})`, icon: 'users' }] : []),
+      ...(isTherapist ? [{ id: 'client-assignments', label: `Assignments (${assignments.length})`, icon: 'users' }] : []),
     ];
 
     return (
@@ -707,6 +923,18 @@ export default function ResourceLibraryScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
+        {/* TAB 0: ALL RESOURCES */}
+        {activeTab === 'all-resources' && (
+          <AllResourcesTab
+            resources={resources}
+            protectiveFactors={[...protectiveFactors]}
+            copingStrategies={[...copingStrategies]}
+            getCategoryTheme={getCategoryTheme}
+            renderIcon={renderIcon}
+            onSelectResource={setSelectedResource}
+          />
+        )}
+
         {/* TAB 1: EDUCATIONAL RESOURCES */}
         {activeTab === 'educational-resources' && (
           <>
@@ -1250,6 +1478,20 @@ export default function ResourceLibraryScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* FAB — visible on all tabs for therapists/admins */}
+      {isTherapist && (
+        <TouchableOpacity
+          style={styles.fab}
+          activeOpacity={0.85}
+          onPress={() => {
+            if (activeTab === 'coping-strategies') handleAddCs();
+            else handleAddPf();
+          }}
+        >
+          <Feather name="plus" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -1258,6 +1500,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 28,
+    right: 24,
+    width: 58,
+    height: 58,
+    borderRadius: 18,
+    backgroundColor: '#090514',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#090514',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
   },
   scrollView: {
     flex: 1,

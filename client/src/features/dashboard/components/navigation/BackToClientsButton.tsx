@@ -21,14 +21,14 @@ export function BackToClientsButton() {
         onClick={() => {
           // Clear the viewing client
           setViewingClient(null, null);
-          
+
           // Clear from localStorage
           localStorage.removeItem('viewingClientId');
           localStorage.removeItem('viewingClientName');
-          
+
           // Navigate back to clients page
           navigate("/clients");
-          
+
           toast({
             title: "Returned to clients",
             description: "You're now viewing your client list.",

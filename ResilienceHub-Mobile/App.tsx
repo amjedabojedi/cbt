@@ -25,6 +25,12 @@ import NotificationsScreen from './src/screens/NotificationsScreen';
 import GoalsScreen from './src/screens/GoalsScreen';
 import ReframeCoachScreen from './src/screens/ReframeCoachScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import TherapistDashboardScreen from './src/screens/TherapistDashboardScreen';
+import ClientDirectoryScreen from './src/screens/ClientDirectoryScreen';
+import ClientProfileScreen from './src/screens/ClientProfileScreen';
+import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
+import UserManagementScreen from './src/screens/UserManagementScreen';
+import ClientDataViewScreen from './src/screens/ClientDataViewScreen';
 
 // Create navigators
 const Stack = createStackNavigator();
@@ -163,10 +169,10 @@ function CustomDrawerContent(props: any) {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Always wipe credentials locally to prevent stuck states
       await SecureStore.deleteItemAsync('authToken');
       await SecureStore.deleteItemAsync('userId');
       await SecureStore.deleteItemAsync('userEmail');
+      await SecureStore.deleteItemAsync('userRole');
       props.navigation.replace('Login');
     }
   };
@@ -371,6 +377,205 @@ function DrawerNavigator() {
   );
 }
 
+// ──────────────────────────────────────────────
+// THERAPIST NAVIGATOR
+// ──────────────────────────────────────────────
+
+function TherapistTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route, navigation }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName: any;
+          if (route.name === 'TherapistHome') iconName = focused ? 'home' : 'home-outline';
+          else if (route.name === 'ClientDirectory') iconName = focused ? 'people' : 'people-outline';
+          else if (route.name === 'ResourceLibrary') iconName = focused ? 'book' : 'book-outline';
+          else if (route.name === 'Settings') iconName = focused ? 'settings' : 'settings-outline';
+          else iconName = 'circle';
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#8B5CF6',
+        tabBarInactiveTintColor: 'gray',
+        headerShown: true,
+        headerStyle: { backgroundColor: '#090514' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: 'bold' },
+        headerLeft: () => (
+          <TouchableOpacity onPress={() => (navigation as any).openDrawer()}>
+            <Ionicons name="menu" size={26} color="#fff" style={{ marginLeft: 16 }} />
+          </TouchableOpacity>
+        ),
+        headerRight: () => (
+          <TouchableOpacity onPress={() => (navigation as any).navigate('Notifications')}>
+            <Ionicons name="notifications-outline" size={24} color="#fff" style={{ marginRight: 16 }} />
+          </TouchableOpacity>
+        ),
+      })}
+    >
+      <Tab.Screen name="TherapistHome" component={TherapistDashboardScreen} options={{ title: 'Dashboard' }} />
+      <Tab.Screen name="ClientDirectory" component={ClientDirectoryScreen} options={{ title: 'Clients' }} />
+      <Tab.Screen name="ResourceLibrary" component={ResourceLibraryScreen} options={{ title: 'Resources' }} />
+      <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
+    </Tab.Navigator>
+  );
+}
+
+function TherapistDrawerContent(props: any) {
+  const handleLogout = async () => {
+    try { await ApiService.logout(); } catch {}
+    await SecureStore.deleteItemAsync('authToken');
+    await SecureStore.deleteItemAsync('userId');
+    await SecureStore.deleteItemAsync('userEmail');
+    await SecureStore.deleteItemAsync('userRole');
+    props.navigation.replace('Login');
+  };
+
+  return (
+    <DrawerContentScrollView {...props} contentContainerStyle={{ flexGrow: 1, backgroundColor: '#090514' }} style={{ backgroundColor: '#090514' }}>
+      <View style={{ padding: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', marginBottom: 16, alignItems: 'center' }}>
+        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(192,132,252,0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1.5, borderColor: '#C084FC' }}>
+          <Ionicons name="medical-outline" size={26} color="#C084FC" />
+        </View>
+        <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' }}>ResilienceHub</Text>
+        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 4, letterSpacing: 0.5, textTransform: 'uppercase', fontWeight: '700' }}>Therapist Portal</Text>
+      </View>
+      <View style={{ flex: 1 }}>
+        <DrawerItemList {...props} />
+      </View>
+      <View style={{ padding: 16, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' }}>
+        <TouchableOpacity onPress={handleLogout} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, backgroundColor: 'rgba(239,68,68,0.12)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.2)' }}>
+          <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+          <Text style={{ color: '#EF4444', fontWeight: 'bold', marginLeft: 12, fontSize: 14 }}>Log Out</Text>
+        </TouchableOpacity>
+      </View>
+    </DrawerContentScrollView>
+  );
+}
+
+function TherapistDrawerNavigator() {
+  return (
+    <Drawer.Navigator
+      drawerContent={(props) => <TherapistDrawerContent {...props} />}
+      screenOptions={{
+        headerStyle: { backgroundColor: '#090514' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: 'bold' },
+        drawerActiveTintColor: '#FFFFFF',
+        drawerActiveBackgroundColor: 'rgba(192,132,252,0.15)',
+        drawerInactiveTintColor: 'rgba(255,255,255,0.6)',
+        drawerStyle: { backgroundColor: '#090514', width: 270 },
+        drawerLabelStyle: { fontWeight: '700', fontSize: 14 },
+      }}
+    >
+      <Drawer.Screen name="TherapistHomeTabs" component={TherapistTabs} options={{ headerShown: false, drawerLabel: 'Dashboard', drawerIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} /> }} />
+      <Drawer.Screen name="ClientDirectoryDrawer" component={View} options={{ drawerLabel: 'Clients', drawerIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} /> }} listeners={({ navigation }) => ({ drawerItemPress: (e) => { e.preventDefault(); navigation.navigate('TherapistHomeTabs', { screen: 'ClientDirectory' }); } })} />
+      <Drawer.Screen name="ResourceLibraryDrawer" component={View} options={{ drawerLabel: 'Resources', drawerIcon: ({ color, size }) => <Ionicons name="book-outline" size={size} color={color} /> }} listeners={({ navigation }) => ({ drawerItemPress: (e) => { e.preventDefault(); navigation.navigate('TherapistHomeTabs', { screen: 'ResourceLibrary' }); } })} />
+      <Drawer.Screen name="SettingsDrawer" component={View} options={{ drawerLabel: 'Settings', drawerIcon: ({ color, size }) => <Ionicons name="settings-outline" size={size} color={color} /> }} listeners={({ navigation }) => ({ drawerItemPress: (e) => { e.preventDefault(); navigation.navigate('TherapistHomeTabs', { screen: 'Settings' }); } })} />
+    </Drawer.Navigator>
+  );
+}
+
+// ──────────────────────────────────────────────
+// ADMIN NAVIGATOR
+// ──────────────────────────────────────────────
+
+function AdminTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route, navigation }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName: any;
+          if (route.name === 'AdminHome') iconName = focused ? 'shield-checkmark' : 'shield-checkmark-outline';
+          else if (route.name === 'UserManagement') iconName = focused ? 'people' : 'people-outline';
+          else if (route.name === 'ClientDirectory') iconName = focused ? 'person' : 'person-outline';
+          else if (route.name === 'ResourceLibrary') iconName = focused ? 'book' : 'book-outline';
+          else if (route.name === 'Settings') iconName = focused ? 'settings' : 'settings-outline';
+          else iconName = 'circle';
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#8B5CF6',
+        tabBarInactiveTintColor: 'gray',
+        headerShown: true,
+        headerStyle: { backgroundColor: '#090514' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: 'bold' },
+        headerLeft: () => (
+          <TouchableOpacity onPress={() => (navigation as any).openDrawer()}>
+            <Ionicons name="menu" size={26} color="#fff" style={{ marginLeft: 16 }} />
+          </TouchableOpacity>
+        ),
+        headerRight: () => (
+          <TouchableOpacity onPress={() => (navigation as any).navigate('Notifications')}>
+            <Ionicons name="notifications-outline" size={24} color="#fff" style={{ marginRight: 16 }} />
+          </TouchableOpacity>
+        ),
+      })}
+    >
+      <Tab.Screen name="AdminHome" component={AdminDashboardScreen} options={{ title: 'Admin' }} />
+      <Tab.Screen name="UserManagement" component={UserManagementScreen} options={{ title: 'Users' }} />
+      <Tab.Screen name="ClientDirectory" component={ClientDirectoryScreen} options={{ title: 'Clients' }} />
+      <Tab.Screen name="ResourceLibrary" component={ResourceLibraryScreen} options={{ title: 'Resources' }} />
+      <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
+    </Tab.Navigator>
+  );
+}
+
+function AdminDrawerContent(props: any) {
+  const handleLogout = async () => {
+    try { await ApiService.logout(); } catch {}
+    await SecureStore.deleteItemAsync('authToken');
+    await SecureStore.deleteItemAsync('userId');
+    await SecureStore.deleteItemAsync('userEmail');
+    await SecureStore.deleteItemAsync('userRole');
+    props.navigation.replace('Login');
+  };
+
+  return (
+    <DrawerContentScrollView {...props} contentContainerStyle={{ flexGrow: 1, backgroundColor: '#090514' }} style={{ backgroundColor: '#090514' }}>
+      <View style={{ padding: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', marginBottom: 16, alignItems: 'center' }}>
+        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(192,132,252,0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1.5, borderColor: '#C084FC' }}>
+          <Ionicons name="shield-checkmark-outline" size={26} color="#C084FC" />
+        </View>
+        <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' }}>ResilienceHub</Text>
+        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 4, letterSpacing: 0.5, textTransform: 'uppercase', fontWeight: '700' }}>Admin Panel</Text>
+      </View>
+      <View style={{ flex: 1 }}>
+        <DrawerItemList {...props} />
+      </View>
+      <View style={{ padding: 16, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' }}>
+        <TouchableOpacity onPress={handleLogout} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, backgroundColor: 'rgba(239,68,68,0.12)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.2)' }}>
+          <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+          <Text style={{ color: '#EF4444', fontWeight: 'bold', marginLeft: 12, fontSize: 14 }}>Log Out</Text>
+        </TouchableOpacity>
+      </View>
+    </DrawerContentScrollView>
+  );
+}
+
+function AdminDrawerNavigator() {
+  return (
+    <Drawer.Navigator
+      drawerContent={(props) => <AdminDrawerContent {...props} />}
+      screenOptions={{
+        headerStyle: { backgroundColor: '#090514' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: 'bold' },
+        drawerActiveTintColor: '#FFFFFF',
+        drawerActiveBackgroundColor: 'rgba(192,132,252,0.15)',
+        drawerInactiveTintColor: 'rgba(255,255,255,0.6)',
+        drawerStyle: { backgroundColor: '#090514', width: 270 },
+        drawerLabelStyle: { fontWeight: '700', fontSize: 14 },
+      }}
+    >
+      <Drawer.Screen name="AdminHomeTabs" component={AdminTabs} options={{ headerShown: false, drawerLabel: 'Dashboard', drawerIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} /> }} />
+      <Drawer.Screen name="UserManagementDrawer" component={View} options={{ drawerLabel: 'User Management', drawerIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} /> }} listeners={({ navigation }) => ({ drawerItemPress: (e) => { e.preventDefault(); navigation.navigate('AdminHomeTabs', { screen: 'UserManagement' }); } })} />
+      <Drawer.Screen name="ClientDirectoryAdmin" component={View} options={{ drawerLabel: 'Clients', drawerIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} /> }} listeners={({ navigation }) => ({ drawerItemPress: (e) => { e.preventDefault(); navigation.navigate('AdminHomeTabs', { screen: 'ClientDirectory' }); } })} />
+      <Drawer.Screen name="ResourceLibraryAdmin" component={View} options={{ drawerLabel: 'Resources', drawerIcon: ({ color, size }) => <Ionicons name="book-outline" size={size} color={color} /> }} listeners={({ navigation }) => ({ drawerItemPress: (e) => { e.preventDefault(); navigation.navigate('AdminHomeTabs', { screen: 'ResourceLibrary' }); } })} />
+      <Drawer.Screen name="SettingsAdmin" component={View} options={{ drawerLabel: 'Settings', drawerIcon: ({ color, size }) => <Ionicons name="settings-outline" size={size} color={color} /> }} listeners={({ navigation }) => ({ drawerItemPress: (e) => { e.preventDefault(); navigation.navigate('AdminHomeTabs', { screen: 'Settings' }); } })} />
+    </Drawer.Navigator>
+  );
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
@@ -394,26 +599,47 @@ export default function App() {
               name="Register" 
               component={RegisterScreen}
             />
-            {/* Navigates to the Drawer Navigator containing the Main Tabs */}
-            <Stack.Screen 
-              name="MainTabs" 
-              component={DrawerNavigator}
-            />
+            {/* Client tabs */}
+            <Stack.Screen name="MainTabs" component={DrawerNavigator} />
+            {/* Therapist tabs */}
+            <Stack.Screen name="TherapistTabs" component={TherapistDrawerNavigator} />
+            {/* Admin tabs */}
+            <Stack.Screen name="AdminTabs" component={AdminDrawerNavigator} />
             {/* Notifications Screen pushed onto stack */}
-            <Stack.Screen 
-              name="Notifications" 
+            <Stack.Screen
+              name="Notifications"
               component={NotificationsScreen}
               options={{
                 headerShown: true,
                 title: 'Notifications',
-                headerStyle: {
-                  backgroundColor: '#090514', // Dark purple AppBar background
-                },
+                headerStyle: { backgroundColor: '#090514' },
                 headerTintColor: '#fff',
-                headerTitleStyle: {
-                  fontWeight: 'bold',
-                },
+                headerTitleStyle: { fontWeight: 'bold' },
               }}
+            />
+            {/* Client Profile — shared across therapist + admin navigators */}
+            <Stack.Screen
+              name="ClientProfile"
+              component={ClientProfileScreen}
+              options={({ route }: any) => ({
+                headerShown: true,
+                title: route.params?.clientName || 'Client Profile',
+                headerStyle: { backgroundColor: '#090514' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              })}
+            />
+            {/* Client Data View — therapist/admin view of client's clinical data */}
+            <Stack.Screen
+              name="ClientDataView"
+              component={ClientDataViewScreen}
+              options={({ route }: any) => ({
+                headerShown: true,
+                title: route.params?.clientName || 'Client Data',
+                headerStyle: { backgroundColor: '#090514' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: 'bold' },
+              })}
             />
           </Stack.Navigator>
         </NavigationContainer>

@@ -386,4 +386,82 @@ export class ApiService {
   static async getTherapistClients() {
     return this.request<any[]>('/api/users/clients');
   }
+
+  // Therapist Stats
+  static async getTherapistJournalStats() {
+    return this.request<{ totalCount: number }>('/api/therapist/stats/journal');
+  }
+
+  static async getTherapistThoughtStats() {
+    return this.request<{ totalCount: number }>('/api/therapist/stats/thoughts');
+  }
+
+  static async getTherapistGoalStats() {
+    return this.request<{ totalCount: number }>('/api/therapist/stats/goals');
+  }
+
+  // Admin
+  static async getAdminStats() {
+    return this.request<any>('/api/admin/stats');
+  }
+
+  static async getAllUsers() {
+    return this.request<any[]>('/api/users');
+  }
+
+  static async updateUser(userId: number, data: any) {
+    return this.request<any>(`/api/users/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteUser(userId: number) {
+    return this.request<any>(`/api/users/${userId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  static async registerByAdmin(data: any) {
+    return this.request<any>('/api/users/register-by-admin', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async resetUserPassword(userId: number) {
+    return this.request<any>(`/api/users/${userId}/reset-password`, {
+      method: 'POST',
+    });
+  }
+
+  // Invitations
+  static async getInvitations() {
+    return this.request<any[]>('/api/invitations');
+  }
+
+  static async inviteClient(data: { name: string; email: string }) {
+    return this.request<any>('/api/auth/invite-client', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async resendInvitation(invitationId: number) {
+    return this.request<any>(`/api/invitations/${invitationId}/resend`, {
+      method: 'POST',
+    });
+  }
+
+  // Client Viewing Context (for therapist/admin viewing client data)
+  static async setCurrentViewingClient(clientId: number) {
+    return this.request<any>('/api/users/current-viewing-client', {
+      method: 'POST',
+      body: JSON.stringify({ clientId }),
+    });
+  }
+
+  static async getCurrentViewingClient() {
+    return this.request<any>('/api/users/current-viewing-client');
+  }
 }
