@@ -551,26 +551,6 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
         </View>
       </ScrollView>
 
-      {/* ── Bottom Navbar ── */}
-      <View style={s.bottomNav}>
-        {([
-          { name: 'Dashboard',       icon: 'home-outline',      label: 'Home'      },
-          { name: 'EmotionTracking', icon: 'heart-outline',     label: 'Emotions'  },
-          { name: 'ThoughtRecord',   icon: 'bulb-outline',      label: 'Thoughts'  },
-          { name: 'ResourceLibrary', icon: 'book-outline',      label: 'Resources' },
-          { name: 'EmotionHistory',  icon: 'analytics-outline', label: 'Progress'  },
-        ] as const).map(tab => (
-          <TouchableOpacity
-            key={tab.name}
-            style={s.bottomNavItem}
-            onPress={() => navigation.navigate('HomeTabs', { screen: tab.name })}
-            activeOpacity={0.7}
-          >
-            <Ionicons name={tab.icon} size={22} color="#9CA3AF" />
-            <Text style={s.bottomNavLabel}>{tab.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
     </SafeAreaView>
   );
 }
@@ -673,7 +653,4 @@ const s = StyleSheet.create({
   dangerBtnText: { fontSize: 14, fontWeight: '700', color: '#DC2626' },
 
   // Bottom nav
-  bottomNav:     { flexDirection: 'row', backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', paddingTop: 8, paddingBottom: 4 },
-  bottomNavItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 4, gap: 2 },
-  bottomNavLabel:{ fontSize: 10, color: '#9CA3AF', fontWeight: '600' },
 });

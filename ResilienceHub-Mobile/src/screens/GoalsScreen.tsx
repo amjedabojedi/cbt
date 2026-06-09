@@ -17,7 +17,7 @@ import {
 import { Feather, Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Svg, { Circle } from 'react-native-svg';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ApiService } from '../services/api';
 
 const { width: W, height: H } = Dimensions.get('window');
@@ -248,6 +248,10 @@ function GoalDetailModal({
   onClose,
   onToggleMilestone,
   onAddMilestone,
+  addMsVisible,
+  msSaving,
+  onCloseMsModal,
+  onSaveMilestone,
 }: {
   goal: Goal | null;
   milestones: Milestone[];
@@ -256,18 +260,23 @@ function GoalDetailModal({
   onClose: () => void;
   onToggleMilestone: (id: number, current: boolean) => void;
   onAddMilestone: () => void;
+  addMsVisible: boolean;
+  msSaving: boolean;
+  onCloseMsModal: () => void;
+  onSaveMilestone: (data: { title: string; description: string; dueDate: Date | null }) => void;
 }) {
   if (!goal) return null;
   const sc = STATUS_COLOR[goal.status] ?? '#94A3B8';
   const sb = STATUS_BG[goal.status]   ?? '#F8FAFC';
   const msDone = milestones.filter(m => m.isCompleted).length;
   const msPct  = milestones.length > 0 ? Math.round((msDone / milestones.length) * 100) : 0;
+  const insets = useSafeAreaInsets();
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <SafeAreaView style={gd.safeArea} edges={['top', 'bottom']}>
-        {/* Header */}
-        <View style={gd.header}>
+      <SafeAreaView style={gd.safeArea} edges={['bottom']}>
+        {/* Header — manual top inset so Dynamic Island / notch is always cleared */}
+        <View style={[gd.header, { paddingTop: Math.max(insets.top, 16) }]}>
           <TouchableOpacity style={gd.backBtn} onPress={onClose} activeOpacity={0.8}>
             <Feather name="arrow-left" size={20} color="#052e16" />
           </TouchableOpacity>
@@ -394,6 +403,14 @@ function GoalDetailModal({
             )}
           </View>
         </ScrollView>
+
+        {/* Add Milestone sheet — nested here so it renders on top of this modal */}
+        <AddMilestoneModal
+          visible={addMsVisible}
+          saving={msSaving}
+          onClose={onCloseMsModal}
+          onSave={onSaveMilestone}
+        />
       </SafeAreaView>
     </Modal>
   );
@@ -401,7 +418,7 @@ function GoalDetailModal({
 
 const gd = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 14, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   backBtn: { width: 36, height: 36, borderRadius: 12, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 16, fontWeight: '800', color: '#052e16', flexShrink: 1 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, marginLeft: 8 },
@@ -957,7 +974,7 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
         ))}
       </View>
 
-      {/* ── Goal Detail Modal ── */}
+      {/* ── Goal Detail Modal (AddMilestoneModal is nested inside) ── */}
       <GoalDetailModal
         goal={selectedGoal}
         milestones={selectedGoal ? (goalMilestones[selectedGoal.id] ?? []) : []}
@@ -966,14 +983,10 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
         onClose={() => setSelectedGoal(null)}
         onToggleMilestone={handleToggleMilestone}
         onAddMilestone={() => { if (selectedGoal) setAddMsGoalId(selectedGoal.id); }}
-      />
-
-      {/* ── Add Milestone Modal ── */}
-      <AddMilestoneModal
-        visible={addMsGoalId !== null}
-        saving={msSaving}
-        onClose={() => setAddMsGoalId(null)}
-        onSave={handleSaveMilestone}
+        addMsVisible={addMsGoalId !== null}
+        msSaving={msSaving}
+        onCloseMsModal={() => setAddMsGoalId(null)}
+        onSaveMilestone={handleSaveMilestone}
       />
 
       {/* ── SMART Goal Creation Modal ── */}
@@ -1075,22 +1088,22 @@ const s = StyleSheet.create({
 
   // Hero
   hero:    { backgroundColor: '#052e16', paddingBottom: 22, overflow: 'hidden' },
-  heroBlob1: { position: 'absolute', top: -40, right: 20, width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(124,58,237,0.08)' },
-  heroBlob2: { position: 'absolute', bottom: 0, left: 40, width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(99,102,241,0.07)' },
+  heroBlob1: { position: 'absolute', top: -40, right: 20, width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(5,150,105,0.10)' },
+  heroBlob2: { position: 'absolute', bottom: 0, left: 40, width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(52,211,153,0.07)' },
   heroInner: { paddingHorizontal: 20, paddingTop: 20 },
   heroTag:   { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
-  heroTagText: { color: 'rgba(167,139,250,0.8)', fontSize: 10, fontWeight: '800', letterSpacing: 1.5 },
+  heroTagText: { color: 'rgba(52,211,153,0.85)', fontSize: 10, fontWeight: '800', letterSpacing: 1.5 },
   heroTitle: { fontSize: 30, fontWeight: '900', color: '#FFF', letterSpacing: -0.5, marginBottom: 4 },
-  heroSub:   { color: 'rgba(196,181,253,0.7)', fontSize: 13, lineHeight: 18, marginBottom: 16 },
+  heroSub:   { color: 'rgba(167,243,208,0.7)', fontSize: 13, lineHeight: 18, marginBottom: 16 },
   heroStats: { flexDirection: 'row', alignItems: 'center', gap: 20, marginBottom: 14 },
   heroStat:  { alignItems: 'center' },
   heroStatVal:   { fontSize: 20, fontWeight: '900', color: '#FFF' },
-  heroStatLabel: { fontSize: 10, fontWeight: '700', color: 'rgba(196,181,253,0.65)', marginTop: 1 },
+  heroStatLabel: { fontSize: 10, fontWeight: '700', color: 'rgba(167,243,208,0.65)', marginTop: 1 },
   heroStatDivider: { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.1)' },
   heroProgressStrip: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', padding: 12 },
   heroProgressTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 },
-  heroProgressLabel: { fontSize: 9, fontWeight: '800', color: 'rgba(196,181,253,0.8)', letterSpacing: 1.5 },
-  heroProgressPct: { fontSize: 11, fontWeight: '800', color: 'rgba(196,181,253,0.9)' },
+  heroProgressLabel: { fontSize: 9, fontWeight: '800', color: 'rgba(167,243,208,0.8)', letterSpacing: 1.5 },
+  heroProgressPct: { fontSize: 11, fontWeight: '800', color: 'rgba(167,243,208,0.9)' },
   heroProgressBg: { height: 5, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' },
   heroProgressFill: { height: '100%', borderRadius: 3, backgroundColor: '#34D399' },
 
@@ -1146,7 +1159,7 @@ const s = StyleSheet.create({
   bottomNavLabel:{ fontSize: 10, color: '#9CA3AF', fontWeight: '600' },
 
   // Goal creation modal
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(9,5,20,0.65)', justifyContent: 'flex-end' },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(5,46,22,0.65)', justifyContent: 'flex-end' },
   modalSheet:    { backgroundColor: '#F8FAFC', borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: H * 0.90, overflow: 'hidden' },
   modalHandle:   { width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1', alignSelf: 'center', marginTop: 10 },
   modalHeader:   { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#FFF' },

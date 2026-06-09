@@ -206,7 +206,7 @@ export default function TherapistDashboardScreen({ navigation }: TherapistDashbo
           <View style={styles.carouselSection}>
             <View style={[styles.sectionHeader, { justifyContent: 'space-between', paddingHorizontal: 20 }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="sparkles" size={14} color="#581C87" />
+                <Ionicons name="sparkles-outline" size={14} color="#581C87" />
                 <Text style={[styles.sectionTitle, { marginLeft: 6 }]}>RECENT CLIENTS</Text>
               </View>
               <TouchableOpacity onPress={() => navigation.navigate('ClientDirectory')}>
@@ -272,7 +272,7 @@ export default function TherapistDashboardScreen({ navigation }: TherapistDashbo
         {!loading && clients.length === 0 && (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconBox}>
-              <Ionicons name="sparkles" size={32} color="#581C87" />
+              <Ionicons name="sparkles-outline" size={32} color="#581C87" />
             </View>
             <Text style={styles.emptyTitle}>No clients yet</Text>
             <Text style={styles.emptyDesc}>Invite clients to start building your practice and tracking progress.</Text>
@@ -460,6 +460,7 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
     backgroundColor: '#FFFFFF',
     borderRadius: 22,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#F1F5F9',
     padding: 18,
