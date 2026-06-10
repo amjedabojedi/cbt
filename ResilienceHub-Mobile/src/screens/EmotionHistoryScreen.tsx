@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
@@ -9,11 +10,15 @@ import {
   Dimensions,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import Svg, { Path, Circle, Text as SvgText, Line, G, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { ApiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useEmotions } from '../hooks/queries/useEmotions';
+import { useThoughts } from '../hooks/queries/useThoughts';
+import { useJournal } from '../hooks/queries/useJournal';
+import { useGoals } from '../hooks/queries/useGoals';
+import { useReframePractices } from '../hooks/queries/useReframe';
 
 const { width } = Dimensions.get('window');
 
@@ -22,62 +27,37 @@ interface EmotionHistoryScreenProps {
 }
 
 export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScreenProps) {
-  const [emotions, setEmotions] = useState<any[]>([]);
-  const [thoughts, setThoughts] = useState<any[]>([]);
-  const [journals, setJournals] = useState<any[]>([]);
-  const [goals, setGoals] = useState<any[]>([]);
-  const [reframeResults, setReframeResults] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  
+  const { userId } = useAuth();
+  const emotionsQ = useEmotions(userId);
+  const thoughtsQ = useThoughts(userId);
+  const journalsQ = useJournal(userId);
+  const goalsQ = useGoals(userId);
+  const reframeQ = useReframePractices(userId);
+
+  const emotions = emotionsQ.data ?? [];
+  const thoughts = thoughtsQ.data ?? [];
+  const journals = journalsQ.data ?? [];
+  const goals = goalsQ.data ?? [];
+  const reframeResults = reframeQ.data ?? [];
+
+  const loading =
+    !userId ||
+    emotionsQ.isLoading || thoughtsQ.isLoading || journalsQ.isLoading || goalsQ.isLoading || reframeQ.isLoading;
+  const refreshing =
+    emotionsQ.isRefetching || thoughtsQ.isRefetching || journalsQ.isRefetching ||
+    goalsQ.isRefetching || reframeQ.isRefetching;
+
+  const onRefresh = () => {
+    emotionsQ.refetch();
+    thoughtsQ.refetch();
+    journalsQ.refetch();
+    goalsQ.refetch();
+    reframeQ.refetch();
+  };
+
   const [activeTab, setActiveTab] = useState<'stats' | 'history'>('stats');
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'all'>('month');
   const [searchQuery, setSearchQuery] = useState('');
-
-  const loadData = async () => {
-    try {
-      const userResponse = await ApiService.getCurrentUser();
-      if (userResponse.data) {
-        const userId = userResponse.data.id;
-        const [emotionsRes, thoughtsRes, journalsRes, goalsRes, reframeRes] = await Promise.all([
-          ApiService.getUserEmotions(userId),
-          ApiService.getThoughtRecords(userId),
-          ApiService.getJournalEntries(userId),
-          ApiService.getGoals(userId),
-          ApiService.getReframePractices(userId),
-        ]);
-
-        if (emotionsRes.data) setEmotions(emotionsRes.data);
-        if (thoughtsRes.data) setThoughts(thoughtsRes.data);
-        if (journalsRes.data) setJournals(journalsRes.data);
-        if (goalsRes.data) setGoals(goalsRes.data);
-        if (reframeRes.data) setReframeResults(reframeRes.data);
-      } else if (userResponse.error) {
-        navigation.navigate('Login');
-      }
-    } catch (error) {
-      console.error('Failed to load progress data:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    loadData();
-  };
-
-  // Helper date formatter
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + 
-      ' at ' + 
-      date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
 
   const formatShortDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
@@ -394,8 +374,8 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
         <Svg width={chartWidth} height={chartHeight}>
           <Defs>
             <LinearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor="#059669" stopOpacity="0.25" />
-              <Stop offset="100%" stopColor="#059669" stopOpacity="0.00" />
+              <Stop offset="0%" stopColor={COLORS.primaryGreen} stopOpacity="0.25" />
+              <Stop offset="100%" stopColor={COLORS.primaryGreen} stopOpacity="0.00" />
             </LinearGradient>
           </Defs>
 
@@ -431,11 +411,11 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
           )}
 
           {points.length > 1 && pathD && (
-            <Path d={pathD} fill="none" stroke="#059669" strokeWidth="3" />
+            <Path d={pathD} fill="none" stroke={COLORS.primaryGreen} strokeWidth="3" />
           )}
 
           {points.length === 1 && (
-            <Circle cx={points[0].x} cy={points[0].y} r="6" fill="#059669" />
+            <Circle cx={points[0].x} cy={points[0].y} r="6" fill={COLORS.primaryGreen} />
           )}
 
           {points.map((pt, idx) => (
@@ -445,7 +425,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
                 cy={pt.y}
                 r="4"
                 fill="#FFFFFF"
-                stroke="#059669"
+                stroke={COLORS.primaryGreen}
                 strokeWidth="2.5"
               />
               <SvgText
@@ -508,7 +488,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
   const renderTrendIndicator = (val: number, inverse = false) => {
     if (val === 0) return null;
     const isPositiveChange = inverse ? val < 0 : val > 0;
-    const badgeColor = isPositiveChange ? '#10B981' : '#EF4444';
+    const badgeColor = isPositiveChange ? COLORS.mediumGreen : '#EF4444';
     const bgLight = isPositiveChange ? '#ECFDF5' : '#FEF2F2';
     const iconName = val > 0 ? 'trending-up' : 'trending-down';
 
@@ -523,7 +503,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color={COLORS.primaryGreen} />
         <Text style={styles.loadingText}>Opening Clinical Logs...</Text>
       </View>
     );
@@ -542,7 +522,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
             <Feather 
               name="pie-chart" 
               size={14} 
-              color={activeTab === 'stats' ? '#052e16' : '#64748B'} 
+              color={activeTab === 'stats' ? COLORS.darkGreen : '#64748B'} 
               style={{ marginRight: 6 }}
             />
             <Text style={[styles.tabText, activeTab === 'stats' && styles.activeTabText]}>Progress Stats</Text>
@@ -555,7 +535,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
             <Feather 
               name="clock" 
               size={14} 
-              color={activeTab === 'history' ? '#052e16' : '#64748B'} 
+              color={activeTab === 'history' ? COLORS.darkGreen : '#64748B'} 
               style={{ marginRight: 6 }}
             />
             <Text style={[styles.tabText, activeTab === 'history' && styles.activeTabText]}>Activity History</Text>
@@ -568,7 +548,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#059669']} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primaryGreen]} />
         }
       >
         {activeTab === 'stats' ? (
@@ -594,7 +574,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
             <View style={styles.milestoneCard}>
               <View style={styles.milestoneHeaderRow}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Feather name="trending-up" size={14} color="#059669" />
+                  <Feather name="trending-up" size={14} color={COLORS.primaryGreen} />
                   <Text style={styles.milestoneLabel}>CBT PROGRESS</Text>
                 </View>
                 <Text style={styles.milestonePercentageText}>{stats.milestonePct}% of first milestone</Text>
@@ -614,7 +594,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
                 <View style={styles.kpiCardHeader}>
                   <Text style={styles.kpiCardTitle}>ENGAGEMENT LEVEL</Text>
                   <View style={[styles.kpiIconWrap, { backgroundColor: '#ecfdf5' }]}>
-                    <Feather name="activity" size={14} color="#059669" />
+                    <Feather name="activity" size={14} color={COLORS.primaryGreen} />
                   </View>
                 </View>
                 <Text style={styles.kpiCardValue}>{stats.totalActivities}</Text>
@@ -622,10 +602,10 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
                 <View style={styles.kpiCardFooter}>
                   <View style={styles.kpiFooterTextRow}>
                     <Text style={styles.kpiFooterLabel}>Behavioral Activation</Text>
-                    <Text style={[styles.kpiFooterValue, { color: '#059669' }]}>Active</Text>
+                    <Text style={[styles.kpiFooterValue, { color: COLORS.primaryGreen }]}>Active</Text>
                   </View>
                   <View style={styles.kpiMiniProgressBarBg}>
-                    <View style={[styles.kpiMiniProgressBarFill, { width: `${Math.min((stats.totalActivities / 20) * 100, 100)}%`, backgroundColor: '#059669' }]} />
+                    <View style={[styles.kpiMiniProgressBarFill, { width: `${Math.min((stats.totalActivities / 20) * 100, 100)}%`, backgroundColor: COLORS.primaryGreen }]} />
                   </View>
                 </View>
               </View>
@@ -657,7 +637,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
                       <Text style={styles.balanceLabel}>POSITIVE</Text>
                       {renderTrendIndicator(stats.emotionalBalance.positiveIntensity.changePercent, false)}
                     </View>
-                    <Text style={[styles.balanceValue, { color: '#10B981' }]}>
+                    <Text style={[styles.balanceValue, { color: COLORS.mediumGreen }]}>
                       {stats.emotionalBalance.positiveIntensity.current > 0 
                         ? stats.emotionalBalance.positiveIntensity.current.toFixed(1) 
                         : '—'}
@@ -744,7 +724,7 @@ export default function EmotionHistoryScreen({ navigation }: EmotionHistoryScree
             ) : (
               <View style={styles.distortionEmptyCard}>
                 <View style={styles.distortionEmptyIcon}>
-                  <Feather name="shield" size={20} color="#059669" />
+                  <Feather name="shield" size={20} color={COLORS.primaryGreen} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.distortionEmptyTitle}>Build CBT Skills</Text>
@@ -910,7 +890,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   activeTabText: {
-    color: '#052e16',
+    color: COLORS.darkGreen,
   },
 
   tabContent: {
@@ -934,8 +914,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   activeFilterPill: {
-    backgroundColor: '#052e16',
-    borderColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
+    borderColor: COLORS.darkGreen,
   },
   filterPillText: {
     fontSize: 11.5,
@@ -948,11 +928,11 @@ const styles = StyleSheet.create({
 
   // Milestone Progress Card
   milestoneCard: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     borderRadius: 20,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#052e16',
+    shadowColor: COLORS.darkGreen,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -984,7 +964,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#059669', // Purple fill
+    backgroundColor: COLORS.primaryGreen, // Purple fill
     borderRadius: 3,
   },
   milestoneDetailText: {
@@ -1036,7 +1016,7 @@ const styles = StyleSheet.create({
   kpiCardValue: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     marginBottom: 2,
   },
   kpiCardDesc: {
@@ -1128,7 +1108,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
   },
   sectionSubtitle: {
     fontSize: 11,
@@ -1204,7 +1184,7 @@ const styles = StyleSheet.create({
   distortionBadgeText: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#059669',
+    color: COLORS.primaryGreen,
   },
   distortionStats: {
     fontSize: 10.5,
@@ -1214,7 +1194,7 @@ const styles = StyleSheet.create({
   distortionTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     marginBottom: 6,
   },
   distortionDesc: {
@@ -1248,7 +1228,7 @@ const styles = StyleSheet.create({
   distortionEmptyTitle: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     marginBottom: 4,
   },
   distortionEmptyText: {
@@ -1343,7 +1323,7 @@ const styles = StyleSheet.create({
   timelineItemTitle: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     flex: 1,
     marginRight: 8,
   },
@@ -1401,14 +1381,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     borderRadius: 24,
     height: 48,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#052e16',
+    shadowColor: COLORS.darkGreen,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 8,

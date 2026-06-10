@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
@@ -9,22 +10,22 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Dimensions,
   ScrollView,
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
 import { ApiService } from '../services/api';
-
-const { width } = Dimensions.get('window');
+import { useAuth } from '../context/AuthContext';
 
 interface RegisterScreenProps {
   navigation: any;
 }
 
+const ROLE_ROUTES = { admin: 'AdminTabs', therapist: 'TherapistTabs', client: 'MainTabs' } as const;
+
 export default function RegisterScreen({ navigation }: RegisterScreenProps) {
+  const { signIn } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -81,22 +82,21 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             {
               text: 'OK',
               onPress: async () => {
-                // If a token/session is returned, save it. Otherwise redirect to login.
+                // If a token/session is returned, establish it. Otherwise redirect to login.
                 const user = response.data;
                 const token = response.data.token;
-                
-                if (user && user.id) {
-                  await SecureStore.setItemAsync('userId', user.id.toString());
-                  await SecureStore.setItemAsync('userEmail', user.email);
-                  
-                  if (token) {
-                    await SecureStore.setItemAsync('authToken', token);
-                    ApiService.setAuthToken(token);
-                    navigation.replace('MainTabs');
-                    return;
-                  }
+
+                if (user?.id && token) {
+                  const resolvedRole = await signIn({
+                    id: user.id,
+                    email: user.email,
+                    role: user.role || role,
+                    token,
+                  });
+                  navigation.replace(ROLE_ROUTES[resolvedRole]);
+                  return;
                 }
-                
+
                 // Fallback to Login if no direct session token is returned
                 navigation.replace('Login');
               }
@@ -128,7 +128,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Ionicons name="shield-checkmark-outline" size={32} color="#059669" />
+              <Ionicons name="shield-checkmark-outline" size={32} color={COLORS.primaryGreen} />
             </View>
             <Text style={styles.title}>Register Account</Text>
             <Text style={styles.subtitle}>ResilienceHub Portal Registration</Text>
@@ -147,7 +147,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                 <Ionicons 
                   name="medical-outline" 
                   size={16} 
-                  color="#059669" 
+                  color={COLORS.primaryGreen} 
                   style={styles.inputIcon} 
                 />
                 <Text style={styles.dropdownValue}>
@@ -161,7 +161,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>FULL NAME</Text>
               <View style={[styles.inputContainer, nameFocused && styles.inputContainerActive]}>
-                <Feather name="user" size={16} color={nameFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="user" size={16} color={nameFocused ? COLORS.primaryGreen : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your full name"
@@ -178,7 +178,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
               <View style={[styles.inputContainer, emailFocused && styles.inputContainerActive]}>
-                <Feather name="mail" size={16} color={emailFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="mail" size={16} color={emailFocused ? COLORS.primaryGreen : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter email address"
@@ -198,7 +198,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>CHOOSE USERNAME</Text>
               <View style={[styles.inputContainer, usernameFocused && styles.inputContainerActive]}>
-                <Feather name="at-sign" size={16} color={usernameFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="at-sign" size={16} color={usernameFocused ? COLORS.primaryGreen : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Choose a username"
@@ -217,7 +217,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>PASSWORD</Text>
               <View style={[styles.inputContainer, passwordFocused && styles.inputContainerActive]}>
-                <Feather name="lock" size={16} color={passwordFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="lock" size={16} color={passwordFocused ? COLORS.primaryGreen : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Choose password"
@@ -257,7 +257,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             onPress={() => navigation.navigate('Login')}
             style={styles.backLink}
           >
-            <Feather name="arrow-left" size={14} color="#059669" style={{ marginRight: 6 }} />
+            <Feather name="arrow-left" size={14} color={COLORS.primaryGreen} style={{ marginRight: 6 }} />
             <Text style={styles.backLinkText}>Back to Sign In</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -266,7 +266,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
       {/* Account Type Dropdown Modal */}
       <Modal
         animationType="slide"
-        transparent={true}
+        transparent
         visible={roleModalVisible}
         onRequestClose={() => setRoleModalVisible(false)}
       >
@@ -282,7 +282,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
               }}
               style={[styles.pickerOption, role === 'therapist' && styles.pickerOptionActive]}
             >
-              <Ionicons name="medical-outline" size={20} color={role === 'therapist' ? '#FFFFFF' : '#059669'} style={{ marginRight: 12 }} />
+              <Ionicons name="medical-outline" size={20} color={role === 'therapist' ? '#FFFFFF' : COLORS.primaryGreen} style={{ marginRight: 12 }} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.pickerOptionText, role === 'therapist' && styles.textWhite]}>Mental Health Professional</Text>
                 <Text style={styles.pickerOptionSub}>Manage clients, author resources, and assign worksheets.</Text>
@@ -306,7 +306,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#052e16', // Matching dark theme background
+    backgroundColor: COLORS.darkGreen, // Matching dark theme background
   },
   keyboardView: {
     flex: 1,
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.06)',
     padding: 24,
-    shadowColor: '#052e16',
+    shadowColor: COLORS.darkGreen,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#059669',
+    color: COLORS.primaryGreen,
     letterSpacing: 0.8,
     marginBottom: 8,
   },
@@ -432,8 +432,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   pickerOptionActive: {
-    backgroundColor: '#059669',
-    borderColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
+    borderColor: COLORS.primaryGreen,
   },
   pickerOptionText: {
     fontSize: 15,
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   inputContainerActive: {
-    borderColor: '#059669',
+    borderColor: COLORS.primaryGreen,
     backgroundColor: 'rgba(5, 150, 105, 0.05)',
   },
   inputIcon: {
@@ -484,14 +484,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   button: {
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
     borderRadius: 14,
     paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    shadowColor: '#059669',
+    shadowColor: COLORS.primaryGreen,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   backLinkText: {
-    color: '#059669',
+    color: COLORS.primaryGreen,
     fontSize: 13,
     fontWeight: '700',
   },

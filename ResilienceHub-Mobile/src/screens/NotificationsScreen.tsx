@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
@@ -6,60 +7,31 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
+  RefreshControl,
 } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { ApiService } from '../services/api';
+import {
+  useNotifications,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+  Notification,
+} from '../hooks/queries/useNotifications';
 
-interface NotificationsScreenProps {
-  navigation: any;
-}
+export default function NotificationsScreen() {
+  const { data, isLoading, isError, refetch, isRefetching } = useNotifications();
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
 
-export default function NotificationsScreen({ navigation }: NotificationsScreenProps) {
-  const [loading, setLoading] = useState(true);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const notifications = data ?? [];
 
-  const fetchNotifications = async () => {
-    try {
-      const response = await ApiService.getNotifications();
-      setNotifications(response.data || []);
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleMarkAsRead = (id: number) => markRead.mutate(id);
+
+  const handleMarkAllRead = () => {
+    if (notifications.filter((n) => !n.isRead).length === 0) return;
+    markAllRead.mutate();
   };
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  const handleMarkAsRead = async (id: number) => {
-    try {
-      await ApiService.markNotificationRead(id);
-      // Update local state
-      setNotifications(prev =>
-        prev.map(n => (n.id === id ? { ...n, isRead: true } : n))
-      );
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
-    }
-  };
-
-  const handleMarkAllRead = async () => {
-    if (notifications.filter(n => !n.isRead).length === 0) return;
-    try {
-      setLoading(true);
-      await ApiService.markAllNotificationsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-    } catch (error) {
-      console.error('Failed to mark all as read:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const renderItem = ({ item }: { item: any }) => {
+  const renderItem = ({ item }: { item: Notification }) => {
     return (
       <View style={[styles.notificationCard, !item.isRead && styles.unreadCard]}>
         <View style={styles.cardHeader}>
@@ -67,7 +39,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
             <Feather
               name={item.isRead ? "bell" : "bell-off"}
               size={16}
-              color={!item.isRead ? "#059669" : "#94A3B8"}
+              color={!item.isRead ? COLORS.primaryGreen : "#94A3B8"}
             />
           </View>
           <View style={styles.headerTextWrap}>
@@ -92,16 +64,29 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     );
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color={COLORS.primaryGreen} />
         <Text style={styles.loadingText}>Loading notifications...</Text>
       </View>
     );
   }
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  if (isError) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="cloud-offline-outline" size={48} color={COLORS.disabledBg} />
+        <Text style={styles.emptyTitle}>Couldn't load notifications</Text>
+        <Text style={styles.emptySubtitle}>Check your connection and try again.</Text>
+        <TouchableOpacity style={styles.markReadButton} onPress={() => refetch()}>
+          <Text style={styles.markReadButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
     <View style={styles.container}>
@@ -119,7 +104,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
       {notifications.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="notifications-off-outline" size={48} color="#CBD5E1" />
+          <Ionicons name="notifications-off-outline" size={48} color={COLORS.disabledBg} />
           <Text style={styles.emptyTitle}>No Notifications</Text>
           <Text style={styles.emptySubtitle}>You'll see system reminders and alerts here.</Text>
         </View>
@@ -130,6 +115,9 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={COLORS.primaryGreen} />
+          }
         />
       )}
     </View>
@@ -174,7 +162,7 @@ const styles = StyleSheet.create({
   },
   readAllText: {
     fontSize: 13,
-    color: '#059669',
+    color: COLORS.primaryGreen,
     fontWeight: '700',
   },
   listContainer: {
@@ -196,7 +184,7 @@ const styles = StyleSheet.create({
   unreadCard: {
     borderColor: '#E9D5FF',
     borderLeftWidth: 5,
-    borderLeftColor: '#059669',
+    borderLeftColor: COLORS.primaryGreen,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -252,7 +240,7 @@ const styles = StyleSheet.create({
   },
   markReadButtonText: {
     fontSize: 11,
-    color: '#059669',
+    color: COLORS.primaryGreen,
     fontWeight: '700',
   },
   emptyContainer: {

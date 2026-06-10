@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
@@ -6,26 +7,19 @@ import {
   StyleSheet,
   ScrollView,
   FlatList,
-  Dimensions,
   ActivityIndicator,
   TextInput,
   Modal,
   Alert,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { ApiService } from '../services/api';
-
-const { width } = Dimensions.get('window');
-
-interface UserManagementScreenProps {
-  navigation: any;
-}
+import { useAllUsers } from '../hooks/queries/useAdmin';
 
 const ROLE_COLORS: Record<string, string> = {
   admin: '#EF4444',
-  therapist: '#059669',
-  client: '#10B981',
+  therapist: COLORS.primaryGreen,
+  client: COLORS.mediumGreen,
 };
 
 const ROLE_BG: Record<string, string> = {
@@ -34,9 +28,10 @@ const ROLE_BG: Record<string, string> = {
   client: '#F0FDF4',
 };
 
-export default function UserManagementScreen({ navigation }: UserManagementScreenProps) {
-  const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState<any[]>([]);
+export default function UserManagementScreen() {
+  const usersQ = useAllUsers();
+  const users = usersQ.data ?? [];
+  const loading = usersQ.isLoading;
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'therapist' | 'client'>('all');
 
@@ -56,23 +51,7 @@ export default function UserManagementScreen({ navigation }: UserManagementScree
   const [editRole, setEditRole] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const fetchUsers = useCallback(async () => {
-    try {
-      const res = await ApiService.getAllUsers();
-      setUsers(res.data || []);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      setLoading(true);
-      fetchUsers();
-    }, [fetchUsers])
-  );
+  const fetchUsers = () => usersQ.refetch();
 
   const filteredUsers = users.filter((u) => {
     const matchesSearch =
@@ -221,7 +200,7 @@ export default function UserManagementScreen({ navigation }: UserManagementScree
             onPress={() => handleOpenEdit(item)}
             activeOpacity={0.7}
           >
-            <Feather name="edit-2" size={14} color="#059669" />
+            <Feather name="edit-2" size={14} color={COLORS.primaryGreen} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionBtn, { marginTop: 6 }]}
@@ -294,11 +273,11 @@ export default function UserManagementScreen({ navigation }: UserManagementScree
       {/* User List */}
       {loading ? (
         <View style={styles.loadingBox}>
-          <ActivityIndicator size="large" color="#059669" />
+          <ActivityIndicator size="large" color={COLORS.primaryGreen} />
         </View>
       ) : filteredUsers.length === 0 ? (
         <View style={styles.emptyBox}>
-          <Feather name="users" size={40} color="#CBD5E1" />
+          <Feather name="users" size={40} color={COLORS.disabledBg} />
           <Text style={styles.emptyText}>No users found</Text>
         </View>
       ) : (
@@ -433,7 +412,7 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
   addButton: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     paddingHorizontal: 14, paddingVertical: 9,
     borderRadius: 12,
   },
@@ -453,7 +432,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20,
     backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
   },
-  chipActive: { backgroundColor: '#052e16', borderColor: '#052e16' },
+  chipActive: { backgroundColor: COLORS.darkGreen, borderColor: COLORS.darkGreen },
   chipText: { fontSize: 12, fontWeight: '600', color: '#64748B' },
   chipTextActive: { color: '#FFFFFF' },
 
@@ -513,7 +492,7 @@ const styles = StyleSheet.create({
   },
   rolePickText: { fontSize: 13, fontWeight: '700', color: '#64748B' },
   submitBtn: {
-    backgroundColor: '#052e16', borderRadius: 14,
+    backgroundColor: COLORS.darkGreen, borderRadius: 14,
     paddingVertical: 14, alignItems: 'center', marginTop: 20, marginBottom: 10,
   },
   submitBtnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 15 },

@@ -27,7 +27,7 @@ export class ApiService {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'X-Requested-With': 'ResilienceHub-Mobile',
@@ -78,14 +78,14 @@ export class ApiService {
       }
 
       if (!response.ok) {
-        throw new Error((data && data.message) || `HTTP ${response.status}`);
+        throw new Error((data?.message) || `HTTP ${response.status}`);
       }
 
       return { data };
     } catch (error) {
       console.error(`API Error (${endpoint}):`, error);
-      return { 
-        error: error instanceof Error ? error.message : 'Network error' 
+      return {
+        error: error instanceof Error ? error.message : 'Network error'
       };
     }
   }
@@ -96,8 +96,6 @@ export class ApiService {
       method: 'POST',
       body: JSON.stringify({ username: email, password }),
     });
-
-    console.log('[API] mobileLogin response data:', JSON.stringify(response.data));
 
     // Wrap the response user object under `user` property to match mobile frontend expectations
     if (response.data && !response.data.user) {
@@ -121,7 +119,6 @@ export class ApiService {
       body: JSON.stringify(data),
     });
 
-    console.log('[API] register response data:', JSON.stringify(response.data));
     return response;
   }
 
@@ -134,9 +131,7 @@ export class ApiService {
   }
 
   static async getCurrentUser() {
-    console.log('[API] getCurrentUser called, authToken is:', this.authToken);
     const response = await this.request<any>('/api/auth/me');
-    console.log('[API] getCurrentUser response:', JSON.stringify(response));
     return response;
   }
 

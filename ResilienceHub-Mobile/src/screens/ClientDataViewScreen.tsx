@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
@@ -6,27 +7,26 @@ import {
   StyleSheet,
   ScrollView,
   FlatList,
-  Dimensions,
   ActivityIndicator,
   Modal,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { Feather, Ionicons } from '@expo/vector-icons';
-import { ApiService } from '../services/api';
-
-const { width } = Dimensions.get('window');
+import { Feather } from '@expo/vector-icons';
+import { useEmotions } from '../hooks/queries/useEmotions';
+import { useThoughts } from '../hooks/queries/useThoughts';
+import { useJournal } from '../hooks/queries/useJournal';
+import { useGoals } from '../hooks/queries/useGoals';
 
 type ModuleTab = 'emotions' | 'thoughts' | 'journal' | 'goals';
 
 const TAB_CONFIG: { key: ModuleTab; icon: any; label: string; color: string; bg: string }[] = [
   { key: 'emotions', icon: 'heart',     label: 'Emotions', color: '#3B82F6', bg: '#EFF6FF' },
-  { key: 'thoughts', icon: 'cpu',       label: 'Thoughts', color: '#059669', bg: '#ecfdf5' },
+  { key: 'thoughts', icon: 'cpu',       label: 'Thoughts', color: COLORS.primaryGreen, bg: '#ecfdf5' },
   { key: 'journal',  icon: 'book-open', label: 'Journal',  color: '#F59E0B', bg: '#FFFBEB' },
-  { key: 'goals',    icon: 'target',    label: 'Goals',    color: '#10B981', bg: '#F0FDF4' },
+  { key: 'goals',    icon: 'target',    label: 'Goals',    color: COLORS.mediumGreen, bg: '#F0FDF4' },
 ];
 
 const INTENSITY_COLOR = (n: number) => {
-  if (n <= 3) return '#10B981';
+  if (n <= 3) return COLORS.mediumGreen;
   if (n <= 6) return '#F59E0B';
   return '#EF4444';
 };
@@ -35,7 +35,7 @@ const GOAL_STATUS: Record<string, { label: string; color: string; bg: string }> 
   pending:     { label: 'Pending',     color: '#94A3B8', bg: '#F1F5F9' },
   in_progress: { label: 'In Progress', color: '#2563EB', bg: '#DBEAFE' },
   approved:    { label: 'Approved',    color: '#047857', bg: '#d1fae5' },
-  completed:   { label: 'Completed',   color: '#059669', bg: '#DCFCE7' },
+  completed:   { label: 'Completed',   color: COLORS.primaryGreen, bg: '#DCFCE7' },
 };
 
 function fmtDate(d: string | undefined) {
@@ -120,7 +120,7 @@ function ThoughtCard({ item }: { item: any }) {
       {/* Header */}
       <View style={card.header}>
         <View style={[card.iconBox, { backgroundColor: '#ecfdf5' }]}>
-          <Feather name="cpu" size={16} color="#059669" />
+          <Feather name="cpu" size={16} color={COLORS.primaryGreen} />
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={card.primary} numberOfLines={expanded ? undefined : 2}>
@@ -129,13 +129,13 @@ function ThoughtCard({ item }: { item: any }) {
         </View>
         <View style={{ alignItems: 'flex-end', gap: 4 }}>
           <Text style={card.date}>{fmtShort(item.createdAt)}</Text>
-          <Feather name={expanded ? 'chevron-up' : 'chevron-down'} size={14} color="#CBD5E1" />
+          <Feather name={expanded ? 'chevron-up' : 'chevron-down'} size={14} color={COLORS.disabledBg} />
         </View>
       </View>
 
       {/* Situation */}
       {item.situation && item.automaticThought && (
-        <View style={[card.infoBox, { borderLeftColor: '#059669' }]}>
+        <View style={[card.infoBox, { borderLeftColor: COLORS.primaryGreen }]}>
           <Text style={card.infoBoxLabel}>Situation</Text>
           <Text style={card.infoBoxText} numberOfLines={expanded ? undefined : 1}>{item.situation}</Text>
         </View>
@@ -170,7 +170,7 @@ function ThoughtCard({ item }: { item: any }) {
             </View>
           )}
           {item.evidenceAgainst && (
-            <View style={[card.infoBox, { borderLeftColor: '#10B981' }]}>
+            <View style={[card.infoBox, { borderLeftColor: COLORS.mediumGreen }]}>
               <Text style={card.infoBoxLabel}>Evidence Against</Text>
               <Text style={card.infoBoxText}>{item.evidenceAgainst}</Text>
             </View>
@@ -212,7 +212,7 @@ function JournalCard({ item }: { item: any }) {
           </View>
           <View style={{ alignItems: 'flex-end', gap: 4 }}>
             <Text style={card.date}>{fmtShort(item.createdAt)}</Text>
-            <Feather name="external-link" size={13} color="#CBD5E1" />
+            <Feather name="external-link" size={13} color={COLORS.disabledBg} />
           </View>
         </View>
       </TouchableOpacity>
@@ -269,7 +269,7 @@ function GoalCard({ item }: { item: any }) {
       {/* Header */}
       <View style={card.header}>
         <View style={[card.iconBox, { backgroundColor: '#F0FDF4' }]}>
-          <Feather name="target" size={16} color="#10B981" />
+          <Feather name="target" size={16} color={COLORS.mediumGreen} />
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={card.primary} numberOfLines={1}>{item.title || item.goal || 'Goal'}</Text>
@@ -281,7 +281,7 @@ function GoalCard({ item }: { item: any }) {
           <View style={[card.pill, { backgroundColor: s.bg }]}>
             <Text style={[card.pillText, { color: s.color }]}>{s.label}</Text>
           </View>
-          <Feather name={expanded ? 'chevron-up' : 'chevron-down'} size={14} color="#CBD5E1" />
+          <Feather name={expanded ? 'chevron-up' : 'chevron-down'} size={14} color={COLORS.disabledBg} />
         </View>
       </View>
 
@@ -299,7 +299,7 @@ function GoalCard({ item }: { item: any }) {
         <View style={card.expandedSection}>
           {/* SMART fields */}
           {smartFields.map((f) => (
-            <View key={f.key} style={[card.infoBox, { borderLeftColor: '#10B981' }]}>
+            <View key={f.key} style={[card.infoBox, { borderLeftColor: COLORS.mediumGreen }]}>
               <Text style={card.infoBoxLabel}>{f.key} — {f.label}</Text>
               <Text style={card.infoBoxText}>{f.val}</Text>
             </View>
@@ -312,7 +312,7 @@ function GoalCard({ item }: { item: any }) {
                 <View key={i} style={card.msRow}>
                   <View style={[card.msDot, m.isCompleted ? card.msDotDone : card.msDotPending]}>
                     <Feather name={m.isCompleted ? 'check' : 'circle'} size={10}
-                      color={m.isCompleted ? '#059669' : '#CBD5E1'} />
+                      color={m.isCompleted ? COLORS.primaryGreen : COLORS.disabledBg} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[card.msTitle, m.isCompleted && { textDecorationLine: 'line-through', color: '#94A3B8' }]}>
@@ -337,41 +337,21 @@ function GoalCard({ item }: { item: any }) {
 export default function ClientDataViewScreen({ route }: { route: any }) {
   const { clientId, clientName, initialTab } = route.params || {};
 
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ModuleTab>(initialTab || 'emotions');
-  const [emotions, setEmotions] = useState<any[]>([]);
-  const [thoughts, setThoughts] = useState<any[]>([]);
-  const [journals, setJournals] = useState<any[]>([]);
-  const [goals, setGoals] = useState<any[]>([]);
 
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
-      const fetch = async () => {
-        try {
-          const [eRes, tRes, jRes, gRes] = await Promise.all([
-            ApiService.getEmotions(clientId),
-            ApiService.getThoughtRecords(clientId),
-            ApiService.getJournalEntries(clientId),
-            ApiService.getGoals(clientId),
-          ]);
-          if (!isMounted) return;
-          const sort = (arr: any[]) =>
-            [...arr].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-          setEmotions(sort(eRes.data || []));
-          setThoughts(sort(tRes.data || []));
-          setJournals(sort(jRes.data || []));
-          setGoals(sort(gRes.data || []));
-        } catch (e) {
-          console.error(e);
-        } finally {
-          if (isMounted) setLoading(false);
-        }
-      };
-      fetch();
-      return () => { isMounted = false; };
-    }, [clientId])
-  );
+  const emotionsQ = useEmotions(clientId);
+  const thoughtsQ = useThoughts(clientId);
+  const journalsQ = useJournal(clientId);
+  const goalsQ = useGoals(clientId);
+
+  const sortByDate = (arr: any[]) =>
+    [...arr].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const emotions = sortByDate(emotionsQ.data ?? []);
+  const thoughts = sortByDate(thoughtsQ.data ?? []);
+  const journals = sortByDate(journalsQ.data ?? []);
+  const goals = sortByDate(goalsQ.data ?? []);
+  const loading =
+    emotionsQ.isLoading || thoughtsQ.isLoading || journalsQ.isLoading || goalsQ.isLoading;
 
   const counts: Record<ModuleTab, number> = {
     emotions: emotions.length,
@@ -385,7 +365,7 @@ export default function ClientDataViewScreen({ route }: { route: any }) {
   const renderEmptyState = (label: string, icon: any) => (
     <View style={styles.empty}>
       <View style={styles.emptyIcon}>
-        <Feather name={icon} size={32} color="#CBD5E1" />
+        <Feather name={icon} size={32} color={COLORS.disabledBg} />
       </View>
       <Text style={styles.emptyTitle}>No {label} yet</Text>
       <Text style={styles.emptySub}>This client hasn't recorded any {label.toLowerCase()} entries.</Text>
@@ -474,7 +454,6 @@ const card = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 18,
     borderWidth: 1,
-    backgroundColor: '#FFFFFF',
     borderColor: '#F1F5F9',
     padding: 16,
     marginBottom: 12,
@@ -492,7 +471,7 @@ const card = StyleSheet.create({
   },
   primary: { fontSize: 14, fontWeight: '700', color: '#0F172A', lineHeight: 20 },
   secondary: { fontSize: 12, color: '#64748B', marginTop: 2, lineHeight: 16 },
-  date: { fontSize: 10, color: '#CBD5E1', fontWeight: '600' },
+  date: { fontSize: 10, color: COLORS.disabledBg, fontWeight: '600' },
   pill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
   pillText: { fontSize: 9, fontWeight: '800', textTransform: 'capitalize' },
 
@@ -529,7 +508,7 @@ const card = StyleSheet.create({
   // Goal milestone bar
   msBar: { marginTop: 10 },
   msTrack: { height: 4, backgroundColor: '#F1F5F9', borderRadius: 2, overflow: 'hidden' },
-  msFill: { height: '100%', backgroundColor: '#10B981', borderRadius: 2 },
+  msFill: { height: '100%', backgroundColor: COLORS.mediumGreen, borderRadius: 2 },
 
   // Goal milestone list
   msSection: { marginTop: 10 },
@@ -580,7 +559,7 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     paddingHorizontal: 20, paddingTop: 16, paddingBottom: 18,
     overflow: 'hidden',
   },

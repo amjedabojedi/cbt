@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
@@ -9,21 +10,27 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Dimensions,
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { ApiService } from '../services/api';
-
-const { width } = Dimensions.get('window');
+import { useAuth, UserRole } from '../context/AuthContext';
 
 interface LoginScreenProps {
   navigation: any;
 }
 
+const ROLE_ROUTES: Record<UserRole, string> = {
+  admin: 'AdminTabs',
+  therapist: 'TherapistTabs',
+  client: 'MainTabs',
+};
+
 export default function LoginScreen({ navigation }: LoginScreenProps) {
+  const { signIn, isBootstrapping, isAuthenticated, role } = useAuth();
+  const [checkedOnboarding, setCheckedOnboarding] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,35 +44,30 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetEmailFocused, setResetEmailFocused] = useState(false);
 
+  // 1. Onboarding gate — runs once on mount.
   React.useEffect(() => {
-    const checkState = async () => {
+    (async () => {
       try {
-        // 1. Check if user needs onboarding first
         const hasSeenOnboarding = await SecureStore.getItemAsync('hasSeenOnboarding');
         if (hasSeenOnboarding !== 'true') {
           navigation.replace('Onboarding');
           return;
         }
-
-        // 2. Check if user is already logged in
-        const token = await SecureStore.getItemAsync('authToken');
-        if (token) {
-          ApiService.setAuthToken(token);
-          const role = await SecureStore.getItemAsync('userRole');
-          if (role === 'admin') {
-            navigation.replace('AdminTabs');
-          } else if (role === 'therapist') {
-            navigation.replace('TherapistTabs');
-          } else {
-            navigation.replace('MainTabs');
-          }
-        }
+        setCheckedOnboarding(true);
       } catch (e) {
-        console.log('Error verifying launch state:', e);
+        console.error('Error verifying onboarding state:', e);
+        setCheckedOnboarding(true);
       }
-    };
-    checkState();
+    })();
   }, [navigation]);
+
+  // 2. Auto-route if a session was restored by AuthProvider (token already primed).
+  React.useEffect(() => {
+    if (!checkedOnboarding || isBootstrapping) return;
+    if (isAuthenticated && role) {
+      navigation.replace(ROLE_ROUTES[role]);
+    }
+  }, [checkedOnboarding, isBootstrapping, isAuthenticated, role, navigation]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -77,27 +79,15 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     try {
       const response = await ApiService.login(email.trim(), password);
 
-      if (response.data && response.data.user) {
-        // Store user data securely
-        await SecureStore.setItemAsync('userId', response.data.user.id.toString());
-        await SecureStore.setItemAsync('userEmail', response.data.user.email);
-        await SecureStore.setItemAsync('userRole', response.data.user.role || 'client');
-
-        // Set auth token if provided (stored securely)
-        if (response.data.token) {
-          await SecureStore.setItemAsync('authToken', response.data.token);
-          ApiService.setAuthToken(response.data.token);
-        }
-
-        // Route based on role
-        const role = response.data.user.role;
-        if (role === 'admin') {
-          navigation.replace('AdminTabs');
-        } else if (role === 'therapist') {
-          navigation.replace('TherapistTabs');
-        } else {
-          navigation.replace('MainTabs');
-        }
+      if (response.data?.user) {
+        // Persist credentials, prime the API token, and update auth context.
+        const resolvedRole = await signIn({
+          id: response.data.user.id,
+          email: response.data.user.email,
+          role: response.data.user.role,
+          token: response.data.token,
+        });
+        navigation.replace(ROLE_ROUTES[resolvedRole]);
       } else {
         Alert.alert('Login Failed', response.error || 'Invalid email or password');
       }
@@ -156,7 +146,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           {/* Header Section */}
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Ionicons name="globe-outline" size={36} color="#059669" />
+              <Ionicons name="globe-outline" size={36} color={COLORS.primaryGreen} />
             </View>
             <Text style={styles.title}>ResilienceHub</Text>
             <Text style={styles.subtitle}>Your Clinical CBT Companion</Text>
@@ -170,7 +160,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
               <View style={[styles.inputContainer, emailFocused && styles.inputContainerActive]}>
-                <Feather name="mail" size={16} color={emailFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="mail" size={16} color={emailFocused ? COLORS.primaryGreen : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter email address"
@@ -190,7 +180,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>PASSWORD</Text>
               <View style={[styles.inputContainer, passwordFocused && styles.inputContainerActive]}>
-                <Feather name="lock" size={16} color={passwordFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="lock" size={16} color={passwordFocused ? COLORS.primaryGreen : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter password"
@@ -244,7 +234,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             onPress={() => navigation.navigate('Register')}
             style={styles.registerLink}
           >
-            <Feather name="user-plus" size={14} color="#059669" style={{ marginRight: 6 }} />
+            <Feather name="user-plus" size={14} color={COLORS.primaryGreen} style={{ marginRight: 6 }} />
             <Text style={styles.registerLinkText}>Register as Professional (Therapist/Admin)</Text>
           </TouchableOpacity>
 
@@ -263,7 +253,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
       {/* Forgot Password Modal */}
       <Modal
         animationType="fade"
-        transparent={true}
+        transparent
         visible={forgotModalVisible}
         onRequestClose={() => setForgotModalVisible(false)}
       >
@@ -287,7 +277,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             <View style={styles.fieldGroup}>
               <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
               <View style={[styles.inputContainer, resetEmailFocused && styles.inputContainerActive]}>
-                <Feather name="mail" size={16} color={resetEmailFocused ? '#059669' : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
+                <Feather name="mail" size={16} color={resetEmailFocused ? COLORS.primaryGreen : 'rgba(255,255,255,0.3)'} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter recovery email"
@@ -327,7 +317,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#052e16', // Matching dark theme background
+    backgroundColor: COLORS.darkGreen, // Matching dark theme background
   },
   keyboardView: {
     flex: 1,
@@ -369,7 +359,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'rgba(5, 150, 105, 0.25)',
     marginBottom: 16,
-    shadowColor: '#059669',
+    shadowColor: COLORS.primaryGreen,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
@@ -393,7 +383,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.06)',
     padding: 24,
-    shadowColor: '#052e16',
+    shadowColor: COLORS.darkGreen,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -413,7 +403,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#059669',
+    color: COLORS.primaryGreen,
     letterSpacing: 0.8,
     marginBottom: 8,
   },
@@ -427,7 +417,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   inputContainerActive: {
-    borderColor: '#059669',
+    borderColor: COLORS.primaryGreen,
     backgroundColor: 'rgba(5, 150, 105, 0.05)',
   },
   inputIcon: {
@@ -443,14 +433,14 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   button: {
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
     borderRadius: 14,
     paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    shadowColor: '#059669',
+    shadowColor: COLORS.primaryGreen,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -481,7 +471,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   forgotPasswordText: {
-    color: '#059669',
+    color: COLORS.primaryGreen,
     fontSize: 13,
     fontWeight: '700',
   },
@@ -493,7 +483,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   registerLinkText: {
-    color: '#059669',
+    color: COLORS.primaryGreen,
     fontSize: 13,
     fontWeight: '700',
   },
@@ -541,7 +531,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   modalSendBtn: {
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
     borderRadius: 14,
     paddingVertical: 13,
     alignItems: 'center',

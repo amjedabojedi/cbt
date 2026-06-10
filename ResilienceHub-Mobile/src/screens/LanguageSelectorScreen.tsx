@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
@@ -57,7 +58,7 @@ export default function LanguageSelectorScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color={COLORS.primaryGreen} />
       </View>
     );
   }
@@ -81,7 +82,7 @@ export default function LanguageSelectorScreen() {
             <Text style={styles.translatedLabel}>English</Text>
           </View>
           {selectedLanguage === 'en' && (
-            <Ionicons name="checkmark-circle" size={24} color="#059669" />
+            <Ionicons name="checkmark-circle" size={24} color={COLORS.primaryGreen} />
           )}
         </TouchableOpacity>
 
@@ -96,14 +97,14 @@ export default function LanguageSelectorScreen() {
             <Text style={styles.translatedLabel}>Arabic</Text>
           </View>
           {selectedLanguage === 'ar' && (
-            <Ionicons name="checkmark-circle" size={24} color="#059669" />
+            <Ionicons name="checkmark-circle" size={24} color={COLORS.primaryGreen} />
           )}
         </TouchableOpacity>
       </View>
 
       {/* Guidance box */}
       <View style={styles.guidanceBox}>
-        <Feather name="info" size={16} color="#059669" style={{ marginRight: 10, marginTop: 2 }} />
+        <Feather name="info" size={16} color={COLORS.primaryGreen} style={{ marginRight: 10, marginTop: 2 }} />
         <View style={{ flex: 1 }}>
           <Text style={styles.guidanceText}>
             Local translations apply to navigation tabs, dashboards, and instructions. Custom user logs remain in the text input language.
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#052e16',
+    color: COLORS.darkGreen,
   },
   subtitle: {
     fontSize: 14,
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   activeOptionRow: {
-    borderColor: '#059669',
+    borderColor: COLORS.primaryGreen,
   },
   labelContainer: {
     flex: 1,
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
   nativeLabel: {
     fontSize: 15.5,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
   },
   translatedLabel: {
     fontSize: 11.5,

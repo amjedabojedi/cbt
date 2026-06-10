@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  FlatList,
   Alert,
   Dimensions,
   TextInput,
@@ -12,10 +14,11 @@ import {
   RefreshControl,
   Modal,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
 import { ApiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useEmotions } from '../hooks/queries/useEmotions';
 import Svg, { Path, Circle, G, Text as SvgText, Line, Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 
 
@@ -145,10 +148,12 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
   // Wizard state
   const [step, setStep] = useState(0); // 0: Intro, 1: Select, 2: Rate, 3: Describe, 4: Context
   const [activeScreenTab, setActiveScreenTab] = useState<'record' | 'history' | 'insights'>('record');
-  const [emotionsHistory, setEmotionsHistory] = useState<any[]>([]);
-  const [historyLoading, setHistoryLoading] = useState<boolean>(false);
+  const { userId } = useAuth();
+  const emotionsQ = useEmotions(userId);
+  const emotionsHistory = emotionsQ.data ?? [];
+  const historyLoading = emotionsQ.isLoading;
+  const refreshing = emotionsQ.isRefetching;
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   // Action Menu, Details, and Edit States
   const [selectedEmotion, setSelectedEmotion] = useState<any | null>(null);
@@ -163,32 +168,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
   const [editCompany, setEditCompany] = useState('');
   const [updatingEmotion, setUpdatingEmotion] = useState(false);
 
-  // Insights State
-  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('week');
-
-  const loadHistoryData = async () => {
-    setHistoryLoading(true);
-    try {
-      const userId = await SecureStore.getItemAsync('userId');
-      if (userId) {
-        const response = await ApiService.getUserEmotions(parseInt(userId));
-        if (response.data) {
-          setEmotionsHistory(response.data);
-        }
-      }
-    } catch (e) {
-      console.error('Failed to load emotion history:', e);
-    } finally {
-      setHistoryLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    if (activeScreenTab === 'history' || activeScreenTab === 'insights') {
-      loadHistoryData();
-    }
-  }, [activeScreenTab]);
+  const loadHistoryData = () => emotionsQ.refetch();
 
   // Form selections
   const [selectedCoreIndex, setSelectedCoreIndex] = useState<number | null>(null);
@@ -274,7 +254,6 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
 
     setLoading(true);
     try {
-      const userId = await SecureStore.getItemAsync('userId');
       if (!userId) {
         Alert.alert('Error', 'Please log in again');
         return;
@@ -290,14 +269,14 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
         coreEmotion: activeCore.core,
         primaryEmotion: activePrimary || undefined,
         tertiaryEmotion: activeTertiary || undefined,
-        intensity: intensity,
+        intensity,
         situation: situation.trim(),
         location: location || null,
         company: company || null,
         timestamp: timestampDate.toISOString(),
       };
 
-      const response = await ApiService.createEmotion(parseInt(userId), emotionPayload);
+      const response = await ApiService.createEmotion(userId, emotionPayload);
 
       if (response.data) {
         setShowSuccess(true);
@@ -353,7 +332,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
         {/* Hero Section */}
         <View style={styles.heroSection}>
           <View style={styles.heroGradientCircle}>
-            <MaterialCommunityIcons name="heart-pulse" size={32} color="#059669" />
+            <MaterialCommunityIcons name="heart-pulse" size={32} color={COLORS.primaryGreen} />
           </View>
           <Text style={styles.heroTitle}>Track Your Mood</Text>
           <Text style={styles.heroSubtitle}>
@@ -365,7 +344,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
         <View style={styles.featureList}>
           <View style={styles.featureItem}>
             <View style={styles.featureIconWrapper}>
-              <Feather name="git-merge" size={16} color="#059669" />
+              <Feather name="git-merge" size={16} color={COLORS.primaryGreen} />
             </View>
             <View style={styles.featureTextCol}>
               <Text style={styles.featureLabel}>Identify Nuances</Text>
@@ -379,7 +358,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
 
           <View style={styles.featureItem}>
             <View style={styles.featureIconWrapper}>
-              <Feather name="bar-chart-2" size={16} color="#059669" />
+              <Feather name="bar-chart-2" size={16} color={COLORS.primaryGreen} />
             </View>
             <View style={styles.featureTextCol}>
               <Text style={styles.featureLabel}>Measure Intensity</Text>
@@ -393,7 +372,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
 
           <View style={styles.featureItem}>
             <View style={styles.featureIconWrapper}>
-              <Feather name="edit-3" size={16} color="#059669" />
+              <Feather name="edit-3" size={16} color={COLORS.primaryGreen} />
             </View>
             <View style={styles.featureTextCol}>
               <Text style={styles.featureLabel}>Pinpoint Triggers</Text>
@@ -465,7 +444,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
     let items: { label: string; emoji?: string; color: string; textColor: string }[] = [];
     let centerLabel = "";
     let centerEmoji = "";
-    let centerColor = "#052e16";
+    let centerColor = COLORS.darkGreen;
 
     if (selectedCoreIndex === null) {
       // Core level
@@ -477,7 +456,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
       }));
       centerLabel = "TAP EMOTION";
       centerEmoji = "👆";
-      centerColor = "#052e16";
+      centerColor = COLORS.darkGreen;
     } else if (selectedPrimaryIndex === null) {
       // Primary level
       const core = emotionGroups[selectedCoreIndex];
@@ -497,7 +476,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
       items = tertOptions.map((t, idx) => ({
         label: t,
         color: getVariationColor(core.color, idx, 6, true),
-        textColor: selectedTertiaryName === t ? "#052e16" : "white"
+        textColor: selectedTertiaryName === t ? COLORS.darkGreen : "white"
       }));
       centerLabel = prim;
       centerEmoji = core.emoji;
@@ -579,7 +558,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
                       y={3}
                       fontSize={item.label.length > 10 ? 7.5 : 8.5}
                       fontWeight="bold"
-                      fill={isSelected ? "#052e16" : "white"}
+                      fill={isSelected ? COLORS.darkGreen : "white"}
                       textAnchor="middle"
                       alignmentBaseline="middle"
                     >
@@ -672,7 +651,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
 
         {/* Selection Instructions Guide (Compact) */}
         <View style={styles.selectionGuideBox}>
-          <Feather name="info" size={14} color="#059669" style={{ marginRight: 6 }} />
+          <Feather name="info" size={14} color={COLORS.primaryGreen} style={{ marginRight: 6 }} />
           <Text style={styles.selectionGuideText}>
             {selectedCoreIndex === null 
               ? "👉 Tap any colored slice on the wheel above to select a core emotion."
@@ -748,7 +727,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
                   key={val}
                   style={[
                     styles.intensityCircleBtn,
-                    isSelected && [styles.intensityCircleBtnActive, { backgroundColor: activeCore?.color || '#059669' }]
+                    isSelected && [styles.intensityCircleBtnActive, { backgroundColor: activeCore?.color || COLORS.primaryGreen }]
                   ]}
                   onPress={() => setIntensity(val)}
                 >
@@ -1065,13 +1044,12 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
     if (!selectedEmotion) return;
     setUpdatingEmotion(true);
     try {
-      const userId = await SecureStore.getItemAsync('userId');
       if (!userId) {
         Alert.alert('Error', 'User not authenticated');
         return;
       }
-      
-      const response = await ApiService.updateEmotion(parseInt(userId), selectedEmotion.id, {
+
+      const response = await ApiService.updateEmotion(userId, selectedEmotion.id, {
         intensity: editIntensity,
         situation: editSituation.trim(),
         location: editLocation.trim() || null,
@@ -1103,10 +1081,9 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
           style: 'destructive',
           onPress: async () => {
             try {
-              const userId = await SecureStore.getItemAsync('userId');
               if (!userId) return;
-              
-              const res = await ApiService.deleteEmotion(parseInt(userId), emotion.id);
+
+              const res = await ApiService.deleteEmotion(userId, emotion.id);
               if (res.error) {
                 Alert.alert('Error', res.error);
               } else {
@@ -1169,33 +1146,107 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
     if (historyLoading && emotionsHistory.length === 0) {
       return (
         <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-          <ActivityIndicator size="small" color="#059669" />
+          <ActivityIndicator size="small" color={COLORS.primaryGreen} />
         </View>
       );
     }
 
-    return (
-      <View style={{ padding: 16 }}>
-        {/* Search Input */}
-        <View style={styles.searchSection}>
-          <View style={styles.searchBox}>
-            <Feather name="search" size={16} color="#64748B" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Filter logs by situation, emotion..."
-              placeholderTextColor="#94A3B8"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery ? (
-              <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearBtn}>
-                <Feather name="x" size={16} color="#64748B" />
+    const renderEmotionCard = ({ item: emotion, index }: { item: any; index: number }) => {
+      const coreColor = getEmotionColor(emotion.coreEmotion);
+      const bgLight = getEmotionBgColor(emotion.coreEmotion);
+      const textColor = getEmotionTextColor(emotion.coreEmotion);
+
+      return (
+        <View key={emotion.id || index} style={[styles.emotionCard, { borderLeftColor: coreColor }]}>
+          {/* Card Top Title Row */}
+          <View style={styles.emotionHeader}>
+            <View style={styles.headerTitleContainer}>
+              <Text style={styles.emotionName}>
+                {emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion}
+              </Text>
+              <Text style={styles.emotionPath}>
+                {emotion.coreEmotion}
+                {emotion.primaryEmotion && ` ➔ ${emotion.primaryEmotion}`}
+                {emotion.tertiaryEmotion && ` ➔ ${emotion.tertiaryEmotion}`}
+              </Text>
+            </View>
+
+            <View style={styles.emotionHeaderRight}>
+              <View style={[styles.intensityBadge, { backgroundColor: bgLight, marginRight: 8 }]}>
+                <Text style={[styles.intensityText, { color: textColor }]}>
+                  {emotion.intensity}/10
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.kebabButton}
+                onPress={() => handleOpenEmotionMenu(emotion)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Feather name="more-vertical" size={18} color="#64748B" />
               </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Created date/time */}
+          <Text style={styles.emotionDate}>
+            📅 {formatEmotionDate(emotion.timestamp || emotion.createdAt)}
+          </Text>
+
+          {/* Trigger situation context */}
+          {emotion.situation ? (
+            <View style={styles.situationContainer}>
+              <Text style={styles.situationHeader}>SITUATION & TRIGGER</Text>
+              <Text style={styles.situationText}>{emotion.situation}</Text>
+            </View>
+          ) : null}
+
+          {/* Location and company metadata chips */}
+          <View style={styles.metadataContainer}>
+            {emotion.location ? (
+              <View style={styles.metaBadge}>
+                <Text style={styles.metaBadgeText}>📍 {emotion.location}</Text>
+              </View>
+            ) : null}
+            {emotion.company ? (
+              <View style={styles.metaBadge}>
+                <Text style={styles.metaBadgeText}>👥 {emotion.company}</Text>
+              </View>
             ) : null}
           </View>
         </View>
+      );
+    };
 
-        {filteredHistoryList.length === 0 ? (
+    return (
+      <FlatList
+        data={filteredHistoryList}
+        keyExtractor={(item, index) => String(item.id ?? index)}
+        renderItem={renderEmotionCard}
+        contentContainerStyle={{ padding: 16 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={loadHistoryData} colors={[COLORS.primaryGreen]} />
+        }
+        ListHeaderComponent={
+          <View style={styles.searchSection}>
+            <View style={styles.searchBox}>
+              <Feather name="search" size={16} color="#64748B" style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Filter logs by situation, emotion..."
+                placeholderTextColor="#94A3B8"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery ? (
+                <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearBtn}>
+                  <Feather name="x" size={16} color="#64748B" />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          </View>
+        }
+        ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <View style={styles.emptyIconCircle}>
               <Feather name="book" size={28} color="#94A3B8" />
@@ -1205,76 +1256,8 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
               {searchQuery ? 'Try adjusting your search query.' : 'Begin tracking emotions to view entries here.'}
             </Text>
           </View>
-        ) : (
-          <View style={styles.emotionsList}>
-            {filteredHistoryList.map((emotion: any, index: number) => {
-              const coreColor = getEmotionColor(emotion.coreEmotion);
-              const bgLight = getEmotionBgColor(emotion.coreEmotion);
-              const textColor = getEmotionTextColor(emotion.coreEmotion);
-              
-              return (
-                <View key={emotion.id || index} style={[styles.emotionCard, { borderLeftColor: coreColor }]}>
-                  {/* Card Top Title Row */}
-                  <View style={styles.emotionHeader}>
-                    <View style={styles.headerTitleContainer}>
-                      <Text style={styles.emotionName}>
-                        {emotion.tertiaryEmotion || emotion.primaryEmotion || emotion.coreEmotion}
-                      </Text>
-                      <Text style={styles.emotionPath}>
-                        {emotion.coreEmotion}
-                        {emotion.primaryEmotion && ` ➔ ${emotion.primaryEmotion}`}
-                        {emotion.tertiaryEmotion && ` ➔ ${emotion.tertiaryEmotion}`}
-                      </Text>
-                    </View>
-                    
-                    <View style={styles.emotionHeaderRight}>
-                      <View style={[styles.intensityBadge, { backgroundColor: bgLight, marginRight: 8 }]}>
-                        <Text style={[styles.intensityText, { color: textColor }]}>
-                          {emotion.intensity}/10
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        style={styles.kebabButton}
-                        onPress={() => handleOpenEmotionMenu(emotion)}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      >
-                        <Feather name="more-vertical" size={18} color="#64748B" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-
-                  {/* Created date/time */}
-                  <Text style={styles.emotionDate}>
-                    📅 {formatEmotionDate(emotion.timestamp || emotion.createdAt)}
-                  </Text>
-
-                  {/* Trigger situation context */}
-                  {emotion.situation ? (
-                    <View style={styles.situationContainer}>
-                      <Text style={styles.situationHeader}>SITUATION & TRIGGER</Text>
-                      <Text style={styles.situationText}>{emotion.situation}</Text>
-                    </View>
-                  ) : null}
-
-                  {/* Location and company metadata chips */}
-                  <View style={styles.metadataContainer}>
-                    {emotion.location ? (
-                      <View style={styles.metaBadge}>
-                        <Text style={styles.metaBadgeText}>📍 {emotion.location}</Text>
-                      </View>
-                    ) : null}
-                    {emotion.company ? (
-                      <View style={styles.metaBadge}>
-                        <Text style={styles.metaBadgeText}>👥 {emotion.company}</Text>
-                      </View>
-                    ) : null}
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
-      </View>
+        }
+      />
     );
   };
 
@@ -1402,8 +1385,8 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
           <Svg width={chartWidth} height={chartHeight}>
             <Defs>
               <LinearGradient id="insightsChartGlow" x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0%" stopColor="#059669" stopOpacity="0.25" />
-                <Stop offset="100%" stopColor="#059669" stopOpacity="0.00" />
+                <Stop offset="0%" stopColor={COLORS.primaryGreen} stopOpacity="0.25" />
+                <Stop offset="100%" stopColor={COLORS.primaryGreen} stopOpacity="0.00" />
               </LinearGradient>
             </Defs>
             {horizontalGridVals.map(val => {
@@ -1416,11 +1399,11 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
               );
             })}
             {points.length > 1 && fillD && (<Path d={fillD} fill="url(#insightsChartGlow)" />)}
-            {points.length > 1 && pathD && (<Path d={pathD} fill="none" stroke="#059669" strokeWidth="3" />)}
-            {points.length === 1 && (<Circle cx={points[0].x} cy={points[0].y} r="6" fill="#059669" />)}
+            {points.length > 1 && pathD && (<Path d={pathD} fill="none" stroke={COLORS.primaryGreen} strokeWidth="3" />)}
+            {points.length === 1 && (<Circle cx={points[0].x} cy={points[0].y} r="6" fill={COLORS.primaryGreen} />)}
             {points.map((pt, idx) => (
               <G key={`pt-${idx}`}>
-                <Circle cx={pt.x} cy={pt.y} r="4" fill="#FFFFFF" stroke="#059669" strokeWidth="2.5" />
+                <Circle cx={pt.x} cy={pt.y} r="4" fill="#FFFFFF" stroke={COLORS.primaryGreen} strokeWidth="2.5" />
                 <SvgText x={pt.x} y={pt.y - 12} fill="#4C1D95" fontSize="9" fontWeight="800" textAnchor="middle">{pt.intensity}</SvgText>
                 <SvgText x={pt.x} y={startY + 15} fontSize={12} textAnchor="middle">{pt.emoji}</SvgText>
                 <SvgText x={pt.x} y={startY + 27} fill="#94A3B8" fontSize="7" fontWeight="700" textAnchor="middle">
@@ -1445,7 +1428,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
             return (
               <G key={`time-${idx}`}>
                 <SvgText x={0} y={y + barH / 2 + 5} fill="#475569" fontSize="10" fontWeight="600">{label}</SvgText>
-                <Rect x={110} y={y} width={Math.max(barWidth, 4)} height={barH} rx={6} fill="#059669" opacity={0.8} />
+                <Rect x={110} y={y} width={Math.max(barWidth, 4)} height={barH} rx={6} fill={COLORS.primaryGreen} opacity={0.8} />
                 <SvgText x={110 + Math.max(barWidth, 4) + 7} y={y + barH / 2 + 5} fill="#475569" fontSize="11" fontWeight="700">{count}</SvgText>
               </G>
             );
@@ -1460,7 +1443,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
 
       const getHeatColor = (netScore: number, count: number) => {
         if (count === 0) return '#F1F5F9';
-        if (netScore > 3) return '#10B981';
+        if (netScore > 3) return COLORS.mediumGreen;
         if (netScore > 0) return '#86EFAC';
         if (netScore < -3) return '#EF4444';
         if (netScore < 0) return '#FCA5A5';
@@ -1485,7 +1468,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
                 const bgColor = getHeatColor(day.netScore, day.count);
                 return (
                   <View key={colIdx} style={{ width: cellSize - 2, height: cellSize - 2, margin: 1, borderRadius: 6, backgroundColor: bgColor, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontSize: 8, color: day.count > 0 ? '#FFF' : '#CBD5E1', fontWeight: '700' }}>{day.dayNum}</Text>
+                    <Text style={{ fontSize: 8, color: day.count > 0 ? '#FFF' : COLORS.disabledBg, fontWeight: '700' }}>{day.dayNum}</Text>
                   </View>
                 );
               })}
@@ -1525,7 +1508,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
 
           <View style={styles.kpiCard}>
             <View style={[styles.kpiIconWrap, { backgroundColor: '#ECFDF5' }]}>
-              <Feather name="sun" size={16} color="#10B981" />
+              <Feather name="sun" size={16} color={COLORS.mediumGreen} />
             </View>
             <Text style={styles.kpiValue}>{wellbeingScore}%</Text>
             <Text style={styles.kpiLabel}>Wellbeing</Text>
@@ -1533,7 +1516,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
 
           <View style={styles.kpiCard}>
             <View style={[styles.kpiIconWrap, { backgroundColor: '#ecfdf5' }]}>
-              <Feather name="activity" size={16} color="#059669" />
+              <Feather name="activity" size={16} color={COLORS.primaryGreen} />
             </View>
             <Text style={styles.kpiValue} numberOfLines={1} adjustsFontSizeToFit>{mostCommonEmotion}</Text>
             <Text style={styles.kpiLabel}>Top Emotion</Text>
@@ -1615,7 +1598,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
             <Feather 
               name="edit-3" 
               size={13} 
-              color={activeScreenTab === 'record' ? '#052e16' : '#64748B'} 
+              color={activeScreenTab === 'record' ? COLORS.darkGreen : '#64748B'} 
               style={{ marginRight: 4 }}
             />
             <Text style={[styles.tabText, activeScreenTab === 'record' && styles.activeTabText]}>Record</Text>
@@ -1628,7 +1611,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
             <Feather 
               name="clock" 
               size={13} 
-              color={activeScreenTab === 'history' ? '#052e16' : '#64748B'} 
+              color={activeScreenTab === 'history' ? COLORS.darkGreen : '#64748B'} 
               style={{ marginRight: 4 }}
             />
             <Text style={[styles.tabText, activeScreenTab === 'history' && styles.activeTabText]}>History</Text>
@@ -1641,7 +1624,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
             <Feather 
               name="trending-up" 
               size={13} 
-              color={activeScreenTab === 'insights' ? '#052e16' : '#64748B'} 
+              color={activeScreenTab === 'insights' ? COLORS.darkGreen : '#64748B'} 
               style={{ marginRight: 4 }}
             />
             <Text style={[styles.tabText, activeScreenTab === 'insights' && styles.activeTabText]}>Insights</Text>
@@ -1664,21 +1647,13 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
           {renderNavButtons()}
         </>
       ) : activeScreenTab === 'history' ? (
-        <ScrollView 
-          style={styles.scrollView} 
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadHistoryData(); }} colors={['#059669']} />
-          }
-        >
-          {renderHistoryTab()}
-        </ScrollView>
+        renderHistoryTab()
       ) : (
         <ScrollView 
           style={styles.scrollView} 
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadHistoryData(); }} colors={['#059669']} />
+            <RefreshControl refreshing={refreshing} onRefresh={loadHistoryData} colors={[COLORS.primaryGreen]} />
           }
         >
           {renderInsightsTab()}
@@ -1691,7 +1666,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
       <Modal
         visible={menuVisible}
         animationType="fade"
-        transparent={true}
+        transparent
         onRequestClose={() => setMenuVisible(false)}
       >
         <TouchableOpacity
@@ -1764,7 +1739,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
       <Modal
         visible={detailsVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setDetailsVisible(false)}
       >
         <View style={styles.modalOverlayDark}>
@@ -1841,7 +1816,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
       <Modal
         visible={editVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setEditVisible(false)}
       >
         <View style={styles.modalOverlayDark}>
@@ -1863,7 +1838,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
                       return (
                         <TouchableOpacity
                           key={val}
-                          style={[styles.intensitySelectorCell, isSelected && { backgroundColor: '#059669', borderColor: '#059669' }]}
+                          style={[styles.intensitySelectorCell, isSelected && { backgroundColor: COLORS.primaryGreen, borderColor: COLORS.primaryGreen }]}
                           onPress={() => setEditIntensity(val)}
                         >
                           <Text style={[styles.intensitySelectorCellText, isSelected && { color: '#FFFFFF' }]}>{val}</Text>
@@ -1909,7 +1884,7 @@ export default function EmotionTrackingScreen({ navigation }: EmotionTrackingScr
                 </View>
 
                 <TouchableOpacity
-                  style={[styles.saveEditButton, { backgroundColor: updatingEmotion ? '#A78BFA' : '#059669' }]}
+                  style={[styles.saveEditButton, { backgroundColor: updatingEmotion ? '#A78BFA' : COLORS.primaryGreen }]}
                   onPress={handleSaveEditEmotion}
                   disabled={updatingEmotion}
                 >
@@ -1971,7 +1946,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   activeTabText: {
-    color: '#052e16',
+    color: COLORS.darkGreen,
     fontWeight: '700',
   },
 
@@ -1994,7 +1969,7 @@ const styles = StyleSheet.create({
   progressStepName: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#059669',
+    color: COLORS.primaryGreen,
   },
   progressBarBg: {
     height: 4,
@@ -2003,7 +1978,7 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: 4,
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
     borderRadius: 2,
   },
 
@@ -2029,7 +2004,7 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     marginBottom: 6,
   },
   heroSubtitle: {
@@ -2087,10 +2062,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
     borderRadius: 16,
     paddingVertical: 15,
-    shadowColor: '#059669',
+    shadowColor: COLORS.primaryGreen,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -2116,7 +2091,7 @@ const styles = StyleSheet.create({
   stepHeading: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     marginBottom: 4,
     marginTop: 8,
   },
@@ -2171,7 +2146,7 @@ const styles = StyleSheet.create({
   trailResetText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#059669',
+    color: COLORS.primaryGreen,
   },
   trailRow: {
     flexDirection: 'row',
@@ -2203,7 +2178,7 @@ const styles = StyleSheet.create({
   intensityBigDisplay: {
     fontSize: 48,
     fontWeight: '900',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     lineHeight: 56,
   },
   intensityBadge: {
@@ -2291,7 +2266,7 @@ const styles = StyleSheet.create({
   },
   charSuccessText: {
     fontSize: 11,
-    color: '#10B981',
+    color: COLORS.mediumGreen,
     fontWeight: '600',
   },
   charCounter: {
@@ -2352,8 +2327,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   contextChipActive: {
-    backgroundColor: '#059669',
-    borderColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
+    borderColor: COLORS.primaryGreen,
   },
   contextChipText: {
     fontSize: 12,
@@ -2379,14 +2354,14 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 5,
     borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderColor: COLORS.disabledBg,
     backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxBoxChecked: {
-    backgroundColor: '#059669',
-    borderColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
+    borderColor: COLORS.primaryGreen,
   },
   timeCheckboxLabelCompact: {
     fontSize: 12,
@@ -2403,8 +2378,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   offsetPresetChipActive: {
-    backgroundColor: '#059669',
-    borderColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
+    borderColor: COLORS.primaryGreen,
   },
   offsetPresetChipTextCompact: {
     fontSize: 12,
@@ -2456,7 +2431,7 @@ const styles = StyleSheet.create({
   navNextButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 16,
@@ -2477,7 +2452,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#10B981',
+    backgroundColor: COLORS.mediumGreen,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 16,
@@ -2527,14 +2502,14 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#10B981',
+    backgroundColor: COLORS.mediumGreen,
     alignItems: 'center',
     justifyContent: 'center',
   },
   successTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     marginBottom: 6,
   },
   successDescription: {
@@ -2576,7 +2551,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   successConfirmBtn: {
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
     borderRadius: 14,
     paddingVertical: 13,
     paddingHorizontal: 28,
@@ -2669,7 +2644,7 @@ const styles = StyleSheet.create({
   emotionName: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     marginBottom: 2,
   },
   emotionPath: {
@@ -2757,7 +2732,7 @@ const styles = StyleSheet.create({
   kpiValue: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     marginBottom: 2,
   },
   kpiLabel: {
@@ -2771,7 +2746,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     marginBottom: 2,
   },
   sectionSubtitle: {
@@ -2930,7 +2905,7 @@ const styles = StyleSheet.create({
   modalHeaderTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
   },
   scrollDetails: {
     paddingHorizontal: 20,
@@ -2982,14 +2957,14 @@ const styles = StyleSheet.create({
     height: 44,
   },
   detailsCtaButton: {
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     height: 48,
     borderRadius: 14,
     marginTop: 20,
-    shadowColor: '#059669',
+    shadowColor: COLORS.primaryGreen,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -3006,7 +2981,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 20,
-    shadowColor: '#059669',
+    shadowColor: COLORS.primaryGreen,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,

@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
@@ -8,10 +9,9 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
-import { ApiService } from '../services/api';
+import { useCurrentUser } from '../hooks/queries/useProfile';
+import { useAdminStats } from '../hooks/queries/useAdmin';
 
 const { width } = Dimensions.get('window');
 
@@ -20,37 +20,11 @@ interface AdminDashboardScreenProps {
 }
 
 export default function AdminDashboardScreen({ navigation }: AdminDashboardScreenProps) {
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const [stats, setStats] = useState<any>({});
-
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
-      const fetchData = async () => {
-        try {
-          const [userRes, statsRes] = await Promise.all([
-            ApiService.getCurrentUser(),
-            ApiService.getAdminStats(),
-          ]);
-          if (!userRes.data || userRes.error) {
-            navigation.navigate('Login');
-            return;
-          }
-          if (isMounted) {
-            setUser(userRes.data);
-            setStats(statsRes.data || {});
-          }
-        } catch (error) {
-          console.error('Error fetching admin dashboard:', error);
-        } finally {
-          if (isMounted) setLoading(false);
-        }
-      };
-      fetchData();
-      return () => { isMounted = false; };
-    }, [])
-  );
+  const userQ = useCurrentUser();
+  const statsQ = useAdminStats();
+  const user = userQ.data;
+  const stats = statsQ.data ?? {};
+  const loading = userQ.isLoading || statsQ.isLoading;
 
   const displayName = user?.name ? user.name.split(' ')[0] : 'Admin';
   const userInitials = user?.name
@@ -63,23 +37,23 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color={COLORS.primaryGreen} />
         <Text style={styles.loadingText}>Loading admin panel...</Text>
       </View>
     );
   }
 
   const statCards = [
-    { icon: 'users', label: 'Total Users', value: stats.totalUsers ?? 0, sub: 'Registered accounts', color: '#059669' },
-    { icon: 'user-check', label: 'Clients', value: stats.totalClients ?? 0, sub: 'Active client accounts', color: '#10B981' },
+    { icon: 'users', label: 'Total Users', value: stats.totalUsers ?? 0, sub: 'Registered accounts', color: COLORS.primaryGreen },
+    { icon: 'user-check', label: 'Clients', value: stats.totalClients ?? 0, sub: 'Active client accounts', color: COLORS.mediumGreen },
     { icon: 'briefcase', label: 'Therapists', value: stats.totalTherapists ?? 0, sub: 'Clinical staff', color: '#6366F1' },
     { icon: 'heart', label: 'Emotion Logs', value: stats.totalEmotions ?? 0, sub: 'All time entries', color: '#F59E0B' },
-    { icon: 'cpu', label: 'Thought Records', value: stats.totalThoughts ?? 0, sub: 'All time records', color: '#059669' },
+    { icon: 'cpu', label: 'Thought Records', value: stats.totalThoughts ?? 0, sub: 'All time records', color: COLORS.primaryGreen },
     { icon: 'target', label: 'Goals Created', value: stats.totalGoals ?? 0, sub: 'All time goals', color: '#EF4444' },
   ];
 
   const quickLinks = [
-    { icon: 'users', label: 'User Management', desc: 'Create, edit, and manage all users', screen: 'UserManagement', color: '#059669' },
+    { icon: 'users', label: 'User Management', desc: 'Create, edit, and manage all users', screen: 'UserManagement', color: COLORS.primaryGreen },
     { icon: 'book', label: 'Resource Library', desc: 'Manage clinical resources', screen: 'ResourceLibrary', color: '#6366F1' },
     { icon: 'settings', label: 'Settings', desc: 'System configuration', screen: 'Settings', color: '#64748B' },
   ];
@@ -166,7 +140,7 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
               )}
               {stats.clientsWithoutTherapist === 0 && stats.therapistsWithoutClients === 0 && (
                 <View style={styles.insightRow}>
-                  <View style={[styles.insightDot, { backgroundColor: '#10B981' }]} />
+                  <View style={[styles.insightDot, { backgroundColor: COLORS.mediumGreen }]} />
                   <Text style={styles.insightText}>All clients and therapists are properly assigned</Text>
                 </View>
               )}
@@ -195,7 +169,7 @@ export default function AdminDashboardScreen({ navigation }: AdminDashboardScree
                   <Text style={styles.quickLabel}>{item.label}</Text>
                   <Text style={styles.quickDesc}>{item.desc}</Text>
                 </View>
-                <Feather name="chevron-right" size={16} color="#CBD5E1" />
+                <Feather name="chevron-right" size={16} color={COLORS.disabledBg} />
               </TouchableOpacity>
             ))}
           </View>
@@ -212,7 +186,7 @@ const styles = StyleSheet.create({
   loadingText: { marginTop: 12, fontSize: 14, color: '#64748B', fontWeight: '600' },
 
   heroBanner: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
@@ -228,7 +202,7 @@ const styles = StyleSheet.create({
   avatarBox: {
     width: 48, height: 48, borderRadius: 16,
     backgroundColor: 'rgba(5,150,105,0.15)',
-    borderWidth: 1.5, borderColor: '#059669',
+    borderWidth: 1.5, borderColor: COLORS.primaryGreen,
     alignItems: 'center', justifyContent: 'center', marginTop: 8,
   },
   avatarText: { color: '#34d399', fontSize: 16, fontWeight: 'bold' },

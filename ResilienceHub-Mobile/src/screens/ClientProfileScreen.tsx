@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
@@ -8,9 +9,12 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { ApiService } from '../services/api';
+import { useEmotions } from '../hooks/queries/useEmotions';
+import { useJournal } from '../hooks/queries/useJournal';
+import { useThoughts } from '../hooks/queries/useThoughts';
+import { useGoals } from '../hooks/queries/useGoals';
+import { useTherapistClients } from '../hooks/queries/useTherapist';
 
 const { width } = Dimensions.get('window');
 
@@ -26,48 +30,28 @@ type Tab = 'overview' | 'progress' | 'activity';
 export default function ClientProfileScreen({ route, navigation }: { route: any; navigation: any }) {
   const { clientId, clientName } = route.params || {};
 
-  const [loading, setLoading] = useState(true);
-  const [client, setClient] = useState<any>(null);
-  const [emotions, setEmotions] = useState<any[]>([]);
-  const [journals, setJournals] = useState<any[]>([]);
-  const [thoughts, setThoughts] = useState<any[]>([]);
-  const [goals, setGoals] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const emotionsQ = useEmotions(clientId);
+  const journalsQ = useJournal(clientId);
+  const thoughtsQ = useThoughts(clientId);
+  const goalsQ = useGoals(clientId);
+  const clientsQ = useTherapistClients();
 
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
-      const fetchAll = async () => {
-        try {
-          const [emotionsRes, journalsRes, thoughtsRes, goalsRes, clientsRes] = await Promise.all([
-            ApiService.getEmotions(clientId),
-            ApiService.getJournalEntries(clientId),
-            ApiService.getThoughtRecords(clientId),
-            ApiService.getGoals(clientId),
-            ApiService.getTherapistClients(),
-          ]);
-          if (!isMounted) return;
-          const found = (clientsRes.data || []).find((c: any) => c.id === clientId);
-          setClient(found || { id: clientId, name: clientName });
-          setEmotions(emotionsRes.data || []);
-          setJournals(journalsRes.data || []);
-          setThoughts(thoughtsRes.data || []);
-          setGoals(goalsRes.data || []);
-        } catch (e) {
-          console.error(e);
-        } finally {
-          if (isMounted) setLoading(false);
-        }
-      };
-      fetchAll();
-      return () => { isMounted = false; };
-    }, [clientId])
-  );
+  const emotions = emotionsQ.data ?? [];
+  const journals = journalsQ.data ?? [];
+  const thoughts = thoughtsQ.data ?? [];
+  const goals = goalsQ.data ?? [];
+  const client =
+    (clientsQ.data ?? []).find((c: any) => c.id === clientId) ?? { id: clientId, name: clientName };
+  const loading =
+    emotionsQ.isLoading || journalsQ.isLoading || thoughtsQ.isLoading ||
+    goalsQ.isLoading || clientsQ.isLoading;
+
+  const [activeTab, setActiveTab] = useState<Tab>('overview');
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color={COLORS.primaryGreen} />
         <Text style={styles.loadingText}>Loading client profile…</Text>
       </View>
     );
@@ -95,7 +79,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
     {
       code: 'M02', icon: 'cpu' as const, title: 'Thought Records',
       desc: 'Cognitive distortions & reframing',
-      count: thoughts.length, unit: 'records', color: '#059669', bg: '#ecfdf5',
+      count: thoughts.length, unit: 'records', color: COLORS.primaryGreen, bg: '#ecfdf5',
       tab: 'thoughts',
     },
     {
@@ -107,7 +91,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
     {
       code: 'M04', icon: 'target' as const, title: 'Goals & Objectives',
       desc: 'SMART objectives & milestones',
-      count: goals.length, unit: 'goals', color: '#10B981', bg: '#F0FDF4',
+      count: goals.length, unit: 'goals', color: COLORS.mediumGreen, bg: '#F0FDF4',
       tab: 'goals',
     },
   ];
@@ -115,8 +99,8 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
   const activityItems = [
     ...emotions.map((e: any) => ({ type: 'emotion', icon: 'heart' as const, color: '#3B82F6', bg: '#EFF6FF', title: e.coreEmotion || 'Emotion recorded', sub: e.specificEmotion, date: new Date(e.createdAt), label: 'Emotion' })),
     ...journals.map((j: any) => ({ type: 'journal', icon: 'book-open' as const, color: '#F59E0B', bg: '#FFFBEB', title: j.title || 'Journal entry', sub: undefined, date: new Date(j.createdAt), label: 'Journal' })),
-    ...thoughts.map((t: any) => ({ type: 'thought', icon: 'cpu' as const, color: '#059669', bg: '#ecfdf5', title: t.situation || t.automaticThought || 'Thought record', sub: undefined, date: new Date(t.createdAt), label: 'Thought' })),
-    ...goals.map((g: any) => ({ type: 'goal', icon: 'target' as const, color: '#10B981', bg: '#F0FDF4', title: g.title || g.goal || 'Goal', sub: g.status, date: new Date(g.createdAt), label: 'Goal' })),
+    ...thoughts.map((t: any) => ({ type: 'thought', icon: 'cpu' as const, color: COLORS.primaryGreen, bg: '#ecfdf5', title: t.situation || t.automaticThought || 'Thought record', sub: undefined, date: new Date(t.createdAt), label: 'Thought' })),
+    ...goals.map((g: any) => ({ type: 'goal', icon: 'target' as const, color: COLORS.mediumGreen, bg: '#F0FDF4', title: g.title || g.goal || 'Goal', sub: g.status, date: new Date(g.createdAt), label: 'Goal' })),
   ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 20);
 
   return (
@@ -211,7 +195,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
           <>
             {/* Section label */}
             <View style={styles.sectionRow}>
-              <Ionicons name="sparkles-outline" size={13} color="#059669" />
+              <Ionicons name="star-outline" size={13} color={COLORS.primaryGreen} />
               <Text style={styles.sectionLabel}>CLINICAL MODULES</Text>
               <Text style={styles.sectionHint}>tap to open</Text>
             </View>
@@ -252,7 +236,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
                   <Text style={[styles.moduleCountUnit, { color: mod.color }]}>{mod.unit}</Text>
                 </View>
 
-                <Feather name="chevron-right" size={15} color="#CBD5E1" style={{ marginLeft: 6 }} />
+                <Feather name="chevron-right" size={15} color={COLORS.disabledBg} style={{ marginLeft: 6 }} />
               </TouchableOpacity>
             ))}
 
@@ -297,7 +281,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
         {activeTab === 'progress' && (
           <>
             <View style={styles.sectionRow}>
-              <Feather name="bar-chart-2" size={13} color="#059669" />
+              <Feather name="bar-chart-2" size={13} color={COLORS.primaryGreen} />
               <Text style={styles.sectionLabel}>ACTIVITY SUMMARY</Text>
             </View>
 
@@ -305,9 +289,9 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
             <View style={styles.statsGrid}>
               {[
                 { icon: 'heart' as const, label: 'Emotion Records', value: emotions.length, color: '#3B82F6', bg: '#EFF6FF' },
-                { icon: 'cpu' as const, label: 'Thought Records', value: thoughts.length, color: '#059669', bg: '#ecfdf5' },
+                { icon: 'cpu' as const, label: 'Thought Records', value: thoughts.length, color: COLORS.primaryGreen, bg: '#ecfdf5' },
                 { icon: 'book-open' as const, label: 'Journal Entries', value: journals.length, color: '#F59E0B', bg: '#FFFBEB' },
-                { icon: 'target' as const, label: 'Goals Set', value: goals.length, color: '#10B981', bg: '#F0FDF4' },
+                { icon: 'target' as const, label: 'Goals Set', value: goals.length, color: COLORS.mediumGreen, bg: '#F0FDF4' },
               ].map((s, i) => (
                 <View key={i} style={styles.statCard}>
                   <View style={[styles.statIconBox, { backgroundColor: s.bg }]}>
@@ -323,8 +307,8 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
             <View style={styles.totalsRow}>
               {[
                 { val: String(totalActivities), label: 'Total Activities', sub: 'Across all modules', color: '#0F172A' },
-                { val: String(completedGoals), label: 'Goals Done', sub: goals.length > 0 ? `${Math.round((completedGoals / goals.length) * 100)}% rate` : 'No goals yet', color: '#10B981' },
-                { val: daysAsClient != null ? String(daysAsClient) : '—', label: 'Days Active', sub: 'Since registration', color: '#059669' },
+                { val: String(completedGoals), label: 'Goals Done', sub: goals.length > 0 ? `${Math.round((completedGoals / goals.length) * 100)}% rate` : 'No goals yet', color: COLORS.mediumGreen },
+                { val: daysAsClient != null ? String(daysAsClient) : '—', label: 'Days Active', sub: 'Since registration', color: COLORS.primaryGreen },
               ].map((t, i) => (
                 <View key={i} style={[styles.totalCard, i === 1 && styles.totalCardMiddle]}>
                   <Text style={[styles.totalCardVal, { color: t.color }]}>{t.val}</Text>
@@ -338,7 +322,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
             {goals.length > 0 && (
               <>
                 <View style={[styles.sectionRow, { marginTop: 14 }]}>
-                  <Feather name="target" size={13} color="#059669" />
+                  <Feather name="target" size={13} color={COLORS.primaryGreen} />
                   <Text style={styles.sectionLabel}>GOALS</Text>
                 </View>
                 <View style={styles.goalsCard}>
@@ -357,7 +341,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
                           <Feather
                             name={done ? 'check' : 'clock'}
                             size={10}
-                            color={done ? '#059669' : inProg ? '#2563EB' : '#94A3B8'}
+                            color={done ? COLORS.primaryGreen : inProg ? '#2563EB' : '#94A3B8'}
                           />
                         </View>
                         <Text style={styles.goalTitle} numberOfLines={1}>{g.title || g.goal || 'Goal'}</Text>
@@ -367,7 +351,7 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
                         ]}>
                           <Text style={[
                             styles.goalPillText,
-                            { color: done ? '#059669' : inProg ? '#2563EB' : '#94A3B8' },
+                            { color: done ? COLORS.primaryGreen : inProg ? '#2563EB' : '#94A3B8' },
                           ]}>
                             {g.status || 'active'}
                           </Text>
@@ -385,14 +369,14 @@ export default function ClientProfileScreen({ route, navigation }: { route: any;
         {activeTab === 'activity' && (
           <>
             <View style={styles.sectionRow}>
-              <Feather name="activity" size={13} color="#059669" />
+              <Feather name="activity" size={13} color={COLORS.primaryGreen} />
               <Text style={styles.sectionLabel}>LATEST ENTRIES</Text>
             </View>
 
             {activityItems.length === 0 ? (
               <View style={styles.emptyActivity}>
                 <View style={styles.emptyActivityIcon}>
-                  <Feather name="activity" size={32} color="#CBD5E1" />
+                  <Feather name="activity" size={32} color={COLORS.disabledBg} />
                 </View>
                 <Text style={styles.emptyActivityTitle}>No activity yet</Text>
                 <Text style={styles.emptyActivitySub}>Client hasn't recorded any entries.</Text>
@@ -488,8 +472,8 @@ const preview = StyleSheet.create({
   rowBorder: { borderTopWidth: 1, borderTopColor: '#F8FAFC' },
   rowTitle: { fontSize: 12, fontWeight: '600', color: '#334155' },
   rowSub: { fontSize: 10, color: '#94A3B8', marginTop: 1 },
-  rowDate: { fontSize: 10, color: '#CBD5E1', marginLeft: 8 },
-  empty: { fontSize: 12, color: '#CBD5E1', textAlign: 'center', paddingVertical: 14, paddingHorizontal: 14 },
+  rowDate: { fontSize: 10, color: COLORS.disabledBg, marginLeft: 8 },
+  empty: { fontSize: 12, color: COLORS.disabledBg, textAlign: 'center', paddingVertical: 14, paddingHorizontal: 14 },
 });
 
 const styles = StyleSheet.create({
@@ -499,7 +483,7 @@ const styles = StyleSheet.create({
 
   // ── Hero ──
   hero: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     paddingBottom: 0,
     overflow: 'hidden',
   },
@@ -568,7 +552,7 @@ const styles = StyleSheet.create({
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     paddingVertical: 9, borderRadius: 12, gap: 5,
   },
-  tabBtnActive: { backgroundColor: '#052e16' },
+  tabBtnActive: { backgroundColor: COLORS.darkGreen },
   tabBtnText: { fontSize: 11, fontWeight: '700', color: '#94A3B8' },
   tabBtnTextActive: { color: '#FFFFFF' },
 
@@ -577,7 +561,7 @@ const styles = StyleSheet.create({
 
   sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 },
   sectionLabel: { fontSize: 9, fontWeight: '800', color: '#94A3B8', letterSpacing: 1.5, textTransform: 'uppercase' },
-  sectionHint: { fontSize: 9, color: '#CBD5E1', marginLeft: 'auto', fontWeight: '600' },
+  sectionHint: { fontSize: 9, color: COLORS.disabledBg, marginLeft: 'auto', fontWeight: '600' },
 
   // Module cards
   moduleCard: {
@@ -607,9 +591,9 @@ const styles = StyleSheet.create({
   actionFill: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 8, paddingVertical: 14,
-    backgroundColor: '#052e16', borderRadius: 14,
+    backgroundColor: COLORS.darkGreen, borderRadius: 14,
     marginTop: 6, marginBottom: 24,
-    shadowColor: '#052e16', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 4,
+    shadowColor: COLORS.darkGreen, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 4,
   },
   actionFillText: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
 
@@ -673,7 +657,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: '#F1F5F9', overflow: 'hidden',
     shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
-  timelineAccent: { height: 3, backgroundColor: '#052e16' },
+  timelineAccent: { height: 3, backgroundColor: COLORS.darkGreen },
   timelineRow: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 14, paddingVertical: 12, gap: 10,

@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useMemo } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
@@ -7,12 +8,15 @@ import {
   ScrollView,
   Dimensions,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import { Feather, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
-import { ApiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useCurrentUser } from '../hooks/queries/useProfile';
+import { useEmotions } from '../hooks/queries/useEmotions';
+import { useThoughts } from '../hooks/queries/useThoughts';
+import { useJournal } from '../hooks/queries/useJournal';
+import { useGoals } from '../hooks/queries/useGoals';
+import { useReframePractices } from '../hooks/queries/useReframe';
 
 interface DashboardScreenProps {
   navigation: any;
@@ -21,56 +25,26 @@ interface DashboardScreenProps {
 const { width } = Dimensions.get('window');
 
 export default function DashboardScreen({ navigation }: DashboardScreenProps) {
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const [stats, setStats] = useState({
-    emotions: { total: 0, averageIntensity: 0, mostCommon: 'None' },
-    thoughts: { total: 0, challengedPercentage: 0, topANT: 'None' },
-    journal: { total: 0, emotionsDetected: 0 },
-    goals: { total: 0, completed: 0, completedPercentage: 0 },
-    reframe: { totalPractices: 0, averageScore: 0 },
-  });
+  const { userId } = useAuth();
+  const userQ = useCurrentUser();
+  const emotionsQ = useEmotions(userId);
+  const thoughtsQ = useThoughts(userId);
+  const journalQ = useJournal(userId);
+  const goalsQ = useGoals(userId);
+  const reframeQ = useReframePractices(userId);
 
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
+  const user = userQ.data;
+  const loading =
+    !userId ||
+    userQ.isLoading || emotionsQ.isLoading || thoughtsQ.isLoading ||
+    journalQ.isLoading || goalsQ.isLoading || reframeQ.isLoading;
 
-      const fetchDashboardData = async () => {
-        try {
-          const userResponse = await ApiService.getCurrentUser();
-          if (!userResponse.data || userResponse.error) {
-            setLoading(false);
-            navigation.navigate('Login');
-            return;
-          }
-
-          if (isMounted) {
-            setUser(userResponse.data);
-          }
-
-          const userId = userResponse.data.id;
-
-          const [
-            emotionsRes,
-            thoughtsRes,
-            journalsRes,
-            goalsRes,
-            reframesRes
-          ] = await Promise.all([
-            ApiService.getEmotions(userId),
-            ApiService.getThoughtRecords(userId),
-            ApiService.getJournalEntries(userId),
-            ApiService.getGoals(userId),
-            ApiService.getReframePractices(userId),
-          ]);
-
-          if (!isMounted) return;
-
-          const emotions = emotionsRes.data || [];
-          const thoughts = thoughtsRes.data || [];
-          const journalEntries = journalsRes.data || [];
-          const goals = goalsRes.data || [];
-          const reframePractices = reframesRes.data || [];
+  const stats = useMemo(() => {
+          const emotions = emotionsQ.data || [];
+          const thoughts = thoughtsQ.data || [];
+          const journalEntries = journalQ.data || [];
+          const goals = goalsQ.data || [];
+          const reframePractices = reframeQ.data || [];
 
           // Mood calculation
           const emotionCounts = emotions.reduce((acc: any, e: any) => {
@@ -142,28 +116,14 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
               : 0
           };
 
-          setStats({
+          return {
             emotions: { total: emotions.length, averageIntensity: avgIntensity, mostCommon },
             thoughts: { total: thoughts.length, challengedPercentage: thoughts.length > 0 ? Math.round((challengedThoughts.length / thoughts.length) * 100) : 0, topANT },
             journal: journalStats,
             goals: goalsStats,
-            reframe: reframeStats
-          });
-
-          setLoading(false);
-        } catch (error) {
-          console.error('Error fetching dashboard statistics:', error);
-          setLoading(false);
-        }
-      };
-
-      fetchDashboardData();
-
-      return () => {
-        isMounted = false;
-      };
-    }, [])
-  );
+            reframe: reframeStats,
+          };
+  }, [emotionsQ.data, thoughtsQ.data, journalQ.data, goalsQ.data, reframeQ.data]);
 
   const totalActivities =
     stats.emotions.total +
@@ -194,8 +154,8 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   // Today's Focus Action Steps
   const todayFocus = [
     { label: 'Track Emotion', screen: 'EmotionTracking', done: stats.emotions.total > 0, color: '#EF4444', icon: 'heart' },
-    { label: 'Record Thought', screen: 'ThoughtRecord', done: stats.thoughts.total > 0, color: '#059669', icon: 'brain' },
-    { label: 'Reframe Coach', screen: 'ReframeCoach', done: stats.reframe.totalPractices > 0, color: '#10B981', icon: 'zap' },
+    { label: 'Record Thought', screen: 'ThoughtRecord', done: stats.thoughts.total > 0, color: COLORS.primaryGreen, icon: 'brain' },
+    { label: 'Reframe Coach', screen: 'ReframeCoach', done: stats.reframe.totalPractices > 0, color: COLORS.mediumGreen, icon: 'zap' },
     { label: 'Write Journal', screen: 'Journal', done: stats.journal.total > 0, color: '#F59E0B', icon: 'book-open' },
     { label: 'Set a Goal', screen: 'Goals', done: stats.goals.total > 0, color: '#6366F1', icon: 'target' },
   ];
@@ -223,7 +183,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
       screen: 'ThoughtRecord',
       stat: `${stats.thoughts.total} logs`,
       insight: stats.thoughts.topANT !== 'None' ? `${stats.thoughts.topANT}` : 'No pattern',
-      iconColor: '#059669',
+      iconColor: COLORS.primaryGreen,
       bg: '#ecfdf5',
       border: '#d1fae5',
       icon: 'brain',
@@ -234,7 +194,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
       screen: 'ReframeCoach',
       stat: `${stats.reframe.totalPractices} sessions`,
       insight: stats.reframe.averageScore > 0 ? `Avg: ${stats.reframe.averageScore}` : 'Start session',
-      iconColor: '#10B981',
+      iconColor: COLORS.mediumGreen,
       bg: '#ECFDF5',
       border: '#D1FAE5',
       icon: 'zap',
@@ -278,7 +238,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color={COLORS.primaryGreen} />
         <Text style={styles.loadingText}>Loading your space...</Text>
       </View>
     );
@@ -338,7 +298,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
                 activeOpacity={0.7}
                 style={[
                   styles.focusCard,
-                  { borderTopColor: focus.done ? '#10B981' : focus.color },
+                  { borderTopColor: focus.done ? COLORS.mediumGreen : focus.color },
                   focus.done ? styles.focusCardCompleted : styles.focusCardPending
                 ]}
                 onPress={() => handleActionPress(focus.screen)}
@@ -349,13 +309,13 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
                     { backgroundColor: focus.done ? 'rgba(16, 185, 129, 0.1)' : `${focus.color}10` }
                   ]}>
                     {focus.icon === 'brain' ? (
-                      <MaterialCommunityIcons name="brain" size={16} color={focus.done ? '#10B981' : focus.color} />
+                      <MaterialCommunityIcons name="brain" size={16} color={focus.done ? COLORS.mediumGreen : focus.color} />
                     ) : (
-                      <Feather name={focus.icon as any} size={16} color={focus.done ? '#10B981' : focus.color} />
+                      <Feather name={focus.icon as any} size={16} color={focus.done ? COLORS.mediumGreen : focus.color} />
                     )}
                   </View>
                   {focus.done ? (
-                    <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+                    <Ionicons name="checkmark-circle" size={18} color={COLORS.mediumGreen} />
                   ) : (
                     <Feather name="arrow-right-circle" size={18} color={focus.color} />
                   )}
@@ -367,7 +327,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
                 
                 <Text style={[
                   styles.focusCardStatusText,
-                  focus.done ? { color: '#10B981' } : { color: '#64748B' }
+                  focus.done ? { color: COLORS.mediumGreen } : { color: '#64748B' }
                 ]}>
                   {focus.done ? 'Completed' : 'Tap to start'}
                 </Text>
@@ -469,7 +429,7 @@ const styles = StyleSheet.create({
 
   // Mobile Hero Header
   heroBanner: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
@@ -552,7 +512,7 @@ const styles = StyleSheet.create({
   },
   progressIndicator: {
     height: '100%',
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
     borderRadius: 4,
   },
   milestoneDescription: {
@@ -585,7 +545,7 @@ const styles = StyleSheet.create({
   },
   sectionLinkText: {
     fontSize: 13,
-    color: '#059669',
+    color: COLORS.primaryGreen,
     fontWeight: '700',
   },
 
@@ -604,6 +564,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
     padding: 12,
     justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.03,
@@ -616,7 +577,7 @@ const styles = StyleSheet.create({
   },
   focusCardCompleted: {
     backgroundColor: '#ECFDF5',
-    borderColor: '#A7F3D0',
+    borderColor: COLORS.lightGreen,
   },
   focusCardHeader: {
     flexDirection: 'row',
@@ -661,7 +622,6 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     marginBottom: 12,
     justifyContent: 'space-between',
-    overflow: 'hidden',
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.02,
@@ -711,7 +671,7 @@ const styles = StyleSheet.create({
 
   // Native Banner
   nativeBanner: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     marginHorizontal: 20,
     marginBottom: 40,
     borderRadius: 24,
@@ -755,10 +715,10 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#059669',
+    shadowColor: COLORS.primaryGreen,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,

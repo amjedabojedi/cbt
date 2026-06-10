@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
+  FlatList,
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
@@ -16,6 +18,8 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, Line, Text as SvgText } from 'react-native-svg';
 import { ApiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useJournal } from '../hooks/queries/useJournal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -35,23 +39,9 @@ interface JournalEntry {
   comments?: { id: number }[];
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-const PROMPTS = [
-  'What am I grateful for today?',
-  'What challenged me and how did I handle it?',
-  'What did I learn about myself today?',
-  'How am I feeling right now and why?',
-  'What would I tell my past self?',
-  'What small win can I celebrate today?',
-];
-
-const PRESET_TAGS = [
-  'grateful', 'anxious', 'hopeful', 'calm', 'stressed',
-  'proud', 'sad', 'excited', 'overwhelmed', 'motivated',
-];
 
 const EMOTION_COLORS: Record<string, string> = {
-  Joy: '#EAB308', Love: '#EC4899', Fear: '#10B981',
+  Joy: '#EAB308', Love: '#EC4899', Fear: COLORS.mediumGreen,
   Anger: '#EF4444', Sadness: '#3B82F6', Surprise: '#F59E0B',
 };
 
@@ -159,10 +149,10 @@ function SentimentAreaChart({ data }: { data: ChartPoint[] }) {
       {yTicks.filter(t => t > 0).map(t => (
         <SvgText key={t} x={PAD.left - 4} y={yScale(t) + 4} fontSize={9} fill="#94A3B8" textAnchor="end">{t}</SvgText>
       ))}
-      <Path d={buildPath('positive')} fill="#10B981" opacity={0.15} />
+      <Path d={buildPath('positive')} fill={COLORS.mediumGreen} opacity={0.15} />
       <Path d={buildPath('neutral')} fill="#64748B" opacity={0.12} />
       <Path d={buildPath('negative')} fill="#EF4444" opacity={0.15} />
-      <Path d={buildLine('positive')} stroke="#10B981" strokeWidth={2} fill="none" />
+      <Path d={buildLine('positive')} stroke={COLORS.mediumGreen} strokeWidth={2} fill="none" />
       <Path d={buildLine('neutral')} stroke="#64748B" strokeWidth={1.5} fill="none" />
       <Path d={buildLine('negative')} stroke="#EF4444" strokeWidth={2} fill="none" />
       {data.map((d, i) => (
@@ -260,7 +250,7 @@ function EntryCard({ entry, onView, onEdit, onDelete }: {
       </View>
       {/* Date */}
       <View style={ec.dateRow}>
-        <Feather name="calendar" size={11} color="#059669" />
+        <Feather name="calendar" size={11} color={COLORS.primaryGreen} />
         <Text style={ec.dateText}>{fmtDate(entry.createdAt)}</Text>
       </View>
       {/* Content preview */}
@@ -306,10 +296,10 @@ const ec = StyleSheet.create({
     shadowOpacity: 0.04, shadowRadius: 6, elevation: 1,
   },
   headerRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title:         { fontSize: 15, fontWeight: '800', color: '#052e16', flex: 1, marginRight: 8 },
+  title:         { fontSize: 15, fontWeight: '800', color: COLORS.darkGreen, flex: 1, marginRight: 8 },
   moreBtn:       { fontSize: 20, color: '#94A3B8', lineHeight: 22 },
   dateRow:       { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  dateText:      { fontSize: 11, fontWeight: '600', color: '#059669' },
+  dateText:      { fontSize: 11, fontWeight: '600', color: COLORS.primaryGreen },
   preview:       { fontSize: 13, color: '#64748B', lineHeight: 19, fontWeight: '400' },
   tagsRow:       { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   tag:           { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 },
@@ -317,7 +307,7 @@ const ec = StyleSheet.create({
   moreTagBadge:  { backgroundColor: '#EEF2FF', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 },
   moreTagText:   { fontSize: 10, fontWeight: '700', color: '#6366F1' },
   footer:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 },
-  viewLink:      { fontSize: 12, fontWeight: '700', color: '#059669' },
+  viewLink:      { fontSize: 12, fontWeight: '700', color: COLORS.primaryGreen },
   commentBadge:  { flexDirection: 'row', alignItems: 'center', gap: 4 },
   commentCount:  { fontSize: 11, fontWeight: '600', color: '#94A3B8' },
 });
@@ -327,40 +317,8 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('month');
   const total = entries.length;
 
-  if (total === 0) {
-    return (
-      <View style={ip.empty}>
-        <View style={ip.emptyIconRing}>
-          <Feather name="book-open" size={26} color="#059669" />
-        </View>
-        <Text style={ip.emptyTitle}>No Insights Yet</Text>
-        <Text style={ip.emptyBody}>Write your first journal entry to unlock sentiment trends, emotion patterns and topic analysis.</Text>
-      </View>
-    );
-  }
-
-  const avgPos = Math.round(entries.reduce((s, e) => s + (e.sentimentPositive ?? 0), 0) / total);
-  const avgNeg = Math.round(entries.reduce((s, e) => s + (e.sentimentNegative ?? 0), 0) / total);
-  const avgNeu = Math.round(entries.reduce((s, e) => s + (e.sentimentNeutral ?? 0), 0) / total);
-
-  const emotionMap: Record<string, number> = {};
-  entries.forEach(e => {
-    (e.emotions ?? []).forEach(em => {
-      const core = mapToCoreEmotion(em);
-      emotionMap[core] = (emotionMap[core] || 0) + 1;
-    });
-  });
-  const emotionData: PieSlice[] = Object.entries(emotionMap)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6)
-    .map(([name, value]) => ({ name, value, color: EMOTION_COLORS[name] ?? '#059669' }));
-  const topEmotion = emotionData[0]?.name ?? 'None';
-
-  const topicMap: Record<string, number> = {};
-  entries.forEach(e => (e.topics ?? []).forEach(t => { topicMap[t] = (topicMap[t] || 0) + 1; }));
-  const topics = Object.entries(topicMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
-  const maxTopicCount = topics[0]?.[1] ?? 1;
-
+  // NOTE: these hooks must run unconditionally (before any early return) to obey
+  // the Rules of Hooks — moving them below the `total === 0` guard crashes render.
   const sentimentTrends = useMemo((): ChartPoint[] => {
     const now = new Date();
     if (timeRange === 'week') {
@@ -431,12 +389,46 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
     return s;
   }, [entries]);
 
+  if (total === 0) {
+    return (
+      <View style={ip.empty}>
+        <View style={ip.emptyIconRing}>
+          <Feather name="book-open" size={26} color={COLORS.primaryGreen} />
+        </View>
+        <Text style={ip.emptyTitle}>No Insights Yet</Text>
+        <Text style={ip.emptyBody}>Write your first journal entry to unlock sentiment trends, emotion patterns and topic analysis.</Text>
+      </View>
+    );
+  }
+
+  const avgPos = Math.round(entries.reduce((s, e) => s + (e.sentimentPositive ?? 0), 0) / total);
+  const avgNeg = Math.round(entries.reduce((s, e) => s + (e.sentimentNegative ?? 0), 0) / total);
+  const avgNeu = Math.round(entries.reduce((s, e) => s + (e.sentimentNeutral ?? 0), 0) / total);
+
+  const emotionMap: Record<string, number> = {};
+  entries.forEach(e => {
+    (e.emotions ?? []).forEach(em => {
+      const core = mapToCoreEmotion(em);
+      emotionMap[core] = (emotionMap[core] || 0) + 1;
+    });
+  });
+  const emotionData: PieSlice[] = Object.entries(emotionMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([name, value]) => ({ name, value, color: EMOTION_COLORS[name] ?? COLORS.primaryGreen }));
+  const topEmotion = emotionData[0]?.name ?? 'None';
+
+  const topicMap: Record<string, number> = {};
+  entries.forEach(e => (e.topics ?? []).forEach(t => { topicMap[t] = (topicMap[t] || 0) + 1; }));
+  const topics = Object.entries(topicMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const maxTopicCount = topics[0]?.[1] ?? 1;
+
   return (
     <View style={ip.container}>
       <View style={ip.statRow}>
         {[
-          { icon: 'book-open' as const, label: 'Total Entries', value: `${total}`, sub: 'Logs recorded', color: '#059669', bg: '#ecfdf5' },
-          { icon: 'heart' as const,     label: 'Avg Positivity', value: `${avgPos}%`, sub: 'Positive sentiment', color: '#10B981', bg: '#ECFDF5' },
+          { icon: 'book-open' as const, label: 'Total Entries', value: `${total}`, sub: 'Logs recorded', color: COLORS.primaryGreen, bg: '#ecfdf5' },
+          { icon: 'heart' as const,     label: 'Avg Positivity', value: `${avgPos}%`, sub: 'Positive sentiment', color: COLORS.mediumGreen, bg: '#ECFDF5' },
           { icon: 'trending-up' as const, label: 'Top Emotion', value: topEmotion, sub: 'Most common vibe', color: '#EC4899', bg: '#FDF2F8' },
         ].map(({ icon, label, value, sub, color, bg }) => (
           <View key={label} style={[ip.statBox, { backgroundColor: bg }]}>
@@ -453,7 +445,7 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
       <View style={ip.sectionCard}>
         <View style={ip.sectionHeader}>
           <View style={[ip.sectionIcon, { backgroundColor: '#ecfdf5' }]}>
-            <Feather name="activity" size={13} color="#059669" />
+            <Feather name="activity" size={13} color={COLORS.primaryGreen} />
           </View>
           <View>
             <Text style={ip.sectionTitle}>Overall Sentiment</Text>
@@ -461,7 +453,7 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
           </View>
         </View>
         <View style={ip.gaugesRow}>
-          <SentimentGauge value={avgPos} color="#10B981" label="Positive" />
+          <SentimentGauge value={avgPos} color={COLORS.mediumGreen} label="Positive" />
           <View style={ip.gaugeDivider} />
           <SentimentGauge value={avgNeg} color="#EF4444" label="Negative" />
           <View style={ip.gaugeDivider} />
@@ -495,7 +487,7 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
         </View>
         <SentimentAreaChart data={sentimentTrends} />
         <View style={{ flexDirection: 'row', gap: 14, marginTop: 8, flexWrap: 'wrap' }}>
-          {[['#10B981', 'Positive'], ['#64748B', 'Neutral'], ['#EF4444', 'Negative']].map(([color, label]) => (
+          {[[COLORS.mediumGreen, 'Positive'], ['#64748B', 'Neutral'], ['#EF4444', 'Negative']].map(([color, label]) => (
             <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
               <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
               <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748B' }}>{label}</Text>
@@ -582,7 +574,7 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
       <View style={ip.sectionCard}>
         <View style={ip.sectionHeader}>
           <View style={[ip.sectionIcon, { backgroundColor: '#ECFDF5' }]}>
-            <Feather name="calendar" size={13} color="#10B981" />
+            <Feather name="calendar" size={13} color={COLORS.mediumGreen} />
           </View>
           <View>
             <Text style={ip.sectionTitle}>30-Day Writing Calendar</Text>
@@ -592,10 +584,10 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
           {calendarDays.map((d, i) => {
             let bg = '#F1F5F9';
-            let textColor = '#CBD5E1';
+            let textColor = COLORS.disabledBg;
             if (d.count === 1) { bg = '#d1fae5'; textColor = '#047857'; }
             else if (d.count === 2) { bg = '#C4B5FD'; textColor = '#4C1D95'; }
-            else if (d.count >= 3) { bg = '#059669'; textColor = '#FFFFFF'; }
+            else if (d.count >= 3) { bg = COLORS.primaryGreen; textColor = '#FFFFFF'; }
             const cellSize = (SCREEN_WIDTH - 64 - 9 * 4) / 10;
             return (
               <View key={i} style={{ width: cellSize, height: cellSize, borderRadius: 6, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
@@ -605,7 +597,7 @@ function InsightsPanel({ entries }: { entries: JournalEntry[] }) {
           })}
         </View>
         <View style={{ flexDirection: 'row', gap: 12, flexWrap: 'wrap', marginTop: 4 }}>
-          {[['#F1F5F9', '#CBD5E1', 'None'], ['#d1fae5', '#047857', '1 Entry'], ['#C4B5FD', '#4C1D95', '2 Entries'], ['#059669', '#FFFFFF', '3+ Entries']].map(([bg, tc, label]) => (
+          {[['#F1F5F9', COLORS.disabledBg, 'None'], ['#d1fae5', '#047857', '1 Entry'], ['#C4B5FD', '#4C1D95', '2 Entries'], [COLORS.primaryGreen, '#FFFFFF', '3+ Entries']].map(([bg, _tc, label]) => (
             <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
               <View style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: bg }} />
               <Text style={{ fontSize: 10, fontWeight: '600', color: '#64748B' }}>{label}</Text>
@@ -629,12 +621,12 @@ const ip = StyleSheet.create({
   statIconWrap:   { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   statVal:        { fontSize: 13, fontWeight: '800' },
   statLbl:        { fontSize: 8.5, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.3 },
-  statSub:        { fontSize: 8, fontWeight: '600', color: '#CBD5E1' },
+  statSub:        { fontSize: 8, fontWeight: '600', color: COLORS.disabledBg },
 
   sectionCard:    { backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1.5, borderColor: '#F1F5F9', padding: 16, gap: 14 },
   sectionHeader:  { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   sectionIcon:    { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  sectionTitle:   { fontSize: 13, fontWeight: '800', color: '#052e16' },
+  sectionTitle:   { fontSize: 13, fontWeight: '800', color: COLORS.darkGreen },
   sectionSub:     { fontSize: 10, color: '#94A3B8', fontWeight: '500', marginTop: 1 },
 
   gaugesRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
@@ -644,7 +636,7 @@ const ip = StyleSheet.create({
   rangePill:      { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   rangePillActive:{ backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 2, elevation: 1 },
   rangePillText:  { fontSize: 10, fontWeight: '700', color: '#64748B' },
-  rangePillTextActive: { color: '#052e16' },
+  rangePillTextActive: { color: COLORS.darkGreen },
 });
 
 // ─── Entry Detail Modal ───────────────────────────────────────────────────────
@@ -656,7 +648,7 @@ interface EntryDetailModalProps {
   onEditRequest: () => void;
 }
 
-function EntryDetailModal({ entry, onClose, onUpdated, onDeleted, onEditRequest }: EntryDetailModalProps) {
+function EntryDetailModal({ entry, onClose, onDeleted, onEditRequest }: EntryDetailModalProps) {
   if (!entry) return null;
 
   const handleDelete = () => {
@@ -782,7 +774,7 @@ function EntryDetailModal({ entry, onClose, onUpdated, onDeleted, onEditRequest 
         {/* Footer actions */}
         <View style={dm.footer}>
           <TouchableOpacity style={dm.editBtn} onPress={onEditRequest} activeOpacity={0.85}>
-            <Feather name="edit-2" size={14} color="#059669" />
+            <Feather name="edit-2" size={14} color={COLORS.primaryGreen} />
             <Text style={dm.editBtnText}>Edit Entry</Text>
           </TouchableOpacity>
           <TouchableOpacity style={dm.deleteBtn} onPress={handleDelete} activeOpacity={0.85}>
@@ -798,7 +790,7 @@ function EntryDetailModal({ entry, onClose, onUpdated, onDeleted, onEditRequest 
 const dm = StyleSheet.create({
   container:    { flex: 1, backgroundColor: '#F8FAFC' },
   header:       {
-    backgroundColor: '#052e16', paddingTop: 56, paddingBottom: 24,
+    backgroundColor: COLORS.darkGreen, paddingTop: 56, paddingBottom: 24,
     paddingHorizontal: 20, gap: 10, overflow: 'hidden', position: 'relative',
     alignItems: 'flex-start',
   },
@@ -824,8 +816,8 @@ const dm = StyleSheet.create({
   indigoPill:   { backgroundColor: '#EEF2FF', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: '#C7D2FE' },
   indigoPillText:{ fontSize: 11, fontWeight: '600', color: '#4338CA' },
   footer:       { flexDirection: 'row', gap: 12, padding: 16, borderTopWidth: 1, borderTopColor: '#F1F5F9', backgroundColor: '#FFFFFF' },
-  editBtn:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 46, borderRadius: 14, borderWidth: 1.5, borderColor: '#059669' },
-  editBtnText:  { fontSize: 14, fontWeight: '700', color: '#059669' },
+  editBtn:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 46, borderRadius: 14, borderWidth: 1.5, borderColor: COLORS.primaryGreen },
+  editBtnText:  { fontSize: 14, fontWeight: '700', color: COLORS.primaryGreen },
   deleteBtn:    { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 46, borderRadius: 14, backgroundColor: '#EF4444' },
   deleteBtnText:{ fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
 });
@@ -875,7 +867,7 @@ function EditEntryModal({ entry, onClose, onUpdated }: EditEntryModalProps) {
       <View style={em.container}>
         <View style={em.header}>
           <TouchableOpacity style={em.backBtn} onPress={onClose} activeOpacity={0.8}>
-            <Feather name="arrow-left" size={18} color="#052e16" />
+            <Feather name="arrow-left" size={18} color={COLORS.darkGreen} />
           </TouchableOpacity>
           <Text style={em.headerTitle}>Edit Entry</Text>
           <TouchableOpacity style={em.saveBtn} onPress={handleSave} disabled={saving} activeOpacity={0.85}>
@@ -918,13 +910,13 @@ const em = StyleSheet.create({
   container:    { flex: 1, backgroundColor: '#F8FAFC' },
   header:       { flexDirection: 'row', alignItems: 'center', paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, gap: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   backBtn:      { width: 36, height: 36, borderRadius: 12, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
-  headerTitle:  { flex: 1, fontSize: 17, fontWeight: '800', color: '#052e16' },
-  saveBtn:      { backgroundColor: '#059669', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 },
+  headerTitle:  { flex: 1, fontSize: 17, fontWeight: '800', color: COLORS.darkGreen },
+  saveBtn:      { backgroundColor: COLORS.primaryGreen, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 },
   saveBtnText:  { fontSize: 13, fontWeight: '800', color: '#FFFFFF' },
   body:         { padding: 20, gap: 20, paddingBottom: 60 },
   fieldGroup:   { gap: 8 },
   fieldLabel:   { fontSize: 12, fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5 },
-  titleInput:   { backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, color: '#052e16', fontWeight: '600' },
+  titleInput:   { backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, color: COLORS.darkGreen, fontWeight: '600' },
   contentInput: { backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, paddingTop: 13, paddingBottom: 13, fontSize: 14, color: '#1E293B', minHeight: 220, lineHeight: 22 },
 });
 
@@ -991,7 +983,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
       <View style={wz.card}>
         <View style={wz.successHeader}>
           <View style={wz.successIconRing}>
-            <Feather name="check" size={28} color="#10B981" />
+            <Feather name="check" size={28} color={COLORS.mediumGreen} />
           </View>
           <Text style={wz.successTitle}>Journal Entry Saved!</Text>
           <Text style={wz.successSub}>
@@ -1060,7 +1052,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
       {step === 0 && (
         <View style={wz.body}>
           <View style={wz.introCenter}>
-            <Feather name="send" size={22} color="#059669" />
+            <Feather name="send" size={22} color={COLORS.primaryGreen} />
             <Text style={wz.introTitle}>Welcome to Journaling</Text>
             <Text style={wz.introSub}>
               Express your thoughts and feelings in a safe, private space. Our AI will help identify patterns and provide insights.
@@ -1181,7 +1173,7 @@ function WriteWizard({ userId, onComplete }: { userId: number | null; onComplete
         <View style={wz.body}>
           {analyzing ? (
             <View style={wz.analyzingBox}>
-              <ActivityIndicator size="large" color="#059669" />
+              <ActivityIndicator size="large" color={COLORS.primaryGreen} />
               <Text style={wz.analyzingTitle}>AI is analyzing your entry...</Text>
               <Text style={wz.analyzingSubText}>Detecting emotions and themes</Text>
             </View>
@@ -1382,17 +1374,17 @@ const wz = StyleSheet.create({
   card: { backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9', overflow: 'hidden', shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },
   progressHeader: { backgroundColor: '#F8FAFC', borderBottomWidth: 1, borderBottomColor: '#F1F5F9', paddingHorizontal: 18, paddingTop: 16, paddingBottom: 14 },
   progressTitleRow: { marginBottom: 10 },
-  progressTitle: { fontSize: 16, fontWeight: '800', color: '#052e16' },
+  progressTitle: { fontSize: 16, fontWeight: '800', color: COLORS.darkGreen },
   progressStep: { fontSize: 12, color: '#64748B', marginTop: 1 },
   progressBarBg: { height: 6, backgroundColor: '#E2E8F0', borderRadius: 3, overflow: 'hidden', marginBottom: 8 },
-  progressBarFill: { height: 6, backgroundColor: '#059669', borderRadius: 3 },
+  progressBarFill: { height: 6, backgroundColor: COLORS.primaryGreen, borderRadius: 3 },
   stepLabelsRow: { flexDirection: 'row', justifyContent: 'space-between' },
   stepLabel: { fontSize: 10, color: '#94A3B8', fontWeight: '600' },
-  stepLabelActive: { color: '#059669', fontWeight: '700' },
+  stepLabelActive: { color: COLORS.primaryGreen, fontWeight: '700' },
   body: { padding: 16, gap: 12 },
   // Intro step
   introCenter: { alignItems: 'center', gap: 6, paddingVertical: 8 },
-  introTitle: { fontSize: 18, fontWeight: '800', color: '#052e16', textAlign: 'center' },
+  introTitle: { fontSize: 18, fontWeight: '800', color: COLORS.darkGreen, textAlign: 'center' },
   introSub: { fontSize: 12.5, color: '#64748B', textAlign: 'center', lineHeight: 18, maxWidth: 280 },
   introGrid: { gap: 8 },
   introRow: { flexDirection: 'row', gap: 8 },
@@ -1401,16 +1393,16 @@ const wz = StyleSheet.create({
   introCardLabel: { fontSize: 12, fontWeight: '800', color: '#1E1B4B', marginBottom: 3 },
   introCardDesc: { fontSize: 10.5, color: '#64748B', lineHeight: 15 },
   nextStepsCard: { backgroundColor: 'rgba(237,233,254,0.3)', borderRadius: 14, borderWidth: 1, borderColor: '#d1fae5', padding: 14 },
-  nextStepsTitle: { fontSize: 12.5, fontWeight: '800', color: '#052e16' },
+  nextStepsTitle: { fontSize: 12.5, fontWeight: '800', color: COLORS.darkGreen },
   nextStepNum: { fontSize: 12, fontWeight: '700', color: '#047857', width: 14 },
   nextStepText: { fontSize: 12, color: '#475569', flex: 1, lineHeight: 17 },
   // Step row layout
   stepRow: { gap: 12 },
   stepMain: { gap: 6 },
   tipCard: { backgroundColor: 'rgba(237,233,254,0.3)', borderRadius: 14, borderWidth: 1, borderColor: '#d1fae5', padding: 13 },
-  tipTitle: { fontSize: 12, fontWeight: '700', color: '#052e16' },
+  tipTitle: { fontSize: 12, fontWeight: '700', color: COLORS.darkGreen },
   tipText: { fontSize: 11.5, color: '#64748B', lineHeight: 17 },
-  fieldLabel: { fontSize: 14, fontWeight: '700', color: '#052e16' },
+  fieldLabel: { fontSize: 14, fontWeight: '700', color: COLORS.darkGreen },
   textInput: { backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#1E293B' },
   textArea: { backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12, fontSize: 14, color: '#1E293B', minHeight: 160, lineHeight: 21, textAlignVertical: 'top' },
   inputError: { borderColor: '#FCA5A5' },
@@ -1421,43 +1413,43 @@ const wz = StyleSheet.create({
   reviewGrid: { gap: 10 },
   reviewLeft: { gap: 10 },
   aiInsightCard: { backgroundColor: 'rgba(237,233,254,0.3)', borderRadius: 14, borderWidth: 1, borderColor: '#d1fae5', padding: 13 },
-  aiInsightTitle: { fontSize: 12.5, fontWeight: '700', color: '#052e16' },
+  aiInsightTitle: { fontSize: 12.5, fontWeight: '700', color: COLORS.darkGreen },
   aiInsightText: { fontSize: 12, color: '#475569', lineHeight: 17 },
   customTagCard: { backgroundColor: '#F8FAFC', borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0', padding: 13 },
   customTagInput: { flex: 1, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13, color: '#1E293B' },
-  addTagBtn: { backgroundColor: '#052e16', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center', justifyContent: 'center' },
+  addTagBtn: { backgroundColor: COLORS.darkGreen, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center', justifyContent: 'center' },
   addTagBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
   tagSelectCard: { backgroundColor: 'rgba(237,233,254,0.2)', borderRadius: 14, borderWidth: 1, borderColor: '#d1fae5', padding: 13 },
   tagGroupLabel: { fontSize: 11, fontWeight: '700', color: '#475569' },
   tagWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  tagChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#CBD5E1' },
-  tagChipSel: { backgroundColor: '#052e16', borderColor: '#052e16' },
+  tagChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: COLORS.disabledBg },
+  tagChipSel: { backgroundColor: COLORS.darkGreen, borderColor: COLORS.darkGreen },
   tagChipText: { fontSize: 12, fontWeight: '600', color: '#475569' },
   tagChipTextSel: { color: '#FFFFFF' },
-  selTagPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#d1fae5', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4, borderWidth: 1, borderColor: '#a7f3d0' },
+  selTagPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#d1fae5', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4, borderWidth: 1, borderColor: COLORS.lightGreen },
   selTagPillText: { fontSize: 11.5, fontWeight: '600', color: '#065f46' },
   tagPill: { backgroundColor: '#d1fae5', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4 },
   tagPillText: { fontSize: 11.5, fontWeight: '600', color: '#065f46' },
   // Analyzing
   analyzingBox: { alignItems: 'center', paddingVertical: 40, gap: 10 },
-  analyzingTitle: { fontSize: 15, fontWeight: '800', color: '#052e16' },
+  analyzingTitle: { fontSize: 15, fontWeight: '800', color: COLORS.darkGreen },
   analyzingSubText: { fontSize: 12, color: '#94A3B8' },
   // Nav row
   navRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
   prevBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#FFFFFF' },
   prevBtnText: { fontSize: 13.5, fontWeight: '700', color: '#334155' },
-  primaryBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#052e16', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 11 },
+  primaryBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.darkGreen, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 11 },
   primaryBtnText: { fontSize: 13.5, fontWeight: '700', color: '#FFFFFF' },
   outlineBtn: { flex: 1, alignItems: 'center', paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#FFFFFF' },
   outlineBtnText: { fontSize: 14, fontWeight: '700', color: '#334155' },
   // Success screen
   successHeader: { alignItems: 'center', paddingTop: 28, paddingBottom: 18, paddingHorizontal: 20 },
   successIconRing: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#ECFDF5', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  successTitle: { fontSize: 20, fontWeight: '900', color: '#052e16', marginBottom: 4 },
+  successTitle: { fontSize: 20, fontWeight: '900', color: COLORS.darkGreen, marginBottom: 4 },
   successSub: { fontSize: 13, color: '#64748B', textAlign: 'center' },
   summaryCard: { marginHorizontal: 16, marginBottom: 14, backgroundColor: '#F8FAFC', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#E2E8F0' },
   summaryLabel: { fontSize: 9, fontWeight: '800', color: '#94A3B8', letterSpacing: 1, marginBottom: 6 },
-  summaryTitle: { fontSize: 15, fontWeight: '800', color: '#052e16', marginBottom: 4 },
+  summaryTitle: { fontSize: 15, fontWeight: '800', color: COLORS.darkGreen, marginBottom: 4 },
   summaryContent: { fontSize: 12.5, color: '#64748B', lineHeight: 18 },
   sectionLabel: { fontSize: 10, fontWeight: '800', color: '#94A3B8', letterSpacing: 0.8, marginBottom: 8 },
   successBtns: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 },
@@ -1469,44 +1461,31 @@ interface JournalScreenProps { navigation: any; }
 export default function JournalScreen({ navigation }: JournalScreenProps) {
   const [activeTab, setActiveTab] = useState<'write' | 'entries' | 'insights'>('write');
 
-  const [entries, setEntries]         = useState<JournalEntry[]>([]);
-  const [loading, setLoading]         = useState(true);
-  const [refreshing, setRefreshing]   = useState(false);
+  const { userId } = useAuth();
+  const journalQ = useJournal(userId);
+  const entries = useMemo<JournalEntry[]>(
+    () =>
+      [...((journalQ.data ?? []) as JournalEntry[])].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ),
+    [journalQ.data]
+  );
+  const loading = !userId || journalQ.isLoading;
+  const refreshing = journalQ.isRefetching;
+
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [editEntry, setEditEntry]     = useState<JournalEntry | null>(null);
-  const [userId, setUserId]           = useState<number | null>(null);
-  const editMode = editEntry !== null;
 
-  useEffect(() => { loadEntries(); }, []);
-
-  const loadEntries = async () => {
-    try {
-      const userRes = await ApiService.getCurrentUser();
-      if (!userRes.data) return;
-      setUserId(userRes.data.id);
-      const res = await ApiService.getJournalEntries(userRes.data.id);
-      if (res.data) {
-        setEntries([...res.data].sort((a: JournalEntry, b: JournalEntry) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        ));
-      }
-    } catch {}
-    finally { setLoading(false); }
-  };
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await loadEntries();
-    setRefreshing(false);
-  };
+  const loadEntries = () => journalQ.refetch();
+  const onRefresh = () => journalQ.refetch();
 
   const handleEntryUpdated = (updated: JournalEntry) => {
-    setEntries(prev => prev.map(e => e.id === updated.id ? updated : e));
+    journalQ.refetch();
     setSelectedEntry(updated);
   };
 
-  const handleEntryDeleted = (id: number) => {
-    setEntries(prev => prev.filter(e => e.id !== id));
+  const handleEntryDeleted = (_id: number) => {
+    journalQ.refetch();
   };
 
   // ── Computed stats ──
@@ -1529,16 +1508,54 @@ export default function JournalScreen({ navigation }: JournalScreenProps) {
   const habitProgress = Math.min(totalEntries, 30);
   const habitPct = (habitProgress / 30) * 100;
 
-  return (
-    <SafeAreaView style={s.safeArea} edges={['bottom']}>
-      <View style={s.container}>
-        <ScrollView
-          style={{ flex: 1 }}
-          showsVerticalScrollIndicator={false}
-          stickyHeaderIndices={[1]}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* ── Hero Header ── */}
+  const renderEntryCard = ({ item: entry }: { item: JournalEntry }) => (
+    <EntryCard
+      entry={entry}
+      onView={() => setSelectedEntry(entry)}
+      onEdit={() => setEditEntry(entry)}
+      onDelete={() => {
+        Alert.alert('Delete Entry', 'Are you sure?', [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete', style: 'destructive',
+            onPress: async () => {
+              const res = await ApiService.deleteJournalEntry(entry.id);
+              if (res.error) Alert.alert('Error', res.error);
+              else handleEntryDeleted(entry.id);
+            },
+          },
+        ]);
+      }}
+    />
+  );
+
+  const listData = useMemo(() => {
+    const base = [
+      { id: 'header', type: 'header' as const },
+      { id: 'tabs', type: 'tabs' as const },
+    ];
+    if (activeTab === 'write') {
+      return [...base, { id: 'write', type: 'write' as const }];
+    }
+    if (activeTab === 'insights') {
+      return [...base, { id: 'insights', type: 'insights' as const }];
+    }
+    if (activeTab === 'entries') {
+      if (loading) {
+        return [...base, { id: 'loading', type: 'loading' as const }];
+      }
+      if (entries.length === 0) {
+        return [...base, { id: 'empty', type: 'empty' as const }];
+      }
+      return [...base, ...entries.map(e => ({ ...e, type: 'entry' as const }))];
+    }
+    return base;
+  }, [activeTab, loading, entries]);
+
+  const renderItem = useCallback(({ item }: { item: any }) => {
+    switch (item.type) {
+      case 'header':
+        return (
           <View style={s.header}>
             {/* Glow orbs */}
             <View style={s.orb1} />
@@ -1591,8 +1608,9 @@ export default function JournalScreen({ navigation }: JournalScreenProps) {
               <Text style={s.habitFooter}>Keep writing daily to build a strong journaling habit</Text>
             </View>
           </View>
-
-          {/* ── Tab Bar (sticky) ── */}
+        );
+      case 'tabs':
+        return (
           <View style={s.tabBarWrap}>
             <View style={s.tabBar}>
               {[
@@ -1618,73 +1636,69 @@ export default function JournalScreen({ navigation }: JournalScreenProps) {
               ))}
             </View>
           </View>
-
-          {/* ── Write Tab ── */}
-          {activeTab === 'write' && (
+        );
+      case 'write':
+        return (
+          <View style={s.entriesList}>
             <WriteWizard
               userId={userId}
               onComplete={() => { loadEntries(); setActiveTab('entries'); }}
             />
-          )}
+          </View>
+        );
+      case 'loading':
+        return (
+          <View style={s.center}><ActivityIndicator size="large" color={COLORS.primaryGreen} /></View>
+        );
+      case 'empty':
+        return (
+          <View style={s.emptyState}>
+            <View style={s.emptyIconRing}>
+              <Feather name="book-open" size={28} color="#94A3B8" />
+            </View>
+            <Text style={s.emptyTitle}>No Entries Yet</Text>
+            <Text style={s.emptySub}>Switch to Write Entry tab to create your first journal entry.</Text>
+            <TouchableOpacity style={s.emptyBtn} onPress={() => setActiveTab('write')} activeOpacity={0.85}>
+              <Text style={s.emptyBtnText}>Write Now</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      case 'insights':
+        return (
+          <View style={{ paddingTop: 16, paddingBottom: 24 }}>
+            <InsightsPanel entries={entries} />
+          </View>
+        );
+      case 'entry':
+        return (
+          <View style={{ paddingHorizontal: 16, paddingVertical: 6 }}>
+            {renderEntryCard({ item })}
+          </View>
+        );
+      default:
+        return null;
+    }
+  }, [activeTab, loading, entries, habitProgress, habitPct, commonEmotion, uniqueEmotions, userId, totalEntries, refreshing, onRefresh]);
 
-          {/* ── My Journal Tab ── */}
-          {activeTab === 'entries' && (
-            loading ? (
-              <View style={s.center}><ActivityIndicator size="large" color="#059669" /></View>
-            ) : entries.length === 0 ? (
-              <View style={s.emptyState}>
-                <View style={s.emptyIconRing}>
-                  <Feather name="book-open" size={28} color="#94A3B8" />
-                </View>
-                <Text style={s.emptyTitle}>No Entries Yet</Text>
-                <Text style={s.emptySub}>Switch to Write Entry tab to create your first journal entry.</Text>
-                <TouchableOpacity style={s.emptyBtn} onPress={() => setActiveTab('write')} activeOpacity={0.85}>
-                  <Text style={s.emptyBtnText}>Write Now</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <ScrollView
-                contentContainerStyle={s.entriesList}
-                showsVerticalScrollIndicator={false}
-                scrollEnabled={false}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />}
-              >
-                {entries.map(entry => (
-                  <EntryCard
-                    key={entry.id}
-                    entry={entry}
-                    onView={() => setSelectedEntry(entry)}
-                    onEdit={() => setEditEntry(entry)}
-                    onDelete={() => {
-                      Alert.alert('Delete Entry', 'Are you sure?', [
-                        { text: 'Cancel', style: 'cancel' },
-                        {
-                          text: 'Delete', style: 'destructive',
-                          onPress: async () => {
-                            const res = await ApiService.deleteJournalEntry(entry.id);
-                            if (res.error) Alert.alert('Error', res.error);
-                            else handleEntryDeleted(entry.id);
-                          },
-                        },
-                      ]);
-                    }}
-                  />
-                ))}
-              </ScrollView>
-            )
-          )}
+  const keyExtractor = useCallback((item: any) => String(item.id), []);
 
-          {/* ── Insights Tab ── */}
-          {activeTab === 'insights' && (
-            loading ? (
-              <View style={s.center}><ActivityIndicator size="large" color="#059669" /></View>
-            ) : (
-              <View style={{ paddingTop: 16, paddingBottom: 24 }}>
-                <InsightsPanel entries={entries} />
-              </View>
-            )
-          )}
-        </ScrollView>
+  return (
+    <SafeAreaView style={s.safeArea} edges={['bottom']}>
+      <View style={s.container}>
+        <FlatList<any>
+          style={{ flex: 1 }}
+          data={listData}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          showsVerticalScrollIndicator={false}
+          stickyHeaderIndices={[1]}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            activeTab === 'entries' ? (
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primaryGreen} />
+            ) : undefined
+          }
+        />
 
         {/* Modals */}
         <EntryDetailModal
@@ -1738,7 +1752,7 @@ const s = StyleSheet.create({
 
   // Header
   header:      {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     paddingTop: 56, paddingBottom: 24, paddingHorizontal: 20,
     gap: 12, overflow: 'hidden', position: 'relative',
   },
@@ -1768,7 +1782,7 @@ const s = StyleSheet.create({
   tabBarWrap:  { backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   tabBar:      { flexDirection: 'row', backgroundColor: '#F8FAFC', borderRadius: 14, padding: 4, gap: 2 },
   tabItem:     { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 9, borderRadius: 10 },
-  tabItemActive:{ backgroundColor: '#052e16' },
+  tabItemActive:{ backgroundColor: COLORS.darkGreen },
   tabLabel:    { fontSize: 11, fontWeight: '600', color: '#94A3B8' },
   tabLabelActive:{ color: '#FFFFFF' },
 
@@ -1776,20 +1790,20 @@ const s = StyleSheet.create({
   writeContent:   { padding: 16, gap: 12, paddingBottom: 40 },
   formCard:       { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9', padding: 14, gap: 10 },
   fieldLabel:     { fontSize: 11, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.6 },
-  titleInput:     { fontSize: 16, color: '#052e16', fontWeight: '600', paddingVertical: 4 },
+  titleInput:     { fontSize: 16, color: COLORS.darkGreen, fontWeight: '600', paddingVertical: 4 },
   contentInput:   { fontSize: 14, color: '#1E293B', minHeight: 140, lineHeight: 22 },
-  charCount:      { fontSize: 10, color: '#CBD5E1', fontWeight: '600', textAlign: 'right' },
+  charCount:      { fontSize: 10, color: COLORS.disabledBg, fontWeight: '600', textAlign: 'right' },
   promptsScroll:  { gap: 8, paddingBottom: 2 },
-  promptChip:     { backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#a7f3d0', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
+  promptChip:     { backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: COLORS.lightGreen, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
   promptChipText: { fontSize: 11, fontWeight: '600', color: '#047857', maxWidth: 180 },
   tagsWrap:       { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tagChip:        { borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: '#FFFFFF' },
-  tagChipActive:  { backgroundColor: '#059669', borderColor: '#059669' },
+  tagChipActive:  { backgroundColor: COLORS.primaryGreen, borderColor: COLORS.primaryGreen },
   tagChipText:    { fontSize: 11, fontWeight: '700', color: '#475569' },
   tagChipTextActive:{ color: '#FFFFFF' },
-  customTagInput: { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13, color: '#052e16' },
-  saveBtn:        { backgroundColor: '#059669', height: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4 },
-  saveBtnDisabled:{ backgroundColor: '#CBD5E1' },
+  customTagInput: { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13, color: COLORS.darkGreen },
+  saveBtn:        { backgroundColor: COLORS.primaryGreen, height: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4 },
+  saveBtnDisabled:{ backgroundColor: COLORS.disabledBg },
   saveBtnText:    { fontSize: 15, fontWeight: '800', color: '#FFFFFF' },
 
   // Entries
@@ -1799,7 +1813,7 @@ const s = StyleSheet.create({
   emptyIconRing:  { width: 64, height: 64, borderRadius: 32, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
   emptyTitle:     { fontSize: 17, fontWeight: '800', color: '#475569' },
   emptySub:       { fontSize: 13, color: '#94A3B8', textAlign: 'center', lineHeight: 19 },
-  emptyBtn:       { backgroundColor: '#059669', borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12, marginTop: 4 },
+  emptyBtn:       { backgroundColor: COLORS.primaryGreen, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12, marginTop: 4 },
   emptyBtnText:   { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
 
   // Bottom Navbar

@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
@@ -13,10 +13,13 @@ import {
   Alert,
   Switch,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
 import { ApiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useCurrentUser } from '../hooks/queries/useProfile';
+import { useResources } from '../hooks/queries/useResources';
+import { useProtectiveFactors, useCopingStrategies } from '../hooks/queries/useClinical';
+import { useTherapistClients, useTherapistAssignments } from '../hooks/queries/useTherapist';
 
 const { width, height } = Dimensions.get('window');
 
@@ -25,7 +28,7 @@ function renderHTMLContent(html: string) {
   if (!html) return null;
 
   // Normalize block tags
-  let cleanHtml = html
+  const cleanHtml = html
     .trim()
     .replace(/<div[^>]*>/gi, '')
     .replace(/<\/div>/gi, '\n')
@@ -65,11 +68,11 @@ function renderHTMLContent(html: string) {
         const inlineRegex = /(<[^>]+>)/g;
         const parts = block.content.split(inlineRegex);
         
-        let currentStyles: any = {};
+        const currentStyles: any = {};
         
         parts.forEach((part, partIdx) => {
           if (part.startsWith('<')) {
-            const tagName = part.replace(/[<>\/]/g, '').toLowerCase().trim().split(' ')[0];
+            const tagName = part.replace(/[<>/]/g, '').toLowerCase().trim().split(' ')[0];
             const isClosing = part.startsWith('</');
             
             if (tagName === 'strong' || tagName === 'b') {
@@ -143,8 +146,8 @@ function renderHTMLContent(html: string) {
 // ALL RESOURCES TAB — unified searchable list of every resource type
 // ─────────────────────────────────────────────────────────────────────────────
 const TYPE_META = {
-  educational: { label: 'Educational', color: '#059669', bg: '#ecfdf5', icon: 'book-open' as const },
-  protective:  { label: 'Protective Factor', color: '#10B981', bg: '#ECFDF5', icon: 'shield' as const },
+  educational: { label: 'Educational', color: COLORS.primaryGreen, bg: '#ecfdf5', icon: 'book-open' as const },
+  protective:  { label: 'Protective Factor', color: COLORS.mediumGreen, bg: '#ECFDF5', icon: 'shield' as const },
   coping:      { label: 'Coping Strategy', color: '#3B82F6', bg: '#EFF6FF', icon: 'zap' as const },
 };
 
@@ -234,7 +237,7 @@ function AllResourcesTab({
               style={[
                 allStyles.pill,
                 isActive
-                  ? { backgroundColor: theme?.color ?? '#052e16', borderColor: theme?.color ?? '#052e16' }
+                  ? { backgroundColor: theme?.color ?? COLORS.darkGreen, borderColor: theme?.color ?? COLORS.darkGreen }
                   : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' },
               ]}
               onPress={() => setActiveCategory(cat)}
@@ -260,13 +263,13 @@ function AllResourcesTab({
       {/* List */}
       {filtered.length === 0 ? (
         <View style={allStyles.empty}>
-          <Feather name="layers" size={32} color="#CBD5E1" />
+          <Feather name="layers" size={32} color={COLORS.disabledBg} />
           <Text style={allStyles.emptyTitle}>No resources found</Text>
           <Text style={allStyles.emptyDesc}>Try a different search or category.</Text>
         </View>
       ) : (
         filtered.map((item) => {
-          const meta = TYPE_META[item._type];
+          const meta = TYPE_META[item._type as keyof typeof TYPE_META];
           const theme = item._type === 'educational' ? getCategoryTheme(item.category) : null;
           return (
             <TouchableOpacity
@@ -296,7 +299,7 @@ function AllResourcesTab({
                   ) : null}
                 </View>
                 {item._type === 'educational' && (
-                  <Feather name="chevron-right" size={16} color="#CBD5E1" />
+                  <Feather name="chevron-right" size={16} color={COLORS.disabledBg} />
                 )}
               </View>
             </TouchableOpacity>
@@ -349,24 +352,33 @@ const allStyles = StyleSheet.create({
 });
 
 export default function ResourceLibraryScreen() {
-  const [profile, setProfile] = useState<any>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { userId, role } = useAuth();
+  const profileQ = useCurrentUser();
+  const resourcesQ = useResources();
+  const pfQ = useProtectiveFactors(userId);
+  const csQ = useCopingStrategies(userId);
+  const isTherapistRole = role === 'therapist' || role === 'admin';
+  const assignmentsQ = useTherapistAssignments(isTherapistRole);
+  const clientsQ = useTherapistClients(isTherapistRole);
+
+  const profile = profileQ.data?.user ?? profileQ.data;
+  const userRole = role;
+  const loading = profileQ.isLoading || resourcesQ.isLoading || pfQ.isLoading || csQ.isLoading;
   const [activeTab, setActiveTab] = useState<string>('all-resources');
 
-  // Educational resources states
-  const [resources, setResources] = useState<any[]>([]);
+  // Educational resources
+  const resources = resourcesQ.data ?? [];
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedResource, setSelectedResource] = useState<any>(null);
 
-  // Protective Factors & Coping Strategies states
-  const [protectiveFactors, setProtectiveFactors] = useState<any[]>([]);
-  const [copingStrategies, setCopingStrategies] = useState<any[]>([]);
+  // Protective Factors & Coping Strategies
+  const protectiveFactors = pfQ.data ?? [];
+  const copingStrategies = csQ.data ?? [];
 
-  // Client assignments states (for therapists)
-  const [assignments, setAssignments] = useState<any[]>([]);
-  const [clients, setClients] = useState<any[]>([]);
+  // Client assignments (for therapists)
+  const assignments = assignmentsQ.data ?? [];
+  const clients = clientsQ.data ?? [];
 
   // Modal form states for CRUD operations
   const [pfModalVisible, setPfModalVisible] = useState(false);
@@ -394,88 +406,26 @@ export default function ResourceLibraryScreen() {
     profile?.role === 'therapist' || profile?.role === 'admin' ||
     userRole === 'therapist' || userRole === 'admin';
 
-  const fetchProtectiveFactors = async (userId: number) => {
-    try {
-      const response = await ApiService.getProtectiveFactors(userId);
-      setProtectiveFactors(response.data || []);
-    } catch (error) {
-      console.error('Failed to load protective factors:', error);
-    }
-  };
-
-  const fetchCopingStrategies = async (userId: number) => {
-    try {
-      const response = await ApiService.getCopingStrategies(userId);
-      setCopingStrategies(response.data || []);
-    } catch (error) {
-      console.error('Failed to load coping strategies:', error);
-    }
-  };
-
-  const fetchAssignments = async () => {
-    try {
-      const response = await ApiService.getTherapistAssignments();
-      setAssignments(response.data || []);
-    } catch (error) {
-      console.error('Failed to load client assignments:', error);
-    }
-  };
-
-  const fetchClients = async () => {
-    try {
-      const response = await ApiService.getTherapistClients();
-      setClients(response.data || []);
-    } catch (error) {
-      console.error('Failed to load therapist clients:', error);
-    }
-  };
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const userRes = await ApiService.getCurrentUser();
-      const user = userRes.data?.user || userRes.data;
-      setProfile(user);
-
-      const resResponse = await ApiService.getResources();
-      setResources(resResponse.data || []);
-
-      if (user) {
-        await fetchProtectiveFactors(user.id);
-        await fetchCopingStrategies(user.id);
-
-        if (user.role === 'therapist' || user.role === 'admin') {
-          await fetchAssignments();
-          await fetchClients();
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load Resource Library data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    SecureStore.getItemAsync('userRole').then((r) => { if (r) setUserRole(r); });
-    loadData();
-  }, []);
+  // Refetch aliases — mutation handlers call these after create/update/delete.
+  const fetchProtectiveFactors = (_userId?: number) => pfQ.refetch();
+  const fetchCopingStrategies = (_userId?: number) => csQ.refetch();
+  const fetchAssignments = () => assignmentsQ.refetch();
 
   // Theme mapper helper based on clinical categories
   const getCategoryTheme = (cat: string) => {
     const category = cat?.toLowerCase() || '';
     if (category.includes('cbt basics')) {
-      return { color: '#059669', icon: 'brain', iconFamily: 'MaterialCommunityIcons', lightBg: '#ecfdf5', textColor: '#064e3b' };
+      return { color: COLORS.primaryGreen, icon: 'brain', iconFamily: 'MaterialCommunityIcons', lightBg: '#ecfdf5', textColor: '#064e3b' };
     } else if (category.includes('anxiety')) {
       return { color: '#EF4444', icon: 'activity', iconFamily: 'Feather', lightBg: '#FEF2F2', textColor: '#991B1B' };
     } else if (category.includes('depression')) {
       return { color: '#3B82F6', icon: 'heart', iconFamily: 'Feather', lightBg: '#EFF6FF', textColor: '#1E40AF' };
     } else if (category.includes('stress')) {
-      return { color: '#10B981', icon: 'shield', iconFamily: 'Feather', lightBg: '#ECFDF5', textColor: '#065F46' };
+      return { color: COLORS.mediumGreen, icon: 'shield', iconFamily: 'Feather', lightBg: '#ECFDF5', textColor: '#065F46' };
     } else if (category.includes('mindfulness')) {
       return { color: '#F59E0B', icon: 'sun', iconFamily: 'Feather', lightBg: '#FFFBEB', textColor: '#854D0E' };
     } else if (category.includes('self care')) {
-      return { color: '#10B981', icon: 'smile', iconFamily: 'Feather', lightBg: '#ECFDF5', textColor: '#065F46' };
+      return { color: COLORS.mediumGreen, icon: 'smile', iconFamily: 'Feather', lightBg: '#ECFDF5', textColor: '#065F46' };
     } else if (category.includes('relationship')) {
       return { color: '#EC4899', icon: 'users', iconFamily: 'Feather', lightBg: '#FDF2F8', textColor: '#9D174D' };
     } else if (category.includes('regulation') || category.includes('emotional regulation')) {
@@ -783,13 +733,13 @@ export default function ResourceLibraryScreen() {
                   setAssignModalVisible(true);
                 }}
               >
-                <Feather name="user-check" size={13} color="#059669" />
+                <Feather name="user-check" size={13} color={COLORS.primaryGreen} />
                 <Text style={styles.cardActionBtnMiniText}>Assign</Text>
               </TouchableOpacity>
             )}
             <View style={styles.actionLinkRow}>
               <Text style={styles.readMoreText}>Open Tool</Text>
-              <Feather name="chevron-right" size={14} color="#059669" style={{ marginLeft: 2 }} />
+              <Feather name="chevron-right" size={14} color={COLORS.primaryGreen} style={{ marginLeft: 2 }} />
             </View>
           </View>
         </View>
@@ -800,7 +750,7 @@ export default function ResourceLibraryScreen() {
   const renderItemCard = (item: any, type: 'factor' | 'strategy') => {
     const isGlobal = item.isGlobal;
     const isPersonal = item.userId === profile?.id || (!isGlobal && item.userId);
-    const accentColor = isGlobal ? '#10B981' : '#059669';
+    const accentColor = isGlobal ? COLORS.mediumGreen : COLORS.primaryGreen;
     const lightBg = isGlobal ? '#ECFDF5' : '#ecfdf5';
 
     return (
@@ -844,7 +794,7 @@ export default function ResourceLibraryScreen() {
     let statusColor = '#D97706';
     let statusBg = '#FEF3C7';
     if (status === 'completed') {
-      statusColor = '#059669';
+      statusColor = COLORS.primaryGreen;
       statusBg = '#D1FAE5';
     } else if (status === 'in_progress') {
       statusColor = '#2563EB';
@@ -865,7 +815,7 @@ export default function ResourceLibraryScreen() {
         <View style={styles.assignmentMetaRow}>
           <View style={styles.clientLabelRow}>
             <View style={styles.clientAvatarMini}>
-              <Feather name="user" size={11} color="#052e16" />
+              <Feather name="user" size={11} color={COLORS.darkGreen} />
             </View>
             <Text style={styles.clientNameText}>
               {assignment.client?.name || assignment.client?.username || 'Client'}
@@ -900,7 +850,7 @@ export default function ResourceLibraryScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color={COLORS.primaryGreen} />
         <Text style={styles.loadingText}>Opening Resource Library...</Text>
       </View>
     );
@@ -1006,7 +956,7 @@ export default function ResourceLibraryScreen() {
                       style={[
                         styles.categoryButton,
                         isSelected 
-                          ? { backgroundColor: '#052e16', borderColor: '#052e16' }
+                          ? { backgroundColor: COLORS.darkGreen, borderColor: COLORS.darkGreen }
                           : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' }
                       ]}
                       onPress={() => setActiveCategory(cat)}
@@ -1158,7 +1108,7 @@ export default function ResourceLibraryScreen() {
       <Modal
         visible={selectedResource !== null}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setSelectedResource(null)}
       >
         <View style={styles.modalBackdrop}>
@@ -1230,7 +1180,7 @@ export default function ResourceLibraryScreen() {
       <Modal
         visible={pfModalVisible}
         animationType="fade"
-        transparent={true}
+        transparent
         onRequestClose={() => setPfModalVisible(false)}
       >
         <View style={styles.dialogBackdrop}>
@@ -1263,7 +1213,7 @@ export default function ResourceLibraryScreen() {
                 placeholderTextColor="#94A3B8"
                 value={pfDescription}
                 onChangeText={setPfDescription}
-                multiline={true}
+                multiline
                 numberOfLines={3}
               />
             </View>
@@ -1277,8 +1227,8 @@ export default function ResourceLibraryScreen() {
                 <Switch
                   value={pfIsGlobal}
                   onValueChange={setPfIsGlobal}
-                  trackColor={{ false: '#CBD5E1', true: '#A78BFA' }}
-                  thumbColor={pfIsGlobal ? '#059669' : '#F1F5F9'}
+                  trackColor={{ false: COLORS.disabledBg, true: '#A78BFA' }}
+                  thumbColor={pfIsGlobal ? COLORS.primaryGreen : '#F1F5F9'}
                 />
               </View>
             )}
@@ -1311,7 +1261,7 @@ export default function ResourceLibraryScreen() {
       <Modal
         visible={csModalVisible}
         animationType="fade"
-        transparent={true}
+        transparent
         onRequestClose={() => setCsModalVisible(false)}
       >
         <View style={styles.dialogBackdrop}>
@@ -1344,7 +1294,7 @@ export default function ResourceLibraryScreen() {
                 placeholderTextColor="#94A3B8"
                 value={csDescription}
                 onChangeText={setCsDescription}
-                multiline={true}
+                multiline
                 numberOfLines={3}
               />
             </View>
@@ -1358,8 +1308,8 @@ export default function ResourceLibraryScreen() {
                 <Switch
                   value={csIsGlobal}
                   onValueChange={setCsIsGlobal}
-                  trackColor={{ false: '#CBD5E1', true: '#A78BFA' }}
-                  thumbColor={csIsGlobal ? '#059669' : '#F1F5F9'}
+                  trackColor={{ false: COLORS.disabledBg, true: '#A78BFA' }}
+                  thumbColor={csIsGlobal ? COLORS.primaryGreen : '#F1F5F9'}
                 />
               </View>
             )}
@@ -1392,7 +1342,7 @@ export default function ResourceLibraryScreen() {
       <Modal
         visible={assignModalVisible}
         animationType="fade"
-        transparent={true}
+        transparent
         onRequestClose={() => setAssignModalVisible(false)}
       >
         <View style={styles.dialogBackdrop}>
@@ -1415,7 +1365,7 @@ export default function ResourceLibraryScreen() {
                 <Text style={{ fontSize: 12, color: '#94A3B8' }}>No clients found</Text>
               </View>
             ) : (
-              <ScrollView style={styles.clientSelectScroll} nestedScrollEnabled={true}>
+              <ScrollView style={styles.clientSelectScroll} nestedScrollEnabled>
                 {clients.map(client => {
                   const isSelected = selectedClientId === client.id;
                   return (
@@ -1435,7 +1385,7 @@ export default function ResourceLibraryScreen() {
                         </Text>
                         <Text style={styles.clientSelectUsername}>@{client.username}</Text>
                       </View>
-                      {isSelected && <Feather name="check-circle" size={16} color="#059669" />}
+                      {isSelected && <Feather name="check-circle" size={16} color={COLORS.primaryGreen} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -1450,7 +1400,7 @@ export default function ResourceLibraryScreen() {
                 placeholderTextColor="#94A3B8"
                 value={assignNotes}
                 onChangeText={setAssignNotes}
-                multiline={true}
+                multiline
                 numberOfLines={3}
               />
             </View>
@@ -1508,10 +1458,10 @@ const styles = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 18,
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#052e16',
+    shadowColor: COLORS.darkGreen,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
@@ -1542,11 +1492,11 @@ const styles = StyleSheet.create({
   heroCard: {
     height: 170,
     borderRadius: 24,
-    backgroundColor: '#052e16', // Brand deep purple
+    backgroundColor: COLORS.darkGreen, // Brand deep purple
     padding: 16,
     justifyContent: 'space-between',
     overflow: 'hidden',
-    shadowColor: '#052e16',
+    shadowColor: COLORS.darkGreen,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -1572,7 +1522,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   heroBadgeText: {
-    color: '#052e16',
+    color: COLORS.darkGreen,
     fontSize: 10,
     fontWeight: 'bold',
   },
@@ -1749,7 +1699,7 @@ const styles = StyleSheet.create({
   },
   readMoreText: {
     fontSize: 12,
-    color: '#059669',
+    color: COLORS.primaryGreen,
     fontWeight: 'bold',
   },
   cardActionBtnMini: {
@@ -1765,7 +1715,7 @@ const styles = StyleSheet.create({
   cardActionBtnMiniText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#059669',
+    color: COLORS.primaryGreen,
     marginLeft: 4,
   },
 
@@ -1891,7 +1841,7 @@ const styles = StyleSheet.create({
   htmlH1: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     lineHeight: 26,
     marginTop: 18,
     marginBottom: 10,
@@ -1899,7 +1849,7 @@ const styles = StyleSheet.create({
   htmlH2: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     lineHeight: 23,
     marginTop: 14,
     marginBottom: 8,
@@ -1907,7 +1857,7 @@ const styles = StyleSheet.create({
   htmlH3: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     lineHeight: 20,
     marginTop: 12,
     marginBottom: 6,
@@ -1920,7 +1870,7 @@ const styles = StyleSheet.create({
   },
   htmlBullet: {
     fontSize: 14.5,
-    color: '#059669',
+    color: COLORS.primaryGreen,
     lineHeight: 22,
     marginRight: 6,
   },
@@ -1939,7 +1889,7 @@ const styles = StyleSheet.create({
   },
   modalAssignBtn: {
     flexDirection: 'row',
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     paddingVertical: 12,
     borderRadius: 14,
     alignItems: 'center',
@@ -1978,7 +1928,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   tabBtnActive: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
   },
   tabBtnText: {
     fontSize: 13,
@@ -2001,7 +1951,7 @@ const styles = StyleSheet.create({
   tabTitleText: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
   },
   tabSubtitleText: {
     fontSize: 12.5,
@@ -2013,7 +1963,7 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
@@ -2166,7 +2116,7 @@ const styles = StyleSheet.create({
   assignmentNotesTitle: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     marginBottom: 2,
   },
   assignmentNotesText: {
@@ -2220,7 +2170,7 @@ const styles = StyleSheet.create({
   dialogTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
   },
   dialogField: {
     marginBottom: 14,
@@ -2255,7 +2205,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: COLORS.lightGreen,
     marginBottom: 16,
   },
   switchTextWrap: {
@@ -2292,7 +2242,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   dialogSaveBtn: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 12,
@@ -2343,7 +2293,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   clientAvatarCircleSelected: {
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
   },
   clientAvatarCircleText: {
     fontSize: 10,
@@ -2359,7 +2309,7 @@ const styles = StyleSheet.create({
     color: '#334155',
   },
   clientSelectNameSelected: {
-    color: '#059669',
+    color: COLORS.primaryGreen,
     fontWeight: '700',
   },
   clientSelectUsername: {

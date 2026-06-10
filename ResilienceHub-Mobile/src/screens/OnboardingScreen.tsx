@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   SafeAreaView,
   Alert,
 } from 'react-native';
-import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
-
-const { width } = Dimensions.get('window');
 
 interface OnboardingScreenProps {
   navigation: any;
@@ -58,7 +56,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           description: "Get real-time insights into your clients' journals, thought records, goals, and CBT restructuring practices.",
           icon: "analytics-outline",
           iconFamily: "Ionicons",
-          color: "#10B981",
+          color: COLORS.mediumGreen,
         },
         {
           title: "Resource Control",
@@ -159,8 +157,8 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
               selectedRole === 'therapist' && styles.roleCardActive,
             ]}
           >
-            <View style={[styles.roleCardIconBox, selectedRole === 'therapist' && { backgroundColor: 'rgba(16, 185, 129, 0.15)', borderColor: '#10B981' }]}>
-              <Ionicons name="medical-outline" size={26} color={selectedRole === 'therapist' ? '#10B981' : 'rgba(255,255,255,0.4)'} />
+            <View style={[styles.roleCardIconBox, selectedRole === 'therapist' && { backgroundColor: 'rgba(16, 185, 129, 0.15)', borderColor: COLORS.mediumGreen }]}>
+              <Ionicons name="medical-outline" size={26} color={selectedRole === 'therapist' ? COLORS.mediumGreen : 'rgba(255,255,255,0.4)'} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.roleCardTitle, selectedRole === 'therapist' && styles.textWhite]}>I am a Therapist</Text>
@@ -197,12 +195,12 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     return (
       <View style={styles.stepContent}>
         <View style={styles.iconHeaderBgFinal}>
-          <Ionicons name="checkmark-circle-outline" size={56} color="#10B981" />
+          <Ionicons name="checkmark-circle-outline" size={56} color={COLORS.mediumGreen} />
         </View>
         <Text style={styles.mainTitle}>You're All Set!</Text>
         <Text style={styles.mainSubtitle}>
           Your ResilienceHub portal is ready. Sign in to begin your mental wellness experience as a{' '}
-          <Text style={{ color: selectedRole === 'client' ? '#3B82F6' : '#10B981', fontWeight: 'bold' }}>
+          <Text style={{ color: selectedRole === 'client' ? '#3B82F6' : COLORS.mediumGreen, fontWeight: 'bold' }}>
             {selectedRole === 'client' ? 'Client' : 'Clinician Therapist'}
           </Text>.
         </Text>
@@ -267,7 +265,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           activeOpacity={0.8}
           style={[
             styles.actionButton,
-            currentStep === totalSteps - 1 && { backgroundColor: '#10B981' },
+            currentStep === totalSteps - 1 && { backgroundColor: COLORS.mediumGreen },
           ]}
         >
           <Text style={styles.actionButtonText}>
@@ -288,7 +286,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#052e16', // Premium dark theme background
+    backgroundColor: COLORS.darkGreen, // Premium dark theme background
   },
   topBar: {
     flexDirection: 'row',
@@ -328,7 +326,7 @@ const styles = StyleSheet.create({
   },
   progressBarDotActive: {
     width: 18,
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
   },
   progressBarDotCompleted: {
     backgroundColor: 'rgba(5, 150, 105, 0.4)',
@@ -393,7 +391,7 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   roleCardActive: {
-    borderColor: '#059669',
+    borderColor: COLORS.primaryGreen,
     backgroundColor: 'rgba(5, 150, 105, 0.08)',
   },
   roleCardIconBox: {
@@ -433,7 +431,7 @@ const styles = StyleSheet.create({
   slideSubtitle: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#059669',
+    color: COLORS.primaryGreen,
     letterSpacing: 1.5,
     marginBottom: 6,
   },
@@ -473,14 +471,14 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   actionButton: {
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primaryGreen,
     borderRadius: 16,
     paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    shadowColor: '#059669',
+    shadowColor: COLORS.primaryGreen,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

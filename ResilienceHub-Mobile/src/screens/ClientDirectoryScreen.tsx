@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
@@ -10,14 +11,14 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { ApiService } from '../services/api';
+import { useTherapistClients, useInvitations } from '../hooks/queries/useTherapist';
 
 const { width } = Dimensions.get('window');
 
 const AVATAR_PALETTES = [
-  { bg: '#ecfdf5', text: '#065f46', border: '#a7f3d0' },
+  { bg: '#ecfdf5', text: '#065f46', border: COLORS.lightGreen },
   { bg: '#EEF2FF', text: '#3730A3', border: '#C7D2FE' },
   { bg: '#FDF4FF', text: '#86198F', border: '#F0ABFC' },
   { bg: '#F0FDF4', text: '#166534', border: '#86EFAC' },
@@ -50,40 +51,25 @@ function timeAgo(dateStr: string | undefined) {
 
 const ACTIVITY_CHIPS = [
   { key: 'emotionsCount', icon: 'heart',     color: '#3B82F6', bg: '#EFF6FF' },
-  { key: 'thoughtsCount', icon: 'cpu',       color: '#059669', bg: '#ecfdf5' },
+  { key: 'thoughtsCount', icon: 'cpu',       color: COLORS.primaryGreen, bg: '#ecfdf5' },
   { key: 'journalsCount', icon: 'book-open', color: '#F59E0B', bg: '#FFFBEB' },
-  { key: 'goalsCount',    icon: 'target',    color: '#10B981', bg: '#F0FDF4' },
+  { key: 'goalsCount',    icon: 'target',    color: COLORS.mediumGreen, bg: '#F0FDF4' },
 ] as const;
 
 export default function ClientDirectoryScreen({ navigation }: { navigation: any }) {
-  const [loading, setLoading] = useState(true);
-  const [clients, setClients] = useState<any[]>([]);
-  const [invitations, setInvitations] = useState<any[]>([]);
+  const clientsQ = useTherapistClients();
+  const invitationsQ = useInvitations();
+  const clients = clientsQ.data ?? [];
+  const invitations = invitationsQ.data ?? [];
+  const loading = clientsQ.isLoading || invitationsQ.isLoading;
+  const fetchData = () => {
+    clientsQ.refetch();
+    invitationsQ.refetch();
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'directory' | 'invitations'>('directory');
   const [resendingId, setResendingId] = useState<number | null>(null);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const [clientsRes, invitationsRes] = await Promise.all([
-        ApiService.getTherapistClients(),
-        ApiService.getInvitations(),
-      ]);
-      setClients(clientsRes.data || []);
-      setInvitations(invitationsRes.data || []);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      setLoading(true);
-      fetchData();
-    }, [fetchData])
-  );
 
   const pendingInvitations = (invitations || []).filter((inv: any) => {
     if (inv.status !== 'pending' && inv.status !== 'email_sent') return false;
@@ -105,7 +91,6 @@ export default function ClientDirectoryScreen({ navigation }: { navigation: any 
 
   const totalClients = clients.length;
   const activeClients = clients.filter((c: any) => c.status === 'active').length;
-  const inactiveClients = totalClients - activeClients;
   const activeRate = totalClients > 0 ? Math.round((activeClients / totalClients) * 100) : 0;
   const pendingCount = uniqueInvitations.length;
 
@@ -163,7 +148,7 @@ export default function ClientDirectoryScreen({ navigation }: { navigation: any 
           {/* Last activity */}
           {lastActivity && (
             <View style={styles.lastActivityRow}>
-              <Feather name="clock" size={10} color="#CBD5E1" />
+              <Feather name="clock" size={10} color={COLORS.disabledBg} />
               <Text style={styles.lastActivityText}>{lastActivity}</Text>
             </View>
           )}
@@ -186,7 +171,7 @@ export default function ClientDirectoryScreen({ navigation }: { navigation: any 
         </View>
 
         {/* Right: chevron */}
-        <Feather name="chevron-right" size={16} color="#CBD5E1" />
+        <Feather name="chevron-right" size={16} color={COLORS.disabledBg} />
       </TouchableOpacity>
     );
   };
@@ -223,8 +208,8 @@ export default function ClientDirectoryScreen({ navigation }: { navigation: any 
           activeOpacity={0.75}
         >
           {resendingId === inv.id
-            ? <ActivityIndicator size="small" color="#059669" />
-            : <><Feather name="send" size={12} color="#059669" /><Text style={styles.resendBtnText}>Resend</Text></>
+            ? <ActivityIndicator size="small" color={COLORS.primaryGreen} />
+            : <><Feather name="send" size={12} color={COLORS.primaryGreen} /><Text style={styles.resendBtnText}>Resend</Text></>
           }
         </TouchableOpacity>
       </View>
@@ -294,7 +279,7 @@ export default function ClientDirectoryScreen({ navigation }: { navigation: any 
       {/* ── BODY ──────────────────────────────────────────────────── */}
       {loading ? (
         <View style={styles.loadingBox}>
-          <ActivityIndicator size="large" color="#059669" />
+          <ActivityIndicator size="large" color={COLORS.primaryGreen} />
           <Text style={styles.loadingText}>Syncing practice data…</Text>
         </View>
       ) : activeTab === 'directory' ? (
@@ -322,7 +307,7 @@ export default function ClientDirectoryScreen({ navigation }: { navigation: any 
 
           {/* Results count / hint */}
           <View style={styles.hintRow}>
-            <Feather name="info" size={10} color="#CBD5E1" />
+            <Feather name="info" size={10} color={COLORS.disabledBg} />
             <Text style={styles.hintText}>
               {searchTerm
                 ? `${filteredClients.length} result${filteredClients.length !== 1 ? 's' : ''} for "${searchTerm}"`
@@ -332,7 +317,7 @@ export default function ClientDirectoryScreen({ navigation }: { navigation: any 
 
           {filteredClients.length === 0 ? (
             <View style={styles.emptyBox}>
-              <View style={styles.emptyIcon}><Feather name="users" size={30} color="#CBD5E1" /></View>
+              <View style={styles.emptyIcon}><Feather name="users" size={30} color={COLORS.disabledBg} /></View>
               <Text style={styles.emptyTitle}>No clients found</Text>
               <Text style={styles.emptyDesc}>Try a different search or send an invite.</Text>
             </View>
@@ -351,7 +336,7 @@ export default function ClientDirectoryScreen({ navigation }: { navigation: any 
         <>
           <View style={styles.pendingHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Feather name="clock" size={14} color="#059669" />
+              <Feather name="clock" size={14} color={COLORS.primaryGreen} />
               <Text style={styles.pendingTitle}>Pending Connections</Text>
               <View style={styles.pendingBadge}>
                 <Text style={styles.pendingBadgeText}>{pendingCount}</Text>
@@ -389,7 +374,7 @@ const styles = StyleSheet.create({
 
   // ── Hero header ──────────────────────────────────────────────────
   hero: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 18,
@@ -439,7 +424,7 @@ const styles = StyleSheet.create({
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     paddingVertical: 9, borderRadius: 12, gap: 6,
   },
-  tabBtnActive: { backgroundColor: '#052e16' },
+  tabBtnActive: { backgroundColor: COLORS.darkGreen },
   tabBtnText: { fontSize: 12, fontWeight: '700', color: '#64748B' },
   tabBtnTextActive: { color: '#FFFFFF' },
   tabCount: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10, backgroundColor: '#F1F5F9' },
@@ -488,8 +473,8 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: 1, right: 1,
     width: 10, height: 10, borderRadius: 5, borderWidth: 2, borderColor: '#FFFFFF',
   },
-  avatarStatusActive: { backgroundColor: '#10B981' },
-  avatarStatusInactive: { backgroundColor: '#CBD5E1' },
+  avatarStatusActive: { backgroundColor: COLORS.mediumGreen },
+  avatarStatusInactive: { backgroundColor: COLORS.disabledBg },
 
   // Card body
   cardBody: { flex: 1, gap: 3 },
@@ -500,13 +485,13 @@ const styles = StyleSheet.create({
   statusPillActive: { backgroundColor: '#DCFCE7' },
   statusPillInactive: { backgroundColor: '#F1F5F9' },
   statusPillText: { fontSize: 9, fontWeight: '800' },
-  statusPillTextActive: { color: '#059669' },
+  statusPillTextActive: { color: COLORS.primaryGreen },
   statusPillTextInactive: { color: '#94A3B8' },
 
   cardEmail: { fontSize: 11, color: '#94A3B8' },
 
   lastActivityRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
-  lastActivityText: { fontSize: 10, color: '#CBD5E1', fontWeight: '500' },
+  lastActivityText: { fontSize: 10, color: COLORS.disabledBg, fontWeight: '500' },
 
   chipsRow: { flexDirection: 'row', gap: 5, marginTop: 6 },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 8 },
@@ -527,7 +512,7 @@ const styles = StyleSheet.create({
   },
   invAvatar: {
     width: 44, height: 44, borderRadius: 13,
-    backgroundColor: '#ecfdf5', borderWidth: 1.5, borderColor: '#a7f3d0',
+    backgroundColor: '#ecfdf5', borderWidth: 1.5, borderColor: COLORS.lightGreen,
     alignItems: 'center', justifyContent: 'center', marginRight: 12,
   },
   invAvatarText: { fontSize: 13, fontWeight: 'bold', color: '#065f46' },
@@ -542,7 +527,7 @@ const styles = StyleSheet.create({
   invTimeText: { fontSize: 10, color: '#94A3B8', fontWeight: '500' },
   resendBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    borderWidth: 1, borderColor: '#a7f3d0', borderRadius: 10,
+    borderWidth: 1, borderColor: COLORS.lightGreen, borderRadius: 10,
     paddingHorizontal: 10, paddingVertical: 7,
     backgroundColor: '#ecfdf5',
   },

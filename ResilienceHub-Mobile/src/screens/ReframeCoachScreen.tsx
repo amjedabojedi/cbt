@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { COLORS } from '../styles/theme';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
+  FlatList,
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
@@ -25,6 +27,9 @@ import Svg, {
 } from 'react-native-svg';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { ApiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useReframePractices, useReframeProfile } from '../hooks/queries/useReframe';
+import { useThoughts } from '../hooks/queries/useThoughts';
 
 const { width } = Dimensions.get('window');
 
@@ -40,12 +45,18 @@ type Tab = 'practice' | 'history' | 'insights';
 
 export default function ReframeCoachScreen({ navigation, route }: ReframeCoachScreenProps) {
   // ── Data ──────────────────────────────────────────────────────────────────
-  const [userId, setUserId] = useState<number | null>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [practices, setPractices] = useState<any[]>([]);
-  const [thoughtRecords, setThoughtRecords] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const { userId } = useAuth();
+  const profileQ = useReframeProfile(userId);
+  const practicesQ = useReframePractices(userId);
+  const thoughtsQ = useThoughts(userId);
+  const profile = profileQ.data ?? null;
+  const practices = practicesQ.data ?? [];
+  const thoughtRecords = useMemo(
+    () => ((thoughtsQ.data ?? []) as any[]).filter((t: any) => t.automaticThoughts?.trim().length >= 10),
+    [thoughtsQ.data]
+  );
+  const loading = !userId || profileQ.isLoading || practicesQ.isLoading || thoughtsQ.isLoading;
+  const refreshing = profileQ.isRefetching || practicesQ.isRefetching || thoughtsQ.isRefetching;
 
   // ── Navigation ────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<Tab>('practice');
@@ -74,36 +85,11 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
   // DATA
   // ═══════════════════════════════════════════════════════════════════════════
 
-  const loadData = async () => {
-    try {
-      const userRes = await ApiService.getCurrentUser();
-      if (!userRes.data) return;
-      const uid = userRes.data.id;
-      setUserId(uid);
-
-      const [profileRes, practicesRes, thoughtsRes] = await Promise.all([
-        ApiService.getReframeProfile(uid),
-        ApiService.getReframePractices(uid),
-        ApiService.getThoughtRecords(uid),
-      ]);
-
-      if (profileRes.data) setProfile(profileRes.data);
-      if (practicesRes.data) setPractices(practicesRes.data);
-      if (thoughtsRes.data)
-        setThoughtRecords(
-          thoughtsRes.data.filter(
-            (t: any) => t.automaticThoughts?.trim().length >= 10
-          )
-        );
-    } catch (err) {
-      console.error('ReframeCoach load error:', err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+  const loadData = () => {
+    profileQ.refetch();
+    practicesQ.refetch();
+    thoughtsQ.refetch();
   };
-
-  useEffect(() => { loadData(); }, []);
 
   // Auto-start quiz when navigated from ThoughtRecordScreen
   useFocusEffect(
@@ -120,7 +106,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
     }, [route?.params?.practiceThoughtId, userId, thoughtRecords.length, practiceState])
   );
 
-  const onRefresh = () => { setRefreshing(true); loadData(); };
+  const onRefresh = () => { loadData(); };
 
   // ═══════════════════════════════════════════════════════════════════════════
   // PRACTICE FLOW
@@ -216,7 +202,6 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
     setSelectedThought(null);
     setScenarios([]);
     setPracticeState('browse');
-    setLoading(true);
     loadData();
   };
 
@@ -248,7 +233,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
   if (loading) {
     return (
       <View style={s.centered}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color={COLORS.primaryGreen} />
         <Text style={s.loadingTitle}>Opening Reframe Coach...</Text>
       </View>
     );
@@ -372,29 +357,27 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
     return renderBrowse();
   }
 
-  // ── Browse (thought records list) ─────────────────────────────────────────
   function renderBrowse() {
-    return (
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />
-        }
-      >
-        <View style={s.card}>
-          <View style={s.cardHeader}>
-            <Text style={s.cardTitle}>Your Thought Records</Text>
-            <Text style={s.cardDesc}>
-              Select a thought record to practice cognitive reframing
-            </Text>
-          </View>
-
-          {thoughtRecords.length === 0 ? (
+    if (thoughtRecords.length === 0) {
+      return (
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primaryGreen} />
+          }
+        >
+          <View style={s.card}>
+            <View style={s.cardHeader}>
+              <Text style={s.cardTitle}>Your Thought Records</Text>
+              <Text style={s.cardDesc}>
+                Select a thought record to practice cognitive reframing
+              </Text>
+            </View>
             <View style={s.emptyState}>
               <View style={s.emptyIconCircle}>
-                <Feather name="shield" size={28} color="#059669" />
+                <Feather name="shield" size={28} color={COLORS.primaryGreen} />
               </View>
               <Text style={s.emptyTitle}>No Thought Records Yet</Text>
               <Text style={s.emptyDesc}>
@@ -407,50 +390,75 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
                 <Text style={s.emptyBtnText}>Create Your First Thought Record</Text>
               </TouchableOpacity>
             </View>
-          ) : (
-            <View style={{ padding: 12, gap: 12 }}>
-              {thoughtRecords.map((thought: any) => {
-                const distortions: string[] =
-                  thought.thoughtCategory || thought.cognitiveDistortions || [];
-                return (
-                  <View key={thought.id} style={s.thoughtCard}>
-                    <Text style={s.thoughtQuote} numberOfLines={3}>
-                      "{thought.automaticThoughts}"
-                    </Text>
+          </View>
+        </ScrollView>
+      );
+    }
 
-                    {distortions.length > 0 && (
-                      <View style={s.pillRow}>
-                        {distortions.slice(0, 3).map((d: string) => (
-                          <View key={d} style={s.pill}>
-                            <Text style={s.pillText}>{fmtDistortion(d)}</Text>
-                          </View>
-                        ))}
-                        {distortions.length > 3 && (
-                          <View style={s.pill}>
-                            <Text style={s.pillText}>+{distortions.length - 3}</Text>
-                          </View>
-                        )}
+    return (
+      <FlatList
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primaryGreen} />
+        }
+        data={thoughtRecords}
+        keyExtractor={(item: any) => String(item.id)}
+        ListHeaderComponent={
+          <View style={[s.card, { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomWidth: 0 }]}>
+            <View style={s.cardHeader}>
+              <Text style={s.cardTitle}>Your Thought Records</Text>
+              <Text style={s.cardDesc}>
+                Select a thought record to practice cognitive reframing
+              </Text>
+            </View>
+            <View style={{ height: 12 }} />
+          </View>
+        }
+        ListFooterComponent={
+          <View style={[s.card, { borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopWidth: 0, height: 12 }]} />
+        }
+        renderItem={({ item: thought }: { item: any }) => {
+          const distortions: string[] = thought.thoughtCategory || thought.cognitiveDistortions || [];
+          return (
+            <View style={[s.card, { borderRadius: 0, borderTopWidth: 0, borderBottomWidth: 0, paddingHorizontal: 12, paddingVertical: 6 }]}>
+              <View style={s.thoughtCard}>
+                <Text style={s.thoughtQuote} numberOfLines={3}>
+                  "{thought.automaticThoughts}"
+                </Text>
+
+                {distortions.length > 0 && (
+                  <View style={s.pillRow}>
+                    {distortions.slice(0, 3).map((d: string) => (
+                      <View key={d} style={s.pill}>
+                        <Text style={s.pillText}>{fmtDistortion(d)}</Text>
+                      </View>
+                    ))}
+                    {distortions.length > 3 && (
+                      <View style={s.pill}>
+                        <Text style={s.pillText}>+{distortions.length - 3}</Text>
                       </View>
                     )}
-
-                    <View style={s.thoughtCardFooter}>
-                      <Text style={s.thoughtDate}>{fmtDate(thought.createdAt)}</Text>
-                      <TouchableOpacity
-                        style={s.practiceBtn}
-                        activeOpacity={0.8}
-                        onPress={() => startPractice(thought)}
-                      >
-                        <Feather name="zap" size={13} color="#FFF" style={{ marginRight: 5 }} />
-                        <Text style={s.practiceBtnText}>Practice</Text>
-                      </TouchableOpacity>
-                    </View>
                   </View>
-                );
-              })}
+                )}
+
+                <View style={s.thoughtCardFooter}>
+                  <Text style={s.thoughtDate}>{fmtDate(thought.createdAt)}</Text>
+                  <TouchableOpacity
+                    style={s.practiceBtn}
+                    activeOpacity={0.8}
+                    onPress={() => startPractice(thought)}
+                  >
+                    <Feather name="zap" size={13} color="#FFF" style={{ marginRight: 5 }} />
+                    <Text style={s.practiceBtnText}>Practice</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
-          )}
-        </View>
-      </ScrollView>
+          );
+        }}
+      />
     );
   }
 
@@ -458,7 +466,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
   function renderLoadingScenarios() {
     return (
       <View style={s.centered}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color={COLORS.primaryGreen} />
         <Text style={s.loadingTitle}>AI is generating reframing exercises...</Text>
         <Text style={s.loadingSubText}>
           Analysing your cognitive distortions to build custom scenarios.
@@ -521,7 +529,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
 
           {/* Question prompt */}
           <View style={s.questionRow}>
-            <Feather name="zap" size={13} color="#059669" />
+            <Feather name="zap" size={13} color={COLORS.primaryGreen} />
             <Text style={s.questionText}>HOW WOULD YOU REFRAME THIS THOUGHT?</Text>
           </View>
 
@@ -641,8 +649,8 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
         {/* Score cards */}
         <View style={s.scoreRow}>
           {[
-            { label: 'Points Earned', value: `${totalScore}`, color: '#059669', bg: '#ecfdf5', border: '#E9D5FF' },
-            { label: 'Accuracy', value: `${accuracy}%`, color: '#10B981', bg: '#ECFDF5', border: '#A7F3D0' },
+            { label: 'Points Earned', value: `${totalScore}`, color: COLORS.primaryGreen, bg: '#ecfdf5', border: '#E9D5FF' },
+            { label: 'Accuracy', value: `${accuracy}%`, color: COLORS.mediumGreen, bg: '#ECFDF5', border: COLORS.lightGreen },
             { label: 'Answers', value: `${correct}/${scenarios.length}`, color: '#6366F1', bg: '#EEF2FF', border: '#C7D2FE' },
           ].map((sc, i) => (
             <View key={i} style={[s.scoreCard, { backgroundColor: sc.bg, borderColor: sc.border }]}>
@@ -670,7 +678,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
         {/* Level up */}
         {leveledUp && (
           <View style={[s.alertBox, s.alertPurple]}>
-            <Feather name="zap" size={18} color="#059669" />
+            <Feather name="zap" size={18} color={COLORS.primaryGreen} />
             <View style={{ flex: 1 }}>
               <Text style={[s.alertTitle, { color: '#065f46' }]}>Level Up!</Text>
               <Text style={[s.alertItem, { color: '#047857' }]}>
@@ -682,7 +690,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
 
         {/* Progress saved */}
         <View style={[s.alertBox, s.alertGreen]}>
-          <Feather name="check-circle" size={18} color="#10B981" />
+          <Feather name="check-circle" size={18} color={COLORS.mediumGreen} />
           <View style={{ flex: 1 }}>
             <Text style={[s.alertTitle, { color: '#065F46' }]}>Progress Recorded</Text>
             <Text style={[s.alertItem, { color: '#047857' }]}>
@@ -771,30 +779,29 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
     };
 
     return (
-      <ScrollView
+      <FlatList
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primaryGreen} />
         }
-      >
-        {/* ── Thought Records ────────────────────────────────────── */}
-        <View style={s.card}>
+        data={sortedThoughts}
+        keyExtractor={(item: any) => String(item.id)}
+        ListHeaderComponent={
           <View style={s.cardHeader}>
             <Text style={s.cardTitle}>Thought Records</Text>
             <Text style={s.cardDesc}>Your thought records and practice history</Text>
           </View>
-
-          {thoughtRecords.length === 0 ? (
-            <View style={s.emptyState}>
-              <MaterialCommunityIcons name="brain" size={32} color="#34d399" />
-              <Text style={s.emptyTitle}>No Thought Records Yet</Text>
-              <Text style={s.emptyDesc}>Create a thought record to begin practicing.</Text>
-            </View>
-          ) : (
-            <View style={{ padding: 12, gap: 10 }}>
-              {sortedThoughts.map((thought: any) => {
+        }
+        ListEmptyComponent={
+          <View style={s.emptyState}>
+            <MaterialCommunityIcons name="brain" size={32} color="#34d399" />
+            <Text style={s.emptyTitle}>No Thought Records Yet</Text>
+            <Text style={s.emptyDesc}>Create a thought record to begin practicing.</Text>
+          </View>
+        }
+        renderItem={({ item: thought }: { item: any }) => {
                 const distortions: string[] = thought.thoughtCategory || thought.cognitiveDistortions || [];
                 const info = getLastPracticeInfo(thought.id);
                 const lastPractice = info?.last;
@@ -893,19 +900,15 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
                     </View>
                   </View>
                 );
-              })}
-            </View>
-          )}
-        </View>
-
-        {/* ── Recent Sessions ──────────────────────────────────────── */}
-        {practices.length > 0 && (
-          <View style={[s.card, { marginTop: 12 }]}>
-            <View style={s.cardHeader}>
-              <Text style={s.cardTitle}>Recent Sessions</Text>
-              <Text style={s.cardDesc}>Your recent practice results</Text>
-            </View>
-            <View style={{ padding: 12, gap: 10 }}>
+        }}
+        ListFooterComponent={
+          practices.length > 0 ? (
+            <View style={[s.card, { marginTop: 12 }]}>
+              <View style={s.cardHeader}>
+                <Text style={s.cardTitle}>Recent Sessions</Text>
+                <Text style={s.cardDesc}>Your recent practice results</Text>
+              </View>
+              <View style={{ padding: 12, gap: 10 }}>
               {[...practices]
                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                 .map((p: any, idx: number) => {
@@ -929,7 +932,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
                       <View style={s.historyCardTop}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
                           <View style={[s.histSectionIcon, { backgroundColor: '#ecfdf5' }]}>
-                            <Feather name="bar-chart-2" size={12} color="#059669" />
+                            <Feather name="bar-chart-2" size={12} color={COLORS.primaryGreen} />
                           </View>
                           <View style={{ flex: 1 }}>
                             <Text style={s.historyCardTitle}>Practice Session</Text>
@@ -946,7 +949,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
 
                       <View style={s.historyStatsRow}>
                         {[
-                          { label: 'Score',    value: `${p.score ?? 0}`, color: '#059669' },
+                          { label: 'Score',    value: `${p.score ?? 0}`, color: COLORS.primaryGreen },
                           { label: 'Correct',  value: `${correct}/${total}`, color: '#6366F1' },
                           { label: 'Accuracy', value: `${accuracy}%`, color: '#047857' },
                         ].map((st, i) => (
@@ -961,7 +964,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
                         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 8 }}>
                           {sessionDistortions.map((d, i) => (
                             <View key={i} style={s.histDistortionBadge}>
-                              <MaterialCommunityIcons name="brain" size={10} color="#059669" style={{ marginRight: 3 }} />
+                              <MaterialCommunityIcons name="brain" size={10} color={COLORS.primaryGreen} style={{ marginRight: 3 }} />
                               <Text style={s.histDistortionBadgeText}>{fmtDistortion(d)}</Text>
                             </View>
                           ))}
@@ -979,10 +982,11 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
                     </View>
                   );
                 })}
+              </View>
             </View>
-          </View>
-        )}
-      </ScrollView>
+          ) : null
+        }
+      />
     );
   }
 
@@ -1277,7 +1281,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
       return (
         <View style={s.centered}>
           <View style={s.emptyIconCircle}>
-            <MaterialCommunityIcons name="trophy-outline" size={32} color="#059669" />
+            <MaterialCommunityIcons name="trophy-outline" size={32} color={COLORS.primaryGreen} />
           </View>
           <Text style={s.emptyTitle}>Reframe Training</Text>
           <Text style={[s.emptyDesc, { maxWidth: 280 }]}>
@@ -1293,17 +1297,17 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
         contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primaryGreen} />
         }
       >
         {/* ── 1. Key Metric Cards ── */}
         <View style={s.metricsRow}>
           {[
-            { icon: 'award' as const, iconColor: '#059669', bg: '#ecfdf5',
+            { icon: 'award' as const, iconColor: COLORS.primaryGreen, bg: '#ecfdf5',
               label: 'Total Sessions', value: `${metrics.totalSessions}`, sub: 'Trainings completed' },
             { icon: 'trending-up' as const, iconColor: '#6366F1', bg: '#EEF2FF',
               label: 'Avg Score', value: `${metrics.avgScore}`, sub: 'Points per module' },
-            { icon: 'check-circle' as const, iconColor: '#10B981', bg: '#ECFDF5',
+            { icon: 'check-circle' as const, iconColor: COLORS.mediumGreen, bg: '#ECFDF5',
               label: 'Accuracy', value: `${metrics.avgAccuracy}%`, sub: 'Correct selections' },
             { icon: 'zap' as const, iconColor: '#A855F7', bg: '#FAF5FF',
               label: 'Current Streak', value: `${metrics.currentStreak}`, sub: 'Days in a row' },
@@ -1325,7 +1329,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <View style={[s.insightIconBox, { backgroundColor: '#ecfdf5' }]}>
-                  <Feather name="trending-up" size={14} color="#059669" />
+                  <Feather name="trending-up" size={14} color={COLORS.primaryGreen} />
                 </View>
                 <Text style={s.insightCardTitle}>Score Trends</Text>
               </View>
@@ -1349,7 +1353,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
             </View>
           </View>
           <View style={s.insightCardBody}>
-            {renderLineChart(scoreChartData, maxScore, '#059669', v => `${v}`)}
+            {renderLineChart(scoreChartData, maxScore, COLORS.primaryGreen, v => `${v}`)}
           </View>
         </View>
 
@@ -1358,7 +1362,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
           <View style={s.insightCardHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <View style={[s.insightIconBox, { backgroundColor: '#ECFDF5' }]}>
-                <Feather name="target" size={14} color="#10B981" />
+                <Feather name="target" size={14} color={COLORS.mediumGreen} />
               </View>
               <View>
                 <Text style={s.insightCardTitle}>Accuracy Trends</Text>
@@ -1369,7 +1373,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
             </View>
           </View>
           <View style={s.insightCardBody}>
-            {renderLineChart(accChartData, 100, '#10B981', v => `${v}%`)}
+            {renderLineChart(accChartData, 100, COLORS.mediumGreen, v => `${v}%`)}
           </View>
         </View>
 
@@ -1393,7 +1397,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
               renderBarChart(distortions)
             ) : (
               <View style={{ alignItems: 'center', paddingVertical: 20 }}>
-                <Feather name="alert-circle" size={22} color="#CBD5E1" />
+                <Feather name="alert-circle" size={22} color={COLORS.disabledBg} />
                 <Text style={{ fontSize: 12, color: '#94A3B8', marginTop: 6 }}>
                   No scenario data available.
                 </Text>
@@ -1420,12 +1424,12 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
           <View style={s.insightCardBody}>
             <View style={s.calendarGrid}>
               {calendar.map((day, i) => {
-                let bg = '#F8FAFC', border = '#F1F5F9', txtColor = '#CBD5E1';
+                let bg = '#F8FAFC', border = '#F1F5F9', txtColor = COLORS.disabledBg;
                 if (day.sessions > 0) {
-                  if (day.score < 80)       { bg = '#F3E8FF'; border = '#a7f3d0'; txtColor = '#047857'; }
-                  else if (day.score < 150) { bg = '#a7f3d0'; border = '#C4B5FD'; txtColor = '#065f46'; }
-                  else if (day.score < 220) { bg = '#A78BFA'; border = '#059669'; txtColor = '#FFFFFF'; }
-                  else                      { bg = '#059669'; border = '#047857'; txtColor = '#FFFFFF'; }
+                  if (day.score < 80)       { bg = '#F3E8FF'; border = COLORS.lightGreen; txtColor = '#047857'; }
+                  else if (day.score < 150) { bg = COLORS.lightGreen; border = '#C4B5FD'; txtColor = '#065f46'; }
+                  else if (day.score < 220) { bg = '#A78BFA'; border = COLORS.primaryGreen; txtColor = '#FFFFFF'; }
+                  else                      { bg = COLORS.primaryGreen; border = '#047857'; txtColor = '#FFFFFF'; }
                 }
                 return (
                   <View key={i} style={[s.calendarCell, { backgroundColor: bg, borderColor: border }]}>
@@ -1438,7 +1442,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
             <View style={s.calendarLegend}>
               <Text style={s.calendarLegendLabel}>Inactive</Text>
               <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
-                {['#F8FAFC', '#F3E8FF', '#a7f3d0', '#A78BFA', '#059669'].map((c, i) => (
+                {['#F8FAFC', '#F3E8FF', COLORS.lightGreen, '#A78BFA', COLORS.primaryGreen].map((c, i) => (
                   <View key={i} style={[s.calendarLegendDot, { backgroundColor: c,
                     borderColor: i === 0 ? '#E2E8F0' : c }]} />
                 ))}
@@ -1469,7 +1473,7 @@ const s = StyleSheet.create({
     marginTop: 16,
     fontSize: 15,
     fontWeight: 'bold',
-    color: '#052e16',
+    color: COLORS.darkGreen,
     textAlign: 'center',
   },
   loadingSubText: {
@@ -1482,7 +1486,7 @@ const s = StyleSheet.create({
 
   // ── Header ──────────────────────────────────────────────────────────────
   header: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 16,
@@ -1544,7 +1548,7 @@ const s = StyleSheet.create({
     marginBottom: 5,
     overflow: 'hidden',
   },
-  masteryBarFill: { height: 5, backgroundColor: '#10B981', borderRadius: 3 },
+  masteryBarFill: { height: 5, backgroundColor: COLORS.mediumGreen, borderRadius: 3 },
   masteryFooter: { color: 'rgba(196,181,253,0.45)', fontSize: 10 },
 
   // ── Tab bar ──────────────────────────────────────────────────────────────
@@ -1564,9 +1568,9 @@ const s = StyleSheet.create({
     borderBottomColor: 'transparent',
     marginBottom: -1,
   },
-  tabBtnActive: { borderBottomColor: '#059669' },
+  tabBtnActive: { borderBottomColor: COLORS.primaryGreen },
   tabBtnText: { fontSize: 13, fontWeight: '700', color: '#94A3B8' },
-  tabBtnTextActive: { color: '#052e16' },
+  tabBtnTextActive: { color: COLORS.darkGreen },
 
   // ── Cards ────────────────────────────────────────────────────────────────
   card: {
@@ -1589,7 +1593,7 @@ const s = StyleSheet.create({
     borderBottomColor: '#F1F5F9',
     backgroundColor: '#FAFAFA',
   },
-  cardTitle: { fontSize: 14.5, fontWeight: '800', color: '#052e16', marginBottom: 2 },
+  cardTitle: { fontSize: 14.5, fontWeight: '800', color: COLORS.darkGreen, marginBottom: 2 },
   cardDesc: { fontSize: 12, color: '#64748B' },
 
   // ── Empty state ──────────────────────────────────────────────────────────
@@ -1603,9 +1607,9 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
   },
-  emptyTitle: { fontSize: 15, fontWeight: '800', color: '#052e16', marginBottom: 6, textAlign: 'center' },
+  emptyTitle: { fontSize: 15, fontWeight: '800', color: COLORS.darkGreen, marginBottom: 6, textAlign: 'center' },
   emptyDesc: { fontSize: 12.5, color: '#64748B', textAlign: 'center', lineHeight: 18, marginBottom: 18 },
-  emptyBtn: { backgroundColor: '#052e16', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 14 },
+  emptyBtn: { backgroundColor: COLORS.darkGreen, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 14 },
   emptyBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
 
   // ── Thought record cards ─────────────────────────────────────────────────
@@ -1616,7 +1620,7 @@ const s = StyleSheet.create({
     borderColor: '#E2E8F0',
     padding: 14,
   },
-  thoughtQuote: { fontSize: 13.5, color: '#052e16', fontStyle: 'italic', lineHeight: 20, marginBottom: 10 },
+  thoughtQuote: { fontSize: 13.5, color: COLORS.darkGreen, fontStyle: 'italic', lineHeight: 20, marginBottom: 10 },
   pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
   pill: {
     backgroundColor: '#ecfdf5',
@@ -1630,7 +1634,7 @@ const s = StyleSheet.create({
   thoughtCardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   thoughtDate: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
   practiceBtn: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14,
@@ -1657,7 +1661,7 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 5,
   },
-  quizStepText: { fontSize: 10, fontWeight: '800', color: '#059669', letterSpacing: 0.4 },
+  quizStepText: { fontSize: 10, fontWeight: '800', color: COLORS.primaryGreen, letterSpacing: 0.4 },
   distortionBadge: {
     backgroundColor: '#ecfdf5',
     borderWidth: 1,
@@ -1669,16 +1673,16 @@ const s = StyleSheet.create({
   },
   distortionBadgeText: { fontSize: 9, fontWeight: '800', color: '#047857' },
   progressBg: { height: 4, backgroundColor: '#E2E8F0', borderRadius: 2, overflow: 'hidden' },
-  progressFill: { height: 4, backgroundColor: '#059669', borderRadius: 2 },
+  progressFill: { height: 4, backgroundColor: COLORS.primaryGreen, borderRadius: 2 },
   closeBtn: { padding: 4 },
 
   // ── Scenario dark card ────────────────────────────────────────────────────
   scenarioDark: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     borderRadius: 18,
     padding: 16,
     marginBottom: 14,
-    shadowColor: '#052e16',
+    shadowColor: COLORS.darkGreen,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 10,
@@ -1697,25 +1701,25 @@ const s = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
   },
-  optionSelected: { borderColor: '#059669', backgroundColor: '#ecfdf5' },
-  optionCorrect:  { borderColor: '#10B981', backgroundColor: '#ECFDF5' },
+  optionSelected: { borderColor: COLORS.primaryGreen, backgroundColor: '#ecfdf5' },
+  optionCorrect:  { borderColor: COLORS.mediumGreen, backgroundColor: '#ECFDF5' },
   optionWrong:    { borderColor: '#EF4444', backgroundColor: '#FEF2F2' },
 
   optionInner: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
 
   optionRadio: {
     width: 20, height: 20, borderRadius: 10, borderWidth: 1.5,
-    borderColor: '#CBD5E1', alignItems: 'center', justifyContent: 'center',
+    borderColor: COLORS.disabledBg, alignItems: 'center', justifyContent: 'center',
     marginTop: 1, flexShrink: 0,
   },
   optionRadioSelected: {
     width: 20, height: 20, borderRadius: 10, borderWidth: 1.5,
-    borderColor: '#059669', backgroundColor: '#059669',
+    borderColor: COLORS.primaryGreen, backgroundColor: COLORS.primaryGreen,
     alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0,
   },
   optionRadioCorrect: {
     width: 20, height: 20, borderRadius: 10,
-    borderColor: '#10B981', backgroundColor: '#10B981',
+    borderColor: COLORS.mediumGreen, backgroundColor: COLORS.mediumGreen,
     alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0,
   },
   optionRadioWrong: {
@@ -1740,14 +1744,14 @@ const s = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   nextBtn: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     height: 52,
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    shadowColor: '#052e16',
+    shadowColor: COLORS.darkGreen,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
@@ -1760,7 +1764,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     borderRadius: 20,
     marginBottom: 14,
   },
@@ -1782,15 +1786,15 @@ const s = StyleSheet.create({
     backgroundColor: '#FFFBEB', borderWidth: 1, borderColor: '#FDE68A',
     borderRadius: 14, padding: 12, marginBottom: 10,
   },
-  alertPurple: { backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' },
-  alertGreen:  { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' },
+  alertPurple: { backgroundColor: '#ecfdf5', borderColor: COLORS.lightGreen },
+  alertGreen:  { backgroundColor: '#ECFDF5', borderColor: COLORS.lightGreen },
   alertTitle: { fontSize: 12.5, fontWeight: '800', color: '#92400E', marginBottom: 2 },
   alertItem:  { fontSize: 11.5, fontWeight: '500', color: '#B45309', lineHeight: 17 },
 
   primaryBtn: {
-    height: 50, borderRadius: 16, backgroundColor: '#052e16',
+    height: 50, borderRadius: 16, backgroundColor: COLORS.darkGreen,
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#052e16', shadowOffset: { width: 0, height: 3 },
+    shadowColor: COLORS.darkGreen, shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15, shadowRadius: 6, elevation: 3,
   },
   primaryBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
@@ -1809,16 +1813,16 @@ const s = StyleSheet.create({
     shadowOpacity: 0.02, shadowRadius: 4, elevation: 1,
   },
   historyCardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 },
-  historyCardTitle: { fontSize: 13, fontWeight: '800', color: '#052e16', marginBottom: 2 },
+  historyCardTitle: { fontSize: 13, fontWeight: '800', color: COLORS.darkGreen, marginBottom: 2 },
   historyCardDate: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
   xpBadge: { backgroundColor: '#F3E8FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  xpBadgeText: { fontSize: 10, fontWeight: '900', color: '#059669' },
+  xpBadgeText: { fontSize: 10, fontWeight: '900', color: COLORS.primaryGreen },
   historyStatsRow: { flexDirection: 'row', gap: 8 },
   historyStatCell: {
     flex: 1, backgroundColor: '#F8FAFC', borderRadius: 10,
     paddingVertical: 8, alignItems: 'center',
   },
-  historyStatValue: { fontSize: 14, fontWeight: '900', color: '#052e16' },
+  historyStatValue: { fontSize: 14, fontWeight: '900', color: COLORS.darkGreen },
   historyStatLabel: { fontSize: 9.5, fontWeight: '700', color: '#94A3B8', marginTop: 1 },
 
   // ── History tab — thought record cards ───────────────────────────────────
@@ -1871,10 +1875,10 @@ const s = StyleSheet.create({
   },
   lastPracticeLabel: { fontSize: 10, color: '#94A3B8', fontWeight: '600', marginBottom: 2 },
   lastPracticeTime: { fontSize: 12.5, fontWeight: '700', color: '#4C1D95' },
-  lastPracticeScore: { fontSize: 26, fontWeight: '900', color: '#059669' },
+  lastPracticeScore: { fontSize: 26, fontWeight: '900', color: COLORS.primaryGreen },
   histPracticeBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#059669', borderRadius: 12,
+    backgroundColor: COLORS.primaryGreen, borderRadius: 12,
     paddingVertical: 12,
   },
   histPracticeBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
@@ -1888,7 +1892,7 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: '#ecfdf5', borderRadius: 6,
     paddingHorizontal: 7, paddingVertical: 3,
-    borderWidth: 1, borderColor: '#a7f3d0',
+    borderWidth: 1, borderColor: COLORS.lightGreen,
   },
   histDistortionBadgeText: { fontSize: 10, fontWeight: '700', color: '#047857' },
   histStreakBox: {
@@ -1911,12 +1915,12 @@ const s = StyleSheet.create({
   insightValue: { fontSize: 22, fontWeight: '900' },
   insightCellLabel: { fontSize: 10, fontWeight: '700', color: '#94A3B8', marginTop: 2 },
 
-  levelText: { fontSize: 22, fontWeight: '900', color: '#052e16', marginBottom: 10 },
+  levelText: { fontSize: 22, fontWeight: '900', color: COLORS.darkGreen, marginBottom: 10 },
   xpBarBg: {
     height: 8, backgroundColor: '#E2E8F0', borderRadius: 4,
     marginBottom: 6, overflow: 'hidden',
   },
-  xpBarFill: { height: 8, backgroundColor: '#059669', borderRadius: 4 },
+  xpBarFill: { height: 8, backgroundColor: COLORS.primaryGreen, borderRadius: 4 },
   xpFooter: { fontSize: 10.5, color: '#94A3B8', fontWeight: '700' },
 
   achievementRow: {
@@ -2013,7 +2017,7 @@ const s = StyleSheet.create({
   insightCardTitle: {
     fontSize: 13.5,
     fontWeight: '800',
-    color: '#052e16',
+    color: COLORS.darkGreen,
   },
   insightCardDesc: {
     fontSize: 11,
@@ -2052,7 +2056,7 @@ const s = StyleSheet.create({
     color: '#64748B',
   },
   timeRangeBtnTextActive: {
-    color: '#052e16',
+    color: COLORS.darkGreen,
   },
 
   // 30-day calendar

@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
+  SectionList,
   TouchableOpacity,
   RefreshControl,
   Modal,
@@ -19,8 +21,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Svg, { Circle } from 'react-native-svg';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ApiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useGoals, useAllMilestones } from '../hooks/queries/useGoals';
 
-const { width: W, height: H } = Dimensions.get('window');
+const { height: H } = Dimensions.get('window');
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Goal {
@@ -49,7 +53,7 @@ interface Milestone {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const STATUS_COLOR: Record<string, string> = {
-  completed: '#10B981', approved: '#10B981', in_progress: '#059669', pending: '#F59E0B',
+  completed: COLORS.mediumGreen, approved: COLORS.mediumGreen, in_progress: COLORS.primaryGreen, pending: '#F59E0B',
 };
 const STATUS_BG: Record<string, string> = {
   completed: '#ECFDF5', approved: '#ECFDF5', in_progress: '#ecfdf5', pending: '#FFFBEB',
@@ -61,9 +65,9 @@ const STATUS_LABEL: Record<string, string> = {
 const SMART_META = [
   { key: 'specific',   letter: 'S', label: 'Specific',   color: '#EF4444', bg: '#FEF2F2' },
   { key: 'measurable', letter: 'M', label: 'Measurable', color: '#3B82F6', bg: '#EFF6FF' },
-  { key: 'achievable', letter: 'A', label: 'Achievable', color: '#10B981', bg: '#ECFDF5' },
+  { key: 'achievable', letter: 'A', label: 'Achievable', color: COLORS.mediumGreen, bg: '#ECFDF5' },
   { key: 'relevant',   letter: 'R', label: 'Relevant',   color: '#F59E0B', bg: '#FFFBEB' },
-  { key: 'timebound',  letter: 'T', label: 'Time-bound', color: '#059669', bg: '#ecfdf5' },
+  { key: 'timebound',  letter: 'T', label: 'Time-bound', color: COLORS.primaryGreen, bg: '#ecfdf5' },
 ] as const;
 
 // ─── Insights Panel ───────────────────────────────────────────────────────────
@@ -82,14 +86,14 @@ function InsightsPanel({ goals, allMilestones }: { goals: Goal[]; allMilestones:
   const CIRC = 2 * Math.PI * R; const dash = (rate / 100) * CIRC;
 
   const segments = [
-    { label: 'Completed',   count: completed,  color: '#10B981', pct: total > 0 ? (completed  / total) * 100 : 0 },
-    { label: 'In Progress', count: inProgress, color: '#059669', pct: total > 0 ? (inProgress / total) * 100 : 0 },
+    { label: 'Completed',   count: completed,  color: COLORS.mediumGreen, pct: total > 0 ? (completed  / total) * 100 : 0 },
+    { label: 'In Progress', count: inProgress, color: COLORS.primaryGreen, pct: total > 0 ? (inProgress / total) * 100 : 0 },
     { label: 'Pending',     count: pending,    color: '#F59E0B', pct: total > 0 ? (pending    / total) * 100 : 0 },
   ];
 
   if (!total) return (
     <View style={ins.empty}>
-      <View style={ins.emptyIcon}><Feather name="bar-chart-2" size={28} color="#059669" /></View>
+      <View style={ins.emptyIcon}><Feather name="bar-chart-2" size={28} color={COLORS.primaryGreen} /></View>
       <Text style={ins.emptyTitle}>No Data Yet</Text>
       <Text style={ins.emptyBody}>Create SMART goals to unlock visual insights.</Text>
     </View>
@@ -104,7 +108,7 @@ function InsightsPanel({ goals, allMilestones }: { goals: Goal[]; allMilestones:
           <View style={ins.ringWrap}>
             <Svg width={RING} height={RING} style={StyleSheet.absoluteFillObject}>
               <Circle cx={RING/2} cy={RING/2} r={R} stroke="rgba(255,255,255,0.10)" strokeWidth={STROKE} fill="none" />
-              <Circle cx={RING/2} cy={RING/2} r={R} stroke="#059669" strokeWidth={STROKE} fill="none"
+              <Circle cx={RING/2} cy={RING/2} r={R} stroke={COLORS.primaryGreen} strokeWidth={STROKE} fill="none"
                 strokeLinecap="round" strokeDasharray={`${CIRC}`} strokeDashoffset={CIRC - dash}
                 rotation={-90} origin={`${RING/2},${RING/2}`} />
             </Svg>
@@ -114,7 +118,7 @@ function InsightsPanel({ goals, allMilestones }: { goals: Goal[]; allMilestones:
           <View style={ins.heroStats}>
             <Text style={ins.heroTitle}>Goal Progress</Text>
             <Text style={ins.heroSub}>Your SMART Goals overview</Text>
-            {[{ c: completed, l: 'Completed', col: '#10B981' }, { c: inProgress, l: 'In Progress', col: '#059669' }, { c: pending, l: 'Pending', col: '#F59E0B' }].map(x => (
+            {[{ c: completed, l: 'Completed', col: COLORS.mediumGreen }, { c: inProgress, l: 'In Progress', col: COLORS.primaryGreen }, { c: pending, l: 'Pending', col: '#F59E0B' }].map(x => (
               <View key={x.l} style={ins.statRow}>
                 <View style={[ins.dot, { backgroundColor: x.col }]} />
                 <Text style={ins.statLbl}>{x.l}</Text>
@@ -133,7 +137,7 @@ function InsightsPanel({ goals, allMilestones }: { goals: Goal[]; allMilestones:
       {/* Distribution */}
       <View style={ins.card}>
         <View style={ins.cardHeader}>
-          <View style={[ins.cardIcon, { backgroundColor: '#ecfdf5' }]}><Feather name="pie-chart" size={13} color="#059669" /></View>
+          <View style={[ins.cardIcon, { backgroundColor: '#ecfdf5' }]}><Feather name="pie-chart" size={13} color={COLORS.primaryGreen} /></View>
           <Text style={ins.cardTitle}>Status Distribution</Text>
         </View>
         <View style={ins.segBar}>
@@ -161,7 +165,7 @@ function InsightsPanel({ goals, allMilestones }: { goals: Goal[]; allMilestones:
           <Text style={ins.cardTitle}>Milestone Tracker</Text>
         </View>
         <View style={ins.msRow}>
-          {[{ v: msTotal, l: 'Total', col: '#475569', bg: '#F8FAFC' }, { v: msCompleted, l: 'Achieved', col: '#10B981', bg: '#ECFDF5' }, { v: msPending, l: 'Remaining', col: '#F59E0B', bg: '#FFFBEB' }].map(x => (
+          {[{ v: msTotal, l: 'Total', col: '#475569', bg: '#F8FAFC' }, { v: msCompleted, l: 'Achieved', col: COLORS.mediumGreen, bg: '#ECFDF5' }, { v: msPending, l: 'Remaining', col: '#F59E0B', bg: '#FFFBEB' }].map(x => (
             <View key={x.l} style={[ins.msBox, { backgroundColor: x.bg }]}>
               <Text style={[ins.msVal, { color: x.col }]}>{x.v}</Text>
               <Text style={ins.msLbl}>{x.l}</Text>
@@ -174,14 +178,14 @@ function InsightsPanel({ goals, allMilestones }: { goals: Goal[]; allMilestones:
             <Text style={[ins.msProgPct, { color: '#3B82F6' }]}>{msRate}%</Text>
           </View>
           <View style={ins.msProgBg}>
-            <View style={[ins.msProgFill, { width: `${msRate}%` as any, backgroundColor: msRate === 100 ? '#10B981' : '#3B82F6' }]} />
+            <View style={[ins.msProgFill, { width: `${msRate}%` as any, backgroundColor: msRate === 100 ? COLORS.mediumGreen : '#3B82F6' }]} />
           </View>
           <Text style={ins.msProgCaption}>{msCompleted} of {msTotal} milestones achieved</Text>
         </View>
       </View>
 
       <View style={ins.chips}>
-        {[{ i: 'check-circle' as const, l: `${rate}% Done`, col: '#10B981', bg: '#ECFDF5' }, { i: 'trending-up' as const, l: `${inProgress} Active`, col: '#059669', bg: '#ecfdf5' }, { i: 'award' as const, l: `${msCompleted} Achieved`, col: '#3B82F6', bg: '#EFF6FF' }].map(x => (
+        {[{ i: 'check-circle' as const, l: `${rate}% Done`, col: COLORS.mediumGreen, bg: '#ECFDF5' }, { i: 'trending-up' as const, l: `${inProgress} Active`, col: COLORS.primaryGreen, bg: '#ecfdf5' }, { i: 'award' as const, l: `${msCompleted} Achieved`, col: '#3B82F6', bg: '#EFF6FF' }].map(x => (
           <View key={x.l} style={[ins.chip, { backgroundColor: x.bg }]}>
             <Feather name={x.i} size={12} color={x.col} />
             <Text style={[ins.chipText, { color: x.col }]}>{x.l}</Text>
@@ -217,7 +221,7 @@ const ins = StyleSheet.create({
   card: { backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9', padding: 16, gap: 12, shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 6, elevation: 1 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cardIcon: { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  cardTitle: { fontSize: 14, fontWeight: '800', color: '#052e16' },
+  cardTitle: { fontSize: 14, fontWeight: '800', color: COLORS.darkGreen },
   segBar: { flexDirection: 'row', height: 10, borderRadius: 8, overflow: 'hidden', backgroundColor: '#F1F5F9', gap: 2 },
   segFill: { height: '100%' },
   segRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -265,12 +269,13 @@ function GoalDetailModal({
   onCloseMsModal: () => void;
   onSaveMilestone: (data: { title: string; description: string; dueDate: Date | null }) => void;
 }) {
+  // Hook must run unconditionally (before the `!goal` early return) per Rules of Hooks.
+  const insets = useSafeAreaInsets();
   if (!goal) return null;
   const sc = STATUS_COLOR[goal.status] ?? '#94A3B8';
   const sb = STATUS_BG[goal.status]   ?? '#F8FAFC';
   const msDone = milestones.filter(m => m.isCompleted).length;
   const msPct  = milestones.length > 0 ? Math.round((msDone / milestones.length) * 100) : 0;
-  const insets = useSafeAreaInsets();
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose} statusBarTranslucent>
@@ -278,7 +283,7 @@ function GoalDetailModal({
         {/* Header — manual top inset so Dynamic Island / notch is always cleared */}
         <View style={[gd.header, { paddingTop: Math.max(insets.top, 16) }]}>
           <TouchableOpacity style={gd.backBtn} onPress={onClose} activeOpacity={0.8}>
-            <Feather name="arrow-left" size={20} color="#052e16" />
+            <Feather name="arrow-left" size={20} color={COLORS.darkGreen} />
           </TouchableOpacity>
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={gd.headerTitle} numberOfLines={2}>{goal.title}</Text>
@@ -349,16 +354,16 @@ function GoalDetailModal({
                 )}
               </View>
               <TouchableOpacity style={gd.addMsBtn} onPress={onAddMilestone} activeOpacity={0.8}>
-                <Feather name="plus" size={14} color="#059669" />
+                <Feather name="plus" size={14} color={COLORS.primaryGreen} />
                 <Text style={gd.addMsBtnText}>Add Milestone</Text>
               </TouchableOpacity>
             </View>
 
             {msLoading ? (
-              <ActivityIndicator size="small" color="#059669" style={{ marginVertical: 16 }} />
+              <ActivityIndicator size="small" color={COLORS.primaryGreen} style={{ marginVertical: 16 }} />
             ) : milestones.length === 0 ? (
               <View style={gd.msEmpty}>
-                <View style={gd.msEmptyIcon}><Feather name="flag" size={22} color="#CBD5E1" /></View>
+                <View style={gd.msEmptyIcon}><Feather name="flag" size={22} color={COLORS.disabledBg} /></View>
                 <Text style={gd.msEmptyTitle}>No milestones yet</Text>
                 <Text style={gd.msEmptyBody}>Break this goal into smaller, trackable steps.</Text>
                 <TouchableOpacity style={gd.msEmptyBtn} onPress={onAddMilestone} activeOpacity={0.85}>
@@ -420,7 +425,7 @@ const gd = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F8FAFC' },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 14, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   backBtn: { width: 36, height: 36, borderRadius: 12, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: '#052e16', flexShrink: 1 },
+  headerTitle: { fontSize: 16, fontWeight: '800', color: COLORS.darkGreen, flexShrink: 1 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, marginLeft: 8 },
   statusBadgeText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.3 },
   progressStrip: { marginHorizontal: 16, marginTop: 14, backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9', padding: 14, gap: 8 },
@@ -445,18 +450,18 @@ const gd = StyleSheet.create({
   msBadge: { backgroundColor: '#d1fae5', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
   msBadgeText: { fontSize: 10, fontWeight: '800', color: '#047857' },
   addMsBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#ecfdf5', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, borderWidth: 1, borderColor: '#d1fae5' },
-  addMsBtnText: { fontSize: 12.5, fontWeight: '800', color: '#059669' },
+  addMsBtnText: { fontSize: 12.5, fontWeight: '800', color: COLORS.primaryGreen },
   msEmpty: { alignItems: 'center', paddingVertical: 36, gap: 8 },
   msEmptyIcon: { width: 52, height: 52, borderRadius: 26, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
   msEmptyTitle: { fontSize: 15, fontWeight: '800', color: '#475569' },
   msEmptyBody: { fontSize: 12, color: '#94A3B8', textAlign: 'center', lineHeight: 17 },
-  msEmptyBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#052e16', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, marginTop: 6 },
+  msEmptyBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.darkGreen, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, marginTop: 6 },
   msEmptyBtnText: { fontSize: 13, fontWeight: '800', color: '#FFF' },
   msList: { gap: 8 },
   msCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: '#FFF', borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9', padding: 14, shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 4, elevation: 1 },
   msCardDone: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
-  msCheck: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#CBD5E1', alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 },
-  msCheckDone: { backgroundColor: '#10B981', borderColor: '#10B981' },
+  msCheck: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: COLORS.disabledBg, alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 },
+  msCheckDone: { backgroundColor: COLORS.mediumGreen, borderColor: COLORS.mediumGreen },
   msTitle: { fontSize: 14, fontWeight: '700', color: '#1E293B', lineHeight: 20 },
   msTitleDone: { textDecorationLine: 'line-through', color: '#94A3B8' },
   msDesc: { fontSize: 12, color: '#64748B', lineHeight: 17, marginTop: 3 },
@@ -496,7 +501,7 @@ function AddMilestoneModal({
 
           {/* Header */}
           <View style={ms.header}>
-            <View style={ms.headerIcon}><Feather name="flag" size={16} color="#059669" /></View>
+            <View style={ms.headerIcon}><Feather name="flag" size={16} color={COLORS.primaryGreen} /></View>
             <View style={{ flex: 1 }}>
               <Text style={ms.headerTitle}>Add Milestone</Text>
               <Text style={ms.headerSub}>Break your goal into a smaller, trackable step</Text>
@@ -543,7 +548,7 @@ function AddMilestoneModal({
                 onPress={() => setShowPicker(v => !v)}
               >
                 <View style={ms.dateBtnIcon}>
-                  <Feather name="calendar" size={16} color={dueDate ? '#059669' : '#94A3B8'} />
+                  <Feather name="calendar" size={16} color={dueDate ? COLORS.primaryGreen : '#94A3B8'} />
                 </View>
                 <Text style={[ms.dateBtnText, dueDate && ms.dateBtnTextSel]}>
                   {dueDate
@@ -552,8 +557,8 @@ function AddMilestoneModal({
                   }
                 </Text>
                 {dueDate
-                  ? <TouchableOpacity onPress={() => { setDueDate(null); setShowPicker(false); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x-circle" size={16} color="#CBD5E1" /></TouchableOpacity>
-                  : <Feather name="chevron-down" size={16} color="#CBD5E1" />
+                  ? <TouchableOpacity onPress={() => { setDueDate(null); setShowPicker(false); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x-circle" size={16} color={COLORS.disabledBg} /></TouchableOpacity>
+                  : <Feather name="chevron-down" size={16} color={COLORS.disabledBg} />
                 }
               </TouchableOpacity>
 
@@ -565,7 +570,7 @@ function AddMilestoneModal({
                     display={Platform.OS === 'ios' ? 'inline' : 'default'}
                     minimumDate={new Date()}
                     themeVariant="light"
-                    accentColor="#059669"
+                    accentColor={COLORS.primaryGreen}
                     onChange={(_e: any, sel?: Date) => {
                       if (Platform.OS !== 'ios') setShowPicker(false);
                       if (sel) setDueDate(sel);
@@ -613,10 +618,10 @@ function AddMilestoneModal({
 const ms = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(9,5,20,0.6)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: '#F8FAFC', borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: H * 0.92, overflow: 'hidden' },
-  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1', alignSelf: 'center', marginTop: 10 },
+  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.disabledBg, alignSelf: 'center', marginTop: 10 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#FFF' },
   headerIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#d1fae5', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#052e16' },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: COLORS.darkGreen },
   headerSub: { fontSize: 11.5, color: '#94A3B8', marginTop: 1 },
   closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
   body: { padding: 20, gap: 16, paddingBottom: 36 },
@@ -633,12 +638,12 @@ const ms = StyleSheet.create({
   pickerActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, padding: 12, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
   pickerClear: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: '#F1F5F9' },
   pickerClearText: { fontSize: 13, fontWeight: '700', color: '#64748B' },
-  pickerDone: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 10, backgroundColor: '#052e16' },
+  pickerDone: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 10, backgroundColor: COLORS.darkGreen },
   pickerDoneText: { fontSize: 13, fontWeight: '700', color: '#FFF' },
   tipCard: { flexDirection: 'row', gap: 10, backgroundColor: 'rgba(237,233,254,0.35)', borderRadius: 14, borderWidth: 1, borderColor: '#d1fae5', padding: 13 },
   tipText: { flex: 1, fontSize: 12, color: '#475569', lineHeight: 18 },
-  saveBtn: { backgroundColor: '#052e16', borderRadius: 16, height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', shadowColor: '#052e16', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 4 },
-  saveBtnDisabled: { backgroundColor: '#CBD5E1' },
+  saveBtn: { backgroundColor: COLORS.darkGreen, borderRadius: 16, height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', shadowColor: COLORS.darkGreen, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 4 },
+  saveBtnDisabled: { backgroundColor: COLORS.disabledBg },
   saveBtnText: { color: '#FFF', fontSize: 15, fontWeight: '800' },
 });
 
@@ -652,17 +657,20 @@ const STEPS = [
   { step: 6, letter: 'T',   letterStyle: 'T' as const,   title: 'Time-bound',    desc: 'What is the timeline or deadline for this goal?',                                                      placeholder: 'E.g., Daily for the next 2 weeks',                                  field: 'timebound',  multiline: false },
 ];
 
-const LETTER_COLORS: Record<string, string> = { S: '#EF4444', M: '#3B82F6', A: '#10B981', R: '#F59E0B', T: '#059669' };
+const LETTER_COLORS: Record<string, string> = { S: '#EF4444', M: '#3B82F6', A: COLORS.mediumGreen, R: '#F59E0B', T: COLORS.primaryGreen };
 const LETTER_BG:    Record<string, string> = { S: '#FEF2F2', M: '#EFF6FF', A: '#ECFDF5', R: '#FFFBEB', T: '#ecfdf5' };
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function GoalsScreen({ navigation }: { navigation: any }) {
-  const [goals, setGoals]               = useState<Goal[]>([]);
-  const [allMilestones, setAllMilestones] = useState<Milestone[]>([]);
+  const { userId } = useAuth();
+  const goalsQ = useGoals(userId);
+  const allMilestonesQ = useAllMilestones(userId);
+  const goals = goalsQ.data ?? [];
+  const allMilestones = allMilestonesQ.data ?? [];
+  const loading = !userId || goalsQ.isLoading || allMilestonesQ.isLoading;
+  const refreshing = goalsQ.isRefetching || allMilestonesQ.isRefetching;
+
   const [goalMilestones, setGoalMilestones] = useState<Record<number, Milestone[]>>({});
-  const [loading, setLoading]           = useState(true);
-  const [refreshing, setRefreshing]     = useState(false);
-  const [userId, setUserId]             = useState<number | null>(null);
   const [activeTab, setActiveTab]       = useState<'goals' | 'insights'>('goals');
 
   // Goal Detail modal
@@ -681,20 +689,11 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
   const [form, setForm] = useState({ title: '', specific: '', measurable: '', achievable: '', relevant: '', timebound: '' });
 
   // ── Load ─────────────────────────────────────────────────────────────────
-  const loadGoals = async () => {
-    try {
-      const userRes = await ApiService.getCurrentUser();
-      if (!userRes.data) return;
-      const uid = userRes.data.id; setUserId(uid);
-      const [goalsRes, msRes] = await Promise.all([ApiService.getGoals(uid), ApiService.getAllMilestones(uid)]);
-      if (goalsRes.data) setGoals(goalsRes.data);
-      if (msRes.data)    setAllMilestones(msRes.data);
-    } catch {}
-    finally { setLoading(false); setRefreshing(false); }
+  const loadGoals = () => {
+    goalsQ.refetch();
+    allMilestonesQ.refetch();
   };
-
-  useEffect(() => { loadGoals(); }, []);
-  const onRefresh = () => { setRefreshing(true); loadGoals(); };
+  const onRefresh = loadGoals;
 
   // ── Open Goal Detail ──────────────────────────────────────────────────────
   const openGoal = async (g: Goal) => {
@@ -717,7 +716,7 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
       const res = await ApiService.toggleMilestoneCompletion(milestoneId, !current);
       if (res.data) {
         setGoalMilestones(prev => ({ ...prev, [selectedGoal.id]: (prev[selectedGoal.id] || []).map(m => m.id === milestoneId ? { ...m, isCompleted: !current } : m) }));
-        setAllMilestones(prev => prev.map(m => m.id === milestoneId ? { ...m, isCompleted: !current } : m));
+        allMilestonesQ.refetch();
       }
     } catch { Alert.alert('Error', 'Could not update milestone.'); }
     finally { setTogglingMilestone(null); }
@@ -736,7 +735,7 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
       if (res.data) {
         const newMs: Milestone = res.data;
         setGoalMilestones(prev => ({ ...prev, [addMsGoalId]: [...(prev[addMsGoalId] || []), newMs] }));
-        setAllMilestones(prev => [...prev, newMs]);
+        allMilestonesQ.refetch();
         setAddMsGoalId(null);
       } else { Alert.alert('Error', res.error || 'Failed to add milestone.'); }
     } catch { Alert.alert('Error', 'Could not save milestone.'); }
@@ -775,9 +774,20 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
   const completedGoals = goals.filter(g => g.status === 'completed' || g.status === 'approved').length;
   const completionPct = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
 
-  if (loading) return (
-    <View style={s.loadingBox}><ActivityIndicator size="large" color="#059669" /></View>
-  );
+  const sections = useMemo(() => {
+    if (totalGoals === 0 || activeTab === 'insights') return [];
+    const s = [];
+    if (grouped.inProgress.length > 0) {
+      s.push({ title: `IN PROGRESS (${grouped.inProgress.length})`, data: grouped.inProgress });
+    }
+    if (grouped.pending.length > 0) {
+      s.push({ title: `PENDING REVIEW (${grouped.pending.length})`, data: grouped.pending });
+    }
+    if (grouped.completed.length > 0) {
+      s.push({ title: `COMPLETED (${grouped.completed.length})`, data: grouped.completed });
+    }
+    return s;
+  }, [grouped, activeTab, totalGoals]);
 
   // ── Goal Card ─────────────────────────────────────────────────────────────
   const renderCard = (g: Goal) => {
@@ -828,126 +838,132 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
           </View>
           <View style={s.viewBtn}>
             <Text style={s.viewBtnText}>View Details</Text>
-            <Feather name="chevron-right" size={13} color="#059669" />
+            <Feather name="chevron-right" size={13} color={COLORS.primaryGreen} />
           </View>
         </View>
       </TouchableOpacity>
     );
   };
 
+  const renderItem = useCallback(({ item }: { item: Goal }) => (
+    <View style={{ paddingHorizontal: 16, paddingVertical: 6 }}>
+      {renderCard(item)}
+    </View>
+  ), [allMilestones]);
+
+  const renderSectionHeader = useCallback(({ section: { title } }: { section: { title: string } }) => (
+    <View style={{ backgroundColor: '#F8FAFC', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6 }}>
+      <Text style={s.groupLabel}>{title}</Text>
+    </View>
+  ), []);
+
+  const keyExtractor = useCallback((item: any) => String(item.id), []);
+
+  if (loading) return (
+    <View style={s.loadingBox}><ActivityIndicator size="large" color={COLORS.primaryGreen} /></View>
+  );
+
   return (
     <SafeAreaView style={s.safeArea} edges={['bottom']}>
       <View style={{ flex: 1 }}>
-      <ScrollView
+      <SectionList
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 140 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#059669" />}
-      >
-        {/* ── Hero Header ── */}
-        <View style={s.hero}>
-          <View style={s.heroBlob1} pointerEvents="none" />
-          <View style={s.heroBlob2} pointerEvents="none" />
-          <View style={s.heroInner}>
-            <View style={s.heroTag}>
-              <Feather name="target" size={12} color="#A78BFA" />
-              <Text style={s.heroTagText}>BEHAVIORAL THERAPY</Text>
-            </View>
-            <Text style={s.heroTitle}>SMART Goals</Text>
-            <Text style={s.heroSub}>Structure goals to build therapeutic focus and track clinical progress</Text>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primaryGreen} />}
+        sections={sections}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        ListHeaderComponent={
+          <>
+            {/* ── Hero Header ── */}
+            <View style={s.hero}>
+              <View style={s.heroBlob1} pointerEvents="none" />
+              <View style={s.heroBlob2} pointerEvents="none" />
+              <View style={s.heroInner}>
+                <View style={s.heroTag}>
+                  <Feather name="target" size={12} color="#A78BFA" />
+                  <Text style={s.heroTagText}>BEHAVIORAL THERAPY</Text>
+                </View>
+                <Text style={s.heroTitle}>SMART Goals</Text>
+                <Text style={s.heroSub}>Structure goals to build therapeutic focus and track clinical progress</Text>
 
-            {totalGoals > 0 && (
-              <View style={s.heroStats}>
-                <View style={s.heroStat}>
-                  <Text style={s.heroStatVal}>{totalGoals}</Text>
-                  <Text style={s.heroStatLabel}>Total Goals</Text>
-                </View>
-                <View style={s.heroStatDivider} />
-                <View style={s.heroStat}>
-                  <Text style={s.heroStatVal}>{completedGoals}</Text>
-                  <Text style={s.heroStatLabel}>Completed</Text>
-                </View>
-                <View style={s.heroStatDivider} />
-                <View style={s.heroStat}>
-                  <Text style={s.heroStatVal}>{completionPct}%</Text>
-                  <Text style={s.heroStatLabel}>Success Rate</Text>
-                </View>
-              </View>
-            )}
-
-            {totalGoals > 0 && (
-              <View style={s.heroProgressStrip}>
-                <View style={s.heroProgressTop}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Feather name="check-circle" size={12} color="#34D399" />
-                    <Text style={s.heroProgressLabel}>OVERALL PROGRESS</Text>
+                {totalGoals > 0 && (
+                  <View style={s.heroStats}>
+                    <View style={s.heroStat}>
+                      <Text style={s.heroStatVal}>{totalGoals}</Text>
+                      <Text style={s.heroStatLabel}>Total Goals</Text>
+                    </View>
+                    <View style={s.heroStatDivider} />
+                    <View style={s.heroStat}>
+                      <Text style={s.heroStatVal}>{completedGoals}</Text>
+                      <Text style={s.heroStatLabel}>Completed</Text>
+                    </View>
+                    <View style={s.heroStatDivider} />
+                    <View style={s.heroStat}>
+                      <Text style={s.heroStatVal}>{completionPct}%</Text>
+                      <Text style={s.heroStatLabel}>Success Rate</Text>
+                    </View>
                   </View>
-                  <Text style={s.heroProgressPct}>{completionPct}%</Text>
-                </View>
-                <View style={s.heroProgressBg}>
-                  <View style={[s.heroProgressFill, { width: `${completionPct}%` as any }]} />
-                </View>
-              </View>
-            )}
-          </View>
-        </View>
+                )}
 
-        {/* ── Tab bar (only if goals exist) ── */}
-        {totalGoals > 0 && (
-          <View style={s.tabWrap}>
-            <View style={s.tabBar}>
-              {(['goals', 'insights'] as const).map(tab => (
-                <TouchableOpacity
-                  key={tab}
-                  style={[s.tabBtn, activeTab === tab && s.tabBtnActive]}
-                  onPress={() => setActiveTab(tab)}
-                  activeOpacity={0.8}
-                >
-                  <Feather name={tab === 'goals' ? 'target' : 'bar-chart-2'} size={13} color={activeTab === tab ? '#FFF' : '#64748B'} style={{ marginRight: 5 }} />
-                  <Text style={[s.tabBtnText, activeTab === tab && s.tabBtnTextActive]}>
-                    {tab === 'goals' ? `Goals (${totalGoals})` : 'Insights'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                {totalGoals > 0 && (
+                  <View style={s.heroProgressStrip}>
+                    <View style={s.heroProgressTop}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Feather name="check-circle" size={12} color="#34D399" />
+                        <Text style={s.heroProgressLabel}>OVERALL PROGRESS</Text>
+                      </View>
+                      <Text style={s.heroProgressPct}>{completionPct}%</Text>
+                    </View>
+                    <View style={s.heroProgressBg}>
+                      <View style={[s.heroProgressFill, { width: `${completionPct}%` as any }]} />
+                    </View>
+                  </View>
+                )}
+              </View>
             </View>
-          </View>
-        )}
 
-        {/* ── Content ── */}
-        {totalGoals === 0 ? (
-          <View style={s.empty}>
-            <View style={s.emptyIcon}><Feather name="target" size={32} color="#94A3B8" /></View>
-            <Text style={s.emptyTitle}>No Goals Set Yet</Text>
-            <Text style={s.emptySub}>Structured SMART goals help focus behavioral activation and clinical progress.</Text>
-            <TouchableOpacity style={s.emptyBtn} onPress={() => setGoalModalVisible(true)} activeOpacity={0.85}>
-              <Feather name="plus" size={16} color="#FFF" style={{ marginRight: 6 }} />
-              <Text style={s.emptyBtnText}>Create Your First Goal</Text>
-            </TouchableOpacity>
-          </View>
-        ) : activeTab === 'insights' ? (
-          <InsightsPanel goals={goals} allMilestones={allMilestones} />
-        ) : (
-          <View style={s.list}>
-            {grouped.inProgress.length > 0 && (
-              <View style={s.group}>
-                <Text style={s.groupLabel}>IN PROGRESS ({grouped.inProgress.length})</Text>
-                {grouped.inProgress.map(renderCard)}
+            {/* ── Tab bar (only if goals exist) ── */}
+            {totalGoals > 0 && (
+              <View style={s.tabWrap}>
+                <View style={s.tabBar}>
+                  {(['goals', 'insights'] as const).map(tab => (
+                    <TouchableOpacity
+                      key={tab}
+                      style={[s.tabBtn, activeTab === tab && s.tabBtnActive]}
+                      onPress={() => setActiveTab(tab)}
+                      activeOpacity={0.8}
+                    >
+                      <Feather name={tab === 'goals' ? 'target' : 'bar-chart-2'} size={13} color={activeTab === tab ? '#FFF' : '#64748B'} style={{ marginRight: 5 }} />
+                      <Text style={[s.tabBtnText, activeTab === tab && s.tabBtnTextActive]}>
+                        {tab === 'goals' ? `Goals (${totalGoals})` : 'Insights'}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
             )}
-            {grouped.pending.length > 0 && (
-              <View style={s.group}>
-                <Text style={s.groupLabel}>PENDING REVIEW ({grouped.pending.length})</Text>
-                {grouped.pending.map(renderCard)}
+
+            {/* ── Content ── */}
+            {totalGoals === 0 && (
+              <View style={s.empty}>
+                <View style={s.emptyIcon}><Feather name="target" size={32} color="#94A3B8" /></View>
+                <Text style={s.emptyTitle}>No Goals Set Yet</Text>
+                <Text style={s.emptySub}>Structured SMART goals help focus behavioral activation and clinical progress.</Text>
+                <TouchableOpacity style={s.emptyBtn} onPress={() => setGoalModalVisible(true)} activeOpacity={0.85}>
+                  <Feather name="plus" size={16} color="#FFF" style={{ marginRight: 6 }} />
+                  <Text style={s.emptyBtnText}>Create Your First Goal</Text>
+                </TouchableOpacity>
               </View>
             )}
-            {grouped.completed.length > 0 && (
-              <View style={s.group}>
-                <Text style={s.groupLabel}>COMPLETED ({grouped.completed.length})</Text>
-                {grouped.completed.map(renderCard)}
-              </View>
+
+            {totalGoals > 0 && activeTab === 'insights' && (
+              <InsightsPanel goals={goals} allMilestones={allMilestones} />
             )}
-          </View>
-        )}
-      </ScrollView>
+          </>
+        }
+      />
 
       {/* FAB */}
       {totalGoals > 0 && (
@@ -996,7 +1012,7 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
             <View style={s.modalHandle} />
             {/* Header */}
             <View style={s.modalHeader}>
-              <View style={s.modalHeaderIcon}><Feather name="target" size={16} color="#059669" /></View>
+              <View style={s.modalHeaderIcon}><Feather name="target" size={16} color={COLORS.primaryGreen} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={s.modalTitle}>Set SMART Goal</Text>
                 <Text style={s.modalSub}>Step {currentStep} of {STEPS.length}</Text>
@@ -1027,7 +1043,7 @@ export default function GoalsScreen({ navigation }: { navigation: any }) {
                         ? <View style={[s.stepLetterBox, { backgroundColor: LETTER_BG[stepDef.letter] }]}>
                             <Text style={[s.stepLetter, { color: LETTER_COLORS[stepDef.letter] }]}>{stepDef.letter}</Text>
                           </View>
-                        : <View style={s.stepIconBox}><Feather name="target" size={18} color="#059669" /></View>
+                        : <View style={s.stepIconBox}><Feather name="target" size={18} color={COLORS.primaryGreen} /></View>
                       }
                       <Text style={s.stepTitle}>{stepDef.title}</Text>
                     </View>
@@ -1087,7 +1103,7 @@ const s = StyleSheet.create({
   loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
 
   // Hero
-  hero:    { backgroundColor: '#052e16', paddingBottom: 22, overflow: 'hidden' },
+  hero:    { backgroundColor: COLORS.darkGreen, paddingBottom: 22, overflow: 'hidden' },
   heroBlob1: { position: 'absolute', top: -40, right: 20, width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(5,150,105,0.10)' },
   heroBlob2: { position: 'absolute', bottom: 0, left: 40, width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(52,211,153,0.07)' },
   heroInner: { paddingHorizontal: 20, paddingTop: 20 },
@@ -1111,7 +1127,7 @@ const s = StyleSheet.create({
   tabWrap: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4 },
   tabBar:  { flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 14, padding: 4, gap: 4 },
   tabBtn:  { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 11 },
-  tabBtnActive: { backgroundColor: '#052e16', shadowColor: '#052e16', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  tabBtnActive: { backgroundColor: COLORS.darkGreen, shadowColor: COLORS.darkGreen, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
   tabBtnText:   { fontSize: 12.5, fontWeight: '700', color: '#64748B' },
   tabBtnTextActive: { color: '#FFF' },
 
@@ -1120,7 +1136,7 @@ const s = StyleSheet.create({
   emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   emptyTitle:{ fontSize: 18, fontWeight: '800', color: '#475569', marginBottom: 6 },
   emptySub:  { fontSize: 13, color: '#94A3B8', textAlign: 'center', lineHeight: 19, marginBottom: 22 },
-  emptyBtn:  { flexDirection: 'row', alignItems: 'center', backgroundColor: '#052e16', paddingHorizontal: 22, paddingVertical: 13, borderRadius: 14 },
+  emptyBtn:  { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.darkGreen, paddingHorizontal: 22, paddingVertical: 13, borderRadius: 14 },
   emptyBtnText: { color: '#FFF', fontSize: 14, fontWeight: '800' },
 
   // Goals list
@@ -1131,7 +1147,7 @@ const s = StyleSheet.create({
   // Goal Card
   goalCard: { backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9', borderLeftWidth: 5, padding: 16, shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },
   goalCardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
-  goalCardTitle: { fontSize: 15, fontWeight: '800', color: '#052e16', marginBottom: 4 },
+  goalCardTitle: { fontSize: 15, fontWeight: '800', color: COLORS.darkGreen, marginBottom: 4 },
   goalCardSpecific: { fontSize: 12.5, color: '#64748B', lineHeight: 18 },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, flexShrink: 0 },
   statusBadgeText: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.3 },
@@ -1147,10 +1163,10 @@ const s = StyleSheet.create({
   smartPillText: { fontSize: 10, fontWeight: '900' },
   smartPillMore: { fontSize: 10, fontWeight: '700', color: '#94A3B8', marginLeft: 2 },
   viewBtn: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  viewBtnText: { fontSize: 12, fontWeight: '700', color: '#059669' },
+  viewBtnText: { fontSize: 12, fontWeight: '700', color: COLORS.primaryGreen },
 
   // FAB
-  fab: { position: 'absolute', bottom: 16, right: 20, backgroundColor: '#052e16', borderRadius: 28, height: 50, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 6, shadowColor: '#052e16', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 6 },
+  fab: { position: 'absolute', bottom: 16, right: 20, backgroundColor: COLORS.darkGreen, borderRadius: 28, height: 50, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 6, shadowColor: COLORS.darkGreen, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 6 },
   fabText: { color: '#FFF', fontSize: 14, fontWeight: '800' },
 
   // Bottom nav
@@ -1161,32 +1177,32 @@ const s = StyleSheet.create({
   // Goal creation modal
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(5,46,22,0.65)', justifyContent: 'flex-end' },
   modalSheet:    { backgroundColor: '#F8FAFC', borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: H * 0.90, overflow: 'hidden' },
-  modalHandle:   { width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1', alignSelf: 'center', marginTop: 10 },
+  modalHandle:   { width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.disabledBg, alignSelf: 'center', marginTop: 10 },
   modalHeader:   { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#FFF' },
   modalHeaderIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#d1fae5', alignItems: 'center', justifyContent: 'center' },
-  modalTitle:    { fontSize: 17, fontWeight: '800', color: '#052e16' },
+  modalTitle:    { fontSize: 17, fontWeight: '800', color: COLORS.darkGreen },
   modalSub:      { fontSize: 11.5, color: '#94A3B8', marginTop: 1 },
   modalCloseBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
   modalProgressWrap: { backgroundColor: '#FFF', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   modalProgressBg:   { height: 6, backgroundColor: '#F1F5F9', borderRadius: 3, overflow: 'hidden', marginBottom: 10 },
-  modalProgressFill: { height: '100%', backgroundColor: '#059669', borderRadius: 3 },
+  modalProgressFill: { height: '100%', backgroundColor: COLORS.primaryGreen, borderRadius: 3 },
   modalStepDots: { flexDirection: 'row', gap: 6 },
   stepDot:       { width: 6, height: 6, borderRadius: 3, backgroundColor: '#E2E8F0' },
-  stepDotDone:   { backgroundColor: '#059669' },
-  stepDotActive: { width: 18, backgroundColor: '#059669' },
+  stepDotDone:   { backgroundColor: COLORS.primaryGreen },
+  stepDotActive: { width: 18, backgroundColor: COLORS.primaryGreen },
   modalBody:     { padding: 20, paddingBottom: 36 },
   stepHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   stepLetterBox: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   stepLetter:    { fontSize: 18, fontWeight: '900' },
   stepIconBox:   { width: 38, height: 38, borderRadius: 12, backgroundColor: '#ecfdf5', alignItems: 'center', justifyContent: 'center' },
-  stepTitle:     { fontSize: 18, fontWeight: '800', color: '#052e16' },
+  stepTitle:     { fontSize: 18, fontWeight: '800', color: COLORS.darkGreen },
   stepDesc:      { fontSize: 13, color: '#64748B', lineHeight: 19, marginBottom: 16 },
   modalInput:    { backgroundColor: '#FFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, fontSize: 14, color: '#1E293B', shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1 },
   modalTextArea: { backgroundColor: '#FFF', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, paddingTop: 13, paddingBottom: 13, fontSize: 14, color: '#1E293B', minHeight: 120, lineHeight: 21, shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1 },
   navRow:  { flexDirection: 'row', gap: 10, marginTop: 22 },
   prevBtn: { flex: 1, height: 50, borderRadius: 14, borderWidth: 1.5, borderColor: '#E2E8F0', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF' },
   prevBtnText: { fontSize: 14, fontWeight: '700', color: '#475569' },
-  nextBtn: { flex: 1, height: 50, borderRadius: 14, backgroundColor: '#052e16', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  nextBtnDisabled: { backgroundColor: '#CBD5E1' },
+  nextBtn: { flex: 1, height: 50, borderRadius: 14, backgroundColor: COLORS.darkGreen, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  nextBtnDisabled: { backgroundColor: COLORS.disabledBg },
   nextBtnText: { fontSize: 14, fontWeight: '800', color: '#FFF' },
 });

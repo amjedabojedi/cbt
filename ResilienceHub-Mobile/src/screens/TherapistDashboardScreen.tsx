@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View,
   Text,
@@ -12,9 +13,15 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { Feather, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { ApiService } from '../services/api';
+import { useCurrentUser } from '../hooks/queries/useProfile';
+import {
+  useTherapistClients,
+  useTherapistJournalStats,
+  useTherapistThoughtStats,
+  useTherapistGoalStats,
+} from '../hooks/queries/useTherapist';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.48;
@@ -24,12 +31,20 @@ interface TherapistDashboardScreenProps {
 }
 
 export default function TherapistDashboardScreen({ navigation }: TherapistDashboardScreenProps) {
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const [clients, setClients] = useState<any[]>([]);
-  const [journalCount, setJournalCount] = useState(0);
-  const [thoughtCount, setThoughtCount] = useState(0);
-  const [goalCount, setGoalCount] = useState(0);
+  const userQ = useCurrentUser();
+  const clientsQ = useTherapistClients();
+  const journalStatsQ = useTherapistJournalStats();
+  const thoughtStatsQ = useTherapistThoughtStats();
+  const goalStatsQ = useTherapistGoalStats();
+
+  const user = userQ.data;
+  const clients = clientsQ.data ?? [];
+  const journalCount = journalStatsQ.data?.totalCount ?? 0;
+  const thoughtCount = thoughtStatsQ.data?.totalCount ?? 0;
+  const goalCount = goalStatsQ.data?.totalCount ?? 0;
+  const loading =
+    userQ.isLoading || clientsQ.isLoading || journalStatsQ.isLoading ||
+    thoughtStatsQ.isLoading || goalStatsQ.isLoading;
 
   // Invite client
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
@@ -37,43 +52,6 @@ export default function TherapistDashboardScreen({ navigation }: TherapistDashbo
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviting, setInviting] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
-
-      const fetchData = async () => {
-        try {
-          const userRes = await ApiService.getCurrentUser();
-          if (!userRes.data || userRes.error) {
-            navigation.navigate('Login');
-            return;
-          }
-          if (isMounted) setUser(userRes.data);
-
-          const [clientsRes, journalRes, thoughtRes, goalRes] = await Promise.all([
-            ApiService.getTherapistClients(),
-            ApiService.getTherapistJournalStats(),
-            ApiService.getTherapistThoughtStats(),
-            ApiService.getTherapistGoalStats(),
-          ]);
-
-          if (!isMounted) return;
-
-          setClients(clientsRes.data || []);
-          setJournalCount((journalRes.data as any)?.totalCount ?? 0);
-          setThoughtCount((thoughtRes.data as any)?.totalCount ?? 0);
-          setGoalCount((goalRes.data as any)?.totalCount ?? 0);
-        } catch (error) {
-          console.error('Error fetching therapist dashboard:', error);
-        } finally {
-          if (isMounted) setLoading(false);
-        }
-      };
-
-      fetchData();
-      return () => { isMounted = false; };
-    }, [])
-  );
 
   const totalClients = clients.length;
   const activeClients = clients.filter((c: any) => c.status === 'active').length;
@@ -132,7 +110,7 @@ export default function TherapistDashboardScreen({ navigation }: TherapistDashbo
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color={COLORS.primaryGreen} />
         <Text style={styles.loadingText}>Loading your practice...</Text>
       </View>
     );
@@ -182,11 +160,11 @@ export default function TherapistDashboardScreen({ navigation }: TherapistDashbo
           </View>
           <View style={styles.statsGrid}>
             {[
-              { icon: 'users', label: 'Total Clients', value: totalClients, sub: `${newClients} new in 14 days`, color: '#059669' },
-              { icon: 'user-check', label: 'Active Clients', value: activeClients, sub: `${activeRate}% engagement`, color: '#10B981' },
+              { icon: 'users', label: 'Total Clients', value: totalClients, sub: `${newClients} new in 14 days`, color: COLORS.primaryGreen },
+              { icon: 'user-check', label: 'Active Clients', value: activeClients, sub: `${activeRate}% engagement`, color: COLORS.mediumGreen },
               { icon: 'user-plus', label: 'New Clients', value: newClients, sub: 'Last 14 days', color: '#6366F1' },
               { icon: 'book-open', label: 'Journal Entries', value: journalCount, sub: 'Across all clients', color: '#F59E0B' },
-              { icon: 'cpu', label: 'Thought Records', value: thoughtCount, sub: 'Across all clients', color: '#059669' },
+              { icon: 'cpu', label: 'Thought Records', value: thoughtCount, sub: 'Across all clients', color: COLORS.primaryGreen },
               { icon: 'target', label: 'Active Goals', value: goalCount, sub: 'Across all clients', color: '#EF4444' },
             ].map((stat, i) => (
               <View key={i} style={styles.statCard}>
@@ -206,7 +184,7 @@ export default function TherapistDashboardScreen({ navigation }: TherapistDashbo
           <View style={styles.carouselSection}>
             <View style={[styles.sectionHeader, { justifyContent: 'space-between', paddingHorizontal: 20 }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="sparkles-outline" size={14} color="#581C87" />
+                <Ionicons name="star-outline" size={14} color="#581C87" />
                 <Text style={[styles.sectionTitle, { marginLeft: 6 }]}>RECENT CLIENTS</Text>
               </View>
               <TouchableOpacity onPress={() => navigation.navigate('ClientDirectory')}>
@@ -234,8 +212,8 @@ export default function TherapistDashboardScreen({ navigation }: TherapistDashbo
                   >
                     {/* Status pill */}
                     <View style={[styles.statusPill, isActive ? styles.statusPillActive : styles.statusPillInactive]}>
-                      <View style={[styles.statusDot, { backgroundColor: isActive ? '#10B981' : '#CBD5E1' }]} />
-                      <Text style={[styles.statusPillText, { color: isActive ? '#059669' : '#94A3B8' }]}>
+                      <View style={[styles.statusDot, { backgroundColor: isActive ? COLORS.mediumGreen : COLORS.disabledBg }]} />
+                      <Text style={[styles.statusPillText, { color: isActive ? COLORS.primaryGreen : '#94A3B8' }]}>
                         {client.status || 'unknown'}
                       </Text>
                     </View>
@@ -272,7 +250,7 @@ export default function TherapistDashboardScreen({ navigation }: TherapistDashbo
         {!loading && clients.length === 0 && (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconBox}>
-              <Ionicons name="sparkles-outline" size={32} color="#581C87" />
+              <Ionicons name="star-outline" size={32} color="#581C87" />
             </View>
             <Text style={styles.emptyTitle}>No clients yet</Text>
             <Text style={styles.emptyDesc}>Invite clients to start building your practice and tracking progress.</Text>
@@ -362,7 +340,7 @@ const styles = StyleSheet.create({
 
   // Hero
   heroBanner: {
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
@@ -378,7 +356,7 @@ const styles = StyleSheet.create({
   avatarBox: {
     width: 48, height: 48, borderRadius: 16,
     backgroundColor: 'rgba(5,150,105,0.15)',
-    borderWidth: 1.5, borderColor: '#059669',
+    borderWidth: 1.5, borderColor: COLORS.primaryGreen,
     alignItems: 'center', justifyContent: 'center', marginTop: 8,
   },
   avatarText: { color: '#34d399', fontSize: 16, fontWeight: 'bold' },
@@ -418,10 +396,10 @@ const styles = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 18,
-    backgroundColor: '#052e16',
+    backgroundColor: COLORS.darkGreen,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#052e16',
+    shadowColor: COLORS.darkGreen,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
@@ -446,13 +424,13 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#052e16', borderRadius: 14,
+    backgroundColor: COLORS.darkGreen, borderRadius: 14,
     paddingVertical: 14, marginTop: 20,
   },
   sendBtnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 15, marginLeft: 8 },
 
   // Recent Clients Carousel
-  viewAllLink: { fontSize: 12, fontWeight: '700', color: '#059669' },
+  viewAllLink: { fontSize: 12, fontWeight: '700', color: COLORS.primaryGreen },
   carouselSection: { paddingTop: 24 },
   carouselContent: { paddingHorizontal: 20, paddingBottom: 8, gap: 14 },
 
@@ -460,7 +438,6 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
     backgroundColor: '#FFFFFF',
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#F1F5F9',
     padding: 18,
@@ -513,8 +490,8 @@ const styles = StyleSheet.create({
   emptyDesc: { fontSize: 13, color: '#94A3B8', textAlign: 'center', lineHeight: 18, marginBottom: 20 },
   emptyButton: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#052e16', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14,
-    shadowColor: '#052e16', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8,
+    backgroundColor: COLORS.darkGreen, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14,
+    shadowColor: COLORS.darkGreen, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8,
   },
   emptyButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700', marginLeft: 8 },
 });

@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { COLORS } from '../styles/theme';
 import {
   View, Text, StyleSheet, ScrollView, Switch, ActivityIndicator,
-  TouchableOpacity, Alert, TextInput, Dimensions, Platform,
+  TouchableOpacity, Alert, TextInput,
 } from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
 import { ApiService } from '../services/api';
-
-const { width: W } = Dimensions.get('window');
+import { useLogout } from '../hooks/useLogout';
 
 type TabId = 'profile' | 'password' | 'notifications' | 'appearance' | 'account';
 
@@ -56,6 +55,7 @@ function FieldLabel({ text }: { text: string }) {
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 export default function SettingsScreen({ navigation }: { navigation: any }) {
+  const logout = useLogout(navigation);
   const [profile, setProfile]   = useState<any>(null);
   const [loading, setLoading]   = useState(true);
   const [activeTab, setActiveTab] = useState<TabId>('profile');
@@ -145,13 +145,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: async () => {
-        try { await ApiService.logout(); } catch {}
-        await SecureStore.deleteItemAsync('authToken');
-        await SecureStore.deleteItemAsync('userId');
-        await SecureStore.deleteItemAsync('userEmail');
-        navigation.replace('Login');
-      }},
+      { text: 'Sign Out', style: 'destructive', onPress: logout },
     ]);
   };
 
@@ -161,13 +155,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
       'This action cannot be undone. This will permanently delete your account and remove all your data.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete Account', style: 'destructive', onPress: async () => {
-          try { await ApiService.logout(); } catch {}
-          await SecureStore.deleteItemAsync('authToken');
-          await SecureStore.deleteItemAsync('userId');
-          await SecureStore.deleteItemAsync('userEmail');
-          navigation.replace('Login');
-        }},
+        { text: 'Delete Account', style: 'destructive', onPress: logout },
       ]
     );
   };
@@ -183,7 +171,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
   if (loading) {
     return (
       <View style={s.loadingBox}>
-        <ActivityIndicator size="large" color="#059669" />
+        <ActivityIndicator size="large" color={COLORS.primaryGreen} />
       </View>
     );
   }
@@ -334,7 +322,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
           {activeTab === 'password' && (
             <View style={s.card}>
               <SectionHeader
-                icon={<Feather name="lock" size={18} color="#052e16" />}
+                icon={<Feather name="lock" size={18} color={COLORS.darkGreen} />}
                 title="Change Password"
                 subtitle="Keep your account secure with a strong password"
               />
@@ -413,7 +401,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
           {activeTab === 'notifications' && (
             <View style={s.card}>
               <SectionHeader
-                icon={<Feather name="bell" size={18} color="#052e16" />}
+                icon={<Feather name="bell" size={18} color={COLORS.darkGreen} />}
                 title="Notification Preferences"
                 subtitle="Control how and when you receive notifications"
               />
@@ -431,8 +419,8 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
                     <Switch
                       value={item.state}
                       onValueChange={item.set}
-                      trackColor={{ false: '#CBD5E1', true: '#A78BFA' }}
-                      thumbColor={item.state ? '#059669' : '#F1F5F9'}
+                      trackColor={{ false: COLORS.disabledBg, true: '#A78BFA' }}
+                      thumbColor={item.state ? COLORS.primaryGreen : '#F1F5F9'}
                     />
                   </View>
                 ))}
@@ -463,7 +451,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
           {activeTab === 'appearance' && (
             <View style={s.card}>
               <SectionHeader
-                icon={<Feather name="globe" size={18} color="#052e16" />}
+                icon={<Feather name="globe" size={18} color={COLORS.darkGreen} />}
                 title="Appearance"
                 subtitle="Customize language and display settings"
               />
@@ -499,7 +487,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
               {/* Account info */}
               <View style={s.card}>
                 <SectionHeader
-                  icon={<Feather name="shield" size={18} color="#052e16" />}
+                  icon={<Feather name="shield" size={18} color={COLORS.darkGreen} />}
                   title="Account Information"
                   subtitle="Details about your account and membership"
                 />
@@ -510,7 +498,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
                   ].map(row => (
                     <View key={row.label} style={s.infoRow}>
                       <Text style={s.infoLabel}>{row.label}</Text>
-                      <Text style={[s.infoVal, row.green && { color: '#059669' }]}>{row.value}</Text>
+                      <Text style={[s.infoVal, row.green && { color: COLORS.primaryGreen }]}>{row.value}</Text>
                     </View>
                   ))}
                 </View>
@@ -519,7 +507,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
               {/* Sign out */}
               <View style={s.card}>
                 <SectionHeader
-                  icon={<Feather name="log-out" size={18} color="#052e16" />}
+                  icon={<Feather name="log-out" size={18} color={COLORS.darkGreen} />}
                   title="Session"
                   subtitle="Manage your current login session"
                 />
@@ -561,7 +549,7 @@ const s = StyleSheet.create({
   loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
 
   // Hero
-  hero: { backgroundColor: '#052e16', paddingBottom: 20, overflow: 'hidden', position: 'relative' },
+  hero: { backgroundColor: COLORS.darkGreen, paddingBottom: 20, overflow: 'hidden', position: 'relative' },
   blob1: { position: 'absolute', top: -40, right: 20, width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(124,58,237,0.08)' },
   blob2: { position: 'absolute', bottom: 0, left: 40, width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(99,102,241,0.07)' },
   heroInner: { paddingHorizontal: 20, paddingTop: 20 },
@@ -589,7 +577,7 @@ const s = StyleSheet.create({
   tabCard:   { backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: '#F1F5F9', padding: 6, shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 1 },
   tabScroll: { gap: 4, paddingHorizontal: 2 },
   tabBtn:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 12 },
-  tabBtnActive: { backgroundColor: '#052e16' },
+  tabBtnActive: { backgroundColor: COLORS.darkGreen },
   tabBtnText:   { fontSize: 13, fontWeight: '700', color: '#64748B' },
   tabBtnTextActive: { color: '#FFFFFF' },
 
@@ -597,7 +585,7 @@ const s = StyleSheet.create({
   card: { backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9', overflow: 'hidden', shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 6, elevation: 1 },
 
   // Profile header
-  profileHeader: { backgroundColor: '#052e16', paddingHorizontal: 16, paddingVertical: 18, overflow: 'hidden' },
+  profileHeader: { backgroundColor: COLORS.darkGreen, paddingHorizontal: 16, paddingVertical: 18, overflow: 'hidden' },
   blob3: { position: 'absolute', top: -30, right: -20, width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(124,58,237,0.15)' },
   profileHeaderInner: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   avatar: { width: 52, height: 52, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
@@ -614,7 +602,7 @@ const s = StyleSheet.create({
   input: { backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#1E293B' },
   hint:  { fontSize: 11, color: '#94A3B8' },
   errorText: { fontSize: 11.5, color: '#EF4444', fontWeight: '600' },
-  saveBtn: { backgroundColor: '#052e16', borderRadius: 14, paddingVertical: 13, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  saveBtn: { backgroundColor: COLORS.darkGreen, borderRadius: 14, paddingVertical: 13, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
   saveBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
 
   // Password
@@ -628,7 +616,7 @@ const s = StyleSheet.create({
   toggleDesc:  { fontSize: 11, color: '#64748B', marginTop: 1 },
   freqGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   freqBtn:     { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#FFFFFF' },
-  freqBtnActive: { backgroundColor: '#052e16', borderColor: '#052e16' },
+  freqBtnActive: { backgroundColor: COLORS.darkGreen, borderColor: COLORS.darkGreen },
   freqBtnText:   { fontSize: 12.5, fontWeight: '700', color: '#475569' },
   freqBtnTextActive: { color: '#FFFFFF' },
 
@@ -636,7 +624,7 @@ const s = StyleSheet.create({
   langCard:  { backgroundColor: '#F8FAFC', borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0', padding: 13, marginBottom: 10, flexDirection: 'row', alignItems: 'center' },
   langBtns:  { gap: 8 },
   langBtn:   { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 12, borderWidth: 1.5, borderColor: '#E2E8F0', paddingHorizontal: 14, paddingVertical: 12 },
-  langBtnActive: { backgroundColor: '#052e16', borderColor: '#052e16' },
+  langBtnActive: { backgroundColor: COLORS.darkGreen, borderColor: COLORS.darkGreen },
   langBtnText:   { fontSize: 13.5, fontWeight: '700', color: '#475569' },
   langBtnTextActive: { color: '#FFFFFF' },
 
