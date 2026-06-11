@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "050fc3cb-3d33-47a1-9b66-771b48931060"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.anonymous.resiliencehubmobile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}

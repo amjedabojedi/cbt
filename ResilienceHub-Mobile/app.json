@@ -16,6 +16,7 @@
     ],
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.resiliencehubmobile",
       "infoPlist": {
         "NSUserNotificationsUsageDescription": "ResilienceHub sends you session reminders and clinical alerts."
       }
@@ -41,6 +42,10 @@
       ]
     ],
     "scheme": "resiliencehub",
-    "extra": {}
+    "extra": {
+      "eas": {
+        "projectId": "4b3322ab-b623-40a8-a80a-8a31074ca677"
+      }
+    }
   }
 }

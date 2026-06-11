@@ -75,6 +75,14 @@ target 'ResilienceHubMobile' do
         end
       end
     end
+
+    # Workaround for Xcode 15+ C++20 literal operator warnings failing the build
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['OTHER_CPLUSPLUSFLAGS'] ||= ['$(inherited)']
+        config.build_settings['OTHER_CPLUSPLUSFLAGS'] << '-Wno-error=deprecated-literal-operator'
+      end
+    end
   end
 
   post_integrate do |installer|
