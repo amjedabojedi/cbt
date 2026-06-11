@@ -157,6 +157,19 @@ export async function deleteNotification(req: Request, res: Response) {
   }
 }
 
+// Clear all notifications for the current user
+export async function clearAllNotifications(req: Request, res: Response) {
+  try {
+    const userId = req.user!.id;
+    await storage.clearAllNotifications(userId);
+    notificationCache.delete(userId);
+    res.status(200).json({ message: "All notifications cleared" });
+  } catch (error) {
+    console.error("Error clearing notifications:", error);
+    res.status(500).json({ message: "Failed to clear notifications" });
+  }
+}
+
 // Generate a test notification
 export async function createTestNotification(req: Request, res: Response) {
   try {

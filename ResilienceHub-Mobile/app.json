@@ -15,20 +15,32 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "ResilienceHub sends you session reminders and clinical alerts."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "permissions": ["android.permission.RECEIVE_BOOT_COMPLETED", "android.permission.VIBRATE"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#059669",
+          "sounds": []
+        }
+      ]
+    ],
     "scheme": "resiliencehub",
-    "extra": {
-      "apiBaseUrl": "https://your-api-domain.replit.dev"
-    }
+    "extra": {}
   }
 }

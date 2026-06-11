@@ -33,7 +33,7 @@ export const clientNavConfig: RoleNavConfig = {
     { kind: 'tabsHome', label: 'Home', icon: 'home-outline', targetTab: 'Dashboard' },
     { kind: 'tabLink', routeName: 'ThoughtRecordDrawer', label: 'Thoughts Records', icon: 'bulb-outline', targetTab: 'ThoughtRecord' },
     { kind: 'screen', routeName: 'Goals', label: 'SMART GOALS', title: 'SMART Goals', icon: 'flag-outline', component: GoalsScreen },
-    { kind: 'screen', routeName: 'Journal', label: 'Journal', title: 'Journal', icon: 'book-outline', component: JournalScreen },
+    { kind: 'screen', routeName: 'Journal', label: 'Journal', title: 'Journal', icon: 'journal-outline', component: JournalScreen },
     { kind: 'screen', routeName: 'ReframeCoach', label: 'Reframe Coach', title: 'Reframe Coach', icon: 'flash-outline', component: ReframeCoachScreen },
     { kind: 'tabLink', routeName: 'Settings', label: 'Settings', icon: 'settings-outline', targetTab: 'Settings' },
   ],

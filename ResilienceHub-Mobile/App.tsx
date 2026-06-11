@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -7,6 +7,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { COLORS } from './src/styles/theme';
 import { AuthProvider } from './src/context/AuthContext';
+import {
+  requestNotificationPermissions,
+  startNotificationPolling,
+  stopNotificationPolling,
+} from './src/services/PushNotificationService';
 
 // Auth / entry screens
 import LoginScreen from './src/screens/LoginScreen';
@@ -44,6 +49,13 @@ const pushedScreenOptions = {
 };
 
 export default function App() {
+  useEffect(() => {
+    requestNotificationPermissions().then((granted) => {
+      if (granted) startNotificationPolling(30_000);
+    });
+    return () => stopNotificationPolling();
+  }, []);
+
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>

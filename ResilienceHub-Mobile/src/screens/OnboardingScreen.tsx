@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 
 interface OnboardingScreenProps {
@@ -181,7 +181,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     return (
       <View style={styles.stepContent}>
         <View style={[styles.slideIconBg, { borderColor: slide.color }]}>
-          <Ionicons name={slide.icon as any} size={48} color={slide.color} />
+          {slide.iconFamily === 'MaterialCommunityIcons' ? (
+            <MaterialCommunityIcons name={slide.icon as any} size={48} color={slide.color} />
+          ) : (
+            <Ionicons name={slide.icon as any} size={48} color={slide.color} />
+          )}
         </View>
         <Text style={styles.slideSubtitle}>{slide.subtitle.toUpperCase()}</Text>
         <Text style={styles.slideTitle}>{slide.title}</Text>

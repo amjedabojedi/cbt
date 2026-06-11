@@ -1559,7 +1559,7 @@ export default function ThoughtRecordScreen({ navigation }: ThoughtRecordScreenP
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
-                    style={[styles.saveEditButton, { flex: 1, backgroundColor: savingChallenge ? '#A78BFA' : COLORS.mediumGreen }]}
+                    style={[styles.saveEditButton, { flex: 1, backgroundColor: savingChallenge ? COLORS.lightGreen : COLORS.mediumGreen }]}
                     onPress={handleSaveChallenge}
                     disabled={savingChallenge}
                   >
@@ -1986,7 +1986,7 @@ const styles = StyleSheet.create({
     minWidth: 110,
   },
   navNextButtonDisabled: {
-    backgroundColor: '#C4B5FD',
+    backgroundColor: COLORS.lightGreen,
   },
   navNextButtonText: {
     color: 'white',

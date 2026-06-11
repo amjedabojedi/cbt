@@ -45,6 +45,8 @@ export function verifyOrigin(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
+  console.log("[CSRF] headers:", JSON.stringify(req.headers));
+
   const origin = (req.headers.origin as string | undefined) || "";
   const referer = (req.headers.referer as string | undefined) || "";
   const source = origin || referer;

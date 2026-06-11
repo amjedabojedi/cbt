@@ -1,13 +1,15 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../styles/theme';
 import DrawerHeader from '../components/navigation/DrawerHeader';
 import LogoutButton from '../components/navigation/LogoutButton';
 import LanguageSwitcher from '../components/navigation/LanguageSwitcher';
 import { useLogout } from '../hooks/useLogout';
+import { useNotifications } from '../hooks/queries/useNotifications';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -49,12 +51,44 @@ const headerLeftMenu = (navigation: any) => () =>
     </TouchableOpacity>
   );
 
-const headerRightNotifications = (navigation: any) => () =>
-  (
-    <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
-      <Ionicons name="notifications-outline" size={24} color={COLORS.textLight} style={{ marginRight: 16 }} />
+function NotificationBell({ navigation }: { navigation: any }) {
+  const { data } = useNotifications();
+  const unreadCount = (data ?? []).filter((n) => !n.isRead).length;
+  return (
+    <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={{ marginRight: 16 }}>
+      <Ionicons name="notifications-outline" size={24} color={COLORS.textLight} />
+      {unreadCount > 0 && (
+        <View style={navStyles.badge}>
+          <Text style={navStyles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
+}
+
+const navStyles = StyleSheet.create({
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '800',
+  },
+});
+
+const headerRightNotifications = (navigation: any) => () => (
+  <NotificationBell navigation={navigation} />
+);
 
 /**
  * Builds the Drawer-wrapping-Tabs navigator for a role from a declarative config.
@@ -107,8 +141,43 @@ export function createRoleNavigator(config: RoleNavConfig) {
         style={{ backgroundColor: COLORS.darkGreen }}
       >
         <DrawerHeader icon={config.drawerHeaderIcon} subtitle={config.drawerSubtitle} />
-        <View style={{ flex: 1 }}>
-          <DrawerItemList {...props} />
+        <View style={{ flex: 1, paddingTop: 10 }}>
+          {config.drawerItems.map((item, index) => {
+            const state = props.state;
+            const activeRoute = state.routes[state.index];
+            const focusedName = activeRoute.name === config.tabsRouteName
+              ? getFocusedRouteNameFromRoute(activeRoute) ?? config.tabs[0].name
+              : activeRoute.name;
+              
+            let isFocused = false;
+            if (item.kind === 'tabsHome' || item.kind === 'tabLink') {
+              isFocused = focusedName === item.targetTab;
+            } else {
+              isFocused = focusedName === item.routeName;
+            }
+
+            return (
+              <DrawerItem
+                key={index}
+                label={item.label}
+                icon={({ color, size }) => (
+                  <Ionicons name={item.icon as any} size={size} color={color} />
+                )}
+                focused={isFocused}
+                activeTintColor={COLORS.textLight}
+                activeBackgroundColor={COLORS.drawerActiveBg}
+                inactiveTintColor={COLORS.overlayText}
+                labelStyle={{ fontWeight: '700', fontSize: 14 }}
+                onPress={() => {
+                  if (item.kind === 'tabsHome' || item.kind === 'tabLink') {
+                    props.navigation.navigate(config.tabsRouteName, { screen: item.targetTab });
+                  } else {
+                    props.navigation.navigate(item.routeName);
+                  }
+                }}
+              />
+            );
+          })}
         </View>
         {config.showLanguageSwitcher && <LanguageSwitcher />}
         <LogoutButton onPress={handleLogout} />
@@ -132,7 +201,7 @@ export function createRoleNavigator(config: RoleNavConfig) {
           drawerLabelStyle: { fontWeight: '700', fontSize: 14 },
         })}
       >
-        {config.drawerItems.map((item) => {
+        {config.drawerItems.filter((i) => i.kind !== 'tabLink').map((item) => {
           const drawerIcon = ({ color, size }: { color: string; size: number }) => (
             <Ionicons name={item.icon} size={size} color={color} />
           );
@@ -144,12 +213,6 @@ export function createRoleNavigator(config: RoleNavConfig) {
                 name={config.tabsRouteName}
                 component={RoleTabs}
                 options={{ headerShown: false, drawerLabel: item.label, drawerIcon }}
-                listeners={({ navigation }) => ({
-                  drawerItemPress: (e) => {
-                    e.preventDefault();
-                    navigation.navigate(config.tabsRouteName, { screen: item.targetTab });
-                  },
-                })}
               />
             );
           }
@@ -165,21 +228,7 @@ export function createRoleNavigator(config: RoleNavConfig) {
             );
           }
 
-          // tabLink: placeholder route that redirects to a nested tab
-          return (
-            <Drawer.Screen
-              key={item.routeName}
-              name={item.routeName}
-              component={View}
-              options={{ drawerLabel: item.label, drawerIcon }}
-              listeners={({ navigation }) => ({
-                drawerItemPress: (e) => {
-                  e.preventDefault();
-                  navigation.navigate(config.tabsRouteName, { screen: item.targetTab });
-                },
-              })}
-            />
-          );
+          return null;
         })}
       </Drawer.Navigator>
     );

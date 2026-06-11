@@ -1,4 +1,20 @@
-export default {
+const os = require('os');
+
+function getLocalIP() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return 'localhost';
+}
+
+const localIP = process.env.REPL_SLUG ? null : getLocalIP();
+
+module.exports = {
   expo: {
     name: "ResilienceHub Mobile",
     slug: "resiliencehub-mobile",
@@ -27,9 +43,9 @@ export default {
       favicon: "./assets/favicon.png"
     },
     extra: {
-      apiBaseUrl: process.env.EXPO_PUBLIC_API_URL || (process.env.REPL_SLUG 
+      apiBaseUrl: process.env.EXPO_PUBLIC_API_URL || (process.env.REPL_SLUG
         ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
-        : "http://127.0.0.1:5005")
+        : `http://${localIP}:5005`)
     }
   }
 };

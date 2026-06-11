@@ -589,6 +589,7 @@ var init_schema = __esm({
     clientInvitations = pgTable("client_invitations", {
       id: serial("id").primaryKey(),
       email: text("email").notNull(),
+      name: text("name"),
       therapistId: integer("therapist_id").notNull().references(() => users.id),
       status: text("status", {
         enum: ["pending", "email_sent", "email_failed", "accepted", "expired"]
@@ -1321,6 +1322,7 @@ function verifyOrigin(req, res, next) {
   if (req.headers["x-requested-with"] === "ResilienceHub-Mobile" || req.headers["x-app-platform"] === "mobile") {
     return next();
   }
+  console.log("[CSRF] headers:", JSON.stringify(req.headers));
   const origin = req.headers.origin || "";
   const referer = req.headers.referer || "";
   const source = origin || referer;
@@ -2233,6 +2235,9 @@ var NotificationsRepository = class {
   async deleteNotification(id) {
     await db.delete(notifications).where(eq7(notifications.id, id));
   }
+  async clearAllNotifications(userId) {
+    await db.delete(notifications).where(eq7(notifications.userId, userId));
+  }
   // Notification preferences
   async getNotificationPreferences(userId) {
     const [preferences] = await db.select().from(notificationPreferences).where(eq7(notificationPreferences.userId, userId));
@@ -2707,6 +2712,9 @@ var DatabaseStorage = class {
   async deleteNotification(id) {
     return this.notificationsRepo.deleteNotification(id);
   }
+  async clearAllNotifications(userId) {
+    return this.notificationsRepo.clearAllNotifications(userId);
+  }
   // Notification preferences
   async getNotificationPreferences(userId) {
     return this.notificationsRepo.getNotificationPreferences(userId);
@@ -2755,6 +2763,28 @@ var DatabaseStorage = class {
   }
   async updateEngagementSettings(settings) {
     return this.adminRepo.updateEngagementSettings(settings);
+  }
+  // AI Recommendations
+  async createAiRecommendation(recommendation) {
+    return this.adminRepo.createAiRecommendation(recommendation);
+  }
+  async getAiRecommendationById(id) {
+    return this.adminRepo.getAiRecommendationById(id);
+  }
+  async getAiRecommendationsByUser(userId) {
+    return this.adminRepo.getAiRecommendationsByUser(userId);
+  }
+  async getPendingAiRecommendationsByProfessional(professionalId) {
+    return this.adminRepo.getPendingAiRecommendationsByProfessional(professionalId);
+  }
+  async getPendingAiRecommendationsByTherapist(therapistId) {
+    return this.adminRepo.getPendingAiRecommendationsByTherapist(therapistId);
+  }
+  async updateAiRecommendationStatus(id, status, therapistNotes) {
+    return this.adminRepo.updateAiRecommendationStatus(id, status, therapistNotes);
+  }
+  async deleteAiRecommendation(id) {
+    return this.adminRepo.deleteAiRecommendation(id);
   }
   // AI Recommendations
   async createAiRecommendation(recommendation) {
@@ -4019,7 +4049,7 @@ var createRateLimiter = (config) => new RateLimiter(config).middleware;
 var authRateLimit = createRateLimiter({
   windowMs: 15 * 60 * 1e3,
   // 15 minutes
-  maxRequests: 5,
+  maxRequests: 20,
   message: "Too many authentication attempts"
 });
 var apiRateLimit = createRateLimiter({
@@ -4953,6 +4983,9 @@ function generateFallbackAnalysis(title = "", content = "") {
   };
   return result;
 }
+var openaiDirect = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 // server/services/reframeCoach.ts
 import { z as z2 } from "zod";
@@ -5536,7 +5569,7 @@ function registerReframeCoachRoutes(app2) {
 }
 
 // server/routes/index.ts
-import { Router as Router12 } from "express";
+import { Router as Router14 } from "express";
 
 // server/routes/subscriptions.routes.ts
 import { Router } from "express";
@@ -5867,7 +5900,11 @@ async function registerUser(req, res) {
     }
     if (!isInvitation && !hasPendingInvitation) {
       validatedData.status = "active";
-      validatedData.role = "client";
+      if (req.body.role === "therapist" || req.body.role === "admin") {
+        validatedData.role = req.body.role;
+      } else {
+        validatedData.role = "client";
+      }
       validatedData.therapistId = void 0;
       validatedData.stripeCustomerId = void 0;
       validatedData.stripeSubscriptionId = void 0;
@@ -6016,6 +6053,7 @@ async function inviteClient(req, res) {
     const storedInviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(email)}&therapistId=${req.user.id}`;
     await storage.createClientInvitation({
       email,
+      name,
       therapistId: req.user.id,
       tempUsername,
       tempPassword: hashedTempPassword,
@@ -6872,6 +6910,7 @@ async function inviteClient2(req, res) {
         try {
           await storage.createClientInvitation({
             email: existingUser.email,
+            name: existingUser.name || name,
             therapistId: req.user.id,
             status: emailSent2 ? "email_sent" : "email_failed",
             tempUsername: existingUser.username,
@@ -7648,6 +7687,7 @@ import { Router as Router4 } from "express";
 init_db();
 init_schema();
 import { eq as eq13, sql as sql4 } from "drizzle-orm";
+import { z as z6 } from "zod";
 function getEmotionColor2(emotion) {
   return getEmotionColor(emotion);
 }
@@ -7766,11 +7806,46 @@ async function getEmotionStats(req, res) {
     res.status(500).json({ message: "Failed to fetch emotion statistics" });
   }
 }
+async function updateEmotionRecord(req, res) {
+  try {
+    const userId = parseInt(req.params.userId);
+    const emotionId = parseInt(req.params.emotionId);
+    const updateSchema = z6.object({
+      intensity: z6.number().min(1).max(10).optional(),
+      situation: z6.string().optional(),
+      location: z6.string().nullable().optional(),
+      company: z6.string().nullable().optional()
+    });
+    const validatedUpdate = updateSchema.parse(req.body);
+    const existingEmotion = await storage.getEmotionRecordById(emotionId);
+    if (!existingEmotion) {
+      return res.status(404).json({ message: "Emotion record not found" });
+    }
+    if (existingEmotion.userId !== userId) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    const updateData = {
+      ...validatedUpdate.intensity !== void 0 && { intensity: validatedUpdate.intensity },
+      ...validatedUpdate.situation !== void 0 && { situation: validatedUpdate.situation },
+      ...validatedUpdate.location !== void 0 && { location: validatedUpdate.location },
+      ...validatedUpdate.company !== void 0 && { company: validatedUpdate.company }
+    };
+    const [updatedEmotion] = await db.update(emotionRecords).set(updateData).where(eq13(emotionRecords.id, emotionId)).returning();
+    res.status(200).json(updatedEmotion);
+  } catch (error) {
+    if (error instanceof z6.ZodError) {
+      return res.status(400).json({ message: "Invalid data", errors: error.errors });
+    }
+    console.error("Update emotion record error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
 
 // server/routes/emotions.routes.ts
 var router4 = Router4({ mergeParams: true });
 router4.get("/count", authenticate, checkUserAccess, getEmotionsCount);
 router4.post("/", authenticate, checkUserAccess, isClientOrAdmin, createEmotionRecord);
+router4.patch("/:emotionId", authenticate, checkUserAccess, updateEmotionRecord);
 router4.get("/", authenticate, checkUserAccess, getEmotions);
 router4.delete("/:emotionId", authenticate, checkUserAccess, deleteEmotionRecord);
 router4.get("/stats", authenticate, checkUserAccess, getEmotionStats);
@@ -7783,7 +7858,7 @@ import { Router as Router5 } from "express";
 init_db();
 init_schema();
 import { eq as eq14, sql as sql5 } from "drizzle-orm";
-import { z as z6 } from "zod";
+import { z as z7 } from "zod";
 async function getThoughtsCount(req, res) {
   try {
     const userId = parseInt(req.params.userId);
@@ -7807,7 +7882,7 @@ async function createThoughtRecord(req, res) {
     const thoughtRecord = await storage.createThoughtRecord(validatedData);
     res.status(201).json(thoughtRecord);
   } catch (error) {
-    if (error instanceof z6.ZodError) {
+    if (error instanceof z7.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Create thought record error:", error);
@@ -7818,13 +7893,13 @@ async function updateThoughtRecord(req, res) {
   try {
     const userId = parseInt(req.params.userId);
     const thoughtId = parseInt(req.params.thoughtId);
-    const updateSchema = z6.object({
-      cognitiveDistortions: z6.array(z6.string()).optional(),
-      evidenceFor: z6.string().min(1).optional(),
-      evidenceAgainst: z6.string().min(1).optional(),
-      alternativePerspective: z6.string().min(1).optional(),
-      reflectionRating: z6.number().min(0).max(10).optional(),
-      insightsGained: z6.string().min(1).optional()
+    const updateSchema = z7.object({
+      cognitiveDistortions: z7.array(z7.string()).optional(),
+      evidenceFor: z7.string().min(1).optional(),
+      evidenceAgainst: z7.string().min(1).optional(),
+      alternativePerspective: z7.string().min(1).optional(),
+      reflectionRating: z7.number().min(0).max(10).optional(),
+      insightsGained: z7.string().min(1).optional()
     });
     const validatedUpdate = updateSchema.parse(req.body);
     const existingThought = await storage.getThoughtRecordById(thoughtId);
@@ -7845,7 +7920,7 @@ async function updateThoughtRecord(req, res) {
     const [updatedThought] = await db.update(thoughtRecords).set(updateData).where(eq14(thoughtRecords.id, thoughtId)).returning();
     res.status(200).json(updatedThought);
   } catch (error) {
-    if (error instanceof z6.ZodError) {
+    if (error instanceof z7.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Update thought record error:", error);
@@ -8035,7 +8110,7 @@ import { Router as Router6 } from "express";
 init_db();
 init_schema();
 import { eq as eq15 } from "drizzle-orm";
-import { z as z7 } from "zod";
+import { z as z8 } from "zod";
 async function updateGoalStatusBasedOnMilestones(goalId) {
   try {
     const milestones = await db.select().from(goalMilestones).where(eq15(goalMilestones.goalId, goalId));
@@ -8079,7 +8154,7 @@ async function createGoal(req, res) {
     const goal = await storage.createGoal(validatedData);
     res.status(201).json(goal);
   } catch (error) {
-    if (error instanceof z7.ZodError) {
+    if (error instanceof z8.ZodError) {
       console.error("Goal validation error:", JSON.stringify(error.errors));
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
@@ -8195,7 +8270,7 @@ async function createGoalMilestone(req, res) {
     await updateGoalStatusBasedOnMilestones(goalId);
     res.status(201).json(milestone);
   } catch (error) {
-    if (error instanceof z7.ZodError) {
+    if (error instanceof z8.ZodError) {
       console.error("Milestone validation error:", JSON.stringify(error.errors));
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
@@ -8282,7 +8357,7 @@ import { Router as Router7 } from "express";
 init_db();
 init_schema();
 import { eq as eq16 } from "drizzle-orm";
-import { z as z8 } from "zod";
+import { z as z9 } from "zod";
 async function getJournalEntryById(req, res) {
   try {
     const entryId = Number(req.params.id);
@@ -8346,7 +8421,7 @@ async function createJournalEntry(req, res) {
     }
     res.status(201).json(newEntry);
   } catch (error) {
-    if (error instanceof z8.ZodError) {
+    if (error instanceof z9.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Create journal entry error:", error);
@@ -8393,7 +8468,7 @@ async function updateJournalEntry(req, res) {
     const updatedEntry = await storage.updateJournalEntry(entryId, updatedData);
     res.status(200).json(updatedEntry);
   } catch (error) {
-    if (error instanceof z8.ZodError) {
+    if (error instanceof z9.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Update journal entry error:", error);
@@ -8545,7 +8620,7 @@ ${commentsPart}`;
     }
     res.status(201).json(newComment);
   } catch (error) {
-    if (error instanceof z8.ZodError) {
+    if (error instanceof z9.ZodError) {
       console.log("Journal comment validation error:", JSON.stringify(error.errors, null, 2));
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
@@ -8575,7 +8650,7 @@ async function updateJournalComment(req, res) {
     const updatedComment = await storage.updateJournalComment(commentId, validatedData);
     res.status(200).json(updatedComment);
   } catch (error) {
-    if (error instanceof z8.ZodError) {
+    if (error instanceof z9.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Update journal comment error:", error);
@@ -9390,6 +9465,17 @@ async function deleteNotification(req, res) {
     res.status(500).json({ message: "Failed to delete notification" });
   }
 }
+async function clearAllNotifications(req, res) {
+  try {
+    const userId = req.user.id;
+    await storage.clearAllNotifications(userId);
+    notificationCache.delete(userId);
+    res.status(200).json({ message: "All notifications cleared" });
+  } catch (error) {
+    console.error("Error clearing notifications:", error);
+    res.status(500).json({ message: "Failed to clear notifications" });
+  }
+}
 async function createTestNotification(req, res) {
   try {
     const userId = req.user.id;
@@ -9415,6 +9501,7 @@ router9.get("/", authenticate, getUserNotifications);
 router9.get("/unread", authenticate, getUnreadNotifications);
 router9.post("/read/:id", authenticate, markNotificationRead);
 router9.post("/read-all", authenticate, markAllNotificationsRead);
+router9.delete("/", authenticate, clearAllNotifications);
 router9.delete("/:id", authenticate, deleteNotification);
 router9.post("/test", authenticate, isAdmin, createTestNotification);
 var notifications_routes_default = router9;
@@ -9423,9 +9510,17 @@ var notifications_routes_default = router9;
 import { Router as Router10 } from "express";
 
 // server/controllers/resources.controller.ts
+init_websocket();
 async function getAllResources(req, res) {
   try {
     const user = req.user;
+    if (user?.role === "client") {
+      const assignments = await storage.getAssignmentsByClient(user.id);
+      const resources4 = await Promise.all(
+        assignments.map((a) => storage.getResourceById(a.resourceId))
+      );
+      return res.json(resources4.filter(Boolean));
+    }
     const includeUnpublished = user?.role === "admin" || user?.role === "therapist";
     const allResources = await storage.getAllResources(includeUnpublished);
     res.json(allResources);
@@ -9519,6 +9614,19 @@ async function assignResource(req, res) {
       status: "assigned",
       type: "resource"
     });
+    try {
+      const resource = await storage.getResourceById(resourceId);
+      const resourceTitle = resource?.title ?? "a new resource";
+      const notification = await storage.createNotification({
+        userId: clientId,
+        title: "New Resource Assigned",
+        body: `Your therapist assigned you "${resourceTitle}". Check your library to view it.`,
+        type: "resource"
+      });
+      sendNotificationToUser(clientId, notification);
+    } catch (notifError) {
+      console.error("Failed to send resource assignment notification:", notifError);
+    }
     res.status(201).json(assignment);
   } catch (error) {
     console.error("assignResource error:", error);
@@ -9543,14 +9651,25 @@ async function getTherapistAssignments(req, res) {
     const user = req.user;
     if (!user) return res.status(401).json({ message: "Unauthorized" });
     const assignments = await storage.getAssignmentsByTherapist(user.id);
+    const uniqueClientIds = [...new Set(assignments.map((a) => a.assignedTo))];
+    const clientFeedbackMap = /* @__PURE__ */ new Map();
+    await Promise.all(
+      uniqueClientIds.map(async (clientId) => {
+        const fb = await storage.getResourceFeedbackByUser(clientId);
+        clientFeedbackMap.set(clientId, fb);
+      })
+    );
     const enriched = await Promise.all(
       assignments.map(async (a) => {
         const resource = await storage.getResourceById(a.resourceId);
         const client = await storage.getUser(a.assignedTo);
+        const clientFeedback = clientFeedbackMap.get(a.assignedTo) || [];
+        const feedback = clientFeedback.find((f) => f.resourceId === a.resourceId) || null;
         return {
           ...a,
           resource: resource || null,
-          client: client ? { id: client.id, name: client.name, username: client.username } : null
+          client: client ? { id: client.id, name: client.name, username: client.username } : null,
+          feedback
         };
       })
     );
@@ -9558,6 +9677,79 @@ async function getTherapistAssignments(req, res) {
   } catch (error) {
     console.error("getTherapistAssignments error:", error);
     res.status(500).json({ message: "Failed to fetch assignments" });
+  }
+}
+async function getClientAssignments(req, res) {
+  try {
+    const user = req.user;
+    if (!user) return res.status(401).json({ message: "Unauthorized" });
+    const assignments = await storage.getAssignmentsByClient(user.id);
+    const allFeedback = await storage.getResourceFeedbackByUser(user.id);
+    const enriched = await Promise.all(
+      assignments.map(async (a) => {
+        const resource = await storage.getResourceById(a.resourceId);
+        const myFeedback = allFeedback.find((f) => f.resourceId === a.resourceId) || null;
+        return { ...a, resource: resource || null, feedback: myFeedback };
+      })
+    );
+    res.json(enriched);
+  } catch (error) {
+    console.error("getClientAssignments error:", error);
+    res.status(500).json({ message: "Failed to fetch assignments" });
+  }
+}
+async function updateResourceAssignmentStatus(req, res) {
+  try {
+    const user = req.user;
+    if (!user) return res.status(401).json({ message: "Unauthorized" });
+    const assignmentId = parseInt(req.params.id);
+    if (isNaN(assignmentId)) return res.status(400).json({ message: "Invalid assignment ID" });
+    const { status } = req.body;
+    if (!status || !["viewed", "completed"].includes(status)) {
+      return res.status(400).json({ message: "status must be 'viewed' or 'completed'" });
+    }
+    const assignment = await storage.getResourceAssignmentById(assignmentId);
+    if (!assignment) return res.status(404).json({ message: "Assignment not found" });
+    if (assignment.assignedTo !== user.id) {
+      return res.status(403).json({ message: "Not authorised to update this assignment" });
+    }
+    const updated = await storage.updateAssignmentStatus(assignmentId, status);
+    res.json(updated);
+  } catch (error) {
+    console.error("updateResourceAssignmentStatus error:", error);
+    res.status(500).json({ message: "Failed to update assignment status" });
+  }
+}
+async function submitAssignmentFeedback(req, res) {
+  try {
+    const user = req.user;
+    if (!user) return res.status(401).json({ message: "Unauthorized" });
+    const assignmentId = parseInt(req.params.id);
+    if (isNaN(assignmentId)) return res.status(400).json({ message: "Invalid assignment ID" });
+    const { rating, feedback } = req.body;
+    if (!rating || typeof rating !== "number" || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: "rating must be a number between 1 and 5" });
+    }
+    const assignment = await storage.getResourceAssignmentById(assignmentId);
+    if (!assignment) return res.status(404).json({ message: "Assignment not found" });
+    if (assignment.assignedTo !== user.id) {
+      return res.status(403).json({ message: "Not authorised to submit feedback for this assignment" });
+    }
+    const existing = await storage.getResourceFeedbackByUser(user.id);
+    const alreadyRated = existing.find((f) => f.resourceId === assignment.resourceId);
+    if (alreadyRated) {
+      return res.status(409).json({ message: "Feedback already submitted for this resource" });
+    }
+    const saved = await storage.createResourceFeedback({
+      resourceId: assignment.resourceId,
+      userId: user.id,
+      rating,
+      feedback: feedback || null
+    });
+    res.status(201).json(saved);
+  } catch (error) {
+    console.error("submitAssignmentFeedback error:", error);
+    res.status(500).json({ message: "Failed to submit feedback" });
   }
 }
 async function deleteResourceAssignment(req, res) {
@@ -9588,6 +9780,9 @@ router10.delete("/resources/:id", authenticate, deleteResource);
 router10.post("/resources/:id/clone", authenticate, cloneResource);
 router10.get("/therapist/assignments", authenticate, getTherapistAssignments);
 router10.delete("/resource-assignments/:id", authenticate, deleteResourceAssignment);
+router10.get("/client/assignments", authenticate, getClientAssignments);
+router10.patch("/resource-assignments/:id/status", authenticate, updateResourceAssignmentStatus);
+router10.post("/resource-assignments/:id/feedback", authenticate, submitAssignmentFeedback);
 var resources_routes_default = router10;
 
 // server/routes/translate.routes.ts
@@ -9627,23 +9822,295 @@ router11.post("/translate", authenticate, async (req, res) => {
 });
 var translate_routes_default = router11;
 
-// server/routes/index.ts
+// server/routes/transcribe.routes.ts
+import { Router as Router12 } from "express";
+import https from "https";
 var router12 = Router12();
-router12.use("/subscription-plans", subscriptions_routes_default);
-router12.use("/subscription", subscriptions_routes_default);
-router12.use("/auth", auth_routes_default);
-router12.use("/users", users_routes_default);
-router12.use("/users/:userId/emotions", emotions_routes_default);
-router12.use("/users/:userId/thoughts", thoughts_routes_default);
-router12.use("/", thoughts_routes_default);
-router12.use("/users/:userId/goals", goals_routes_default);
-router12.use("/", goals_routes_default);
-router12.use("/", journal_routes_default);
-router12.use("/", admin_routes_default);
-router12.use("/notifications", notifications_routes_default);
-router12.use("/", resources_routes_default);
-router12.use("/", translate_routes_default);
-var routes_default = router12;
+var RATE_LIMIT_MAX = 30;
+var RATE_LIMIT_WINDOW_MS = 60 * 60 * 1e3;
+var rateLimitMap = /* @__PURE__ */ new Map();
+function checkRateLimit(userId) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(userId);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count += 1;
+  return true;
+}
+function httpsPost(hostname, path3, headers, body) {
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      { hostname, path: path3, method: "POST", headers },
+      (res) => {
+        let data = "";
+        res.on("data", (c) => data += c);
+        res.on("end", () => resolve({ status: res.statusCode ?? 0, body: data }));
+      }
+    );
+    req.on("error", reject);
+    req.write(body);
+    req.end();
+  });
+}
+async function whisperTranscribe(audioBuffer, mimeType, language) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OPENAI_API_KEY not set");
+  const boundary = "----WaveformBoundary" + Date.now();
+  let ext = "webm";
+  if (mimeType.includes("mp4")) ext = "mp4";
+  else if (mimeType.includes("ogg")) ext = "ogg";
+  else if (mimeType.includes("wav")) ext = "wav";
+  else if (mimeType.includes("mp3") || mimeType.includes("mpeg")) ext = "mp3";
+  const parts = [];
+  const addField = (name, value) => {
+    parts.push(Buffer.from(
+      `--${boundary}\r
+Content-Disposition: form-data; name="${name}"\r
+\r
+${value}\r
+`
+    ));
+  };
+  addField("model", "whisper-1");
+  if (language) addField("language", language.split("-")[0]);
+  parts.push(Buffer.from(
+    `--${boundary}\r
+Content-Disposition: form-data; name="file"; filename="audio.${ext}"\r
+Content-Type: ${mimeType}\r
+\r
+`
+  ));
+  parts.push(audioBuffer);
+  parts.push(Buffer.from(`\r
+--${boundary}--\r
+`));
+  const body = Buffer.concat(parts);
+  const result = await httpsPost(
+    "api.openai.com",
+    "/v1/audio/transcriptions",
+    {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": `multipart/form-data; boundary=${boundary}`,
+      "Content-Length": body.length
+    },
+    body
+  );
+  if (result.status !== 200) {
+    throw new Error(`Whisper ${result.status}: ${result.body.slice(0, 200)}`);
+  }
+  const parsed = JSON.parse(result.body);
+  return (parsed?.text ?? "").trim();
+}
+function deepgramMime(mimeType) {
+  if (mimeType.includes("mp4")) return "audio/mp4";
+  if (mimeType.includes("ogg")) return "audio/ogg";
+  if (mimeType.includes("wav")) return "audio/wav";
+  if (mimeType.includes("mp3") || mimeType.includes("mpeg")) return "audio/mpeg";
+  return "audio/webm";
+}
+function deepgramTranscribe(audioBuffer, mimeType, language) {
+  return new Promise((resolve, reject) => {
+    const apiKey = process.env.DEEPGRAM_API_KEY;
+    if (!apiKey) {
+      reject(new Error("DEEPGRAM_API_KEY is not configured"));
+      return;
+    }
+    const contentType = deepgramMime(mimeType);
+    const params = new URLSearchParams({
+      model: "nova-2",
+      smart_format: "true",
+      punctuate: "true",
+      ...language ? { language } : {}
+    });
+    const options = {
+      hostname: "api.deepgram.com",
+      path: `/v1/listen?${params.toString()}`,
+      method: "POST",
+      headers: {
+        Authorization: `Token ${apiKey}`,
+        "Content-Type": contentType,
+        "Content-Length": audioBuffer.length
+      }
+    };
+    const req = https.request(options, (res) => {
+      let data = "";
+      res.on("data", (chunk) => data += chunk);
+      res.on("end", () => {
+        if (res.statusCode !== 200) {
+          reject(new Error(`Deepgram ${res.statusCode}: ${data.slice(0, 200)}`));
+          return;
+        }
+        try {
+          const parsed = JSON.parse(data);
+          const transcript = parsed?.results?.channels?.[0]?.alternatives?.[0]?.transcript ?? "";
+          resolve(transcript.trim());
+        } catch {
+          reject(new Error("Failed to parse Deepgram response"));
+        }
+      });
+    });
+    req.on("error", (err) => reject(err));
+    req.write(audioBuffer);
+    req.end();
+  });
+}
+router12.get("/transcribe/probe", authenticate, async (_req, res) => {
+  const results = {};
+  try {
+    const boundary = "probe" + Date.now();
+    const body = Buffer.from(`--${boundary}\r
+Content-Disposition: form-data; name="model"\r
+\r
+whisper-1\r
+--${boundary}--\r
+`);
+    const r = await httpsPost(
+      "api.openai.com",
+      "/v1/audio/transcriptions",
+      {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY ?? ""}`,
+        "Content-Type": `multipart/form-data; boundary=${boundary}`,
+        "Content-Length": body.length
+      },
+      body
+    );
+    results["openai_whisper"] = {
+      reachable: r.status !== 0,
+      status: r.status,
+      note: r.status === 200 ? "WORKS" : r.status === 401 ? "BLOCKED \u2014 proxy substitutes service account key" : r.status === 400 ? "Reachable but bad request (expected in probe)" : `status ${r.status}: ${r.body.slice(0, 100)}`
+    };
+  } catch (e) {
+    results["openai_whisper"] = { reachable: false, status: 0, note: e.message };
+  }
+  try {
+    const r = await httpsPost(
+      "api.deepgram.com",
+      "/v1/listen?model=nova-2",
+      {
+        Authorization: `Token ${process.env.DEEPGRAM_API_KEY ?? "MISSING"}`,
+        "Content-Type": "audio/wav",
+        "Content-Length": 0
+      },
+      Buffer.alloc(0)
+    );
+    results["deepgram"] = {
+      reachable: true,
+      status: r.status,
+      note: r.status === 200 ? "WORKS" : r.status === 401 ? process.env.DEEPGRAM_API_KEY ? "Key invalid \u2014 check DEEPGRAM_API_KEY" : "DEEPGRAM_API_KEY not set" : `status ${r.status}`
+    };
+  } catch (e) {
+    results["deepgram"] = { reachable: false, status: 0, note: e.message };
+  }
+  res.json({ results });
+});
+router12.post("/transcribe", authenticate, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!checkRateLimit(userId)) {
+      return res.status(429).json({ message: "Voice typing limit reached. Try again in an hour." });
+    }
+    const { audio, mimeType = "audio/webm" } = req.body ?? {};
+    if (!audio || typeof audio !== "string") {
+      return res.status(400).json({ message: "No audio data provided." });
+    }
+    const hasWhisper = !!process.env.OPENAI_API_KEY;
+    const hasDeepgram = !!process.env.DEEPGRAM_API_KEY;
+    if (!hasWhisper && !hasDeepgram) {
+      return res.status(503).json({
+        message: "Server-side transcription is not configured.",
+        code: "NO_API_KEY"
+      });
+    }
+    const language = typeof req.query.language === "string" ? req.query.language : void 0;
+    const audioBuffer = Buffer.from(audio, "base64");
+    if (hasWhisper) {
+      try {
+        const text2 = await whisperTranscribe(audioBuffer, mimeType, language);
+        console.log("[Transcribe] Used Whisper successfully");
+        return res.json({ text: text2, engine: "whisper" });
+      } catch (whisperErr) {
+        console.warn("[Transcribe] Whisper failed, trying Deepgram fallback:", whisperErr?.message);
+      }
+    }
+    if (hasDeepgram) {
+      const text2 = await deepgramTranscribe(audioBuffer, mimeType, language);
+      console.log("[Transcribe] Used Deepgram (fallback)");
+      return res.json({ text: text2, engine: "deepgram" });
+    }
+    return res.status(503).json({
+      message: "Server-side transcription is not configured.",
+      code: "NO_API_KEY"
+    });
+  } catch (err) {
+    console.error("[Transcribe] Error:", err?.message ?? err);
+    res.status(500).json({ message: "Transcription failed. Please try again." });
+  }
+});
+var transcribe_routes_default = router12;
+
+// server/routes/invitations.routes.ts
+import { Router as Router13 } from "express";
+init_email();
+import crypto4 from "crypto";
+import bcrypt4 from "bcrypt";
+var router13 = Router13();
+router13.get("/invitations", authenticate, isTherapist, async (req, res) => {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+    const therapistId = req.user.id;
+    const invitations = await storage.getClientInvitationsByTherapist(therapistId);
+    return res.json(Array.isArray(invitations) ? invitations : []);
+  } catch (error) {
+    console.error("Error fetching invitations:", error);
+    return res.status(500).json({ message: "Failed to fetch invitations" });
+  }
+});
+router13.post("/invitations/:id/resend", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid invitation ID" });
+    const invitation = await storage.getClientInvitationById(id);
+    if (!invitation) return res.status(404).json({ message: "Invitation not found" });
+    if (invitation.therapistId !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+    const plaintextToken = crypto4.randomBytes(32).toString("hex");
+    const invitationTokenHash = await bcrypt4.hash(plaintextToken, 10);
+    const baseUrl = getSafeBaseUrl(req);
+    const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(invitation.email)}&therapistId=${req.user.id}&token=${plaintextToken}`;
+    await storage.updateClientInvitationStatus(id, "email_sent");
+    const therapistName = req.user.name || req.user.username;
+    const emailSent = await sendClientInvitation(invitation.email, therapistName, inviteLink);
+    res.json({ message: "Invitation resent successfully", emailSent });
+  } catch (error) {
+    console.error("Error resending invitation:", error);
+    res.status(500).json({ message: "Failed to resend invitation" });
+  }
+});
+var invitations_routes_default = router13;
+
+// server/routes/index.ts
+var router14 = Router14();
+router14.use("/subscription-plans", subscriptions_routes_default);
+router14.use("/subscription", subscriptions_routes_default);
+router14.use("/auth", auth_routes_default);
+router14.use("/users", users_routes_default);
+router14.use("/users/:userId/emotions", emotions_routes_default);
+router14.use("/users/:userId/thoughts", thoughts_routes_default);
+router14.get("/thoughts/:id", authenticate, getSingleThoughtRecord);
+router14.use("/users/:userId/goals", goals_routes_default);
+router14.use("/", goals_routes_default);
+router14.use("/", journal_routes_default);
+router14.use("/", admin_routes_default);
+router14.use("/notifications", notifications_routes_default);
+router14.use("/", resources_routes_default);
+router14.use("/", translate_routes_default);
+router14.use("/", transcribe_routes_default);
+router14.use("/", invitations_routes_default);
+var routes_default = router14;
 
 // server/routes.ts
 async function registerRoutes(app2) {
@@ -9655,9 +10122,9 @@ async function registerRoutes(app2) {
   app2.use("/api", routes_default);
   app2.get("/.well-known/microsoft-identity-association.json", (req, res) => {
     res.json({
-      "associatedApplications": [
+      associatedApplications: [
         {
-          "applicationId": "ResilienceHub"
+          applicationId: "ResilienceHub"
         }
       ]
     });
@@ -9784,8 +10251,8 @@ function serveStatic(app2) {
 
 // server/index.ts
 var app = express2();
-app.use(express2.json());
-app.use(express2.urlencoded({ extended: false }));
+app.use(express2.json({ limit: "25mb" }));
+app.use(express2.urlencoded({ extended: false, limit: "25mb" }));
 app.use((req, res, next) => {
   res.removeHeader("X-Powered-By");
   res.header("X-Safe-App", "true");

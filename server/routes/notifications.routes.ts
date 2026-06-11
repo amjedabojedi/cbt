@@ -6,6 +6,7 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
   deleteNotification,
+  clearAllNotifications,
   createTestNotification
 } from "../controllers/notifications.controller";
 
@@ -22,6 +23,9 @@ router.post("/read/:id", authenticate, markNotificationRead);
 
 // POST /api/notifications/read-all - Mark all notifications as read
 router.post("/read-all", authenticate, markAllNotificationsRead);
+
+// DELETE /api/notifications - Clear all notifications for user
+router.delete("/", authenticate, clearAllNotifications);
 
 // DELETE /api/notifications/:id - Delete notification
 router.delete("/:id", authenticate, deleteNotification);

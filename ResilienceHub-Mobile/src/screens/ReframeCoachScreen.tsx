@@ -102,6 +102,7 @@ export default function ReframeCoachScreen({ navigation, route }: ReframeCoachSc
           setActiveTab('practice');
           startPractice(target);
         }
+        navigation.setParams({ practiceThoughtId: undefined });
       }
     }, [route?.params?.practiceThoughtId, userId, thoughtRecords.length, practiceState])
   );

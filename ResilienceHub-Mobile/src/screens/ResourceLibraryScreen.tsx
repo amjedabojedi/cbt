@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { COLORS } from '../styles/theme';
 import {
   View,
@@ -12,8 +12,10 @@ import {
   Dimensions,
   Alert,
   Switch,
+  Platform,
 } from 'react-native';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
 import { ApiService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCurrentUser } from '../hooks/queries/useProfile';
@@ -142,6 +144,21 @@ function renderHTMLContent(html: string) {
   );
 }
 
+// Strip HTML tags for plain-text card previews
+function stripHTML(html: string): string {
+  if (!html) return '';
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ALL RESOURCES TAB — unified searchable list of every resource type
 // ─────────────────────────────────────────────────────────────────────────────
@@ -158,11 +175,12 @@ const DEFAULT_CATEGORIES = [
 
 function AllResourcesTab({
   resources, protectiveFactors, copingStrategies,
-  getCategoryTheme, renderIcon, onSelectResource,
+  getCategoryTheme, renderIcon, onSelectResource, onSelectClinical,
 }: {
   resources: any[]; protectiveFactors: any[]; copingStrategies: any[];
   getCategoryTheme: (c: string) => any; renderIcon: (t: any, s: number) => any;
   onSelectResource: (r: any) => void;
+  onSelectClinical: (item: any, type: 'factor' | 'strategy') => void;
 }) {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
@@ -179,11 +197,11 @@ function AllResourcesTab({
   const combined = [
     ...resources.map((r) => ({ ...r, _type: 'educational' as const })),
     ...protectiveFactors.map((f) => ({
-      id: `pf-${f.id}`, title: f.name, description: f.description,
+      ...f, id: `pf-${f.id}`, title: f.name,
       category: null, _type: 'protective' as const,
     })),
     ...copingStrategies.map((s) => ({
-      id: `cs-${s.id}`, title: s.name, description: s.description,
+      ...s, id: `cs-${s.id}`, title: s.name,
       category: null, _type: 'coping' as const,
     })),
   ];
@@ -276,7 +294,11 @@ function AllResourcesTab({
               key={item.id}
               style={allStyles.card}
               activeOpacity={0.8}
-              onPress={() => item._type === 'educational' ? onSelectResource(item) : undefined}
+              onPress={() => {
+                if (item._type === 'educational') onSelectResource(item);
+                else if (item._type === 'protective') onSelectClinical(item, 'factor');
+                else if (item._type === 'coping') onSelectClinical(item, 'strategy');
+              }}
             >
               {/* Type badge */}
               <View style={[allStyles.typeBadge, { backgroundColor: meta.bg }]}>
@@ -292,15 +314,13 @@ function AllResourcesTab({
                 <View style={{ flex: 1 }}>
                   <Text style={allStyles.cardTitle} numberOfLines={1}>{item.title || '—'}</Text>
                   {item.description ? (
-                    <Text style={allStyles.cardDesc} numberOfLines={2}>{item.description}</Text>
+                    <Text style={allStyles.cardDesc} numberOfLines={2}>{stripHTML(item.description)}</Text>
                   ) : null}
                   {item.category ? (
                     <Text style={[allStyles.cardCategory, { color: theme?.color ?? meta.color }]}>{item.category}</Text>
                   ) : null}
                 </View>
-                {item._type === 'educational' && (
-                  <Feather name="chevron-right" size={16} color={COLORS.disabledBg} />
-                )}
+                <Feather name="chevron-right" size={16} color={COLORS.disabledBg} />
               </View>
             </TouchableOpacity>
           );
@@ -371,6 +391,7 @@ export default function ResourceLibraryScreen() {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedResource, setSelectedResource] = useState<any>(null);
+  const [selectedClinicalItem, setSelectedClinicalItem] = useState<{ item: any; type: 'factor' | 'strategy' } | null>(null);
 
   // Protective Factors & Coping Strategies
   const protectiveFactors = pfQ.data ?? [];
@@ -380,20 +401,27 @@ export default function ResourceLibraryScreen() {
   const assignments = assignmentsQ.data ?? [];
   const clients = clientsQ.data ?? [];
 
-  // Modal form states for CRUD operations
-  const [pfModalVisible, setPfModalVisible] = useState(false);
-  const [editingPf, setEditingPf] = useState<any>(null);
-  const [pfName, setPfName] = useState('');
-  const [pfDescription, setPfDescription] = useState('');
-  const [pfIsGlobal, setPfIsGlobal] = useState(false);
-  const [submittingPf, setSubmittingPf] = useState(false);
+    // Modal form states for CRUD operations
+  const [resourceModalVisible, setResourceModalVisible] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const richTextRef = useRef<RichEditor>(null);
 
-  const [csModalVisible, setCsModalVisible] = useState(false);
-  const [editingCs, setEditingCs] = useState<any>(null);
-  const [csName, setCsName] = useState('');
-  const [csDescription, setCsDescription] = useState('');
-  const [csIsGlobal, setCsIsGlobal] = useState(false);
-  const [submittingCs, setSubmittingCs] = useState(false);
+  // Monkey-patch the RichEditor to prevent it from stealing focus on Android
+  React.useEffect(() => {
+    if (richTextRef.current && Platform.OS === 'android') {
+      richTextRef.current.showAndroidKeyboard = function() {
+        this.webviewBridge?.requestFocus?.();
+      };
+    }
+  }, [currentStep, resourceModalVisible]);
+  
+  const [resourceType, setResourceType] = useState<'factor' | 'strategy' | 'educational'>('factor');
+  const [editingResource, setEditingResource] = useState<any>(null);
+  const [resourceName, setResourceName] = useState('');
+  const [resourceDescription, setResourceDescription] = useState('');
+  const [resourceContent, setResourceContent] = useState('');
+  const [resourceIsGlobal, setResourceIsGlobal] = useState(false);
+  const [submittingResource, setSubmittingResource] = useState(false);
 
   // Assign resource states
   const [assignModalVisible, setAssignModalVisible] = useState(false);
@@ -478,45 +506,102 @@ export default function ResourceLibraryScreen() {
     }
   };
 
-  // CRUD handlers for Protective Factors
-  const handleAddPf = () => {
-    setEditingPf(null);
-    setPfName('');
-    setPfDescription('');
-    setPfIsGlobal(false);
-    setPfModalVisible(true);
+    // CRUD handlers for Resources
+  const handleAddResource = (defaultType: 'factor' | 'strategy' | 'educational' = 'factor') => {
+    setCurrentStep(1);
+    setResourceType(defaultType);
+    setEditingResource(null);
+    setResourceName('');
+    setResourceDescription('');
+    setResourceContent('');
+    setResourceIsGlobal(false);
+    setResourceModalVisible(true);
+  };
+
+  const handleEditEducational = (item: any) => {
+    setCurrentStep(2);
+    setResourceType('educational');
+    setEditingResource(item);
+    setResourceName(item.title);
+    setResourceDescription(item.description || '');
+    setResourceContent(item.content || item.description || '');
+    setResourceIsGlobal(false);
+    setResourceModalVisible(true);
   };
 
   const handleEditPf = (item: any) => {
-    setEditingPf(item);
-    setPfName(item.name);
-    setPfDescription(item.description || '');
-    setPfIsGlobal(item.isGlobal || false);
-    setPfModalVisible(true);
+    setCurrentStep(2);
+    setResourceType('factor');
+    setEditingResource(item);
+    setResourceName(item.name);
+    setResourceDescription(item.description || '');
+    setResourceContent(item.content || '');
+    setResourceIsGlobal(item.isGlobal || false);
+    setResourceModalVisible(true);
   };
 
-  const handleSavePf = async () => {
-    if (!pfName.trim()) {
+  const handleEditCs = (item: any) => {
+    setCurrentStep(2);
+    setResourceType('strategy');
+    setEditingResource(item);
+    setResourceName(item.name);
+    setResourceDescription(item.description || '');
+    setResourceContent(item.content || '');
+    setResourceIsGlobal(item.isGlobal || false);
+    setResourceModalVisible(true);
+  };
+
+  const handleSaveResource = async () => {
+    if (!resourceName.trim()) {
       Alert.alert('Validation Error', 'Please enter a name.');
       return;
     }
     try {
-      setSubmittingPf(true);
-      const data = { name: pfName, description: pfDescription, isGlobal: pfIsGlobal };
-      if (editingPf) {
-        await ApiService.updateProtectiveFactor(profile.id, editingPf.id, data);
-        Alert.alert('Success', 'Protective factor updated successfully.');
+      setSubmittingResource(true);
+
+      if (resourceType === 'factor') {
+        const data = { name: resourceName, description: resourceDescription, isGlobal: resourceIsGlobal };
+        if (editingResource) {
+          await ApiService.updateProtectiveFactor(profile.id, editingResource.id, data);
+          Alert.alert('Success', 'Protective factor updated successfully.');
+        } else {
+          await ApiService.createProtectiveFactor(profile.id, data);
+          Alert.alert('Success', 'Protective factor added successfully.');
+        }
+        await fetchProtectiveFactors(profile.id);
+      } else if (resourceType === 'educational') {
+        const eduData = {
+          title: resourceName,
+          description: resourceDescription,
+          content: resourceContent || '<p>Placeholder content</p>',
+          type: 'article',
+          category: 'General',
+        };
+        if (editingResource) {
+          await ApiService.updateResource(editingResource.id, eduData);
+          Alert.alert('Success', 'Educational resource updated successfully.');
+        } else {
+          await ApiService.createResource(eduData);
+          Alert.alert('Success', 'Educational resource added successfully.');
+        }
+        await resourcesQ.refetch();
       } else {
-        await ApiService.createProtectiveFactor(profile.id, data);
-        Alert.alert('Success', 'Protective factor added successfully.');
+        const data = { name: resourceName, description: resourceDescription, isGlobal: resourceIsGlobal };
+        if (editingResource) {
+          await ApiService.updateCopingStrategy(profile.id, editingResource.id, data);
+          Alert.alert('Success', 'Coping strategy updated successfully.');
+        } else {
+          await ApiService.createCopingStrategy(profile.id, data);
+          Alert.alert('Success', 'Coping strategy added successfully.');
+        }
+        await fetchCopingStrategies(profile.id);
       }
-      setPfModalVisible(false);
-      await fetchProtectiveFactors(profile.id);
+      setResourceModalVisible(false);
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'Failed to save protective factor.');
+      Alert.alert('Error', 'Failed to save resource.');
     } finally {
-      setSubmittingPf(false);
+      setSubmittingResource(false);
     }
   };
 
@@ -532,6 +617,7 @@ export default function ResourceLibraryScreen() {
           onPress: async () => {
             try {
               await ApiService.deleteProtectiveFactor(profile.id, factorId);
+              setSelectedClinicalItem(null);
               Alert.alert('Success', 'Protective factor deleted.');
               await fetchProtectiveFactors(profile.id);
             } catch (error) {
@@ -542,48 +628,6 @@ export default function ResourceLibraryScreen() {
         },
       ]
     );
-  };
-
-  // CRUD handlers for Coping Strategies
-  const handleAddCs = () => {
-    setEditingCs(null);
-    setCsName('');
-    setCsDescription('');
-    setCsIsGlobal(false);
-    setCsModalVisible(true);
-  };
-
-  const handleEditCs = (item: any) => {
-    setEditingCs(item);
-    setCsName(item.name);
-    setCsDescription(item.description || '');
-    setCsIsGlobal(item.isGlobal || false);
-    setCsModalVisible(true);
-  };
-
-  const handleSaveCs = async () => {
-    if (!csName.trim()) {
-      Alert.alert('Validation Error', 'Please enter a name.');
-      return;
-    }
-    try {
-      setSubmittingCs(true);
-      const data = { name: csName, description: csDescription, isGlobal: csIsGlobal };
-      if (editingCs) {
-        await ApiService.updateCopingStrategy(profile.id, editingCs.id, data);
-        Alert.alert('Success', 'Coping strategy updated successfully.');
-      } else {
-        await ApiService.createCopingStrategy(profile.id, data);
-        Alert.alert('Success', 'Coping strategy added successfully.');
-      }
-      setCsModalVisible(false);
-      await fetchCopingStrategies(profile.id);
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Failed to save coping strategy.');
-    } finally {
-      setSubmittingCs(false);
-    }
   };
 
   const handleDeleteCs = (strategyId: number) => {
@@ -598,11 +642,37 @@ export default function ResourceLibraryScreen() {
           onPress: async () => {
             try {
               await ApiService.deleteCopingStrategy(profile.id, strategyId);
+              setSelectedClinicalItem(null);
               Alert.alert('Success', 'Coping strategy deleted.');
               await fetchCopingStrategies(profile.id);
             } catch (error) {
               console.error(error);
               Alert.alert('Error', 'Failed to delete coping strategy.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteEducational = (resourceId: number) => {
+    Alert.alert(
+      'Delete Resource?',
+      'Are you sure you want to delete this educational resource? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await ApiService.deleteResource(resourceId);
+              setSelectedResource(null);
+              Alert.alert('Success', 'Resource deleted.');
+              await resourcesQ.refetch();
+            } catch (error) {
+              console.error(error);
+              Alert.alert('Error', 'Failed to delete resource.');
             }
           },
         },
@@ -717,7 +787,7 @@ export default function ResourceLibraryScreen() {
         </View>
 
         <Text style={styles.descriptionText} numberOfLines={2}>
-          {item.description}
+          {stripHTML(item.description)}
         </Text>
 
         <View style={styles.cardFooter}>
@@ -749,12 +819,17 @@ export default function ResourceLibraryScreen() {
 
   const renderItemCard = (item: any, type: 'factor' | 'strategy') => {
     const isGlobal = item.isGlobal;
-    const isPersonal = item.userId === profile?.id || (!isGlobal && item.userId);
+    const canEdit = item.userId === profile?.id || (isTherapist && !isGlobal);
     const accentColor = isGlobal ? COLORS.mediumGreen : COLORS.primaryGreen;
     const lightBg = isGlobal ? '#ECFDF5' : '#ecfdf5';
 
     return (
-      <View style={[styles.itemCard, { borderLeftColor: accentColor }]} key={item.id}>
+      <TouchableOpacity
+        style={[styles.itemCard, { borderLeftColor: accentColor }]}
+        key={item.id}
+        activeOpacity={0.75}
+        onPress={() => setSelectedClinicalItem({ item, type })}
+      >
         <View style={styles.itemCardHeader}>
           <Text style={styles.itemCardTitle}>{item.name}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -764,17 +839,19 @@ export default function ResourceLibraryScreen() {
                 <Text style={[styles.sharedBadgeText, { color: accentColor }]}>Shared</Text>
               </View>
             )}
-            {isPersonal && (
+            {canEdit && (
               <View style={styles.itemCardActions}>
                 <TouchableOpacity
-                  onPress={() => type === 'factor' ? handleEditPf(item) : handleEditCs(item)}
+                  onPress={() => { type === 'factor' ? handleEditPf(item) : handleEditCs(item); }}
                   style={styles.itemActionBtn}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Feather name="edit-2" size={13} color="#64748B" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => type === 'factor' ? handleDeletePf(item.id) : handleDeleteCs(item.id)}
+                  onPress={() => { type === 'factor' ? handleDeletePf(item.id) : handleDeleteCs(item.id); }}
                   style={styles.itemActionBtn}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Feather name="trash-2" size={13} color="#EF4444" />
                 </TouchableOpacity>
@@ -782,10 +859,14 @@ export default function ResourceLibraryScreen() {
             )}
           </View>
         </View>
-        <Text style={styles.itemCardDesc}>
-          {item.description || 'No description provided.'}
+        <Text style={styles.itemCardDesc} numberOfLines={3}>
+          {stripHTML(item.description) || 'No description provided.'}
         </Text>
-      </View>
+        <View style={styles.itemCardFooter}>
+          <Text style={[styles.itemCardViewHint, { color: accentColor }]}>Tap to view full details</Text>
+          <Feather name="chevron-right" size={12} color={accentColor} />
+        </View>
+      </TouchableOpacity>
     );
   };
 
@@ -882,6 +963,7 @@ export default function ResourceLibraryScreen() {
             getCategoryTheme={getCategoryTheme}
             renderIcon={renderIcon}
             onSelectResource={setSelectedResource}
+            onSelectClinical={(item, type) => setSelectedClinicalItem({ item, type })}
           />
         )}
 
@@ -1010,7 +1092,7 @@ export default function ResourceLibraryScreen() {
           <View style={{ paddingTop: 10 }}>
             <View style={styles.listHeaderRow}>
               <Text style={styles.tabTitleText}>Protective Factors</Text>
-              <TouchableOpacity style={styles.addButton} onPress={handleAddPf} activeOpacity={0.8}>
+              <TouchableOpacity style={styles.addButton} onPress={() => handleAddResource('factor')} activeOpacity={0.8}>
                 <Feather name="plus" size={14} color="#FFFFFF" />
                 <Text style={styles.addButtonText}>Add Factor</Text>
               </TouchableOpacity>
@@ -1047,7 +1129,7 @@ export default function ResourceLibraryScreen() {
           <View style={{ paddingTop: 10 }}>
             <View style={styles.listHeaderRow}>
               <Text style={styles.tabTitleText}>Coping Strategies</Text>
-              <TouchableOpacity style={styles.addButton} onPress={handleAddCs} activeOpacity={0.8}>
+              <TouchableOpacity style={styles.addButton} onPress={() => handleAddResource('strategy')} activeOpacity={0.8}>
                 <Feather name="plus" size={14} color="#FFFFFF" />
                 <Text style={styles.addButtonText}>Add Strategy</Text>
               </TouchableOpacity>
@@ -1133,12 +1215,30 @@ export default function ResourceLibraryScreen() {
                     </View>
                     <Text style={styles.modalTitle}>{selectedResource.title}</Text>
                   </View>
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={() => setSelectedResource(null)}
-                  >
-                    <Feather name="x" size={18} color="#64748B" />
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                    {isTherapist && (
+                      <>
+                        <TouchableOpacity
+                          style={[styles.closeButton, { backgroundColor: '#F0FDF4' }]}
+                          onPress={() => { setSelectedResource(null); handleEditEducational(selectedResource); }}
+                        >
+                          <Feather name="edit-2" size={15} color={COLORS.primaryGreen} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.closeButton, { backgroundColor: '#FEF2F2' }]}
+                          onPress={() => handleDeleteEducational(selectedResource.id)}
+                        >
+                          <Feather name="trash-2" size={15} color="#EF4444" />
+                        </TouchableOpacity>
+                      </>
+                    )}
+                    <TouchableOpacity
+                      style={styles.closeButton}
+                      onPress={() => setSelectedResource(null)}
+                    >
+                      <Feather name="x" size={18} color="#64748B" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 {/* Modal Body Reading View */}
@@ -1176,163 +1276,353 @@ export default function ResourceLibraryScreen() {
         </View>
       </Modal>
 
-      {/* MODAL 2: ADD/EDIT PROTECTIVE FACTOR DIALOG */}
+      {/* MODAL: CLINICAL ITEM DETAIL (Protective Factor / Coping Strategy) */}
       <Modal
-        visible={pfModalVisible}
-        animationType="fade"
+        visible={selectedClinicalItem !== null}
+        animationType="slide"
         transparent
-        onRequestClose={() => setPfModalVisible(false)}
+        onRequestClose={() => setSelectedClinicalItem(null)}
       >
-        <View style={styles.dialogBackdrop}>
-          <View style={styles.dialogContainer}>
-            <View style={styles.dialogHeader}>
-              <Text style={styles.dialogTitle}>
-                {editingPf ? 'Edit Protective Factor' : 'Add Protective Factor'}
-              </Text>
-              <TouchableOpacity onPress={() => setPfModalVisible(false)}>
-                <Feather name="x" size={20} color="#64748B" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.dialogField}>
-              <Text style={styles.dialogLabel}>Factor Name</Text>
-              <TextInput
-                style={styles.dialogInput}
-                placeholder="E.g., Supportive family, Exercise routine"
-                placeholderTextColor="#94A3B8"
-                value={pfName}
-                onChangeText={setPfName}
-              />
-            </View>
-
-            <View style={styles.dialogField}>
-              <Text style={styles.dialogLabel}>Description (Optional)</Text>
-              <TextInput
-                style={[styles.dialogInput, styles.dialogTextArea]}
-                placeholder="Details or notes about how this factor helps you..."
-                placeholderTextColor="#94A3B8"
-                value={pfDescription}
-                onChangeText={setPfDescription}
-                multiline
-                numberOfLines={3}
-              />
-            </View>
-
-            {isTherapist && (
-              <View style={styles.switchRow}>
-                <View style={styles.switchTextWrap}>
-                  <Text style={styles.switchLabel}>Share with all clients</Text>
-                  <Text style={styles.switchDesc}>Make available as a shared factor for clients.</Text>
-                </View>
-                <Switch
-                  value={pfIsGlobal}
-                  onValueChange={setPfIsGlobal}
-                  trackColor={{ false: COLORS.disabledBg, true: '#A78BFA' }}
-                  thumbColor={pfIsGlobal ? COLORS.primaryGreen : '#F1F5F9'}
-                />
-              </View>
-            )}
-
-            <View style={styles.dialogFooter}>
-              <TouchableOpacity
-                style={styles.dialogCancelBtn}
-                onPress={() => setPfModalVisible(false)}
-                disabled={submittingPf}
-              >
-                <Text style={styles.dialogCancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.dialogSaveBtn}
-                onPress={handleSavePf}
-                disabled={submittingPf}
-              >
-                {submittingPf ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.dialogSaveBtnText}>Save</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            {selectedClinicalItem && (() => {
+              const { item, type } = selectedClinicalItem;
+              const isGlobal = item.isGlobal;
+              const canEdit = item.userId === profile?.id || (isTherapist && !isGlobal);
+              const accentColor = type === 'factor' ? COLORS.mediumGreen : '#3B82F6';
+              const lightBg = type === 'factor' ? '#ECFDF5' : '#EFF6FF';
+              const icon = type === 'factor' ? 'shield' : 'activity';
+              const typeLabel = type === 'factor' ? 'Protective Factor' : 'Coping Strategy';
+              return (
+                <>
+                  <View style={styles.dragIndicator} />
+                  <View style={styles.modalHeader}>
+                    <View style={{ flex: 1, marginRight: 16 }}>
+                      <View style={styles.modalMetaRow}>
+                        <View style={[styles.modalTypeBadge, { backgroundColor: lightBg }]}>
+                          <Feather name={icon} size={10} color={accentColor} />
+                          <Text style={[styles.modalTypeText, { color: accentColor, marginLeft: 4 }]}>{typeLabel.toUpperCase()}</Text>
+                        </View>
+                        {isGlobal && (
+                          <View style={[styles.modalTypeBadge, { backgroundColor: '#F1F5F9', marginLeft: 6 }]}>
+                            <Feather name="globe" size={10} color="#64748B" />
+                            <Text style={[styles.modalTypeText, { color: '#64748B', marginLeft: 4 }]}>SHARED</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={styles.modalTitle}>{item.name}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                      {canEdit && (
+                        <>
+                          <TouchableOpacity
+                            style={[styles.closeButton, { backgroundColor: '#F0FDF4' }]}
+                            onPress={() => { setSelectedClinicalItem(null); type === 'factor' ? handleEditPf(item) : handleEditCs(item); }}
+                          >
+                            <Feather name="edit-2" size={15} color={COLORS.primaryGreen} />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.closeButton, { backgroundColor: '#FEF2F2' }]}
+                            onPress={() => { type === 'factor' ? handleDeletePf(item.id) : handleDeleteCs(item.id); }}
+                          >
+                            <Feather name="trash-2" size={15} color="#EF4444" />
+                          </TouchableOpacity>
+                        </>
+                      )}
+                      <TouchableOpacity style={styles.closeButton} onPress={() => setSelectedClinicalItem(null)}>
+                        <Feather name="x" size={18} color="#64748B" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  <ScrollView
+                    style={styles.modalBody}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 40 }}
+                  >
+                    {item.description ? (
+                      <>
+                        <Text style={[styles.modalDesc, { fontStyle: 'normal', fontWeight: '600', color: '#475569', marginBottom: 4 }]}>Summary</Text>
+                        <Text style={styles.modalDesc}>{stripHTML(item.description)}</Text>
+                        {item.content && <View style={styles.divider} />}
+                      </>
+                    ) : null}
+                    {item.content
+                      ? renderHTMLContent(item.content.includes('<') ? item.content : `<p>${item.content}</p>`)
+                      : (!item.description && <Text style={styles.modalDesc}>No description provided.</Text>)
+                    }
+                  </ScrollView>
+                </>
+              );
+            })()}
           </View>
         </View>
       </Modal>
 
-      {/* MODAL 3: ADD/EDIT COPING STRATEGY DIALOG */}
+      {/* MODAL 2 & 3: ADD/EDIT RESOURCE DIALOG */}
       <Modal
-        visible={csModalVisible}
+        visible={resourceModalVisible}
         animationType="fade"
         transparent
-        onRequestClose={() => setCsModalVisible(false)}
+        onRequestClose={() => setResourceModalVisible(false)}
       >
         <View style={styles.dialogBackdrop}>
           <View style={styles.dialogContainer}>
             <View style={styles.dialogHeader}>
               <Text style={styles.dialogTitle}>
-                {editingCs ? 'Edit Coping Strategy' : 'Add Coping Strategy'}
+                {editingResource
+                  ? (resourceType === 'factor' ? 'Edit Protective Factor' : resourceType === 'strategy' ? 'Edit Coping Strategy' : 'Edit Educational Resource')
+                  : 'Add Resource'}
               </Text>
-              <TouchableOpacity onPress={() => setCsModalVisible(false)}>
+              <TouchableOpacity onPress={() => setResourceModalVisible(false)}>
                 <Feather name="x" size={20} color="#64748B" />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.dialogField}>
-              <Text style={styles.dialogLabel}>Strategy Name</Text>
-              <TextInput
-                style={styles.dialogInput}
-                placeholder="E.g., Box breathing, Progressive muscle relaxation"
-                placeholderTextColor="#94A3B8"
-                value={csName}
-                onChangeText={setCsName}
-              />
-            </View>
-
-            <View style={styles.dialogField}>
-              <Text style={styles.dialogLabel}>Description (Optional)</Text>
-              <TextInput
-                style={[styles.dialogInput, styles.dialogTextArea]}
-                placeholder="Step-by-step instructions or notes on how you practice this..."
-                placeholderTextColor="#94A3B8"
-                value={csDescription}
-                onChangeText={setCsDescription}
-                multiline
-                numberOfLines={3}
-              />
-            </View>
-
-            {isTherapist && (
-              <View style={styles.switchRow}>
-                <View style={styles.switchTextWrap}>
-                  <Text style={styles.switchLabel}>Share with all clients</Text>
-                  <Text style={styles.switchDesc}>Make available as a shared strategy for clients.</Text>
+            {/* Step Header */}
+            {(() => {
+              const isEdu = resourceType === 'educational';
+              const totalSteps = isEdu ? (isTherapist ? 5 : 4) : (isTherapist ? 4 : 3);
+              // For PF/CS, step 5 (Settings) is logically step 4 — map display number
+              const displayStep = (!isEdu && currentStep === 5) ? 4 : currentStep;
+              const stepLabel: Record<number, string> = { 1: 'Type', 2: 'Title', 3: 'Description', 4: isEdu ? 'Content' : 'Settings', 5: 'Settings' };
+              return (
+                <View style={{ marginBottom: 15, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '600' }}>
+                      Step {displayStep} of {totalSteps}
+                    </Text>
+                    <Text style={{ fontSize: 14, color: '#064e3b', fontWeight: '700' }}>
+                      {stepLabel[currentStep] ?? ''}
+                    </Text>
+                  </View>
+                  <View style={{ height: 6, backgroundColor: '#F1F5F9', borderRadius: 3, overflow: 'hidden' }}>
+                    <View style={{ height: '100%', backgroundColor: '#059669', width: `${(displayStep / totalSteps) * 100}%` }} />
+                  </View>
                 </View>
-                <Switch
-                  value={csIsGlobal}
-                  onValueChange={setCsIsGlobal}
-                  trackColor={{ false: COLORS.disabledBg, true: '#A78BFA' }}
-                  thumbColor={csIsGlobal ? COLORS.primaryGreen : '#F1F5F9'}
+              );
+            })()}
+
+            {/* Step 1: Type */}
+            {currentStep === 1 && (
+              <View style={styles.dialogField}>
+                <Text style={styles.dialogLabel}>What type of resource are you adding?</Text>
+                <View style={{ gap: 10 }}>
+                  <TouchableOpacity
+                    style={{ padding: 15, borderRadius: 12, borderWidth: 2, borderColor: resourceType === 'factor' ? '#059669' : '#E2E8F0', backgroundColor: resourceType === 'factor' ? '#ECFDF5' : '#FFFFFF', flexDirection: 'row', alignItems: 'center', gap: 12 }}
+                    onPress={() => setResourceType('factor')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: resourceType === 'factor' ? '#059669' : '#F1F5F9', justifyContent: 'center', alignItems: 'center' }}>
+                      <Feather name="shield" size={20} color={resourceType === 'factor' ? '#FFFFFF' : '#64748B'} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 16, color: '#064e3b', fontWeight: '700', marginBottom: 2 }}>Protective Factor</Text>
+                      <Text style={{ fontSize: 13, color: '#64748B' }}>Personal strengths and positive supports.</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{ padding: 15, borderRadius: 12, borderWidth: 2, borderColor: resourceType === 'strategy' ? '#059669' : '#E2E8F0', backgroundColor: resourceType === 'strategy' ? '#ECFDF5' : '#FFFFFF', flexDirection: 'row', alignItems: 'center', gap: 12 }}
+                    onPress={() => setResourceType('strategy')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: resourceType === 'strategy' ? '#059669' : '#F1F5F9', justifyContent: 'center', alignItems: 'center' }}>
+                      <Feather name="activity" size={20} color={resourceType === 'strategy' ? '#FFFFFF' : '#64748B'} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 16, color: '#064e3b', fontWeight: '700', marginBottom: 2 }}>Coping Strategy</Text>
+                      <Text style={{ fontSize: 13, color: '#64748B' }}>Techniques and actions to manage distress.</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{ padding: 15, borderRadius: 12, borderWidth: 2, borderColor: resourceType === 'educational' ? '#059669' : '#E2E8F0', backgroundColor: resourceType === 'educational' ? '#ECFDF5' : '#FFFFFF', flexDirection: 'row', alignItems: 'center', gap: 12 }}
+                    onPress={() => setResourceType('educational')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: resourceType === 'educational' ? '#059669' : '#F1F5F9', justifyContent: 'center', alignItems: 'center' }}>
+                      <Feather name="book-open" size={20} color={resourceType === 'educational' ? '#FFFFFF' : '#64748B'} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 16, color: '#064e3b', fontWeight: '700', marginBottom: 2 }}>Educational Resource</Text>
+                      <Text style={{ fontSize: 13, color: '#64748B' }}>Articles, guides, and informative materials.</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {/* Step 2: Title */}
+            {currentStep === 2 && (
+              <View style={styles.dialogField}>
+                <Text style={styles.dialogLabel}>{resourceType === 'factor' ? 'Factor Name' : resourceType === 'strategy' ? 'Strategy Name' : 'Resource Title'}</Text>
+                <TextInput
+                  style={styles.dialogInput}
+                  placeholder={resourceType === 'factor' ? "E.g., Supportive family" : resourceType === 'strategy' ? "E.g., Box breathing" : "E.g., Intro to CBT"}
+                  placeholderTextColor="#94A3B8"
+                  value={resourceName}
+                  onChangeText={setResourceName}
+                  autoFocus
                 />
               </View>
             )}
 
-            <View style={styles.dialogFooter}>
+            {/* Step 3: Short Description */}
+            {currentStep === 3 && (
+              <View style={styles.dialogField}>
+                <Text style={styles.dialogLabel}>
+                  {resourceType === 'factor' ? 'Factor Description' : resourceType === 'strategy' ? 'Strategy Description' : 'Short Description'}
+                </Text>
+                <Text style={{ fontSize: 11, color: '#94A3B8', marginBottom: 8 }}>
+                  A brief summary shown on the resource card.
+                </Text>
+                <TextInput
+                  style={[styles.dialogInput, styles.dialogTextArea, { height: 100 }]}
+                  placeholder={
+                    resourceType === 'factor' ? "Briefly describe this protective factor..."
+                    : resourceType === 'strategy' ? "Briefly describe this coping strategy..."
+                    : "A short summary shown in the resource card..."
+                  }
+                  placeholderTextColor="#94A3B8"
+                  value={resourceDescription}
+                  onChangeText={setResourceDescription}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  autoFocus
+                />
+              </View>
+            )}
+
+            {/* Step 4: Full Content (Rich Text — Educational only) */}
+            {currentStep === 4 && resourceType === 'educational' && (
+              <View style={[styles.dialogField, { marginBottom: 20 }]}>
+                <Text style={styles.dialogLabel}>Full Content</Text>
+                <Text style={{ fontSize: 11, color: '#94A3B8', marginBottom: 8 }}>
+                  The complete body shown when the resource is opened.
+                </Text>
+                <View style={{ height: 240, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, overflow: 'hidden', backgroundColor: '#FFFFFF', flexDirection: 'column-reverse' }}>
+                  <RichEditor
+                    ref={richTextRef}
+                    initialContentHTML={resourceContent}
+                    onChange={setResourceContent}
+                    placeholder={
+                      resourceType === 'factor' ? "Describe in detail how this factor helps you..."
+                      : resourceType === 'strategy' ? "Provide step-by-step instructions or detailed guidance..."
+                      : "Write the full educational content here..."
+                    }
+                    containerStyle={{ flex: 1, backgroundColor: '#FFFFFF' }}
+                    editorStyle={{
+                      backgroundColor: '#FFFFFF',
+                      color: '#1E293B',
+                      placeholderColor: '#94A3B8',
+                      cssText: 'ul, ol { padding-left: 24px; margin-left: 10px; }',
+                    }}
+                    initialHeight={190}
+                    useContainer={false}
+                    scrollEnabled={true}
+                  />
+                  <RichToolbar
+                    editor={richTextRef}
+                    actions={[
+                      actions.setBold,
+                      actions.setItalic,
+                      actions.setUnderline,
+                      actions.insertBulletsList,
+                      actions.insertOrderedList,
+                      actions.removeFormat,
+                      actions.keyboard,
+                    ]}
+                    onPress={() => richTextRef.current?.focusContentEditor()}
+                    style={{ backgroundColor: '#F8FAFC', borderBottomWidth: 1, borderBottomColor: '#E2E8F0', height: 44 }}
+                    iconTint="#64748B"
+                    selectedIconTint="#059669"
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Step 5: Settings (Global Share — therapist only) */}
+            {currentStep === 5 && isTherapist && (
+              <View style={styles.switchRow}>
+                <View style={styles.switchTextWrap}>
+                  <Text style={styles.switchLabel}>Share with all clients</Text>
+                  <Text style={styles.switchDesc}>Make available as a shared resource for clients.</Text>
+                </View>
+                <Switch
+                  value={resourceIsGlobal}
+                  onValueChange={setResourceIsGlobal}
+                  trackColor={{ false: '#CBD5E1', true: '#A78BFA' }}
+                  thumbColor={resourceIsGlobal ? '#059669' : '#F1F5F9'}
+                />
+              </View>
+            )}
+
+            <View style={[styles.dialogFooter, { justifyContent: 'space-between', width: '100%' }]}>
               <TouchableOpacity
-                style={styles.dialogCancelBtn}
-                onPress={() => setCsModalVisible(false)}
-                disabled={submittingCs}
+                style={[styles.dialogCancelBtn, { paddingHorizontal: 20 }]}
+                onPress={() => setResourceModalVisible(false)}
+                disabled={submittingResource}
               >
                 <Text style={styles.dialogCancelBtnText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.dialogSaveBtn}
-                onPress={handleSaveCs}
-                disabled={submittingCs}
-              >
-                {submittingCs ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.dialogSaveBtnText}>Save</Text>
-                )}
-              </TouchableOpacity>
+
+              {(() => {
+                const isEdu = resourceType === 'educational';
+                const lastStep = isTherapist ? 5 : (isEdu ? 4 : 3);
+                const isLastStep = currentStep === lastStep || (!isEdu && currentStep === 3 && !isTherapist);
+
+                const handleNext = () => {
+                  // PF/CS: skip step 4 (Content), jump straight to 5 (Settings) or save
+                  if (!isEdu && currentStep === 3) {
+                    if (isTherapist) setCurrentStep(5);
+                    else handleSaveResource();
+                  } else {
+                    setCurrentStep(prev => prev + 1);
+                  }
+                };
+
+                const handleBack = () => {
+                  // PF/CS: skip step 4 when going back from step 5
+                  if (!isEdu && currentStep === 5) setCurrentStep(3);
+                  else setCurrentStep(prev => prev - 1);
+                };
+
+                const showSave = currentStep === 5 || (!isEdu && currentStep === 3 && !isTherapist);
+
+                return (
+                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                    {currentStep > 1 && (
+                      <TouchableOpacity
+                        style={[styles.dialogCancelBtn, { paddingHorizontal: 20 }]}
+                        onPress={handleBack}
+                        disabled={submittingResource}
+                      >
+                        <Text style={styles.dialogCancelBtnText}>Back</Text>
+                      </TouchableOpacity>
+                    )}
+                    {showSave ? (
+                      <TouchableOpacity
+                        style={[styles.dialogSaveBtn, { paddingHorizontal: 20 }]}
+                        onPress={handleSaveResource}
+                        disabled={submittingResource}
+                      >
+                        {submittingResource
+                          ? <ActivityIndicator size="small" color="#FFFFFF" />
+                          : <Text style={styles.dialogSaveBtnText}>Save</Text>}
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={[styles.dialogSaveBtn, { paddingHorizontal: 20, opacity: (currentStep === 2 && !resourceName.trim()) ? 0.5 : 1 }]}
+                        onPress={handleNext}
+                        disabled={currentStep === 2 && !resourceName.trim()}
+                      >
+                        <Text style={styles.dialogSaveBtnText}>Next</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })()}
             </View>
           </View>
         </View>
@@ -1435,8 +1725,9 @@ export default function ResourceLibraryScreen() {
           style={styles.fab}
           activeOpacity={0.85}
           onPress={() => {
-            if (activeTab === 'coping-strategies') handleAddCs();
-            else handleAddPf();
+            if (activeTab === 'coping-strategies') handleAddResource('strategy');
+            else if (activeTab === 'protective-factors') handleAddResource('factor');
+            else handleAddResource('factor');
           }}
         >
           <Feather name="plus" size={24} color="#FFFFFF" />
@@ -2023,6 +2314,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  itemCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  itemCardViewHint: {
+    fontSize: 11,
+    fontWeight: '600',
+    flex: 1,
   },
   itemActionBtn: {
     padding: 4,

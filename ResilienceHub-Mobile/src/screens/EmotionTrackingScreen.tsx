@@ -2441,7 +2441,7 @@ const styles = StyleSheet.create({
     maxWidth: 220,
   },
   navNextButtonDisabled: {
-    backgroundColor: '#C4B5FD',
+    backgroundColor: COLORS.lightGreen,
   },
   navNextButtonText: {
     fontSize: 14,

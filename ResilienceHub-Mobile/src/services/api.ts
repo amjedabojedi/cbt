@@ -2,7 +2,20 @@ import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 
 // Get API base URL from your existing backend (defaulting to port 5005 on host mac)
-const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || 'http://127.0.0.1:5005';
+const getApiBaseUrl = () => {
+  if (Constants.expoConfig?.extra?.apiBaseUrl) {
+    return Constants.expoConfig.extra.apiBaseUrl;
+  }
+  // Extract host IP from the Expo Go linking URI: exp://192.168.x.x:8081/--/
+  const linkingUri = Constants.linkingUri || '';
+  const match = linkingUri.match(/exp:\/\/([\d.]+):\d+/);
+  if (match) {
+    return `http://${match[1]}:5005`;
+  }
+  return 'http://localhost:5005';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export interface ApiResponse<T = any> {
   data?: T;
@@ -20,6 +33,10 @@ export class ApiService {
 
   static clearAuthToken() {
     this.authToken = null;
+  }
+
+  static hasAuthToken() {
+    return !!this.authToken;
   }
 
   private static async request<T>(
@@ -40,6 +57,7 @@ export class ApiService {
     }
 
     try {
+      console.log('Fetching:', url);
       const response = await fetch(url, {
         ...options,
         headers,
@@ -261,6 +279,26 @@ export class ApiService {
     return this.request<any[]>('/api/resources');
   }
 
+  static async createResource(resourceData: any) {
+    return this.request<any>('/api/resources', {
+      method: 'POST',
+      body: JSON.stringify(resourceData),
+    });
+  }
+
+  static async updateResource(resourceId: number, resourceData: any) {
+    return this.request<any>(`/api/resources/${resourceId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(resourceData),
+    });
+  }
+
+  static async deleteResource(resourceId: number) {
+    return this.request<any>(`/api/resources/${resourceId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Notifications
   static async getNotifications() {
     return this.request<any[]>('/api/notifications');
@@ -279,6 +317,18 @@ export class ApiService {
   static async markAllNotificationsRead() {
     return this.request<any>('/api/notifications/read-all', {
       method: 'POST',
+    });
+  }
+
+  static async deleteNotification(id: number) {
+    return this.request<any>(`/api/notifications/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  static async clearAllNotifications() {
+    return this.request<any>('/api/notifications', {
+      method: 'DELETE',
     });
   }
 

@@ -43,3 +43,27 @@ export function useMarkAllNotificationsRead() {
     },
   });
 }
+
+/** Deletes a single notification and removes it from the cache. */
+export function useDeleteNotification() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => unwrap(ApiService.deleteNotification(id)),
+    onSuccess: (_data, id) => {
+      qc.setQueryData<Notification[]>(queryKeys.notifications, (prev) =>
+        (prev ?? []).filter((n) => n.id !== id)
+      );
+    },
+  });
+}
+
+/** Clears all notifications and empties the cache. */
+export function useClearAllNotifications() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => unwrap(ApiService.clearAllNotifications()),
+    onSuccess: () => {
+      qc.setQueryData<Notification[]>(queryKeys.notifications, []);
+    },
+  });
+}

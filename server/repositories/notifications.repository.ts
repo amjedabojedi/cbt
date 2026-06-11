@@ -76,6 +76,12 @@ export class NotificationsRepository {
       .delete(notifications)
       .where(eq(notifications.id, id));
   }
+
+  async clearAllNotifications(userId: number): Promise<void> {
+    await db
+      .delete(notifications)
+      .where(eq(notifications.userId, userId));
+  }
   
   // Notification preferences
   async getNotificationPreferences(userId: number): Promise<NotificationPreferences | undefined> {
