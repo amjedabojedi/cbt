@@ -49,6 +49,7 @@ export class ApiService {
       'Content-Type': 'application/json',
       'X-Requested-With': 'ResilienceHub-Mobile',
       'X-App-Platform': 'mobile',
+      'Origin': 'https://rsehub.ca',
       ...((options.headers as Record<string, string>) || {}),
     };
 

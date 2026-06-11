@@ -31,9 +31,11 @@ module.exports = {
       "**/*"
     ],
     ios: {
-      supportsTablet: true
+      supportsTablet: true,
+      bundleIdentifier: "com.anonymous.resiliencehubmobile"
     },
     android: {
+      package: "com.anonymous.resiliencehubmobile",
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#3B82F6"
@@ -43,6 +45,9 @@ module.exports = {
       favicon: "./assets/favicon.png"
     },
     extra: {
+      eas: {
+        projectId: "4b3322ab-b623-40a8-a80a-8a31074ca677"
+      },
       apiBaseUrl: process.env.EXPO_PUBLIC_API_URL || (process.env.REPL_SLUG
         ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
         : `http://${localIP}:5005`)
