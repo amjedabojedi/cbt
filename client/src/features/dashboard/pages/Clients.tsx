@@ -204,7 +204,7 @@ export default function Clients() {
   const resendMutation = useMutation({
     mutationFn: async (id: number) => { setResendingInvitation(id); return apiRequest("POST", `/api/invitations/${id}/resend`); },
     onSuccess: () => {
-      toast({ title: t("Invitation Resent!"), description: t("The invitation has been sent again successfully.") });
+      toast({ title: t("Invitation Resent!"), description: t("A fresh link valid for 7 days has been sent.") });
       queryClient.invalidateQueries({ queryKey: ["/api/invitations"] });
       setResendingInvitation(null);
     },
@@ -218,6 +218,26 @@ export default function Clients() {
       setResendingInvitation(null);
     },
   });
+
+  const [deletingInvitation, setDeletingInvitation] = useState<number | null>(null);
+  const deleteInvitationMutation = useMutation({
+    mutationFn: async (id: number) => { setDeletingInvitation(id); return apiRequest("DELETE", `/api/invitations/${id}`); },
+    onSuccess: () => {
+      toast({ title: t("Invitation Cancelled"), description: t("The invitation has been removed.") });
+      queryClient.invalidateQueries({ queryKey: ["/api/invitations"] });
+      setDeletingInvitation(null);
+    },
+    onError: (error: Error) => {
+      toast({ title: t("Error"), description: error.message || t("Failed to delete invitation."), variant: "destructive" });
+      setDeletingInvitation(null);
+    },
+  });
+
+  const handleDeleteInvitation = (invitation: any) => {
+    if (confirm(t("Cancel this invitation for {email}? The link will no longer work.").replace("{email}", invitation.email))) {
+      deleteInvitationMutation.mutate(invitation.id);
+    }
+  };
 
   const filteredClients = (clients && Array.isArray(clients))
     ? clients.filter((c: User) =>
@@ -547,20 +567,36 @@ export default function Clients() {
                               : "N/A"}
                           </TableCell>
                           <TableCell className="text-right pr-6 py-4">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => resendMutation.mutate(invitation.id)}
-                              disabled={resendingInvitation === invitation.id}
-                              className="rounded-xl border-slate-200 text-slate-600 text-xs hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700 h-8 gap-1.5 bg-white"
-                            >
-                              {resendingInvitation === invitation.id ? (
-                                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <Send className="h-3.5 w-3.5" />
-                              )}
-                              Resend
-                            </Button>
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => resendMutation.mutate(invitation.id)}
+                                disabled={resendingInvitation === invitation.id || deletingInvitation === invitation.id}
+                                className="rounded-xl border-slate-200 text-slate-600 text-xs hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700 h-8 gap-1.5 bg-white"
+                              >
+                                {resendingInvitation === invitation.id ? (
+                                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <Send className="h-3.5 w-3.5" />
+                                )}
+                                {t("Resend")}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteInvitation(invitation)}
+                                disabled={deletingInvitation === invitation.id || resendingInvitation === invitation.id}
+                                className="rounded-xl border-red-100 text-red-500 text-xs hover:border-red-300 hover:bg-red-50 hover:text-red-700 h-8 gap-1.5 bg-white"
+                              >
+                                {deletingInvitation === invitation.id ? (
+                                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                )}
+                                {t("Cancel")}
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}

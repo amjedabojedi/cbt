@@ -21,7 +21,7 @@ router.get("/invitations", authenticate, isTherapist, async (req, res) => {
   }
 });
 
-// POST /api/invitations/:id/resend — resend an invitation email
+// POST /api/invitations/:id/resend — resend with fresh token AND reset 7-day expiry
 router.post("/invitations/:id/resend", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -30,19 +30,18 @@ router.post("/invitations/:id/resend", authenticate, ensureAuthenticated, isTher
     const invitation = await storage.getClientInvitationById(id);
     if (!invitation) return res.status(404).json({ message: "Invitation not found" });
 
-    // Ensure the invitation belongs to this therapist
     if (invitation.therapistId !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    // Generate a fresh token for the resend
+    // Generate a fresh token
     const plaintextToken = crypto.randomBytes(32).toString("hex");
     const invitationTokenHash = await bcrypt.hash(plaintextToken, 10);
     const baseUrl = getSafeBaseUrl(req);
     const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(invitation.email)}&therapistId=${req.user.id}&token=${plaintextToken}`;
 
-    // Update token in DB
-    await storage.updateClientInvitationStatus(id, "email_sent");
+    // Save new token hash AND reset expires_at to 7 days from now
+    await storage.resendClientInvitation(id, invitationTokenHash);
 
     const therapistName = req.user.name || req.user.username;
     const emailSent = await sendClientInvitation(invitation.email, therapistName, inviteLink);
@@ -51,6 +50,29 @@ router.post("/invitations/:id/resend", authenticate, ensureAuthenticated, isTher
   } catch (error) {
     console.error("Error resending invitation:", error);
     res.status(500).json({ message: "Failed to resend invitation" });
+  }
+});
+
+// DELETE /api/invitations/:id — cancel/delete a pending invitation
+router.delete("/invitations/:id", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid invitation ID" });
+
+    const invitation = await storage.getClientInvitationById(id);
+    if (!invitation) return res.status(404).json({ message: "Invitation not found" });
+
+    if (invitation.therapistId !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    const deleted = await storage.deleteClientInvitation(id);
+    if (!deleted) return res.status(500).json({ message: "Failed to delete invitation" });
+
+    res.json({ message: "Invitation deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting invitation:", error);
+    res.status(500).json({ message: "Failed to delete invitation" });
   }
 });
 

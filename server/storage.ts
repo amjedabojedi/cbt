@@ -201,6 +201,7 @@ export interface IStorage {
   getClientInvitationByEmail(email: string): Promise<ClientInvitation | undefined>;
   getClientInvitationsByTherapist(therapistId: number): Promise<ClientInvitation[]>;
   updateClientInvitationStatus(id: number, status: string): Promise<ClientInvitation>;
+  resendClientInvitation(id: number, tokenHash: string): Promise<ClientInvitation>;
   deleteClientInvitation(id: number): Promise<boolean>;
 
   // AI Recommendations
@@ -341,7 +342,11 @@ export class DatabaseStorage implements IStorage {
   async updateClientInvitationStatus(id: number, status: string): Promise<ClientInvitation> {
     return this.usersRepo.updateClientInvitationStatus(id, status);
   }
-  
+
+  async resendClientInvitation(id: number, tokenHash: string): Promise<ClientInvitation> {
+    return this.usersRepo.resendClientInvitation(id, tokenHash);
+  }
+
   async deleteClientInvitation(id: number): Promise<boolean> {
     return this.usersRepo.deleteClientInvitation(id);
   }

@@ -478,6 +478,23 @@ export class UsersRepository {
     
     return updatedInvitation;
   }
+
+  async resendClientInvitation(id: number, tokenHash: string): Promise<ClientInvitation> {
+    const newExpiry = new Date();
+    newExpiry.setDate(newExpiry.getDate() + 7);
+
+    const [updatedInvitation] = await db
+      .update(clientInvitations)
+      .set({
+        status: "email_sent",
+        invitationToken: tokenHash,
+        expiresAt: newExpiry,
+      })
+      .where(eq(clientInvitations.id, id))
+      .returning();
+
+    return updatedInvitation;
+  }
   
   async deleteClientInvitation(id: number): Promise<boolean> {
     try {
