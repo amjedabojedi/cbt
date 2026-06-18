@@ -12,6 +12,8 @@ const router = Router();
 router.get("/invitations", authenticate, isTherapist, async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
     const therapistId = req.user.id;
     const invitations = await storage.getClientInvitationsByTherapist(therapistId);
     return res.json(Array.isArray(invitations) ? invitations : []);

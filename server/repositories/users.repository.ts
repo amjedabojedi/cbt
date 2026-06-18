@@ -2,7 +2,7 @@ import {
   users, type User, type InsertUser,
   sessions, type Session,
   clientInvitations, type ClientInvitation, type InsertClientInvitation,
-  emotionRecords, protectiveFactors, copingStrategies, goals, goalMilestones,
+  emotionRecords, thoughtRecords, protectiveFactors, copingStrategies, goals, goalMilestones,
   journalEntries, actions, notifications, notificationPreferences,
   resourceAssignments, resourceFeedback, reframePracticeResults,
   userGameProfile, copingStrategyUsage, journalComments, protectiveFactorUsage
@@ -339,15 +339,18 @@ export class UsersRepository {
     }
     
     await db.delete(sessions).where(eq(sessions.userId, userId));
-    
-    // Cascading deletes manually
-    const userEmotionRecords = await db.select().from(emotionRecords).where(eq(emotionRecords.userId, userId));
-    for (const record of userEmotionRecords) {
-      await db.delete(protectiveFactorUsage).where(eq(protectiveFactorUsage.thoughtRecordId, record.id));
-      await db.delete(copingStrategyUsage).where(eq(copingStrategyUsage.thoughtRecordId, record.id));
-      await db.delete(reframePracticeResults).where(eq(reframePracticeResults.thoughtRecordId, record.id));
-      await db.delete(emotionRecords).where(eq(emotionRecords.id, record.id));
+
+    // Delete thought records and their dependents FIRST (they FK-reference emotion records)
+    const userThoughtRecords = await db.select().from(thoughtRecords).where(eq(thoughtRecords.userId, userId));
+    for (const thought of userThoughtRecords) {
+      await db.delete(protectiveFactorUsage).where(eq(protectiveFactorUsage.thoughtRecordId, thought.id));
+      await db.delete(copingStrategyUsage).where(eq(copingStrategyUsage.thoughtRecordId, thought.id));
+      await db.delete(reframePracticeResults).where(eq(reframePracticeResults.thoughtRecordId, thought.id));
     }
+    await db.delete(thoughtRecords).where(eq(thoughtRecords.userId, userId));
+
+    // Now safe to delete emotion records
+    await db.delete(emotionRecords).where(eq(emotionRecords.userId, userId));
     
     await db.delete(protectiveFactors).where(eq(protectiveFactors.userId, userId));
     await db.delete(copingStrategies).where(eq(copingStrategies.userId, userId));
