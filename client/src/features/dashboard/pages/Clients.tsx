@@ -47,8 +47,16 @@ import {
   X,
   Mail,
   CheckCircle2,
+  MoreHorizontal,
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface User {
@@ -486,18 +494,35 @@ export default function Clients() {
 
                             <div className="w-px h-4 bg-slate-100 mx-0.5" />
 
-                            <button onClick={() => handleDeleteClient(client)} title={t("Remove client")}
-                              disabled={deleteClientMutation.isPending}
-                              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 hover:border-red-100 border border-transparent transition-all duration-150 disabled:opacity-40">
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-
-                            <div className="w-px h-4 bg-slate-100 mx-0.5" />
-
-                            <button onClick={() => handleViewStats(client)} title={t("Open overview")}
+                            <button onClick={(e) => { e.stopPropagation(); handleViewStats(client); }} title={t("Open overview")}
                               className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-teal-700 hover:bg-teal-50 hover:border-teal-200 border border-transparent transition-all duration-150">
                               <ChevronRight className="h-4 w-4" />
                             </button>
+
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-slate-600 hover:bg-slate-100 border border-transparent transition-all duration-150"
+                                  title={t("More options")}
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-44">
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewStats(client); }} className="gap-2 cursor-pointer">
+                                  <ChevronRight className="h-3.5 w-3.5" /> {t("Open overview")}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteClient(client); }}
+                                  disabled={deleteClientMutation.isPending}
+                                  className="gap-2 cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" /> {t("Remove client")}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </motion.div>
                       );
