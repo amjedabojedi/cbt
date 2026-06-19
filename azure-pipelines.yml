@@ -98,7 +98,7 @@ stages:
     jobs:
       - deployment: DeployJob
         displayName: 'Deploy to Azure App Service'
-        environment: 'production'  # You can create this in Azure DevOps
+        environment: 'production'  # You can create this in Azure Dev
         strategy:
           runOnce:
             deploy:
