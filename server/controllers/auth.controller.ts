@@ -13,40 +13,48 @@ import { sendPasswordResetEmail, sendEmail, sendProfessionalWelcomeEmail, sendCl
  * Get a safe base URL for link generation to prevent Host-Header poisoning
  */
 export function getSafeBaseUrl(req: Request): string {
+  // 1. Explicit app URL always wins (set this in production for certainty)
   if (process.env.APP_URL) {
     return process.env.APP_URL.trim();
   }
-  
+
+  // 2. Replit-provided deployment domain
   if (process.env.REPLIT_DOMAINS) {
     const domain = process.env.REPLIT_DOMAINS.split(',')[0]?.trim();
     if (domain) return `https://${domain}`;
   }
-  
+
+  // 3. x-forwarded-host set by Replit's reverse proxy (deployed environment)
+  const forwardedHost = (req.headers["x-forwarded-host"] as string | undefined)
+    ?.split(",")[0]
+    ?.trim();
+  if (forwardedHost && /^[a-zA-Z0-9.-]+(:\d+)?$/.test(forwardedHost)) {
+    return `https://${forwardedHost}`;
+  }
+
+  // 4. Use the Host header directly (works for localhost in dev)
   const host = req.get('host') || '';
-  
-  // Validate host format to ensure no malicious injections
+
   if (!host || !/^[a-zA-Z0-9.-]+(:\d+)?$/.test(host)) {
     throw new Error("Invalid Host header");
   }
-  
-  const isDev = process.env.NODE_ENV !== 'production';
+
   const isLocal = /^localhost(:\d+)?$/.test(host) || /^127\.0\.0\.1(:\d+)?$/.test(host);
-  
-  if (isDev && isLocal) {
+  if (isLocal) {
     return `${req.protocol}://${host}`;
   }
-  
+
   if (process.env.ALLOWED_HOSTS) {
     const allowedHosts = process.env.ALLOWED_HOSTS.split(',').map(h => h.trim().toLowerCase());
     const hostname = host.split(':')[0].toLowerCase();
     if (allowedHosts.includes(hostname)) {
-      return `${req.protocol}://${host}`;
+      return `https://${host}`;
     }
   }
-  
-  // Safety Fallback for Production to block arbitrary host routing
-  console.error(`🚨 Host-Header Poisoning Blocked: Incoming Host '${host}' is unverified and APP_URL is missing. Defaulting to localhost fallback.`);
-  return `http://localhost:5000`;
+
+  // 5. Safe fallback: use host header over HTTPS (better than localhost)
+  console.warn(`[getSafeBaseUrl] Falling back to host header: ${host}. Set APP_URL env var for certainty.`);
+  return `https://${host}`;
 }
 
 /**

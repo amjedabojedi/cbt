@@ -4,6 +4,10 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// Trust Replit's reverse proxy so req.secure and req.ip reflect the real connection
+app.set('trust proxy', 1);
+
 app.use(express.json({ limit: "25mb" }));
 app.use(express.urlencoded({ extended: false, limit: "25mb" }));
 

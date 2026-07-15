@@ -10,9 +10,13 @@ import { Request, Response, NextFunction } from "express";
  * Rules:
  *   - Safe methods (GET, HEAD, OPTIONS) are not checked.
  *   - For POST/PUT/PATCH/DELETE, the Origin (or Referer) host must match the
- *     request's own Host header, OR be in the `CSRF_ALLOWED_ORIGINS` allowlist.
+ *     request's own Host header (or x-forwarded-host), OR be in the allowlist.
  *   - Requests with no Origin AND no Referer are rejected (browser-issued CSRF
  *     attacks always include at least Referer).
+ *
+ * Allowlist sources (checked at startup):
+ *   - CSRF_ALLOWED_ORIGINS env var (comma-separated full origins or hosts)
+ *   - REPLIT_DOMAINS env var (the Replit-provided deployment domain(s))
  */
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
@@ -29,7 +33,16 @@ function getAllowedHosts(): Set<string> {
         return origin;
       }
     });
-  return new Set(fromEnv);
+
+  // Always include Replit-provided domains so the deployed production app
+  // can make authenticated requests (the public domain differs from the
+  // internal Host header which Express sees as localhost:5000).
+  const replitDomains = (process.env.REPLIT_DOMAINS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  return new Set([...fromEnv, ...replitDomains]);
 }
 
 const allowlist = getAllowedHosts();
@@ -44,8 +57,6 @@ export function verifyOrigin(req: Request, res: Response, next: NextFunction) {
   ) {
     return next();
   }
-
-  console.log("[CSRF] headers:", JSON.stringify(req.headers));
 
   const origin = (req.headers.origin as string | undefined) || "";
   const referer = (req.headers.referer as string | undefined) || "";
@@ -62,10 +73,14 @@ export function verifyOrigin(req: Request, res: Response, next: NextFunction) {
     return res.status(403).json({ message: "Invalid origin" });
   }
 
-  const expectedHost = (req.headers["x-forwarded-host"] as string) || req.headers.host || "";
+  // x-forwarded-host may be comma-separated; take the first (client-facing) value.
+  const rawForwardedHost = req.headers["x-forwarded-host"] as string | undefined;
+  const forwardedHost = rawForwardedHost?.split(",")[0]?.trim() || "";
+  const expectedHost = forwardedHost || req.headers.host || "";
 
   if (sourceHost === expectedHost) return next();
   if (allowlist.has(sourceHost)) return next();
 
+  console.warn(`[CSRF] Blocked: source=${sourceHost} expected=${expectedHost}`);
   return res.status(403).json({ message: "Cross-origin request blocked" });
 }

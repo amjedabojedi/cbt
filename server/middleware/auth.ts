@@ -36,15 +36,6 @@ export function getSessionCookieOptions(req?: Request): CookieOptions {
   const host = req ? (req.headers["x-forwarded-host"] as string || req.headers.host || "") : "";
   const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1") || host.includes("192.168.");
   
-  console.log(`[COOKIE_DBG] req exists: ${!!req}`);
-  if (req) {
-    console.log(`[COOKIE_DBG] headers: ${JSON.stringify(req.headers)}`);
-    console.log(`[COOKIE_DBG] host: ${host}`);
-  }
-  console.log(`[COOKIE_DBG] FORCE_INSECURE_COOKIES: ${process.env.FORCE_INSECURE_COOKIES}`);
-  console.log(`[COOKIE_DBG] isMobile: ${isMobile}, isLocalhost: ${isLocalhost}`);
-
-  // Handle special override for different environments
   if (process.env.REPLIT_DOMAINS) {
     cookieOptions.secure = true;
     cookieOptions.sameSite = 'none';
@@ -55,7 +46,6 @@ export function getSessionCookieOptions(req?: Request): CookieOptions {
     console.log(`Using insecure cookies (secure=false, sameSite=lax) for ${isMobile ? 'mobile' : isLocalhost ? 'local' : 'FORCE_INSECURE_COOKIES'}`);
   }
   
-  console.log(`Cookie options: secure=${cookieOptions.secure}, sameSite=${cookieOptions.sameSite}, domain=${cookieOptions.domain || 'not set'}`);
   return cookieOptions;
 }
 
@@ -93,43 +83,28 @@ declare global {
  * Authenticate the user based on their session cookie
  */
 export async function authenticate(req: Request, res: Response, next: NextFunction) {
-  console.log(`[AUTH] Authenticating request: ${req.method} ${req.originalUrl}`);
-  console.log(`[AUTH] Headers: ${JSON.stringify(req.headers)}`);
-  console.log(`[AUTH] Cookies in req.cookies: ${JSON.stringify(req.cookies)}`);
-  console.log(`[AUTH] Raw Cookie Header: ${req.headers.cookie}`);
-
   let sessionId = req.cookies?.sessionId;
   
-  // Try to parse manually from headers if it's missing from req.cookies
   if (!sessionId && req.headers.cookie) {
-    const cookieString = req.headers.cookie;
-    // Look for sessionId cookie
-    const match = cookieString.match(/(?:^|;)\s*sessionId=([^;]+)/);
+    const match = req.headers.cookie.match(/(?:^|;)\s*sessionId=([^;]+)/);
     if (match) {
       sessionId = decodeURIComponent(match[1].trim());
-      // Handle potential signing prefix s: from cookie-parser
       if (sessionId.startsWith('s:')) {
         const signedMatch = sessionId.match(/^s:([^.]+)/);
         sessionId = signedMatch ? signedMatch[1] : sessionId.slice(2);
       }
-      console.log(`[AUTH] Manually parsed sessionId from headers: ${sessionId}`);
     }
   }
 
-  // Try to parse from Authorization header (e.g. Authorization: Bearer <sessionId>)
+  // Bearer token fallback (used by mobile app)
   if (!sessionId && req.headers.authorization) {
     const authHeader = req.headers.authorization;
     if (authHeader.startsWith('Bearer ')) {
       sessionId = authHeader.substring(7).trim();
-      console.log(`[AUTH] Parsed sessionId from Authorization Bearer header: ${sessionId}`);
     }
   }
-  
-  console.log(`[AUTH] Resolved sessionId: ${sessionId}`);
-  
-  // SECURITY: Only session-based authentication is allowed
+
   if (!sessionId) {
-    console.log(`[AUTH] Authentication failed: No sessionId found`);
     return res.status(401).json({ message: 'Authentication required' });
   }
   
