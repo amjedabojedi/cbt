@@ -47,7 +47,11 @@ export default function ForgotPassword() {
         setError(result.message || "An error occurred. Please try again.");
       }
     } catch (error) {
-      setError("An unexpected error occurred. Please try again later.");
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : "An unexpected error occurred. Please try again later.";
+      setError(message);
       console.error("Password reset request error:", error);
     } finally {
       setIsSubmitting(false);
@@ -97,7 +101,11 @@ export default function ForgotPassword() {
                 {error && (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
+                    <AlertTitle>
+                      {/too many|rate limit|wait about/i.test(error)
+                        ? "Too Many Attempts"
+                        : "Error"}
+                    </AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}

@@ -94,9 +94,11 @@ export default function AuthForm({ mode }: AuthFormProps) {
       }
     } catch (error) {
       console.error(error);
+      const message = (error as Error).message || "An error occurred. Please try again.";
+      const isRateLimited = /too many|rate limit|wait about/i.test(message);
       toast({
-        title: "Error",
-        description: (error as Error).message || "An error occurred. Please try again.",
+        title: isRateLimited ? "Too Many Attempts" : "Error",
+        description: message,
         variant: "destructive",
       });
     } finally {

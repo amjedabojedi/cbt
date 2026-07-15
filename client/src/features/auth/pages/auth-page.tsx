@@ -174,9 +174,11 @@ export default function AuthPage() {
       // Login is handled by the auth hook which will redirect on success
     } catch (error) {
       console.error(error);
+      const message = (error as Error).message || "An error occurred. Please try again.";
+      const isRateLimited = /too many|rate limit|wait about/i.test(message);
       toast({
-        title: "Login Failed",
-        description: (error as Error).message || "An error occurred. Please try again.",
+        title: isRateLimited ? "Too Many Attempts" : "Login Failed",
+        description: message,
         variant: "destructive",
       });
     } finally {

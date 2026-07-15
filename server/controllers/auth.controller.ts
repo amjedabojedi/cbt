@@ -7,7 +7,16 @@ import { storage } from "../storage";
 import { db } from "../db";
 import { insertUserSchema, clientInvitations, passwordResetTokens, users } from "@shared/schema";
 import { getSessionCookieOptions } from "../middleware/auth";
-import { sendPasswordResetEmail, sendEmail, sendProfessionalWelcomeEmail, sendClientInvitation } from "../services/email";
+import { sendPasswordResetEmail, sendEmail, sendProfessionalWelcomeEmail, sendClientInvitation, isEmailEnabled } from "../services/email";
+
+/** Production hosts we trust when APP_URL is not set (prevents broken localhost reset links). */
+const KNOWN_PRODUCTION_HOSTS = new Set([
+  "rsehub.ca",
+  "www.rsehub.ca",
+  "resiliencehub.net",
+  "www.resiliencehub.net",
+  "resiliencehub.replit.app",
+]);
 
 /**
  * Get a safe base URL for link generation to prevent Host-Header poisoning
@@ -15,7 +24,7 @@ import { sendPasswordResetEmail, sendEmail, sendProfessionalWelcomeEmail, sendCl
 export function getSafeBaseUrl(req: Request): string {
   // 1. Explicit app URL always wins (set this in production for certainty)
   if (process.env.APP_URL) {
-    return process.env.APP_URL.trim();
+    return process.env.APP_URL.trim().replace(/\/$/, "");
   }
 
   // 2. Replit-provided deployment domain
@@ -24,12 +33,15 @@ export function getSafeBaseUrl(req: Request): string {
     if (domain) return `https://${domain}`;
   }
 
-  // 3. x-forwarded-host set by Replit's reverse proxy (deployed environment)
+  // 3. x-forwarded-host from reverse proxy — only trust known production hosts
   const forwardedHost = (req.headers["x-forwarded-host"] as string | undefined)
     ?.split(",")[0]
     ?.trim();
   if (forwardedHost && /^[a-zA-Z0-9.-]+(:\d+)?$/.test(forwardedHost)) {
-    return `https://${forwardedHost}`;
+    const fhHostname = forwardedHost.split(":")[0].toLowerCase();
+    if (KNOWN_PRODUCTION_HOSTS.has(fhHostname)) {
+      return `https://${fhHostname}`;
+    }
   }
 
   // 4. Use the Host header directly (works for localhost in dev)
@@ -39,22 +51,29 @@ export function getSafeBaseUrl(req: Request): string {
     throw new Error("Invalid Host header");
   }
 
-  const isLocal = /^localhost(:\d+)?$/.test(host) || /^127\.0\.0\.1(:\d+)?$/.test(host);
+  const hostname = host.split(':')[0].toLowerCase();
+  const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
+
   if (isLocal) {
     return `${req.protocol}://${host}`;
   }
 
+  if (KNOWN_PRODUCTION_HOSTS.has(hostname)) {
+    return `https://${hostname}`;
+  }
+
   if (process.env.ALLOWED_HOSTS) {
     const allowedHosts = process.env.ALLOWED_HOSTS.split(',').map(h => h.trim().toLowerCase());
-    const hostname = host.split(':')[0].toLowerCase();
     if (allowedHosts.includes(hostname)) {
-      return `https://${host}`;
+      return `https://${hostname}`;
     }
   }
 
-  // 5. Safe fallback: use host header over HTTPS (better than localhost)
-  console.warn(`[getSafeBaseUrl] Falling back to host header: ${host}. Set APP_URL env var for certainty.`);
-  return `https://${host}`;
+  // Never email localhost / arbitrary-host reset links — prefer the primary domain.
+  console.error(
+    `🚨 Host-Header Poisoning Blocked: Incoming Host '${host}' is unverified and APP_URL is missing. Falling back to https://rsehub.ca`
+  );
+  return "https://rsehub.ca";
 }
 
 /**
@@ -433,6 +452,15 @@ export async function requestForgotPassword(req: Request, res: Response) {
         message: "Email is required" 
       });
     }
+
+    // Fail fast when SparkPost is not configured — otherwise users see "email sent" and never get mail
+    if (!isEmailEnabled()) {
+      console.error("[PasswordReset] Email service disabled (SPARKPOST_API_KEY missing). Cannot send reset emails.");
+      return res.status(503).json({
+        success: false,
+        message: "Password reset email is temporarily unavailable. Please try again later or contact support."
+      });
+    }
     
     // Find user by email
     const user = await storage.getUserByEmail(email);
@@ -473,9 +501,15 @@ export async function requestForgotPassword(req: Request, res: Response) {
     
     if (!emailSent) {
       console.error(`[PasswordReset] FAILED to send reset email to ${user.email}`);
-    } else {
-      console.log(`[PasswordReset] Reset email sent successfully to ${user.email}`);
+      // Roll back token so a later retry can create a fresh one
+      await db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, user.id));
+      return res.status(503).json({
+        success: false,
+        message: "We couldn't send the reset email right now. Please try again later or contact support."
+      });
     }
+
+    console.log(`[PasswordReset] Reset email sent successfully to ${user.email}`);
     
     return res.status(200).json({
       success: true,
@@ -483,9 +517,9 @@ export async function requestForgotPassword(req: Request, res: Response) {
     });
   } catch (error) {
     console.error('Password reset request error:', error);
-    return res.status(200).json({ 
-      success: true, 
-      message: "If your email is in our system, you will receive a password reset link." 
+    return res.status(500).json({ 
+      success: false, 
+      message: "An error occurred while processing your request. Please try again later." 
     });
   }
 }
@@ -627,7 +661,16 @@ export async function loginUser(req: Request, res: Response) {
       return res.status(500).json({ message: "Database connection issue, please try again in a moment" });
     }
     
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    let passwordMatch = false;
+    try {
+      passwordMatch = await bcrypt.compare(password, user.password);
+    } catch (hashError) {
+      // Corrupted / non-bcrypt password hashes throw instead of returning false
+      console.error(`Password hash compare failed for user ${user.id}:`, hashError);
+      return res.status(401).json({
+        message: "Invalid credentials. If you cannot sign in, use Forgot password to reset your account."
+      });
+    }
     
     if (!passwordMatch) {
       console.log("Password does not match");

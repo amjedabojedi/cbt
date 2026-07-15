@@ -53,10 +53,14 @@ export default function Login() {
       // Save the error for displaying a more detailed error UI
       setLoginError(error instanceof Error ? error : new Error("Failed to log in"));
       
-      // Show a more helpful error message if credentials are invalid
-      if (error instanceof Error && 
-          (error.message.includes('Invalid credentials') || 
-           error.message.includes('401'))) {
+      const message = error instanceof Error ? error.message : "Failed to log in. Please try again.";
+      if (/too many|rate limit|wait about/i.test(message)) {
+        toast({
+          title: "Too Many Attempts",
+          description: message,
+          variant: "destructive",
+        });
+      } else if (/invalid credentials|401/i.test(message)) {
         toast({
           title: "Invalid Credentials",
           description: "The username or password you entered is incorrect. Please check your credentials and try again.",
@@ -65,7 +69,7 @@ export default function Login() {
       } else {
         toast({
           title: "Login Error",
-          description: error instanceof Error ? error.message : "Failed to log in. Please try again.",
+          description: message,
           variant: "destructive",
         });
       }

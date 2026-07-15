@@ -11,9 +11,17 @@ async function throwIfResNotOk(res: Response) {
       if (contentType && contentType.includes("application/json")) {
         const clonedRes = res.clone();
         const errorData = await clonedRes.json();
-        errorMessage = errorData.details
-          ? `${errorData.message || "Error"} — ${errorData.details}`
-          : errorData.message || JSON.stringify(errorData);
+        if (res.status === 429) {
+          const minutes = errorData.retryAfterMinutes
+            || Math.max(1, Math.ceil(Number(errorData.retryAfter || 900) / 60));
+          errorMessage =
+            errorData.message ||
+            `Too many attempts. Please wait about ${minutes} minute${minutes === 1 ? "" : "s"} and try again.`;
+        } else {
+          errorMessage = errorData.details
+            ? `${errorData.message || "Error"} — ${errorData.details}`
+            : errorData.message || JSON.stringify(errorData);
+        }
       } else {
         errorMessage = await res.text();
       }

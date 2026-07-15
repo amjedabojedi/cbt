@@ -41,7 +41,11 @@ export class UsersRepository {
       
       const [user] = await withRetry(async () => {
         console.log(`Attempting to fetch user by username`);
-        return await db.select().from(users).where(eq(users.username, username));
+        // Case-insensitive match — clients often type names in ALL CAPS
+        return await db
+          .select()
+          .from(users)
+          .where(sql`lower(${users.username}) = lower(${username})`);
       });
       
       return user;
@@ -52,7 +56,10 @@ export class UsersRepository {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(sql`lower(${users.email}) = lower(${email})`);
     return user;
   }
 
