@@ -1,2 +1,3 @@
 - [Replit AI integration proxy limits](replit-ai-proxy-limits.md) — proxy supports chat completions only; Whisper/audio endpoints must use a separate direct OpenAI client with OPENAI_API_KEY.
 - [Client entry safety](client-entry-safety.md) — protect sensitive writing without persistent browser drafts; practice milestones are encouragement, not recovery scores.
+- [Therapy test isolation](therapy-test-isolation.md) — persistence/access tests must never touch existing client records or send real email.
