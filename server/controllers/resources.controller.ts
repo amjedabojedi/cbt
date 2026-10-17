@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { storage } from "../storage";
 import { sendNotificationToUser } from "../services/websocket";
+import type { ResourceFeedback } from "@shared/schema";
 
 // GET /api/resources
 export async function getAllResources(req: Request, res: Response) {
@@ -179,8 +180,8 @@ export async function getTherapistAssignments(req: Request, res: Response) {
     const assignments = await storage.getAssignmentsByTherapist(user.id);
 
     // Batch-fetch feedback for each unique client so we can attach ratings to every assignment
-    const uniqueClientIds = [...new Set(assignments.map((a) => a.assignedTo))];
-    const clientFeedbackMap = new Map<number, { resourceId: number; rating: number; feedback?: string | null }[]>();
+    const uniqueClientIds = Array.from(new Set(assignments.map((a) => a.assignedTo)));
+    const clientFeedbackMap = new Map<number, ResourceFeedback[]>();
     await Promise.all(
       uniqueClientIds.map(async (clientId) => {
         const fb = await storage.getResourceFeedbackByUser(clientId);

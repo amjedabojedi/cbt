@@ -442,7 +442,7 @@ export const notifications = pgTable("notifications", {
   title: text("title").notNull(),
   body: text("body").notNull(), // Use "body" instead of "content" to match the database column
   type: text("type", { 
-    enum: ["reminder", "therapist_message", "progress_update", "system", "alert", "invitation"] 
+    enum: ["reminder", "therapist_message", "progress_update", "system", "alert", "invitation", "resource"]
   }).notNull().default("system"),
   isRead: boolean("is_read").notNull().default(false),
   linkPath: text("link_path"), // Optional path to navigate when clicked

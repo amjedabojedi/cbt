@@ -458,7 +458,7 @@ var init_schema = __esm({
       body: text("body").notNull(),
       // Use "body" instead of "content" to match the database column
       type: text("type", {
-        enum: ["reminder", "therapist_message", "progress_update", "system", "alert", "invitation"]
+        enum: ["reminder", "therapist_message", "progress_update", "system", "alert", "invitation", "resource"]
       }).notNull().default("system"),
       isRead: boolean("is_read").notNull().default(false),
       linkPath: text("link_path"),
@@ -2780,28 +2780,6 @@ var DatabaseStorage = class {
   }
   async updateEngagementSettings(settings) {
     return this.adminRepo.updateEngagementSettings(settings);
-  }
-  // AI Recommendations
-  async createAiRecommendation(recommendation) {
-    return this.adminRepo.createAiRecommendation(recommendation);
-  }
-  async getAiRecommendationById(id) {
-    return this.adminRepo.getAiRecommendationById(id);
-  }
-  async getAiRecommendationsByUser(userId) {
-    return this.adminRepo.getAiRecommendationsByUser(userId);
-  }
-  async getPendingAiRecommendationsByProfessional(professionalId) {
-    return this.adminRepo.getPendingAiRecommendationsByProfessional(professionalId);
-  }
-  async getPendingAiRecommendationsByTherapist(therapistId) {
-    return this.adminRepo.getPendingAiRecommendationsByTherapist(therapistId);
-  }
-  async updateAiRecommendationStatus(id, status, therapistNotes) {
-    return this.adminRepo.updateAiRecommendationStatus(id, status, therapistNotes);
-  }
-  async deleteAiRecommendation(id) {
-    return this.adminRepo.deleteAiRecommendation(id);
   }
   // AI Recommendations
   async createAiRecommendation(recommendation) {
@@ -5796,36 +5774,29 @@ import { eq as eq11, and as and8, gt, inArray as inArray2 } from "drizzle-orm";
 init_db();
 init_schema();
 init_email();
+
+// server/services/baseUrl.ts
 function getSafeBaseUrl(req) {
-  if (process.env.APP_URL) {
-    return process.env.APP_URL.trim();
-  }
-  if (process.env.REPLIT_DOMAINS) {
-    const domain = process.env.REPLIT_DOMAINS.split(",")[0]?.trim();
-    if (domain) return `https://${domain}`;
-  }
-  const forwardedHost = req.headers["x-forwarded-host"]?.split(",")[0]?.trim();
-  if (forwardedHost && /^[a-zA-Z0-9.-]+(:\d+)?$/.test(forwardedHost)) {
-    return `https://${forwardedHost}`;
-  }
-  const host = req.get("host") || "";
-  if (!host || !/^[a-zA-Z0-9.-]+(:\d+)?$/.test(host)) {
-    throw new Error("Invalid Host header");
-  }
-  const isLocal = /^localhost(:\d+)?$/.test(host) || /^127\.0\.0\.1(:\d+)?$/.test(host);
-  if (isLocal) {
-    return `${req.protocol}://${host}`;
-  }
-  if (process.env.ALLOWED_HOSTS) {
-    const allowedHosts = process.env.ALLOWED_HOSTS.split(",").map((h) => h.trim().toLowerCase());
+  const appUrl = process.env.APP_URL?.trim();
+  if (appUrl) return appUrl;
+  const domain = process.env.REPLIT_DOMAINS?.split(",")[0]?.trim();
+  if (domain) return `https://${domain}`;
+  const allowedHosts = (process.env.ALLOWED_HOSTS || "").split(",").map((host) => host.trim().toLowerCase()).filter(Boolean);
+  const forwarded = req.headers["x-forwarded-host"];
+  const forwardedHost = typeof forwarded === "string" ? forwarded.split(",")[0]?.trim() : "";
+  const candidates = [forwardedHost, req.get("host") || ""];
+  for (const host of candidates) {
+    if (!host || !/^[a-zA-Z0-9.-]+(:\d+)?$/.test(host)) continue;
     const hostname = host.split(":")[0].toLowerCase();
-    if (allowedHosts.includes(hostname)) {
-      return `https://${host}`;
+    if (allowedHosts.includes(hostname)) return `https://${host}`;
+    if (process.env.NODE_ENV !== "production" && (hostname === "localhost" || hostname === "127.0.0.1")) {
+      return `http://${host}`;
     }
   }
-  console.warn(`[getSafeBaseUrl] Falling back to host header: ${host}. Set APP_URL env var for certainty.`);
-  return `https://${host}`;
+  throw new Error("Set APP_URL or configure an allowed host for email links");
 }
+
+// server/controllers/auth.controller.ts
 async function registerUser(req, res) {
   try {
     const validatedData = insertUserSchema.parse(req.body);
@@ -6890,7 +6861,7 @@ async function inviteClient2(req, res) {
       if (!existingUser.therapistId) {
         const plaintextToken2 = crypto3.randomBytes(32).toString("hex");
         const invitationTokenHash2 = await bcrypt3.hash(plaintextToken2, 10);
-        const baseUrl2 = process.env.APP_URL || `${req.protocol}://${req.get("host")}`;
+        const baseUrl2 = getSafeBaseUrl(req);
         const encodedEmail2 = encodeURIComponent(existingUser.email);
         const therapistId2 = req.user.id;
         const inviteLink2 = `${baseUrl2}/auth?invitation=true&email=${encodedEmail2}&therapistId=${therapistId2}&token=${plaintextToken2}`;
@@ -6957,7 +6928,7 @@ async function inviteClient2(req, res) {
     const plaintextToken = crypto3.randomBytes(32).toString("hex");
     const invitationTokenHash = await bcrypt3.hash(plaintextToken, 10);
     const hashedTempPassword = await bcrypt3.hash(tempPassword, 10);
-    const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get("host")}`;
+    const baseUrl = getSafeBaseUrl(req);
     const encodedEmail = encodeURIComponent(email);
     const therapistId = req.user.id;
     const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodedEmail}&therapistId=${therapistId}&token=${plaintextToken}`;
@@ -9654,7 +9625,7 @@ async function getTherapistAssignments(req, res) {
     const user = req.user;
     if (!user) return res.status(401).json({ message: "Unauthorized" });
     const assignments = await storage.getAssignmentsByTherapist(user.id);
-    const uniqueClientIds = [...new Set(assignments.map((a) => a.assignedTo))];
+    const uniqueClientIds = Array.from(new Set(assignments.map((a) => a.assignedTo)));
     const clientFeedbackMap = /* @__PURE__ */ new Map();
     await Promise.all(
       uniqueClientIds.map(async (clientId) => {

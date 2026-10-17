@@ -25,6 +25,7 @@ import {
 } from "@shared/schema";
 import { getSessionCookieOptions } from "../middleware/auth";
 import { sendProfessionalWelcomeEmail, sendClientInvitation } from "../services/email";
+import { getSafeBaseUrl } from "../services/baseUrl";
 import { sendNotificationToUser } from "../services/websocket";
 import { analyzeJournalEntry } from "../services/openai";
 import * as emotionMapping from "../services/emotionMapping";
@@ -763,7 +764,7 @@ export async function inviteClient(req: Request, res: Response) {
         const plaintextToken = crypto.randomBytes(32).toString('hex');
         const invitationTokenHash = await bcrypt.hash(plaintextToken, 10);
 
-        const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+        const baseUrl = getSafeBaseUrl(req);
         const encodedEmail = encodeURIComponent(existingUser.email);
         const therapistId = req.user!.id;
         const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodedEmail}&therapistId=${therapistId}&token=${plaintextToken}`;
@@ -839,7 +840,7 @@ export async function inviteClient(req: Request, res: Response) {
     const invitationTokenHash = await bcrypt.hash(plaintextToken, 10);
     const hashedTempPassword = await bcrypt.hash(tempPassword, 10);
 
-    const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+    const baseUrl = getSafeBaseUrl(req);
     const encodedEmail = encodeURIComponent(email);
     const therapistId = req.user!.id;
     const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodedEmail}&therapistId=${therapistId}&token=${plaintextToken}`;

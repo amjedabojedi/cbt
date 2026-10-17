@@ -14,6 +14,8 @@ import type { Request, Response } from "express";
 vi.mock("../server/storage", () => ({
   storage: {
     getAssignmentsByClient: vi.fn(),
+    getAssignmentsByTherapist: vi.fn(),
+    getUser: vi.fn(),
     getResourceFeedbackByUser: vi.fn(),
     getResourceById: vi.fn(),
     getResourceAssignmentById: vi.fn(),
@@ -25,6 +27,7 @@ vi.mock("../server/storage", () => ({
 import { storage } from "../server/storage";
 import {
   getClientAssignments,
+  getTherapistAssignments,
   updateResourceAssignmentStatus,
   submitAssignmentFeedback,
 } from "../server/controllers/resources.controller";
@@ -164,6 +167,42 @@ describe("getClientAssignments", () => {
 });
 
 // ─── PATCH /api/resource-assignments/:id/status ─────────────────────────────
+
+describe("getTherapistAssignments", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("fetches feedback once per client and preserves nullable ratings", async () => {
+    const feedback = { ...mockFeedback, rating: null, feedback: null };
+    vi.mocked(storage.getAssignmentsByTherapist).mockResolvedValue([
+      mockAssignment as any,
+      { ...mockAssignment, id: 2, resourceId: 6 } as any,
+    ]);
+    vi.mocked(storage.getResourceFeedbackByUser).mockResolvedValue([feedback as any]);
+    vi.mocked(storage.getResourceById).mockResolvedValue(mockResource as any);
+    vi.mocked(storage.getUser).mockResolvedValue({
+      id: CLIENT_ID, name: "Client", username: "client",
+    } as any);
+
+    const res = mockRes();
+    await getTherapistAssignments(mockReq({ user: { id: THERAPIST_ID, role: "therapist" } }), res);
+
+    expect(storage.getResourceFeedbackByUser).toHaveBeenCalledTimes(1);
+    expect(storage.getResourceFeedbackByUser).toHaveBeenCalledWith(CLIENT_ID);
+    expect(res.json).toHaveBeenCalledWith([
+      expect.objectContaining({ id: ASSIGNMENT_ID, feedback }),
+      expect.objectContaining({ id: 2, feedback: null }),
+    ]);
+  });
+
+  it("returns an empty list without fetching feedback when there are no assignments", async () => {
+    vi.mocked(storage.getAssignmentsByTherapist).mockResolvedValue([]);
+    const res = mockRes();
+    await getTherapistAssignments(mockReq({ user: { id: THERAPIST_ID, role: "therapist" } }), res);
+
+    expect(res.json).toHaveBeenCalledWith([]);
+    expect(storage.getResourceFeedbackByUser).not.toHaveBeenCalled();
+  });
+});
 
 describe("updateResourceAssignmentStatus", () => {
   beforeEach(() => vi.clearAllMocks());

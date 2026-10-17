@@ -1042,7 +1042,7 @@ export async function transcribeAudio(
   const ext = mimeType.split(";")[0].split("/")[1] || "webm";
   const file = await toFile(buffer, `audio.${ext}`, { type: mimeType });
 
-  const params: Parameters<typeof openaiDirect.audio.transcriptions.create>[0] = {
+  const params: OpenAI.Audio.Transcriptions.TranscriptionCreateParamsNonStreaming = {
     file,
     model: "whisper-1",
   };
