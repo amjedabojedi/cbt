@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Check, ArrowRight, RefreshCw, Home, TrendingUp, Calendar, Heart, Globe, Sparkles, Brain } from "lucide-react";
+import { Check, ArrowRight, RefreshCw, Home, TrendingUp, Calendar, Heart, Sparkles, Brain, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -29,12 +29,13 @@ import { CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import EmotionWheelResponsive from "./EmotionWheelResponsive";
 import { translateEmotion } from "./EmotionWheelFixed";
-import EmotionOnboardingTour from "./EmotionOnboardingTour";
 import WizardProgressHeader from "@/features/journal/components/wizard/WizardProgressHeader";
 import WizardNavButtons from "@/features/journal/components/wizard/WizardNavButtons";
 import WizardSuccessDialog from "@/features/journal/components/wizard/WizardSuccessDialog";
 import type { EmotionRecord } from "@shared/schema";
 import { useLocalization } from "@/lib/localize.tsx";
+import { emotionGroups } from "@/lib/emotions";
+import { useUnsavedWorkProtection } from "@/hooks/use-unsaved-work-protection";
 
 // Define schema for the form
 const formSchema = z.object({
@@ -55,8 +56,6 @@ interface EmotionTrackingFormWizardProps {
   language?: "en" | "ar";
   direction?: "ltr" | "rtl";
   onEmotionRecorded?: () => void;
-  onLanguageToggle?: () => void;
-  languageLabel?: string;
 }
 
 const EXAMPLE_SITUATIONS = [
@@ -78,8 +77,6 @@ export default function EmotionTrackingFormWizard({
   language = "en",
   direction = "ltr",
   onEmotionRecorded,
-  onLanguageToggle,
-  languageLabel = "English",
 }: EmotionTrackingFormWizardProps) {
   const { t, isRTL, tNum, currentLanguage } = useLocalization();
   const { user } = useAuth();
@@ -119,7 +116,6 @@ export default function EmotionTrackingFormWizard({
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [recordedEmotion, setRecordedEmotion] = useState<any>(null);
   const [, navigate] = useLocation();
-  const [showTourComplete, setShowTourComplete] = useState(false);
   
   const totalSteps = 5;
   
@@ -128,6 +124,9 @@ export default function EmotionTrackingFormWizard({
     queryKey: user ? [`/api/users/${user.id}/emotions`] : [],
     enabled: !!user,
   });
+  useEffect(() => {
+    if (emotions.length > 0 && currentStep === 0) setCurrentStep(1);
+  }, [emotions.length, currentStep]);
   
   // Initialize form with default values
   const form = useForm<FormValues>({
@@ -144,6 +143,15 @@ export default function EmotionTrackingFormWizard({
       useCurrentTime: true,
     },
   });
+  useUnsavedWorkProtection(
+    !showSuccessDialog &&
+      (form.formState.isDirty ||
+        !!form.getValues("coreEmotion") ||
+        !!form.getValues("situation") ||
+        !!form.getValues("location") ||
+        !!form.getValues("company"))
+  );
+  const [emotionSearch, setEmotionSearch] = useState("");
   
   const selectedCore = form.watch("coreEmotion");
   const selectedPrimary = form.watch("primaryEmotion");
@@ -155,9 +163,9 @@ export default function EmotionTrackingFormWizard({
     primaryEmotion: string; 
     tertiaryEmotion: string 
   }) => {
-    form.setValue("coreEmotion", selection.coreEmotion);
-    form.setValue("primaryEmotion", selection.primaryEmotion);
-    form.setValue("tertiaryEmotion", selection.tertiaryEmotion);
+    form.setValue("coreEmotion", selection.coreEmotion, { shouldDirty: true });
+    form.setValue("primaryEmotion", selection.primaryEmotion, { shouldDirty: true });
+    form.setValue("tertiaryEmotion", selection.tertiaryEmotion, { shouldDirty: true });
     form.trigger("coreEmotion");
   };
   
@@ -293,9 +301,7 @@ export default function EmotionTrackingFormWizard({
   
   return (
     <>
-      <EmotionOnboardingTour onComplete={() => setShowTourComplete(true)} />
-      
-      <div dir={isRTL ? "rtl" : "ltr"} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div dir={isRTL ? "rtl" : "ltr"} data-unsaved-work-scope className="w-full max-w-3xl mx-auto bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <WizardProgressHeader
           title={t("Track Your Emotion")}
           icon={Heart}
@@ -304,18 +310,7 @@ export default function EmotionTrackingFormWizard({
           stepLabels={[t("Select"), t("Rate"), t("Describe"), t("Details")]}
           accentClassName="text-teal-700"
           hideProgressOnIntro
-          trailing={
-            onLanguageToggle ? (
-              <button
-                type="button"
-                onClick={onLanguageToggle}
-                className="flex items-center gap-1.5 text-slate-500 hover:text-teal-700 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-teal-200 bg-white text-sm font-medium transition-colors"
-              >
-                <Globe className="h-4 w-4" />
-                {t(languageLabel)}
-              </button>
-            ) : undefined
-          }
+          introEstimate="About 3 minutes"
         />
 
         <CardContent
@@ -345,6 +340,7 @@ export default function EmotionTrackingFormWizard({
                       </p>
                     </div>
                   </div>
+                  <p className="text-xs text-slate-500">{t("Your therapist and authorized administrators may access records according to their role.")}</p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {INTRO_STEPS.map(({ n, label, hint }) => (
@@ -404,6 +400,49 @@ export default function EmotionTrackingFormWizard({
                       hideBreadcrumb
                       hideStatus
                     />
+                    <section className="w-full max-w-xl" aria-label={t("Search emotions")}>
+                      <label htmlFor="emotion-search" className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                        <Search className="h-4 w-4 text-teal-700" />
+                        {t("Or search and choose an emotion")}
+                      </label>
+                      <Input
+                        id="emotion-search"
+                        type="search"
+                        value={emotionSearch}
+                        onChange={(event) => setEmotionSearch(event.target.value)}
+                        placeholder={t("Search emotions")}
+                        className="mb-2 min-h-11 rounded-xl"
+                      />
+                      {emotionSearch.trim() && (
+                        <div className="max-h-52 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1" role="listbox" aria-label={t("Matching emotions")}>
+                          {emotionGroups.flatMap((group) => [
+                            { label: group.core, coreEmotion: group.core, primaryEmotion: "", tertiaryEmotion: "" },
+                            ...group.primary.flatMap((primary, index) => [
+                              { label: primary, coreEmotion: group.core, primaryEmotion: primary, tertiaryEmotion: "" },
+                              ...(group.tertiary[index] || []).map((tertiary) => ({ label: tertiary, coreEmotion: group.core, primaryEmotion: primary, tertiaryEmotion: tertiary })),
+                            ]),
+                          ]).filter((item, index, list) =>
+                            [item.label, translateEmotion(item.label, language)].some(label => label.toLocaleLowerCase().includes(emotionSearch.trim().toLocaleLowerCase())) &&
+                            list.findIndex((candidate) => candidate.label === item.label) === index
+                          ).slice(0, 30).map((item) => (
+                            <button
+                              key={`${item.coreEmotion}-${item.primaryEmotion}-${item.label}`}
+                              type="button"
+                              role="option"
+                              aria-selected={selectedTertiary === item.tertiaryEmotion && selectedPrimary === item.primaryEmotion && selectedCore === item.coreEmotion}
+                              className="flex min-h-11 w-full items-center justify-between rounded-lg px-3 py-2 text-start text-sm text-slate-700 hover:bg-teal-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                              onClick={() => handleEmotionSelect(item)}
+                            >
+                              <span>{translateEmotion(item.label, language)}</span>
+                              <span className="text-xs text-slate-400">{[item.coreEmotion, item.primaryEmotion].filter(Boolean).map((name) => translateEmotion(name, language)).join(" › ")}</span>
+                            </button>
+                          ))}
+                          {!emotionGroups.some((group) => [group.core, ...group.primary, ...group.tertiary.flat()].some((emotion) => [emotion, translateEmotion(emotion, language)].some(label => label.toLocaleLowerCase().includes(emotionSearch.trim().toLocaleLowerCase())))) && (
+                            <p className="p-3 text-sm text-slate-500">{t("No matching emotions")}</p>
+                          )}
+                        </div>
+                      )}
+                    </section>
                   </div>
 
                   {/* Right column: Interactive guide and current selection preview */}
@@ -537,9 +576,9 @@ export default function EmotionTrackingFormWizard({
                       <button
                         type="button"
                         onClick={() => {
-                          form.setValue("coreEmotion", "");
-                          form.setValue("primaryEmotion", "");
-                          form.setValue("tertiaryEmotion", "");
+                          form.setValue("coreEmotion", "", { shouldDirty: true });
+                          form.setValue("primaryEmotion", "", { shouldDirty: true });
+                          form.setValue("tertiaryEmotion", "", { shouldDirty: true });
                           form.trigger("coreEmotion");
                         }}
                         className={cn("text-xs text-slate-400 hover:text-teal-700 hover:underline transition-colors w-fit", isRTL ? "text-right" : "text-left")}
@@ -566,7 +605,7 @@ export default function EmotionTrackingFormWizard({
                     name="intensity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-semibold text-slate-700">{t("How intensely did you feel this emotion?")}</FormLabel>
+                         <FormLabel className="text-base font-semibold text-slate-700">{t("How intense was")} {translateEmotion(selectedTertiary || selectedPrimary || selectedCore, currentLanguage)}?</FormLabel>
                         <div className="mt-4 mb-2 flex flex-col space-y-4">
                           <div className="flex items-center space-x-3 rtl:space-x-reverse w-full">
                             <span className="text-xs sm:text-sm text-slate-500 sm:min-w-[80px]">{t("Mild (1)")}</span>
@@ -791,31 +830,9 @@ export default function EmotionTrackingFormWizard({
                 onNext={handleNextStep}
                 onSubmit={() => form.handleSubmit(onSubmit)()}
                 footerClassName={currentStep === 0 ? "pt-5 mt-1" : undefined}
-                nextDisabled={
-                  (currentStep === 1 && !form.getValues("coreEmotion")) ||
-                  (currentStep === 3 && (!form.getValues("situation") || form.getValues("situation").length < 10))
-                }
-                submitDisabled={
-                  !form.getValues("coreEmotion") ||
-                  !form.getValues("situation") ||
-                  form.getValues("situation").length < 10
-                }
                 submitLabel={t("Record Emotion")}
                 nextButtonClassName="bg-teal-800 hover:bg-teal-700 text-white"
                 submitButtonClassName="bg-teal-800 hover:bg-teal-700 text-white"
-                extraActions={
-                  currentStep === totalSteps - 1 ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => form.handleSubmit(onSubmit)()}
-                      disabled={!form.getValues("coreEmotion") || !form.getValues("situation") || form.getValues("situation").length < 10}
-                      data-testid="button-skip-context"
-                    >
-                      {t("Skip & Record")}
-                    </Button>
-                  ) : null
-                }
               />
             </form>
           </Form>
@@ -868,7 +885,7 @@ export default function EmotionTrackingFormWizard({
           {totalEmotions < 3 && (
             <div className="bg-teal-50 px-4 py-3 rounded-xl border border-teal-100">
               <p className="text-sm text-teal-700 font-medium">
-                {t("Track")} {tNum(3 - totalEmotions)} {t("more emotion(s) to unlock detailed pattern insights.")}
+                {t("Insights are available as you add records. More entries can reveal clearer patterns; early milestones are encouragement, not an unlock or treatment target.")}
               </p>
             </div>
           )}

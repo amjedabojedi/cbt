@@ -3,6 +3,8 @@ import { Progress } from "@/components/ui/progress";
 import { Activity, Heart, Brain, Target, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocalization } from "@/lib/localize.tsx";
+import { practiceMilestone } from "@/utils/practiceProgress";
+import { useAuth } from "@/lib/auth";
 
 interface CBTProgressSnapshotProps {
   totalActivities: number;
@@ -86,6 +88,9 @@ export default function CBTProgressSnapshot({
   isLoading,
 }: CBTProgressSnapshotProps) {
   const { t, tNum } = useLocalization();
+  const { user } = useAuth();
+  const clinicalView = user?.role === "therapist" || user?.role === "admin";
+  const milestone = practiceMilestone(totalActivities);
 
   if (isLoading) {
     return (
@@ -110,7 +115,7 @@ export default function CBTProgressSnapshot({
         <CardHeader className="pb-2 pt-4 px-5">
           <div className="flex items-center justify-between">
             <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">
-              {t("Engagement Level")}
+              {t("Practice activities")}
             </span>
             <div className="bg-teal-50 text-teal-700 p-2 rounded-xl group-hover:bg-teal-100 transition-colors duration-300">
               <Activity className="h-4.5 w-4.5" />
@@ -119,16 +124,17 @@ export default function CBTProgressSnapshot({
         </CardHeader>
         <CardContent className="pt-0 pb-4 px-5">
           <div className="text-3xl font-extrabold text-slate-800 mb-1">{tNum(totalActivities)}</div>
-          <p className="text-xs font-semibold text-slate-500 mb-3">{t("total activities completed")}</p>
+          <p className="text-xs font-semibold text-slate-500 mb-3">{t("Saved emotions, thoughts, journal entries, goals and reframe sessions in the selected period. Each counts once.")}</p>
           <div className="pt-2.5 border-t border-slate-50">
             <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
-              <span>{t("Behavioral Activation")}</span>
-              <span className="text-teal-700 font-extrabold">{t("Active")}</span>
+              <span>{t("Next practice milestone")}</span>
+              <span className="text-teal-700 font-extrabold">{tNum(totalActivities)} / {tNum(milestone.target)}</span>
             </div>
             <Progress
-              value={Math.min((totalActivities / 20) * 100, 100)}
+              value={milestone.percent}
               className="h-1.5 [&>div]:bg-teal-600"
             />
+            <p className="text-xs text-slate-500 mt-2">{t("Practice milestones: 3, 10, 25, 50, then every 50 activities. These are encouragement, not treatment targets or a measure of recovery.")}</p>
           </div>
         </CardContent>
       </Card>
@@ -140,7 +146,7 @@ export default function CBTProgressSnapshot({
         <CardHeader className="pb-2 pt-4 px-5">
           <div className="flex items-center justify-between">
             <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">
-              {t("Emotional Balance")}
+              {t(clinicalView ? "Emotional Balance" : "How strong your feelings were")}
             </span>
             <div className="bg-rose-50 text-rose-500 p-2 rounded-xl group-hover:bg-rose-100 transition-colors duration-300">
               <Heart className="h-4.5 w-4.5" />
@@ -148,11 +154,13 @@ export default function CBTProgressSnapshot({
           </div>
         </CardHeader>
         <CardContent className="pt-0 pb-4 px-5 space-y-3">
-          <div className="grid grid-cols-2 gap-2">
+          {emotionalBalance.negativeFrequency + emotionalBalance.positiveFrequency === 0 ? (
+            <p className="text-sm text-slate-500 py-4">{t("Not enough data yet. Record feelings to see patterns over time.")}</p>
+          ) : <div className="grid grid-cols-2 gap-2">
             <div className="p-2 bg-rose-50/20 border border-rose-100/10 rounded-xl">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  {t("Negative")}
+                  {t(clinicalView ? "Negative" : "Difficult feelings")}
                 </span>
                 <TrendIndicator
                   value={emotionalBalance.negativeIntensity.changePercent}
@@ -169,7 +177,7 @@ export default function CBTProgressSnapshot({
             <div className="p-2 bg-emerald-50/20 border border-emerald-100/10 rounded-xl">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  {t("Positive")}
+                  {t(clinicalView ? "Positive" : "Pleasant feelings")}
                 </span>
                 <TrendIndicator value={emotionalBalance.positiveIntensity.changePercent} />
               </div>
@@ -179,10 +187,10 @@ export default function CBTProgressSnapshot({
                   : "—"}
               </div>
             </div>
-          </div>
+          </div>}
 
           <div className="pt-2 border-t border-slate-50 flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-            <span>{t("Affect Intensity")}</span>
+            <span>{t(clinicalView ? "Affect Intensity" : "Feeling intensity")}</span>
             <span className="text-rose-500 font-extrabold">{t("1-10 Scale")}</span>
           </div>
         </CardContent>
@@ -195,7 +203,7 @@ export default function CBTProgressSnapshot({
         <CardHeader className="pb-2 pt-4 px-5">
           <div className="flex items-center justify-between">
             <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">
-              {t("Cognitive Restructuring")}
+              {t(clinicalView ? "Cognitive Restructuring" : "Thoughts you've challenged")}
             </span>
             <div className="bg-indigo-50 text-indigo-600 p-2 rounded-xl group-hover:bg-indigo-100 transition-colors duration-300">
               <Brain className="h-4.5 w-4.5" />

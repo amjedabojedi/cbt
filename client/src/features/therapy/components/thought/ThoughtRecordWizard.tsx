@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useAuth } from "@/lib/auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { EmotionRecord } from "@shared/schema";
@@ -10,7 +9,6 @@ import useActiveUser from "@/hooks/use-active-user";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ar as arLocale } from "date-fns/locale";
-import { useLocation } from "wouter";
 import { ThoughtChallengeWizard } from "./ThoughtChallengeWizard";
 import { useLocalization } from "@/lib/localize.tsx";
 import { translateEmotion } from "@/features/therapy/components/emotion/EmotionWheelFixed";
@@ -59,6 +57,7 @@ import WizardNavButtons from "@/features/journal/components/wizard/WizardNavButt
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { useUnsavedWorkProtection } from "@/hooks/use-unsaved-work-protection";
 
 // ANT (Automatic Negative Thought) categories based on CBT
 const thoughtCategories = [
@@ -155,10 +154,8 @@ export default function ThoughtRecordWizard({
   onClose,
   preselectedEmotionId,
 }: ThoughtRecordWizardProps) {
-  const { user } = useAuth();
   const { activeUserId } = useActiveUser();
   const { toast } = useToast();
-  const [, navigate] = useLocation();
   const { t, tNum, isRTL, currentLanguage } = useLocalization();
   const translateError = (message?: string) => (message ? t(message) : undefined);
 
@@ -184,7 +181,7 @@ export default function ThoughtRecordWizard({
   const [recordedThought, setRecordedThought] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const totalSteps = 6;
+  const totalSteps = 7;
 
   // Fetch recent emotions for linking
   const { data: emotions } = useQuery<EmotionRecord[]>({
@@ -205,6 +202,13 @@ export default function ThoughtRecordWizard({
       emotionRecordId: preselectedEmotionId || null,
     },
   });
+  const { confirmDiscard } = useUnsavedWorkProtection(
+    !showSuccessDialog &&
+      (form.formState.isDirty ||
+        !!form.getValues("automaticThought") ||
+        !!form.getValues("situation") ||
+        (form.getValues("thoughtCategory")?.length ?? 0) > 0)
+  );
 
   // Watch all form values for direct binding (Edge compatibility fix)
   const watchedValues = form.watch();
@@ -240,6 +244,12 @@ export default function ThoughtRecordWizard({
 
       const thought = await response.json();
       setRecordedThought(thought);
+      form.reset({
+        automaticThought: "",
+        thoughtCategory: [],
+        situation: "",
+        emotionRecordId: null,
+      });
 
       // Invalidate queries
       await queryClient.invalidateQueries({ 
@@ -278,7 +288,9 @@ export default function ThoughtRecordWizard({
     } else if (currentStep === 4) {
       fieldsToValidate = ["situation"];
     } else if (currentStep === 5) {
-      // Step 5 is optional emotion linking
+      // Linking an emotion is optional; continue to the final review.
+    } else if (currentStep === 6) {
+      // Review before saving.
     }
     
     const isValid = await form.trigger(fieldsToValidate);
@@ -327,7 +339,7 @@ export default function ThoughtRecordWizard({
             rows={3}
             value={watchedValues.automaticThought || ""}
             onChange={(e) => {
-              form.setValue("automaticThought", e.target.value, { shouldValidate: true });
+              form.setValue("automaticThought", e.target.value, { shouldValidate: true, shouldDirty: true });
             }}
             data-testid="textarea-thought"
           />
@@ -337,7 +349,7 @@ export default function ThoughtRecordWizard({
             ) : (
               <span />
             )}
-            <span className={`font-medium ${(watchedValues.automaticThought || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
+            <span className={`font-medium ${(watchedValues.automaticThought || "").length >= 10 ? "text-green-600" : (watchedValues.automaticThought || "").length > 0 ? "text-amber-600" : "text-slate-400"}`}>
               {tNum((watchedValues.automaticThought || "").length)}/10 {t("characters minimum")}
             </span>
           </div>
@@ -446,7 +458,7 @@ export default function ThoughtRecordWizard({
               <FormDescription className="text-xxs">
                 {t("Select all unhelpful thinking styles that match your thought (scroll to view all 12)")}
               </FormDescription>
-              <div className="space-y-1.5 mt-1.5 flex-1 overflow-y-auto pr-1 max-h-[220px] border border-slate-100 rounded-xl p-1.5 bg-slate-50/50 custom-scrollbar">
+              <div className="space-y-1.5 mt-1.5 flex-1 pr-1 border border-slate-100 rounded-xl p-1.5 bg-slate-50/50">
                 {thoughtCategories.map((category) => (
                   <FormField
                     key={category.value}
@@ -534,7 +546,7 @@ export default function ThoughtRecordWizard({
             rows={3}
             value={watchedValues.situation || ""}
             onChange={(e) => {
-              form.setValue("situation", e.target.value, { shouldValidate: true });
+              form.setValue("situation", e.target.value, { shouldValidate: true, shouldDirty: true });
             }}
             data-testid="textarea-situation"
           />
@@ -544,7 +556,7 @@ export default function ThoughtRecordWizard({
             ) : (
               <span />
             )}
-            <span className={`font-medium ${(watchedValues.situation || "").length < 10 ? 'text-red-500' : 'text-green-600'}`}>
+            <span className={`font-medium ${(watchedValues.situation || "").length >= 10 ? "text-green-600" : (watchedValues.situation || "").length > 0 ? "text-amber-600" : "text-slate-400"}`}>
               {tNum((watchedValues.situation || "").length)}/10 {t("characters minimum")}
             </span>
           </div>
@@ -680,10 +692,11 @@ export default function ThoughtRecordWizard({
         <div className="space-y-0.5">
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">{t("Record a Thought")}</h2>
           <p className="text-[11px] text-slate-500 leading-relaxed">
-            {t("Capture and challenge automatic negative thoughts (ANTs) using clinical CBT techniques to improve mental well-being.")}
+            {t("Notice a thought, explore its thinking style, and consider a more balanced perspective.")}
           </p>
         </div>
       </div>
+      <p className="text-xs text-slate-500">{t("Your therapist and authorized administrators may access records according to their role.")}</p>
 
       {/* Two columns underneath */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -712,7 +725,11 @@ export default function ThoughtRecordWizard({
             </li>
             <li className="flex items-start gap-1.5">
               <span className="font-bold text-indigo-600">{tNum(5)}.</span>
-              <span>{t("Optionally link to a tracked emotion")}</span>
+              <span>{t("Optionally link an emotion")}</span>
+            </li>
+            <li className="flex items-start gap-1.5">
+              <span className="font-bold text-indigo-600">{tNum(6)}.</span>
+              <span>{t("Review your record before saving")}</span>
             </li>
           </ol>
         </div>
@@ -756,6 +773,22 @@ export default function ThoughtRecordWizard({
         return renderStep4();
       case 5:
         return renderStep5();
+      case 6:
+        return (
+          <section className="space-y-4" aria-labelledby="thought-review-heading" data-testid="step-review-thought">
+            <div>
+              <h3 id="thought-review-heading" className="text-base font-semibold text-slate-900">{t("Review your thought record")}</h3>
+              <p className="text-sm text-slate-500">{t("Take a moment to check your notes before saving.")}</p>
+            </div>
+            <dl className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div><dt className="text-xs font-semibold text-slate-500">{t("Thought")}</dt><dd className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{watchedValues.automaticThought}</dd></div>
+              <div><dt className="text-xs font-semibold text-slate-500">{t("Thinking styles")}</dt><dd className="mt-1 text-sm text-slate-800">{(watchedValues.thoughtCategory || []).map((value) => t(thoughtCategories.find((category) => category.value === value)?.label || value)).join(", ") || t("None selected")}</dd></div>
+              <div><dt className="text-xs font-semibold text-slate-500">{t("Situation")}</dt><dd className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{watchedValues.situation}</dd></div>
+              <div><dt className="text-xs font-semibold text-slate-500">{t("Linked emotion")}</dt><dd className="mt-1 text-sm text-slate-800">{selectedEmotion ? formatEmotionLabel(selectedEmotion) : t("No emotion linked")}</dd></div>
+            </dl>
+            <p className="text-xs text-slate-500">{t("Your therapist and authorized administrators may access records according to their role.")}</p>
+          </section>
+        );
       default:
         return null;
     }
@@ -763,15 +796,16 @@ export default function ThoughtRecordWizard({
 
   return (
     <>
-      <Card dir={isRTL ? "rtl" : "ltr"} className="max-w-3xl mx-auto shadow-sm border-slate-100/80 overflow-hidden">
+      <Card dir={isRTL ? "rtl" : "ltr"} data-unsaved-work-scope className="max-w-3xl mx-auto shadow-sm border-slate-100/80 overflow-hidden">
         <WizardProgressHeader
           title={t("Record a Thought")}
           icon={Brain}
           currentStep={currentStep}
           totalSteps={totalSteps}
-          stepLabels={[t("1. Situation"), t("2. Thought"), t("3. ANTs"), t("4. Link"), t("5. Review")]}
+          stepLabels={[t("Thought"), t("Learn"), t("Thinking styles"), t("Situation"), t("Link emotion"), t("Review")]}
+          introEstimate="About 4 minutes"
           accentClassName="text-indigo-600"
-          onClose={onClose}
+          onClose={() => { if (confirmDiscard()) onClose(); }}
         />
 
         <CardContent className="p-4 sm:p-5 pt-0">
@@ -787,26 +821,11 @@ export default function ThoughtRecordWizard({
                 onNext={handleNext}
                 onSubmit={() => form.handleSubmit(onSubmit)()}
                 isSubmitting={isSubmitting}
-                submitLabel="Record Thought"
+                submitLabel={t("Save thought record")}
                 introNextLabel="Get Started"
                 submitIcon={CheckCircle2}
                 nextButtonClassName="bg-teal-800 hover:bg-teal-700 text-white rounded-xl border-0 transition-all shadow-md"
                 submitButtonClassName="bg-teal-800 hover:bg-teal-700 text-white rounded-xl border-0 transition-all shadow-md"
-                extraActions={
-                  <>
-                    {currentStep === totalSteps - 1 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => form.handleSubmit(onSubmit)()}
-                        disabled={isSubmitting}
-                        data-testid="button-skip-emotion"
-                      >
-                        {t("Skip & Record")}
-                      </Button>
-                    )}
-                  </>
-                }
               />
             </form>
           </Form>

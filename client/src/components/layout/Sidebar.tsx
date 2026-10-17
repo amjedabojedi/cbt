@@ -83,9 +83,9 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
         { href: "/dashboard", label: "Overview", icon: <LayoutDashboard size={20} /> },
         { href: "/emotions", label: "Emotions", icon: <Heart size={20} /> },
         { href: "/thoughts", label: "Thought Records", icon: <Brain size={20} /> },
+        { href: "/reframe-coach", label: "Reframe Coach", icon: <Lightbulb size={20} /> },
         { href: "/journal", label: "Journal", icon: <BookMarked size={20} /> },
         { href: "/goals", label: "Smart Goals", icon: <Flag size={20} /> },
-        { href: "/reframe-coach", label: "Reframe Coach", icon: <Lightbulb size={20} /> },
         { href: "/reports", label: "Progress", icon: <BarChart size={20} /> },
       ];
     } else {
@@ -100,9 +100,9 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
       { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
       { href: "/emotions", label: "Emotion Tracking", icon: <Heart size={20} /> },
       { href: "/thoughts", label: "Thought Records", icon: <Brain size={20} /> },
-      { href: "/journal", label: "Journal", icon: <BookMarked size={20} /> },
-      { href: "/goals", label: "SMART Goals", icon: <Flag size={20} /> },
       { href: "/reframe-coach", label: "Reframe Coach", icon: <Lightbulb size={20} /> },
+      { href: "/journal", label: "Journal", icon: <BookMarked size={20} /> },
+      { href: "/goals", label: "Smart Goals", icon: <Flag size={20} /> },
       { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
       { href: "/reports", label: "My Progress", icon: <BarChart size={20} /> },
     ];
@@ -460,6 +460,7 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 isCollapsed ? "md:px-1 px-2" : "px-2"
               )}>
                 <button
+                  data-navigation
                   onClick={() => {
                     setIsMobileExpanded(false);
                     logout();

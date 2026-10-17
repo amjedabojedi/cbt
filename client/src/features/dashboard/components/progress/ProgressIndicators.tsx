@@ -3,6 +3,8 @@ import { Progress } from "@/components/ui/progress";
 import { TrendingUp, CheckCircle2, AlertCircle, Info, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocalization } from "@/lib/localize.tsx";
+import { practiceMilestone } from "@/utils/practiceProgress";
+import { useAuth } from "@/lib/auth";
 
 interface ProgressIndicatorsProps {
   emotionalBalance: {
@@ -37,6 +39,9 @@ export default function ProgressIndicators({
   isLoading,
 }: ProgressIndicatorsProps) {
   const { t, isRTL, tNum } = useLocalization();
+  const { user } = useAuth();
+  const clinicalView = user?.role === "therapist" || user?.role === "admin";
+  const milestone = practiceMilestone(totalActivities);
 
   if (isLoading) {
     return (
@@ -95,7 +100,7 @@ export default function ProgressIndicators({
     recommendations.push({
       type: "success",
       messageKey:
-        "Your emotional patterns show clinical positive change. Keep up the amazing work!",
+        "Your recorded feeling intensity has changed. You and your therapist can explore what that means for you.",
     });
   }
 
@@ -119,36 +124,36 @@ export default function ProgressIndicators({
       <CardHeader className="pb-4 pt-5 px-6">
         <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-800">
           <TrendingUp className="h-4.5 w-4.5 text-teal-700" />
-          {t("Therapeutic Progress Indicators")}
+          {t(clinicalView ? "Therapeutic Progress Indicators" : "Your practice patterns")}
         </CardTitle>
         <CardDescription className="text-slate-400 font-semibold text-xs mt-0.5">
-          {t("Clinical markers based on cognitive behavioral therapy principles")}
+          {t(clinicalView ? "Clinical markers based on cognitive behavioral therapy principles" : "A summary of your recorded activities, not a clinical assessment.")}
         </CardDescription>
       </CardHeader>
 
       <CardContent className="px-6 pb-6 pt-0 space-y-6">
         <div>
           <div className="flex items-center justify-between mb-2 text-xs font-bold text-slate-700 uppercase tracking-wide">
-            <span>{t("Engagement Level")}</span>
+            <span>{t("Practice activities")}</span>
             <span className="text-teal-700 font-extrabold">
               {tNum(totalActivities)} {t("activities completed")}
             </span>
           </div>
           <Progress
-            value={Math.min((totalActivities / 20) * 100, 100)}
+            value={milestone.percent}
             className="h-2 [&>div]:bg-teal-600 bg-slate-100"
           />
           <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wide">
             {t("Status:")}{" "}
             <span className="text-slate-600">
-              {isActivelyEngaged ? t("Highly engaged") : t("Building momentum")}
+              {tNum(totalActivities)} / {tNum(milestone.target)} {t("toward your next practice milestone")}
             </span>
           </p>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-2 text-xs font-bold text-slate-700 uppercase tracking-wide">
-            <span>{t("Cognitive Restructuring")}</span>
+            <span>{t(clinicalView ? "Cognitive Restructuring" : "Thoughts you've challenged")}</span>
             <span className="text-indigo-600 font-extrabold">
               {tNum(thoughtChallengeRate.rate)}% {t("completed")}
             </span>
@@ -190,7 +195,7 @@ export default function ProgressIndicators({
         <div className="pt-5 border-t border-slate-50">
           <h4 className="text-xs font-extrabold text-slate-700 mb-3.5 uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="h-4 w-4 text-teal-700 animate-pulse shrink-0" />
-            {t("Personalized Clinical Recommendations")}
+            {t(clinicalView ? "Personalized Clinical Recommendations" : "Suggestions for your next step")}
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {recommendations.length > 0 ? (
@@ -220,7 +225,7 @@ export default function ProgressIndicators({
               ))
             ) : (
               <p className="text-xs text-slate-400 font-semibold italic">
-                {t("Keep engaging with cbt tools to receive personalized clinical guidance.")}
+                {t("Record a few activities to see practice suggestions. For clinical guidance, talk to your therapist.")}
               </p>
             )}
           </div>

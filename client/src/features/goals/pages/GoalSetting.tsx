@@ -267,12 +267,21 @@ export default function GoalSetting() {
                   <Target className="h-3.5 w-3.5 text-indigo-400" />
                   <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">{t("Goal Achievement")}</span>
                 </div>
-                <span className="text-xs text-teal-300">{overallStats.completedGoals} {t("of")} {overallStats.totalGoals} {t("completed")}</span>
+                <span className="text-xs text-teal-300">
+                  {overallStats.totalGoals > 0
+                    ? `${overallStats.completedGoals} ${t("of")} ${overallStats.totalGoals} ${t("completed")}`
+                    : t("No goals yet")}
+                </span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-teal-500 to-sky-400 rounded-full transition-all duration-700" style={{ width: `${overallStats.totalGoals > 0 ? Math.round((overallStats.completedGoals / overallStats.totalGoals) * 100) : 0}%` }} />
               </div>
-              <p className="text-[11px] text-teal-300/60 mt-1.5">{t("Breaking big goals into milestones makes achievement feel attainable and sustainable.")}</p>
+              <p className="text-[11px] text-teal-300/60 mt-1.5">
+                {overallStats.totalGoals > 0
+                  ? t("Breaking big goals into milestones makes achievement feel attainable and sustainable.")
+                  : t("Create a goal to begin tracking steps that matter to you.")}
+                {overallStats.totalGoals > 0 && ` ${t("Goal counts are separate from activity practice milestones.")}`}
+              </p>
             </div>
           </div>
         </div>

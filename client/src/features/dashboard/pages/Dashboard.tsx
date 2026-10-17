@@ -19,6 +19,8 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useLocalization } from "@/lib/localize.tsx";
+import { useProgressInsights } from "@/hooks/use-progress-insights";
+import { practiceMilestone, isRecordedToday } from "@/utils/practiceProgress";
 
 // ── Quick-action card used in both Admin and Therapist views ──
 function QuickActionCard({
@@ -104,6 +106,7 @@ export default function Dashboard() {
   const { activeUserId, isViewingClientData } = useActiveUser();
   const { viewingClientName } = useClientContext();
   const moduleStats = useModuleStats();
+  const practice = useProgressInsights(activeUserId, "all");
   const [, navigate] = useLocation();
   const { t, isRTL, tNum } = useLocalization();
 
@@ -163,7 +166,8 @@ export default function Dashboard() {
     moduleStats.journal.total +
     moduleStats.goals.total +
     moduleStats.reframe.totalPractices;
-  const engagementScore = Math.min(100, Math.round((totalActivities / 50) * 100));
+  const milestone = practiceMilestone(totalActivities);
+  const engagementScore = milestone.percent;
 
   // ═══════════════════════════════════════
   //  ADMIN DASHBOARD
@@ -474,8 +478,8 @@ export default function Dashboard() {
                 {/* Quick stats */}
                 <div className="flex items-center gap-6 shrink-0 flex-wrap">
                   {[
-                    { value: totalActivities,          label: t("Activities")  },
-                    { value: `${engagementScore}%`,    label: t("Engagement")  },
+                    { value: [moduleStats.emotions.total, moduleStats.thoughts.total, moduleStats.reframe.totalPractices, moduleStats.journal.total, moduleStats.goals.total].filter(Boolean).length, label: t("Tools used") },
+                    { value: totalActivities,    label: t("Practice activities")  },
                     { value: moduleStats.goals.total,  label: t("Goals")       },
                   ].map((s, i) => (
                     <div key={i} className="text-center">
@@ -506,12 +510,12 @@ export default function Dashboard() {
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-teal-700" />
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Engagement Score")}</span>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Practice activities")}</span>
                 </div>
-                <span className="text-2xl font-bold text-slate-800">{tNum(`${engagementScore}%`)}</span>
+                <span className="text-2xl font-bold text-slate-800">{tNum(totalActivities)}</span>
               </div>
               <Progress value={engagementScore} className="h-2.5 mb-3" />
-              <p className="text-xs text-slate-400">{t("total activities logged across all clinical modules")}</p>
+              <p className="text-xs text-slate-400">{tNum(totalActivities)} / {tNum(milestone.target)} {t("activities toward the next practice milestone. Each saved emotion, thought, journal entry, goal or reframe counts once.")}</p>
 
               {/* Per-module breakdown row */}
               <div className="grid grid-cols-5 gap-2 mt-5 pt-4 border-t border-slate-100">
@@ -599,11 +603,11 @@ export default function Dashboard() {
   const motivationalLine = t(motivationalLines[new Date().getDay() % motivationalLines.length]);
 
   const todayFocus = [
-    { Icon: Heart,     label: t("Track Emotion"),  href: "/emotions",      done: moduleStats.emotions.total > 0,         color: "text-rose-500",    bg: "bg-rose-50",    border: "border-rose-200"   },
-    { Icon: Brain,     label: t("Record Thought"), href: "/thoughts",      done: moduleStats.thoughts.total > 0,         color: "text-teal-700",  bg: "bg-teal-50",  border: "border-teal-200" },
-    { Icon: Lightbulb, label: t("Reframe Coach"),  href: "/reframe-coach", done: moduleStats.reframe.totalPractices > 0, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200"},
-    { Icon: BookOpen,  label: t("Write Journal"),  href: "/journal",       done: moduleStats.journal.total > 0,          color: "text-amber-600",   bg: "bg-amber-50",   border: "border-amber-200"  },
-    { Icon: Target,    label: t("Set a Goal"),     href: "/goals",         done: moduleStats.goals.total > 0,            color: "text-indigo-600",  bg: "bg-indigo-50",  border: "border-indigo-200" },
+    { Icon: Heart, label: t("Track Emotion"), href: "/emotions", done: practice.rawData.emotions.some(e => isRecordedToday(e.timestamp || e.createdAt)), locked: false, color: "text-rose-500", bg: "bg-rose-50", border: "border-rose-200" },
+    { Icon: Brain, label: t("Record Thought"), href: "/thoughts", done: practice.rawData.thoughts.some(e => isRecordedToday(e.createdAt)), locked: false, color: "text-teal-700", bg: "bg-teal-50", border: "border-teal-200" },
+    { Icon: Lightbulb, label: t("Reframe Coach"), href: "/reframe-coach", done: practice.rawData.reframeResults.some(e => isRecordedToday(e.createdAt)), locked: practice.rawData.thoughts.length === 0, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
+    { Icon: BookOpen, label: t("Write Journal"), href: "/journal", done: practice.rawData.journals.some(e => isRecordedToday(e.createdAt)), locked: false, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
+    { Icon: Target, label: t("Set a Goal"), href: "/goals", done: practice.rawData.goals.some(e => isRecordedToday(e.createdAt)), locked: false, color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-200" },
   ];
   const completedSteps = todayFocus.filter((f) => f.done).length;
 
@@ -718,8 +722,8 @@ export default function Dashboard() {
               {/* Top-level stats */}
               <div className="flex items-center gap-6 shrink-0 flex-wrap">
                 {[
-                  { value: tNum(`${engagementScore}%`), label: t("Engagement") },
-                  { value: tNum(totalActivities),        label: t("Activities")  },
+                    { value: tNum(totalActivities), label: t("Practice activities") },
+                  { value: tNum([moduleStats.emotions.total, moduleStats.thoughts.total, moduleStats.reframe.totalPractices, moduleStats.journal.total, moduleStats.goals.total].filter(Boolean).length), label: t("Tools used") },
                   { value: tNum(moduleStats.goals.total), label: t("Goals Set")  },
                 ].map((s, i) => (
                   <div key={i} className="text-center">
@@ -735,9 +739,9 @@ export default function Dashboard() {
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
                   <Flame className="h-3.5 w-3.5 text-orange-400" />
-                  <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">{t("Journey Milestone")}</span>
+                  <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">{t("Next practice milestone")}</span>
                 </div>
-                <span className="text-xs text-teal-300">{tNum(`${engagementScore}%`)} {t("of first milestone")}</span>
+                <span className="text-xs text-teal-300">{tNum(totalActivities)} / {tNum(milestone.target)} {t("activities")}</span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div
@@ -763,8 +767,8 @@ export default function Dashboard() {
               <span className="text-xs font-semibold text-slate-400">{tNum(`${completedSteps}/5`)} {t("done")}</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {todayFocus.map(({ Icon, label, href, done, color, bg, border }) => (
-                <Link key={href} href={href}>
+              {todayFocus.map(({ Icon, label, href, done, locked, color, bg, border }) => (
+                <Link key={href} href={locked ? "/thoughts" : href} aria-label={locked ? t("Record a thought first to use Reframe Coach") : label}>
                   <div className={cn(
                     "relative flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
                     done
@@ -782,11 +786,13 @@ export default function Dashboard() {
                       done ? "text-emerald-600" : "text-slate-600"
                     )}>
                       {label}
+                      {locked && <span className="block text-[10px] font-normal mt-1">{t("Record a thought first")}</span>}
                     </span>
                   </div>
                 </Link>
               ))}
             </div>
+            <p className="text-xs text-slate-500 mt-3">{t("Optional suggestions, not daily requirements. Completion uses today's date on your device.")}</p>
           </div>
 
           {/* Progress snapshot */}
@@ -806,10 +812,12 @@ export default function Dashboard() {
 
             <div className="mb-5">
               <div className="flex justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">{t("Engagement Score")}</span>
-                <span className="text-sm font-bold text-slate-800">{tNum(`${engagementScore}%`)}</span>
+                <span className="text-sm font-medium text-slate-600">{t("Practice activities")}</span>
+                <span className="text-sm font-bold text-slate-800">{tNum(totalActivities)}</span>
               </div>
               <Progress value={engagementScore} className="h-2 [&>div]:bg-teal-600" />
+              <p className="text-xs text-slate-500 mt-2">{t("All-time saved emotions, thoughts, journal entries, goals and reframe sessions. Each counts once.")}</p>
+              <p className="text-xs text-slate-500 mt-1">{tNum(milestone.remaining)} {t("more activities to your next practice milestone.")}</p>
               <p className="text-xs text-slate-400 mt-1.5">{tNum(totalActivities)} {t("total activities across all modules")}</p>
             </div>
 

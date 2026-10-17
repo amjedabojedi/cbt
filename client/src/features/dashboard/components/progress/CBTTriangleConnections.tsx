@@ -86,7 +86,7 @@ export default function CBTTriangleConnections({
                   <AlertCircle className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
                   <p className="leading-normal">
                     {t(
-                      "Consider tracking emotions before recording thoughts to strengthen the clinical link."
+                      "Try linking a tracked feeling to a thought to explore how they connect."
                     )}
                   </p>
                 </div>
@@ -123,7 +123,7 @@ export default function CBTTriangleConnections({
               ) : (
                 <p className="text-xs text-slate-400 font-medium leading-relaxed italic">
                   {t(
-                    "Record more thoughts to identify patterns in your cognitive thinking styles."
+                    "Record more thoughts to spot thinking patterns."
                   )}
                 </p>
               )}

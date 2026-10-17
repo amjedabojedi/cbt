@@ -331,6 +331,12 @@ export default function EmotionHistory({ limit }: EmotionHistoryProps) {
               <p className="text-sm text-slate-400 mt-1 max-w-xs mx-auto leading-relaxed">
                 {t("Use the emotion wheel to start tracking how you feel.")}
               </p>
+              {!isViewingClientData && user?.role !== "therapist" && (
+                <Button className="mt-4 rounded-xl bg-teal-800 hover:bg-teal-700" onClick={() => navigate("/emotions?tab=record")}>
+                  <Heart className="me-2 h-4 w-4" />
+                  {t("Record your first emotion")}
+                </Button>
+              )}
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 text-start">

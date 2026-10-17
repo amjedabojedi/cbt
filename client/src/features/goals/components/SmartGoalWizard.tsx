@@ -58,6 +58,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useLocalization } from "@/lib/localize";
+import { useUnsavedWorkProtection } from "@/hooks/use-unsaved-work-protection";
 
 // Form schema
 const formSchema = z.object({
@@ -89,9 +90,11 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
   const { activeUserId } = useActiveUser();
   const [currentStep, setCurrentStep] = useState(0); // 0 = intro
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [newMilestone, setNewMilestone] = useState({ title: "", description: "", dueDate: undefined as Date | undefined });
   const [createdGoal, setCreatedGoal] = useState<any>(null);
+  const [savedMilestoneCount, setSavedMilestoneCount] = useState(0);
   
   const totalSteps = 8; // Intro + 6 SMART steps + Milestones
 
@@ -107,6 +110,14 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
       deadline: undefined,
     },
   });
+  useUnsavedWorkProtection(
+    !showSuccessDialog &&
+      (form.formState.isDirty ||
+        milestones.length > 0 ||
+        !!newMilestone.title.trim() ||
+        !!newMilestone.description.trim() ||
+        !!newMilestone.dueDate)
+  );
 
   // Get watched values for direct binding (Microsoft Edge fix)
   const watchedValues = form.watch();
@@ -165,37 +176,39 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
 
   // Submit goal
   const onSubmit = async (values: FormValues) => {
-    if (!activeUserId) return;
+    if (!activeUserId || isSubmitting) return;
 
+    setIsSubmitting(true);
     try {
-      // Create goal
-      const goalResponse = await apiRequest("POST", `/api/users/${activeUserId}/goals`, {
-        title: values.title,
-        specific: values.specific,
-        measurable: values.measurable,
-        achievable: values.achievable,
-        relevant: values.relevant,
-        timebound: values.timebound,
-        deadline: values.deadline?.toISOString(),
-        status: "pending",
-      });
-
-      const goal = await goalResponse.json();
-      setCreatedGoal(goal);
-
-      // Create milestones if any
-      if (milestones.length > 0) {
-        await Promise.all(
-          milestones.map((milestone) =>
-            apiRequest("POST", `/api/goals/${goal.id}/milestones`, {
-              title: milestone.title,
-              description: milestone.description || null,
-              dueDate: milestone.dueDate?.toISOString() || null,
-              isCompleted: false,
-            })
-          )
-        );
+      let goal = createdGoal;
+      const milestoneCount = milestones.length;
+      if (!goal) {
+        const goalResponse = await apiRequest("POST", `/api/users/${activeUserId}/goals`, {
+          title: values.title,
+          specific: values.specific,
+          measurable: values.measurable,
+          achievable: values.achievable,
+          relevant: values.relevant,
+          timebound: values.timebound,
+          deadline: values.deadline?.toISOString(),
+          status: "pending",
+        });
+        goal = await goalResponse.json();
+        setCreatedGoal(goal);
       }
+
+      // Persist sequentially so a retry only resubmits milestones that failed.
+      const remainingMilestones = [...milestones];
+      for (const milestone of remainingMilestones) {
+        await apiRequest("POST", `/api/goals/${goal.id}/milestones`, {
+          title: milestone.title,
+          description: milestone.description || null,
+          dueDate: milestone.dueDate?.toISOString() || null,
+          isCompleted: false,
+        });
+        setMilestones((current) => current.filter((item) => item !== milestone));
+      }
+      setSavedMilestoneCount((count) => Math.max(count, milestoneCount));
 
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/goals`] });
@@ -207,6 +220,8 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
         description: "Failed to create goal",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -216,6 +231,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
     setCurrentStep(0);
     setMilestones([]);
     setCreatedGoal(null);
+    setSavedMilestoneCount(0);
     setShowSuccessDialog(false);
     
     if (onGoalCreated) {
@@ -225,12 +241,13 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
 
   return (
     <>
-      <Card className="border border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white" dir={currentLanguage === "ar" ? "rtl" : "ltr"}>
+      <Card data-unsaved-work-scope className="w-full max-w-3xl mx-auto border border-slate-100 shadow-sm rounded-2xl overflow-hidden bg-white" dir={currentLanguage === "ar" ? "rtl" : "ltr"}>
         <WizardProgressHeader
           title={t("SMART Goal Wizard")}
           currentStep={currentStep}
           totalSteps={totalSteps}
           stepLabels={[t("Title"), t("Specific"), t("Measurable"), t("Achievable"), t("Relevant"), t("Time-bound"), t("Milestones")]}
+          introEstimate="About 7 minutes"
         />
 
         <CardContent className="pt-6">
@@ -247,6 +264,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                     <p className="text-slate-600 text-base max-w-2xl mx-auto">
                       {t("SMART goals are Specific, Measurable, Achievable, Relevant, and Time-bound. This framework helps you create clear, actionable goals that you can actually achieve.")}
                     </p>
+                    <p className="text-xs text-slate-500 mt-2">{t("Your therapist and authorized administrators may access records according to their role.")}</p>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-6">
                       {[
@@ -747,6 +765,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
                 onPrevious={handlePreviousStep}
                 onNext={handleNextStep}
                 onSubmit={() => form.handleSubmit(onSubmit)()}
+                isSubmitting={isSubmitting}
                 nextLabel={t("Next")}
                 submitLabel={t("Create Goal")}
                 nextButtonClassName="bg-teal-800 hover:bg-teal-700 text-white rounded-xl"
@@ -771,7 +790,7 @@ export default function SmartGoalWizard({ onGoalCreated }: SmartGoalWizardProps)
               {t("Goal Created Successfully!")}
             </DialogTitle>
             <DialogDescription>
-              {t("Your SMART goal has been created")} {milestones.length > 0 ? `${t("with")} ${milestones.length} ${t(milestones.length !== 1 ? "milestones" : "milestone")}` : ""}.
+              {t("Your SMART goal has been created")} {savedMilestoneCount > 0 ? `${t("with")} ${savedMilestoneCount} ${t(savedMilestoneCount !== 1 ? "milestones" : "milestone")}` : ""}.
             </DialogDescription>
           </DialogHeader>
 

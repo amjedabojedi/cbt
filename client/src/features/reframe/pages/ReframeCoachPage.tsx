@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ThoughtRecord } from "@shared/schema";
+import { practiceMilestone } from "@/utils/practiceProgress";
 import {
   Loader2,
   Zap,
@@ -64,6 +65,7 @@ export default function ReframeCoachPage() {
   });
 
   const totalSessions = profileData?.stats?.totalPractices || 0;
+  const sessionMilestone = practiceMilestone(totalSessions);
   const avgScore =
     profileData?.stats?.avgScore && typeof profileData.stats.avgScore === "number"
       ? profileData.stats.avgScore.toFixed(1)
@@ -71,11 +73,6 @@ export default function ReframeCoachPage() {
   const currentStreak = profileData?.profile?.practiceStreak || 0;
 
   const showStats = totalSessions > 0;
-
-  const masteryFooter =
-    avgScore !== "0" && Number(avgScore) > 0
-      ? `${t("Each reframing session builds cognitive flexibility")} — ${t("avg score")} ${tNum(avgScore)}.`
-      : `${t("Each reframing session builds cognitive flexibility")}.`;
 
   return (
     <AppLayout title={t("Reframe Coach")}>
@@ -100,6 +97,9 @@ export default function ReframeCoachPage() {
                   {t(
                     "Practice balanced thinking with interactive exercises based on the thoughts and distortions you've already recorded"
                   )}
+                </p>
+                <p className="mt-2 text-xs text-teal-200/70">
+                  {t("Your therapist and authorized administrators may access records according to their role.")}
                 </p>
               </div>
 
@@ -130,16 +130,16 @@ export default function ReframeCoachPage() {
                   </span>
                 </div>
                 <span className="text-xs text-teal-300">
-                  {tNum(totalSessions)} {t("of")} {tNum(20)} {t("sessions")}
+                  {tNum(totalSessions)} {t("of")} {tNum(sessionMilestone.target)} {t("practice sessions")}
                 </span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-700"
-                  style={{ width: `${Math.min(100, Math.round((totalSessions / 20) * 100))}%` }}
+                  style={{ width: `${sessionMilestone.percent}%` }}
                 />
               </div>
-              <p className="text-[11px] text-teal-300/60 mt-1.5">{masteryFooter}</p>
+              <p className="text-[11px] text-teal-300/60 mt-1.5">{t("Practice milestones are encouragement, not treatment targets or a measure of recovery.")} {tNum(sessionMilestone.remaining)} {t("more to the next milestone")}.</p>
             </div>
           </div>
         </div>

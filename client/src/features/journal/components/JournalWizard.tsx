@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useLocalization, DynamicTranslator } from "@/lib/localize.tsx";
 import WizardSuccessDialog from "@/features/journal/components/wizard/WizardSuccessDialog";
 import { JournalTag } from "@/features/journal/components/JournalTag";
+import { useUnsavedWorkProtection } from "@/hooks/use-unsaved-work-protection";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,6 +86,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
       content: "",
     },
   });
+  useUnsavedWorkProtection(!showSuccessDialog && (form.formState.isDirty || selectedTags.length > 0 || !!createdEntry));
 
   // Validate current step
   const validateStep = async (step: number): Promise<boolean> => {
@@ -217,12 +219,13 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
 
   return (
     <>
-      <Card dir={isRTL ? "rtl" : "ltr"}>
+      <Card dir={isRTL ? "rtl" : "ltr"} data-unsaved-work-scope className="w-full max-w-3xl mx-auto">
         <WizardProgressHeader
           title={t("Journal Entry Wizard")}
           currentStep={currentStep}
           totalSteps={totalSteps}
           stepLabels={[t("1. Title"), t("2. Write"), t("3. Review")]}
+          introEstimate="About 4 minutes"
         />
 
         <CardContent className="p-4 sm:p-5">
@@ -238,6 +241,7 @@ export default function JournalWizard({ onEntryCreated }: JournalWizardProps) {
                     <p className="text-gray-600 text-sm max-w-2xl mx-auto">
                       {t("Express your thoughts and feelings in a safe, private space. Our AI will help identify patterns and provide insights.")}
                     </p>
+                    <p className="text-xs text-slate-500">{t("Your therapist and authorized administrators may access records according to their role.")}</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

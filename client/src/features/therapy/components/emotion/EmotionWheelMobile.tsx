@@ -181,10 +181,11 @@ export default function EmotionWheelMobile({
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <h3 className={headingClass}>Select a Core Emotion</h3>
+        <h3 className={headingClass}>Choose a basic emotion</h3>
         <div className={`grid grid-cols-2 ${gridGap}`}>
           {emotionGroups.map((group: any, index: number) => (
             <motion.button
+              type="button"
               key={group.core}
               className={cn(
                 `${btnPad} rounded-lg text-center font-medium transition-colors`,
@@ -199,7 +200,7 @@ export default function EmotionWheelMobile({
           ))}
         </div>
         <div className={`text-center ${hintMt} text-sm text-gray-500`}>
-          Tap a core emotion to continue
+          Choose one to see more specific feelings
         </div>
       </motion.div>
     );
@@ -219,14 +220,15 @@ export default function EmotionWheelMobile({
         transition={{ duration: 0.3 }}
       >
         <div className={`flex justify-between items-center ${compact ? "mb-2" : "mb-4"}`}>
-          <button 
+          <button
+            type="button"
             onClick={handleBack}
             className="text-blue-600 text-sm flex items-center"
           >
             ← Back
           </button>
           <h3 className={compact ? "text-center text-base font-medium" : "text-center text-lg font-medium"}>
-            Variations of <span className={cn("px-2 py-1 rounded", getEmotionColor(coreGroup.core))}>
+              More specific feelings related to <span className={cn("px-2 py-1 rounded", getEmotionColor(coreGroup.core))}>
               {coreGroup.core}
             </span>
           </h3>
@@ -235,6 +237,7 @@ export default function EmotionWheelMobile({
         <div className={`grid grid-cols-2 ${gridGap}`}>
           {coreGroup.primary.map((primaryEmotion: string, primaryIndex: number) => (
             <motion.button
+              type="button"
               key={primaryEmotion}
               className={cn(
                 `${compact ? "p-2.5" : "p-3"} rounded-lg text-center transition-colors`,
@@ -272,14 +275,15 @@ export default function EmotionWheelMobile({
         transition={{ duration: 0.3 }}
       >
         <div className={`flex justify-between items-center ${compact ? "mb-2" : "mb-4"}`}>
-          <button 
+          <button
+            type="button"
             onClick={handleBack}
             className="text-blue-600 text-sm flex items-center"
           >
             ← Back
           </button>
           <h3 className={compact ? "text-center text-base font-medium" : "text-center text-lg font-medium"}>
-            Specific forms of <span className={cn("px-2 py-1 rounded", getEmotionColor(primaryEmotion))}>
+            The most precise feelings related to <span className={cn("px-2 py-1 rounded", getEmotionColor(primaryEmotion))}>
               {primaryEmotion}
             </span>
           </h3>
@@ -288,6 +292,7 @@ export default function EmotionWheelMobile({
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {tertiaryEmotions.map((tertiaryEmotion: string, tertiaryIndex: number) => (
             <motion.button
+              type="button"
               key={tertiaryEmotion}
               className={cn(
                 "p-2 rounded-lg text-center text-sm transition-colors",
@@ -413,12 +418,12 @@ export default function EmotionWheelMobile({
         <div className="absolute top-2 right-2 z-10">
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className="text-gray-400 hover:text-gray-600">
+              <button type="button" className="text-gray-400 hover:text-gray-600">
                 <HelpCircle className="h-5 w-5" />
               </button>
             </TooltipTrigger>
             <TooltipContent className="max-w-xs">
-              <div>This emotion wheel helps you identify your feelings with increasing specificity. Start with a core emotion, then narrow it down.</div>
+              <div>This emotion wheel helps you identify feelings from basic to more precise.</div>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -439,6 +444,7 @@ export default function EmotionWheelMobile({
           <div className={`${compact ? "mt-2" : "mt-4"} flex gap-2`}>
             {(viewMode !== "core") && (
               <button
+                type="button"
                 onClick={handleBack}
                 className="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium"
               >
@@ -446,6 +452,7 @@ export default function EmotionWheelMobile({
               </button>
             )}
             <button
+              type="button"
               onClick={handleConfirmSelection}
               className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg font-medium"
             >

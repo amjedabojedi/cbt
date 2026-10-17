@@ -330,9 +330,17 @@ export default function ThoughtRecordsList({
                   {t("This client has not created any thought records.")}
                 </p>
               ) : (
-                <p className="text-sm text-neutral-400 mt-1 leading-relaxed">
-                  {t("Add reflections to your emotions to start building thought records.")}
-                </p>
+                <>
+                  <p className="text-sm text-neutral-400 mt-1 leading-relaxed">
+                    {t("Thought records help you notice and explore thoughts connected to difficult moments.")}
+                  </p>
+                  {user?.role !== "therapist" && (
+                    <Button className="mt-4 rounded-xl" onClick={() => navigate("/thoughts?tab=record")}>
+                      <Plus className="me-2 h-4 w-4" />
+                      {t("Create your first thought record")}
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           ) : (

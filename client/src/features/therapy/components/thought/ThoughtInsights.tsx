@@ -6,6 +6,10 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { format, subDays, eachDayOfInterval, startOfWeek, endOfWeek } from "date-fns";
 import { ar as arLocale } from "date-fns/locale";
 import { useLocalization } from "@/lib/localize.tsx";
+import { useLocation } from "wouter";
+import useActiveUser from "@/hooks/use-active-user";
+import { useAuth } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
 
 interface ThoughtInsightsProps {
   userId: number;
@@ -29,6 +33,9 @@ const ANT_COLORS = [
 export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
   const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("month");
   const { t, tNum, isRTL } = useLocalization();
+  const { user } = useAuth();
+  const { isViewingClientData } = useActiveUser();
+  const [, navigate] = useLocation();
 
   // Fetch thought records
   const { data: thoughts = [], isLoading } = useQuery<any[]>({
@@ -283,6 +290,11 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
         </div>
         <h3 className="font-bold text-slate-800 text-lg mb-1">{t("CBT Thought Journal")}</h3>
         <p className="text-slate-500 max-w-sm mx-auto text-sm">{t("No cognitive distortions or thought logs recorded yet. Begin documenting unhelpful thoughts to explore analytics.")}</p>
+        {!isViewingClientData && user?.role !== "therapist" && (
+          <Button className="mt-4 rounded-xl bg-teal-800 hover:bg-teal-700" onClick={() => navigate("/thoughts?tab=record")}>
+            {t("Create your first thought record")}
+          </Button>
+        )}
       </div>
     );
   }

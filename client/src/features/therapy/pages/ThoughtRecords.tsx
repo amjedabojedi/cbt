@@ -8,7 +8,7 @@ import ThoughtRecordWizard from "@/features/therapy/components/thought/ThoughtRe
 import { ThoughtRecord as BaseThoughtRecord } from "@shared/schema";
 import useActiveUser from "@/hooks/use-active-user";
 import { ClientDebug } from "@/features/admin/components/debug/ClientDebug";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { cn } from "@/lib/utils";
 import { useLocalization } from "@/lib/localize.tsx";
 
@@ -50,11 +50,11 @@ export default function ThoughtRecords() {
   const { user } = useAuth();
   const { isViewingClientData, activeUserId } = useActiveUser();
   const [, navigate] = useLocation();
+  const search = useSearch();
   const { t, isRTL, tNum } = useLocalization();
   
   // Check URL parameters for tab
-  const urlParams = new URLSearchParams(window.location.search);
-  const tabParam = urlParams.get('tab');
+  const tabParam = new URLSearchParams(search).get('tab');
   
   // Controlled tab state
   const [activeTab, setActiveTab] = useState<string>(
@@ -75,6 +75,11 @@ export default function ThoughtRecords() {
       setActiveTab('history');
     }
   }, [user?.role, isViewingClientData, activeTab]);
+
+  useEffect(() => {
+    if (tabParam === "history" || tabParam === "insights") setActiveTab(tabParam);
+    else if (tabParam === "record" && !isViewingClientData && user?.role !== "therapist") setActiveTab("record");
+  }, [tabParam, isViewingClientData, user?.role]);
   
   // Fetch thought records for the active user
   const { data: thoughtRecords = [] } = useQuery<ThoughtRecord[]>({
@@ -170,7 +175,7 @@ export default function ThoughtRecords() {
           <BackToClientsButton />
 
           {/* Custom Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className={isRecordTab ? "space-y-3" : "space-y-5"}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} activationMode="manual" className={isRecordTab ? "space-y-3" : "space-y-5"}>
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-1.5">
               <TabsList className="w-full h-auto bg-transparent p-0 gap-1 flex flex-wrap">
                 {canRecord && (

@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/lib/auth";
 import { useWebSocketContext } from "@/context/WebSocketContext";
+import { useLocation } from "wouter";
 
 interface Notification {
   id: number;
@@ -31,6 +32,7 @@ export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const [, navigate] = useLocation();
   const { lastMessage, isConnected } = useWebSocketContext();
 
   // Fetch notifications when component mounts or dropdown is opened
@@ -70,7 +72,7 @@ export default function NotificationBell() {
           
           // Show toast notification
           toast({
-            title: messageData.notification?.title || 'New Notification',
+            title: displayNotificationTitle(messageData.notification?.title || 'New Notification'),
             description: messageData.notification?.body || '',
             duration: 5000,
           });
@@ -212,6 +214,32 @@ export default function NotificationBell() {
     }
   }
 
+  function notificationDestination(notification: Notification) {
+    const candidate = notification.linkPath || notification.link;
+    if (candidate) {
+      try {
+        const url = new URL(candidate, window.location.origin);
+        if (url.origin === window.location.origin && url.pathname.startsWith("/") && !url.pathname.startsWith("//")) {
+          return `${url.pathname}${url.search}${url.hash}`;
+        }
+      } catch {
+        // Invalid notification URLs are ignored; welcome messages use the safe fallback below.
+      }
+    }
+    const welcomeText = `${notification.title} ${notification.body}`.toLowerCase();
+    return welcomeText.includes("welcome") ? "/emotions" : null;
+  }
+
+  function displayNotificationTitle(title: string) {
+    return title === "Welcome to Resilience CBT" ? "Welcome to ResilienceHub" : title;
+  }
+
+  function openNotification(notification: Notification) {
+    if (!notification.isRead) void markAsRead(notification.id);
+    const destination = notificationDestination(notification);
+    setIsOpen(false);
+    if (destination) navigate(destination);
+  }
 
 
   function formatDate(dateString: string) {
@@ -284,17 +312,20 @@ export default function NotificationBell() {
             </div>
           ) : (
             notifications.map((notification) => (
-              <DropdownMenuItem key={notification.id} className="p-3 block">
-                <div 
-                  className={`space-y-1 ${!notification.isRead ? 'bg-blue-50' : ''} rounded p-2`}
-                  onClick={() => !notification.isRead && markAsRead(notification.id)}
-                >
+                <div key={notification.id} className={`m-1 rounded-lg p-2 ${!notification.isRead ? 'bg-teal-50/70' : 'hover:bg-slate-50'}`}>
+                  <button
+                    type="button"
+                    data-navigation
+                    className="w-full rounded text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                    onClick={() => openNotification(notification)}
+                    aria-label={`${notification.title}. ${notification.body}`}
+                  >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <h4 className={`text-sm font-medium ${getNotificationColor(notification.type)}`}>
-                          {notification.title}
-                        </h4>
+                        <span className={`text-sm font-medium ${getNotificationColor(notification.type)}`}>
+                          {displayNotificationTitle(notification.title)}
+                        </span>
                         {!notification.isRead && (
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         )}
@@ -302,7 +333,10 @@ export default function NotificationBell() {
                       <p className="text-xs text-muted-foreground mt-1">
                         {notification.body}
                       </p>
-                      <div className="flex items-center justify-between mt-2">
+                    </div>
+                  </div>
+                  </button>
+                  <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-muted-foreground">
                           {formatDate(notification.createdAt)}
                         </span>
@@ -317,11 +351,8 @@ export default function NotificationBell() {
                         >
                           Delete
                         </Button>
-                      </div>
-                    </div>
                   </div>
                 </div>
-              </DropdownMenuItem>
             ))
           )}
         </ScrollArea>

@@ -15,6 +15,7 @@ export function BackToClientsButton() {
   return (
     <div className="mb-4">
       <Button
+        data-navigation
         variant="outline"
         size="sm"
         className="flex items-center text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100"

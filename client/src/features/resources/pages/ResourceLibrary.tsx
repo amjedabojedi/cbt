@@ -464,9 +464,9 @@ export default function ResourceLibrary() {
               {/* Stats */}
               <div className="flex items-center gap-6 shrink-0 flex-wrap">
                 {[
-                  { value: educationalResources?.length ?? "—", label: t("Resources") },
-                  { value: protectiveFactors?.length ?? "—", label: t("Factors") },
-                  { value: copingStrategies?.length ?? "—", label: t("Strategies") },
+                  { value: resourcesLoading || !educationalResources ? "—" : educationalResources.length, label: t("Educational resources") },
+                  { value: factorsLoading || !protectiveFactors ? "—" : protectiveFactors.length, label: t("Protective factors") },
+                  { value: strategiesLoading || !copingStrategies ? "—" : copingStrategies.length, label: t("Coping strategies") },
                 ].map((s, i) => (
                   <div key={i} className="text-center">
                     <div className="text-2xl font-bold text-white">{s.value}</div>
@@ -484,8 +484,10 @@ export default function ResourceLibrary() {
                   <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">{t("Library Overview")}</span>
                 </div>
                 <span className="text-xs text-teal-300">
-                  {tNum((educationalResources?.length ?? 0) + (protectiveFactors?.length ?? 0) + (copingStrategies?.length ?? 0))}{" "}
-                  {t("total resources")}
+                  {resourcesLoading || factorsLoading || strategiesLoading || !educationalResources || !protectiveFactors || !copingStrategies
+                    ? "—"
+                    : tNum((educationalResources?.length ?? 0) + (protectiveFactors?.length ?? 0) + (copingStrategies?.length ?? 0))}{" "}
+                  {t("items across resources, protective factors and coping strategies")}
                 </span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
@@ -495,6 +497,7 @@ export default function ResourceLibrary() {
                 {t(
                   "Evidence-based CBT tools, exercises, and strategies to support your recovery journey."
                 )}
+                {" "}{t("These library item counts are separate from your practice activity progress.")}
               </p>
             </div>
           </div>

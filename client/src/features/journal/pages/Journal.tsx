@@ -77,6 +77,7 @@ import {
 import { getEmotionInfo } from '@/utils/emotionUtils';
 import { useLocalization, DynamicTranslator } from "@/lib/localize.tsx";
 import { JournalTag } from "@/features/journal/components/JournalTag";
+import { practiceMilestone } from "@/utils/practiceProgress";
 import {
   formatJournalTag,
   getDistortionDescription,
@@ -133,6 +134,7 @@ export default function Journal() {
     tagsFrequency: {},
     sentimentPatterns: null
   }} = useJournalStats(userId);
+  const journalMilestone = practiceMilestone(stats.totalEntries);
 
   // Get available thought records for linking
   const { data: userThoughtRecords = [] } = useThoughtRecords(userId);
@@ -464,12 +466,12 @@ export default function Journal() {
                   <Book className="h-3.5 w-3.5 text-amber-400" />
                   <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">{t("Journaling Habit")}</span>
                 </div>
-                <span className="text-xs text-teal-300">{tNum(stats.totalEntries)} {t("of")} {tNum(30)} {t("entries")}</span>
+                <span className="text-xs text-teal-300">{tNum(stats.totalEntries)} {t("of")} {tNum(journalMilestone.target)} {t("entries")}</span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-amber-500 to-teal-400 rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.round((stats.totalEntries / 30) * 100))}%` }} />
+                <div className="h-full bg-gradient-to-r from-amber-500 to-teal-400 rounded-full transition-all duration-700" style={{ width: `${journalMilestone.percent}%` }} />
               </div>
-              <p className="text-[11px] text-teal-300/60 mt-1.5">{t("Regular journaling deepens self-awareness and supports emotional processing and healing.")}</p>
+              <p className="text-[11px] text-teal-300/60 mt-1.5">{t("Practice milestones are encouragement, not treatment targets or a measure of recovery.")} {tNum(journalMilestone.remaining)} {t("more to the next milestone")}.</p>
             </div>
           </div>
         </div>

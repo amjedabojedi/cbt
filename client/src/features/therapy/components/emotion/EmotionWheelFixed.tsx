@@ -1127,6 +1127,7 @@ export default function EmotionWheel({
                   <span className="font-medium text-gray-900">{translate(selectedCore)}</span>
                   {!selectedPrimary && (
                     <button
+                      type="button"
                       className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
                       onClick={() => resetSelections()}
                     >
@@ -1155,6 +1156,7 @@ export default function EmotionWheel({
                   <span className="font-medium text-gray-900">{translate(selectedPrimary)}</span>
                   {!selectedTertiary && (
                     <button
+                      type="button"
                       className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
                       onClick={() => setSelectedPrimary(null)}
                     >
@@ -1179,6 +1181,7 @@ export default function EmotionWheel({
                 >
                   <span className="font-medium text-gray-900">{translate(selectedTertiary)}</span>
                   <button
+                    type="button"
                     className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
                     onClick={() => setSelectedTertiary(null)}
                   >
@@ -1221,6 +1224,14 @@ export default function EmotionWheel({
         >
           {generateWheel()}
         </svg>
+        {hoveredEmotion && (
+          <div
+            role="status"
+            className="pointer-events-none absolute bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-full border border-slate-200 bg-white/95 px-4 py-2 text-sm font-semibold text-slate-800 shadow-md"
+          >
+            {translate(hoveredEmotion)}
+          </div>
+        )}
         
         {/* Add subtle rotating highlight effect */}
         <div className="absolute inset-4 rounded-full opacity-30 pointer-events-none"

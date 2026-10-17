@@ -15,6 +15,7 @@ interface WizardProgressHeaderProps {
   onClose?: () => void;
   trailing?: React.ReactNode;
   testId?: string;
+  introEstimate?: string;
 }
 
 export default function WizardProgressHeader({
@@ -28,6 +29,7 @@ export default function WizardProgressHeader({
   onClose,
   trailing,
   testId = "progress-wizard",
+  introEstimate = "Quick intro — about 2 minutes",
 }: WizardProgressHeaderProps) {
   const { t, tNum } = useLocalization();
   const progress =
@@ -58,9 +60,14 @@ export default function WizardProgressHeader({
             </CardTitle>
             <CardDescription className={`text-slate-500 ${currentStep === 0 ? "text-base mt-0.5" : "text-sm"}`}>
               {currentStep === 0
-                ? t("Quick intro — about 2 minutes")
+                ? t(introEstimate)
                 : `${t("Step")} ${tNum(currentStep)} ${t("of")} ${tNum(totalSteps - 1)}`}
             </CardDescription>
+            {currentStep > 0 && (
+              <p className="text-xs text-slate-500 mt-1">
+                {t("Saved records may be accessed by your therapist and authorized administrators according to their role.")}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-1 shrink-0">
             {trailing}
@@ -69,6 +76,7 @@ export default function WizardProgressHeader({
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
+                aria-label={t("Close wizard")}
                 data-testid="button-close-wizard"
               >
                 <X className="h-4 w-4" />

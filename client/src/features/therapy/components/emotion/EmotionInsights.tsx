@@ -6,6 +6,11 @@ import { LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Cart
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, subDays, startOfDay } from "date-fns";
 import { useLocalization } from "@/lib/localize.tsx";
 import { translateEmotion } from "./EmotionWheelFixed";
+import { useLocation } from "wouter";
+import useActiveUser from "@/hooks/use-active-user";
+import { useAuth } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
+import { Heart } from "lucide-react";
 
 interface EmotionInsightsProps {
   userId: number;
@@ -26,6 +31,9 @@ const NEGATIVE_EMOTIONS = ["Sadness", "Fear", "Anger", "Disgust"];
 
 export default function EmotionInsights({ userId }: EmotionInsightsProps) {
   const { t, tNum, isRTL, currentLanguage } = useLocalization();
+  const { user } = useAuth();
+  const { isViewingClientData } = useActiveUser();
+  const [, navigate] = useLocation();
   const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("week");
 
   const { data: emotions = [], isLoading } = useQuery<any[]>({
@@ -160,6 +168,11 @@ export default function EmotionInsights({ userId }: EmotionInsightsProps) {
         </div>
         <h3 className="font-bold text-slate-800 text-lg mb-1">{t("Begin Tracking")}</h3>
         <p className="text-slate-500 max-w-sm mx-auto text-sm">{t("No emotion data found. Please log some emotions to generate insights.")}</p>
+        {!isViewingClientData && user?.role !== "therapist" && (
+          <Button className="mt-4 rounded-xl bg-teal-800 hover:bg-teal-700" onClick={() => navigate("/emotions?tab=record")}>
+            <Heart className="me-2 h-4 w-4" />{t("Record your first emotion")}
+          </Button>
+        )}
       </div>
     );
   }

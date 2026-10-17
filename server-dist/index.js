@@ -1314,7 +1314,8 @@ function getAllowedHosts() {
       return origin;
     }
   });
-  return new Set(fromEnv);
+  const replitDomains = (process.env.REPLIT_DOMAINS || "").split(",").map((s) => s.trim()).filter(Boolean);
+  return /* @__PURE__ */ new Set([...fromEnv, ...replitDomains]);
 }
 var allowlist = getAllowedHosts();
 function verifyOrigin(req, res, next) {
@@ -1322,7 +1323,6 @@ function verifyOrigin(req, res, next) {
   if (req.headers["x-requested-with"] === "ResilienceHub-Mobile" || req.headers["x-app-platform"] === "mobile") {
     return next();
   }
-  console.log("[CSRF] headers:", JSON.stringify(req.headers));
   const origin = req.headers.origin || "";
   const referer = req.headers.referer || "";
   const source = origin || referer;
@@ -1335,9 +1335,12 @@ function verifyOrigin(req, res, next) {
   } catch {
     return res.status(403).json({ message: "Invalid origin" });
   }
-  const expectedHost = req.headers["x-forwarded-host"] || req.headers.host || "";
+  const rawForwardedHost = req.headers["x-forwarded-host"];
+  const forwardedHost = rawForwardedHost?.split(",")[0]?.trim() || "";
+  const expectedHost = forwardedHost || req.headers.host || "";
   if (sourceHost === expectedHost) return next();
   if (allowlist.has(sourceHost)) return next();
+  console.warn(`[CSRF] Blocked: source=${sourceHost} expected=${expectedHost}`);
   return res.status(403).json({ message: "Cross-origin request blocked" });
 }
 
@@ -1584,13 +1587,14 @@ var UsersRepository = class {
       });
     }
     await db.delete(sessions).where(eq(sessions.userId, userId));
-    const userEmotionRecords = await db.select().from(emotionRecords).where(eq(emotionRecords.userId, userId));
-    for (const record of userEmotionRecords) {
-      await db.delete(protectiveFactorUsage).where(eq(protectiveFactorUsage.thoughtRecordId, record.id));
-      await db.delete(copingStrategyUsage).where(eq(copingStrategyUsage.thoughtRecordId, record.id));
-      await db.delete(reframePracticeResults).where(eq(reframePracticeResults.thoughtRecordId, record.id));
-      await db.delete(emotionRecords).where(eq(emotionRecords.id, record.id));
+    const userThoughtRecords = await db.select().from(thoughtRecords).where(eq(thoughtRecords.userId, userId));
+    for (const thought of userThoughtRecords) {
+      await db.delete(protectiveFactorUsage).where(eq(protectiveFactorUsage.thoughtRecordId, thought.id));
+      await db.delete(copingStrategyUsage).where(eq(copingStrategyUsage.thoughtRecordId, thought.id));
+      await db.delete(reframePracticeResults).where(eq(reframePracticeResults.thoughtRecordId, thought.id));
     }
+    await db.delete(thoughtRecords).where(eq(thoughtRecords.userId, userId));
+    await db.delete(emotionRecords).where(eq(emotionRecords.userId, userId));
     await db.delete(protectiveFactors).where(eq(protectiveFactors.userId, userId));
     await db.delete(copingStrategies).where(eq(copingStrategies.userId, userId));
     const userGoals = await db.select().from(goals).where(eq(goals.userId, userId));
@@ -1670,6 +1674,16 @@ var UsersRepository = class {
       updateData.acceptedAt = /* @__PURE__ */ new Date();
     }
     const [updatedInvitation] = await db.update(clientInvitations).set(updateData).where(eq(clientInvitations.id, id)).returning();
+    return updatedInvitation;
+  }
+  async resendClientInvitation(id, tokenHash) {
+    const newExpiry = /* @__PURE__ */ new Date();
+    newExpiry.setDate(newExpiry.getDate() + 7);
+    const [updatedInvitation] = await db.update(clientInvitations).set({
+      status: "email_sent",
+      invitationToken: tokenHash,
+      expiresAt: newExpiry
+    }).where(eq(clientInvitations.id, id)).returning();
     return updatedInvitation;
   }
   async deleteClientInvitation(id) {
@@ -2456,6 +2470,9 @@ var DatabaseStorage = class {
   async updateClientInvitationStatus(id, status) {
     return this.usersRepo.updateClientInvitationStatus(id, status);
   }
+  async resendClientInvitation(id, tokenHash) {
+    return this.usersRepo.resendClientInvitation(id, tokenHash);
+  }
   async deleteClientInvitation(id) {
     return this.usersRepo.deleteClientInvitation(id);
   }
@@ -2830,13 +2847,6 @@ function getSessionCookieOptions(req) {
   const isMobile = req && (req.headers["x-requested-with"] === "ResilienceHub-Mobile" || req.headers["x-app-platform"] === "mobile" || req.get?.("User-Agent")?.includes("Expo"));
   const host = req ? req.headers["x-forwarded-host"] || req.headers.host || "" : "";
   const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1") || host.includes("192.168.");
-  console.log(`[COOKIE_DBG] req exists: ${!!req}`);
-  if (req) {
-    console.log(`[COOKIE_DBG] headers: ${JSON.stringify(req.headers)}`);
-    console.log(`[COOKIE_DBG] host: ${host}`);
-  }
-  console.log(`[COOKIE_DBG] FORCE_INSECURE_COOKIES: ${process.env.FORCE_INSECURE_COOKIES}`);
-  console.log(`[COOKIE_DBG] isMobile: ${isMobile}, isLocalhost: ${isLocalhost}`);
   if (process.env.REPLIT_DOMAINS) {
     cookieOptions.secure = true;
     cookieOptions.sameSite = "none";
@@ -2846,39 +2856,29 @@ function getSessionCookieOptions(req) {
     cookieOptions.sameSite = "lax";
     console.log(`Using insecure cookies (secure=false, sameSite=lax) for ${isMobile ? "mobile" : isLocalhost ? "local" : "FORCE_INSECURE_COOKIES"}`);
   }
-  console.log(`Cookie options: secure=${cookieOptions.secure}, sameSite=${cookieOptions.sameSite}, domain=${cookieOptions.domain || "not set"}`);
   return cookieOptions;
 }
 var sessionLookupCache = /* @__PURE__ */ new Map();
 var CACHE_TTL = 6e4;
 async function authenticate(req, res, next) {
-  console.log(`[AUTH] Authenticating request: ${req.method} ${req.originalUrl}`);
-  console.log(`[AUTH] Headers: ${JSON.stringify(req.headers)}`);
-  console.log(`[AUTH] Cookies in req.cookies: ${JSON.stringify(req.cookies)}`);
-  console.log(`[AUTH] Raw Cookie Header: ${req.headers.cookie}`);
   let sessionId = req.cookies?.sessionId;
   if (!sessionId && req.headers.cookie) {
-    const cookieString = req.headers.cookie;
-    const match = cookieString.match(/(?:^|;)\s*sessionId=([^;]+)/);
+    const match = req.headers.cookie.match(/(?:^|;)\s*sessionId=([^;]+)/);
     if (match) {
       sessionId = decodeURIComponent(match[1].trim());
       if (sessionId.startsWith("s:")) {
         const signedMatch = sessionId.match(/^s:([^.]+)/);
         sessionId = signedMatch ? signedMatch[1] : sessionId.slice(2);
       }
-      console.log(`[AUTH] Manually parsed sessionId from headers: ${sessionId}`);
     }
   }
   if (!sessionId && req.headers.authorization) {
     const authHeader = req.headers.authorization;
     if (authHeader.startsWith("Bearer ")) {
       sessionId = authHeader.substring(7).trim();
-      console.log(`[AUTH] Parsed sessionId from Authorization Bearer header: ${sessionId}`);
     }
   }
-  console.log(`[AUTH] Resolved sessionId: ${sessionId}`);
   if (!sessionId) {
-    console.log(`[AUTH] Authentication failed: No sessionId found`);
     return res.status(401).json({ message: "Authentication required" });
   }
   try {
@@ -5804,24 +5804,27 @@ function getSafeBaseUrl(req) {
     const domain = process.env.REPLIT_DOMAINS.split(",")[0]?.trim();
     if (domain) return `https://${domain}`;
   }
+  const forwardedHost = req.headers["x-forwarded-host"]?.split(",")[0]?.trim();
+  if (forwardedHost && /^[a-zA-Z0-9.-]+(:\d+)?$/.test(forwardedHost)) {
+    return `https://${forwardedHost}`;
+  }
   const host = req.get("host") || "";
   if (!host || !/^[a-zA-Z0-9.-]+(:\d+)?$/.test(host)) {
     throw new Error("Invalid Host header");
   }
-  const isDev = process.env.NODE_ENV !== "production";
   const isLocal = /^localhost(:\d+)?$/.test(host) || /^127\.0\.0\.1(:\d+)?$/.test(host);
-  if (isDev && isLocal) {
+  if (isLocal) {
     return `${req.protocol}://${host}`;
   }
   if (process.env.ALLOWED_HOSTS) {
     const allowedHosts = process.env.ALLOWED_HOSTS.split(",").map((h) => h.trim().toLowerCase());
     const hostname = host.split(":")[0].toLowerCase();
     if (allowedHosts.includes(hostname)) {
-      return `${req.protocol}://${host}`;
+      return `https://${host}`;
     }
   }
-  console.error(`\u{1F6A8} Host-Header Poisoning Blocked: Incoming Host '${host}' is unverified and APP_URL is missing. Defaulting to localhost fallback.`);
-  return `http://localhost:5000`;
+  console.warn(`[getSafeBaseUrl] Falling back to host header: ${host}. Set APP_URL env var for certainty.`);
+  return `https://${host}`;
 }
 async function registerUser(req, res) {
   try {
@@ -10060,6 +10063,8 @@ var router13 = Router13();
 router13.get("/invitations", authenticate, isTherapist, async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
     const therapistId = req.user.id;
     const invitations = await storage.getClientInvitationsByTherapist(therapistId);
     return res.json(Array.isArray(invitations) ? invitations : []);
@@ -10081,13 +10086,30 @@ router13.post("/invitations/:id/resend", authenticate, ensureAuthenticated, isTh
     const invitationTokenHash = await bcrypt4.hash(plaintextToken, 10);
     const baseUrl = getSafeBaseUrl(req);
     const inviteLink = `${baseUrl}/auth?invitation=true&email=${encodeURIComponent(invitation.email)}&therapistId=${req.user.id}&token=${plaintextToken}`;
-    await storage.updateClientInvitationStatus(id, "email_sent");
+    await storage.resendClientInvitation(id, invitationTokenHash);
     const therapistName = req.user.name || req.user.username;
     const emailSent = await sendClientInvitation(invitation.email, therapistName, inviteLink);
     res.json({ message: "Invitation resent successfully", emailSent });
   } catch (error) {
     console.error("Error resending invitation:", error);
     res.status(500).json({ message: "Failed to resend invitation" });
+  }
+});
+router13.delete("/invitations/:id", authenticate, ensureAuthenticated, isTherapist, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid invitation ID" });
+    const invitation = await storage.getClientInvitationById(id);
+    if (!invitation) return res.status(404).json({ message: "Invitation not found" });
+    if (invitation.therapistId !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+    const deleted = await storage.deleteClientInvitation(id);
+    if (!deleted) return res.status(500).json({ message: "Failed to delete invitation" });
+    res.json({ message: "Invitation deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting invitation:", error);
+    res.status(500).json({ message: "Failed to delete invitation" });
   }
 });
 var invitations_routes_default = router13;
@@ -10251,6 +10273,7 @@ function serveStatic(app2) {
 
 // server/index.ts
 var app = express2();
+app.set("trust proxy", 1);
 app.use(express2.json({ limit: "25mb" }));
 app.use(express2.urlencoded({ extended: false, limit: "25mb" }));
 app.use((req, res, next) => {

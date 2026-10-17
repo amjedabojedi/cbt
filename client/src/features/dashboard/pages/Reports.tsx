@@ -10,6 +10,7 @@ import CBTTriangleConnections from "@/features/dashboard/components/progress/CBT
 import ProgressIndicators from "@/features/dashboard/components/progress/ProgressIndicators";
 import { useLocalization } from "@/lib/localize.tsx";
 import { useClientContext } from "@/context/ClientContext";
+import { practiceMilestone } from "@/utils/practiceProgress";
 
 import {
   Select,
@@ -34,7 +35,7 @@ export default function Reports() {
   const subjectId = isTherapistViewingClient ? viewingClientId! : user?.id;
 
   const insights = useProgressInsights(subjectId, timeRange);
-  const milestonePct = Math.min(100, Math.round((insights.totalActivities / 50) * 100));
+  const practiceProgress = practiceMilestone(insights.totalActivities);
 
   return (
     <AppLayout title={isTherapistViewingClient ? t("Client Progress") : t("My Progress")}>
@@ -69,8 +70,8 @@ export default function Reports() {
                 </h1>
                 <p className="text-teal-100/80 text-sm sm:text-base max-w-xl leading-relaxed">
                   {isTherapistViewingClient
-                    ? t("Evidence-based CBT analytics and clinical insights for your client's therapeutic journey.")
-                    : t("Evidence-based CBT analytics and clinical insights tracking your personal growth and mental wellness journey.")}
+                    ? t("A view of this client's activity across CBT tools.")
+                    : t("A simple view of the tools and activities you have recorded.")}
                 </p>
               </div>
 
@@ -166,24 +167,21 @@ export default function Reports() {
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-3.5 w-3.5 text-teal-300" />
                   <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">
-                    {t("CBT Progress")}
+                  {t("Practice Progress")}
                   </span>
                 </div>
                 <span className="text-xs text-teal-300">
-                  {tNum(milestonePct)}% {t("of first milestone")}
+                  {tNum(insights.totalActivities)} {t("of")} {tNum(practiceProgress.target)} {t("activities")}
                 </span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-teal-500 to-sky-400 rounded-full transition-all duration-700"
-                  style={{ width: `${milestonePct}%` }}
+                  style={{ width: `${practiceProgress.percent}%` }}
                 />
               </div>
               <p className="text-[11px] text-teal-300/60 mt-1.5">
-                {tNum(insights.totalActivities)}{" "}
-                {t(
-                  "activities logged across all CBT modules — your data-driven path to wellbeing."
-                )}
+                {t("Practice milestones (3, 10, 25, 50, then every 50 activities) are encouragement, not treatment targets or a measure of recovery.")}
               </p>
             </div>
           </div>

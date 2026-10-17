@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/AppLayout";
@@ -23,7 +23,8 @@ import { ClientDebug } from "@/features/admin/components/debug/ClientDebug";
 import EmotionInsights from "@/features/therapy/components/emotion/EmotionInsights";
 import { cn } from "@/lib/utils";
 import { useLocalization, DynamicTranslator } from "@/lib/localize.tsx";
-import { useEffect } from "react";
+import { practiceMilestone } from "@/utils/practiceProgress";
+import { useSearch } from "wouter";
 
 function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
@@ -37,20 +38,9 @@ function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string })
 export default function EmotionTracking() {
   const { user } = useAuth();
   const { isViewingClientData, activeUserId } = useActiveUser();
-  const { t, isRTL, tNum, currentLanguage, setLanguage: setGlobalLanguage } = useLocalization();
-  
-  const [language, setLanguage] = useState<"en" | "ar">((currentLanguage === "ar" ? "ar" : "en") as "en" | "ar");
-  const [direction, setDirection] = useState<"ltr" | "rtl">(currentLanguage === "ar" ? "rtl" : "ltr");
-  const [showLanguageNotice, setShowLanguageNotice] = useState(false);
-
-  // Sync local wizard language with global language context changes (e.g. from Sidebar)
-  useEffect(() => {
-    setLanguage((currentLanguage === "ar" ? "ar" : "en") as "en" | "ar");
-    setDirection(currentLanguage === "ar" ? "rtl" : "ltr");
-  }, [currentLanguage]);
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const tabParam = urlParams.get("tab");
+  const { t, isRTL, tNum, currentLanguage } = useLocalization();
+  const search = useSearch();
+  const tabParam = new URLSearchParams(search).get("tab");
 
   const { data: emotions = [] } = useQuery<any[]>({
     queryKey: activeUserId ? [`/api/users/${activeUserId}/emotions`] : [],
@@ -58,6 +48,7 @@ export default function EmotionTracking() {
   });
 
   const totalEmotions = emotions.length;
+  const emotionMilestone = practiceMilestone(totalEmotions);
   const avgIntensity =
     emotions.length > 0
       ? (
@@ -85,16 +76,18 @@ export default function EmotionTracking() {
         : isViewingClientData || user?.role === "therapist"
           ? "history"
           : "record";
-
-  const handleLanguageToggle = () => {
-    const newLanguage = language === "en" ? "ar" : "en";
-    const newDirection = newLanguage === "ar" ? "rtl" : "ltr";
-    setLanguage(newLanguage);
-    setDirection(newDirection);
-    setGlobalLanguage(newLanguage); // synchronize globally
-    setShowLanguageNotice(true);
-    setTimeout(() => setShowLanguageNotice(false), 3000);
-  };
+  const [activeTab, setActiveTab] = useState(defaultTab);
+  useEffect(() => {
+    setActiveTab(
+      tabParam === "insights"
+        ? "insights"
+        : tabParam === "history"
+          ? "history"
+          : !isViewingClientData && user?.role !== "therapist"
+            ? "record"
+            : "history"
+    );
+  }, [tabParam, isViewingClientData, user?.role]);
 
   const pageTitle = isViewingClientData ? t("Client Emotions") : t("Emotion Tracking");
   const pageSubtitle = isViewingClientData
@@ -151,12 +144,12 @@ export default function EmotionTracking() {
                   <TrendingUp className="h-3.5 w-3.5 text-rose-400" />
                   <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">{t("Emotional Intelligence")}</span>
                 </div>
-                <span className="text-xs text-teal-300">{tNum(totalEmotions)} {t("of")} {tNum(50)} {t("tracked")}</span>
+                <span className="text-xs text-teal-300">{tNum(totalEmotions)} {t("of")} {tNum(emotionMilestone.target)} {t("entries")}</span>
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-rose-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.round((totalEmotions / 50) * 100))}%` }} />
+                <div className="h-full bg-gradient-to-r from-rose-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: `${emotionMilestone.percent}%` }} />
               </div>
-              <p className="text-[11px] text-teal-300/60 mt-1.5">{t("Tracking your emotions regularly builds self-awareness and emotional regulation skills.")}</p>
+              <p className="text-[11px] text-teal-300/60 mt-1.5">{t("Practice milestones are encouragement, not treatment targets or a measure of recovery.")} {tNum(emotionMilestone.remaining)} {t("more to the next milestone")}.</p>
             </div>
           </div>
         </div>
@@ -166,7 +159,7 @@ export default function EmotionTracking() {
           <BackToClientsButton />
 
           {/* Tabs */}
-          <Tabs defaultValue={defaultTab} className="space-y-5">
+          <Tabs value={activeTab} onValueChange={setActiveTab} activationMode="manual" className="space-y-5">
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-1.5">
               <TabsList className="w-full h-auto bg-transparent p-0 gap-1 flex flex-wrap">
                 {canRecord && (
@@ -209,19 +202,9 @@ export default function EmotionTracking() {
 
             {canRecord && (
               <TabsContent value="record" className="mt-0 space-y-3">
-                {showLanguageNotice && (
-                  <div className="p-2.5 bg-teal-50 text-teal-700 rounded-xl border border-teal-100 text-xs">
-                    {language === "ar"
-                      ? "تم التبديل إلى العربية. ستتم معالجة كل تفاعلات العجلة بالاتجاه من اليمين إلى اليسار."
-                      : "Switched to English. All wheel interactions will now use LTR direction."}
-                  </div>
-                )}
-
                 <EmotionTrackingFormWizard
-                  language={language}
-                  direction={direction}
-                  onLanguageToggle={handleLanguageToggle}
-                  languageLabel={language === "en" ? "English" : "العربية"}
+                  language={currentLanguage === "ar" ? "ar" : "en"}
+                  direction={isRTL ? "rtl" : "ltr"}
                 />
               </TabsContent>
             )}
