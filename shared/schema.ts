@@ -569,7 +569,10 @@ export const aiRecommendations = pgTable("ai_recommendations", {
   implementedAt: timestamp("implemented_at"),
 });
 
-export const insertAiRecommendationSchema = createInsertSchema(aiRecommendations).omit({
+export const insertAiRecommendationSchema = createInsertSchema(aiRecommendations, {
+  suggestedResources: z.array(z.number()).nullable().optional(),
+  implementationSteps: z.array(z.string()).nullable().optional(),
+}).omit({
   id: true,
   createdAt: true,
   approvedAt: true,
@@ -622,5 +625,4 @@ export const insertClientInvitationSchema = createInsertSchema(clientInvitations
 });
 export type ClientInvitation = typeof clientInvitations.$inferSelect;
 export type InsertClientInvitation = z.infer<typeof insertClientInvitationSchema>;
-
 

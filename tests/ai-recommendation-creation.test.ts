@@ -216,6 +216,66 @@ describe("createAiRecommendation", () => {
     });
   });
 
+  const invalidLists = [
+    { field: "suggestedResources", value: ["3"], path: ["suggestedResources", 0] },
+    { field: "suggestedResources", value: [3, "9"], path: ["suggestedResources", 1] },
+    { field: "suggestedResources", value: [null], path: ["suggestedResources", 0] },
+    { field: "suggestedResources", value: [{}], path: ["suggestedResources", 0] },
+    { field: "suggestedResources", value: [[3]], path: ["suggestedResources", 0] },
+    { field: "suggestedResources", value: [false], path: ["suggestedResources", 0] },
+    { field: "suggestedResources", value: "3", path: ["suggestedResources"] },
+    { field: "suggestedResources", value: {}, path: ["suggestedResources"] },
+    { field: "implementationSteps", value: [1], path: ["implementationSteps", 0] },
+    { field: "implementationSteps", value: ["Pause", 2], path: ["implementationSteps", 1] },
+    { field: "implementationSteps", value: [null], path: ["implementationSteps", 0] },
+    { field: "implementationSteps", value: [{}], path: ["implementationSteps", 0] },
+    { field: "implementationSteps", value: [["Pause"]], path: ["implementationSteps", 0] },
+    { field: "implementationSteps", value: [false], path: ["implementationSteps", 0] },
+    { field: "implementationSteps", value: "Pause", path: ["implementationSteps"] },
+    { field: "implementationSteps", value: {}, path: ["implementationSteps"] },
+  ];
+
+  it.each(invalidLists)("rejects $field=$value without saving or notifying", async ({ field, value, path }) => {
+    const { res, expressRes } = response();
+
+    await createAiRecommendation(request({ ...validBody, [field]: value }), expressRes);
+
+    expect(res.status).toHaveBeenCalledExactlyOnceWith(400);
+    expect(res.json).toHaveBeenCalledExactlyOnceWith({
+      message: "Invalid data",
+      errors: expect.arrayContaining([
+        expect.objectContaining({ path, message: expect.any(String) }),
+      ]),
+    });
+    expectNoSideEffects();
+  });
+
+  describe.each(["suggestedResources", "implementationSteps"] as const)("%s compatibility", field => {
+    it.each(["populated", "empty", "null", "omitted"] as const)("preserves a %s list", async variant => {
+      const body = { ...validBody };
+      if (variant === "empty") body[field] = [];
+      if (variant === "null") Object.assign(body, { [field]: null });
+      if (variant === "omitted") Reflect.deleteProperty(body, field);
+      const originalBody = structuredClone(body);
+      const { res, expressRes } = response();
+
+      await createAiRecommendation(request(body), expressRes);
+
+      expect(storage.createAiRecommendation).toHaveBeenCalledExactlyOnceWith({
+        ...originalBody,
+        userId: 17,
+        therapistId: 42,
+        status: "pending",
+      });
+      expect(sendNotificationToUser).toHaveBeenCalledExactlyOnceWith(42, expect.objectContaining({
+        type: "ai_recommendation",
+      }));
+      expect(res.status).toHaveBeenCalledExactlyOnceWith(201);
+      expect(res.json).toHaveBeenCalledExactlyOnceWith(recommendation);
+      expect(body).toEqual(originalBody);
+    });
+  });
+
   describe.each([
     { label: "assigned therapist", creator: assignedTherapist },
     { label: "admin", creator: admin },
