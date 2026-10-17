@@ -5,6 +5,7 @@ import { recommendation, recommendationInput } from "./fixtures/ai-recommendatio
 const { storage, sendNotificationToUser } = vi.hoisted(() => ({
   storage: {
     getUser: vi.fn(),
+    getResourceById: vi.fn(),
     createAiRecommendation: vi.fn(),
   },
   sendNotificationToUser: vi.fn(),
@@ -53,6 +54,7 @@ describe("createAiRecommendation", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     storage.getUser.mockResolvedValue({ ...client });
+    storage.getResourceById.mockImplementation(async (id: number) => ({ id }));
     storage.createAiRecommendation.mockResolvedValue({ ...recommendation });
     sendNotificationToUser.mockResolvedValue(undefined);
   });
@@ -141,6 +143,7 @@ describe("createAiRecommendation", () => {
       ]),
     });
     expectNoSideEffects();
+    expect(storage.getResourceById).not.toHaveBeenCalled();
   });
 
   describe("service failures", () => {
@@ -166,6 +169,20 @@ describe("createAiRecommendation", () => {
       await createAiRecommendation(request(), expressRes);
 
       expect(storage.getUser).toHaveBeenCalledExactlyOnceWith(17);
+      expectNoSideEffects();
+      expectGenericFailure(res);
+    });
+
+    it.each([3, 9])("returns a generic 500 when resource %s lookup fails, without saving or notifying", async resourceId => {
+      storage.getResourceById.mockImplementation(async (id: number) => {
+        if (id === resourceId) throw new Error("Synthetic resource lookup failure");
+        return { id };
+      });
+      const { res, expressRes } = response();
+
+      await createAiRecommendation(request(), expressRes);
+
+      expect(storage.getResourceById).toHaveBeenCalledWith(resourceId);
       expectNoSideEffects();
       expectGenericFailure(res);
     });
@@ -248,6 +265,48 @@ describe("createAiRecommendation", () => {
       ]),
     });
     expectNoSideEffects();
+    expect(storage.getResourceById).not.toHaveBeenCalled();
+  });
+
+  describe("suggested resource existence", () => {
+    it("checks every reference before saving and notifying, preserving the list", async () => {
+      const body = { ...validBody, suggestedResources: [3, 9, 3] };
+      const { res, expressRes } = response();
+
+      await createAiRecommendation(request(body), expressRes);
+
+      expect(storage.getResourceById.mock.calls).toEqual([[3], [9], [3]]);
+      for (const lookupOrder of storage.getResourceById.mock.invocationCallOrder) {
+        expect(lookupOrder).toBeLessThan(storage.createAiRecommendation.mock.invocationCallOrder[0]);
+      }
+      expect(storage.createAiRecommendation).toHaveBeenCalledExactlyOnceWith({
+        ...body,
+        userId: 17,
+        therapistId: 42,
+        status: "pending",
+      });
+      expect(storage.createAiRecommendation.mock.invocationCallOrder[0])
+        .toBeLessThan(sendNotificationToUser.mock.invocationCallOrder[0]);
+      expect(sendNotificationToUser).toHaveBeenCalledExactlyOnceWith(42, expect.any(Object));
+      expect(res.status).toHaveBeenCalledExactlyOnceWith(201);
+      expect(res.json).toHaveBeenCalledExactlyOnceWith(recommendation);
+    });
+
+    it.each([3, 9])("rejects missing resource %s before saving or notifying", async resourceId => {
+      storage.getResourceById.mockImplementation(async (id: number) =>
+        id === resourceId ? undefined : { id });
+      const { res, expressRes } = response();
+
+      await createAiRecommendation(request(), expressRes);
+
+      expect(storage.getResourceById.mock.calls).toEqual(resourceId === 3 ? [[3]] : [[3], [9]]);
+      expect(res.status).toHaveBeenCalledExactlyOnceWith(400);
+      expect(res.json).toHaveBeenCalledExactlyOnceWith({
+        message: "A suggested resource does not exist",
+        resourceId,
+      });
+      expectNoSideEffects();
+    });
   });
 
   it.each([
@@ -321,6 +380,9 @@ describe("createAiRecommendation", () => {
       expect(res.status).toHaveBeenCalledExactlyOnceWith(201);
       expect(res.json).toHaveBeenCalledExactlyOnceWith(recommendation);
       expect(body).toEqual(originalBody);
+      if (field === "suggestedResources" && variant !== "populated") {
+        expect(storage.getResourceById).not.toHaveBeenCalled();
+      }
     });
   });
 

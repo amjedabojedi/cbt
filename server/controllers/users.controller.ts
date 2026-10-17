@@ -1705,6 +1705,16 @@ export async function createAiRecommendation(req: Request, res: Response) {
       status: 'pending'
     });
     
+    for (const resourceId of validatedData.suggestedResources ?? []) {
+      const resource = await storage.getResourceById(resourceId);
+      if (!resource) {
+        return res.status(400).json({
+          message: "A suggested resource does not exist",
+          resourceId
+        });
+      }
+    }
+
     const newRecommendation = await storage.createAiRecommendation(validatedData);
     
     await sendNotificationToUser(user.therapistId, {
