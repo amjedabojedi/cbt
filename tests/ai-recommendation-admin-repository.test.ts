@@ -9,6 +9,7 @@ const db = vi.hoisted(() => ({
   select: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
+  transaction: vi.fn(),
 }));
 
 // The real database module is never evaluated, so no credentials or connection
@@ -28,6 +29,7 @@ describe("AdminRepository AI recommendation persistence contract", () => {
     orderBy: ReturnType<typeof vi.fn>;
     set: ReturnType<typeof vi.fn>;
     returning: ReturnType<typeof vi.fn>;
+    for: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
@@ -43,8 +45,10 @@ describe("AdminRepository AI recommendation persistence contract", () => {
       orderBy: vi.fn(),
       set: vi.fn().mockReturnThis(),
       returning: vi.fn(),
+      for: vi.fn().mockResolvedValue([{ id: 3 }]),
     };
     for (const operation of Object.values(db)) operation.mockReturnValue(query);
+    db.transaction.mockImplementation(async (callback) => callback(db));
   });
 
   afterEach(() => {
@@ -74,6 +78,19 @@ describe("AdminRepository AI recommendation persistence contract", () => {
     expect(query.values).toHaveBeenCalledExactlyOnceWith(recommendationInput);
     expect(query.values.mock.calls[0][0]).toBe(recommendationInput);
     expect(query.returning).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it("locks distinct resource IDs in ascending order before inserting, preserving the payload", async () => {
+    const input = { ...recommendationInput, suggestedResources: [9, 3, 9] };
+    query.returning.mockResolvedValue([recommendation]);
+    await repository.createAiRecommendation(input);
+
+    expect(db.transaction).toHaveBeenCalledWith(expect.any(Function), { isolationLevel: "read committed" });
+    expect(query.where.mock.calls.map(([condition]) => dialect.sqlToQuery(condition as SQL).params))
+      .toEqual([[3], [9]]);
+    expect(query.for.mock.calls).toEqual([["share"], ["share"]]);
+    expect(query.for.mock.invocationCallOrder[1]).toBeLessThan(db.insert.mock.invocationCallOrder[0]);
+    expect(query.values).toHaveBeenCalledExactlyOnceWith(input);
   });
 
   it.each(["success", "failure"] as const)(

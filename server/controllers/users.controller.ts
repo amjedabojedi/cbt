@@ -1,3 +1,4 @@
+import { SuggestedResourceMissingError } from "../repositories/resource-reference-errors";
 import { Request, Response } from "express";
 import { z } from "zod";
 import * as bcrypt from "bcrypt";
@@ -1726,6 +1727,9 @@ export async function createAiRecommendation(req: Request, res: Response) {
     
     res.status(201).json(newRecommendation);
   } catch (error) {
+    if (error instanceof SuggestedResourceMissingError) {
+      return res.status(400).json({ message: error.message, resourceId: error.resourceId });
+    }
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }

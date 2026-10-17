@@ -25,6 +25,7 @@ vi.mock("../server/services/websocket", () => ({ sendNotificationToUser }));
 vi.mock("../server/services/openai", () => ({ analyzeJournalEntry: vi.fn() }));
 
 import { createAiRecommendation } from "../server/controllers/users.controller";
+import { SuggestedResourceMissingError } from "../server/repositories/resource-reference-errors";
 
 // Authentication is handled by the route; all identities and records here are synthetic.
 describe("createAiRecommendation", () => {
@@ -57,6 +58,17 @@ describe("createAiRecommendation", () => {
     storage.getResourceById.mockImplementation(async (id: number) => ({ id }));
     storage.createAiRecommendation.mockResolvedValue({ ...recommendation });
     sendNotificationToUser.mockResolvedValue(undefined);
+  });
+
+  it("returns a validation error without notifying when deletion wins after the initial lookup", async () => {
+    storage.createAiRecommendation.mockRejectedValue(new SuggestedResourceMissingError(3));
+    const { res, expressRes } = response();
+    await createAiRecommendation(request(), expressRes);
+    expect(res.status).toHaveBeenCalledExactlyOnceWith(400);
+    expect(res.json).toHaveBeenCalledExactlyOnceWith({
+      message: "A suggested resource does not exist", resourceId: 3,
+    });
+    expect(sendNotificationToUser).not.toHaveBeenCalled();
   });
 
   it("rejects a missing target user without saving or notifying", async () => {

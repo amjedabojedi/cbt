@@ -1,3 +1,4 @@
+import { ResourceReferencedError } from "../repositories/resource-reference-errors";
 import { Request, Response } from "express";
 import { storage } from "../storage";
 import { sendNotificationToUser } from "../services/websocket";
@@ -106,6 +107,9 @@ export async function deleteResource(req: Request, res: Response) {
     await storage.deleteResource(resourceId);
     res.status(204).send();
   } catch (error) {
+    if (error instanceof ResourceReferencedError) {
+      return res.status(409).json({ message: error.message });
+    }
     console.error("deleteResource error:", error);
     res.status(500).json({ message: "Failed to delete resource" });
   }

@@ -1,10 +1,11 @@
 import { 
   resources, type Resource, type InsertResource,
   resourceAssignments, type ResourceAssignment, type InsertResourceAssignment,
-  resourceFeedback, type ResourceFeedback, type InsertResourceFeedback
+  resourceFeedback, type ResourceFeedback, type InsertResourceFeedback, aiRecommendations
 } from "@shared/schema";
 import { db } from "../db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
+import { ResourceReferencedError } from "./resource-reference-errors";
 
 export class ResourcesRepository {
   // Resources
@@ -71,17 +72,25 @@ export class ResourcesRepository {
   }
   
   async deleteResource(id: number): Promise<void> {
-    await db
-      .delete(resourceAssignments)
-      .where(eq(resourceAssignments.resourceId, id));
-    
-    await db
-      .delete(resourceFeedback)
-      .where(eq(resourceFeedback.resourceId, id));
-    
-    await db
-      .delete(resources)
-      .where(eq(resources.id, id));
+    await db.transaction(async (tx) => {
+      // All recommendation writers must lock the resource before inserting.
+      // Check references AFTER acquiring the lock so a waiting deletion sees
+      // recommendations committed by a concurrent creator (READ COMMITTED).
+      const [resource] = await tx.select({ id: resources.id })
+        .from(resources).where(eq(resources.id, id)).for("update");
+      if (!resource) return;
+      const [reference] = await tx.select({ id: aiRecommendations.id })
+        .from(aiRecommendations)
+        .where(sql`${aiRecommendations.suggestedResources} @> ${JSON.stringify([id])}::jsonb`)
+        .limit(1);
+      if (reference) throw new ResourceReferencedError();
+
+      // Keep the original deletion behavior for unreferenced resources, but
+      // roll back all cleanup if any part fails.
+      await tx.delete(resourceAssignments).where(eq(resourceAssignments.resourceId, id));
+      await tx.delete(resourceFeedback).where(eq(resourceFeedback.resourceId, id));
+      await tx.delete(resources).where(eq(resources.id, id));
+    }, { isolationLevel: "read committed" });
   }
   
   async cloneResource(resourceId: number, userId: number): Promise<Resource> {

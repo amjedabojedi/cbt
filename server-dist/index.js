@@ -87,6 +87,7 @@ __export(schema_exports, {
   reframePracticeResults: () => reframePracticeResults,
   resourceAssignments: () => resourceAssignments,
   resourceFeedback: () => resourceFeedback,
+  resourceIdSchema: () => resourceIdSchema,
   resources: () => resources,
   sessions: () => sessions,
   subscriptionPlans: () => subscriptionPlans,
@@ -98,7 +99,7 @@ __export(schema_exports, {
 import { pgTable, text, serial, integer, jsonb, timestamp, boolean, date, varchar, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z as z2 } from "zod";
-var subscriptionPlans, users, emotionRecords, cognitiveDistortions, thoughtRecords, protectiveFactors, protectiveFactorUsage, copingStrategies, copingStrategyUsage, goals, goalMilestones, actions, resources, resourceAssignments, resourceFeedback, journalEntries, journalComments, reframePracticeResults, userGameProfile, sessions, passwordResetTokens, insertSubscriptionPlanSchema, insertUserSchema, insertCognitiveDistortionSchema, insertEmotionRecordSchema, insertThoughtRecordSchema, insertProtectiveFactorSchema, insertProtectiveFactorUsageSchema, insertCopingStrategySchema, insertCopingStrategyUsageSchema, insertGoalSchema, insertGoalMilestoneSchema, insertActionSchema, insertResourceSchema, insertResourceAssignmentSchema, insertResourceFeedbackSchema, insertJournalEntrySchema, insertJournalCommentSchema, insertReframePracticeResultSchema, insertUserGameProfileSchema, insertSessionSchema, insertPasswordResetTokenSchema, notifications, insertNotificationSchema, engagementSettings, insertEngagementSettingsSchema, notificationPreferences, systemLogs, insertNotificationPreferencesSchema, insertSystemLogSchema, aiRecommendations, insertAiRecommendationSchema, emailLogs, clientInvitations, insertClientInvitationSchema;
+var subscriptionPlans, users, emotionRecords, cognitiveDistortions, thoughtRecords, protectiveFactors, protectiveFactorUsage, copingStrategies, copingStrategyUsage, goals, goalMilestones, actions, resources, resourceAssignments, resourceFeedback, journalEntries, journalComments, reframePracticeResults, userGameProfile, sessions, passwordResetTokens, insertSubscriptionPlanSchema, insertUserSchema, insertCognitiveDistortionSchema, insertEmotionRecordSchema, insertThoughtRecordSchema, insertProtectiveFactorSchema, insertProtectiveFactorUsageSchema, insertCopingStrategySchema, insertCopingStrategyUsageSchema, insertGoalSchema, insertGoalMilestoneSchema, insertActionSchema, insertResourceSchema, insertResourceAssignmentSchema, insertResourceFeedbackSchema, insertJournalEntrySchema, insertJournalCommentSchema, insertReframePracticeResultSchema, insertUserGameProfileSchema, insertSessionSchema, insertPasswordResetTokenSchema, notifications, insertNotificationSchema, engagementSettings, insertEngagementSettingsSchema, notificationPreferences, systemLogs, insertNotificationPreferencesSchema, insertSystemLogSchema, aiRecommendations, resourceIdSchema, insertAiRecommendationSchema, emailLogs, clientInvitations, insertClientInvitationSchema;
 var init_schema = __esm({
   "shared/schema.ts"() {
     "use strict";
@@ -590,7 +591,11 @@ var init_schema = __esm({
       rejectedAt: timestamp("rejected_at"),
       implementedAt: timestamp("implemented_at")
     });
-    insertAiRecommendationSchema = createInsertSchema(aiRecommendations).omit({
+    resourceIdSchema = z2.number().int().safe().min(1).max(2147483647);
+    insertAiRecommendationSchema = createInsertSchema(aiRecommendations, {
+      suggestedResources: z2.array(resourceIdSchema).nullable().optional(),
+      implementationSteps: z2.array(z2.string()).nullable().optional()
+    }).omit({
       id: true,
       createdAt: true,
       approvedAt: true,
@@ -1082,7 +1087,7 @@ var init_notificationService = __esm({
 });
 
 // server/services/reminderService.ts
-import { eq as eq18, and as and14, sql as sql9, or as or3 } from "drizzle-orm";
+import { eq as eq18, and as and14, sql as sql10, or as or3 } from "drizzle-orm";
 async function findInactiveClients(days) {
   try {
     const now = /* @__PURE__ */ new Date();
@@ -1098,17 +1103,17 @@ async function findInactiveClients(days) {
       name: users.name,
       email: users.email,
       therapistId: users.therapistId,
-      lastActivity: sql9`MAX(${emotionRecords.timestamp})`.as("last_activity")
+      lastActivity: sql10`MAX(${emotionRecords.timestamp})`.as("last_activity")
     }).from(users).leftJoin(emotionRecords, eq18(users.id, emotionRecords.userId)).where(
       and14(
         eq18(users.role, "client"),
         eq18(users.status, "active"),
-        sql9`${users.id} IN (${activeUserIds.join(",")})`
+        sql10`${users.id} IN (${activeUserIds.join(",")})`
       )
     ).groupBy(users.id).having(
       or3(
-        sql9`MAX(${emotionRecords.timestamp}) < ${cutoffDate.toISOString()}`,
-        sql9`MAX(${emotionRecords.timestamp}) IS NULL`
+        sql10`MAX(${emotionRecords.timestamp}) < ${cutoffDate.toISOString()}`,
+        sql10`MAX(${emotionRecords.timestamp}) IS NULL`
       )
     );
     const inactiveClients = await inactiveClientsQuery;
@@ -2068,7 +2073,24 @@ var JournalRepository = class {
 // server/repositories/resources.repository.ts
 init_schema();
 init_db();
-import { eq as eq5, and as and3, desc as desc5 } from "drizzle-orm";
+import { eq as eq5, and as and3, desc as desc5, sql as sql2 } from "drizzle-orm";
+
+// server/repositories/resource-reference-errors.ts
+var SuggestedResourceMissingError = class extends Error {
+  constructor(resourceId) {
+    super("A suggested resource does not exist");
+    this.resourceId = resourceId;
+    this.name = "SuggestedResourceMissingError";
+  }
+};
+var ResourceReferencedError = class extends Error {
+  constructor() {
+    super("This resource is used by a saved recommendation and cannot be deleted.");
+    this.name = "ResourceReferencedError";
+  }
+};
+
+// server/repositories/resources.repository.ts
 var ResourcesRepository = class {
   // Resources
   async createResource(resource) {
@@ -2100,9 +2122,15 @@ var ResourcesRepository = class {
     return updatedResource;
   }
   async deleteResource(id) {
-    await db.delete(resourceAssignments).where(eq5(resourceAssignments.resourceId, id));
-    await db.delete(resourceFeedback).where(eq5(resourceFeedback.resourceId, id));
-    await db.delete(resources).where(eq5(resources.id, id));
+    await db.transaction(async (tx) => {
+      const [resource] = await tx.select({ id: resources.id }).from(resources).where(eq5(resources.id, id)).for("update");
+      if (!resource) return;
+      const [reference] = await tx.select({ id: aiRecommendations.id }).from(aiRecommendations).where(sql2`${aiRecommendations.suggestedResources} @> ${JSON.stringify([id])}::jsonb`).limit(1);
+      if (reference) throw new ResourceReferencedError();
+      await tx.delete(resourceAssignments).where(eq5(resourceAssignments.resourceId, id));
+      await tx.delete(resourceFeedback).where(eq5(resourceFeedback.resourceId, id));
+      await tx.delete(resources).where(eq5(resources.id, id));
+    }, { isolationLevel: "read committed" });
   }
   async cloneResource(resourceId, userId) {
     const originalResource = await this.getResourceById(resourceId);
@@ -2354,8 +2382,15 @@ var AdminRepository = class {
   }
   // AI Recommendations
   async createAiRecommendation(recommendation) {
-    const [newRecommendation] = await db.insert(aiRecommendations).values(recommendation).returning();
-    return newRecommendation;
+    return db.transaction(async (tx) => {
+      const ids = Array.from(new Set(recommendation.suggestedResources ?? [])).sort((a, b) => a - b);
+      for (const id of ids) {
+        const [resource] = await tx.select({ id: resources.id }).from(resources).where(eq8(resources.id, id)).for("share");
+        if (!resource) throw new SuggestedResourceMissingError(id);
+      }
+      const [newRecommendation] = await tx.insert(aiRecommendations).values(recommendation).returning();
+      return newRecommendation;
+    }, { isolationLevel: "read committed" });
   }
   async getAiRecommendationById(id) {
     const [recommendation] = await db.select().from(aiRecommendations).where(eq8(aiRecommendations.id, id));
@@ -4068,7 +4103,7 @@ var aiRateLimit = aiRateLimiter.middleware;
 
 // server/services/reframeCoach.ts
 init_schema();
-import { sql as sql2, eq as eq10, and as and7, desc as desc9, gte } from "drizzle-orm";
+import { sql as sql3, eq as eq10, and as and7, desc as desc9, gte } from "drizzle-orm";
 
 // server/services/openai.ts
 import OpenAI from "openai";
@@ -5059,7 +5094,7 @@ async function calculateAchievements(userId, result) {
   if (newStreak >= 14 && !newAchievements.includes("streak_14")) {
     newAchievements.push("streak_14");
   }
-  const { count: count2 } = await db.select({ count: sql2`count(*)` }).from(reframePracticeResults).where(eq10(reframePracticeResults.userId, userId)).then((rows) => rows[0]);
+  const { count: count2 } = await db.select({ count: sql3`count(*)` }).from(reframePracticeResults).where(eq10(reframePracticeResults.userId, userId)).then((rows) => rows[0]);
   if (count2 >= 5 && !newAchievements.includes("practice_5")) {
     newAchievements.push("practice_5");
   }
@@ -5119,7 +5154,7 @@ function registerReframeCoachRoutes(app2) {
       let resourceId;
       try {
         console.log("Searching for existing Reframe Coach resource");
-        const searchResult = await db.execute(sql2`
+        const searchResult = await db.execute(sql3`
           SELECT id FROM resources 
           WHERE title = 'Reframe Coach Practice' AND type = 'exercise'
           LIMIT 1
@@ -5129,7 +5164,7 @@ function registerReframeCoachRoutes(app2) {
           console.log("Found existing Reframe Coach resource:", resourceId);
         } else {
           console.log("No existing resource found, creating new Reframe Coach resource");
-          const insertResult = await db.execute(sql2`
+          const insertResult = await db.execute(sql3`
             INSERT INTO resources 
             (title, description, content, type, category, created_by, is_published) 
             VALUES 
@@ -5343,17 +5378,17 @@ function registerReframeCoachRoutes(app2) {
         }).returning();
       }
       const practiceStats = await db.select({
-        totalPractices: sql2`count(*)`,
-        avgScore: sql2`avg(score)`,
-        totalCorrect: sql2`sum(correct_answers)`,
-        totalQuestions: sql2`sum(total_questions)`
+        totalPractices: sql3`count(*)`,
+        avgScore: sql3`avg(score)`,
+        totalCorrect: sql3`sum(correct_answers)`,
+        totalQuestions: sql3`sum(total_questions)`
       }).from(reframePracticeResults).where(eq10(reframePracticeResults.userId, userId)).then((rows) => rows[0]);
       const [thoughtRecord] = await db.select({
         cognitiveDistortions: thoughtRecords.cognitiveDistortions
       }).from(thoughtRecords).leftJoin(
         reframePracticeResults,
         eq10(reframePracticeResults.thoughtRecordId, thoughtRecords.id)
-      ).where(eq10(thoughtRecords.userId, userId)).groupBy(thoughtRecords.id).orderBy(sql2`count(${reframePracticeResults.id})`).limit(1);
+      ).where(eq10(thoughtRecords.userId, userId)).groupBy(thoughtRecords.id).orderBy(sql3`count(${reframePracticeResults.id})`).limit(1);
       const strongestDistortion = thoughtRecord?.cognitiveDistortions?.[0] || null;
       res.json({
         profile,
@@ -5500,11 +5535,11 @@ function registerReframeCoachRoutes(app2) {
         return res.status(403).json({ message: "Admin access required" });
       }
       const countResult = await db.execute(
-        sql2`SELECT COUNT(*) as total FROM reframe_practice_results`
+        sql3`SELECT COUNT(*) as total FROM reframe_practice_results`
       );
       const totalCount = countResult.rows[0]?.total || 0;
       const completedCountResult = await db.execute(
-        sql2`SELECT COUNT(*) as completed FROM reframe_practice_results WHERE score >= 0.7`
+        sql3`SELECT COUNT(*) as completed FROM reframe_practice_results WHERE score >= 0.7`
       );
       const completedCount = completedCountResult.rows[0]?.completed || 0;
       const results = await db.select({
@@ -5517,7 +5552,7 @@ function registerReframeCoachRoutes(app2) {
         correctCount: reframePracticeResults.correctAnswers,
         totalCount: reframePracticeResults.totalQuestions,
         timeSpent: reframePracticeResults.timeSpent,
-        completed: sql2`CASE WHEN ${reframePracticeResults.score} >= 0.7 THEN true ELSE false END`,
+        completed: sql3`CASE WHEN ${reframePracticeResults.score} >= 0.7 THEN true ELSE false END`,
         createdAt: reframePracticeResults.createdAt
       }).from(reframePracticeResults).leftJoin(users, eq10(reframePracticeResults.userId, users.id)).orderBy(desc9(reframePracticeResults.createdAt)).limit(20);
       const lastWeekResults = await db.select().from(reframePracticeResults).where(
@@ -5527,7 +5562,7 @@ function registerReframeCoachRoutes(app2) {
         )
       ).orderBy(desc9(reframePracticeResults.createdAt));
       const distortionStatsResult = await db.execute(
-        sql2`
+        sql3`
           WITH distortion_data AS (
             SELECT 
               jsonb_array_elements(scenario_data) as scenario
@@ -6315,7 +6350,7 @@ init_db();
 import { z as z6 } from "zod";
 import * as bcrypt3 from "bcrypt";
 import * as crypto3 from "crypto";
-import { eq as eq12, sql as sql3 } from "drizzle-orm";
+import { eq as eq12, sql as sql4 } from "drizzle-orm";
 init_schema();
 init_email();
 init_websocket();
@@ -6830,7 +6865,7 @@ async function getJournalsCount(req, res) {
     if (userId >= 100 && userId <= 110) {
       return res.status(200).json({ totalCount: Math.floor(Math.random() * 8) + 3 });
     }
-    const result = await db.select({ count: sql3`count(*)::int` }).from(journalEntries).where(eq12(journalEntries.userId, userId));
+    const result = await db.select({ count: sql4`count(*)::int` }).from(journalEntries).where(eq12(journalEntries.userId, userId));
     res.json({ totalCount: result[0].count });
   } catch (error) {
     console.error("Error counting journals:", error);
@@ -7613,6 +7648,15 @@ async function createAiRecommendation(req, res) {
       therapistId: user.therapistId,
       status: "pending"
     });
+    for (const resourceId of validatedData.suggestedResources ?? []) {
+      const resource = await storage.getResourceById(resourceId);
+      if (!resource) {
+        return res.status(400).json({
+          message: "A suggested resource does not exist",
+          resourceId
+        });
+      }
+    }
     const newRecommendation = await storage.createAiRecommendation(validatedData);
     await sendNotificationToUser(user.therapistId, {
       title: "New AI Recommendation",
@@ -7622,6 +7666,9 @@ async function createAiRecommendation(req, res) {
     });
     res.status(201).json(newRecommendation);
   } catch (error) {
+    if (error instanceof SuggestedResourceMissingError) {
+      return res.status(400).json({ message: error.message, resourceId: error.resourceId });
+    }
     if (error instanceof z6.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
@@ -7682,7 +7729,7 @@ import { Router as Router4 } from "express";
 // server/controllers/emotions.controller.ts
 init_db();
 init_schema();
-import { eq as eq13, sql as sql4 } from "drizzle-orm";
+import { eq as eq13, sql as sql5 } from "drizzle-orm";
 import { z as z7 } from "zod";
 function getEmotionColor2(emotion) {
   return getEmotionColor(emotion);
@@ -7690,7 +7737,7 @@ function getEmotionColor2(emotion) {
 async function getEmotionsCount(req, res) {
   try {
     const userId = parseInt(req.params.userId);
-    const result = await db.select({ count: sql4`count(*)::int` }).from(emotionRecords).where(eq13(emotionRecords.userId, userId));
+    const result = await db.select({ count: sql5`count(*)::int` }).from(emotionRecords).where(eq13(emotionRecords.userId, userId));
     res.json({ totalCount: result[0].count });
   } catch (error) {
     console.error("Error counting emotions:", error);
@@ -7853,7 +7900,7 @@ import { Router as Router5 } from "express";
 // server/controllers/thoughts.controller.ts
 init_db();
 init_schema();
-import { eq as eq14, sql as sql5 } from "drizzle-orm";
+import { eq as eq14, sql as sql6 } from "drizzle-orm";
 import { z as z8 } from "zod";
 init_thought_beliefs();
 async function getThoughtsCount(req, res) {
@@ -7862,7 +7909,7 @@ async function getThoughtsCount(req, res) {
     if (userId >= 100 && userId <= 110) {
       return res.status(200).json({ totalCount: Math.floor(Math.random() * 6) + 2 });
     }
-    const result = await db.select({ count: sql5`count(*)::int` }).from(thoughtRecords).where(eq14(thoughtRecords.userId, userId));
+    const result = await db.select({ count: sql6`count(*)::int` }).from(thoughtRecords).where(eq14(thoughtRecords.userId, userId));
     res.json({ totalCount: result[0].count });
   } catch (error) {
     console.error("Error counting thoughts:", error);
@@ -9596,6 +9643,9 @@ async function deleteResource(req, res) {
     await storage.deleteResource(resourceId);
     res.status(204).send();
   } catch (error) {
+    if (error instanceof ResourceReferencedError) {
+      return res.status(409).json({ message: error.message });
+    }
     console.error("deleteResource error:", error);
     res.status(500).json({ message: "Failed to delete resource" });
   }

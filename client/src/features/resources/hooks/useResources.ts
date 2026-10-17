@@ -283,7 +283,11 @@ export function useDeleteResource() {
         toast({ title: "Resource Deleted", description: "The educational resource has been removed from the library." });
         return;
       }
-      toast({ title: "Error", description: "Failed to delete resource. Please try again.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete resource. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 }

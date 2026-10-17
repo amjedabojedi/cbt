@@ -1,10 +1,11 @@
 import { 
   systemLogs, type SystemLog, type InsertSystemLog,
   engagementSettings, type EngagementSettings, type InsertEngagementSettings,
-  aiRecommendations, type AiRecommendation, type InsertAiRecommendation
+  aiRecommendations, type AiRecommendation, type InsertAiRecommendation, resources
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, desc } from "drizzle-orm";
+import { SuggestedResourceMissingError } from "./resource-reference-errors";
 
 export class AdminRepository {
   // System logs
@@ -84,12 +85,19 @@ export class AdminRepository {
 
   // AI Recommendations
   async createAiRecommendation(recommendation: InsertAiRecommendation): Promise<AiRecommendation> {
-    const [newRecommendation] = await db
-      .insert(aiRecommendations)
-      .values(recommendation)
-      .returning();
-    
-    return newRecommendation;
+    return db.transaction(async (tx) => {
+      // Lock in a stable order to avoid deadlocks between multi-resource saves.
+      // SHARE conflicts with deletion's UPDATE lock and lasts through commit.
+      const ids = Array.from(new Set(recommendation.suggestedResources ?? [])).sort((a, b) => a - b);
+      for (const id of ids) {
+        const [resource] = await tx.select({ id: resources.id })
+          .from(resources).where(eq(resources.id, id)).for("share");
+        if (!resource) throw new SuggestedResourceMissingError(id);
+      }
+      const [newRecommendation] = await tx.insert(aiRecommendations)
+        .values(recommendation).returning();
+      return newRecommendation;
+    }, { isolationLevel: "read committed" });
   }
   
   async getAiRecommendationById(id: number): Promise<AiRecommendation | undefined> {
