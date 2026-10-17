@@ -122,6 +122,9 @@ export async function assignResource(req: Request, res: Response) {
       return res.status(400).json({ message: "resourceId and clientId are required" });
     }
 
+    const resource = await storage.getResourceById(resourceId);
+    if (!resource) return res.status(404).json({ message: "Resource not found" });
+
     const assignment = await storage.assignResourceToClient({
       resourceId,
       assignedBy: user.id,
@@ -133,12 +136,10 @@ export async function assignResource(req: Request, res: Response) {
 
     // Notify the client that a new resource has been assigned
     try {
-      const resource = await storage.getResourceById(resourceId);
-      const resourceTitle = resource?.title ?? "a new resource";
       const notification = await storage.createNotification({
         userId: clientId,
         title: "New Resource Assigned",
-        body: `Your therapist assigned you "${resourceTitle}". Check your library to view it.`,
+        body: `Your therapist assigned you "${resource.title}". Check your library to view it.`,
         type: "resource",
       });
       sendNotificationToUser(clientId, notification);
