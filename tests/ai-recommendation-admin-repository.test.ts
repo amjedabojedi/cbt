@@ -76,6 +76,39 @@ describe("AdminRepository AI recommendation persistence contract", () => {
     expect(query.returning).toHaveBeenCalledExactlyOnceWith();
   });
 
+  it.each(["success", "failure"] as const)(
+    "does not log private recommendation data during creation (%s)",
+    async (outcome) => {
+      const privateInput = {
+        ...recommendationInput,
+        content: "SYNTHETIC_PRIVATE_CONTENT",
+        aiReasoning: "SYNTHETIC_PRIVATE_REASONING",
+        therapistNotes: "SYNTHETIC_PRIVATE_THERAPIST_NOTES",
+      };
+      const created = { ...recommendation, ...privateInput };
+      const logSpies = (["log", "info", "warn", "error", "debug", "dir", "trace"] as const)
+        .map((method) => vi.spyOn(console, method).mockImplementation(() => {}));
+      // Database errors can contain query parameters; they must propagate
+      // unchanged without being logged by the repository.
+      const error = new Error(`Insert failed: ${JSON.stringify(privateInput)}`);
+      if (outcome === "success") {
+        query.returning.mockResolvedValue([created]);
+        expect(await repository.createAiRecommendation(privateInput)).toBe(created);
+      } else {
+        query.returning.mockRejectedValue(error);
+        await expect(repository.createAiRecommendation(privateInput)).rejects.toBe(error);
+      }
+
+      expect(db.insert).toHaveBeenCalledExactlyOnceWith(aiRecommendations);
+      expect(query.values).toHaveBeenCalledExactlyOnceWith(privateInput);
+      expect(query.values.mock.calls[0][0]).toBe(privateInput);
+      expect(query.returning).toHaveBeenCalledExactlyOnceWith();
+      // Creation needs no console output. This also catches logging the whole
+      // payload, individual fields, returned rows, or raw database errors.
+      for (const spy of logSpies) expect(spy).not.toHaveBeenCalled();
+    },
+  );
+
   it.each([true, false])("looks up by recommendation ID (found: %s)", async (found) => {
     query.where.mockResolvedValue(found ? [recommendation, { ...recommendation, id: 82 }] : []);
 

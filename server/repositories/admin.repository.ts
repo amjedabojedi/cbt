@@ -84,7 +84,6 @@ export class AdminRepository {
 
   // AI Recommendations
   async createAiRecommendation(recommendation: InsertAiRecommendation): Promise<AiRecommendation> {
-    console.log("Creating AI recommendation:", recommendation);
     const [newRecommendation] = await db
       .insert(aiRecommendations)
       .values(recommendation)
