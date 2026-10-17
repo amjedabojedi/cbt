@@ -1,0 +1,49 @@
+Overall
+
+It looks polished and calm, and the modules share one structure: a header with a progress bar, then Record, History and Insights tabs. The weak points are dead ends for a new user, labels that don't match what each step asks, and numbers that don't agree between pages.
+
+Critical (fix first)
+Unsaved entries are lost without warning. If you're halfway through recording an emotion and click History, Insights, the sidebar or the X, everything you entered is gone. Clients doing emotional work will lose what they wrote. Add a "Discard your entry?" prompt, or auto-save a draft.
+The step labels in Thought Records don't match the steps. Step "1. Situation" asks for the thought. "2. Thought" is only an explanation screen. "4. Link" asks for the situation. "5. Review" is the emotion link, and there's no review screen at all. The intro list gives yet another order. Change the labels to: Thought → Learn → Thinking styles → Situation → Link emotion → Review, and add a real summary screen before saving.
+The emotion wheel picks the wrong emotion. I clicked "Nervous" and the app selected "Fear", then "Insecure". The outer-ring labels are tiny, rotated, cut off ("Disappoint…") and overlap their neighbours. Make the touch areas bigger, show the label on hover, or add a "Search emotions" list as another way in.
+Reframe Coach is a step that can't be done yet. Today's Focus suggests it as the third task, but it needs a thought record first. Lock it with a hint ("Record a thought first"), or order the focus as Emotion → Thought → Reframe.
+Dead ends (empty states with no button)
+Emotion History and Insights say "Begin Tracking" or "Use the emotion wheel…" but have no button. Add "Record your first emotion".
+Thought History says "Add reflections to your emotions to build thought records". That's misleading, and it has no button either.
+Clicking the welcome notification only marks it read. It should open Emotion Tracking or Goals, since that's what the message suggests.
+Reframe Coach does this well: its empty state has a "Create Your First Thought Record" button. Use it as the pattern for the others.
+How the indicators connect
+
+The modules don't use the same units or names for their progress numbers, so a client can't tell what progress means:
+
+Where	Indicator	Problem
+Dashboard	Engagement 0%	My Progress shows "Engagement Level 0 activities". Same name, different unit.
+Dashboard / Progress	"% of first milestone"	The milestone is never defined.
+Module goals	50 emotions, 20 reframes, 30 journal entries, and "0 of 0" goals	The targets look arbitrary and aren't explained. The tour says "track 3 to see insights", but the bar says 50.
+My Progress	Behavioral Activation ACTIVE with 0 activities	This contradicts itself.
+Resource Library	"—", "0 Resources" and "1 total resources" shown together	The counts conflict.
+
+What I recommend:
+
+One engagement metric, defined once (for example, active days this week) and used the same way everywhere.
+Milestone ladders shown to the client: 3 entries unlocks insights, then 10, 25, 50. Show the next unlock: "2 more emotions to see your first pattern".
+Make the CBT triangle visible in the flow. After saving an emotion, offer "Record the thought behind this?". After a thought, offer "Reframe it now?". Right now these links are only an optional dropdown and a statistic on My Progress.
+Coping strategies and protective factors don't appear on the dashboard or in any progress number. Add them, or explain why they're separate.
+How informative the pages are for clients
+My Progress uses clinician vocabulary: "affect intensity", "cognitive restructuring", "behavioral activation", "clinical markers". Use client-facing labels such as "How strong your feelings were" or "Thoughts you've challenged", and keep the clinical terms for the therapist view.
+Red "Negative" bars with no data look alarming. Show a neutral "Not enough data yet" instead.
+Every intro says "about 2 minutes", even the 7-step goal wizard. Use real estimates.
+Emotion Tracking shows a 3-step tour, then a welcome screen repeating the same 4 steps, then the wizard. That's two intros before any action. Keep one, and skip it for returning users.
+The rating step says "this emotion" without naming it. Show the chosen emotion: "How intense was Insecure?"
+Only Journal says entries are visible to "you and your therapist". Put that privacy line in every module, since it matters most for emotion and thought entries.
+Consistency
+Names: "ResilienceHub" vs "Resilience CBT" in the notification; "SMART Goals" vs "Smart Goals"; "Resource Library" in the menu vs "Clinical Resource Hub" on the page.
+Order: the sidebar runs Journal → Goals → Reframe, but Today's Focus runs Emotion → Thought → Reframe → Journal → Goals. Use one order everywhere.
+Language: there are two switches, one in the sidebar and an "English" button inside each wizard. Keep one.
+Validation and layout: the Emotion wizard greys out Next while Thought Records shows a red error up front. Card widths change between modules. The page scroll jumps between steps. The active tab stays highlighted on the old tab after switching.
+The tour's "Core / Primary / Tertiary" labels are confusing. Try "Basic / More specific / Most precise".
+Smaller items
+The thinking-styles list scrolls inside its own box with the Next button below it. Show all 12 in the page instead, or group them.
+Each wizard ends with both "Skip & Record" and "Record". Since the last step is optional, one Save button is enough.
+
+Separately, the floating teal icon on the right edge isn't part of your app. It opens a browser extension called "AI Toolbar", and its panel is still open on your screen, which stopped my last screenshots. Your clients won't see it.
