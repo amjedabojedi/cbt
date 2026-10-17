@@ -5,24 +5,10 @@ import { cn } from "@/lib/utils";
 import { useLocalization } from "@/lib/localize.tsx";
 import { practiceMilestone } from "@/utils/practiceProgress";
 import { useAuth } from "@/lib/auth";
+import type { EmotionalBalance } from "@shared/progress-metrics";
 
 interface ProgressIndicatorsProps {
-  emotionalBalance: {
-    negativeIntensity: {
-      current: number;
-      previous: number;
-      change: number;
-      changePercent: number;
-    };
-    positiveIntensity: {
-      current: number;
-      previous: number;
-      change: number;
-      changePercent: number;
-    };
-    negativeFrequency: number;
-    positiveFrequency: number;
-  };
+  emotionalBalance: EmotionalBalance;
   thoughtChallengeRate: {
     rate: number;
     challenged: number;
@@ -65,8 +51,8 @@ export default function ProgressIndicators({
   const isTrackingEmotions =
     emotionalBalance.negativeFrequency + emotionalBalance.positiveFrequency >= 7;
   const showsEmotionalImprovement =
-    emotionalBalance.negativeIntensity.change < 0 ||
-    emotionalBalance.positiveIntensity.change > 0;
+    (emotionalBalance.negativeIntensity.change !== null && emotionalBalance.negativeIntensity.change < 0) ||
+    (emotionalBalance.positiveIntensity.change !== null && emotionalBalance.positiveIntensity.change > 0);
 
   const recommendations: Array<{ type: "success" | "warning" | "info"; messageKey: string }> = [];
 

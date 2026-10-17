@@ -1,15 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { EmotionRecord, ThoughtRecord, Goal, JournalEntry, ReframePracticeResult } from "@shared/schema";
 import { subDays } from "date-fns";
-
-// Emotion type classification (CBT evidence-based, aligned with emotion wheel)
-// Based on clinical psychology affect classification
-// Positive affect: Joy and Love families
-const POSITIVE_EMOTIONS = ["Joy", "Love"];
-// Negative affect: Sadness, Fear, Anger, Disgust families
-const NEGATIVE_EMOTIONS = ["Sadness", "Fear", "Anger", "Disgust"];
-// Note: Surprise is context-dependent and excluded from balance calculation
-// to maintain clinical validity
+import { emotionalBalance, goalProgress, type EmotionalBalance } from "@shared/progress-metrics";
 
 interface ProgressInsights {
   // Activity metrics
@@ -21,22 +13,7 @@ interface ProgressInsights {
   reframeCount: number;
   
   // Emotional balance (evidence-based: positive vs negative separation)
-  emotionalBalance: {
-    negativeIntensity: {
-      current: number;
-      previous: number;
-      change: number;
-      changePercent: number;
-    };
-    positiveIntensity: {
-      current: number;
-      previous: number;
-      change: number;
-      changePercent: number;
-    };
-    negativeFrequency: number;
-    positiveFrequency: number;
-  };
+  emotionalBalance: EmotionalBalance;
   
   // Thought challenge rate (CBT evidence-based)
   thoughtChallengeRate: {
@@ -182,77 +159,7 @@ export function useProgressInsights(userId: number | undefined, timeRange: "week
   
   // Calculate emotional balance (CBT evidence-based: separate positive/negative)
   const calculateEmotionalBalance = () => {
-    if (filteredEmotions.length === 0) {
-      return {
-        negativeIntensity: { current: 0, previous: 0, change: 0, changePercent: 0 },
-        positiveIntensity: { current: 0, previous: 0, change: 0, changePercent: 0 },
-        negativeFrequency: 0,
-        positiveFrequency: 0,
-      };
-    }
-    
-    // Split current period in half for comparison
-    const midpoint = new Date();
-    if (timeRange === "week") {
-      midpoint.setDate(midpoint.getDate() - 3);
-    } else if (timeRange === "month") {
-      midpoint.setDate(midpoint.getDate() - 15);
-    } else {
-      midpoint.setDate(midpoint.getDate() - 30);
-    }
-    
-    const recentEmotions = filteredEmotions.filter(e => 
-      new Date(e.timestamp || e.createdAt) >= midpoint
-    );
-    const previousEmotions = filteredEmotions.filter(e => 
-      new Date(e.timestamp || e.createdAt) < midpoint
-    );
-    
-    // Calculate negative emotion intensity
-    const calcAvgIntensity = (emos: EmotionRecord[], type: "negative" | "positive") => {
-      const emotionList = type === "negative" ? NEGATIVE_EMOTIONS : POSITIVE_EMOTIONS;
-      const filtered = emos.filter(e => emotionList.includes(e.coreEmotion));
-      if (filtered.length === 0) return 0;
-      return filtered.reduce((sum, e) => sum + e.intensity, 0) / filtered.length;
-    };
-    
-    const currentNegative = calcAvgIntensity(recentEmotions, "negative");
-    const previousNegative = calcAvgIntensity(previousEmotions, "negative");
-    const negativeChange = currentNegative - previousNegative;
-    const negativeChangePercent = previousNegative > 0 
-      ? ((negativeChange / previousNegative) * 100) 
-      : 0;
-    
-    const currentPositive = calcAvgIntensity(recentEmotions, "positive");
-    const previousPositive = calcAvgIntensity(previousEmotions, "positive");
-    const positiveChange = currentPositive - previousPositive;
-    const positiveChangePercent = previousPositive > 0 
-      ? ((positiveChange / previousPositive) * 100) 
-      : 0;
-    
-    const negativeFrequency = filteredEmotions.filter(e => 
-      NEGATIVE_EMOTIONS.includes(e.coreEmotion)
-    ).length;
-    const positiveFrequency = filteredEmotions.filter(e => 
-      POSITIVE_EMOTIONS.includes(e.coreEmotion)
-    ).length;
-    
-    return {
-      negativeIntensity: {
-        current: Math.round(currentNegative * 10) / 10,
-        previous: Math.round(previousNegative * 10) / 10,
-        change: Math.round(negativeChange * 10) / 10,
-        changePercent: Math.round(negativeChangePercent),
-      },
-      positiveIntensity: {
-        current: Math.round(currentPositive * 10) / 10,
-        previous: Math.round(previousPositive * 10) / 10,
-        change: Math.round(positiveChange * 10) / 10,
-        changePercent: Math.round(positiveChangePercent),
-      },
-      negativeFrequency,
-      positiveFrequency,
-    };
+    return emotionalBalance(filteredEmotions, timeRange);
   };
   
   // Calculate thought challenge rate (CBT evidence-based metric)
@@ -272,24 +179,7 @@ export function useProgressInsights(userId: number | undefined, timeRange: "week
   
   // Calculate goal progress
   const calculateGoalProgress = () => {
-    if (filteredGoals.length === 0) {
-      return { completionRate: 0, completed: 0, inProgress: 0, pending: 0, total: 0 };
-    }
-    
-    const completed = filteredGoals.filter(g => 
-      g.status === "completed" || g.status === "approved"
-    ).length;
-    const inProgress = filteredGoals.filter(g => g.status === "in_progress").length;
-    const pending = filteredGoals.filter(g => g.status === "pending").length;
-    const completionRate = Math.round((completed / filteredGoals.length) * 100);
-    
-    return {
-      completionRate,
-      completed,
-      inProgress,
-      pending,
-      total: filteredGoals.length,
-    };
+    return goalProgress(filteredGoals);
   };
   
   // Build unified timeline

@@ -111,6 +111,8 @@ export function ThoughtChallengeWizard({
         evidenceAgainst: data.evidenceAgainst,
         alternativePerspective: data.alternativeThought,
         reflectionRating: Math.round((data.beliefInAlternative / 100) * 10),
+        beliefInOriginal: data.beliefInOriginal,
+        beliefInAlternative: data.beliefInAlternative,
       };
       await apiRequest("PATCH", `/api/users/${activeUserId}/thoughts/${thoughtRecord.id}`, updateData);
       queryClient.invalidateQueries({ queryKey: [`/api/users/${activeUserId}/thoughts`] });
@@ -303,7 +305,7 @@ export function ThoughtChallengeWizard({
               {[
                 { step: "01", label: "Examine Evidence", desc: "What supports or contradicts this thought?", color: "text-rose-400" },
                 { step: "02", label: "Create Alternative", desc: "Craft a balanced, realistic perspective", color: "text-amber-400" },
-                { step: "03", label: "Rate Beliefs", desc: "Measure how your belief shifts through CBT", color: "text-emerald-400" },
+                { step: "03", label: "Rate Beliefs", desc: "Record your current belief in each thought", color: "text-emerald-400" },
               ].map(({ step, label, desc, color }) => (
                 <div key={step} className="flex items-start gap-2.5">
                   <span className={`text-[10px] font-black ${color} mt-0.5 tabular-nums w-5 shrink-0`}>{step}</span>
@@ -537,8 +539,6 @@ export function ThoughtChallengeWizard({
   const StepBeliefs = () => {
     const original = watchedValues.beliefInOriginal ?? 50;
     const alternative = watchedValues.beliefInAlternative ?? 50;
-    const shift = alternative - original;
-    const isPositiveShift = shift >= 0;
 
     return (
       <div className="p-6 space-y-5" data-testid="step-beliefs">
@@ -646,29 +646,15 @@ export function ThoughtChallengeWizard({
           />
         </div>
 
-        {/* Cognitive Shift Indicator */}
-        <div
-          className={`rounded-xl border px-4 py-3 flex items-center gap-3 ${
-            isPositiveShift
-              ? "border-emerald-200 bg-emerald-50/60"
-              : "border-amber-200 bg-amber-50/60"
-          }`}
-        >
-          {isPositiveShift ? (
-            <TrendingUp className="h-5 w-5 text-emerald-600 shrink-0" />
-          ) : (
-            <TrendingDown className="h-5 w-5 text-amber-600 shrink-0" />
-          )}
+        {/* Ratings of different thoughts are not longitudinal measurements. */}
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50/60 px-4 py-3 flex items-center gap-3">
+          <Scale className="h-5 w-5 text-indigo-600 shrink-0" />
           <div>
-            <p className={`text-xs font-bold ${isPositiveShift ? "text-emerald-700" : "text-amber-700"}`}>
-              {isPositiveShift
-                ? `+${shift}% positive cognitive shift detected`
-                : `${Math.abs(shift)}% shift toward original thought`}
+            <p className="text-xs font-bold text-indigo-700">
+              Original thought: {original}% · Alternative thought: {alternative}%
             </p>
-            <p className={`text-[11px] ${isPositiveShift ? "text-emerald-600" : "text-amber-600"}`}>
-              {isPositiveShift
-                ? "Great work! Your belief in the balanced alternative is increasing."
-                : "Try adjusting the sliders to reflect your genuine current beliefs."}
+            <p className="text-[11px] text-indigo-600">
+              These are your current ratings of two different thoughts, not a measured change over time. Choose the ratings that feel accurate to you.
             </p>
           </div>
         </div>
@@ -753,8 +739,8 @@ export function ThoughtChallengeWizard({
                 },
                 {
                   icon: TrendingUp,
-                  label: "Belief Shifted",
-                  sub: `${Math.abs((watchedValues.beliefInOriginal ?? 50) - (watchedValues.beliefInAlternative ?? 50))}% cognitive change`,
+                  label: "Beliefs Recorded",
+                  sub: `Original: ${watchedValues.beliefInOriginal ?? 50}% · Alternative: ${watchedValues.beliefInAlternative ?? 50}%`,
                   color: "text-emerald-600",
                   bg: "bg-emerald-50",
                   border: "border-emerald-200",

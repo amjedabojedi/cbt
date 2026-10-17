@@ -194,6 +194,7 @@ export default function Reports() {
             thoughtChallengeRate={insights.thoughtChallengeRate}
             goalProgress={insights.goalProgress}
             isLoading={insights.isLoading}
+            timeRange={timeRange}
           />
 
           <ModuleQuickLinks />

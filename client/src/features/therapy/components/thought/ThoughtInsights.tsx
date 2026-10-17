@@ -10,6 +10,7 @@ import { useLocation } from "wouter";
 import useActiveUser from "@/hooks/use-active-user";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { recordedBeliefRatings } from "@shared/progress-metrics";
 
 interface ThoughtInsightsProps {
   userId: number;
@@ -106,31 +107,19 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
     ];
   };
 
-  // Calculate belief shift for challenged thoughts
+  const beliefRatings = recordedBeliefRatings(thoughts);
+  // Only paired, explicitly saved ratings are included. Legacy reflection
+  // scores cannot reconstruct the original-thought rating.
   const getBeliefShift = () => {
-    const challengedThoughts = thoughts.filter(th => th.alternativePerspective);
-
-    if (challengedThoughts.length === 0) return [];
-
-    const totalBeliefBefore = challengedThoughts.reduce((sum, th) => {
-      return sum + (th.reflectionRating ? (10 - th.reflectionRating) * 10 : 80);
-    }, 0);
-
-    const totalBeliefAfter = challengedThoughts.reduce((sum, th) => {
-      return sum + ((th.reflectionRating || 0) * 10);
-    }, 0);
-    
-    const avgBeliefBefore = Math.round(totalBeliefBefore / challengedThoughts.length);
-    const avgBeliefAfter = Math.round(totalBeliefAfter / challengedThoughts.length);
-    
+    if (!beliefRatings) return [];
     return [
       {
-        stage: t("Before Challenge"),
-        belief: avgBeliefBefore,
+        stage: t("Original thought"),
+        belief: beliefRatings.original,
       },
       {
-        stage: t("After Challenge"),
-        belief: avgBeliefAfter,
+        stage: t("Alternative thought"),
+        belief: beliefRatings.alternative,
       }
     ];
   };
@@ -465,9 +454,10 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
               <div className="p-1.5 rounded-lg bg-pink-50 text-pink-600">
                 <TrendingUp className="h-4 w-4" />
               </div>
-              <h3 className="font-bold text-slate-800 text-base">{t("Belief Shift")}</h3>
+              <h3 className="font-bold text-slate-800 text-base">{t("Recorded belief ratings")}</h3>
             </div>
-            <p className="text-xs text-slate-500 mt-1">{t("Average shift in belief conviction after restructuring exercises")}</p>
+            <p className="text-xs text-slate-500 mt-1">{t("Average recorded conviction in original and alternative thoughts. These are different beliefs, not a before-and-after measurement.")}</p>
+            <p className="text-xs text-slate-500 mt-1">{t("Thoughts with both ratings saved:")} {tNum(beliefRatings?.count ?? 0)}. {t("Older records without both ratings are excluded.")}</p>
           </div>
           <div className="p-6 flex items-center justify-center min-h-[280px]">
             {getBeliefShift().length > 0 ? (
@@ -509,7 +499,7 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
             ) : (
               <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
                 <AlertCircle className="h-6 w-6 text-slate-300 mb-2" />
-                <p className="text-xs text-slate-400 font-semibold max-w-[200px]">{t("Complete cognitive reframing scenarios to analyze shift patterns.")}</p>
+                <p className="text-xs text-slate-400 font-semibold max-w-[240px]">{t("Paired belief ratings are unavailable. Complete a thought challenge and save both ratings to see this chart. Older ratings are not estimated.")}</p>
               </div>
             )}
           </div>

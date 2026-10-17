@@ -5,25 +5,12 @@ import { cn } from "@/lib/utils";
 import { useLocalization } from "@/lib/localize.tsx";
 import { practiceMilestone } from "@/utils/practiceProgress";
 import { useAuth } from "@/lib/auth";
+import type { EmotionalBalance, ReportingPeriod } from "@shared/progress-metrics";
 
 interface CBTProgressSnapshotProps {
   totalActivities: number;
-  emotionalBalance: {
-    negativeIntensity: {
-      current: number;
-      previous: number;
-      change: number;
-      changePercent: number;
-    };
-    positiveIntensity: {
-      current: number;
-      previous: number;
-      change: number;
-      changePercent: number;
-    };
-    negativeFrequency: number;
-    positiveFrequency: number;
-  };
+  emotionalBalance: EmotionalBalance;
+  timeRange: ReportingPeriod;
   thoughtChallengeRate: {
     rate: number;
     challenged: number;
@@ -43,10 +30,14 @@ const TrendIndicator = ({
   value,
   inverse = false,
 }: {
-  value: number;
+  value: number | null;
   inverse?: boolean;
 }) => {
-  const { tNum } = useLocalization();
+  const { t, tNum } = useLocalization();
+
+  if (value === null) {
+    return <span className="text-[10px] text-slate-500">{t("Comparison unavailable")}</span>;
+  }
 
   if (value === 0) {
     return (
@@ -86,6 +77,7 @@ export default function CBTProgressSnapshot({
   thoughtChallengeRate,
   goalProgress,
   isLoading,
+  timeRange,
 }: CBTProgressSnapshotProps) {
   const { t, tNum } = useLocalization();
   const { user } = useAuth();
@@ -168,7 +160,7 @@ export default function CBTProgressSnapshot({
                 />
               </div>
               <div className="text-xl font-extrabold text-rose-600">
-                {emotionalBalance.negativeIntensity.current > 0
+                {emotionalBalance.negativeIntensity.current !== null
                   ? tNum(emotionalBalance.negativeIntensity.current.toFixed(1))
                   : "—"}
               </div>
@@ -182,13 +174,19 @@ export default function CBTProgressSnapshot({
                 <TrendIndicator value={emotionalBalance.positiveIntensity.changePercent} />
               </div>
               <div className="text-xl font-extrabold text-emerald-600">
-                {emotionalBalance.positiveIntensity.current > 0
+                {emotionalBalance.positiveIntensity.current !== null
                   ? tNum(emotionalBalance.positiveIntensity.current.toFixed(1))
                   : "—"}
               </div>
             </div>
           </div>}
 
+          <p className="text-xs text-slate-500">
+            {t(timeRange === "all"
+              ? "Intensity compares the last 30 days with the previous 30 days."
+              : "Intensity compares the most recent half with the earlier half of the selected period.")}
+            {" "}{t("Both periods need recorded feelings in the same category. Missing entries are not zero intensity or evidence of improvement.")}
+          </p>
           <div className="pt-2 border-t border-slate-50 flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
             <span>{t(clinicalView ? "Affect Intensity" : "Feeling intensity")}</span>
             <span className="text-rose-500 font-extrabold">{t("1-10 Scale")}</span>

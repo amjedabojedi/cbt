@@ -19,6 +19,23 @@ var __copyProps = (to, from, except, desc15) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
+// shared/thought-beliefs.ts
+import { z } from "zod";
+function hasPairedBeliefRatings(data) {
+  return data.beliefInOriginal === void 0 === (data.beliefInAlternative === void 0);
+}
+var rating, thoughtBeliefFields;
+var init_thought_beliefs = __esm({
+  "shared/thought-beliefs.ts"() {
+    "use strict";
+    rating = z.number().int().min(0).max(100);
+    thoughtBeliefFields = {
+      beliefInOriginal: rating.optional(),
+      beliefInAlternative: rating.optional()
+    };
+  }
+});
+
 // shared/schema.ts
 var schema_exports = {};
 __export(schema_exports, {
@@ -80,11 +97,12 @@ __export(schema_exports, {
 });
 import { pgTable, text, serial, integer, jsonb, timestamp, boolean, date, varchar, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
+import { z as z2 } from "zod";
 var subscriptionPlans, users, emotionRecords, cognitiveDistortions, thoughtRecords, protectiveFactors, protectiveFactorUsage, copingStrategies, copingStrategyUsage, goals, goalMilestones, actions, resources, resourceAssignments, resourceFeedback, journalEntries, journalComments, reframePracticeResults, userGameProfile, sessions, passwordResetTokens, insertSubscriptionPlanSchema, insertUserSchema, insertCognitiveDistortionSchema, insertEmotionRecordSchema, insertThoughtRecordSchema, insertProtectiveFactorSchema, insertProtectiveFactorUsageSchema, insertCopingStrategySchema, insertCopingStrategyUsageSchema, insertGoalSchema, insertGoalMilestoneSchema, insertActionSchema, insertResourceSchema, insertResourceAssignmentSchema, insertResourceFeedbackSchema, insertJournalEntrySchema, insertJournalCommentSchema, insertReframePracticeResultSchema, insertUserGameProfileSchema, insertSessionSchema, insertPasswordResetTokenSchema, notifications, insertNotificationSchema, engagementSettings, insertEngagementSettingsSchema, notificationPreferences, systemLogs, insertNotificationPreferencesSchema, insertSystemLogSchema, aiRecommendations, insertAiRecommendationSchema, emailLogs, clientInvitations, insertClientInvitationSchema;
 var init_schema = __esm({
   "shared/schema.ts"() {
     "use strict";
+    init_thought_beliefs();
     subscriptionPlans = pgTable("subscription_plans", {
       id: serial("id").primaryKey(),
       name: text("name").notNull(),
@@ -165,6 +183,8 @@ var init_schema = __esm({
       alternativePerspective: text("alternative_perspective"),
       insightsGained: text("insights_gained"),
       reflectionRating: integer("reflection_rating"),
+      beliefInOriginal: integer("belief_in_original"),
+      beliefInAlternative: integer("belief_in_alternative"),
       relatedJournalEntryIds: jsonb("related_journal_entry_ids").$type(),
       createdAt: timestamp("created_at").defaultNow().notNull()
     });
@@ -395,41 +415,44 @@ var init_schema = __esm({
     insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({ id: true, createdAt: true });
     insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
     insertCognitiveDistortionSchema = createInsertSchema(cognitiveDistortions).omit({ id: true, createdAt: true, updatedAt: true });
-    insertEmotionRecordSchema = z.object({
-      userId: z.number(),
-      coreEmotion: z.string(),
-      primaryEmotion: z.string().optional(),
-      tertiaryEmotion: z.string().optional(),
-      intensity: z.number(),
-      situation: z.string(),
-      location: z.string().nullable().optional(),
-      company: z.string().nullable().optional(),
+    insertEmotionRecordSchema = z2.object({
+      userId: z2.number(),
+      coreEmotion: z2.string(),
+      primaryEmotion: z2.string().optional(),
+      tertiaryEmotion: z2.string().optional(),
+      intensity: z2.number(),
+      situation: z2.string(),
+      location: z2.string().nullable().optional(),
+      company: z2.string().nullable().optional(),
       // Accept any valid date format (string or Date object)
-      timestamp: z.any()
+      timestamp: z2.any()
     });
     insertThoughtRecordSchema = createInsertSchema(thoughtRecords).omit({ id: true, createdAt: true }).extend({
-      automaticThoughts: z.string().max(1e4, "Automatic thoughts must not exceed 10,000 characters"),
-      situation: z.string().max(5e3, "Situation must not exceed 5,000 characters").nullable().optional(),
-      evidenceFor: z.string().max(5e3, "Evidence for must not exceed 5,000 characters").nullable().optional(),
-      evidenceAgainst: z.string().max(5e3, "Evidence against must not exceed 5,000 characters").nullable().optional(),
-      alternativePerspective: z.string().max(5e3, "Alternative perspective must not exceed 5,000 characters").nullable().optional(),
-      insightsGained: z.string().max(5e3, "Insights gained must not exceed 5,000 characters").nullable().optional()
+      automaticThoughts: z2.string().max(1e4, "Automatic thoughts must not exceed 10,000 characters"),
+      situation: z2.string().max(5e3, "Situation must not exceed 5,000 characters").nullable().optional(),
+      evidenceFor: z2.string().max(5e3, "Evidence for must not exceed 5,000 characters").nullable().optional(),
+      evidenceAgainst: z2.string().max(5e3, "Evidence against must not exceed 5,000 characters").nullable().optional(),
+      alternativePerspective: z2.string().max(5e3, "Alternative perspective must not exceed 5,000 characters").nullable().optional(),
+      insightsGained: z2.string().max(5e3, "Insights gained must not exceed 5,000 characters").nullable().optional(),
+      ...thoughtBeliefFields
+    }).refine(hasPairedBeliefRatings, {
+      message: "Original and alternative belief ratings must be submitted together"
     });
     insertProtectiveFactorSchema = createInsertSchema(protectiveFactors).omit({ id: true, createdAt: true });
-    insertProtectiveFactorUsageSchema = z.object({
-      userId: z.number(),
-      thoughtRecordId: z.number(),
-      protectiveFactorId: z.number(),
-      effectivenessRating: z.number().optional(),
-      notes: z.string().optional()
+    insertProtectiveFactorUsageSchema = z2.object({
+      userId: z2.number(),
+      thoughtRecordId: z2.number(),
+      protectiveFactorId: z2.number(),
+      effectivenessRating: z2.number().optional(),
+      notes: z2.string().optional()
     });
     insertCopingStrategySchema = createInsertSchema(copingStrategies).omit({ id: true, createdAt: true });
-    insertCopingStrategyUsageSchema = z.object({
-      userId: z.number(),
-      thoughtRecordId: z.number(),
-      copingStrategyId: z.number(),
-      effectivenessRating: z.number().optional(),
-      notes: z.string().optional()
+    insertCopingStrategyUsageSchema = z2.object({
+      userId: z2.number(),
+      thoughtRecordId: z2.number(),
+      copingStrategyId: z2.number(),
+      effectivenessRating: z2.number().optional(),
+      notes: z2.string().optional()
     });
     insertGoalSchema = createInsertSchema(goals).omit({ id: true, createdAt: true, updatedAt: true });
     insertGoalMilestoneSchema = createInsertSchema(goalMilestones).omit({ id: true, createdAt: true });
@@ -438,11 +461,11 @@ var init_schema = __esm({
     insertResourceAssignmentSchema = createInsertSchema(resourceAssignments).omit({ id: true, assignedAt: true, completedAt: true });
     insertResourceFeedbackSchema = createInsertSchema(resourceFeedback).omit({ id: true, createdAt: true });
     insertJournalEntrySchema = createInsertSchema(journalEntries).omit({ id: true, createdAt: true, updatedAt: true }).extend({
-      title: z.string().max(500, "Title must not exceed 500 characters"),
-      content: z.string().max(5e4, "Content must not exceed 50,000 characters")
+      title: z2.string().max(500, "Title must not exceed 500 characters"),
+      content: z2.string().max(5e4, "Content must not exceed 50,000 characters")
     });
     insertJournalCommentSchema = createInsertSchema(journalComments).omit({ id: true, createdAt: true, updatedAt: true }).extend({
-      comment: z.string().min(1, "Comment cannot be empty").max(2e3, "Comment must not exceed 2,000 characters")
+      comment: z2.string().min(1, "Comment cannot be empty").max(2e3, "Comment must not exceed 2,000 characters")
     });
     insertReframePracticeResultSchema = createInsertSchema(reframePracticeResults).omit({ id: true, createdAt: true });
     insertUserGameProfileSchema = createInsertSchema(userGameProfile).omit({ id: true, createdAt: true, updatedAt: true });
@@ -2331,7 +2354,6 @@ var AdminRepository = class {
   }
   // AI Recommendations
   async createAiRecommendation(recommendation) {
-    console.log("Creating AI recommendation:", recommendation);
     const [newRecommendation] = await db.insert(aiRecommendations).values(recommendation).returning();
     return newRecommendation;
   }
@@ -4966,7 +4988,7 @@ var openaiDirect = new OpenAI({
 });
 
 // server/services/reframeCoach.ts
-import { z as z2 } from "zod";
+import { z as z3 } from "zod";
 function formatCognitiveDistortion(distortion) {
   if (!distortion) return "Unknown";
   if (distortion === "emotional-reasoning") return "Emotional Reasoning";
@@ -4976,26 +4998,26 @@ function formatCognitiveDistortion(distortion) {
   const withoutHyphens = withSpaces.replace(/-/g, " ");
   return withoutHyphens.split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(" ");
 }
-var createReframePracticeSchema = z2.object({
-  thoughtRecordId: z2.number(),
-  assignedTo: z2.number(),
-  isPriority: z2.boolean().optional().default(false),
-  notes: z2.string().optional(),
-  customInstructions: z2.string().optional()
+var createReframePracticeSchema = z3.object({
+  thoughtRecordId: z3.number(),
+  assignedTo: z3.number(),
+  isPriority: z3.boolean().optional().default(false),
+  notes: z3.string().optional(),
+  customInstructions: z3.string().optional()
 });
-var recordPracticeResultSchema = z2.object({
-  assignmentId: z2.number().optional(),
-  thoughtRecordId: z2.number().nullable().optional(),
+var recordPracticeResultSchema = z3.object({
+  assignmentId: z3.number().optional(),
+  thoughtRecordId: z3.number().nullable().optional(),
   // Make thoughtRecordId optional to match our usage
-  userId: z2.number().optional(),
+  userId: z3.number().optional(),
   // Add userId field which is passed from the client
-  score: z2.number(),
-  correctAnswers: z2.number(),
-  totalQuestions: z2.number(),
-  streakCount: z2.number().optional().default(0),
-  timeSpent: z2.number().optional().default(0),
-  scenarioData: z2.any().optional(),
-  userChoices: z2.any().optional()
+  score: z3.number(),
+  correctAnswers: z3.number(),
+  totalQuestions: z3.number(),
+  streakCount: z3.number().optional().default(0),
+  timeSpent: z3.number().optional().default(0),
+  scenarioData: z3.any().optional(),
+  userChoices: z3.any().optional()
   // Remove feedback field since it doesn't exist in the database
 });
 async function calculateAchievements(userId, result) {
@@ -5195,7 +5217,7 @@ function registerReframeCoachRoutes(app2) {
       });
     } catch (error) {
       console.error("Error creating reframe practice assignment:", error);
-      if (error instanceof z2.ZodError) {
+      if (error instanceof z3.ZodError) {
         return res.status(400).json({ message: "Invalid request data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to create practice assignment" });
@@ -5292,7 +5314,7 @@ function registerReframeCoachRoutes(app2) {
       if (error.stack) {
         console.error("Error stack:", error.stack);
       }
-      if (error instanceof z2.ZodError) {
+      if (error instanceof z3.ZodError) {
         console.error("Validation errors:", error.errors);
         return res.status(400).json({
           message: "Invalid request data",
@@ -5554,7 +5576,7 @@ import { Router } from "express";
 
 // server/controllers/subscriptions.controller.ts
 init_schema();
-import { z as z3 } from "zod";
+import { z as z4 } from "zod";
 
 // server/services/stripe.ts
 import Stripe from "stripe";
@@ -5652,7 +5674,7 @@ async function createSubscriptionPlan(req, res) {
     const newPlan = await storage.createSubscriptionPlan(validatedData);
     res.status(201).json(newPlan);
   } catch (error) {
-    if (error instanceof z3.ZodError) {
+    if (error instanceof z4.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Create subscription plan error:", error);
@@ -5673,7 +5695,7 @@ async function updateSubscriptionPlan(req, res) {
     const updatedPlan = await storage.updateSubscriptionPlan(planId, validatedData);
     res.status(200).json(updatedPlan);
   } catch (error) {
-    if (error instanceof z3.ZodError) {
+    if (error instanceof z4.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Update subscription plan error:", error);
@@ -5767,7 +5789,7 @@ var subscriptions_routes_default = router;
 import { Router as Router2 } from "express";
 
 // server/controllers/auth.controller.ts
-import { z as z4 } from "zod";
+import { z as z5 } from "zod";
 import * as bcrypt2 from "bcrypt";
 import * as crypto2 from "crypto";
 import { eq as eq11, and as and8, gt, inArray as inArray2 } from "drizzle-orm";
@@ -5994,7 +6016,7 @@ async function registerUser(req, res) {
     const { password, ...userWithoutPassword } = user;
     res.status(201).json(userWithoutPassword);
   } catch (error) {
-    if (error instanceof z4.ZodError) {
+    if (error instanceof z5.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Registration error:", error);
@@ -6290,7 +6312,7 @@ import { Router as Router3 } from "express";
 
 // server/controllers/users.controller.ts
 init_db();
-import { z as z5 } from "zod";
+import { z as z6 } from "zod";
 import * as bcrypt3 from "bcrypt";
 import * as crypto3 from "crypto";
 import { eq as eq12, sql as sql3 } from "drizzle-orm";
@@ -7105,7 +7127,7 @@ async function createProtectiveFactorUsage(req, res) {
     const usage = await storage.addProtectiveFactorUsage(validatedData);
     res.status(201).json(usage);
   } catch (error) {
-    if (error instanceof z5.ZodError) {
+    if (error instanceof z6.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Add protective factor usage error:", error);
@@ -7122,7 +7144,7 @@ async function createProtectiveFactor(req, res) {
     const factor = await storage.createProtectiveFactor(validatedData);
     res.status(201).json(factor);
   } catch (error) {
-    if (error instanceof z5.ZodError) {
+    if (error instanceof z6.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Create protective factor error:", error);
@@ -7222,7 +7244,7 @@ async function createCopingStrategyUsage(req, res) {
     const usage = await storage.addCopingStrategyUsage(validatedData);
     res.status(201).json(usage);
   } catch (error) {
-    if (error instanceof z5.ZodError) {
+    if (error instanceof z6.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Add coping strategy usage error:", error);
@@ -7239,7 +7261,7 @@ async function createCopingStrategy(req, res) {
     const strategy = await storage.createCopingStrategy(validatedData);
     res.status(201).json(strategy);
   } catch (error) {
-    if (error instanceof z5.ZodError) {
+    if (error instanceof z6.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Create coping strategy error:", error);
@@ -7319,7 +7341,7 @@ async function createAction(req, res) {
     const action = await storage.createAction(validatedData);
     res.status(201).json(action);
   } catch (error) {
-    if (error instanceof z5.ZodError) {
+    if (error instanceof z6.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Create action error:", error);
@@ -7600,7 +7622,7 @@ async function createAiRecommendation(req, res) {
     });
     res.status(201).json(newRecommendation);
   } catch (error) {
-    if (error instanceof z5.ZodError) {
+    if (error instanceof z6.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Error creating AI recommendation:", error);
@@ -7661,7 +7683,7 @@ import { Router as Router4 } from "express";
 init_db();
 init_schema();
 import { eq as eq13, sql as sql4 } from "drizzle-orm";
-import { z as z6 } from "zod";
+import { z as z7 } from "zod";
 function getEmotionColor2(emotion) {
   return getEmotionColor(emotion);
 }
@@ -7784,11 +7806,11 @@ async function updateEmotionRecord(req, res) {
   try {
     const userId = parseInt(req.params.userId);
     const emotionId = parseInt(req.params.emotionId);
-    const updateSchema = z6.object({
-      intensity: z6.number().min(1).max(10).optional(),
-      situation: z6.string().optional(),
-      location: z6.string().nullable().optional(),
-      company: z6.string().nullable().optional()
+    const updateSchema = z7.object({
+      intensity: z7.number().min(1).max(10).optional(),
+      situation: z7.string().optional(),
+      location: z7.string().nullable().optional(),
+      company: z7.string().nullable().optional()
     });
     const validatedUpdate = updateSchema.parse(req.body);
     const existingEmotion = await storage.getEmotionRecordById(emotionId);
@@ -7807,7 +7829,7 @@ async function updateEmotionRecord(req, res) {
     const [updatedEmotion] = await db.update(emotionRecords).set(updateData).where(eq13(emotionRecords.id, emotionId)).returning();
     res.status(200).json(updatedEmotion);
   } catch (error) {
-    if (error instanceof z6.ZodError) {
+    if (error instanceof z7.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Update emotion record error:", error);
@@ -7832,7 +7854,8 @@ import { Router as Router5 } from "express";
 init_db();
 init_schema();
 import { eq as eq14, sql as sql5 } from "drizzle-orm";
-import { z as z7 } from "zod";
+import { z as z8 } from "zod";
+init_thought_beliefs();
 async function getThoughtsCount(req, res) {
   try {
     const userId = parseInt(req.params.userId);
@@ -7856,7 +7879,7 @@ async function createThoughtRecord(req, res) {
     const thoughtRecord = await storage.createThoughtRecord(validatedData);
     res.status(201).json(thoughtRecord);
   } catch (error) {
-    if (error instanceof z7.ZodError) {
+    if (error instanceof z8.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Create thought record error:", error);
@@ -7867,13 +7890,16 @@ async function updateThoughtRecord(req, res) {
   try {
     const userId = parseInt(req.params.userId);
     const thoughtId = parseInt(req.params.thoughtId);
-    const updateSchema = z7.object({
-      cognitiveDistortions: z7.array(z7.string()).optional(),
-      evidenceFor: z7.string().min(1).optional(),
-      evidenceAgainst: z7.string().min(1).optional(),
-      alternativePerspective: z7.string().min(1).optional(),
-      reflectionRating: z7.number().min(0).max(10).optional(),
-      insightsGained: z7.string().min(1).optional()
+    const updateSchema = z8.object({
+      cognitiveDistortions: z8.array(z8.string()).optional(),
+      evidenceFor: z8.string().min(1).optional(),
+      evidenceAgainst: z8.string().min(1).optional(),
+      alternativePerspective: z8.string().min(1).optional(),
+      reflectionRating: z8.number().min(0).max(10).optional(),
+      insightsGained: z8.string().min(1).optional(),
+      ...thoughtBeliefFields
+    }).refine(hasPairedBeliefRatings, {
+      message: "Original and alternative belief ratings must be submitted together"
     });
     const validatedUpdate = updateSchema.parse(req.body);
     const existingThought = await storage.getThoughtRecordById(thoughtId);
@@ -7889,12 +7915,14 @@ async function updateThoughtRecord(req, res) {
       ...validatedUpdate.evidenceAgainst !== void 0 && { evidenceAgainst: validatedUpdate.evidenceAgainst },
       ...validatedUpdate.alternativePerspective !== void 0 && { alternativePerspective: validatedUpdate.alternativePerspective },
       ...validatedUpdate.reflectionRating !== void 0 && { reflectionRating: validatedUpdate.reflectionRating },
+      ...validatedUpdate.beliefInOriginal !== void 0 && { beliefInOriginal: validatedUpdate.beliefInOriginal },
+      ...validatedUpdate.beliefInAlternative !== void 0 && { beliefInAlternative: validatedUpdate.beliefInAlternative },
       ...validatedUpdate.insightsGained !== void 0 && { insightsGained: validatedUpdate.insightsGained }
     };
     const [updatedThought] = await db.update(thoughtRecords).set(updateData).where(eq14(thoughtRecords.id, thoughtId)).returning();
     res.status(200).json(updatedThought);
   } catch (error) {
-    if (error instanceof z7.ZodError) {
+    if (error instanceof z8.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Update thought record error:", error);
@@ -8084,7 +8112,7 @@ import { Router as Router6 } from "express";
 init_db();
 init_schema();
 import { eq as eq15 } from "drizzle-orm";
-import { z as z8 } from "zod";
+import { z as z9 } from "zod";
 async function updateGoalStatusBasedOnMilestones(goalId) {
   try {
     const milestones = await db.select().from(goalMilestones).where(eq15(goalMilestones.goalId, goalId));
@@ -8128,7 +8156,7 @@ async function createGoal(req, res) {
     const goal = await storage.createGoal(validatedData);
     res.status(201).json(goal);
   } catch (error) {
-    if (error instanceof z8.ZodError) {
+    if (error instanceof z9.ZodError) {
       console.error("Goal validation error:", JSON.stringify(error.errors));
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
@@ -8244,7 +8272,7 @@ async function createGoalMilestone(req, res) {
     await updateGoalStatusBasedOnMilestones(goalId);
     res.status(201).json(milestone);
   } catch (error) {
-    if (error instanceof z8.ZodError) {
+    if (error instanceof z9.ZodError) {
       console.error("Milestone validation error:", JSON.stringify(error.errors));
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
@@ -8331,7 +8359,7 @@ import { Router as Router7 } from "express";
 init_db();
 init_schema();
 import { eq as eq16 } from "drizzle-orm";
-import { z as z9 } from "zod";
+import { z as z10 } from "zod";
 async function getJournalEntryById(req, res) {
   try {
     const entryId = Number(req.params.id);
@@ -8395,7 +8423,7 @@ async function createJournalEntry(req, res) {
     }
     res.status(201).json(newEntry);
   } catch (error) {
-    if (error instanceof z9.ZodError) {
+    if (error instanceof z10.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Create journal entry error:", error);
@@ -8442,7 +8470,7 @@ async function updateJournalEntry(req, res) {
     const updatedEntry = await storage.updateJournalEntry(entryId, updatedData);
     res.status(200).json(updatedEntry);
   } catch (error) {
-    if (error instanceof z9.ZodError) {
+    if (error instanceof z10.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Update journal entry error:", error);
@@ -8594,7 +8622,7 @@ ${commentsPart}`;
     }
     res.status(201).json(newComment);
   } catch (error) {
-    if (error instanceof z9.ZodError) {
+    if (error instanceof z10.ZodError) {
       console.log("Journal comment validation error:", JSON.stringify(error.errors, null, 2));
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
@@ -8624,7 +8652,7 @@ async function updateJournalComment(req, res) {
     const updatedComment = await storage.updateJournalComment(commentId, validatedData);
     res.status(200).json(updatedComment);
   } catch (error) {
-    if (error instanceof z9.ZodError) {
+    if (error instanceof z10.ZodError) {
       return res.status(400).json({ message: "Invalid data", errors: error.errors });
     }
     console.error("Update journal comment error:", error);
@@ -9700,8 +9728,8 @@ async function submitAssignmentFeedback(req, res) {
     if (!user) return res.status(401).json({ message: "Unauthorized" });
     const assignmentId = parseInt(req.params.id);
     if (isNaN(assignmentId)) return res.status(400).json({ message: "Invalid assignment ID" });
-    const { rating, feedback } = req.body;
-    if (!rating || typeof rating !== "number" || rating < 1 || rating > 5) {
+    const { rating: rating2, feedback } = req.body;
+    if (!rating2 || typeof rating2 !== "number" || rating2 < 1 || rating2 > 5) {
       return res.status(400).json({ message: "rating must be a number between 1 and 5" });
     }
     const assignment = await storage.getResourceAssignmentById(assignmentId);
@@ -9717,7 +9745,7 @@ async function submitAssignmentFeedback(req, res) {
     const saved = await storage.createResourceFeedback({
       resourceId: assignment.resourceId,
       userId: user.id,
-      rating,
+      rating: rating2,
       feedback: feedback || null
     });
     res.status(201).json(saved);

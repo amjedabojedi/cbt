@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer, jsonb, timestamp, boolean, foreignKey, date, varchar, real, type AnyPgColumn } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { thoughtBeliefFields, hasPairedBeliefRatings } from "./thought-beliefs";
 
 // Subscription plans table
 export const subscriptionPlans = pgTable("subscription_plans", {
@@ -87,6 +88,8 @@ export const thoughtRecords = pgTable("thought_records", {
   alternativePerspective: text("alternative_perspective"),
   insightsGained: text("insights_gained"),
   reflectionRating: integer("reflection_rating"),
+  beliefInOriginal: integer("belief_in_original"),
+  beliefInAlternative: integer("belief_in_alternative"),
   relatedJournalEntryIds: jsonb("related_journal_entry_ids").$type<number[]>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -331,6 +334,9 @@ export const insertThoughtRecordSchema = createInsertSchema(thoughtRecords).omit
   evidenceAgainst: z.string().max(5000, "Evidence against must not exceed 5,000 characters").nullable().optional(),
   alternativePerspective: z.string().max(5000, "Alternative perspective must not exceed 5,000 characters").nullable().optional(),
   insightsGained: z.string().max(5000, "Insights gained must not exceed 5,000 characters").nullable().optional(),
+  ...thoughtBeliefFields,
+}).refine(hasPairedBeliefRatings, {
+  message: "Original and alternative belief ratings must be submitted together",
 });
 export const insertProtectiveFactorSchema = createInsertSchema(protectiveFactors).omit({ id: true, createdAt: true });
 // Custom schema for protective factor usage to better handle validation

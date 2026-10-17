@@ -6,6 +6,7 @@ import { Target, TrendingUp, Award, BarChart3, CheckCircle, Clock, Calendar as C
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { format, subDays, subYears, eachDayOfInterval, eachMonthOfInterval, startOfWeek, endOfWeek, endOfMonth, isWithinInterval } from "date-fns";
 import { useLocalization } from "@/lib/localize";
+import { goalProgress } from "@shared/progress-metrics";
 
 interface GoalInsightsProps {
   userId: number;
@@ -31,18 +32,7 @@ export default function GoalInsights({ userId }: GoalInsightsProps) {
 
   // Calculate completion rate
   const getCompletionRate = () => {
-    const total = goals.length;
-    const completed = goals.filter((g: Goal) => g.status === 'completed').length;
-    const inProgress = goals.filter((g: Goal) => g.status === 'in_progress').length;
-    const pending = goals.filter((g: Goal) => g.status === 'pending').length;
-    
-    return {
-      total,
-      completed,
-      inProgress,
-      pending,
-      completionRate: total > 0 ? (completed / total) * 100 : 0,
-    };
+    return goalProgress(goals);
   };
 
   // Calculate status distribution

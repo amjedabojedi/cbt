@@ -5,6 +5,7 @@ import { thoughtRecords, insertThoughtRecordSchema } from "@shared/schema";
 import { storage } from "../storage";
 import { z } from "zod";
 import { isClientOfTherapist } from "./users.controller";
+import { thoughtBeliefFields, hasPairedBeliefRatings } from "@shared/thought-beliefs";
 
 // Get thoughts count
 export async function getThoughtsCount(req: Request, res: Response) {
@@ -61,6 +62,9 @@ export async function updateThoughtRecord(req: Request, res: Response) {
       alternativePerspective: z.string().min(1).optional(),
       reflectionRating: z.number().min(0).max(10).optional(),
       insightsGained: z.string().min(1).optional(),
+      ...thoughtBeliefFields,
+    }).refine(hasPairedBeliefRatings, {
+      message: "Original and alternative belief ratings must be submitted together",
     });
     
     const validatedUpdate = updateSchema.parse(req.body);
@@ -83,6 +87,8 @@ export async function updateThoughtRecord(req: Request, res: Response) {
       ...(validatedUpdate.evidenceAgainst !== undefined && { evidenceAgainst: validatedUpdate.evidenceAgainst }),
       ...(validatedUpdate.alternativePerspective !== undefined && { alternativePerspective: validatedUpdate.alternativePerspective }),
       ...(validatedUpdate.reflectionRating !== undefined && { reflectionRating: validatedUpdate.reflectionRating }),
+      ...(validatedUpdate.beliefInOriginal !== undefined && { beliefInOriginal: validatedUpdate.beliefInOriginal }),
+      ...(validatedUpdate.beliefInAlternative !== undefined && { beliefInAlternative: validatedUpdate.beliefInAlternative }),
       ...(validatedUpdate.insightsGained !== undefined && { insightsGained: validatedUpdate.insightsGained }),
     };
     
