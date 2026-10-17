@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Request, Response } from "express";
 import { recommendation, recommendationInput } from "./fixtures/ai-recommendation";
 
@@ -141,6 +141,79 @@ describe("createAiRecommendation", () => {
       ]),
     });
     expectNoSideEffects();
+  });
+
+  describe("service failures", () => {
+    beforeEach(() => {
+      vi.spyOn(console, "error").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    function expectGenericFailure(res: ReturnType<typeof response>["res"]) {
+      expect(res.status).toHaveBeenCalledExactlyOnceWith(500);
+      expect(res.json).toHaveBeenCalledExactlyOnceWith({
+        message: "Failed to create AI recommendation",
+      });
+    }
+
+    it("returns a generic 500 after lookup failure without saving or notifying", async () => {
+      storage.getUser.mockRejectedValueOnce(new Error("Synthetic lookup failure"));
+      const { res, expressRes } = response();
+
+      await createAiRecommendation(request(), expressRes);
+
+      expect(storage.getUser).toHaveBeenCalledExactlyOnceWith(17);
+      expectNoSideEffects();
+      expectGenericFailure(res);
+    });
+
+    it("returns a generic 500 after save failure without notifying or retrying the save", async () => {
+      storage.createAiRecommendation.mockRejectedValueOnce(new Error("Synthetic save failure"));
+      const { res, expressRes } = response();
+
+      await createAiRecommendation(request(), expressRes);
+
+      expect(storage.getUser).toHaveBeenCalledExactlyOnceWith(17);
+      expect(storage.createAiRecommendation).toHaveBeenCalledExactlyOnceWith({
+        ...validBody,
+        userId: 17,
+        therapistId: 42,
+        status: "pending",
+      });
+      expect(storage.getUser.mock.invocationCallOrder[0])
+        .toBeLessThan(storage.createAiRecommendation.mock.invocationCallOrder[0]);
+      expect(sendNotificationToUser).not.toHaveBeenCalled();
+      expectGenericFailure(res);
+    });
+
+    it("returns a generic 500 after notification failure even though the recommendation was saved once", async () => {
+      sendNotificationToUser.mockRejectedValueOnce(new Error("Synthetic notification failure"));
+      const { res, expressRes } = response();
+
+      await createAiRecommendation(request(), expressRes);
+
+      expect(storage.getUser).toHaveBeenCalledExactlyOnceWith(17);
+      expect(storage.createAiRecommendation).toHaveBeenCalledExactlyOnceWith({
+        ...validBody,
+        userId: 17,
+        therapistId: 42,
+        status: "pending",
+      });
+      expect(sendNotificationToUser).toHaveBeenCalledExactlyOnceWith(42, {
+        title: "New AI Recommendation",
+        content: "There is a new AI recommendation for Test Client that requires your review.",
+        type: "ai_recommendation",
+        link: "/therapist/recommendations",
+      });
+      expect(storage.getUser.mock.invocationCallOrder[0])
+        .toBeLessThan(storage.createAiRecommendation.mock.invocationCallOrder[0]);
+      expect(storage.createAiRecommendation.mock.invocationCallOrder[0])
+        .toBeLessThan(sendNotificationToUser.mock.invocationCallOrder[0]);
+      expectGenericFailure(res);
+    });
   });
 
   describe.each([
