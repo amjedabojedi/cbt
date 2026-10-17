@@ -250,6 +250,54 @@ describe("createAiRecommendation", () => {
     expectNoSideEffects();
   });
 
+  it.each([
+    { label: "zero", ids: [0], index: 0 },
+    { label: "negative integer", ids: [-1], index: 0 },
+    { label: "fraction", ids: [1.5], index: 0 },
+    { label: "above the serial range", ids: [2_147_483_648], index: 0 },
+    { label: "maximum safe integer outside the serial range", ids: [Number.MAX_SAFE_INTEGER], index: 0 },
+    { label: "unsafe integer", ids: [Number.MAX_SAFE_INTEGER + 1], index: 0 },
+    { label: "NaN", ids: [Number.NaN], index: 0 },
+    { label: "positive infinity", ids: [Number.POSITIVE_INFINITY], index: 0 },
+    { label: "negative infinity", ids: [Number.NEGATIVE_INFINITY], index: 0 },
+    { label: "invalid ID after a valid ID", ids: [3, 0], index: 1 },
+  ])("rejects resource IDs containing $label without saving or notifying", async ({ ids, index }) => {
+    const { res, expressRes } = response();
+
+    await createAiRecommendation(request({ ...validBody, suggestedResources: ids }), expressRes);
+
+    expect(storage.getUser).toHaveBeenCalledExactlyOnceWith(17);
+    expect(res.status).toHaveBeenCalledExactlyOnceWith(400);
+    expect(res.json).toHaveBeenCalledExactlyOnceWith({
+      message: "Invalid data",
+      errors: expect.arrayContaining([
+        expect.objectContaining({ path: ["suggestedResources", index], message: expect.any(String) }),
+      ]),
+    });
+    expectNoSideEffects();
+  });
+
+  it.each([1, 2_147_483_647])("accepts the resource ID boundary %s unchanged", async id => {
+    const body = { ...validBody, suggestedResources: [id] };
+    const originalBody = structuredClone(body);
+    const { res, expressRes } = response();
+
+    await createAiRecommendation(request(body), expressRes);
+
+    expect(storage.createAiRecommendation).toHaveBeenCalledExactlyOnceWith({
+      ...originalBody,
+      userId: 17,
+      therapistId: 42,
+      status: "pending",
+    });
+    expect(sendNotificationToUser).toHaveBeenCalledExactlyOnceWith(42, expect.objectContaining({
+      type: "ai_recommendation",
+    }));
+    expect(res.status).toHaveBeenCalledExactlyOnceWith(201);
+    expect(res.json).toHaveBeenCalledExactlyOnceWith(recommendation);
+    expect(body).toEqual(originalBody);
+  });
+
   describe.each(["suggestedResources", "implementationSteps"] as const)("%s compatibility", field => {
     it.each(["populated", "empty", "null", "omitted"] as const)("preserves a %s list", async variant => {
       const body = { ...validBody };

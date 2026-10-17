@@ -569,8 +569,11 @@ export const aiRecommendations = pgTable("ai_recommendations", {
   implementedAt: timestamp("implemented_at"),
 });
 
+// Resource IDs are PostgreSQL serial values: positive signed 32-bit integers.
+export const resourceIdSchema = z.number().int().safe().min(1).max(2_147_483_647);
+
 export const insertAiRecommendationSchema = createInsertSchema(aiRecommendations, {
-  suggestedResources: z.array(z.number()).nullable().optional(),
+  suggestedResources: z.array(resourceIdSchema).nullable().optional(),
   implementationSteps: z.array(z.string()).nullable().optional(),
 }).omit({
   id: true,
