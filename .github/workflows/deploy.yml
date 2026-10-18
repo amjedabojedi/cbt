@@ -37,7 +37,7 @@ jobs:
             set -e
             cd /var/www/cbt-client/cbt
             echo "Pulling latest code..."
-            git checkout -- package-lock.json || true
+            git restore -- server-dist || true
             git pull origin main
             echo "Installing dependencies..."
             npm install --legacy-peer-deps
