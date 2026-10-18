@@ -33,6 +33,12 @@ Show completion after a confirmed write without waiting for background History o
 
 **How to apply:** Separate write success from cache refresh. Update an already-loaded in-memory list with the acknowledged record while refetching; do not invent a complete list when it has never loaded. Preserve writing on write failure, show a persistent error near the action, and never label a confirmed save as failed because a later read could not refresh.
 
+Do not declare the user's live thought-challenge failure resolved solely because isolated browser checks pass.
+
+**Why:** The user repeatedly reported that the History menu's challenge entry did not work after earlier reports said the flow passed. Successful isolated checks and publicly present handler code do not establish what happens in the user's authenticated browser.
+
+**How to apply:** Trace the exact reported entry point and distinguish local test evidence from live-session verification. If the failure cannot be reproduced, say that explicitly and establish what happens immediately after the click. Do not infer a database fault or an outdated release without evidence.
+
 Treat practice milestones as encouragement, never a recovery score or a validated treatment target.
 
 **Why:** More records do not necessarily indicate clinical improvement, and fixed activity thresholds are not a clinical assessment.
