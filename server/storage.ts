@@ -30,6 +30,7 @@ import { TherapyRepository } from "./repositories/therapy.repository";
 import { GoalsRepository } from "./repositories/goals.repository";
 import { JournalRepository } from "./repositories/journal.repository";
 import { ResourcesRepository } from "./repositories/resources.repository";
+import type { ResourceReferenceSummary } from "@shared/resource-references";
 import { BillingRepository } from "./repositories/billing.repository";
 import { NotificationsRepository } from "./repositories/notifications.repository";
 import { AdminRepository } from "./repositories/admin.repository";
@@ -139,6 +140,7 @@ export interface IStorage {
   getAllResources(includeUnpublished?: boolean): Promise<Resource[]>;
   updateResource(id: number, data: Partial<InsertResource>): Promise<Resource>;
   deleteResource(id: number): Promise<void>;
+  getResourceRecommendationReferences(id: number, viewer: { id: number; role: "admin" | "therapist" }): Promise<ResourceReferenceSummary>;
   cloneResource(resourceId: number, userId: number): Promise<Resource>;
 
   // Resource assignments
@@ -550,6 +552,10 @@ export class DatabaseStorage implements IStorage {
   
   async deleteResource(id: number): Promise<void> {
     return this.resourcesRepo.deleteResource(id);
+  }
+
+  async getResourceRecommendationReferences(id: number, viewer: { id: number; role: "admin" | "therapist" }): Promise<ResourceReferenceSummary> {
+    return this.resourcesRepo.getResourceRecommendationReferences(id, viewer);
   }
   
   async cloneResource(resourceId: number, userId: number): Promise<Resource> {

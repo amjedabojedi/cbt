@@ -5,6 +5,7 @@ import {
   createResource,
   updateResource,
   deleteResource,
+  getResourceRecommendationReferences,
   assignResource,
   cloneResource,
   getTherapistAssignments,
@@ -22,6 +23,7 @@ router.post("/resources", authenticate, createResource);
 router.post("/resources/assign", authenticate, assignResource);  // before /:id
 router.patch("/resources/:id", authenticate, updateResource);
 router.delete("/resources/:id", authenticate, deleteResource);
+router.get("/resources/:id/recommendation-references", authenticate, getResourceRecommendationReferences);
 router.post("/resources/:id/clone", authenticate, cloneResource);
 
 // Therapist resource assignments

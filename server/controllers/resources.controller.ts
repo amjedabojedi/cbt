@@ -90,6 +90,32 @@ export async function updateResource(req: Request, res: Response) {
   }
 }
 
+// GET /api/resources/:id/recommendation-references
+export async function getResourceRecommendationReferences(req: Request, res: Response) {
+  try {
+    const user = req.user;
+    if (!user) return res.status(401).json({ message: "Unauthorized" });
+    if (user.role !== "admin" && user.role !== "therapist") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    const resourceId = Number(req.params.id);
+    if (!Number.isSafeInteger(resourceId) || resourceId < 1 || resourceId > 2_147_483_647) {
+      return res.status(400).json({ message: "Invalid resource ID" });
+    }
+    const resource = await storage.getResourceById(resourceId);
+    if (!resource) return res.status(404).json({ message: "Resource not found" });
+    if (user.role !== "admin" && resource.createdBy !== user.id) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    const summary = await storage.getResourceRecommendationReferences(resourceId, { id: user.id, role: user.role });
+    res.set("Cache-Control", "no-store");
+    res.json(summary);
+  } catch {
+    // Database errors can contain private values; do not log the raw error.
+    res.status(500).json({ message: "Failed to fetch recommendation references" });
+  }
+}
+
 // DELETE /api/resources/:id
 export async function deleteResource(req: Request, res: Response) {
   try {

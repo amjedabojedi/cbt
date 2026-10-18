@@ -56,6 +56,7 @@ import {
   useCreateCopingStrategy, useUpdateCopingStrategy, useDeleteCopingStrategy,
   useCreateResource, useUpdateResource, useDeleteResource,
   useAssignResource, useCloneResource, useUpdateAssignmentStatus, useSubmitFeedback,
+  useResourceRecommendationReferences, resourceRecommendationReferencesQueryKey,
 } from "@/features/resources/hooks/useResources";
 
 // ─── Schemas ───
@@ -174,7 +175,7 @@ function ResourceCard({
                 <Edit className="h-3.5 w-3.5" />
               </Button>
               {(user?.role === "admin" || resource.createdBy === user?.id) && (
-                <Button variant="ghost" size="icon" onClick={() => onDelete(resource)}
+                <Button variant="ghost" size="icon" aria-label={t("Delete resource")} onClick={() => onDelete(resource)}
                   className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50">
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -280,6 +281,7 @@ export default function ResourceLibrary() {
   const [isAddingResource, setIsAddingResource] = useState(false);
   const [isAssigningResource, setIsAssigningResource] = useState(false);
   const [isDeleteResourceDialogOpen, setIsDeleteResourceDialogOpen] = useState(false);
+  const [deleteTargetResource, setDeleteTargetResource] = useState<EducationalResource | null>(null);
   const [selectedClients, setSelectedClients] = useState<number[]>([]);
   const [assignmentNotes, setAssignmentNotes] = useState("");
   const [currentResource, setCurrentResource] = useState<EducationalResource | null>(null);
@@ -329,8 +331,31 @@ export default function ResourceLibrary() {
   const createResourceMutation = useCreateResource();
   const updateResourceMutation = useUpdateResource();
   const deleteResourceMutation = useDeleteResource();
+  const recommendationReferences = useResourceRecommendationReferences(
+    deleteTargetResource?.id,
+    isDeleteResourceDialogOpen,
+  );
   const assignResourceMutation = useAssignResource();
   const cloneResourceMutation = useCloneResource();
+
+  const closeResourceDeleteDialog = () => {
+    const resourceId = deleteTargetResource?.id;
+    setIsDeleteResourceDialogOpen(false);
+    setDeleteTargetResource(null);
+    if (resourceId) {
+      // Removing a query also cancels it; do not asynchronously remove a
+      // replacement query if the user immediately reopens this resource.
+      queryClient.removeQueries({
+        queryKey: resourceRecommendationReferencesQueryKey(resourceId),
+        exact: true,
+      });
+    }
+  };
+
+  const requestResourceDelete = (resource: EducationalResource) => {
+    setDeleteTargetResource(resource);
+    setIsDeleteResourceDialogOpen(true);
+  };
 
   const onSubmitFactor = (data: ProtectiveFactorFormValues) =>
     createFactorMutation.mutate(data, { onSuccess: () => { setIsAddingFactor(false); factorForm.reset(); } });
@@ -740,7 +765,7 @@ export default function ResourceLibrary() {
                     <ResourceCard key={resource.id} resource={resource} user={user}
                       onView={(r) => setCurrentResource({ ...r, isEditing: false })}
                       onEdit={(r) => setCurrentResource({ ...r, isEditing: true })}
-                      onDelete={(r) => { setCurrentResource(r); setIsDeleteResourceDialogOpen(true); }}
+                      onDelete={requestResourceDelete}
                       onAssign={(r) => { setCurrentResource(r); setIsAssigningResource(true); }}
                     />
                   ))}
@@ -1390,11 +1415,11 @@ export default function ResourceLibrary() {
 
         {/* ── Global dialogs ── */}
         <ResourceViewer
-          resource={currentResource && !currentResource.isEditing && !isAssigningResource ? currentResource : null}
-          user={user} open={!!currentResource && !currentResource.isEditing && !isAssigningResource}
+          resource={currentResource && !currentResource.isEditing && !isAssigningResource && !isDeleteResourceDialogOpen ? currentResource : null}
+          user={user} open={!!currentResource && !currentResource.isEditing && !isAssigningResource && !isDeleteResourceDialogOpen}
           onClose={() => setCurrentResource(null)}
           onEdit={() => currentResource && setCurrentResource({ ...currentResource, isEditing: true })}
-          onDelete={() => { if (currentResource) deleteResourceMutation.mutate(currentResource.id, { onSuccess: () => setCurrentResource(null) }); }}
+          onDelete={() => { if (currentResource) requestResourceDelete(currentResource); }}
           onClone={() => { if (currentResource) cloneResourceMutation.mutate(currentResource.id, { onSuccess: () => setCurrentResource(null) }); }}
           isDeleting={deleteResourceMutation.isPending} isCloning={cloneResourceMutation.isPending}
         />
@@ -1407,16 +1432,111 @@ export default function ResourceLibrary() {
           educationalResources={educationalResources ?? []} onSubmitCreate={handleSubmitCreate}
           onSubmitEdit={handleSubmitEdit} isPending={createResourceMutation.isPending} />
 
-        <Dialog open={isDeleteResourceDialogOpen} onOpenChange={setIsDeleteResourceDialogOpen}>
+        <Dialog open={isDeleteResourceDialogOpen} onOpenChange={(open) => { if (!open) closeResourceDeleteDialog(); }}>
           <DialogContent className={dlgContentSm}>
             <DialogHeader>
               <DialogTitle className="text-slate-800">{t("Delete Educational Resource?")}</DialogTitle>
-              <DialogDescription className="text-slate-500">{t("This action cannot be undone.")}</DialogDescription>
+              <DialogDescription className="text-slate-500">
+                {t("This action cannot be undone.")}
+                {deleteTargetResource && (
+                  <span className="mt-1 block font-medium text-slate-700">
+                    <DynamicTranslator text={deleteTargetResource.title} />
+                  </span>
+                )}
+              </DialogDescription>
             </DialogHeader>
+            <div className="space-y-3 text-sm">
+              {recommendationReferences.isFetching && (
+                <div className="space-y-2 py-1" role="status" aria-live="polite">
+                  <div className="h-4 w-4/5 animate-pulse rounded bg-slate-100" />
+                  <div className="h-10 w-full animate-pulse rounded-lg bg-slate-100" />
+                  <span className="sr-only">{t("Checking saved references…")}</span>
+                </div>
+              )}
+              {recommendationReferences.isError && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                  <p className="text-sm text-amber-900">
+                    {t("Saved references could not be checked. Retry before deleting this resource.")}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 rounded-lg border-amber-300 bg-white"
+                    disabled={recommendationReferences.isFetching}
+                    onClick={() => { void recommendationReferences.refetch(); }}
+                  >
+                    {recommendationReferences.isFetching ? t("Checking…") : t("Retry")}
+                  </Button>
+                </div>
+              )}
+              {recommendationReferences.isSuccess && (
+                <>
+                  {recommendationReferences.data.hasReferences && (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-900">
+                      <p className="font-semibold">{t("Deletion is blocked")}</p>
+                      <p className="mt-1 text-xs leading-relaxed">
+                        {t("This resource is used by saved recommendations and cannot be deleted. Saved history is preserved for every recommendation status.")}
+                      </p>
+                    </div>
+                  )}
+                  {recommendationReferences.data.references.length > 0 ? (
+                    <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50">
+                      <div className="divide-y divide-slate-200">
+                        {recommendationReferences.data.references.map((reference) => {
+                          const createdDate = new Date(reference.createdAt);
+                          const formattedDate = Number.isNaN(createdDate.getTime())
+                            ? reference.createdAt
+                            : createdDate.toLocaleDateString();
+                          return (
+                            <div key={reference.id} className="flex items-start justify-between gap-3 px-3 py-2.5 text-xs">
+                              <div className="min-w-0">
+                                <p className="font-semibold text-slate-700">
+                                  {t("Recommendation")} #{reference.id}
+                                </p>
+                                <p className="mt-0.5 text-slate-500">
+                                  {t("Status")}: {reference.status}
+                                </p>
+                              </div>
+                              <time className="shrink-0 text-right text-slate-500" dateTime={reference.createdAt}>
+                                {formattedDate}
+                              </time>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    !recommendationReferences.data.hasReferences && (
+                      <p className="rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600">
+                        {t("No saved recommendation references were found.")}
+                      </p>
+                    )
+                  )}
+                  {recommendationReferences.data.hasMore && (
+                    <p className="text-xs text-slate-500">
+                      {t("More references exist than are shown here.")}
+                    </p>
+                  )}
+                </>
+              )}
+              <p className="text-xs leading-relaxed text-slate-500">
+                {t("Only references you are permitted to see are shown. No client history is automatically removed.")}
+              </p>
+            </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDeleteResourceDialogOpen(false)} className="rounded-xl">{t("Cancel")}</Button>
-              <Button variant="destructive" className="rounded-xl" disabled={deleteResourceMutation.isPending}
-                onClick={() => { if (currentResource) deleteResourceMutation.mutate(currentResource.id, { onSuccess: () => { setCurrentResource(null); setIsDeleteResourceDialogOpen(false); } }); }}>
+              <Button variant="outline" onClick={closeResourceDeleteDialog} className="rounded-xl">{t("Cancel")}</Button>
+              <Button variant="destructive" className="rounded-xl"
+                disabled={deleteResourceMutation.isPending || recommendationReferences.isFetching || !recommendationReferences.isSuccess || !!recommendationReferences.data?.hasReferences}
+                onClick={() => {
+                  if (!deleteTargetResource || recommendationReferences.isFetching || !recommendationReferences.isSuccess || recommendationReferences.data.hasReferences) return;
+                  deleteResourceMutation.mutate(deleteTargetResource.id, {
+                    onSuccess: () => {
+                      if (currentResource?.id === deleteTargetResource.id) setCurrentResource(null);
+                      closeResourceDeleteDialog();
+                    },
+                  });
+                }}>
                 {deleteResourceMutation.isPending ? t("Deleting…") : t("Delete")}
               </Button>
             </DialogFooter>

@@ -37,6 +37,49 @@ export function useEducationalResources(enabled: boolean) {
   });
 }
 
+export type ResourceRecommendationReference = {
+  id: number;
+  status: string;
+  createdAt: string;
+};
+
+export type ResourceRecommendationReferences = {
+  hasReferences: boolean;
+  references: ResourceRecommendationReference[];
+  hasMore: boolean;
+};
+
+export function resourceRecommendationReferencesQueryKey(resourceId: number) {
+  return [`/api/resources/${resourceId}/recommendation-references`] as const;
+}
+
+export function useResourceRecommendationReferences(
+  resourceId: number | undefined,
+  enabled: boolean,
+) {
+  return useQuery<ResourceRecommendationReferences>({
+    queryKey: resourceId
+      ? resourceRecommendationReferencesQueryKey(resourceId)
+      : ["/api/resources/recommendation-references", "disabled"],
+    queryFn: async () => {
+      if (!resourceId) throw new Error("Resource ID is required");
+      const response = await apiRequest(
+        "GET",
+        `/api/resources/${resourceId}/recommendation-references`,
+      );
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to load saved references");
+      }
+      return response.json();
+    },
+    enabled: !!resourceId && enabled,
+    staleTime: 0,
+    refetchOnMount: "always",
+    retry: false,
+  });
+}
+
 export function useTherapistClients(enabled: boolean) {
   return useQuery<any[]>({
     queryKey: ["/api/users/clients"],
@@ -262,6 +305,9 @@ export function useDeleteResource() {
   const { toast } = useToast();
 
   return useMutation({
+    // A 409 is a policy decision, not a transient failure. Refresh references
+    // instead of inheriting the application's automatic mutation retries.
+    retry: false,
     mutationFn: async (resourceId: number) => {
       const response = await apiRequest("DELETE", `/api/resources/${resourceId}`, null);
       if (response.status === 404) return { success: true };
@@ -278,6 +324,17 @@ export function useDeleteResource() {
     },
     onError: (error) => {
       console.error("Error deleting resource:", error);
+      queryClient.invalidateQueries({
+        queryKey: ["/api/resources"],
+      });
+      // Refresh the authoritative reference summary after a deletion conflict/race.
+      // Any active confirmation dialog will refetch immediately.
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          typeof query.queryKey[0] === "string" &&
+          /^\/api\/resources\/\d+\/recommendation-references$/.test(query.queryKey[0]),
+      });
       if (error instanceof Error && error.message === "Resource not found") {
         queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
         toast({ title: "Resource Deleted", description: "The educational resource has been removed from the library." });

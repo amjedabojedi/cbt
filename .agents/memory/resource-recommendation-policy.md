@@ -19,3 +19,9 @@ rewrite existing clinical records.
 
 **How to apply:** Obtain approval of the target before any operational audit.
 Keep diagnosis separate from repair; findings alone do not authorize changes.
+
+Deletion explanations must follow current recommendation read permissions, not the original recommendation author's identity. Show only reference IDs, statuses, and dates; hidden references may disclose only that deletion is blocked, never their count, client identities, or clinical text.
+
+**Why:** Staff need an actionable explanation without gaining access to another therapist's clients or losing access to history after a legitimate client reassignment.
+
+**How to apply:** Keep the global deletion guard independent of the viewer-scoped summary. A summary is advisory: concurrent references must still be rejected by deletion, and the dialog must refresh after a conflict.

@@ -1,13 +1,42 @@
 import { 
   resources, type Resource, type InsertResource,
   resourceAssignments, type ResourceAssignment, type InsertResourceAssignment,
-  resourceFeedback, type ResourceFeedback, type InsertResourceFeedback, aiRecommendations
+  resourceFeedback, type ResourceFeedback, type InsertResourceFeedback, aiRecommendations, users
 } from "@shared/schema";
 import { db } from "../db";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { ResourceReferencedError } from "./resource-reference-errors";
+import type { ResourceReferenceSummary } from "@shared/resource-references";
 
 export class ResourcesRepository {
+  async getResourceRecommendationReferences(
+    id: number, viewer: { id: number; role: "admin" | "therapist" },
+  ): Promise<ResourceReferenceSummary> {
+    const referencesResource = sql`${aiRecommendations.suggestedResources} @> ${JSON.stringify([id])}::jsonb`;
+    // Do not use the recommendation's original therapist: read access follows
+    // the client's current assignment, including after a reassignment.
+    const visibleScope = viewer.role === "admin"
+      ? undefined
+      : sql`exists (select 1 from ${users} where ${users.id} = ${aiRecommendations.userId}
+          and ${users.therapistId} = ${viewer.id})`;
+    const references = await db.select({
+      id: aiRecommendations.id,
+      status: aiRecommendations.status,
+      createdAt: aiRecommendations.createdAt,
+    }).from(aiRecommendations)
+      .where(and(referencesResource, visibleScope))
+      .orderBy(desc(aiRecommendations.createdAt), desc(aiRecommendations.id))
+      .limit(51);
+    // Only disclose existence, not a count or metadata about hidden records.
+    const [anyReference] = await db.select({ id: aiRecommendations.id })
+      .from(aiRecommendations).where(referencesResource).limit(1);
+    return {
+      hasReferences: references.length > 0 || !!anyReference,
+      references: references.slice(0, 50),
+      hasMore: references.length > 50,
+    };
+  }
+
   // Resources
   async createResource(resource: InsertResource): Promise<Resource> {
     const [newResource] = await db
