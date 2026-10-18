@@ -6,6 +6,10 @@ import {
 import { db } from "../db";
 import { eq, and, desc } from "drizzle-orm";
 import { SuggestedResourceMissingError } from "./resource-reference-errors";
+import {
+  recommendationResourceAuditQuery, parseRecommendationResourceAudit,
+  type RecommendationResourceAudit,
+} from "./recommendation-resource-audit";
 
 export class AdminRepository {
   // System logs
@@ -84,6 +88,14 @@ export class AdminRepository {
   }
 
   // AI Recommendations
+  // Opt-in only: never run on startup or as part of a recommendation read/write.
+  async auditRecommendationResources(): Promise<RecommendationResourceAudit> {
+    return db.transaction(async tx => {
+      const result = await tx.execute(recommendationResourceAuditQuery);
+      return parseRecommendationResourceAudit(result.rows[0]);
+    }, { accessMode: "read only" });
+  }
+
   async createAiRecommendation(recommendation: InsertAiRecommendation): Promise<AiRecommendation> {
     return db.transaction(async (tx) => {
       // Lock in a stable order to avoid deadlocks between multi-resource saves.

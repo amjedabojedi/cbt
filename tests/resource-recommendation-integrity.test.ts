@@ -3,6 +3,8 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import type { Request, Response } from "express";
 import { disposablePostgres } from "./helpers/disposable-postgres";
 import { recommendationInput } from "./fixtures/ai-recommendation";
+import { spawnSync } from "node:child_process";
+import { sql } from "drizzle-orm";
 
 const state = vi.hoisted(() => ({ db: undefined as any }));
 const services = vi.hoisted(() => ({
@@ -84,6 +86,124 @@ describe("saved recommendation resource integrity (disposable PostgreSQL)", () =
     // Callers use only hardcoded fixture table names.
     return (await fixture.pool.query(`SELECT * FROM ${table} ORDER BY id`)).rows;
   }
+
+  // Bypass today's validated writer to model historical JSON, only in our fixture.
+  async function legacyRecommendation(value: unknown, status = "pending") {
+    await fixture.pool.query(`
+      INSERT INTO ai_recommendations
+        (user_id, therapist_id, title, content, type, ai_reasoning, therapist_notes, status, suggested_resources)
+      VALUES (17, 42, 'PRIVATE_SYNTHETIC_TITLE', 'PRIVATE_SYNTHETIC_CONTENT', 'resource',
+        'PRIVATE_SYNTHETIC_REASONING', 'PRIVATE_SYNTHETIC_NOTES', $1, $2::jsonb)
+    `, [status, value === undefined ? null : JSON.stringify(value)]);
+  }
+
+  const emptyAudit = {
+    recommendationsScanned: 0, recommendationsWithReferences: 0, validReferenceOccurrences: 0,
+    missingReferenceOccurrences: 0, distinctMissingResourceIds: 0,
+    recommendationsWithMissingResources: 0, malformedResourceLists: 0, invalidReferenceOccurrences: 0,
+  };
+
+  it("reports zero aggregate counts for an empty recommendation table", async () => {
+    expect(await admin.auditRecommendationResources()).toEqual(emptyAudit);
+  });
+
+  it.each(["pending", "approved", "rejected", "implemented"])(
+    "audits legacy %s links, counting duplicates separately without modifying history", async status => {
+      await legacyRecommendation([3, 404, 404, 405], status);
+      await legacyRecommendation([9, 404], status);
+      const tables = ["resources", "resource_assignments", "resource_feedback", "ai_recommendations"];
+      const before = await Promise.all(tables.map(rows));
+      const log = vi.spyOn(console, "log");
+      const error = vi.spyOn(console, "error");
+      try {
+        const report = await admin.auditRecommendationResources();
+        expect(report).toEqual({
+          ...emptyAudit, recommendationsScanned: 2, recommendationsWithReferences: 2,
+          validReferenceOccurrences: 6, missingReferenceOccurrences: 4,
+          distinctMissingResourceIds: 2, recommendationsWithMissingResources: 2,
+        });
+        expect(await Promise.all(tables.map(rows))).toEqual(before);
+        expect(JSON.stringify(report)).not.toMatch(/PRIVATE_SYNTHETIC|404|405|userId|therapistId|content|title/);
+        expect(log).not.toHaveBeenCalled();
+        expect(error).not.toHaveBeenCalled();
+      } finally {
+        log.mockRestore();
+        error.mockRestore();
+      }
+    },
+  );
+
+  it("handles nulls, empty lists, malformed containers and invalid entries without casting failures", async () => {
+    for (const value of [
+      undefined, null, [], {}, "3", 3, true,
+      [3, "3", null, {}, [], true, 0, -1, 1.5, 2147483648, 1e100, 2147483647],
+    ]) await legacyRecommendation(value);
+    expect(await admin.auditRecommendationResources()).toEqual({
+      ...emptyAudit, recommendationsScanned: 8, recommendationsWithReferences: 1,
+      validReferenceOccurrences: 2, missingReferenceOccurrences: 1,
+      distinctMissingResourceIds: 1, recommendationsWithMissingResources: 1,
+      malformedResourceLists: 4, invalidReferenceOccurrences: 10,
+    });
+  });
+
+  it("executes the repository audit in a database-enforced read-only transaction", async () => {
+    const originalDb = state.db;
+    const transaction = vi.fn(async (callback, config) => originalDb.transaction(async (tx: any) => {
+      const mode = await tx.execute(sql`SHOW transaction_read_only`);
+      expect(mode.rows[0].transaction_read_only).toBe("on");
+      return callback(tx);
+    }, config));
+    state.db = { transaction };
+    try {
+      expect(await admin.auditRecommendationResources()).toEqual(emptyAudit);
+      expect(transaction).toHaveBeenCalledWith(expect.any(Function), { accessMode: "read only" });
+    } finally {
+      state.db = originalDb;
+    }
+  });
+
+  function auditCommand(args: string[], databaseUrl?: string) {
+    // Explicit environment allowlist: no workspace credentials inherited.
+    return spawnSync(process.execPath, ["--import", "tsx", "scripts/audit-recommendation-resources.ts", ...args], {
+      encoding: "utf8", timeout: 20_000,
+      env: { PATH: process.env.PATH, ...(databaseUrl ? { DATABASE_URL: databaseUrl } : {}) },
+    });
+  }
+
+  it("requires explicit read-only invocation and rejects repair flags before connecting", () => {
+    for (const args of [[], ["--repair"], ["--run-read-only", "--repair"]]) {
+      const result = auditCommand(args);
+      expect(result.status).toBe(1);
+      expect(result.stdout).toBe("");
+      expect(result.stderr).toContain("Usage:");
+    }
+    const missingConfig = auditCommand(["--run-read-only"]);
+    expect(missingConfig.status).toBe(1);
+    expect(missingConfig.stderr).toContain("DATABASE_URL must be configured");
+  });
+
+  it("prints only aggregate JSON from the synthetic database and leaves data unchanged", async () => {
+    await legacyRecommendation([3, 404, 404]);
+    const before = await rows("ai_recommendations");
+    const url = `postgresql://synthetic:synthetic@localhost/postgres?host=${encodeURIComponent(fixture.pool.options.host!)}`;
+    const result = auditCommand(["--run-read-only"], url);
+    expect(result.stderr).toBe("");
+    expect(result.status).toBe(0);
+    expect(JSON.parse(result.stdout)).toEqual({
+      ...emptyAudit, recommendationsScanned: 1, recommendationsWithReferences: 1,
+      validReferenceOccurrences: 3, missingReferenceOccurrences: 2,
+      distinctMissingResourceIds: 1, recommendationsWithMissingResources: 1,
+    });
+    expect(await rows("ai_recommendations")).toEqual(before);
+  });
+
+  it("fails closed without printing database diagnostics or a false clean report", () => {
+    const result = auditCommand(["--run-read-only"],
+      "postgresql://synthetic:PRIVATE_SYNTHETIC_PASSWORD@localhost/postgres?host=/nonexistent-synthetic-audit-socket");
+    expect(result.status).toBe(1);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toBe("Integrity audit failed; no report was produced. No repairs were attempted.\n");
+  });
 
   it.each(["pending", "approved", "rejected", "implemented"])(
     "blocks deletion for %s recommendations without changing any data", async status => {
