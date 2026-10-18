@@ -21,14 +21,20 @@ test.beforeEach(async ({ page }) => {
   expect(login.status()).toBe(200);
 });
 
-async function openChallenge(page: Page) {
+async function openChallenge(page: Page, withBackHistory = false) {
   const response = await page.request.post(`/api/users/${userId}/thoughts`, {
     headers: { Origin: process.env.E2E_BASE_URL! },
     data: { automaticThoughts: "Synthetic unsaved challenge thought", cognitiveDistortions: [] },
   });
   expect(response.status()).toBe(201);
   const record = await response.json();
-  await page.goto("/thoughts");
+  if (withBackHistory) {
+    await page.goto("/dashboard");
+    await page.getByRole("link", { name: "Thought Records", exact: true }).click();
+    await expect(page).toHaveURL(/\/thoughts$/);
+  } else {
+    await page.goto("/thoughts");
+  }
   await page.getByRole("tab", { name: "My History", exact: true }).click();
   await page.getByTestId(`card-thought-${record.id}`)
     .getByRole("button", { name: "", exact: true }).click();
@@ -170,3 +176,117 @@ test("untouched cancellation and successful-save dismissal do not prompt", async
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.getByTestId(`card-thought-${id}`)).toContainText("Challenged");
 });
+
+for (const outcome of ["success", "failure then retry", "failure then discard"] as const) {
+  test(`pending save blocks dismissal and duplicate saves: ${outcome}`, async ({ page }) => {
+    const id = await openChallenge(page, true);
+    await enterEvidence(page);
+    await page.getByTestId("button-next-step").click();
+    await page.getByTestId("textarea-alternative").fill(alternative);
+    await page.getByTestId("button-next-step").click();
+    await page.getByTestId("slider-belief-original").getByRole("slider").press("End");
+    await page.getByTestId("slider-belief-alternative").getByRole("slider").press("Home");
+
+    let releaseResponse!: () => void;
+    const responseGate = new Promise<void>(resolve => { releaseResponse = resolve; });
+    let patchCount = 0;
+    await page.route(`**/api/users/${userId}/thoughts/${id}`, async route => {
+      if (route.request().method() !== "PATCH") return route.continue();
+      patchCount++;
+      if (patchCount > 1) return route.continue();
+      // Success deliberately reaches the database BEFORE the browser gets its
+      // response: dismissing locally cannot undo an already-issued save.
+      const response = outcome === "success" ? await route.fetch() : undefined;
+      await responseGate;
+      if (response) await route.fulfill({ response });
+      else await route.fulfill({ status: 500, json: { message: "Synthetic save failure" } });
+    });
+    const prompts: string[] = [];
+    const unexpectedPrompt = async (dialog: import("@playwright/test").Dialog) => {
+      prompts.push(dialog.message());
+      await dialog.dismiss();
+    };
+    page.on("dialog", unexpectedPrompt);
+    try {
+      await page.getByTestId("button-save-challenge").click();
+      await expect.poll(() => patchCount).toBe(1);
+      await expect(page.getByRole("status").filter({ hasText: "Saving your challenge" })).toBeVisible();
+      await expect(page.getByTestId("button-save-challenge")).toBeDisabled();
+      await expect(page.getByTestId("button-save-challenge")).toHaveText("Saving…");
+      await expect(page.getByRole("button", { name: "Previous", exact: true })).toBeDisabled();
+      const cancel = page.getByRole("button", { name: "Cancel thought challenge", exact: true });
+      const close = page.getByRole("dialog").getByRole("button", { name: "Close", exact: true });
+      await expect(cancel).toBeDisabled();
+      await expect(close).toBeDisabled();
+      for (const rating of ["original", "alternative"]) {
+        await expect(page.getByTestId(`slider-belief-${rating}`)).toHaveAttribute("aria-disabled", "true");
+      }
+      // Forced pointer clicks also prove that disabled controls don't dismiss.
+      await cancel.click({ force: true });
+      await close.click({ force: true });
+      await page.getByTestId("button-save-challenge").click({ force: true });
+      await page.keyboard.press("Escape");
+      await page.mouse.click(5, 5);
+      await expect(page.getByTestId("step-beliefs")).toBeVisible();
+      await expect(page.getByRole("status").filter({ hasText: "Saving your challenge" })).toBeVisible();
+      // Browser Back must not offer to discard a write that may already exist.
+      await page.goBack();
+      await expect(page).toHaveURL(/\/thoughts$/);
+      await expect(page.getByTestId("step-beliefs")).toBeVisible();
+      expect(prompts).toEqual([]);
+      expect(patchCount).toBe(1);
+    } finally {
+      releaseResponse();
+      page.off("dialog", unexpectedPrompt);
+    }
+
+    const getRecord = async () => {
+      const response = await page.request.get(`/api/users/${userId}/thoughts`);
+      expect(response.ok()).toBeTruthy();
+      return (await response.json()).find((record: { id: number }) => record.id === id);
+    };
+    if (outcome !== "success") {
+      await expect(page.getByText("Failed to save your thought challenge. Please try again.", { exact: true })).toBeVisible();
+      await expect(page.getByTestId("button-save-challenge")).toBeEnabled();
+      await expect(page.getByRole("button", { name: "Cancel thought challenge", exact: true })).toBeEnabled();
+      await expect(page.getByRole("dialog").getByRole("button", { name: "Close", exact: true })).toBeEnabled();
+      await expect(page.getByRole("status").filter({ hasText: "Saving your challenge" })).toHaveCount(0);
+      expect(await getRecord()).toMatchObject({
+        evidenceFor: null, evidenceAgainst: null, alternativePerspective: null,
+        beliefInOriginal: null, beliefInAlternative: null,
+      });
+      // The error toast is the topmost Radix layer; its first Escape dismisses
+      // that notification, not the still-dirty wizard beneath it.
+      await page.keyboard.press("Escape");
+      await expect(page.getByText("Failed to save your thought challenge. Please try again.", { exact: true })).not.toBeVisible();
+      await confirmOnce(page, false, () => page.keyboard.press("Escape"));
+      await expect(page.getByTestId("slider-belief-original").getByRole("slider")).toHaveAttribute("aria-valuenow", "100");
+      await expect(page.getByTestId("slider-belief-alternative").getByRole("slider")).toHaveAttribute("aria-valuenow", "0");
+      await page.getByRole("button", { name: "Previous", exact: true }).click();
+      await expect(page.getByTestId("textarea-alternative")).toHaveValue(alternative);
+      await page.getByRole("button", { name: "Previous", exact: true }).click();
+      await expect(page.getByTestId("textarea-evidence-for")).toHaveValue(evidenceFor);
+      await expect(page.getByTestId("textarea-evidence-against")).toHaveValue(evidenceAgainst);
+      if (outcome === "failure then discard") {
+        await confirmOnce(page, true, () => page.keyboard.press("Escape"));
+        await expect(page.getByRole("dialog")).toHaveCount(0);
+        expect(await getRecord()).toMatchObject({ evidenceFor: null, alternativePerspective: null });
+        expect(patchCount).toBe(1);
+        return;
+      }
+      await page.getByTestId("button-next-step").click();
+      await page.getByTestId("button-next-step").click();
+      await page.getByTestId("button-save-challenge").click();
+    }
+    await expect(page.getByTestId("button-close-success")).toBeVisible();
+    expect(await getRecord()).toMatchObject({
+      evidenceFor, evidenceAgainst, alternativePerspective: alternative,
+      beliefInOriginal: 100, beliefInAlternative: 0,
+    });
+    page.on("dialog", unexpectedPrompt);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    expect(prompts).toEqual([]);
+    expect(patchCount).toBe(outcome === "success" ? 1 : 2);
+  });
+}

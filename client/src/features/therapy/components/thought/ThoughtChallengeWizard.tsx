@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -71,6 +71,8 @@ export function ThoughtChallengeWizard({
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  // An issued save cannot be cancelled by dismissing the wizard.
+  const savingRef = useRef(false);
   const totalSteps = 3;
 
   const form = useForm<ChallengeFormValues>({
@@ -85,6 +87,7 @@ export function ThoughtChallengeWizard({
   });
 
   const watchedValues = form.watch();
+  const isSaving = form.formState.isSubmitting;
   const { confirmDiscard } = useUnsavedWorkProtection(
     open !== false && !showSuccessDialog && (
       !!watchedValues.evidenceFor ||
@@ -92,7 +95,8 @@ export function ThoughtChallengeWizard({
       !!watchedValues.alternativeThought ||
       watchedValues.beliefInOriginal !== 50 ||
       watchedValues.beliefInAlternative !== 50
-    )
+    ),
+    isSaving
   );
   const progress = currentStep === 0 ? 0 : (currentStep / totalSteps) * 100;
 
@@ -111,6 +115,8 @@ export function ThoughtChallengeWizard({
   };
 
   const onSubmit = async (data: ChallengeFormValues) => {
+    if (savingRef.current) return;
+    savingRef.current = true;
     try {
       if (!activeUserId || !thoughtRecord.id) {
         toast({ title: "Error", description: "Missing required information", variant: "destructive" });
@@ -130,6 +136,8 @@ export function ThoughtChallengeWizard({
     } catch (error) {
       console.error("Error saving challenge:", error);
       toast({ title: "Error", description: "Failed to save your thought challenge. Please try again.", variant: "destructive" });
+    } finally {
+      savingRef.current = false;
     }
   };
 
@@ -141,6 +149,7 @@ export function ThoughtChallengeWizard({
   };
 
   const handleSkip = () => {
+    if (isSaving || savingRef.current) return;
     if (showSuccessDialog) {
       handleCloseSuccess();
       return;
@@ -184,8 +193,9 @@ export function ThoughtChallengeWizard({
         <button
           type="button"
           aria-label="Cancel thought challenge"
+          disabled={isSaving}
           onClick={handleSkip}
-          className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/25 flex items-center justify-center transition-all duration-200 shrink-0 mt-0.5"
+          className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/25 flex items-center justify-center transition-all duration-200 shrink-0 mt-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <X className="h-4 w-4 text-white/70" />
         </button>
@@ -593,6 +603,7 @@ export function ThoughtChallengeWizard({
                       step={5}
                       className="h-2"
                       data-testid="slider-belief-original"
+                      disabled={isSaving}
                     />
                     <div className="flex justify-center">
                       <div
@@ -644,6 +655,7 @@ export function ThoughtChallengeWizard({
                       step={5}
                       className="h-2"
                       data-testid="slider-belief-alternative"
+                      disabled={isSaving}
                     />
                     <div className="flex justify-center">
                       <div
@@ -686,7 +698,7 @@ export function ThoughtChallengeWizard({
             className="rounded-xl h-9 text-xs px-6 gap-1.5"
             style={{ background: "linear-gradient(135deg, #059669 0%, #0891b2 100%)" }}
           >
-            <CheckCircle2 className="h-3.5 w-3.5" /> Save Challenge
+            <CheckCircle2 className="h-3.5 w-3.5" /> {isSaving ? "Saving…" : "Save Challenge"}
           </Button>
         </div>
       </div>
@@ -700,13 +712,20 @@ export function ThoughtChallengeWizard({
         <div className="flex flex-col">
           {renderHeader()}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              {/* Render helpers preserve field identity while form.watch updates.
-                  Nested component types would remount inputs on every keystroke. */}
-              {currentStep === 0 && renderIntro()}
-              {currentStep === 1 && renderEvidence()}
-              {currentStep === 2 && renderAlternative()}
-              {currentStep === 3 && renderBeliefs()}
+            <form onSubmit={form.handleSubmit(onSubmit)} aria-busy={isSaving}>
+              <fieldset disabled={isSaving}>
+                {/* Render helpers preserve field identity while form.watch updates.
+                    Nested component types would remount inputs on every keystroke. */}
+                {currentStep === 0 && renderIntro()}
+                {currentStep === 1 && renderEvidence()}
+                {currentStep === 2 && renderAlternative()}
+                {currentStep === 3 && renderBeliefs()}
+              </fieldset>
+              {isSaving && (
+                <p role="status" className="px-6 pb-4 text-sm text-slate-600">
+                  Saving your challenge. Please wait for the result before closing.
+                </p>
+              )}
             </form>
           </Form>
         </div>
@@ -812,7 +831,12 @@ export function ThoughtChallengeWizard({
   if (open !== undefined) {
     return (
       <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleSkip()}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 rounded-2xl">
+        <DialogContent
+          closeDisabled={isSaving}
+          onEscapeKeyDown={(event) => { if (isSaving) event.preventDefault(); }}
+          onInteractOutside={(event) => { if (isSaving) event.preventDefault(); }}
+          className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 rounded-2xl"
+        >
           {content}
         </DialogContent>
       </Dialog>

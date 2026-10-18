@@ -3,17 +3,19 @@ import { useLocation, useSearch } from "wouter";
 
 const DISCARD_MESSAGE = "Discard your entry? Your unsaved work will be lost.";
 
-const historyGuards = new Set<(event: PopStateEvent) => boolean | void>();
-
-// main.tsx eagerly imports this module before rendering the router. Native
-// popstate targets window itself, where listeners run in registration order
-// even with capture=true. A listener installed by a lazy wizard's effect can
-// otherwise run after the router has already unmounted that wizard.
-if (typeof window !== "undefined") {
+// Register before React mounts: the router's external-store subscriber can
+// synchronously unmount a form before a later popstate listener gets its turn.
+type BackForwardGuard = (event: PopStateEvent) => boolean;
+const registryKey = Symbol.for("resilience.unsaved-work-navigation");
+const browserWindow = typeof window === "undefined" ? undefined :
+  window as Window & { [registryKey]?: Set<BackForwardGuard> };
+// Eager and lazy Vite imports may instantiate this module separately. Share
+// both the early listener and its active guards across those module instances.
+const backForwardGuards = browserWindow?.[registryKey] ?? new Set<BackForwardGuard>();
+if (browserWindow && !browserWindow[registryKey]) {
+  browserWindow[registryKey] = backForwardGuards;
   window.addEventListener("popstate", event => {
-    for (const guard of Array.from(historyGuards)) {
-      if (guard(event) === false) break;
-    }
+    Array.from(backForwardGuards).every(guard => guard(event));
   }, true);
 }
 
@@ -44,11 +46,14 @@ export class NavigationConfirmationGate {
 
 /**
  * Protects sensitive wizard input without persisting it in browser storage.
- * Navigation is allowed only after the user explicitly confirms discarding it.
+ * Draft navigation requires discard confirmation. In-app navigation while a
+ * save is pending is blocked instead; discarding cannot cancel an issued write.
  */
-export function useUnsavedWorkProtection(isDirty: boolean) {
-  const dirtyRef = useRef(isDirty);
-  dirtyRef.current = isDirty;
+export function useUnsavedWorkProtection(isDirty: boolean, isSaving = false) {
+  const dirtyRef = useRef(isDirty || isSaving);
+  dirtyRef.current = isDirty || isSaving;
+  const savingRef = useRef(isSaving);
+  savingRef.current = isSaving;
   const [location, navigate] = useLocation();
   const search = useSearch();
   const currentRoute = `${location}${search ? (search.startsWith("?") ? search : `?${search}`) : ""}`;
@@ -63,8 +68,15 @@ export function useUnsavedWorkProtection(isDirty: boolean) {
   }
 
   useEffect(() => {
-    if (!isDirty) return;
+    if (!isDirty && !isSaving) return;
     const gate = gateRef.current!;
+    const authorizeNavigation = (target: object) => {
+      if (savingRef.current) {
+        gate.clear();
+        return false;
+      }
+      return gate.authorize(target, dirtyRef.current);
+    };
     const popstateTarget = {};
     let deniedControl: Element | null = null;
     let deniedTimer: ReturnType<typeof setTimeout> | null = null;
@@ -83,6 +95,13 @@ export function useUnsavedWorkProtection(isDirty: boolean) {
     };
 
     const beforeUnload = (event: BeforeUnloadEvent) => {
+      // Browsers only allow a native leave-page warning for reload/tab close.
+      // Never reuse a draft-discard approval while a write is in flight.
+      if (savingRef.current) {
+        event.preventDefault();
+        event.returnValue = "";
+        return;
+      }
       if (approvedUnloadRef.current) {
         approvedUnloadRef.current = false;
         return;
@@ -139,7 +158,7 @@ export function useUnsavedWorkProtection(isDirty: boolean) {
         return;
       }
       if (pendingControlRef.current && pendingControlRef.current !== control) clearPending();
-      if (!gate.authorize(control, dirtyRef.current)) {
+      if (!authorizeNavigation(control)) {
         clearPending();
         deniedControl = control;
         deniedTimer = setTimeout(clearDenied, 1000);
@@ -157,6 +176,11 @@ export function useUnsavedWorkProtection(isDirty: boolean) {
       if (!dirtyRef.current || event.defaultPrevented) return;
       const control = getNavigationControl(event);
       if (!control) return;
+      if (savingRef.current) {
+        clearPending();
+        block(event);
+        return;
+      }
       if (deniedControl === control) {
         block(event);
         clearDenied();
@@ -169,7 +193,7 @@ export function useUnsavedWorkProtection(isDirty: boolean) {
         pendingControlRef.current = null;
         return;
       }
-      if (gate.authorize(control, dirtyRef.current)) {
+      if (authorizeNavigation(control)) {
         gate.consume(control);
         approveExternalUnload(control);
         return;
@@ -185,7 +209,7 @@ export function useUnsavedWorkProtection(isDirty: boolean) {
         "a[href], [role='tab'], [role='menuitem'], [data-navigation], [data-navigate], [data-route]"
       );
       if (!control || control.closest("[data-unsaved-work-scope]")) return;
-      if (!gate.authorize(control, dirtyRef.current)) {
+      if (!authorizeNavigation(control)) {
         block(event);
         return;
       }
@@ -196,10 +220,10 @@ export function useUnsavedWorkProtection(isDirty: boolean) {
     };
 
     const confirmBackForward = (event: PopStateEvent) => {
-      if (!dirtyRef.current) return;
-      if (gate.authorize(popstateTarget, dirtyRef.current)) {
+      if (!dirtyRef.current) return true;
+      if (authorizeNavigation(popstateTarget)) {
         gate.consume(popstateTarget);
-        return;
+        return true;
       }
       event.stopImmediatePropagation();
       // Restore the last accepted router location before React commits the popstate update.
@@ -212,22 +236,24 @@ export function useUnsavedWorkProtection(isDirty: boolean) {
     document.addEventListener("mousedown", confirmPointerNavigation, true);
     document.addEventListener("click", confirmClickNavigation, true);
     document.addEventListener("keydown", confirmKeyboardActivation, true);
-    historyGuards.add(confirmBackForward);
+    backForwardGuards.add(confirmBackForward);
     return () => {
       window.removeEventListener("beforeunload", beforeUnload);
       document.removeEventListener("pointerdown", confirmPointerNavigation, true);
       document.removeEventListener("mousedown", confirmPointerNavigation, true);
       document.removeEventListener("click", confirmClickNavigation, true);
       document.removeEventListener("keydown", confirmKeyboardActivation, true);
-      historyGuards.delete(confirmBackForward);
+      backForwardGuards.delete(confirmBackForward);
       clearPending();
       clearDenied();
     };
-  }, [isDirty, navigate]);
+  }, [isDirty, isSaving, navigate]);
 
   return {
     confirmDiscard: () =>
-      !dirtyRef.current ||
-      window.confirm(DISCARD_MESSAGE),
+      !savingRef.current && (
+        !dirtyRef.current ||
+        window.confirm(DISCARD_MESSAGE)
+      ),
   };
 }

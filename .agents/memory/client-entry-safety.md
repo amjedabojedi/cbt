@@ -21,6 +21,12 @@ Use the same alias imports for shared singleton modules in both the eager entryp
 
 **How to apply:** Do not mix a relative entrypoint import with alias imports of stateful singleton modules. Verify in the isolated browser harness, whose development loading behavior can expose this while a bundled build hides it.
 
+Do not describe dismissing a therapy form as cancelling an already-issued save.
+
+**Why:** A write may already have reached the database while its response is delayed or lost. A local discard decision cannot undo it.
+
+**How to apply:** Keep pending-save feedback distinct from unsaved-draft discard warnings, and test delayed responses rather than assuming a closed form means no write occurred.
+
 Treat practice milestones as encouragement, never a recovery score or a validated treatment target.
 
 **Why:** More records do not necessarily indicate clinical improvement, and fixed activity thresholds are not a clinical assessment.

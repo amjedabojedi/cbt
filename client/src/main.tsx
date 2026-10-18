@@ -10,6 +10,7 @@ import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 
 // Initialize PostHog
+import "./hooks/use-unsaved-work-protection";
 const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY || "phc_rwjZUYs5cDOK2dxkP8NvSly1sFX45CnioeuE240BVEx";
 const POSTHOG_HOST = import.meta.env.VITE_POSTHOG_HOST || "https://us.i.posthog.com";
 
