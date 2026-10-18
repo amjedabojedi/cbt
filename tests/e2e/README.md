@@ -29,24 +29,75 @@ run `npm run build`, then
 This still uses disposable accounts, a disposable database, no background
 delivery, and an outbound network firewall. Never point it at a published site.
 
-Requirements: Node.js, PostgreSQL tools (`initdb`, `pg_ctl`, `createdb`) on PATH,
-and the selected browsers. Install the version-matched WebKit runtime with:
-`PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npx playwright install webkit`.
-On supported Linux hosts, install its system libraries using Playwright's
-`install-deps webkit` command as well (or `install --with-deps webkit`).
+## Clean Replit/NixOS workspace
+
+Requirements: the project's Node.js and PostgreSQL modules, Nix (`nix-build`)
+on PATH, and installed npm dependencies. No extra system packages, root access,
+manual ELF patching, browser-path exports or workspace secrets are needed.
+From the repository root, run:
+
+```sh
+npm run setup:e2e:webkit
+npm run test:e2e -- --browser=webkit
+```
+
+The first command downloads the WebKit revision declared by the **installed**
+Playwright package, builds a hash-pinned x86_64 Nix library closure, patches
+the downloaded ELF interpreters/RPATHs, and verifies the dependencies and an
+offline page render (page creation, text/layout, canvas pixels and PNG output).
+It explicitly checks the ELF architecture and dependencies of Mesa EGL,
+software DRI, GLES and x264; it never searches `/nix/store` for whichever library
+happens to exist. This setup supports x86_64 Linux/NixOS, including clean Replit
+workspaces; it fails explicitly on other architectures.
+
+The installer accepts **no arguments**. Its child environment is allowlisted
+just like the test runner: it does not inherit database/API credentials,
+`NODE_OPTIONS`, custom download hosts, browser paths, `LD_LIBRARY_PATH`, EGL
+overrides, Nix configuration, or live app URLs. Network downloads are needed
+only for setup. The journeys still use the unchanged disposable database and
+outbound test firewall.
+
+All browser files and the Nix closure's GC-root link live under the ignored
+`.cache/ms-playwright/` directory. No browser binary is committed or published.
+The Nix expression pins library ABIs independently of the workspace channel;
+the browser revision is never replaced with an older Nix browser build.
+Playwright's Ubuntu `ldconfig` heuristic cannot see Nix libraries: only the
+offline smoke child bypasses that heuristic **after** the installer checks
+every browser ELF with the pinned `ldd`. Successful rendering then writes
+Playwright's normal dependency-validation marker. The journey runner does not
+inherit a validation-skip flag or new runtime environment variables.
+
+Re-run setup after changing Playwright, moving the checkout, garbage-collecting
+native dependencies, or when Playwright's 30-day validation marker expires.
+Setup is idempotent and also repairs an interrupted installation. To reproduce
+an entirely empty browser cache (this deletes downloaded test browsers only):
+
+```sh
+rm -rf .cache/ms-playwright
+npm run setup:e2e:webkit
+npm run test:e2e -- --browser=webkit
+```
+
+The focused run currently collects seven `@phone` journeys (including all five
+original journeys). Setup success alone is not
+a journey result: the second command must report **7 passed**. No normal app,
+external account, paid AI service, or production endpoint is used.
+
+On a supported non-Nix Linux host, Playwright's ordinary
+`PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npx playwright install --with-deps webkit`
+is an alternative; do not use its Ubuntu installer as the Nix setup.
 Replit's `/repl/tools/bin/chromium` is detected automatically; otherwise install
 Chromium with `PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npx playwright install chromium`.
 The runner fixes the browser cache to `.cache/ms-playwright` so the sanitized
 environment does not accidentally look in a different cache than the installer.
-That directory is excluded from Git and publishing. NixOS requires a
-Nix-compatible runtime for the same Playwright browser revision; the downloaded
-Ubuntu binaries alone are not sufficient. Do not substitute an older Nix WebKit
-build: launching it does not establish protocol compatibility.
+That directory is excluded from Git and publishing.
 PostgreSQL initialization must run as a non-root user.
 
 Configuration-only safety checks can run without a database or browser:
-`node --test tests/e2e-runner.test.mjs`. They check runner option rejection,
-engine selection, the iPhone profile, and refusal of arbitrary base URLs.
+`node --test tests/e2e-runner.test.mjs tests/webkit-runtime.test.mjs`. They check
+runner option rejection, engine selection, the iPhone profile, refusal of
+arbitrary base URLs, setup environment isolation, revision selection, and
+rejection of 32-bit runtime libraries.
 
 The command creates a **new local PostgreSQL cluster** in an OS temporary
 directory, applies `shared/schema.ts`, seeds only synthetic `example.invalid`
