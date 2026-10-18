@@ -27,6 +27,11 @@ authorization, validation, and successful writes use the real backend.
 
 Coverage:
 
+- Shared unsaved-writing guard: real sidebar and module-tab pointer/keyboard
+  activation, browser back/forward, and native reload prompts. Declining keeps
+  the route and writing; accepting leaves once, with no saved record or
+  restored browser draft. Local challenge dismissal is covered separately in
+  `thought-challenge-unsaved.spec.ts`.
 - Emotion, thought, journal, SMART goal and reframe saves through the browser.
 - Injected HTTP 503 failures preserve writing/choices; retries write exactly
   one real record. Reframe uses the application's automatic retry behavior.

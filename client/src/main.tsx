@@ -2,6 +2,8 @@
 
 import { createRoot } from "react-dom/client";
 import App from "./App";
+// Register history protection before the router subscribes, including lazy pages.
+import "@/hooks/use-unsaved-work-protection";
 import "./index.css";
 import { ThemeProvider } from "next-themes";
 import posthog from "posthog-js";

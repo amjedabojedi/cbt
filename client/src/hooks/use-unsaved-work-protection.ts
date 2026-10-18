@@ -3,6 +3,20 @@ import { useLocation, useSearch } from "wouter";
 
 const DISCARD_MESSAGE = "Discard your entry? Your unsaved work will be lost.";
 
+const historyGuards = new Set<(event: PopStateEvent) => boolean | void>();
+
+// main.tsx eagerly imports this module before rendering the router. Native
+// popstate targets window itself, where listeners run in registration order
+// even with capture=true. A listener installed by a lazy wizard's effect can
+// otherwise run after the router has already unmounted that wizard.
+if (typeof window !== "undefined") {
+  window.addEventListener("popstate", event => {
+    for (const guard of Array.from(historyGuards)) {
+      if (guard(event) === false) break;
+    }
+  }, true);
+}
+
 /** Shares one confirmation across pointer-down/mouse-down/click for a single control. */
 export class NavigationConfirmationGate {
   private authorizedTarget: object | null = null;
@@ -190,6 +204,7 @@ export function useUnsavedWorkProtection(isDirty: boolean) {
       event.stopImmediatePropagation();
       // Restore the last accepted router location before React commits the popstate update.
       navigate(acceptedLocationRef.current);
+      return false;
     };
 
     window.addEventListener("beforeunload", beforeUnload);
@@ -197,14 +212,14 @@ export function useUnsavedWorkProtection(isDirty: boolean) {
     document.addEventListener("mousedown", confirmPointerNavigation, true);
     document.addEventListener("click", confirmClickNavigation, true);
     document.addEventListener("keydown", confirmKeyboardActivation, true);
-    window.addEventListener("popstate", confirmBackForward, true);
+    historyGuards.add(confirmBackForward);
     return () => {
       window.removeEventListener("beforeunload", beforeUnload);
       document.removeEventListener("pointerdown", confirmPointerNavigation, true);
       document.removeEventListener("mousedown", confirmPointerNavigation, true);
       document.removeEventListener("click", confirmClickNavigation, true);
       document.removeEventListener("keydown", confirmKeyboardActivation, true);
-      window.removeEventListener("popstate", confirmBackForward, true);
+      historyGuards.delete(confirmBackForward);
       clearPending();
       clearDenied();
     };

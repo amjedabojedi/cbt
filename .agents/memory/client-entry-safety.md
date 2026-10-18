@@ -9,6 +9,18 @@ Keep unfinished therapy writing in memory and warn before discarding; do not sil
 
 **How to apply:** Any future draft saving needs an explicit privacy-aware design. Navigation protection must run before the form unmounts; verify actual pointer and keyboard activation in a browser, not just a confirmation helper.
 
+Use native browser Back/Forward to verify history protection, not only a synthetic `popstate`.
+
+**Why:** Chromium delivers native `popstate` to `window` at the target phase, where registration order can let an earlier router listener unmount a form before its later capture listener runs. Synthetic dispatch alone did not expose this loss.
+
+**How to apply:** Preserve history interception before router subscriptions and test browser history with real unfinished writing. For a declined native reload, wait for the dialog handling rather than a navigation completion that must never happen.
+
+Use the same alias imports for shared singleton modules in both the eager entrypoint and lazy pages.
+
+**Why:** This app's development entrypoint has a cache-busting query. Vite propagates it to relative imports, creating a second module instance when lazy pages import the same file through an alias. A shared guard registry can then be split between two instances.
+
+**How to apply:** Do not mix a relative entrypoint import with alias imports of stateful singleton modules. Verify in the isolated browser harness, whose development loading behavior can expose this while a bundled build hides it.
+
 Treat practice milestones as encouragement, never a recovery score or a validated treatment target.
 
 **Why:** More records do not necessarily indicate clinical improvement, and fixed activity thresholds are not a clinical assessment.
