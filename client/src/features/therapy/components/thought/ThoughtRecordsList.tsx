@@ -767,6 +767,26 @@ export default function ThoughtRecordsList({
                     </div>
                   </div>
  
+                  {/* These rate different thoughts, not a before/after change. */}
+                  <dl className="grid gap-3 ps-9 sm:grid-cols-2">
+                    <div data-testid="detail-belief-original" className="rounded-xl border bg-slate-50 p-3">
+                      <dt className="text-sm font-semibold">{t("Original-thought conviction")}</dt>
+                      <dd className="text-sm text-slate-700 mt-1">
+                        {selectedRecord.beliefInOriginal == null
+                          ? t("Unavailable — not recorded")
+                          : `${tNum(selectedRecord.beliefInOriginal)}%`}
+                      </dd>
+                    </div>
+                    <div data-testid="detail-belief-alternative" className="rounded-xl border bg-slate-50 p-3">
+                      <dt className="text-sm font-semibold">{t("Alternative-thought conviction")}</dt>
+                      <dd className="text-sm text-slate-700 mt-1">
+                        {selectedRecord.beliefInAlternative == null
+                          ? t("Unavailable — not recorded")
+                          : `${tNum(selectedRecord.beliefInAlternative)}%`}
+                      </dd>
+                    </div>
+                  </dl>
+
                   {/* Insights Gained */}
                   {selectedRecord.insightsGained && (
                     <div className="text-start">

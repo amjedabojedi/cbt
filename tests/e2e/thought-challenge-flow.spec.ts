@@ -1,4 +1,5 @@
 import { test, expect, type APIRequestContext } from "@playwright/test";
+import { Pool } from "pg";
 
 let userId: number;
 const headers = () => ({ Origin: process.env.E2E_BASE_URL! });
@@ -160,6 +161,10 @@ test("new thought → challenge → failed save/retry → refresh → history an
   await expect(detail).toContainText(evidenceFor);
   await expect(detail).toContainText(evidenceAgainst);
   await expect(detail).toContainText(alternative);
+  await expect(detail.getByTestId("detail-belief-original"))
+    .toHaveText("Original-thought conviction30%");
+  await expect(detail.getByTestId("detail-belief-alternative"))
+    .toHaveText("Alternative-thought conviction80%");
   // Let the action menu fully unmount before closing the dialog it opened.
   // This distinguishes a stuck modal lock from a premature test interaction.
   await expect(page.locator('[role="menu"]')).toHaveCount(0);
@@ -243,7 +248,67 @@ test("an existing thought can be challenged from History, saved and reopened aft
   await expect(detail).toContainText(evidenceFor);
   await expect(detail).toContainText(evidenceAgainst);
   await expect(detail).toContainText(alternative);
+  await expect(detail.getByTestId("detail-belief-original"))
+    .toHaveText("Original-thought conviction0%");
+  await expect(detail.getByTestId("detail-belief-alternative"))
+    .toHaveText("Alternative-thought conviction100%");
   const persisted = await (await page.request.get(`/api/users/${userId}/thoughts`)).json();
   expect(persisted.find((t: { id: number }) => t.id === record.id))
     .toMatchObject({ beliefInOriginal: 0, beliefInAlternative: 100 });
 });
+
+for (const ratings of [
+  { name: "both missing", beliefInOriginal: null, beliefInAlternative: null },
+  { name: "alternative missing", beliefInOriginal: 0, beliefInAlternative: null },
+  { name: "original missing", beliefInOriginal: null, beliefInAlternative: 0 },
+]) {
+  test(`legacy ratings: ${ratings.name} stay unavailable after refresh`, async ({ page }) => {
+    const created = await page.request.post(`/api/users/${userId}/thoughts`, {
+      headers: headers(),
+      data: {
+        automaticThoughts: `Synthetic legacy thought: ${ratings.name}`,
+        cognitiveDistortions: [],
+        evidenceFor, evidenceAgainst, alternativePerspective: alternative,
+        reflectionRating: 95,
+      },
+    });
+    expect(created.status()).toBe(201);
+    const record = await created.json();
+    // Today's API requires paired ratings. Seed historical partial records only
+    // in the runner's disposable database, never by relaxing app validation.
+    expect(process.env.E2E_ISOLATED).toBeTruthy();
+    expect(process.env.DATABASE_URL).toMatch(/^postgresql:\/\/e2e@127\.0\.0\.1:\d+\/resilience_e2e$/);
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    try {
+      const updated = await pool.query(
+        `UPDATE thought_records SET belief_in_original = $1, belief_in_alternative = $2
+         WHERE id = $3 AND user_id = $4 RETURNING id`,
+        [ratings.beliefInOriginal, ratings.beliefInAlternative, record.id, userId],
+      );
+      expect(updated.rowCount).toBe(1);
+    } finally {
+      await pool.end();
+    }
+    const persisted = await (await page.request.get(`/api/users/${userId}/thoughts`)).json();
+    expect(persisted.find((thought: { id: number }) => thought.id === record.id)).toMatchObject({
+      reflectionRating: 95,
+      beliefInOriginal: ratings.beliefInOriginal,
+      beliefInAlternative: ratings.beliefInAlternative,
+    });
+    await page.goto("/thoughts");
+    await page.reload();
+    await page.getByRole("tab", { name: "My History", exact: true }).click();
+    const card = page.getByTestId(`card-thought-${record.id}`);
+    await card.getByRole("button", { name: "", exact: true }).click();
+    await page.getByRole("menuitem", { name: "View Details", exact: true }).click();
+    const detail = page.getByRole("dialog");
+    await expect(detail).toContainText(evidenceFor);
+    await expect(detail).toContainText(evidenceAgainst);
+    await expect(detail).toContainText(alternative);
+    const unavailable = "Unavailable — not recorded";
+    await expect(detail.getByTestId("detail-belief-original")).toHaveText(
+      `Original-thought conviction${ratings.beliefInOriginal == null ? unavailable : "0%"}`);
+    await expect(detail.getByTestId("detail-belief-alternative")).toHaveText(
+      `Alternative-thought conviction${ratings.beliefInAlternative == null ? unavailable : "0%"}`);
+  });
+}
