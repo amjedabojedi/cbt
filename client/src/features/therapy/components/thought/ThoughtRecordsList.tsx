@@ -843,6 +843,17 @@ export default function ThoughtRecordsList({
         </Dialog>
       )}
       
+      {/* Challenge an existing record using the same flow as a new thought. */}
+      {thoughtToChallenge && !isViewingClientData && (
+        <ThoughtChallengeWizard
+          key={thoughtToChallenge.id}
+          open={true}
+          thoughtRecord={thoughtToChallenge}
+          onComplete={() => setThoughtToChallenge(null)}
+          onCancel={() => setThoughtToChallenge(null)}
+        />
+      )}
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent dir={isRTL ? "rtl" : "ltr"} className="text-start">

@@ -142,7 +142,7 @@ test("new thought → challenge → failed save/retry → refresh → history an
   await expect(chart.getByText(/Alternative thought:/)).toContainText(`${average("beliefInAlternative")}%`);
 });
 
-test("an existing unchallenged thought opens the challenge from History", async ({ page }) => {
+test("an existing thought can be challenged from History, saved and reopened after refresh", async ({ page }) => {
   const created = await page.request.post(`/api/users/${userId}/thoughts`, {
     headers: headers(),
     data: { automaticThoughts: "Synthetic history challenge entry", cognitiveDistortions: [] },
@@ -155,4 +155,45 @@ test("an existing unchallenged thought opens the challenge from History", async 
   await card.getByRole("button", { name: "", exact: true }).click();
   await page.getByRole("menuitem", { name: "Challenge This Thought", exact: true }).click();
   await expect(page.getByTestId("button-start-challenge")).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('[role="menu"]')).toHaveCount(0);
+  // Cancelling does not change the thought, and the action can be opened again.
+  await page.getByRole("button", { name: "Skip for now", exact: true }).click();
+  await expect(page.getByTestId("button-start-challenge")).toHaveCount(0);
+  const unchanged = await (await page.request.get(`/api/users/${userId}/thoughts`)).json();
+  expect(unchanged.find((t: { id: number }) => t.id === record.id))
+    .toMatchObject({ evidenceFor: null, beliefInOriginal: null, beliefInAlternative: null });
+  await card.getByRole("button", { name: "", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Challenge This Thought", exact: true }).click();
+  await page.getByTestId("button-start-challenge").click();
+  await page.getByTestId("textarea-evidence-for").fill(evidenceFor);
+  await page.getByTestId("textarea-evidence-against").fill(evidenceAgainst);
+  await page.getByTestId("button-next-step").click();
+  await page.getByTestId("textarea-alternative").fill(alternative);
+  await page.getByTestId("button-next-step").click();
+  await page.getByTestId("slider-belief-original").getByRole("slider").press("Home");
+  await page.getByTestId("slider-belief-alternative").getByRole("slider").press("End");
+  const saved = page.waitForResponse(r =>
+    r.url().endsWith(`/api/users/${userId}/thoughts/${record.id}`) &&
+    r.request().method() === "PATCH" && r.status() === 200);
+  await page.getByTestId("button-save-challenge").click();
+  expect(await (await saved).json()).toMatchObject({
+    id: record.id, evidenceFor, evidenceAgainst, alternativePerspective: alternative,
+    beliefInOriginal: 0, beliefInAlternative: 100,
+  });
+  await page.getByTestId("button-close-success").click();
+  await expect(page.getByTestId("button-close-success")).toHaveCount(0);
+  await expect(card).toContainText("Challenged");
+  await page.reload();
+  await page.getByRole("tab", { name: "My History", exact: true }).click();
+  await expect(card).toContainText("Challenged");
+  await card.getByRole("button", { name: "", exact: true }).click();
+  await expect(page.getByRole("menuitem", { name: "Challenge This Thought", exact: true })).toHaveCount(0);
+  await page.getByRole("menuitem", { name: "View Details", exact: true }).click();
+  const detail = page.getByRole("dialog");
+  await expect(detail).toContainText(evidenceFor);
+  await expect(detail).toContainText(evidenceAgainst);
+  await expect(detail).toContainText(alternative);
+  const persisted = await (await page.request.get(`/api/users/${userId}/thoughts`)).json();
+  expect(persisted.find((t: { id: number }) => t.id === record.id))
+    .toMatchObject({ beliefInOriginal: 0, beliefInAlternative: 100 });
 });

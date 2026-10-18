@@ -26,7 +26,7 @@ export function log(message: string, source = "express") {
 }
 
 // ✅ named export
-export async function setupVite(app: Express, server: Server) {
+export async function setupVite(app: Express, server: Server, cacheDir?: string) {
   const serverOptions: any = {
     middlewareMode: true,
     hmr: { server },
@@ -41,6 +41,7 @@ export async function setupVite(app: Express, server: Server) {
 
   const vite = await createViteServer({
     ...resolvedConfig,
+    ...(cacheDir ? { cacheDir } : {}),
     configFile: false,
     server: serverOptions,
     appType: "custom",

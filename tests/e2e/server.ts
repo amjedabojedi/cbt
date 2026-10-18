@@ -1,5 +1,6 @@
 // This entrypoint is never imported by the real app.
 import express from "express";
+import path from "node:path";
 import bcrypt from "bcrypt";
 import { db } from "../../server/db";
 import { users } from "../../shared/schema";
@@ -29,5 +30,6 @@ app.use(express.json());
 const server = await registerRoutes(app);
 app.get("/__e2e/ready", (_req, res) => res.json(fixture));
 // No scheduler, reminders, welcome email or registration runs in this harness.
-await setupVite(app, server);
+// Never share optimized dependencies with the concurrently running preview.
+await setupVite(app, server, path.join(process.env.E2E_ISOLATED, "vite-cache"));
 server.listen(Number(process.env.PORT), "127.0.0.1");
