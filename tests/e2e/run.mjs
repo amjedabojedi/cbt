@@ -1,9 +1,11 @@
 // Own the entire database lifecycle. Never accept a caller-supplied database URL.
 import { spawn, spawnSync } from "node:child_process";
-import { mkdtemp, rm, mkdir } from "node:fs/promises";
+import { mkdtemp, rm, mkdir, readFile, access } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import net from "node:net";
+import { withBrowserCacheLock } from "./browser-cache-lock.mjs";
+import { browserCache, webkitRevision } from "./setup-webkit.mjs";
 
 const args = process.argv.slice(2);
 const productionBuild = args.includes("--production-build");
@@ -18,10 +20,50 @@ if (specs.some(spec => !/^[a-z0-9-]+\.spec\.ts$/.test(spec))) {
   throw new Error("Only E2E spec filenames are accepted; database URLs and configuration overrides are forbidden");
 }
 
-const root = await mkdtemp(path.join(tmpdir(), "resilience-e2e-"));
+// Chromium-only runs never use or wait on the WebKit runtime.
+let cacheLockFd;
+async function withSelectedRuntime(operation) {
+  if (browsers === "chromium") return operation();
+  await withBrowserCacheLock(browserCache, env, async fd => {
+    cacheLockFd = fd;
+    const revision = await webkitRevision();
+    const directory = path.join(browserCache, `webkit-${revision}`);
+    try {
+      try {
+        await access(`${directory}.resilience-incomplete`);
+        throw new Error("interrupted setup");
+      } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+      }
+      let marker;
+      try {
+        marker = JSON.parse(await readFile(path.join(directory, "resilience-runtime.json"), "utf8"));
+      } catch (error) {
+        // Ordinary Playwright installs on non-Nix hosts have no custom marker.
+        // Its own host/dependency checks remain enabled for those installations.
+        if (error.code !== "ENOENT") throw error;
+      }
+      if (marker !== undefined) {
+        if (marker.revision !== revision || marker.schema !== 1) throw new Error("revision mismatch");
+        await access(path.join(directory, "DEPENDENCIES_VALIDATED"));
+      }
+    } catch {
+      throw new Error(`WebKit ${revision} is not ready or setup was interrupted. Run npm run setup:e2e:webkit, then retry.`);
+    }
+    await operation();
+  });
+}
+
 const env = Object.fromEntries(
   ["PATH", "HOME", "LANG", "LC_ALL", "TMPDIR"].filter(key => process.env[key]).map(key => [key, process.env[key]])
 );
+await withSelectedRuntime(runJourneys).catch(error => {
+  console.error(error.message);
+  process.exitCode = 1;
+});
+
+async function runJourneys() {
+const root = await mkdtemp(path.join(tmpdir(), "resilience-e2e-"));
 if (productionBuild) env.E2E_PRODUCTION_BUILD = "1";
 Object.assign(env, {
   NODE_ENV: "development",
@@ -33,7 +75,7 @@ Object.assign(env, {
   E2E_ISOLATED: root,
   E2E_BROWSERS: browsers,
   // Fixed local cache: never inherit a caller's browser-path override.
-  PLAYWRIGHT_BROWSERS_PATH: path.resolve(".cache/ms-playwright"),
+  PLAYWRIGHT_BROWSERS_PATH: browserCache,
 });
 async function freePort() {
   const server = net.createServer();
@@ -51,17 +93,19 @@ let app;
 let testProcess;
 let postgresStarted = false;
 let stopping;
+async function stopChild(child) {
+  if (!child?.pid || child.exitCode !== null || child.signalCode !== null) return;
+  const exited = new Promise(resolve => child.once("exit", resolve));
+  child.kill("SIGTERM");
+  const timeout = setTimeout(() => child.kill("SIGKILL"), 3000);
+  timeout.unref();
+  try { await exited; } finally { clearTimeout(timeout); }
+}
 async function cleanup() {
   if (stopping) return stopping;
   stopping = (async () => {
-    if (testProcess && testProcess.exitCode === null) testProcess.kill("SIGTERM");
-    if (app && app.exitCode === null) {
-      app.kill("SIGTERM");
-      await Promise.race([
-        new Promise(resolve => app.once("exit", resolve)),
-        new Promise(resolve => setTimeout(() => { app.kill("SIGKILL"); resolve(); }, 3000)),
-      ]);
-    }
+    await stopChild(testProcess);
+    await stopChild(app);
     if (postgresStarted) {
       spawnSync("pg_ctl", ["-D", path.join(root, "pg"), "-m", "immediate", "-w", "stop"], { env, stdio: "ignore" });
     }
@@ -99,7 +143,9 @@ try {
   }
   console.log(`Isolated E2E app ready on port ${appPort}`);
   const result = await new Promise((resolve, reject) => {
-    testProcess = spawn("node_modules/.bin/playwright", ["test", "--config", "tests/e2e/playwright.config.ts", ...specs], { env, stdio: "inherit" });
+    testProcess = spawn("node_modules/.bin/playwright", ["test", "--config", "tests/e2e/playwright.config.ts", ...specs], {
+      env, stdio: cacheLockFd === undefined ? "inherit" : ["inherit", "inherit", "inherit", cacheLockFd],
+    });
     testProcess.once("error", reject);
     testProcess.once("exit", code => resolve(code ?? 1));
   });
@@ -109,4 +155,5 @@ try {
   process.exitCode = 1;
 } finally {
   await cleanup();
+}
 }

@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { readFile, writeFile, mkdir, readdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { withBrowserCacheLock } from "./browser-cache-lock.mjs";
 
 export const projectRoot = fileURLToPath(new URL("../../", import.meta.url));
 export const browserCache = path.join(projectRoot, ".cache/ms-playwright");
@@ -19,9 +20,11 @@ export async function webkitRevision() {
   if (!/^\d+$/.test(revision)) throw new Error("Cannot determine installed Playwright WebKit revision");
   return revision;
 }
+let cacheLockFd;
 function run(command, args, env) {
   const result = spawnSync(command, args, {
     cwd: projectRoot, env, encoding: "utf8", timeout: 600_000, maxBuffer: 20 * 1024 * 1024,
+    stdio: ["ignore", "pipe", "pipe", cacheLockFd],
   });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`${path.basename(command)} failed:\n${result.stdout}\n${result.stderr}`);
@@ -46,7 +49,12 @@ async function setup() {
     throw new Error("This runtime setup supports x86_64 Linux/NixOS only");
   }
   const env = { ...cleanEnvironment(), PLAYWRIGHT_BROWSERS_PATH: browserCache };
-  await mkdir(browserCache, { recursive: true });
+  await withBrowserCacheLock(browserCache, cleanEnvironment(), async fd => {
+    cacheLockFd = fd;
+    await installRuntime(env);
+  });
+}
+async function installRuntime(env) {
   // Keep a GC root for native libraries, not browser executables.
   const runtimeFile = run("nix-build", ["tests/e2e/webkit-runtime.nix",
     "--out-link", path.join(browserCache, "nix-runtime")], env).split("\n").at(-1);
@@ -58,7 +66,16 @@ async function setup() {
   const revision = await webkitRevision();
   const directory = path.join(browserCache, `webkit-${revision}`);
   const marker = path.join(directory, "resilience-runtime.json");
-  // An interrupted setup must not be mistaken for a usable installation.
+  // The sibling survives even an interrupted download/deletion. Do not retry
+  // patchelf on possibly half-written ELF files: reinstall that revision.
+  const incomplete = path.join(browserCache, `webkit-${revision}.resilience-incomplete`);
+  try {
+    await mkdir(incomplete);
+  } catch (error) {
+    if (error.code !== "EEXIST") throw error;
+    console.log(`Recovering interrupted WebKit ${revision} setup: reinstalling the revision.`);
+    await rm(directory, { recursive: true, force: true });
+  }
   await rm(marker, { force: true });
   await rm(path.join(directory, "DEPENDENCIES_VALIDATED"), { force: true });
   const cli = path.join(path.dirname(require.resolve("playwright/package.json")), "cli.js");
@@ -73,7 +90,9 @@ async function setup() {
       elfFiles.push(file);
       run(runtime.patchelf, ["--set-rpath", `${base}/lib:${base}/sys/lib:${runtime.libraryPath}`, file], env);
       // Shared libraries have no interpreter; executable helpers do.
-      const interpreter = spawnSync(runtime.patchelf, ["--print-interpreter", file], { env, encoding: "utf8" });
+      const interpreter = spawnSync(runtime.patchelf, ["--print-interpreter", file], {
+        env, encoding: "utf8", stdio: ["ignore", "pipe", "pipe", cacheLockFd],
+      });
       if (interpreter.status === 0 && interpreter.stdout.trim()) {
         run(runtime.patchelf, ["--set-interpreter", runtime.interpreter, file], env);
       }
@@ -112,6 +131,7 @@ async function setup() {
   console.log("WebKit page creation, layout, canvas and PNG rendering passed (offline).");
   await writeFile(path.join(directory, "DEPENDENCIES_VALIDATED"), "");
   await writeFile(marker, JSON.stringify({ revision, runtimeFile, schema: 1 }) + "\n");
+  await rm(incomplete, { recursive: true });
   console.log(`WebKit ${revision}: x86-64 dependencies and page rendering verified. Run npm run test:e2e -- --browser=webkit`);
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

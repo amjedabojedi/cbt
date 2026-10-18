@@ -69,6 +69,23 @@ inherit a validation-skip flag or new runtime environment variables.
 
 Re-run setup after changing Playwright, moving the checkout, garbage-collecting
 native dependencies, or when Playwright's 30-day validation marker expires.
+Setup and WebKit/all-browser journey runs take an exclusive kernel lock on
+`.cache/ms-playwright/.runtime.lock`. Concurrent commands wait; Chromium-only
+journeys do not take this lock. It covers installation, native patching, smoke
+validation and the entire iPhone journey/cleanup, not just browser startup.
+Do not delete the lockfile or the cache while any of these commands are running:
+unlinking a locked file lets new commands lock a different inode.
+
+Setup records a revision-specific incomplete marker before changing browser
+files. After a failed or interrupted setup, journeys refuse that revision and
+explain how to repair it. Re-running setup under the lock deletes/re-downloads
+the damaged revision before patching; it does not reuse possibly truncated ELF
+files. Successful validation removes the incomplete marker last. The kernel
+automatically releases locks after process exit (including SIGKILL); active
+setup/browser-runner children inherit the lock descriptor so killing their
+parent cannot unlock the cache while they are still working. No stale PID
+files, manual lock removal or caller-supplied cache overrides are needed.
+
 Setup is idempotent and also repairs an interrupted installation. To reproduce
 an entirely empty browser cache (this deletes downloaded test browsers only):
 
@@ -94,10 +111,14 @@ That directory is excluded from Git and publishing.
 PostgreSQL initialization must run as a non-root user.
 
 Configuration-only safety checks can run without a database or browser:
-`node --test tests/e2e-runner.test.mjs tests/webkit-runtime.test.mjs`. They check
+`node --test tests/e2e-runner.test.mjs tests/webkit-runtime.test.mjs tests/webkit-cache-concurrency.test.mjs`. They check
 runner option rejection, engine selection, the iPhone profile, refusal of
 arbitrary base URLs, setup environment isolation, revision selection, and
-rejection of 32-bit runtime libraries.
+rejection of 32-bit runtime libraries. Concurrency checks copy the actual entry
+points into disposable checkouts with synthetic tool/browser fixtures. They
+exercise simultaneous setups, setup versus an active iPhone runner, killed
+setup/active-child lock retention, reinstall recovery and Chromium independence
+without downloads, native builds, a real database, or inherited credentials.
 
 The command creates a **new local PostgreSQL cluster** in an OS temporary
 directory, applies `shared/schema.ts`, seeds only synthetic `example.invalid`
