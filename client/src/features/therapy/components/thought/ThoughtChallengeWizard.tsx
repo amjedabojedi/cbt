@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useAuth } from "@/lib/auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useUnsavedWorkProtection } from "@/hooks/use-unsaved-work-protection";
 import { ThoughtRecord } from "@shared/schema";
 import useActiveUser from "@/hooks/use-active-user";
 import {
@@ -84,6 +85,15 @@ export function ThoughtChallengeWizard({
   });
 
   const watchedValues = form.watch();
+  const { confirmDiscard } = useUnsavedWorkProtection(
+    open !== false && !showSuccessDialog && (
+      !!watchedValues.evidenceFor ||
+      !!watchedValues.evidenceAgainst ||
+      !!watchedValues.alternativeThought ||
+      watchedValues.beliefInOriginal !== 50 ||
+      watchedValues.beliefInAlternative !== 50
+    )
+  );
   const progress = currentStep === 0 ? 0 : (currentStep / totalSteps) * 100;
 
   const handleNext = async () => {
@@ -131,6 +141,11 @@ export function ThoughtChallengeWizard({
   };
 
   const handleSkip = () => {
+    if (showSuccessDialog) {
+      handleCloseSuccess();
+      return;
+    }
+    if (!confirmDiscard()) return;
     form.reset();
     setCurrentStep(0);
     onCancel();
@@ -167,6 +182,8 @@ export function ThoughtChallengeWizard({
 
         {/* Close button */}
         <button
+          type="button"
+          aria-label="Cancel thought challenge"
           onClick={handleSkip}
           className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/25 flex items-center justify-center transition-all duration-200 shrink-0 mt-0.5"
         >
@@ -792,7 +809,7 @@ export function ThoughtChallengeWizard({
   // If 'open' prop is provided, wrap content in Dialog
   if (open !== undefined) {
     return (
-      <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
+      <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleSkip()}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 rounded-2xl">
           {content}
         </DialogContent>
