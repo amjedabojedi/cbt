@@ -14,3 +14,9 @@ Check phone controls against the configured device dimensions, not only DOM visi
 **Why:** A page wider than a phone can expand the browser's layout viewport. Tests can then call a footer visible even though it falls below the actual screenshot. This occurred while administration content exceeded the phone width.
 
 **How to apply:** Assert page, drawer, and footer bounding boxes against the test device width/height. Disable finite animations when capturing diagnostic screenshots so transitional frames are not mistaken for broken layouts.
+
+Check inner scroll positions and content coordinates after switching tabs; a correctly sized outer viewport does not prove that the content remains readable.
+
+**Why:** The admin phone dashboard kept the document within the viewport, but selecting its last tab horizontally scrolled the entire main pane and clipped headings and counters. Document-width and main-column bounds alone missed it.
+
+**How to apply:** Check that headings and essential values remain inside the device bounds after interaction. Localize horizontal scrolling to the tab strip or table rather than the whole content pane. Include bottom shortcuts in role/context parity checks, not only the drawer and sidebar.

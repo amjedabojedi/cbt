@@ -9,6 +9,12 @@ Authenticated persistence and access tests must never use existing client record
 
 **How to apply:** Use a disposable database and synthetic accounts rather than seeding into a shared development database. Keep workspace credentials out of test app processes, disable background delivery, and block external network calls. Do not point browser tests at the normal app to gain authenticated coverage.
 
+Broad UX probes must respect prerequisite-gated controls and continue collecting evidence when a page lacks the shared app shell.
+
+**Why:** A blanket tab-click audit stalled on intentionally disabled emotion-mapping tabs, while requiring every route to contain the shared layout stopped collection at the invitation-link page. These are different observations, not equivalent application failures.
+
+**How to apply:** Check whether a control is enabled before activating it. Record missing navigation as a finding instead of treating it as a fatal probe error. For delayed success notices, wait for the notice and independently verify the returned file type; an immediate download event does not establish either correct content or truthful completion feedback.
+
 Give each isolated browser-test server its own temporary Vite dependency cache.
 
 **Why:** Sharing the preview's optimized dependency cache lets a preview restart invalidate modules in the test server, causing unrelated lazy-loaded pages to fail and misleading journey timeouts.
