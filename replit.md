@@ -43,6 +43,13 @@ The application utilizes consistent design patterns:
 
 ## External Dependencies
 
+### Public release verification
+Retain `dist/public/index.html` and `dist/public/.vite/manifest.json` from the exact intended published build. Do not substitute an unrelated workspace rebuild.
+
+Run `npm run check:release -- --deployment <verified-platform-origin> --custom <configured-custom-origin> --expected-html dist/public/index.html --build-manifest dist/public/.vite/manifest.json`.
+
+Entry parity and required-chunk availability are reported separately; either failure makes the command fail. Without `--build-manifest`, lazy chunks are explicitly not checked. Checks download only validated public static JS/CSS bytes, never execute authenticated screens or query application data, and do not verify signed-in behavior. Chunk verification is limited to 200 files, 48 MB and 60 seconds per origin, with at most 10 seconds and 12 MB per asset. Response bodies and underlying error details are not logged.
+
 ### Core Services
 - **Neon Database**: Serverless PostgreSQL hosting.
 - **OpenAI API**: Provides AI-powered features.

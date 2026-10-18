@@ -10,6 +10,50 @@ export type ReleaseReport = {
   custom: Probe;
 };
 
+const PUBLIC_ASSET = /^\/assets\/[A-Za-z0-9_-][A-Za-z0-9_.-]*-[A-Za-z0-9_-]+\.(?:js|css)$/;
+const MAX_BUILD_ASSETS = 200;
+const MAX_BUILD_BYTES = 48_000_000;
+const BUILD_TIMEOUT_MS = 60_000;
+
+// Read only a caller-supplied manifest from the intended Vite build. Never
+// discover routes or follow URLs embedded in JavaScript or remote manifests.
+export function requiredPublicAssets(manifest: unknown): string[] {
+  if (!manifest || typeof manifest !== "object" || Array.isArray(manifest) ||
+      Object.keys(manifest).length === 0 || Object.keys(manifest).length > MAX_BUILD_ASSETS) {
+    throw new Error("Unsupported public build manifest.");
+  }
+  const paths = new Set<string>();
+  const add = (value: unknown) => {
+    if (typeof value !== "string" || !PUBLIC_ASSET.test(`/${value}`) || value.includes("..")) {
+      throw new Error("Unsupported public build asset.");
+    }
+    paths.add(`/${value}`);
+  };
+  for (const entry of Object.values(manifest)) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry) ||
+        typeof entry.file !== "string") throw new Error("Unsupported public build manifest.");
+    if (!/^assets\/[A-Za-z0-9_.-]+$/.test(entry.file) || entry.file.includes("..")) {
+      throw new Error("Unsupported public build asset.");
+    }
+    // Images and fonts can also appear as Vite manifest entries. This check
+    // deliberately covers executable chunks and their stylesheets only.
+    if (/\.(?:js|css)$/i.test(entry.file)) add(entry.file);
+    if (entry.css !== undefined) {
+      if (!Array.isArray(entry.css) || entry.css.length > MAX_BUILD_ASSETS) {
+        throw new Error("Unsupported public build manifest.");
+      }
+      for (const css of entry.css) {
+        if (typeof css !== "string" || !css.endsWith(".css")) throw new Error("Unsupported stylesheet.");
+        add(css);
+      }
+    }
+  }
+  if (paths.size > MAX_BUILD_ASSETS || ![...paths].some(path => path.endsWith(".js"))) {
+    throw new Error("Unsupported public build manifest.");
+  }
+  return [...paths].sort();
+}
+
 // Only public origins are accepted. Never read credentials or application APIs.
 export function publicOrigin(value: string): string {
   const url = new URL(value);
@@ -50,6 +94,7 @@ function identity(assets: string[]): string {
 
 async function publicBytes(
   url: URL, kind: "html" | "js" | "css", fetcher: typeof fetch, timeoutMs: number,
+  maxBytes = kind === "html" ? 512_000 : 12_000_000,
 ): Promise<Uint8Array> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -75,7 +120,7 @@ async function publicBytes(
         const { done, value } = await reader.read();
         if (done) break;
         size += value.length;
-        if (size > (kind === "html" ? 512_000 : 12_000_000)) {
+        if (size > maxBytes) {
           throw new Error("Public resource too large.");
         }
         chunks.push(value);
@@ -83,11 +128,61 @@ async function publicBytes(
     } finally {
       await reader.cancel().catch(() => {});
     }
-    return Buffer.concat(chunks);
+    const bytes = Buffer.concat(chunks);
+    // Some SPA fallbacks incorrectly preserve the requested asset MIME type.
+    if (kind !== "html" && /^(?:\s|<!--[\s\S]*?-->)*(?:<!doctype\s+html\b|<html\b|<head\b|<body\b)/i.test(bytes.toString("utf8").replace(/^\uFEFF/, ""))) {
+      throw new Error("Unexpected HTML fallback.");
+    }
+    return bytes;
   } finally {
     clearTimeout(timer);
     controller.abort();
   }
+}
+
+// Separate from entry parity: matching homepage assets do not establish that
+// lazy-loaded chunks exist. Download static bytes only; never execute screens.
+export async function verifyPublicBuild(options: {
+  deploymentUrl: string;
+  customUrl: string;
+  manifest: unknown;
+  fetcher?: typeof fetch;
+  timeoutMs?: number;
+}): Promise<ReleaseReport> {
+  const origins = [publicOrigin(options.deploymentUrl), publicOrigin(options.customUrl)];
+  if (origins[0] === origins[1]) throw new Error("Two distinct public origins are required.");
+  const paths = requiredPublicAssets(options.manifest);
+  const timeoutMs = options.timeoutMs ?? 10_000;
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new Error("Invalid timeout.");
+  const [deployment, custom] = await Promise.all(origins.map(async (origin): Promise<Probe> => {
+    const deadline = Date.now() + BUILD_TIMEOUT_MS;
+    let remainingBytes = MAX_BUILD_BYTES;
+    try {
+      const assets: Record<string, string> = {};
+      for (const path of paths) {
+        const remainingMs = deadline - Date.now();
+        if (remainingMs <= 0 || remainingBytes <= 0) throw new Error("Build check budget exceeded.");
+        const bytes = await publicBytes(new URL(path, origin), path.endsWith(".js") ? "js" : "css",
+          options.fetcher ?? fetch, Math.min(timeoutMs, remainingMs), Math.min(12_000_000, remainingBytes));
+        remainingBytes -= bytes.length;
+        assets[path] = createHash("sha256").update(bytes).digest("hex");
+      }
+      return { ok: true, snapshot: { identity: identity(paths), assets } };
+    } catch {
+      return { ok: false, reason: "Required public chunks could not be verified (HTTP, network, timeout, redirect, invalid content, or size limit)." };
+    }
+  }));
+  if (!deployment.ok || !custom.ok) {
+    return { status: "unavailable", message: "Required public build chunks are not verified as available.", deployment, custom };
+  }
+  const matching = JSON.stringify(deployment.snapshot) === JSON.stringify(custom.snapshot);
+  return {
+    status: matching ? "matching" : "mismatch",
+    message: matching
+      ? "All required public JavaScript and CSS chunks from the supplied build manifest are available and match across both origins. This does not verify authenticated screen behavior."
+      : "Required public build chunk bytes differ across the two origins.",
+    deployment, custom,
+  };
 }
 
 async function probe(origin: string, fetcher: typeof fetch, timeoutMs: number): Promise<Probe> {

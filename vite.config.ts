@@ -30,6 +30,8 @@ export default defineConfig(async () => ({
   },
   root: path.resolve(__dirname, "client"),
   build: {
+    // Retain the manifest from the exact published build for public chunk checks.
+    manifest: true,
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
   },
