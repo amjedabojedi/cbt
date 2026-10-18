@@ -31,6 +31,36 @@ delivery, and an outbound network firewall. Never point it at a published site.
 
 ## Clean Replit/NixOS workspace
 
+### Automated clean-runtime regression job
+
+`.github/workflows/webkit-runtime.yml` runs on a fresh x86_64 Linux worker with
+a pinned, pure Nix toolchain. It runs for pull requests and main/master pushes
+affecting dependencies, test/runtime files or application sources, weekly, and
+on manual dispatch. It is independent of publishing: no Azure pipeline,
+production approval, service connection, production credential or live app URL
+is used or changed.
+
+The job never restores a browser cache. `npm run verify:e2e:webkit-runtime`
+refuses a nonempty `.cache/ms-playwright` rather than deleting a working
+installation. It performs the real setup (download, native patching, dependency
+checks and offline rendering), checks completion markers for the installed
+Playwright revision, then runs all isolated WebKit journeys via `run.mjs`.
+Any stage failure fails the job; no Chromium fallback or retries are used.
+
+To reproduce in a **fresh checkout**, with Nix installed:
+
+```sh
+nix-shell tests/e2e/webkit-ci.nix --pure --run \
+  'npm install --legacy-peer-deps --no-audit --no-fund && npm run verify:e2e:webkit-runtime'
+```
+
+The repository currently does not track an npm lockfile, so the job installs
+from `package.json`; if a lockfile is introduced, use `npm ci` instead.
+The actual installed Playwright revision is recorded in the result summary.
+Only the synthetic setup/journey logs and result summary are uploaded, even on
+failure, with seven-day retention. Browser caches, native libraries, database
+files, screenshots, traces, npm logs and environment dumps are not uploaded.
+
 Requirements: the project's Node.js and PostgreSQL modules, Nix (`nix-build`)
 on PATH, and installed npm dependencies. No extra system packages, root access,
 manual ELF patching, browser-path exports or workspace secrets are needed.

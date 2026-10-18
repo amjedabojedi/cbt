@@ -12,6 +12,7 @@
     "audit:recommendation-resources": "tsx scripts/audit-recommendation-resources.ts",
     "test:e2e": "node tests/e2e/run.mjs",
     "setup:e2e:webkit": "node tests/e2e/setup-webkit.mjs",
+    "verify:e2e:webkit-runtime": "node tests/e2e/verify-webkit-runtime.mjs",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {

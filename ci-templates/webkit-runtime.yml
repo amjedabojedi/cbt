@@ -1,0 +1,62 @@
+name: Clean Nix WebKit runtime
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/webkit-runtime.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "tests/**"
+      - "client/**"
+      - "server/**"
+      - "shared/**"
+      - "vite.config.ts"
+  push:
+    branches: [main, master]
+    paths:
+      - ".github/workflows/webkit-runtime.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "tests/**"
+      - "client/**"
+      - "server/**"
+      - "shared/**"
+      - "vite.config.ts"
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+# Independent regression coverage, not a publishing stage or approval gate.
+permissions:
+  contents: read
+
+jobs:
+  clean-webkit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@v31
+        with:
+          nix_path: ""
+      # No browser or Nix closure cache is restored. All test tools come from Nix.
+      # No repository/environment secrets, service connections or live URLs.
+      - name: Download, patch, render offline, then run isolated iPhone journeys
+        shell: bash
+        run: |
+          test "$(uname -m)" = x86_64
+          nix-shell tests/e2e/webkit-ci.nix --pure --run \
+            'npm install --legacy-peer-deps --no-audit --no-fund && node --test tests/webkit-runtime*.test.mjs tests/e2e-runner.test.mjs && npm run verify:e2e:webkit-runtime'
+      - name: Retain synthetic runtime diagnostics only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-webkit-runtime
+          path: |
+            generated-artifacts/webkit-runtime/summary.json
+            generated-artifacts/webkit-runtime/setup.log
+            generated-artifacts/webkit-runtime/journeys.log
+          if-no-files-found: ignore
+          retention-days: 7
