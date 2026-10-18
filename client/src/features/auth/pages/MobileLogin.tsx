@@ -81,7 +81,9 @@ export default function MobileLogin() {
         // Extract the most useful part of the error message
         const message = (error as Error).message;
         
-        if (message.includes("401") || message.includes("unauthorized") || message.includes("invalid credentials")) {
+        if (/too many|rate limit|wait about/i.test(message)) {
+          errorMessage = message;
+        } else if (message.includes("401") || message.includes("unauthorized") || message.includes("invalid credentials")) {
           errorMessage = "Your username or password is incorrect. Please try again.";
         } else if (message.includes("network") || message.includes("fetch")) {
           errorMessage = "Network error. Please check your internet connection and try again.";

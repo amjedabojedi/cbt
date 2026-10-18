@@ -150,8 +150,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData: any = {};
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = {};
+        }
         console.error("Login failed:", errorData);
+        if (response.status === 429) {
+          const minutes = errorData.retryAfterMinutes
+            || Math.max(1, Math.ceil(Number(errorData.retryAfter || 900) / 60));
+          throw new Error(
+            errorData.message ||
+            `Too many login attempts. Please wait about ${minutes} minute${minutes === 1 ? "" : "s"} and try again.`
+          );
+        }
         throw new Error(errorData.message || `Login failed with status ${response.status}`);
       }
       
@@ -193,21 +206,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       navigate("/dashboard");
     } catch (err) {
-      // Handle error gracefully without alarming messages
       console.log("Login attempt unsuccessful:", err);
-      
-      // Use more user-friendly error message to avoid security flags
+
+      let friendlyError: Error;
       if (err instanceof Error) {
-        if (err.message.includes('credentials')) {
-          setError(new Error("Please check your username and password"));
-        } else if (err.message.includes('network') || err.message.includes('Failed to fetch')) {
-          setError(new Error("Connection issue. Please try again"));
+        const msg = err.message || "";
+        if (/too many|rate limit|429|wait about/i.test(msg)) {
+          friendlyError = new Error(msg);
+        } else if (/invalid credentials|credentials/i.test(msg)) {
+          friendlyError = new Error("Please check your username and password");
+        } else if (/network|Failed to fetch/i.test(msg)) {
+          friendlyError = new Error("Connection issue. Please try again");
         } else {
-          setError(new Error("Login issue. Please try again"));
+          friendlyError = new Error(msg || "Login issue. Please try again");
         }
       } else {
-        setError(new Error("Login issue. Please try again"));
+        friendlyError = new Error("Login issue. Please try again");
       }
+
+      setError(friendlyError);
+      // Re-throw so pages can show a toast/inline alert with the real message
+      throw friendlyError;
     } finally {
       setLoading(false);
     }

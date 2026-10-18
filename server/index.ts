@@ -30,7 +30,10 @@ app.use((req, res, next) => {
   const allowedOrigins = [
     "https://workspace.dramjedabojedi.repl.co",
     "https://resiliencehub.net",
-    // Add any other domains you use
+    "https://www.resiliencehub.net",
+    "https://rsehub.ca",
+    "https://www.rsehub.ca",
+    "https://resiliencehub.replit.app",
   ];
 
   // Get origin from request headers or default to '*'

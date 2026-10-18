@@ -45,9 +45,13 @@ class RateLimiter {
     const allowed = this.tryConsume(clientId);
 
     if (!allowed) {
+      const retryAfterSeconds = Math.ceil(this.config.windowMs / 1000);
+      const retryAfterMinutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
+      const baseMessage = this.config.message || 'Too many requests';
       return res.status(429).json({
-        message: this.config.message || 'Too many requests',
-        retryAfter: Math.ceil(this.config.windowMs / 1000)
+        message: `${baseMessage}. Please wait about ${retryAfterMinutes} minute${retryAfterMinutes === 1 ? '' : 's'} and try again.`,
+        retryAfter: retryAfterSeconds,
+        retryAfterMinutes,
       });
     }
     
@@ -74,7 +78,7 @@ export const createRateLimiter = (config: RateLimitConfig) =>
 export const authRateLimit = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
   maxRequests: 20,
-  message: 'Too many authentication attempts'
+  message: 'Too many login or password reset attempts'
 });
 
 export const apiRateLimit = createRateLimiter({
