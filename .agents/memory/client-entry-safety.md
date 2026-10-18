@@ -35,9 +35,9 @@ Show completion after a confirmed write without waiting for background History o
 
 Do not declare the user's live thought-challenge failure resolved solely because isolated browser checks pass.
 
-**Why:** The user repeatedly reported that the History menu's challenge entry did not work after earlier reports said the flow passed. Successful isolated checks and publicly present handler code do not establish what happens in the user's authenticated browser.
+**Why:** The user repeatedly reported that the History menu's challenge entry did not work after earlier reports said the flow passed. Successful isolated checks and publicly present handler code do not establish what happens in the user's authenticated browser. Waiting for eventual form visibility also missed overlapping menu/dialog focus layers during the initial handoff.
 
-**How to apply:** Trace the exact reported entry point and distinguish local test evidence from live-session verification. If the failure cannot be reproduced, say that explicitly and establish what happens immediately after the click. Do not infer a database fault or an outdated release without evidence.
+**How to apply:** Trace the exact reported entry point and distinguish local test evidence from live-session verification. Check the initial handoff, not only whether a form eventually appears; exercise ordinary pointer, keyboard and touch interactions. If the failure cannot be reproduced, say that explicitly and establish what happens immediately after the click. Do not infer a database fault or an outdated release without evidence.
 
 Treat practice milestones as encouragement, never a recovery score or a validated treatment target.
 

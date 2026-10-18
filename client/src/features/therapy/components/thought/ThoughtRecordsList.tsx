@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ThoughtRecord } from "@shared/schema";
@@ -90,6 +90,7 @@ export default function ThoughtRecordsList({
   const [recordToDelete, setRecordToDelete] = useState<ThoughtRecord | null>(null);
   const [showReframeDialog, setShowReframeDialog] = useState(false);
   const [thoughtToChallenge, setThoughtToChallenge] = useState<ThoughtRecord | null>(null);
+  const pendingThoughtChallenge = useRef<ThoughtRecord | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [_, navigate] = useLocation(); // Used for navigation to different pages
@@ -368,13 +369,27 @@ export default function ThoughtRecordsList({
                       </div>
                       
                       {/* Actions Dropdown */}
-                      <DropdownMenu>
+                      <DropdownMenu onOpenChange={(isOpen) => {
+                        if (isOpen) pendingThoughtChallenge.current = null;
+                      }}>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align={isRTL ? "start" : "end"} className="text-start">
+                        <DropdownMenuContent
+                          align={isRTL ? "start" : "end"}
+                          className="text-start"
+                          onCloseAutoFocus={(event) => {
+                            const pending = pendingThoughtChallenge.current;
+                            if (!pending || pending.id !== record.id) return;
+                            pendingThoughtChallenge.current = null;
+                            // Let the menu release its modal layer before opening another.
+                            // Do not restore focus to its trigger over the new dialog.
+                            event.preventDefault();
+                            setThoughtToChallenge(pending);
+                          }}
+                        >
                           <DropdownMenuItem onClick={() => handleViewDetails(record)}>
                             <Eye className="h-4 w-4 me-2" />
                             {t("View Details")}
@@ -382,7 +397,9 @@ export default function ThoughtRecordsList({
                           {!isViewingClientData && (
                             <>
                               {!isThoughtChallenged(record) && (
-                                <DropdownMenuItem onClick={() => setThoughtToChallenge(record)}>
+                                <DropdownMenuItem onSelect={() => {
+                                  pendingThoughtChallenge.current = record;
+                                }}>
                                   <Brain className="h-4 w-4 me-2" />
                                   {t("Challenge This Thought")}
                                 </DropdownMenuItem>

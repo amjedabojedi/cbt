@@ -6,3 +6,18 @@ id = "qWVsyVkiM1vfOqTCCvuKd"
 uri = "file://docs/CHANGELOG_RESOURCE_ASSIGNMENTS.md"
 type = "text"
 title = "Resource Assignments — Changelog & Documentation"
+logical_id = "e1547a86-bc96-439d-bf96-bf24273f1fe3"
+
+[[outputs]]
+id = "y3fs0cOt793AUR_x1Y5Xq"
+uri = "file://generated-artifacts/e2e/thought-history-handoff-Hi-6e7eb-ge-opens-and-accepts-typing-chromium/history-challenge-open.png"
+type = "image"
+title = "History challenge — verified workspace test"
+description = "The challenge opened from the History menu and accepted ordinary typing. This uses a synthetic test account, not your live account."
+logical_id = "712ead15-128f-4cb2-840c-31a8db54bac5"
+content_hash = "sha256:af9d79b3a63dd6cd3ce37b89b32ed5cd6ce0e91b59a6af3137c8b781e6c83073"
+size = 209411
+mtime_ms = 1792337358637
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:2afc12da-a46a-4189-baec-8b01e2d4ebaf/712ead15-128f-4cb2-840c-31a8db54bac5/bdd56c7e-b724-4ca6-8968-30d1d1c99158"
+storage_version_token = "1792337569256297"
+content_type = "image/png"
