@@ -1,25 +1,15 @@
-import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { useLocalization } from "@/lib/localize";
 import { useClientContext } from "@/context/ClientContext";
 import { apiRequest } from "@/lib/queryClient";
+import { getPrimaryNavigation } from "./primary-navigation";
 
 import {
-  LayoutDashboard,
-  Users,
-  Heart,
   Brain,
-  Flag,
-  BookOpen,
-  BarChart,
   Settings,
   LogOut,
-  Award,
-  BookMarked,
-  Lightbulb,
-  MessageCircle,
   ChevronLeft,
   ChevronRight,
   Globe,
@@ -41,13 +31,11 @@ interface NavItem {
 export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
   const { user, logout } = useAuth();
   const [location] = useLocation();
-  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const { currentLanguage, setLanguage, t, isRTL } = useLocalization();
   const { viewingClientId, viewingClientName, setViewingClient } = useClientContext();
 
   const handleReturnToClients = async () => {
     setViewingClient(null, null);
-    setIsMobileExpanded(false);
     try {
       await apiRequest("POST", "/api/users/current-viewing-client", { clientId: null });
     } catch {
@@ -63,50 +51,8 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
   const isTherapistViewingClient =
     user?.role === "therapist" && !!viewingClientId && !!viewingClientName && !isOnClientsPage;
 
-  let navItems: NavItem[] = [];
-
-  if (user?.role === "admin") {
-    navItems = [
-      { href: "/admin", label: "Admin Dashboard", icon: <LayoutDashboard size={20} />, exact: true },
-      { href: "/admin/users", label: "User Management", icon: <Users size={20} /> },
-      { href: "/admin/engagement-settings", label: "Engagement Settings", icon: <Heart size={20} /> },
-      { href: "/admin/logs", label: "System Logs", icon: <BookMarked size={20} /> },
-      { href: "/admin/notifications", label: "Notifications", icon: <MessageCircle size={20} /> },
-      { href: "/subscriptions", label: "Subscription Plans", icon: <Award size={20} /> },
-      { href: "/emotion-mapping", label: "Emotion Mapping", icon: <Heart size={20} /> },
-      { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
-    ];
-  } else if (user?.role === "therapist") {
-    if (isTherapistViewingClient) {
-      navItems = [
-        { href: "/clients", label: "← My Clients", icon: <Users size={20} />, isReturn: true },
-        { href: "/dashboard", label: "Overview", icon: <LayoutDashboard size={20} /> },
-        { href: "/emotions", label: "Emotions", icon: <Heart size={20} /> },
-        { href: "/thoughts", label: "Thought Records", icon: <Brain size={20} /> },
-        { href: "/reframe-coach", label: "Reframe Coach", icon: <Lightbulb size={20} /> },
-        { href: "/journal", label: "Journal", icon: <BookMarked size={20} /> },
-        { href: "/goals", label: "Smart Goals", icon: <Flag size={20} /> },
-        { href: "/reports", label: "Progress", icon: <BarChart size={20} /> },
-      ];
-    } else {
-      navItems = [
-        { href: "/dashboard", label: "Therapist Dashboard", icon: <LayoutDashboard size={20} /> },
-        { href: "/clients", label: "My Clients", icon: <Users size={20} /> },
-        { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
-      ];
-    }
-  } else {
-    navItems = [
-      { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-      { href: "/emotions", label: "Emotion Tracking", icon: <Heart size={20} /> },
-      { href: "/thoughts", label: "Thought Records", icon: <Brain size={20} /> },
-      { href: "/reframe-coach", label: "Reframe Coach", icon: <Lightbulb size={20} /> },
-      { href: "/journal", label: "Journal", icon: <BookMarked size={20} /> },
-      { href: "/goals", label: "Smart Goals", icon: <Flag size={20} /> },
-      { href: "/library", label: "Resource Library", icon: <BookOpen size={20} /> },
-      { href: "/reports", label: "My Progress", icon: <BarChart size={20} /> },
-    ];
-  }
+  const navItems: NavItem[] = getPrimaryNavigation(user?.role, isTherapistViewingClient)
+    .map(({ icon: Icon, ...item }) => ({ ...item, icon: <Icon size={20} /> }));
 
   // Adjust arrows in RTL direction
   const showLeftArrow = isRTL ? isCollapsed : !isCollapsed;
@@ -138,18 +84,10 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
 
   return (
     <>
-      {/* Mobile overlay */}
-      {isMobileExpanded && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={() => setIsMobileExpanded(false)}
-        />
-      )}
-
       {/* Sidebar */}
       <aside
         className={cn(
-          "shadow-md fixed md:relative inset-y-0 z-50",
+          "hidden md:block shadow-md relative inset-y-0 z-50",
           "transition-all duration-300 ease-in-out",
           "w-64",
           isCollapsed && "md:w-16",
@@ -160,12 +98,6 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
             ? "right-0 border-l shadow-md"
             : "left-0 border-r shadow-md",
 
-          // Deterministic mobile hiding/showing translate
-          isMobileExpanded
-            ? "translate-x-0"
-            : isRTL
-              ? "translate-x-full md:translate-x-0" // Hide off-screen to the right in RTL
-              : "-translate-x-full md:translate-x-0" // Hide off-screen to the left in LTR
         )}
       >
         {/* Collapse toggle — floats on the edge, desktop only */}
@@ -335,7 +267,6 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                             ? "text-white/75 hover:text-white hover:bg-white/8"
                             : "text-neutral-600 hover:text-primary hover:bg-primary/5"
                       )}
-                      onClick={() => setIsMobileExpanded(false)}
                       title={isCollapsed ? t(item.label) : undefined}
                     >
                       <span className={iconMarginClass}>{item.icon}</span>
@@ -445,7 +376,6 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                         ? "text-white/75 hover:text-white hover:bg-white/8"
                         : "text-neutral-600 hover:text-primary hover:bg-primary/5"
                   )}
-                  onClick={() => setIsMobileExpanded(false)}
                   title={isCollapsed ? t("Settings") : undefined}
                 >
                   <Settings
@@ -462,7 +392,6 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
                 <button
                   data-navigation
                   onClick={() => {
-                    setIsMobileExpanded(false);
                     logout();
                   }}
                   className={cn(
@@ -492,28 +421,6 @@ export default function Sidebar({ isCollapsed = false, onToggle }: SidebarProps)
         </div>
       </aside>
 
-      {/* Mobile toggle button */}
-      <button
-        className={cn(
-          "fixed bottom-20 md:hidden bg-gradient-to-tr from-teal-700 to-teal-600 text-white p-3 rounded-full shadow-lg z-50 animate-bounce",
-          isRTL ? "left-4" : "right-4"
-        )}
-        onClick={() => setIsMobileExpanded(!isMobileExpanded)}
-        aria-label={isMobileExpanded ? "Close menu" : "Open menu"}
-      >
-        {isMobileExpanded ? (
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
-        ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="4" x2="20" y1="12" y2="12" />
-            <line x1="4" x2="20" y1="6" y2="6" />
-            <line x1="4" x2="20" y1="18" y2="18" />
-          </svg>
-        )}
-      </button>
     </>
   );
 }

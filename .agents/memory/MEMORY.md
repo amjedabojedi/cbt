@@ -2,3 +2,4 @@
 - [Client entry safety](client-entry-safety.md) — protect sensitive writing without persistent browser drafts; practice milestones are encouragement, not recovery scores.
 - [Therapy test isolation](therapy-test-isolation.md) — persistence/access tests must never touch existing client records or send real email.
 - [Recommendation resource policy](resource-recommendation-policy.md) — preserve saved history by blocking deletion of referenced resources; all reference writers must coordinate with deletion.
+- [Navigation role parity](navigation-role-parity.md) — phone navigation must retain desktop role permissions and selected-client context, with one primary menu.

@@ -4,22 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import {
   Menu,
-  Home,
-  Heart,
-  BookOpen,
   Brain,
-  Target,
-  Library,
-  BarChart3,
   Settings,
-  Users,
-  Lightbulb,
   LogOut,
   Globe,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 import { useLocalization } from '@/lib/localize';
+import { useClientContext } from '@/context/ClientContext';
+import { apiRequest } from '@/lib/queryClient';
+import { getPrimaryNavigation } from '@/components/layout/primary-navigation';
 
 interface MobileNavigationProps {
   className?: string;
@@ -29,24 +24,25 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
   const [open, setOpen] = useState(false);
   const [location] = useLocation();
   const { user, logout } = useAuth();
-  const { currentLanguage, t } = useLocalization();
+  const { currentLanguage, t, isRTL } = useLocalization();
+  const { viewingClientId, viewingClientName, setViewingClient } = useClientContext();
+  const isOnClientsPage = location === "/clients" || location.startsWith("/clients");
+  const viewingClient = user?.role === "therapist" &&
+    !!viewingClientId && !!viewingClientName && !isOnClientsPage;
+  const navigationItems = getPrimaryNavigation(user?.role, viewingClient);
 
-  const navigationItems = [
-    { href: '/dashboard', icon: Home, label: 'Dashboard' },
-    { href: '/emotions', icon: Heart, label: 'Track Emotions' },
-    { href: '/thoughts', icon: Brain, label: 'Thought Records' },
-    { href: '/journal', icon: BookOpen, label: 'Journal' },
-    { href: '/goals', icon: Target, label: 'Goals' },
-    { href: '/reframe-coach', icon: Lightbulb, label: 'Reframe Coach' },
-    { href: '/library', icon: Library, label: 'Resources' },
-    { href: '/reports', icon: BarChart3, label: 'My Progress' },
-  ];
+  const closeForNavigation = (isReturn?: boolean) => {
+    setOpen(false);
+    if (isReturn) {
+      setViewingClient(null, null);
+      // Match the desktop return action; the context clears immediately.
+      void apiRequest("POST", "/api/users/current-viewing-client", { clientId: null })
+        .catch(() => console.error("Failed to clear the selected client on the server"));
+    }
+  };
 
-  if (user?.role === 'therapist' || user?.role === 'admin') {
-    navigationItems.push({ href: '/clients', icon: Users, label: 'Clients' });
-  }
-
-  const isActive = (href: string) => {
+  const isActive = (href: string, exact?: boolean) => {
+    if (exact) return location === href;
     if (href === '/dashboard') return location === '/' || location === '/dashboard';
     return location === href || location.startsWith(href + '/');
   };
@@ -69,7 +65,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
           </Button>
         </SheetTrigger>
         <SheetContent
-          side="left"
+          side={isRTL ? "right" : "left"}
           aria-describedby={undefined}
           className="w-72 p-0 bg-teal-800 border-r border-teal-800/80 shadow-[4px_0_24px_rgba(124,58,237,0.1)]"
         >
@@ -108,10 +104,10 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
               <ul>
                 {navigationItems.map((item) => {
                   const Icon = item.icon;
-                  const active = isActive(item.href);
+                  const active = isActive(item.href, item.exact);
                   return (
                     <li key={item.href} className="px-3 py-0.5">
-                      <Link href={item.href} onClick={() => setOpen(false)}>
+                      <Link href={item.href} onClick={() => closeForNavigation(item.isReturn)}>
                         <div
                           className={cn(
                             'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
@@ -121,7 +117,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                           )}
                         >
                           <Icon size={18} className="flex-shrink-0" />
-                          <span>{item.label}</span>
+                          <span>{t(item.label)}</span>
                         </div>
                       </Link>
                     </li>

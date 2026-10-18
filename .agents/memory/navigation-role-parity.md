@@ -1,0 +1,16 @@
+---
+name: Navigation role parity
+description: Role and selected-client consistency across desktop and phone navigation.
+---
+
+Keep one primary phone menu, with the same role-appropriate destinations as desktop.
+
+**Why:** The user reported inconsistent phone behavior. Independent phone menus had diverged: the header menu omitted administration tools while a floating menu exposed a different route list.
+
+**How to apply:** Keep route and label definitions shared. Check clients, administrators, and therapists both with and without a selected client. Returning to My Clients must clear selection locally and on the server. Do not replace role-specific tools with a generic personal-client menu on phones.
+
+Check phone controls against the configured device dimensions, not only DOM visibility or layout-viewport intersection.
+
+**Why:** A page wider than a phone can expand the browser's layout viewport. Tests can then call a footer visible even though it falls below the actual screenshot. This occurred while administration content exceeded the phone width.
+
+**How to apply:** Assert page, drawer, and footer bounding boxes against the test device width/height. Disable finite animations when capturing diagnostic screenshots so transitional frames are not mistaken for broken layouts.
