@@ -25,6 +25,52 @@ test.beforeEach(async ({ page }) => {
   await login(page.request);
 });
 
+test.describe("phone post-save challenge", () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test("the post-save action opens a usable challenge with uninterrupted typing", async ({ page }) => {
+    await page.goto("/thoughts");
+    const next = () => page.getByTestId("button-next-step").tap();
+    await next();
+    await page.getByTestId("textarea-thought").fill("Synthetic phone challenge thought.");
+    await next();
+    await next();
+    await page.getByRole("checkbox").first().tap();
+    await next();
+    await page.getByTestId("textarea-situation").fill("Synthetic phone challenge situation.");
+    await next();
+    await next();
+    await page.getByTestId("button-submit-wizard").tap();
+    await page.getByTestId("button-challenge-thought").tap();
+    await expect(page.getByTestId("button-start-challenge")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("button-start-challenge").tap();
+    const supporting = page.getByTestId("textarea-evidence-for");
+    await supporting.pressSequentially(evidenceFor);
+    await expect(supporting).toHaveValue(evidenceFor);
+    await expect(supporting).toBeFocused();
+    await page.getByTestId("textarea-evidence-against").pressSequentially(evidenceAgainst);
+    await expect(page.getByTestId("textarea-evidence-against")).toHaveValue(evidenceAgainst);
+    await next();
+    await page.getByTestId("textarea-alternative").pressSequentially(alternative);
+    await expect(page.getByTestId("textarea-alternative")).toHaveValue(alternative);
+    await next();
+    await expect(page.getByTestId("step-beliefs")).toBeVisible();
+    const saved = page.waitForResponse(r =>
+      r.url().includes(`/api/users/${userId}/thoughts/`) &&
+      r.request().method() === "PATCH" && r.status() === 200);
+    await page.getByTestId("button-save-challenge").tap();
+    const result = await (await saved).json();
+    expect(result).toMatchObject({
+      evidenceFor, evidenceAgainst, alternativePerspective: alternative,
+      beliefInOriginal: 50, beliefInAlternative: 50,
+    });
+    await page.getByTestId("button-close-success").tap();
+    await page.reload();
+    await page.getByRole("tab", { name: "My History", exact: true }).tap();
+    await expect(page.getByTestId(`card-thought-${result.id}`)).toContainText("Challenged");
+  });
+});
+
 test("new thought → challenge → failed save/retry → refresh → history and insights", async ({ page }) => {
   await page.goto("/thoughts");
   const next = () => page.getByTestId("button-next-step").click();
@@ -48,10 +94,14 @@ test("new thought → challenge → failed save/retry → refresh → history an
   await next();
   await expect(page.getByTestId("step-evidence")).toBeVisible();
   await expect(page.getByText("Please provide at least 10 characters")).toHaveCount(2);
-  await page.getByTestId("textarea-evidence-for").fill(evidenceFor);
-  await page.getByTestId("textarea-evidence-against").fill(evidenceAgainst);
+  await page.getByTestId("textarea-evidence-for").pressSequentially(evidenceFor);
+  await expect(page.getByTestId("textarea-evidence-for")).toHaveValue(evidenceFor);
+  await expect(page.getByTestId("textarea-evidence-for")).toBeFocused();
+  await page.getByTestId("textarea-evidence-against").pressSequentially(evidenceAgainst);
+  await expect(page.getByTestId("textarea-evidence-against")).toHaveValue(evidenceAgainst);
   await next();
-  await page.getByTestId("textarea-alternative").fill(alternative);
+  await page.getByTestId("textarea-alternative").pressSequentially(alternative);
+  await expect(page.getByTestId("textarea-alternative")).toHaveValue(alternative);
   await page.getByRole("button", { name: "Previous", exact: true }).click();
   await expect(page.getByTestId("textarea-evidence-for")).toHaveValue(evidenceFor);
   await expect(page.getByTestId("textarea-evidence-against")).toHaveValue(evidenceAgainst);

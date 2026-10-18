@@ -5,6 +5,11 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import net from "node:net";
 
+const specs = process.argv.slice(2);
+if (specs.some(spec => !/^[a-z0-9-]+\.spec\.ts$/.test(spec))) {
+  throw new Error("Only E2E spec filenames are accepted; database URLs and configuration overrides are forbidden");
+}
+
 const root = await mkdtemp(path.join(tmpdir(), "resilience-e2e-"));
 const env = Object.fromEntries(
   ["PATH", "HOME", "LANG", "LC_ALL", "TMPDIR"].filter(key => process.env[key]).map(key => [key, process.env[key]])
@@ -82,7 +87,7 @@ try {
   }
   console.log(`Isolated E2E app ready on port ${appPort}`);
   const result = await new Promise((resolve, reject) => {
-    testProcess = spawn("node_modules/.bin/playwright", ["test", "--config", "tests/e2e/playwright.config.ts"], { env, stdio: "inherit" });
+    testProcess = spawn("node_modules/.bin/playwright", ["test", "--config", "tests/e2e/playwright.config.ts", ...specs], { env, stdio: "inherit" });
     testProcess.once("error", reject);
     testProcess.once("exit", code => resolve(code ?? 1));
   });

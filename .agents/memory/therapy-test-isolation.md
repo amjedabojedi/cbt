@@ -14,3 +14,9 @@ Give each isolated browser-test server its own temporary Vite dependency cache.
 **Why:** Sharing the preview's optimized dependency cache lets a preview restart invalidate modules in the test server, causing unrelated lazy-loaded pages to fail and misleading journey timeouts.
 
 **How to apply:** Keep the test cache inside the disposable test directory so it is removed with the test database. Do not repair this by weakening browser assertions or adding retries that hide module-loading failures.
+
+Verify ordinary typing and focus retention, not only setting entire field values.
+
+**Why:** Whole-field fill operations previously passed while normal typing in a challenge accepted only the first character because the input lost focus. A passing save/API check did not establish that the form was usable.
+
+**How to apply:** Exercise character-by-character entry on desktop and phone layouts, assert the full value and focus, and enter through each actual user-facing start action before claiming the complete flow works.

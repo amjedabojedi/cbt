@@ -2,6 +2,10 @@
 
 Run `npm run test:e2e` from the repository root.
 
+For a focused check, pass spec filenames, for example:
+`npm run test:e2e -- thought-challenge-flow.spec.ts`.
+Only spec filenames are accepted; the same database and network isolation applies.
+
 Requirements: Node.js, PostgreSQL tools (`initdb`, `pg_ctl`, `createdb`) on PATH,
 and Chromium. Replit's `/repl/tools/bin/chromium` is detected automatically;
 else install Playwright's Chromium with `npx playwright install chromium`.

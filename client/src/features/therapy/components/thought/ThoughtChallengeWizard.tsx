@@ -152,7 +152,7 @@ export function ThoughtChallengeWizard({
   };
 
   // ─── Luxury Header ───────────────────────────────────────────────────────────
-  const LuxuryHeader = () => (
+  const renderHeader = () => (
     <div
       className="relative overflow-hidden rounded-t-2xl px-7 py-5"
       style={{ background: "linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)" }}
@@ -245,7 +245,7 @@ export function ThoughtChallengeWizard({
   );
 
   // ─── Step 0: Intro ────────────────────────────────────────────────────────────
-  const StepIntro = () => (
+  const renderIntro = () => (
     <div className="p-6 space-y-0" data-testid="step-intro">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* LEFT: Educational content */}
@@ -361,7 +361,7 @@ export function ThoughtChallengeWizard({
   );
 
   // ─── Step 1: Evidence ─────────────────────────────────────────────────────────
-  const StepEvidence = () => (
+  const renderEvidence = () => (
     <div className="p-6 space-y-4" data-testid="step-evidence">
       {/* Context bar */}
       <div className="flex items-center gap-2.5 rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5">
@@ -454,7 +454,7 @@ export function ThoughtChallengeWizard({
   );
 
   // ─── Step 2: Alternative Thought ──────────────────────────────────────────────
-  const StepAlternative = () => (
+  const renderAlternative = () => (
     <div className="p-6 space-y-4" data-testid="step-alternative">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* LEFT: Case Summary */}
@@ -553,7 +553,7 @@ export function ThoughtChallengeWizard({
   );
 
   // ─── Step 3: Rate Beliefs ────────────────────────────────────────────────────
-  const StepBeliefs = () => {
+  const renderBeliefs = () => {
     const original = watchedValues.beliefInOriginal ?? 50;
     const alternative = watchedValues.beliefInAlternative ?? 50;
 
@@ -698,13 +698,15 @@ export function ThoughtChallengeWizard({
     <>
       {!showSuccessDialog && (
         <div className="flex flex-col">
-          <LuxuryHeader />
+          {renderHeader()}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-              {currentStep === 0 && <StepIntro />}
-              {currentStep === 1 && <StepEvidence />}
-              {currentStep === 2 && <StepAlternative />}
-              {currentStep === 3 && <StepBeliefs />}
+              {/* Render helpers preserve field identity while form.watch updates.
+                  Nested component types would remount inputs on every keystroke. */}
+              {currentStep === 0 && renderIntro()}
+              {currentStep === 1 && renderEvidence()}
+              {currentStep === 2 && renderAlternative()}
+              {currentStep === 3 && renderBeliefs()}
             </form>
           </Form>
         </div>
