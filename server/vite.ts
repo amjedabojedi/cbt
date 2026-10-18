@@ -74,8 +74,7 @@ export async function setupVite(app: Express, server: Server, cacheDir?: string)
 }
 
 // ✅ named export
-export function serveStatic(app: Express) {
-  const distPath = path.resolve(__dirname, "public");
+export function serveStatic(app: Express, distPath = path.resolve(__dirname, "public")) {
 
   if (!fs.existsSync(distPath)) {
     throw new Error(

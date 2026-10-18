@@ -41,7 +41,28 @@ test.describe("phone post-save challenge", () => {
     await page.getByTestId("textarea-situation").fill("Synthetic phone challenge situation.");
     await next();
     await next();
+    await expect(page.getByTestId("step-review-thought")).toBeVisible();
+    await expect(page.getByTestId("step-review-thought")).toContainText("Synthetic phone challenge thought.");
+    let recordAttempts = 0;
+    await page.route(`**/api/users/${userId}/thoughts`, route => {
+      if (route.request().method() !== "POST") return route.continue();
+      recordAttempts++;
+      return recordAttempts === 1
+        ? route.fulfill({ status: 503, json: { message: "Synthetic thought save failure" } })
+        : route.continue();
+    });
+    const failedRecord = page.waitForResponse(r =>
+      r.url().endsWith(`/api/users/${userId}/thoughts`) && r.status() === 503);
     await page.getByTestId("button-submit-wizard").tap();
+    await failedRecord;
+    await expect(page.getByText("Failed to record thought. Please try again.", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("step-review-thought")).toContainText("Synthetic phone challenge situation.");
+    const recorded = page.waitForResponse(r =>
+      r.url().endsWith(`/api/users/${userId}/thoughts`) &&
+      r.request().method() === "POST" && r.status() === 201);
+    await page.getByTestId("button-submit-wizard").tap();
+    await recorded;
+    expect(recordAttempts).toBe(2);
     await page.getByTestId("button-challenge-thought").tap();
     await expect(page.getByTestId("button-start-challenge")).toBeVisible({ timeout: 5000 });
     await page.getByTestId("button-start-challenge").tap();

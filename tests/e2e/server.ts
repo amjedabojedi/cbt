@@ -5,7 +5,7 @@ import bcrypt from "bcrypt";
 import { db } from "../../server/db";
 import { users } from "../../shared/schema";
 import { registerRoutes } from "../../server/routes";
-import { setupVite } from "../../server/vite";
+import { setupVite, serveStatic } from "../../server/vite";
 
 if (!process.env.E2E_ISOLATED || !/^postgresql:\/\/e2e@127\.0\.0\.1:\d+\/resilience_e2e$/.test(process.env.DATABASE_URL || "")) {
   throw new Error("Refusing to seed anything except the disposable E2E database");
@@ -30,6 +30,11 @@ app.use(express.json());
 const server = await registerRoutes(app);
 app.get("/__e2e/ready", (_req, res) => res.json(fixture));
 // No scheduler, reminders, welcome email or registration runs in this harness.
-// Never share optimized dependencies with the concurrently running preview.
-await setupVite(app, server, path.join(process.env.E2E_ISOLATED, "vite-cache"));
+if (process.env.E2E_PRODUCTION_BUILD === "1") {
+  // Same freshly built frontend that dist/index.js serves in production.
+  serveStatic(app, path.resolve("dist/public"));
+} else {
+  // Never share optimized dependencies with the concurrently running preview.
+  await setupVite(app, server, path.join(process.env.E2E_ISOLATED, "vite-cache"));
+}
 server.listen(Number(process.env.PORT), "127.0.0.1");

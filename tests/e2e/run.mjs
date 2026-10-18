@@ -5,7 +5,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import net from "node:net";
 
-const specs = process.argv.slice(2);
+const args = process.argv.slice(2);
+const productionBuild = args.includes("--production-build");
+const specs = args.filter(arg => arg !== "--production-build");
 if (specs.some(spec => !/^[a-z0-9-]+\.spec\.ts$/.test(spec))) {
   throw new Error("Only E2E spec filenames are accepted; database URLs and configuration overrides are forbidden");
 }
@@ -14,6 +16,7 @@ const root = await mkdtemp(path.join(tmpdir(), "resilience-e2e-"));
 const env = Object.fromEntries(
   ["PATH", "HOME", "LANG", "LC_ALL", "TMPDIR"].filter(key => process.env[key]).map(key => [key, process.env[key]])
 );
+if (productionBuild) env.E2E_PRODUCTION_BUILD = "1";
 Object.assign(env, {
   NODE_ENV: "development",
   DOTENV_CONFIG_PATH: path.join(root, "no-dotenv"),
