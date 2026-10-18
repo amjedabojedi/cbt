@@ -1,4 +1,5 @@
 import { test, expect, type Dialog, type Page } from "@playwright/test";
+import { expectNoStoredWriting, phoneNavigate, typeByTouch, watchUnsavedJourney } from "./phone-unsaved-helpers";
 
 const discardMessage = "Discard your entry? Your unsaved work will be lost.";
 let userId: number;
@@ -69,6 +70,121 @@ const activations = [
   { control: "tab", key: "Enter" },
   { control: "tab", key: "Space" },
 ] as const;
+
+test.describe("phone unsaved thought navigation", { tag: "@phone" }, () => {
+  test.use({ viewport: { width: 390, height: 664 }, isMobile: true, hasTouch: true });
+
+  async function reopenBlank(page: Page, writing: string) {
+    await page.getByTestId("button-next-step").tap();
+    await expect(page.getByTestId("textarea-thought")).toHaveValue("");
+    await expectNoStoredWriting(page, [writing]);
+    await page.reload();
+    await page.getByTestId("button-next-step").tap();
+    await expect(page.getByTestId("textarea-thought")).toHaveValue("");
+    await expectNoStoredWriting(page, [writing]);
+  }
+
+  for (const control of ["menu", "tab"] as const) {
+    test(`${control} touch: decline keeps complete text; discard leaves once without a draft`, async ({ page }) => {
+      const writing = `Synthetic private phone ${control} writing with its complete final sentence.`;
+      await page.goto("/thoughts");
+      const before = await records(page);
+      const journey = watchUnsavedJourney(page);
+      await page.getByTestId("button-next-step").tap();
+      await typeByTouch(page.getByTestId("textarea-thought"), writing);
+      const originalURL = page.url();
+      const activate = async () => {
+        if (control === "tab") return page.getByRole("tab", { name: "My History", exact: true }).tap();
+        // The menu may remain open after declining, depending on sheet policy.
+        if (!await page.getByRole("dialog", { name: "Navigation Menu" }).isVisible()) {
+          await page.getByRole("button", { name: "Open navigation menu", exact: true }).tap();
+        }
+        await page.getByRole("dialog", { name: "Navigation Menu" })
+          .getByRole("link", { name: "Smart Goals", exact: true }).tap();
+      };
+      await journey.confirm(false, activate, async () => {
+        await expect(page).toHaveURL(originalURL);
+        await expect(page.getByTestId("textarea-thought")).toHaveValue(writing);
+        if (control === "tab") {
+          await expect(page.getByRole("tab", { name: "My History", exact: true }))
+            .toHaveAttribute("aria-selected", "false");
+        }
+      });
+      expect(await records(page)).toEqual(before);
+      await expectNoStoredWriting(page, [writing]);
+      let departures = 0;
+      page.on("framenavigated", frame => {
+        if (frame === page.mainFrame() && /\/goals$/.test(frame.url())) departures++;
+      });
+      await journey.confirm(true, activate, async () => {
+        await expect(page.getByTestId("textarea-thought")).toHaveCount(0);
+        if (control === "menu") {
+          await expect(page).toHaveURL(/\/goals$/);
+          await expect(page.getByRole("tab", { name: "My Goals", exact: true })).toBeVisible();
+        } else {
+          await expect(page).toHaveURL(originalURL);
+          await expect(page.getByRole("tab", { name: "My History", exact: true }))
+            .toHaveAttribute("aria-selected", "true");
+        }
+      });
+      if (control === "menu") {
+        expect(departures).toBe(1);
+        await phoneNavigate(page, "Thought Records");
+      } else {
+        await page.getByRole("tab", { name: "Record Thought", exact: true }).tap();
+      }
+      await reopenBlank(page, writing);
+      expect(await records(page)).toEqual(before);
+      journey.expectFinished(2);
+    });
+  }
+
+  for (const direction of ["back", "forward"] as const) {
+    for (const accept of [false, true]) {
+      test(`browser ${direction}, ${accept ? "discard" : "stay"} after touch typing`, async ({ page }) => {
+        const writing = `Synthetic phone ${direction} writing preserved through its final characters.`;
+        await page.goto(direction === "back" ? "/goals" : "/thoughts");
+        await phoneNavigate(page, direction === "back" ? "Thought Records" : "Smart Goals");
+        await expect(page).toHaveURL(direction === "back" ? /\/thoughts$/ : /\/goals$/);
+        if (direction === "forward") {
+          await page.goBack();
+          await expect(page).toHaveURL(/\/thoughts$/);
+        }
+        const before = await records(page);
+        const journey = watchUnsavedJourney(page);
+        await page.getByTestId("button-next-step").tap();
+        await typeByTouch(page.getByTestId("textarea-thought"), writing);
+        const originalURL = page.url();
+        let departures = 0;
+        page.on("framenavigated", frame => {
+          if (frame === page.mainFrame() && /\/goals$/.test(frame.url())) departures++;
+        });
+        // Real browser history traversal, not synthetic popstate; this is NOT
+        // an iOS edge/back-swipe gesture or Safari's browser-toolbar button.
+        await journey.confirm(accept,
+          () => direction === "back" ? page.goBack() : page.goForward(),
+          async () => {
+            if (accept) {
+              await expect(page).toHaveURL(/\/goals$/);
+              await expect(page.getByRole("tab", { name: "My Goals", exact: true })).toBeVisible();
+              await expect(page.getByTestId("textarea-thought")).toHaveCount(0);
+            } else {
+              await expect(page).toHaveURL(originalURL);
+              await expect(page.getByTestId("textarea-thought")).toHaveValue(writing);
+            }
+          });
+        expect(await records(page)).toEqual(before);
+        await expectNoStoredWriting(page, [writing]);
+        if (accept) {
+          expect(departures).toBe(1);
+          await phoneNavigate(page, "Thought Records");
+          await reopenBlank(page, writing);
+        }
+        journey.expectFinished(1);
+      });
+    }
+  }
+});
 
 for (const { control, key } of activations) {
   test(`${control} via ${key ?? "pointer"}: declining retains route and writing; accepting discards once`, async ({ page }, testInfo) => {

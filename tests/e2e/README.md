@@ -16,12 +16,35 @@ environment overrides are not inherited. Do not invoke Playwright directly.
 
 The `iphone-webkit` project runs the `@phone` journeys in
 `thought-challenge-flow.spec.ts`, `phone-navigation.spec.ts`, and
-`thought-save-actions.spec.ts`; the
+`thought-save-actions.spec.ts`, `unsaved-work-navigation.spec.ts`, and
+`thought-challenge-unsaved.spec.ts`; the
 remaining desktop/access/record checks continue to run in Chromium. Both projects
 use the same assertions, no retries, and real isolated-backend saves. Explicit
 engine selection never silently falls back to Chromium if WebKit is unavailable.
 This is browser-engine coverage, not a physical iPhone test: the 340px-height
 case models reduced space but does not open the native iOS keyboard.
+
+For a focused unsaved-writing check on both engines:
+`npm run test:e2e -- unsaved-work-navigation.spec.ts thought-challenge-unsaved.spec.ts`.
+Use `--browser=webkit` with the same filenames for just the nine phone journeys.
+These use touch taps for menu/tab navigation and challenge close, header cancel,
+and intro skip, plus character-by-character browser typing with full-value and
+focus assertions. Declining preserves the route and complete thought/evidence/
+alternative text; accepting prompts once, leaves the form, issues no thought
+mutation, and leaves server records unchanged. Reopening and reloading start
+blank, and local/session storage must not contain the writing.
+
+Phone history tests use actual `goBack()`/`goForward()` traversal after touch
+entry, not a synthetic `popstate`. They do **not** simulate Safari's toolbar or
+the iOS interactive edge/back-swipe gesture. Browser-generated key events are
+not the native iOS keyboard (including autocorrection, composition, keyboard
+occlusion, and focus behavior). Native iPhone keyboard/back-swipe and app
+backgrounding or OS termination still require physical-device checks.
+The native reload confirmation journey remains Chromium-only: it uses CDP,
+which WebKit does not support, and is not evidence of iOS `beforeunload`
+protection. Phone reloads here occur only after confirmed discard or clearing
+the temporary reopen probe. Pending challenge-save cancellation and auth-token
+handling are not extended by these phone tests.
 
 To test the actual production-built frontend instead of Vite development pages,
 run `npm run build`, then
@@ -175,11 +198,13 @@ Coverage:
   reachability, and admin/therapist navigation parity. Phone save-action checks
   also assert disabled/busy state during saving and a usable success/challenge
   action while the History refresh is delayed.
-- Shared unsaved-writing guard: real sidebar and module-tab pointer/keyboard
+- Shared unsaved-writing guard in Chromium: real sidebar and module-tab pointer/keyboard
   activation, browser back/forward, and native reload prompts. Declining keeps
   the route and writing; accepting leaves once, with no saved record or
   restored browser draft. Local challenge dismissal is covered separately in
-  `thought-challenge-unsaved.spec.ts`.
+  `thought-challenge-unsaved.spec.ts`. The separate `@phone` journeys exercise
+  touch menu/tab navigation, browser Back/Forward, and local challenge
+  close/cancel/skip on both Chromium and iPhone WebKit as described above.
 - Emotion, thought, journal, SMART goal and reframe saves through the browser.
 - Injected HTTP 503 failures preserve writing/choices; retries write exactly
   one real record. Reframe uses the application's automatic retry behavior.

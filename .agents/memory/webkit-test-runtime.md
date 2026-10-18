@@ -20,3 +20,11 @@ Coordinate runtime setup and browser use with a kernel lock; never delete a live
 **Why:** File locks protect an inode, so unlinking the file lets concurrent commands acquire different locks. Interrupted ELF writes may be corrupt even if Playwright's download-complete marker remains present.
 
 **How to apply:** Hold the same cache lock through setup and the entire WebKit journey/shutdown, retain it in active runtime children, and reinstall an interrupted revision before patching again. Test concurrency in disposable checkouts, not by allowing caller-selected browser paths.
+Headless EGL's GLVND setting is `__EGL_VENDOR_LIBRARY_FILENAMES`, not
+`__EGL_VENDOR_FILENAMES`.
+
+**Why:** A misspelled setting is ignored and leaves the browser unable to create
+a display even when the matching 64-bit Mesa vendor configuration is available.
+
+**How to apply:** Diagnose actual page creation separately from the Ubuntu host
+heuristic; neither a dependency marker nor a successful launch proves rendering.

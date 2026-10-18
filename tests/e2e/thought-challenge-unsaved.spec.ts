@@ -1,4 +1,5 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "@playwright/test";
+import { expectNoStoredWriting, typeByTouch, watchUnsavedJourney } from "./phone-unsaved-helpers";
 
 let userId: number;
 const evidenceFor = "Synthetic supporting evidence for this challenge.";
@@ -21,7 +22,8 @@ test.beforeEach(async ({ page }) => {
   expect(login.status()).toBe(200);
 });
 
-async function openChallenge(page: Page, withBackHistory = false) {
+async function openChallenge(page: Page, withBackHistory = false, touch = false) {
+  const activate = (target: Locator) => touch ? target.tap() : target.click();
   const response = await page.request.post(`/api/users/${userId}/thoughts`, {
     headers: { Origin: process.env.E2E_BASE_URL! },
     data: { automaticThoughts: "Synthetic unsaved challenge thought", cognitiveDistortions: [] },
@@ -30,15 +32,15 @@ async function openChallenge(page: Page, withBackHistory = false) {
   const record = await response.json();
   if (withBackHistory) {
     await page.goto("/dashboard");
-    await page.getByRole("link", { name: "Thought Records", exact: true }).click();
+    await activate(page.getByRole("link", { name: "Thought Records", exact: true }));
     await expect(page).toHaveURL(/\/thoughts$/);
   } else {
     await page.goto("/thoughts");
   }
-  await page.getByRole("tab", { name: "My History", exact: true }).click();
-  await page.getByTestId(`card-thought-${record.id}`)
-    .getByRole("button", { name: "", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Challenge This Thought", exact: true }).click();
+  await activate(page.getByRole("tab", { name: "My History", exact: true }));
+  await activate(page.getByTestId(`card-thought-${record.id}`)
+    .getByRole("button", { name: "", exact: true }));
+  await activate(page.getByRole("menuitem", { name: "Challenge This Thought", exact: true }));
   await expect(page.getByTestId("step-intro")).toBeVisible();
   await expect(page.getByRole("menu")).toHaveCount(0);
   return record.id as number;
@@ -49,6 +51,87 @@ async function enterEvidence(page: Page) {
   await page.getByTestId("textarea-evidence-for").fill(evidenceFor);
   await page.getByTestId("textarea-evidence-against").fill(evidenceAgainst);
 }
+
+test.describe("phone unsaved challenge cancellation", { tag: "@phone" }, () => {
+  test.use({ viewport: { width: 390, height: 664 }, isMobile: true, hasTouch: true });
+
+  for (const dismissal of ["dialog close", "header cancel", "intro skip"] as const) {
+    test(`${dismissal} touch: stay retains all writing; discard closes once and reopens blank`, async ({ page }) => {
+      // Seed only through the isolated server, before observing unintended writes.
+      const id = await openChallenge(page, false, true);
+      const response = await page.request.get(`/api/users/${userId}/thoughts`);
+      expect(response.status()).toBe(200);
+      const before = await response.json();
+      const journey = watchUnsavedJourney(page);
+      await page.getByTestId("button-start-challenge").tap();
+      await typeByTouch(page.getByTestId("textarea-evidence-for"), evidenceFor);
+      await typeByTouch(page.getByTestId("textarea-evidence-against"), evidenceAgainst);
+      await page.getByTestId("button-next-step").tap();
+      await typeByTouch(page.getByTestId("textarea-alternative"), alternative);
+      const writing = [evidenceFor, evidenceAgainst, alternative];
+      if (dismissal === "intro skip") {
+        await page.getByRole("button", { name: "Previous", exact: true }).tap();
+        await page.getByRole("button", { name: "Previous", exact: true }).tap();
+      }
+      const dismiss = () => dismissal === "dialog close"
+        ? page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).tap()
+        : page.getByRole("button", {
+          name: dismissal === "header cancel" ? "Cancel thought challenge" : "Skip for now", exact: true,
+        }).tap();
+      const originalURL = page.url();
+      await journey.confirm(false, dismiss, async () => {
+        await expect(page).toHaveURL(originalURL);
+        await expect(page.getByRole("dialog")).toBeVisible();
+        if (dismissal === "intro skip") {
+          await expect(page.getByTestId("step-intro")).toBeVisible();
+          await page.getByTestId("button-start-challenge").tap();
+          await page.getByTestId("button-next-step").tap();
+        }
+        await expect(page.getByTestId("textarea-alternative")).toHaveValue(alternative);
+        await page.getByRole("button", { name: "Previous", exact: true }).tap();
+        await expect(page.getByTestId("textarea-evidence-for")).toHaveValue(evidenceFor);
+        await expect(page.getByTestId("textarea-evidence-against")).toHaveValue(evidenceAgainst);
+      });
+      await expectNoStoredWriting(page, writing);
+      if (dismissal === "intro skip") {
+        await page.getByRole("button", { name: "Previous", exact: true }).tap();
+      }
+      await journey.confirm(true, dismiss, async () => {
+        await expect(page.getByRole("dialog")).toHaveCount(0);
+        await expect(page).toHaveURL(originalURL);
+        await expect(page.getByTestId(`card-thought-${id}`)).toBeVisible();
+      });
+      const after = await page.request.get(`/api/users/${userId}/thoughts`);
+      expect(after.status()).toBe(200);
+      expect(await after.json()).toEqual(before);
+      await expectNoStoredWriting(page, writing);
+      // Check both an in-memory reopen and a fresh document for hidden drafts.
+      for (const reload of [false, true]) {
+        if (reload) await page.reload();
+        await page.getByRole("tab", { name: "My History", exact: true }).tap();
+        await page.getByTestId(`card-thought-${id}`)
+          .getByRole("button", { name: "", exact: true }).tap();
+        await page.getByRole("menuitem", { name: "Challenge This Thought", exact: true }).tap();
+        await page.getByTestId("button-start-challenge").tap();
+        await expect(page.getByTestId("textarea-evidence-for")).toHaveValue("");
+        await expect(page.getByTestId("textarea-evidence-against")).toHaveValue("");
+        // Next is disabled for empty evidence: blank evidence already proves
+        // no draft restoration; supply temporary text to inspect the next step.
+        await page.getByTestId("textarea-evidence-for").fill("Synthetic reopen probe");
+        await page.getByTestId("textarea-evidence-against").fill("Synthetic reopen probe");
+        await page.getByTestId("button-next-step").tap();
+        await expect(page.getByTestId("textarea-alternative")).toHaveValue("");
+        await page.getByRole("button", { name: "Previous", exact: true }).tap();
+        await page.getByTestId("textarea-evidence-for").fill("");
+        await page.getByTestId("textarea-evidence-against").fill("");
+        await page.getByRole("button", { name: "Cancel thought challenge", exact: true }).tap();
+        await expect(page.getByRole("dialog")).toHaveCount(0);
+        await expectNoStoredWriting(page, writing);
+      }
+      journey.expectFinished(2);
+    });
+  }
+});
 
 // A missing or duplicate prompt is a failure, not an automatically accepted dialog.
 async function confirmOnce(page: Page, accept: boolean, action: () => Promise<unknown>) {

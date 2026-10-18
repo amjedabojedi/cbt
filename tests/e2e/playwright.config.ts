@@ -21,7 +21,8 @@ const projects: PlaywrightTestProject[] = [
   },
   {
     name: "iphone-webkit",
-    testMatch: ["thought-challenge-flow.spec.ts", "phone-navigation.spec.ts", "thought-save-actions.spec.ts"],
+    testMatch: ["thought-challenge-flow.spec.ts", "phone-navigation.spec.ts", "thought-save-actions.spec.ts",
+      "unsaved-work-navigation.spec.ts", "thought-challenge-unsaved.spec.ts"],
     grep: /@phone/,
     use: { ...devices["iPhone 13"], browserName: "webkit" },
   },
