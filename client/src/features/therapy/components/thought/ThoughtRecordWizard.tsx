@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useRef, useState } from "react";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { EmotionRecord } from "@shared/schema";
+import { EmotionRecord, type ThoughtRecord } from "@shared/schema";
 import useActiveUser from "@/hooks/use-active-user";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -180,6 +180,8 @@ export default function ThoughtRecordWizard({
   const [showChallengeWizard, setShowChallengeWizard] = useState(false);
   const [recordedThought, setRecordedThought] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const saveInFlight = useRef(false);
 
   const totalSteps = 7;
 
@@ -214,14 +216,20 @@ export default function ThoughtRecordWizard({
   const watchedValues = form.watch();
 
   const onSubmit = async (data: ThoughtRecordFormValues) => {
-    if (!activeUserId) return;
+    if (saveInFlight.current) return;
+    if (!activeUserId) {
+      setSaveError(t("Your signed-in account is not available. Your writing has been kept. Please check your sign-in before saving."));
+      return;
+    }
     
     // Prevent submission if not on the final step
     if (currentStep < totalSteps - 1) {
       return;
     }
     
+    saveInFlight.current = true;
     setIsSubmitting(true);
+    setSaveError(null);
     
     try {
       const response = await apiRequest(
@@ -243,6 +251,14 @@ export default function ThoughtRecordWizard({
       );
 
       const thought = await response.json();
+      // Keep an already-loaded History accurate while its refetch is pending.
+      // This is the server-confirmed record, not an optimistic/draft write.
+      queryClient.setQueryData<ThoughtRecord[]>(
+        [`/api/users/${activeUserId}/thoughts`],
+        records => Array.isArray(records)
+          ? [thought, ...records.filter(record => record.id !== thought.id)]
+          : records,
+      );
       setRecordedThought(thought);
       form.reset({
         automaticThought: "",
@@ -251,18 +267,25 @@ export default function ThoughtRecordWizard({
         emotionRecordId: null,
       });
 
-      // Invalidate queries
-      await queryClient.invalidateQueries({ 
-        queryKey: [`/api/users/${activeUserId}/thoughts`] 
-      });
-
       setShowSuccessDialog(true);
+
+      // The POST already confirmed persistence. A slow History refresh must
+      // never hold the save confirmation or challenge entry open indefinitely.
+      void queryClient.invalidateQueries({
+        queryKey: [`/api/users/${activeUserId}/thoughts`],
+      }).catch(() => {
+        toast({
+          title: t("Thought saved"),
+          description: t("Your thought was saved, but History could not refresh. Please reopen History."),
+        });
+      });
       
       toast({
         title: t("Success!"),
         description: t("Your thought has been recorded."),
       });
     } catch (error) {
+      setSaveError(t("Failed to record thought. Please try again."));
       console.error("Error recording thought:", error);
       toast({
         title: t("Error"),
@@ -270,9 +293,23 @@ export default function ThoughtRecordWizard({
         variant: "destructive",
       });
     } finally {
+      saveInFlight.current = false;
       setIsSubmitting(false);
     }
   };
+
+  const onInvalidSubmit = (errors: FieldErrors<ThoughtRecordFormValues>) => {
+    const fieldSteps = [
+      ["automaticThought", 1],
+      ["thoughtCategory", 3],
+      ["situation", 4],
+      ["emotionRecordId", 5],
+    ] as const;
+    const firstInvalid = fieldSteps.find(([field]) => errors[field]);
+    if (firstInvalid) setCurrentStep(firstInvalid[1]);
+    setSaveError(t("Please check the highlighted fields before saving. Your writing has been kept."));
+  };
+  const submitThought = form.handleSubmit(onSubmit, onInvalidSubmit);
 
   const handleNext = async () => {
     let fieldsToValidate: (keyof ThoughtRecordFormValues)[] = [];
@@ -305,6 +342,7 @@ export default function ThoughtRecordWizard({
   };
 
   const handleReset = () => {
+    setSaveError(null);
     form.reset({
       automaticThought: "",
       thoughtCategory: [],
@@ -811,15 +849,22 @@ export default function ThoughtRecordWizard({
         <CardContent className="p-4 sm:p-5 pt-0">
           {/* Step Content */}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-2">
+            <form onSubmit={submitThought} aria-busy={isSubmitting} className="space-y-4 pb-2">
               {getStepContent()}
+
+              {saveError && (
+                <div role="alert" data-testid="thought-save-error"
+                  className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                  {saveError}
+                </div>
+              )}
 
               <WizardNavButtons
                 currentStep={currentStep}
                 totalSteps={totalSteps}
                 onPrevious={handlePrevious}
                 onNext={handleNext}
-                onSubmit={() => form.handleSubmit(onSubmit)()}
+                onSubmit={() => { void submitThought(); }}
                 isSubmitting={isSubmitting}
                 submitLabel={t("Save thought record")}
                 introNextLabel="Get Started"

@@ -55,7 +55,8 @@ test.describe("phone post-save challenge", () => {
       r.url().endsWith(`/api/users/${userId}/thoughts`) && r.status() === 503);
     await page.getByTestId("button-submit-wizard").tap();
     await failedRecord;
-    await expect(page.getByText("Failed to record thought. Please try again.", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("thought-save-error"))
+      .toHaveText("Failed to record thought. Please try again.");
     await expect(page.getByTestId("step-review-thought")).toContainText("Synthetic phone challenge situation.");
     const recorded = page.waitForResponse(r =>
       r.url().endsWith(`/api/users/${userId}/thoughts`) &&

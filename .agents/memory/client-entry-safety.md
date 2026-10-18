@@ -27,6 +27,12 @@ Do not describe dismissing a therapy form as cancelling an already-issued save.
 
 **How to apply:** Keep pending-save feedback distinct from unsaved-draft discard warnings, and test delayed responses rather than assuming a closed form means no write occurred.
 
+Show completion after a confirmed write without waiting for background History or report refreshes.
+
+**Why:** A delayed History read reproduced a stuck Save screen on both desktop and phone even though the server had already acknowledged persistence. Treating refresh completion as save completion misrepresented the result.
+
+**How to apply:** Separate write success from cache refresh. Update an already-loaded in-memory list with the acknowledged record while refetching; do not invent a complete list when it has never loaded. Preserve writing on write failure, show a persistent error near the action, and never label a confirmed save as failed because a later read could not refresh.
+
 Treat practice milestones as encouragement, never a recovery score or a validated treatment target.
 
 **Why:** More records do not necessarily indicate clinical improvement, and fixed activity thresholds are not a clinical assessment.
