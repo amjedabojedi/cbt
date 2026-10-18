@@ -1,6 +1,16 @@
 # Azure DevOps Pipeline for ResilienceHub (React/Vite + Express)
 # Full-stack mental health application
 
+parameters:
+  - name: verifyCustomOrigin
+    displayName: 'Verify custom-site freshness after successful deployment'
+    type: boolean
+    default: false
+  - name: customOrigin
+    displayName: 'Configured custom HTTPS origin (verification only)'
+    type: string
+    default: ' '
+
 trigger:
   branches:
     include:
@@ -50,6 +60,13 @@ stages:
               # Add your environment variables here (they'll be set in Azure DevOps)
               # VITE_POSTHOG_KEY: $(VITE_POSTHOG_KEY)
               # VITE_POSTHOG_HOST: $(VITE_POSTHOG_HOST)
+
+          # Package the checker, but never contact the still-live previous release
+          # during build. No additional runtime dependencies are needed to verify.
+          - ${{ if eq(parameters.verifyCustomOrigin, true) }}:
+            - script: |
+                node_modules/.bin/esbuild scripts/check-azure-release.ts --bundle --platform=node --format=esm --outfile=dist/check-azure-release.mjs
+              displayName: 'Package opt-in post-publish verifier (no network comparison)'
 
           # Run database migrations (if needed)
           # Uncomment if you need to run migrations during build
@@ -111,5 +128,52 @@ stages:
                     appName: '$(webAppName)'
                     package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
                     runtimeStack: 'NODE|20-lts'
-                    startUpCommand: 'npm run dev'  # Your startup command
+                    startUpCommand: 'npm start'  # Serve the compiled HTML from this ZIP
                   displayName: 'Deploy to Azure App Service'
+
+  # Keep verification separate: a failed check must not erase successful
+  # deployment status, redeploy, change DNS, or run while the prior build is live.
+  - ${{ if eq(parameters.verifyCustomOrigin, true) }}:
+    - stage: VerifyRelease
+      displayName: 'Verify custom-site freshness (separate from publish success)'
+      dependsOn: Deploy
+      condition: succeeded()
+      jobs:
+        - job: VerifyCustomOrigin
+          displayName: 'Check exact published frontend against public origins'
+          timeoutInMinutes: 15
+          steps:
+            - checkout: none
+            - task: NodeTool@0
+              inputs:
+                versionSpec: '$(node_version)'
+              displayName: 'Install verification runtime'
+            - task: DownloadBuildArtifacts@1
+              inputs:
+                buildType: 'current'
+                downloadType: 'single'
+                artifactName: 'drop'
+                downloadPath: '$(Pipeline.Workspace)'
+              displayName: 'Download the exact ZIP used by the successful Deploy stage'
+            - task: AzureCLI@2
+              displayName: 'Freshness result: matching / mismatch / stale / unavailable'
+              inputs:
+                azureSubscription: '$(azureSubscription)'
+                scriptType: 'bash'
+                scriptLocation: 'inlineScript'
+                addSpnToEnvironment: false
+                visibleAzLogin: false
+                inlineScript: |
+                  set -euo pipefail
+                  echo "Azure deployment succeeded. Custom-site verification is a separate result."
+                  work="$(mktemp -d)"
+                  trap 'rm -rf "$work"' EXIT
+                  if ! unzip -p "$(Pipeline.Workspace)/drop/$(Build.BuildId).zip" dist/check-azure-release.mjs > "$work/check.mjs" 2>/dev/null ||
+                     ! unzip -p "$(Pipeline.Workspace)/drop/$(Build.BuildId).zip" dist/public/index.html > "$work/index.html" 2>/dev/null; then
+                    echo '##vso[task.logissue type=error;code=release_unavailable;]Freshness unavailable: the exact published ZIP or HTML could not be read. Deployment succeeded separately.'
+                    exit 2
+                  fi
+                  node "$work/check.mjs" --app-name "$RELEASE_APP_NAME" --custom "$RELEASE_CUSTOM_ORIGIN" --expected-html "$work/index.html"
+              env:
+                RELEASE_APP_NAME: $(webAppName)
+                RELEASE_CUSTOM_ORIGIN: ${{ parameters.customOrigin }}

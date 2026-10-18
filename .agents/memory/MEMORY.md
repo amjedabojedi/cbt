@@ -4,3 +4,4 @@
 - [Recommendation resource policy](resource-recommendation-policy.md) — preserve saved history by blocking deletion of referenced resources; all reference writers must coordinate with deletion.
 - [Navigation role parity](navigation-role-parity.md) — phone navigation must retain desktop role permissions and selected-client context, with one primary menu.
 - [Production asset freshness](production-asset-freshness.md) — development tests cannot detect a production server serving old frontend files; verify the compiled output and live domains separately.
+- [Azure publishing process](azure-publishing-process.md) — the team uses Azure's pipeline; verification work must preserve publishing approvals.

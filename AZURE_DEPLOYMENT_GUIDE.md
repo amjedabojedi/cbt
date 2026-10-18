@@ -87,7 +87,7 @@ variables:
 
 4. **General settings** → **Startup Command**:
    ```
-   npm run dev
+   npm start
    ```
 
 5. **Click "Save"**
@@ -101,14 +101,29 @@ variables:
 5. **Path**: /azure-pipelines.yml
 6. **Click "Continue"** → **Run**
 
+### Optional: Verify the custom site after publishing
+
+When choosing **Run pipeline**, enable **Verify custom-site freshness after
+successful deployment** and enter the custom HTTPS origin already bound to the
+App Service. It is off by default. The separate verification stage runs only
+after deployment succeeds, obtains fresh Azure hostname metadata, and compares
+both public origins against the HTML from that exact deployed ZIP.
+
+Deployment and verification have separate results: a mismatch or unavailable
+check does not undo a successful deployment. See
+[release freshness](docs/release-freshness.md) for setup, exit codes, and limits.
+The service connection must allow listing web apps; no app settings or secrets
+are fetched by the verifier. Existing publishing triggers and approvals remain
+unchanged; set approvals on the `production` Azure DevOps environment if required.
+
 ---
 
 ## 🔧 Pipeline Configuration Options
 
 ### Option A: Current Setup (Full-Stack on App Service)
 - ✅ Deploys both frontend and backend
-- ✅ Uses your existing `npm run dev` command
-- ✅ Good for development and small-scale production
+- ✅ Uses `npm start` to serve the compiled production build
+- ✅ Supports an optional, separate post-publish custom-site check
 
 ### Option B: Separate Frontend (Static Web App)
 If you want to deploy frontend separately:
