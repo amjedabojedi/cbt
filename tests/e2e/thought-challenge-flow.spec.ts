@@ -26,27 +26,39 @@ test.beforeEach(async ({ page }) => {
   await login(page.request);
 });
 
-test.describe("phone post-save challenge", () => {
+test.describe("phone post-save challenge", { tag: "@phone" }, () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
   test("the post-save action opens a usable challenge with uninterrupted typing", async ({ page }) => {
     await page.goto("/thoughts");
     const next = () => page.getByTestId("button-next-step").tap();
     await next();
-    await page.getByTestId("textarea-thought").fill("Synthetic phone challenge thought.");
+    const thought = "Synthetic phone challenge thought.";
+    const situation = "Synthetic phone challenge situation.";
+    const thoughtInput = page.getByTestId("textarea-thought");
+    await thoughtInput.pressSequentially(thought);
+    await expect(thoughtInput).toHaveValue(thought);
+    await expect(thoughtInput).toBeFocused();
     await next();
     await next();
     await page.getByRole("checkbox").first().tap();
     await next();
-    await page.getByTestId("textarea-situation").fill("Synthetic phone challenge situation.");
+    const situationInput = page.getByTestId("textarea-situation");
+    await situationInput.pressSequentially(situation);
+    await expect(situationInput).toHaveValue(situation);
+    await expect(situationInput).toBeFocused();
     await next();
     await next();
     await expect(page.getByTestId("step-review-thought")).toBeVisible();
     await expect(page.getByTestId("step-review-thought")).toContainText("Synthetic phone challenge thought.");
+    const beforeSave = await (await page.request.get(`/api/users/${userId}/thoughts`)).json();
     let recordAttempts = 0;
+    let firstPayload: unknown;
     await page.route(`**/api/users/${userId}/thoughts`, route => {
       if (route.request().method() !== "POST") return route.continue();
       recordAttempts++;
+      if (recordAttempts === 1) firstPayload = route.request().postDataJSON();
+      else expect(route.request().postDataJSON()).toEqual(firstPayload);
       return recordAttempts === 1
         ? route.fulfill({ status: 503, json: { message: "Synthetic thought save failure" } })
         : route.continue();
@@ -55,15 +67,24 @@ test.describe("phone post-save challenge", () => {
       r.url().endsWith(`/api/users/${userId}/thoughts`) && r.status() === 503);
     await page.getByTestId("button-submit-wizard").tap();
     await failedRecord;
+    await expect(page.getByTestId("thought-save-error")).toBeVisible();
     await expect(page.getByTestId("thought-save-error"))
       .toHaveText("Failed to record thought. Please try again.");
-    await expect(page.getByTestId("step-review-thought")).toContainText("Synthetic phone challenge situation.");
+    await expect(page.getByTestId("step-review-thought")).toContainText(thought);
+    await expect(page.getByTestId("step-review-thought")).toContainText(situation);
+    await expect(page.getByTestId("button-challenge-thought")).toHaveCount(0);
+    const afterFailure = await (await page.request.get(`/api/users/${userId}/thoughts`)).json();
+    expect(afterFailure).toHaveLength(beforeSave.length);
     const recorded = page.waitForResponse(r =>
       r.url().endsWith(`/api/users/${userId}/thoughts`) &&
       r.request().method() === "POST" && r.status() === 201);
     await page.getByTestId("button-submit-wizard").tap();
-    await recorded;
+    const created = await (await recorded).json();
+    expect(created).toMatchObject({ automaticThoughts: thought, situation });
     expect(recordAttempts).toBe(2);
+    const afterRetry = await (await page.request.get(`/api/users/${userId}/thoughts`)).json();
+    expect(afterRetry).toHaveLength(beforeSave.length + 1);
+    expect(afterRetry.filter((record: { id: number }) => record.id === created.id)).toHaveLength(1);
     await page.getByTestId("button-challenge-thought").tap();
     await expect(page.getByTestId("button-start-challenge")).toBeVisible({ timeout: 5000 });
     await page.getByTestId("button-start-challenge").tap();
@@ -73,17 +94,20 @@ test.describe("phone post-save challenge", () => {
     await expect(supporting).toBeFocused();
     await page.getByTestId("textarea-evidence-against").pressSequentially(evidenceAgainst);
     await expect(page.getByTestId("textarea-evidence-against")).toHaveValue(evidenceAgainst);
+    await expect(page.getByTestId("textarea-evidence-against")).toBeFocused();
     await next();
     await page.getByTestId("textarea-alternative").pressSequentially(alternative);
     await expect(page.getByTestId("textarea-alternative")).toHaveValue(alternative);
+    await expect(page.getByTestId("textarea-alternative")).toBeFocused();
     await next();
     await expect(page.getByTestId("step-beliefs")).toBeVisible();
     const saved = page.waitForResponse(r =>
-      r.url().includes(`/api/users/${userId}/thoughts/`) &&
+      r.url().endsWith(`/api/users/${userId}/thoughts/${created.id}`) &&
       r.request().method() === "PATCH" && r.status() === 200);
     await page.getByTestId("button-save-challenge").tap();
     const result = await (await saved).json();
     expect(result).toMatchObject({
+      id: created.id,
       evidenceFor, evidenceAgainst, alternativePerspective: alternative,
       beliefInOriginal: 50, beliefInAlternative: 50,
     });

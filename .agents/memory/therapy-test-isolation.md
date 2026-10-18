@@ -20,3 +20,9 @@ Verify ordinary typing and focus retention, not only setting entire field values
 **Why:** Whole-field fill operations previously passed while normal typing in a challenge accepted only the first character because the input lost focus. A passing save/API check did not establish that the form was usable.
 
 **How to apply:** Exercise character-by-character entry on desktop and phone layouts, assert the full value and focus, and enter through each actual user-facing start action before claiming the complete flow works.
+
+Check browser-spec types and collection explicitly after syncing concurrent changes, even when only the runner is reported as conflicting.
+
+**Why:** A sync once moved valid browser-test statements outside test callbacks and mixed fixtures between journeys without leaving conflict markers in that spec. Configuration-only checks still passed, so they did not establish that the journeys could load.
+
+**How to apply:** Type-check the affected E2E specs explicitly and execute their intended projects after a sync; the regular application compiler does not substitute for this check.

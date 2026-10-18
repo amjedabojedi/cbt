@@ -7,7 +7,13 @@ import net from "node:net";
 
 const args = process.argv.slice(2);
 const productionBuild = args.includes("--production-build");
-const specs = args.filter(arg => arg !== "--production-build");
+const browserFlags = args.filter(arg => arg.startsWith("--browser="));
+if (browserFlags.length > 1) throw new Error("Select browsers once: --browser=all|chromium|webkit");
+const browsers = browserFlags.length ? browserFlags[0].slice("--browser=".length) : "all";
+if (!["all", "chromium", "webkit"].includes(browsers)) {
+  throw new Error("Only --browser=all|chromium|webkit is accepted");
+}
+const specs = args.filter(arg => arg !== "--production-build" && !browserFlags.includes(arg));
 if (specs.some(spec => !/^[a-z0-9-]+\.spec\.ts$/.test(spec))) {
   throw new Error("Only E2E spec filenames are accepted; database URLs and configuration overrides are forbidden");
 }
@@ -25,6 +31,9 @@ Object.assign(env, {
   OPENAI_API_KEY: "synthetic-not-a-real-key",
   AI_INTEGRATIONS_OPENAI_BASE_URL: "http://127.0.0.1:1",
   E2E_ISOLATED: root,
+  E2E_BROWSERS: browsers,
+  // Fixed local cache: never inherit a caller's browser-path override.
+  PLAYWRIGHT_BROWSERS_PATH: path.resolve(".cache/ms-playwright"),
 });
 async function freePort() {
   const server = net.createServer();

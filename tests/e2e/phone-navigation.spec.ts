@@ -17,7 +17,7 @@ async function login(page: Page, role = "client") {
 }
 
 for (const width of [320, 390]) {
-  test.describe(`phone navigation at ${width}px`, () => {
+  test.describe(`phone navigation at ${width}px`, { tag: "@phone" }, () => {
     test.use({ viewport: { width, height: 568 }, isMobile: true, hasTouch: true });
     test("menu, page navigation and History challenge remain reachable by touch", async ({ page }) => {
       await login(page);
@@ -36,7 +36,9 @@ for (const width of [320, 390]) {
       await menuButton.tap({ timeout: 5000 });
       const menu = page.getByRole("dialog", { name: "Navigation Menu" });
       await expect(menu).toBeVisible();
-      await page.screenshot({ path: `generated-artifacts/e2e/phone-menu-${width}.png`, animations: "disabled" });
+      await expect(menu.getByRole("button", { name: "Logout", exact: true }))
+        .toBeInViewport({ ratio: 1 });
+      await page.screenshot({ path: test.info().outputPath(`phone-menu-${width}.png`), animations: "disabled" });
       await menu.getByRole("link", { name: "My Progress", exact: true }).tap();
       await expect(page.getByTestId("metric-activity-level")).toBeVisible();
       await expect(page.getByRole("dialog", { name: "Navigation Menu" })).toHaveCount(0);
@@ -54,7 +56,7 @@ for (const width of [320, 390]) {
       expect.soft(box!.x + box!.width, "Dialog must fit the phone width").toBeLessThanOrEqual(width + 1);
       expect.soft(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth + 1),
         "Challenge content must not overflow horizontally").toBe(true);
-      await page.screenshot({ path: `generated-artifacts/e2e/phone-challenge-${width}.png`, animations: "disabled" });
+      await page.screenshot({ path: test.info().outputPath(`phone-challenge-${width}.png`), animations: "disabled" });
       await page.getByTestId("button-start-challenge").tap({ timeout: 5000 });
       const input = page.getByTestId("textarea-evidence-for");
       await input.pressSequentially("Synthetic phone evidence that stays editable.");
@@ -65,11 +67,29 @@ for (const width of [320, 390]) {
       await page.getByTestId("textarea-evidence-against").fill("Synthetic contradictory evidence for this thought.");
       await page.getByTestId("button-next-step").tap({ timeout: 5000 });
       await expect(page.getByTestId("textarea-alternative")).toBeVisible();
+      const alternative = page.getByTestId("textarea-alternative");
+      await alternative.pressSequentially("Synthetic small-screen balanced alternative.");
+      await expect(alternative).toHaveValue("Synthetic small-screen balanced alternative.");
+      await expect(alternative).toBeFocused();
+      await page.getByTestId("button-next-step").tap({ timeout: 5000 });
+      await expect(page.getByTestId("step-beliefs")).toBeVisible();
+      // A real tap (without force) checks scrolling, clipping and hit targeting.
+      const saved = page.waitForResponse(r =>
+        r.url().endsWith(`/api/users/${userId}/thoughts/${record.id}`) &&
+        r.request().method() === "PATCH" && r.status() === 200);
+      await page.getByTestId("button-save-challenge").tap({ timeout: 5000 });
+      await saved;
+      await page.getByTestId("button-close-success").tap({ timeout: 5000 });
+      await page.getByRole("button", { name: "Open navigation menu", exact: true }).tap();
+      await expect(menu.getByRole("button", { name: "Logout", exact: true }))
+        .toBeInViewport({ ratio: 1 });
+      await menu.getByRole("button", { name: "Close", exact: true }).tap();
+      await expect(menu).toHaveCount(0);
     });
   });
 }
 
-test.describe("staff phone navigation", () => {
+test.describe("staff phone navigation", { tag: "@phone" }, () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   test("the admin phone menu retains the desktop administration destinations", async ({ page }) => {
     await login(page, "admin");
@@ -82,7 +102,7 @@ test.describe("staff phone navigation", () => {
     await expect(menu.getByRole("link", { name: "Admin Dashboard", exact: true })).toBeVisible();
     const mobileHrefs = await menu.locator("nav a").evaluateAll(links =>
       links.map(link => link.getAttribute("href")));
-    await page.screenshot({ path: "generated-artifacts/e2e/phone-admin-menu.png", animations: "disabled" });
+    await page.screenshot({ path: test.info().outputPath("phone-admin-menu.png"), animations: "disabled" });
     await expect.soft(menu.getByRole("button", { name: "Logout", exact: true }),
       "The phone menu footer must remain on-screen").toBeInViewport({ ratio: 1, timeout: 5000 });
     const menuBox = await menu.boundingBox();

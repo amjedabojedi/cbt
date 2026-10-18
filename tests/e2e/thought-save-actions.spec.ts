@@ -6,7 +6,7 @@ test.beforeAll(async ({ request }) => {
 });
 
 for (const phone of [false, true]) {
-  test.describe(phone ? "phone thought save" : "desktop thought save", () => {
+  test.describe(phone ? "phone thought save" : "desktop thought save", { tag: phone ? "@phone" : [] }, () => {
     test.use({
       viewport: phone ? { width: 390, height: 844 } : { width: 1280, height: 800 },
       isMobile: phone, hasTouch: phone,
@@ -63,7 +63,7 @@ for (const phone of [false, true]) {
         await expect(page.getByTestId("dialog-thought-success")).toBeVisible({ timeout: 3000 });
         await expect(page.getByTestId("button-challenge-thought")).toBeEnabled();
         if (phone) await page.screenshot({
-          path: "generated-artifacts/e2e/thought-save-confirmation-phone.png", animations: "disabled",
+          path: test.info().outputPath("thought-save-confirmation-phone.png"), animations: "disabled",
         });
         await press(page, "button-challenge-thought");
         await expect(page.getByTestId("button-start-challenge")).toBeVisible({ timeout: 3000 });
@@ -113,7 +113,7 @@ for (const phone of [false, true]) {
         .toContainText("Synthetic situation that must remain available on a failed save.");
       await expect(page.getByTestId("button-submit-wizard")).toBeEnabled();
       if (phone) await page.screenshot({
-        path: "generated-artifacts/e2e/thought-save-error-phone.png", animations: "disabled",
+        path: test.info().outputPath("thought-save-error-phone.png"), animations: "disabled",
       });
       const saved = page.waitForResponse(r =>
         r.url().endsWith(endpoint) && r.request().method() === "POST" && r.status() === 201);
