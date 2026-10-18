@@ -34,15 +34,24 @@ jobs:
       - name: Deploy to Server
         run: >
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e
             cd /var/www/cbt-client/cbt
             echo "Pulling latest code..."
+            git checkout -- package-lock.json || true
             git pull origin main
             echo "Installing dependencies..."
             npm install --legacy-peer-deps
             echo "Building project..."
             npm run build
-            echo "Restarting backend..."
-            pm2 restart cbt-backend || pm2 start server-dist/index.js --name "cbt-backend" --env production
+            test -f dist/index.js
+            echo "Restarting backend (the build writes dist/index.js)..."
+            pm2 delete cbt-backend || true
+            pm2 start dist/index.js --name cbt-backend
+            pm2 save
+            echo "Checking that the backend answers..."
+            P=$(grep -E '^PORT=' .env | head -1 | cut -d= -f2)
+            sleep 5
+            curl -s -o /dev/null --max-time 10 http://127.0.0.1:${P:-5005}/ || { echo "Backend is not answering"; pm2 logs cbt-backend --lines 40 --nostream; exit 1; }
             echo "Reloading Nginx..."
             sudo systemctl reload nginx
             echo "Deployment complete!"
