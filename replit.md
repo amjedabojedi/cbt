@@ -198,3 +198,7 @@ Entry parity and required-chunk availability are reported separately; either fai
   - End-to-end API integration testing
   - App Store deployment preparation (icons, screenshots, privacy policy)
   - Apple App Store & Google Play Store submission (requires developer accounts)
+
+## Git / GitHub sync rules
+
+Never create, modify, rename or delete any file under .github/workflows/. Replit's GitHub connection lacks the workflow scope, so any commit touching that folder makes Git Sync fail with PUSH_REJECTED. Put any CI workflow drafts in ci-templates/ instead, and tell the user if a workflow change is needed so it can be added directly on GitHub.
