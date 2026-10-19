@@ -84,6 +84,7 @@ export default function AdminDashboard() {
     totalEmotions: 0,
     totalThoughts: 0,
     totalGoals: 0,
+    totalResources: null as number | null,
     activeClients: 0,
     activeTherapists: 0,
     resourceUsage: 0,
@@ -229,10 +230,10 @@ export default function AdminDashboard() {
               />
               <StatCard
                 title="System Health"
-                value="Excellent"
-                description="Overall system performance"
+                value="Unavailable"
+                description="System health measurements are not available"
                 icon={<Activity className="h-4 w-4" />}
-                colorClass="text-green-500"
+                colorClass="text-muted-foreground"
               />
             </div>
             
@@ -244,7 +245,7 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                    Activity chart would appear here
+                    Activity trends are unavailable. No time-series data is provided.
                   </div>
                 </CardContent>
               </Card>
@@ -387,7 +388,7 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                    User growth chart would appear here
+                    User growth trends are unavailable. No time-series data is provided.
                   </div>
                 </CardContent>
               </Card>
@@ -398,7 +399,7 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                    User role chart would appear here
+                    User role chart is unavailable. See Overview for user totals.
                   </div>
                 </CardContent>
               </Card>
@@ -430,8 +431,10 @@ export default function AdminDashboard() {
               />
               <StatCard
                 title="Resources"
-                value="24"
-                description="Resources in library"
+                value={Number.isInteger(stats.totalResources) && stats.totalResources !== null && stats.totalResources >= 0
+                  ? stats.totalResources : "Unavailable"}
+                description={Number.isInteger(stats.totalResources) && stats.totalResources !== null && stats.totalResources >= 0
+                  ? "Resources in library" : "Resource count is not available"}
                 icon={<BookOpen className="h-4 w-4" />}
                 colorClass="text-emerald-500"
               />
@@ -444,7 +447,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                  Content activity chart would appear here
+                  Content activity trends are unavailable. No time-series data is provided.
                 </div>
               </CardContent>
             </Card>

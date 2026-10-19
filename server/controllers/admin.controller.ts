@@ -41,7 +41,8 @@ export async function getAdminStats(req: Request, res: Response) {
     const clientsWithGoals = clientsWithGoalsSet.size;
     
     // Calculate resource usage
-    const resources = await storage.getAllResources();
+    // Match the admin library, which includes unpublished resources.
+    const resources = await storage.getAllResources(true);
     const resourceAssignments = await storage.getAllResourceAssignments();
     
     // Calculate averages
@@ -125,6 +126,7 @@ export async function getAdminStats(req: Request, res: Response) {
       totalEmotions: emotionRecords.length,
       totalThoughts: thoughtRecordsResult.length,
       totalGoals: goalsResult.length,
+      totalResources: resources.length,
       activeClients,
       activeTherapists: therapists.length,
       resourceUsage: resourceAssignments.length,

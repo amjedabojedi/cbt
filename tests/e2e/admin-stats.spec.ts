@@ -4,7 +4,7 @@ import { test, expect, type Page, type Route } from "@playwright/test";
 // reach even that database, so every displayed count is controlled by the test.
 const emptyStats = {
   totalUsers: 0, totalClients: 0, totalTherapists: 0,
-  totalEmotions: 0, totalThoughts: 0, totalGoals: 0,
+  totalEmotions: 0, totalThoughts: 0, totalGoals: 0, totalResources: 0,
   activeClients: 0, activeTherapists: 0, resourceUsage: 0,
   clientsWithoutTherapist: 0, therapistsWithoutClients: 0,
   clientsWithGoals: 0, averageGoalsPerClient: 0, averageEmotionsPerClient: 0,
@@ -147,19 +147,19 @@ for (const recovery of ["populated", "empty"] as const) {
     await pending[2].fulfill({
       json: recovery === "empty" ? emptyStats : {
         ...emptyStats, totalUsers: 17, totalClients: 12, totalTherapists: 4,
-        totalThoughts: 23, totalGoals: 9,
+        totalThoughts: 23, totalGoals: 9, totalResources: 7,
       },
     });
     await expect(page.getByRole("tab", { name: "Overview", exact: true })).toBeVisible();
     await expect(page.getByText("Unable to load dashboard statistics", { exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Retry", exact: true })).toHaveCount(0);
     await expect(page.getByRole("tabpanel").locator(".text-2xl.font-bold")).toHaveText(
-      recovery === "empty" ? ["0", "0", "0", "Excellent"] : ["17", "12", "4", "Excellent"],
+      recovery === "empty" ? ["0", "0", "0", "Unavailable"] : ["17", "12", "4", "Unavailable"],
     );
     await page.getByRole("tab", { name: "Content Stats", exact: true }).click();
     await expect(page.getByText("Thought Records", { exact: true })).toBeVisible();
     await expect(page.getByRole("tabpanel").locator(".text-2xl.font-bold")).toHaveText(
-      recovery === "empty" ? ["0", "0", "0", "24"] : ["0", "23", "9", "24"],
+      recovery === "empty" ? ["0", "0", "0", "0"] : ["0", "23", "9", "7"],
     );
     expect(pending).toHaveLength(3);
   });
