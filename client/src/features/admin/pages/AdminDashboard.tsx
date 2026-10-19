@@ -18,6 +18,34 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { z } from "zod";
+
+// Validate the aggregate contract before rendering counts or doing arithmetic.
+// Do not coerce missing/null/string values into plausible-looking statistics.
+const adminStatsSchema = z.object({
+  totalUsers: z.number().finite(),
+  totalClients: z.number().finite(),
+  totalTherapists: z.number().finite(),
+  totalEmotions: z.number().finite(),
+  totalThoughts: z.number().finite(),
+  totalGoals: z.number().finite(),
+  activeClients: z.number().finite(),
+  activeTherapists: z.number().finite(),
+  resourceUsage: z.number().finite(),
+  clientsWithoutTherapist: z.number().finite(),
+  therapistsWithoutClients: z.number().finite(),
+  clientsWithGoals: z.number().finite(),
+  averageGoalsPerClient: z.number().finite(),
+  averageEmotionsPerClient: z.number().finite(),
+  mostActiveTherapist: z.string(),
+  mostActiveClient: z.string(),
+  mostUsedResource: z.string(),
+  topResources: z.array(z.object({
+    id: z.number().finite(),
+    title: z.string(),
+    usageCount: z.number().finite(),
+  })),
+});
 
 // Stats card component
 const StatCard = ({
@@ -92,11 +120,15 @@ export default function AdminDashboard() {
       try {
         // Fetch admin stats from our dedicated endpoint
         const response = await apiRequest("GET", "/api/admin/stats");
-        const adminStats = await response.json();
+        const result = adminStatsSchema.safeParse(await response.json());
+        if (!result.success) {
+          // Keep response contents out of errors: they can contain client names.
+          throw new Error("Invalid admin statistics response");
+        }
         
         // Update state with real data from the server
         if (cancelled) return;
-        setStats(adminStats);
+        setStats(result.data);
         setLoadStatus("success");
       } catch (error) {
         if (cancelled) return;

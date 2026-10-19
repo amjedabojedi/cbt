@@ -37,6 +37,84 @@ async function expectFailure(page: Page) {
   await expect(alert).toBeVisible();
 }
 
+const numericFields = Object.keys(emptyStats).filter(
+  key => typeof emptyStats[key as keyof typeof emptyStats] === "number",
+);
+const invalidPayloads: { name: string; payload: unknown }[] = [
+  { name: "null", payload: null },
+  { name: "array instead of aggregate", payload: [] },
+  ...Object.keys(emptyStats).map(field => ({
+    name: `missing ${field}`,
+    payload: Object.fromEntries(Object.entries(emptyStats).filter(([key]) => key !== field)),
+  })),
+  ...numericFields.map(field => ({
+    name: `string instead of numeric ${field}`,
+    payload: { ...emptyStats, [field]: "0" },
+  })),
+  { name: "null numeric field", payload: { ...emptyStats, totalClients: null } },
+  { name: "boolean numeric field", payload: { ...emptyStats, totalUsers: false } },
+  { name: "invalid name", payload: { ...emptyStats, mostActiveClient: {} } },
+  { name: "invalid resource list", payload: { ...emptyStats, topResources: {} } },
+  { name: "null resource entry", payload: { ...emptyStats, topResources: [null] } },
+  { name: "incomplete resource entry", payload: { ...emptyStats, topResources: [{ id: 1, title: "Synthetic" }] } },
+  { name: "invalid resource count", payload: { ...emptyStats, topResources: [{ id: 1, title: "Synthetic", usageCount: "0" }] } },
+];
+
+for (const { name, payload } of invalidPayloads) {
+  test(`invalid admin statistics: ${name} shows persistent error and recovers`, async ({ page }) => {
+    await page.route("**/*", route =>
+      new URL(route.request().url()).origin === process.env.E2E_BASE_URL
+        ? route.continue() : route.abort("blockedbyclient"));
+    let requests = 0;
+    let recover = false;
+    const recoveredStats = payload === null ? emptyStats : {
+      ...emptyStats, totalUsers: 17, totalClients: 12, totalTherapists: 4,
+      clientsWithoutTherapist: 2, therapistsWithoutClients: 1,
+      averageGoalsPerClient: 1.5, averageEmotionsPerClient: 2.3,
+    };
+    await page.route("**/api/admin/stats", route => {
+      requests++;
+      return route.fulfill({
+        json: recover ? recoveredStats : payload,
+      });
+    });
+    const login = await page.request.post("/api/auth/login", {
+      headers: { Origin: process.env.E2E_BASE_URL! },
+      data: { username: "e2e-admin", password: "Synthetic-test-password-42" },
+    });
+    expect(login.status()).toBe(200);
+    const crashes: Error[] = [];
+    page.on("pageerror", error => crashes.push(error));
+    await page.goto("/admin");
+    await expectFailure(page);
+    // Repeated invalid successes must not dismiss the persistent failure.
+    await page.getByRole("button", { name: "Retry", exact: true }).click();
+    await expect.poll(() => requests).toBe(2);
+    await expectFailure(page);
+
+    recover = true;
+    await page.getByRole("button", { name: "Retry", exact: true }).click();
+    await expect(page.getByRole("tab", { name: "Overview", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Retry", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("tabpanel").locator(".text-2xl.font-bold")).toHaveText(
+      payload === null ? ["0", "0", "0", "Excellent"] : ["17", "12", "4", "Excellent"],
+    );
+    await page.getByRole("tab", { name: "Therapist-Client", exact: true }).click();
+    await expect(page.getByRole("tabpanel").locator(".text-2xl.font-bold")).toHaveText(
+      payload === null ? ["0", "0", "0", "0"] : ["10", "2", "3", "1"],
+    );
+    for (const [label, value] of [
+      ["Avg. Goals per Client", recoveredStats.averageGoalsPerClient],
+      ["Avg. Emotions per Client", recoveredStats.averageEmotionsPerClient],
+    ] as const) {
+      await expect(page.getByText(label, { exact: true }).locator("..").locator(".font-medium")).toHaveText(String(value));
+    }
+    await expect(page.getByRole("tabpanel")).not.toContainText("NaN");
+    expect(requests).toBe(3);
+    expect(crashes).toEqual([]);
+  });
+}
+
 for (const recovery of ["populated", "empty"] as const) {
   test(`admin statistics distinguish loading and repeated failure from ${recovery} success`, async ({ page }) => {
     await page.route("**/*", route =>
