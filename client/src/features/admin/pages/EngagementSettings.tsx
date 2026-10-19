@@ -44,6 +44,8 @@ export default function EngagementSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [reportDays, setReportDays] = useState(3);
+  const [statsAvailable, setStatsAvailable] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewContent, setPreviewContent] = useState({ subject: "", body: "", type: "" });
   const [settings, setSettings] = useState<EngagementSettings>({
@@ -105,27 +107,33 @@ Best regards,
 
   useEffect(() => {
     fetchSettings();
-    fetchStats();
   }, []);
 
   const fetchSettings = async () => {
+    let days = 3;
     try {
       const response = await apiRequest("GET", "/api/admin/engagement-settings");
       if (response.ok) {
         const data = await response.json();
         setSettings(data);
+        days = data.reminderDays;
       }
     } catch (error) {
       console.error("Failed to fetch engagement settings:", error);
+    } finally {
+      fetchStats(days);
     }
   };
 
-  const fetchStats = async () => {
+  const fetchStats = async (days: number) => {
+    setStatsAvailable(false);
     try {
-      const response = await apiRequest("GET", "/api/admin/engagement-stats");
+      const response = await apiRequest("GET", `/api/admin/engagement-stats?days=${days}`);
       if (response.ok) {
         const data = await response.json();
         setStats(data);
+        setReportDays(days);
+        setStatsAvailable(true);
       }
     } catch (error) {
       console.error("Failed to fetch engagement stats:", error);
@@ -146,6 +154,7 @@ Best regards,
           title: "Settings Saved",
           description: "Engagement reminder settings have been updated successfully."
         });
+        fetchStats(settings.reminderDays);
       } else {
         throw new Error("Failed to save settings");
       }
@@ -160,27 +169,26 @@ Best regards,
     }
   };
 
-  const sendTestReminder = async () => {
+  const sendManualReminders = async () => {
+    if (!window.confirm(`Send real reminders to eligible clients inactive for ${reportDays} days?`)) return;
     setSending(true);
     try {
-      const response = await apiRequest("POST", "/api/client-engagement/send-reminders", {
-        body: JSON.stringify({ days: 1, therapistOnly: false })
-      });
+      const response = await apiRequest("POST", "/api/admin/inactivity/send-reminders", { days: reportDays });
 
       if (response.ok) {
         const result = await response.json();
         toast({
-          title: "Test Reminder Sent",
+          title: "Reminders Sent",
           description: `Sent ${result.emailsSent} emails and ${result.notificationsSent} notifications.`
         });
-        fetchStats(); // Refresh stats
+        fetchStats(reportDays); // Refresh stats
       } else {
-        throw new Error("Failed to send test reminder");
+        throw new Error("Failed to send reminders");
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to send test reminder. Please try again.",
+        description: "Failed to send reminders. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -282,7 +290,7 @@ Best regards,
             <TabsTrigger value="templates" className="text-xs sm:text-sm">Templates</TabsTrigger>
             <TabsTrigger value="escalation" className="text-xs sm:text-sm">Escalation</TabsTrigger>
             <TabsTrigger value="stats" className="text-xs sm:text-sm">Statistics</TabsTrigger>
-            <TabsTrigger value="testing" className="text-xs sm:text-sm">Testing</TabsTrigger>
+            <TabsTrigger value="testing" className="text-xs sm:text-sm">Manual Reminders</TabsTrigger>
           </TabsList>
 
           <TabsContent value="settings" className="space-y-6">
@@ -648,22 +656,33 @@ The ResilienceHub Team`}
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-6">
+            {!statsAvailable && (
+              <p role="alert">Engagement statistics are unavailable. Reload before sending manual reminders.</p>
+            )}
+            <p className="text-sm text-muted-foreground">
+              This report and manual reminders include only active client accounts. Inactive means
+              no emotion record has been saved for at least {reportDays} full 24-hour days, including
+              exactly at the cutoff. For clients with no emotion records, the period starts at account
+              creation. The saved date is used, not the emotion&apos;s recorded date. Other tools do not
+              reset this period. Recently joined clients are counted as within the period, not as
+              having recorded activity. Automatic reminders use a separate activity check.
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Active Clients</CardTitle>
+                  <CardTitle className="text-sm font-medium">Within Inactivity Period</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{stats.activeClients}</div>
+                  <div className="text-2xl font-bold text-green-600">{statsAvailable ? stats.activeClients : "Unavailable"}</div>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Inactive Clients</CardTitle>
+                  <CardTitle className="text-sm font-medium">Eligible for Manual Reminders</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-orange-600">{stats.inactiveClients}</div>
+                  <div className="text-2xl font-bold text-orange-600">{statsAvailable ? stats.inactiveClients : "Unavailable"}</div>
                 </CardContent>
               </Card>
 
@@ -718,18 +737,23 @@ The ResilienceHub Team`}
           <TabsContent value="testing" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Test Reminders</CardTitle>
+                <CardTitle>Send Manual Reminders</CardTitle>
                 <CardDescription>
-                  Send test engagement reminders to verify the system is working
+                  Send real emotion-tracking reminders using the same rule as Statistics
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  This will send reminders to all clients who haven't tracked emotions in the last 24 hours.
-                  Use this to test the email system and verify templates are working correctly.
+                  This sends real notifications and, when email is enabled, real emails to active client
+                  accounts inactive for at least {reportDays} full days. It uses the last saved emotion
+                  record, or account creation if no records exist. This is not a test or an email-template
+                  preview. Save threshold changes before sending.
                 </p>
                 
-                <Button onClick={sendTestReminder} disabled={sending}>
+                {!statsAvailable && (
+                  <p role="alert">Engagement statistics are unavailable. Reload before sending manual reminders.</p>
+                )}
+                <Button onClick={sendManualReminders} disabled={sending || !statsAvailable}>
                   {sending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -738,7 +762,7 @@ The ResilienceHub Team`}
                   ) : (
                     <>
                       <Send className="mr-2 h-4 w-4" />
-                      Send Test Reminder
+                      Send Manual Reminders
                     </>
                   )}
                 </Button>

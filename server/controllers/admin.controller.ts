@@ -6,6 +6,7 @@ import { storage } from "../storage";
 import { sendNotificationToUser } from "../services/websocket";
 import { isEmailEnabled, sendWeeklyProgressDigest, sendEmotionTrackingReminder } from "../services/email";
 import { updateGoalStatusBasedOnMilestones } from "./goals.controller";
+import { engagementDays, getAdminClientEngagement } from "../services/adminEngagement";
 
 // Get admin statistics (admin only)
 export async function getAdminStats(req: Request, res: Response) {
@@ -373,28 +374,10 @@ export async function updateEngagementSettings(req: Request, res: Response) {
 // Get admin engagement stats
 export async function getEngagementStats(req: Request, res: Response) {
   try {
-    const users = await storage.getAllUsers();
-    const clients = users.filter(user => user.role === "client");
-    
-    // Calculate inactive clients (no emotions in last 3 days)
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-    
-    let activeClients = 0;
-    let inactiveClients = 0;
-    
-    for (const client of clients) {
-      const emotions = await storage.getEmotionRecordsByUser(client.id);
-      const hasRecentEmotion = emotions.some(emotion => 
-        new Date(emotion.createdAt) > threeDaysAgo
-      );
-      
-      if (hasRecentEmotion) {
-        activeClients++;
-      } else {
-        inactiveClients++;
-      }
-    }
+    const days = engagementDays(req.query?.days);
+    const clients = await getAdminClientEngagement(days);
+    const inactiveClients = clients.filter(client => client.inactive).length;
+    const activeClients = clients.length - inactiveClients;
     
     const stats = {
       lastRunTime: null, // Would track this in database
@@ -406,6 +389,9 @@ export async function getEngagementStats(req: Request, res: Response) {
     
     res.status(200).json(stats);
   } catch (error) {
+    if (error instanceof RangeError) {
+      return res.status(400).json({ message: error.message });
+    }
     console.error("Error fetching engagement stats:", error);
     res.status(500).json({ message: "Failed to fetch engagement stats" });
   }
@@ -414,31 +400,9 @@ export async function getEngagementStats(req: Request, res: Response) {
 // Client inactivity check
 export async function checkInactiveClients(req: Request, res: Response) {
   try {
-    const daysThreshold = Number(req.query.days) || 3;
-    
-    // Find inactive clients using the PostgreSQL query
-    const now = new Date();
-    const cutoffDate = new Date(now.getTime() - daysThreshold * 24 * 60 * 60 * 1000);
-    
-    const query = `
-      SELECT u.id, u.name, u.email, u.therapist_id as "therapistId"
-      FROM users u
-      WHERE u.role = 'client' 
-        AND u.status = 'active'
-        AND (
-          -- Has tracked emotions before
-          EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id)
-          -- But not since cutoff date
-          AND NOT EXISTS (
-            SELECT 1 FROM emotion_records e 
-            WHERE e.user_id = u.id 
-            AND e.timestamp > $1
-          )
-        )
-    `;
-    
-    const result = await pool.query(query, [cutoffDate.toISOString()]);
-    const inactiveClients = result.rows;
+    const daysThreshold = engagementDays(req.query?.days);
+    const clients = await getAdminClientEngagement(daysThreshold);
+    const inactiveClients = clients.filter(client => client.inactive);
     
     return res.status(200).json({
       success: true,
@@ -452,6 +416,9 @@ export async function checkInactiveClients(req: Request, res: Response) {
       threshold: daysThreshold
     });
   } catch (error) {
+    if (error instanceof RangeError) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
     console.error("Error checking inactive clients:", error);
     return res.status(500).json({ 
       success: false, 
@@ -463,32 +430,11 @@ export async function checkInactiveClients(req: Request, res: Response) {
 // Send reminders to inactive clients
 export async function sendInactivityReminders(req: Request, res: Response) {
   try {
-    const daysThreshold = req.body.days || 3; // Default to 3 days
+    const daysThreshold = engagementDays(req.body?.days);
     console.log(`Looking for clients inactive for ${daysThreshold} days...`);
     
-    // Find inactive clients
-    const now = new Date();
-    const cutoffDate = new Date(now.getTime() - daysThreshold * 24 * 60 * 60 * 1000);
-    
-    const query = `
-      SELECT u.id, u.name, u.email, u.therapist_id as "therapistId"
-      FROM users u
-      WHERE u.role = 'client' 
-        AND u.status = 'active'
-        AND (
-          -- Has tracked emotions before
-          EXISTS (SELECT 1 FROM emotion_records e WHERE e.user_id = u.id)
-          -- But not since cutoff date
-          AND NOT EXISTS (
-            SELECT 1 FROM emotion_records e 
-            WHERE e.user_id = u.id 
-            AND e.timestamp > $1
-          )
-        )
-    `;
-    
-    const result = await pool.query(query, [cutoffDate.toISOString()]);
-    const inactiveClients = result.rows;
+    const clients = await getAdminClientEngagement(daysThreshold);
+    const inactiveClients = clients.filter(client => client.inactive);
     console.log(`Found ${inactiveClients.length} inactive clients`);
     
     // Send notifications and emails
@@ -554,6 +500,9 @@ export async function sendInactivityReminders(req: Request, res: Response) {
       message: `Sent ${notificationsSent} in-app notifications and ${emailsSent} emails to inactive clients`
     });
   } catch (error) {
+    if (error instanceof RangeError) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
     console.error("Error sending inactivity reminders:", error);
     return res.status(500).json({ 
       success: false, 
