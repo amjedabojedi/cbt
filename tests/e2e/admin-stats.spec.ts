@@ -43,7 +43,7 @@ const numericFields = Object.keys(emptyStats).filter(
 const invalidPayloads: { name: string; payload: unknown }[] = [
   { name: "null", payload: null },
   { name: "array instead of aggregate", payload: [] },
-  ...Object.keys(emptyStats).map(field => ({
+  ...Object.keys(emptyStats).filter(field => field !== "totalResources").map(field => ({
     name: `missing ${field}`,
     payload: Object.fromEntries(Object.entries(emptyStats).filter(([key]) => key !== field)),
   })),
@@ -52,6 +52,8 @@ const invalidPayloads: { name: string; payload: unknown }[] = [
     payload: { ...emptyStats, [field]: "0" },
   })),
   { name: "null numeric field", payload: { ...emptyStats, totalClients: null } },
+  { name: "negative resource count", payload: { ...emptyStats, totalResources: -1 } },
+  { name: "fractional resource count", payload: { ...emptyStats, totalResources: 1.5 } },
   { name: "boolean numeric field", payload: { ...emptyStats, totalUsers: false } },
   { name: "invalid name", payload: { ...emptyStats, mostActiveClient: {} } },
   { name: "invalid resource list", payload: { ...emptyStats, topResources: {} } },
@@ -97,7 +99,7 @@ for (const { name, payload } of invalidPayloads) {
     await expect(page.getByRole("tab", { name: "Overview", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Retry", exact: true })).toHaveCount(0);
     await expect(page.getByRole("tabpanel").locator(".text-2xl.font-bold")).toHaveText(
-      payload === null ? ["0", "0", "0", "Excellent"] : ["17", "12", "4", "Excellent"],
+      payload === null ? ["0", "0", "0", "Unavailable"] : ["17", "12", "4", "Unavailable"],
     );
     await page.getByRole("tab", { name: "Therapist-Client", exact: true }).click();
     await expect(page.getByRole("tabpanel").locator(".text-2xl.font-bold")).toHaveText(
@@ -112,6 +114,28 @@ for (const { name, payload } of invalidPayloads) {
     await expect(page.getByRole("tabpanel")).not.toContainText("NaN");
     expect(requests).toBe(3);
     expect(crashes).toEqual([]);
+  });
+}
+
+for (const availability of ["missing", "null"] as const) {
+  test(`admin resource count is unavailable when ${availability}`, async ({ page }) => {
+    await page.route("**/*", route =>
+      new URL(route.request().url()).origin === process.env.E2E_BASE_URL
+        ? route.continue() : route.abort("blockedbyclient"));
+    const { totalResources, ...withoutResources } = emptyStats;
+    await page.route("**/api/admin/stats", route => route.fulfill({
+      json: availability === "missing" ? withoutResources : { ...emptyStats, totalResources: null },
+    }));
+    const login = await page.request.post("/api/auth/login", {
+      headers: { Origin: process.env.E2E_BASE_URL! },
+      data: { username: "e2e-admin", password: "Synthetic-test-password-42" },
+    });
+    expect(login.status()).toBe(200);
+    await page.goto("/admin");
+    await page.getByRole("tab", { name: "Content Stats", exact: true }).click();
+    await expect(page.getByRole("tabpanel").locator(".text-2xl.font-bold")).toHaveText(
+      ["0", "0", "0", "Unavailable"],
+    );
   });
 }
 

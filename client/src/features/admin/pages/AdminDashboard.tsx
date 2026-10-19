@@ -29,6 +29,7 @@ const adminStatsSchema = z.object({
   totalEmotions: z.number().finite(),
   totalThoughts: z.number().finite(),
   totalGoals: z.number().finite(),
+  totalResources: z.number().int().nonnegative().nullish().transform(value => value ?? null),
   activeClients: z.number().finite(),
   activeTherapists: z.number().finite(),
   resourceUsage: z.number().finite(),

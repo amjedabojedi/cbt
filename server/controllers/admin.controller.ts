@@ -37,8 +37,8 @@ export async function getAdminStats(req: Request, res: Response) {
     const goalsResult = await storage.getAllGoals();
     
     // Calculate clients with goals
-    const clientsWithGoalsSet = new Set(goalsResult.map(g => g.userId));
-    const clientsWithGoals = clientsWithGoalsSet.size;
+    const goalOwnerIds = new Set(goalsResult.map(g => g.userId));
+    const clientsWithGoals = clients.filter(client => goalOwnerIds.has(client.id)).length;
     
     // Calculate resource usage
     // Match the admin library, which includes unpublished resources.
