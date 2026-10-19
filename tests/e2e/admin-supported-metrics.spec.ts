@@ -68,14 +68,25 @@ for (const count of [7, 39, 0, undefined, null, -1, 1.5, "24"]) {
     await page.route("**/*", route =>
       new URL(route.request().url()).origin === process.env.E2E_BASE_URL
         ? route.continue() : route.abort("blockedbyclient"));
+    let resourceCount = count;
     await page.route("**/api/admin/stats", route =>
-      route.fulfill({ json: { ...stats, totalResources: count } }));
+      route.fulfill({ json: { ...stats, totalResources: resourceCount } }));
     const login = await page.request.post("/api/auth/login", {
       headers: { Origin: process.env.E2E_BASE_URL! },
       data: { username: "e2e-admin", password: "Synthetic-test-password-42" },
     });
     expect(login.ok()).toBe(true);
     await page.goto("/admin");
+
+    if (count !== undefined && count !== null &&
+        !(typeof count === "number" && Number.isInteger(count) && count >= 0)) {
+      await expect(page.getByRole("alert").filter({
+        hasText: "Unable to load dashboard statistics",
+      })).toBeVisible();
+      await expect(page.getByRole("tablist")).toHaveCount(0);
+      resourceCount = 0;
+      await page.getByRole("button", { name: "Retry", exact: true }).click();
+    }
 
     const health = page.locator(".rounded-lg.border").filter({
       has: page.getByText("System Health", { exact: true }),
@@ -90,8 +101,8 @@ for (const count of [7, 39, 0, undefined, null, -1, 1.5, "24"]) {
     const resources = page.locator(".rounded-lg.border").filter({
       has: page.getByText("Resources", { exact: true }),
     });
-    const valid = typeof count === "number" && Number.isInteger(count) && count >= 0;
-    await expect(resources.getByText(valid ? String(count) : "Unavailable", { exact: true })).toBeVisible();
+    const valid = typeof resourceCount === "number" && Number.isInteger(resourceCount) && resourceCount >= 0;
+    await expect(resources.getByText(valid ? String(resourceCount) : "Unavailable", { exact: true })).toBeVisible();
     await expect(resources).toContainText(valid ? "Resources in library" : "Resource count is not available");
     if (count === 7) await page.screenshot({ path: test.info().outputPath("resource-count.png") });
     await expect(page.getByText("Content activity trends are unavailable.", { exact: false })).toBeVisible();

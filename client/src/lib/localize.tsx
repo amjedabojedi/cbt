@@ -107,6 +107,8 @@ export const translations: Record<string, Record<string, string>> = {
     "My Progress": "My Progress",
 
     // Layout elements / Role summaries
+    "Open navigation menu": "Open navigation menu",
+    "Navigation Menu": "Navigation Menu",
     "Clinical Admin": "Clinical Admin",
     "Therapist Suite": "Therapist Suite",
     "Client Portal": "Client Portal",
@@ -1546,6 +1548,8 @@ export const translations: Record<string, Record<string, string>> = {
     "My Progress": "تقدمي",
 
     // Layout elements / Role summaries
+    "Open navigation menu": "فتح قائمة التنقل",
+    "Navigation Menu": "قائمة التنقل",
     "Clinical Admin": "مسؤول عيادي",
     "Therapist Suite": "جناح المعالج",
     "Client Portal": "بوابة العميل",

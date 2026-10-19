@@ -53,6 +53,87 @@ const shortcutLabels = {
 };
 
 for (const width of [320, 390]) {
+  test.describe(`Arabic drawer at ${width}px`, { tag: "@phone" }, () => {
+    test.use({ viewport: { width, height: 568 }, isMobile: true, hasTouch: true });
+    for (const role of ["client", "admin", "assigned"] as const) {
+      test(`${role} localized controls, readable roles and real drawer taps`, async ({ page }) => {
+        await login(page, role);
+        await page.addInitScript(() => localStorage.setItem("resiliencehub_lang", "ar"));
+        await page.goto(role === "admin" ? "/admin" : role === "assigned" ? "/clients" : "/dashboard");
+        const open = page.getByRole("button", { name: "فتح قائمة التنقل", exact: true });
+        const menu = page.getByRole("dialog", { name: "قائمة التنقل", exact: true });
+        const openMenu = async () => {
+          await open.tap();
+          await expect(menu).toBeVisible();
+          // Wait for the finite slide animation before measuring phone bounds.
+          await expect.poll(async () => {
+            const box = await menu.boundingBox();
+            return !!box && box.x >= -1 && box.x + box.width <= width + 1;
+          }).toBe(true);
+        };
+        await openMenu();
+        const captions = role === "admin" ? ["مسؤول عيادي", "مسؤول"] :
+          role === "assigned" ? ["جناح المعالج", "معالج سريري"] : ["بوابة العميل", "عميل"];
+        for (const caption of captions) {
+          await expect(menu.getByText(caption, { exact: true })).toBeVisible();
+          await expectHorizontalBounds(menu.getByText(caption, { exact: true }), width);
+        }
+        await expect(menu.getByRole("link", { name: "الإعدادات", exact: true })).toBeVisible();
+        await expect(menu.getByRole("button", { name: "تسجيل الخروج", exact: true })).toBeVisible();
+        await expectHorizontalBounds(menu.locator("nav a span"), width);
+        await expectHorizontalBounds(menu.getByRole("link", { name: "الإعدادات", exact: true }), width);
+        await expectHorizontalBounds(menu.getByRole("button", { name: "تسجيل الخروج", exact: true }), width);
+        await page.screenshot({
+          path: test.info().outputPath(`arabic-drawer-${role}-${width}.png`), animations: "disabled",
+        });
+        await menu.getByRole("button", { name: "إغلاق", exact: true }).tap();
+        await expect(menu).toHaveCount(0);
+        await openMenu();
+        await menu.getByRole("link", {
+          name: role === "admin" ? "مكتبة الموارد" : role === "assigned" ? "عملائي" : "سجلات الأفكار",
+          exact: true,
+        }).tap();
+        await expect(page).toHaveURL(role === "admin" ? /\/library$/ : role === "assigned" ? /\/clients$/ : /\/thoughts$/);
+        await expect(menu).toHaveCount(0);
+
+        if (role === "assigned") {
+          await page.getByRole("button", { name: "الأفكار", exact: true }).tap();
+          await expect(page).toHaveURL(/\/thoughts$/);
+          expect(await page.evaluate(() => localStorage.getItem("viewingClientId"))).toBe(String(userId));
+          await openMenu();
+          const cleared = page.waitForResponse(r =>
+            r.url().endsWith("/api/users/current-viewing-client") && r.request().method() === "POST");
+          await menu.getByRole("link", { name: "عملائي", exact: true }).tap();
+          const response = await cleared;
+          expect(response.status()).toBe(200);
+          expect(response.request().postDataJSON()).toEqual({ clientId: null });
+          await expect(page).toHaveURL(/\/clients$/);
+          await expect(menu).toHaveCount(0);
+          expect(await page.evaluate(() => localStorage.getItem("viewingClientId"))).toBeNull();
+          await page.reload();
+          expect(await page.evaluate(() => localStorage.getItem("viewingClientId"))).toBeNull();
+          await openMenu();
+          await expect(menu.locator("nav a")).toHaveCount(3);
+          await menu.getByRole("button", { name: "إغلاق", exact: true }).tap();
+        }
+
+        await openMenu();
+        await menu.getByRole("link", { name: "الإعدادات", exact: true }).tap();
+        await expect(page).toHaveURL(/\/settings$/);
+        await expect(menu).toHaveCount(0);
+        await openMenu();
+        const loggedOut = page.waitForResponse(r =>
+          r.url().endsWith("/api/auth/logout") && r.request().method() === "POST");
+        await menu.getByRole("button", { name: "تسجيل الخروج", exact: true }).tap();
+        expect((await loggedOut).ok()).toBe(true);
+        await expect(menu).toHaveCount(0);
+        expect((await page.request.get("/api/auth/me")).status()).toBe(401);
+      });
+    }
+  });
+}
+
+for (const width of [320, 390]) {
   for (const language of ["en", "ar"] as const) {
     test.describe(`localized shortcuts ${language} at ${width}px`, { tag: "@phone" }, () => {
       test.use({ viewport: { width, height: 568 }, isMobile: true, hasTouch: true });
@@ -98,12 +179,12 @@ for (const width of [320, 390]) {
           };
 
           const checkFullMenu = async (hrefs: string[]) => {
-            await page.getByRole("button", { name: "Open navigation menu", exact: true }).tap();
-            const menu = page.getByRole("dialog", { name: "Navigation Menu", exact: true });
+            await page.getByRole("button", { name: language === "ar" ? "فتح قائمة التنقل" : "Open navigation menu", exact: true }).tap();
+            const menu = page.getByRole("dialog", { name: language === "ar" ? "قائمة التنقل" : "Navigation Menu", exact: true });
             await expect(menu).toBeVisible();
             expect(await menu.locator("nav a").evaluateAll(links =>
               links.map(link => link.getAttribute("href")))).toEqual(hrefs);
-            await menu.getByRole("button", { name: "Close", exact: true }).tap();
+            await menu.getByRole("button", { name: language === "ar" ? "إغلاق" : "Close", exact: true }).tap();
           };
 
           if (role === "admin") {
@@ -376,7 +457,7 @@ test.describe("staff phone navigation", { tag: "@phone" }, () => {
     await expect(menu.getByRole("link", { name: "Progress", exact: true })).toBeVisible();
     const cleared = page.waitForResponse(r =>
       r.url().endsWith("/api/users/current-viewing-client") && r.request().method() === "POST");
-    await menu.getByRole("link", { name: "← My Clients", exact: true }).tap();
+      await menu.getByRole("link", { name: "My Clients", exact: true }).tap();
     expect((await cleared).status()).toBe(200);
     await expect(page).toHaveURL(/\/clients$/);
     await page.getByRole("button", { name: "Open navigation menu", exact: true }).tap();

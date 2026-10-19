@@ -25,7 +25,7 @@ export function getPrimaryNavigation(role?: string, viewingClient = false): Prim
   ];
   if (role === "therapist") {
     if (viewingClient) return [
-      { href: "/clients", label: "← My Clients", icon: Users, isReturn: true },
+      { href: "/clients", label: "My Clients", icon: Users, isReturn: true },
       { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
       { href: "/emotions", label: "Emotions", icon: Heart },
       { href: "/thoughts", label: "Thought Records", icon: Brain },

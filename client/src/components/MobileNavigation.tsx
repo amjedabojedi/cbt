@@ -61,15 +61,16 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="relative text-slate-700 hover:bg-slate-100">
             <Menu className="h-6 w-6" />
-            <span className="sr-only">Open navigation menu</span>
+            <span className="sr-only">{t("Open navigation menu")}</span>
           </Button>
         </SheetTrigger>
         <SheetContent
           side={isRTL ? "right" : "left"}
+          closeLabel={t("Close")}
           aria-describedby={undefined}
           className="w-72 p-0 bg-teal-800 border-r border-teal-800/80 shadow-[4px_0_24px_rgba(124,58,237,0.1)]"
         >
-          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+          <SheetTitle className="sr-only">{t("Navigation Menu")}</SheetTitle>
           <div className="flex h-full flex-col">
             {/* Logo */}
             <div className="flex items-center gap-3 px-4 py-4 border-b border-teal-800/80">
@@ -81,7 +82,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                   ResilienceHub
                 </h1>
                 <span className="text-[9px] font-bold tracking-widest text-teal-300/90 uppercase">
-                  {user?.role === 'admin' ? 'Clinical Admin' : user?.role === 'therapist' ? 'Therapist Suite' : 'Client Portal'}
+                  {t(user?.role === 'admin' ? 'Clinical Admin' : user?.role === 'therapist' ? 'Therapist Suite' : 'Client Portal')}
                 </span>
               </div>
             </div>
@@ -94,7 +95,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
               <div className="min-w-0">
                 <p className="font-bold text-sm text-teal-100 truncate">{user?.name}</p>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-teal-300">
-                  {user?.role === 'therapist' ? 'Clinical Therapist' : user?.role}
+                  {t(user?.role === 'therapist' ? 'Clinical Therapist' : user?.role === 'admin' ? 'Administrator' : 'Client')}
                 </p>
               </div>
             </div>
@@ -174,7 +175,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                       )}
                     >
                       <Settings size={18} className="flex-shrink-0 text-teal-300" />
-                      <span>Settings</span>
+                      <span>{t("Settings")}</span>
                     </div>
                   </Link>
                 </li>
@@ -184,7 +185,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                     className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-rose-400 hover:text-rose-300 hover:bg-rose-950/15 transition-colors"
                   >
                     <LogOut size={18} className="flex-shrink-0 text-rose-400" />
-                    <span>Logout</span>
+                    <span>{t("Logout")}</span>
                   </button>
                 </li>
               </ul>

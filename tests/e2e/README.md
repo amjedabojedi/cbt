@@ -209,6 +209,10 @@ Coverage:
   reachability, and admin/therapist navigation parity. Phone save-action checks
   also assert disabled/busy state during saving and a usable success/challenge
   action while the History refresh is delayed.
+- Arabic full drawer at 320px and 390px on both engines: localized accessible
+  open/title/close names, readable client/admin/therapist captions, actual menu,
+  Settings and Logout taps, and selected-client return clearing local and server
+  context across reload. These checks are separate from bottom-shortcut coverage.
 - Shared unsaved-writing guard in Chromium: real sidebar and module-tab pointer/keyboard
   activation, browser back/forward, and native reload prompts. Declining keeps
   the route and writing; accepting leaves once, with no saved record or
