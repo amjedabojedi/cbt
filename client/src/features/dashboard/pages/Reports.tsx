@@ -11,6 +11,7 @@ import ProgressIndicators from "@/features/dashboard/components/progress/Progres
 import { useLocalization } from "@/lib/localize.tsx";
 import { useClientContext } from "@/context/ClientContext";
 import { practiceMilestone } from "@/utils/practiceProgress";
+import { downloadPDF, pdfExportUrl } from "@/lib/pdf-download";
 
 import {
   Select,
@@ -31,7 +32,7 @@ export default function Reports() {
   const [isExporting, setIsExporting] = useState(false);
   const { t, isRTL, tNum } = useLocalization();
 
-  const isTherapistViewingClient = user?.role === "therapist" && !!viewingClientId;
+  const isTherapistViewingClient = (user?.role === "therapist" || user?.role === "admin") && !!viewingClientId;
   const subjectId = isTherapistViewingClient ? viewingClientId! : user?.id;
 
   const insights = useProgressInsights(subjectId, timeRange);
@@ -108,7 +109,7 @@ export default function Reports() {
 
                 <Button
                   disabled={isExporting}
-                  onClick={() => {
+                  onClick={async () => {
                     setIsExporting(true);
                     try {
                       toast({
@@ -116,24 +117,12 @@ export default function Reports() {
                         description: t("Your PDF report is being generated."),
                       });
 
-                      const url = `/api/export/pdf?type=all`;
-                      const link = document.createElement("a");
-                      link.href = url;
-                      link.setAttribute("download", "");
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-
-                      setTimeout(() => {
-                        toast({
-                          title: t("Export complete"),
-                          description: t("Your PDF report has been downloaded."),
-                          variant: "default",
-                        });
-                        setIsExporting(false);
-                      }, 2000);
-                    } catch (error) {
-                      console.error("Export error:", error);
+                      await downloadPDF(pdfExportUrl("all", timeRange, isTherapistViewingClient ? viewingClientId : undefined));
+                      toast({
+                        title: t("PDF report ready"),
+                        description: t("The PDF was prepared and a download was requested. Check your browser's downloads."),
+                      });
+                    } catch {
                       toast({
                         title: t("Export failed"),
                         description: t(
@@ -141,6 +130,7 @@ export default function Reports() {
                         ),
                         variant: "destructive",
                       });
+                    } finally {
                       setIsExporting(false);
                     }
                   }}

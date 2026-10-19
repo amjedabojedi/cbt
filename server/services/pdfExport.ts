@@ -1,745 +1,119 @@
-import { Request, Response } from 'express';
-import * as fs from 'fs';
-import * as path from 'path';
+import type { Response } from "express";
 // @ts-ignore -- pdfkit ships without TypeScript declarations
-import PDFDocument from 'pdfkit';
-import { IStorage } from '../storage';
-
-// Define a type for the PDFDocument to resolve namespace issues
-type PDFDocumentType = PDFDocument;
+import PDFDocument from "pdfkit";
+import { subDays } from "date-fns";
+import type { IStorage } from "../storage";
 
 export interface PDFExportOptions {
-  type: string;
+  type: "all" | "emotions" | "thoughts" | "journals" | "goals";
+  period: "week" | "month" | "all";
   targetUserId: number;
-  tempDir: string;
-  requestId: string;
+  subjectName: string;
 }
 
+/**
+ * Build the whole document before sending headers. A failed data read or PDF
+ * stream must return an error, not a successful but truncated download.
+ * Private report bytes are kept in memory, never in shared temporary files.
+ */
 export async function exportPDF(
   options: PDFExportOptions,
   storage: IStorage,
-  res: Response
+  res: Response,
 ): Promise<void> {
-  const { type, targetUserId, tempDir, requestId } = options;
-  
-  // Create temp file path
-  const tempFilePath = path.join(tempDir, `${type}-export-${targetUserId}-${requestId}.pdf`);
-  
+  const { type, period, targetUserId, subjectName } = options;
+  const now = new Date();
+  const start = period === "all" ? null : subDays(now, period === "week" ? 7 : 30);
+  const inPeriod = (date: Date | string) => {
+    const timestamp = new Date(date).getTime();
+    return Number.isFinite(timestamp) && (!start || timestamp >= start.getTime());
+  };
+  const sections: { title: string; entries: string[][] }[] = [];
+  if (type === "all" || type === "emotions") {
+    const records = await storage.getEmotionRecordsByUser(targetUserId);
+    sections.push({
+      title: "Emotion Records",
+      entries: records.filter(r => inPeriod(r.timestamp)).map(r => [
+        `Date: ${new Date(r.timestamp).toISOString()}`,
+        `Emotion: ${[r.coreEmotion, r.primaryEmotion, r.tertiaryEmotion].filter(Boolean).join(" / ")}`,
+        `Intensity: ${r.intensity}`, `Situation: ${r.situation}`,
+      ]),
+    });
+  }
+  if (type === "all" || type === "thoughts") {
+    const records = await storage.getThoughtRecordsByUser(targetUserId);
+    sections.push({
+      title: "Thought Records",
+      entries: records.filter(r => inPeriod(r.createdAt)).map(r => [
+        `Date: ${new Date(r.createdAt).toISOString()}`,
+        `Automatic thoughts: ${r.automaticThoughts}`,
+        `Cognitive distortions: ${r.cognitiveDistortions.join(", ")}`,
+        `Evidence for: ${r.evidenceFor || "None recorded"}`,
+        `Evidence against: ${r.evidenceAgainst || "None recorded"}`,
+        `Alternative perspective: ${r.alternativePerspective || "None recorded"}`,
+      ]),
+    });
+  }
+  if (type === "all" || type === "journals") {
+    const records = await storage.getJournalEntriesByUser(targetUserId);
+    sections.push({
+      title: "Journal Entries",
+      entries: records.filter(r => inPeriod(r.createdAt)).map(r => [
+        `${r.title || "Untitled Entry"} - ${new Date(r.createdAt).toISOString()}`,
+        r.content,
+      ]),
+    });
+  }
+  if (type === "all" || type === "goals") {
+    const records = await storage.getGoalsByUser(targetUserId);
+    sections.push({
+      title: "Goals",
+      entries: records.filter(r => inPeriod(r.createdAt)).map(r => [
+        `Goal: ${r.title}`, `Created: ${new Date(r.createdAt).toISOString()}`,
+        `Status: ${r.status}`, `Specific: ${r.specific}`,
+        `Measurable: ${r.measurable}`, `Achievable: ${r.achievable}`,
+        `Relevant: ${r.relevant}`, `Timebound: ${r.timebound}`,
+      ]),
+    });
+  }
+
+  const doc = new PDFDocument({
+    margin: 50,
+    info: { Title: "ResilienceHub CBT Report", Author: "ResilienceHub" },
+  });
+  const chunks: Buffer[] = [];
+  const bytes = new Promise<Buffer>((resolve, reject) => {
+    doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+    doc.on("error", reject);
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+  });
   try {
-    // Ensure temp directory exists
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-    
-    // Create a very simple PDF document with minimal features to avoid antivirus issues
-    const doc = new PDFDocument({
-      margin: 50,
-      // Set basic document properties
-      info: {
-        Title: `ResilienceHub Export - ${type}`,
-        Author: 'ResilienceHub Platform',
-        Subject: 'CBT Data Export',
-        Keywords: 'cbt',
-        Producer: 'ResilienceHub',
-        Creator: 'ResilienceHub'
-      },
-      // Disable compression to avoid triggering antivirus
-      compress: false,
-      // Use the simplest PDF structure
-      pdfVersion: '1.4',
-      // Avoid using advanced features
-      permissions: {
-        printing: 'highResolution',
-        modifying: false,
-        copying: false,
-        annotating: false,
-        fillingForms: false,
-        contentAccessibility: true,
-        documentAssembly: false
-      },
-      autoFirstPage: true,
-      bufferPages: true
-    });
-    
-    // Create write stream to temp file
-    const writeStream = fs.createWriteStream(tempFilePath);
-    
-    // Handle stream errors for both writeStream and doc
-    writeStream.on('error', (err) => {
-      console.error(`[${requestId}] Write stream error:`, err);
-      if (!res.headersSent) {
-        res.status(500).json({ 
-          message: "Failed to generate PDF", 
-          error: err.message || 'Unknown error' 
-        });
-      }
-    });
-    
-    doc.on('error', (err: any) => {
-      console.error(`[${requestId}] PDF document error:`, err);
-      if (!res.headersSent) {
-        res.status(500).json({ 
-          message: "Failed to generate PDF", 
-          error: err.message || 'Unknown error' 
-        });
-      }
-    });
-    
-    // Pipe document to write stream
-    doc.pipe(writeStream);
-    
-    // Get user info for header
-    const user = await storage.getUser(targetUserId);
-    const userName = user ? user.name : `User ${targetUserId}`;
-    
-    // When the PDF is successfully written to disk, send it to the client
-    writeStream.on('finish', () => {
-      console.log(`[${requestId}] PDF written to temp file: ${tempFilePath}`);
-      
-      // Now read the file and send it as a response
-      const readStream = fs.createReadStream(tempFilePath);
-      
-      readStream.on('error', (err) => {
-        console.error(`[${requestId}] Read stream error:`, err);
-        if (!res.headersSent) {
-          res.status(500).json({ 
-            message: "Failed to read PDF file", 
-            error: err.message || 'Unknown error' 
-          });
-        }
-      });
-      
-      // Set response headers for PDF file with additional security headers
-      const filename = `Resilience-${type}-export-${Date.now()}.pdf`;
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('Cache-Control', 'no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      
-      // Pipe the file to the response
-      readStream.pipe(res);
-      
-      // Clean up the temp file after sending
-      readStream.on('end', () => {
-        try {
-          fs.unlinkSync(tempFilePath);
-          console.log(`[${requestId}] Temp file cleaned up: ${tempFilePath}`);
-        } catch (unlinkErr) {
-          console.error(`[${requestId}] Failed to clean up temp file:`, unlinkErr);
-        }
+    doc.fontSize(20).text("CBT Data Report").moveDown();
+    doc.fontSize(12).text(`Subject: ${subjectName} (ID: ${targetUserId})`);
+    doc.text(`Period: ${period === "all" ? "All Time" : period === "week" ? "Past Week (7 days)" : "Past Month (30 days)"}`);
+    if (start) doc.text(`Records created since: ${start.toISOString()}`);
+    doc.text(`Generated: ${now.toISOString()}`);
+    doc.text("Includes emotion records, thought records, journal entries and goals as selected.").moveDown();
+    sections.forEach((section, index) => {
+      if (index > 0) doc.addPage();
+      doc.fontSize(16).text(`${section.title} (${section.entries.length})`).moveDown();
+      doc.fontSize(10);
+      if (!section.entries.length) doc.text("No records in this period.");
+      section.entries.forEach(lines => {
+        if (doc.y > doc.page.height - 160) doc.addPage();
+        lines.forEach(line => doc.text(line));
+        doc.moveDown();
       });
     });
-    
-    // Set up the PDF document with a header
-    doc
-       .fontSize(20)
-       .text('CBT Data Export', { align: 'center' })
-       .moveDown(0.5);
-    
-    doc.fontSize(14)
-       .text(`User: ${userName}`, { align: 'center' })
-       .text(`Date: ${new Date().toLocaleDateString()}`, { align: 'center' })
-       .moveDown(1);
-    
-    doc.fontSize(12)
-       .text(`Export Type: ${type.charAt(0).toUpperCase() + type.slice(1)}`, { align: 'center' })
-       .moveDown(1.5);
-    
-    // Horizontal line
-    doc.moveTo(50, doc.y)
-       .lineTo(doc.page.width - 50, doc.y)
-       .stroke()
-       .moveDown(1);
-    
-    // Generate content based on export type
-    await generatePDFContent(type, targetUserId, storage, doc);
-    
-    // Add footer
-    doc.fontSize(8)
-       
-       .text(
-         'Generated by ResilienceHub - ' + new Date().toLocaleString(),
-         50,
-         doc.page.height - 50,
-         { align: 'center' }
-       );
-    
-    // Finalize the PDF and end the stream
     doc.end();
-    
   } catch (error) {
-    console.error(`[${requestId}] PDF generation error:`, error);
-    if (!res.headersSent) {
-      res.status(500).json({ 
-        message: "Failed to generate PDF", 
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      });
-    }
+    doc.destroy();
+    // Observe a possible stream rejection even if rendering threw first.
+    void bytes.catch(() => {});
+    throw error;
   }
-}
-
-async function generatePDFContent(
-  type: string,
-  targetUserId: number,
-  storage: IStorage,
-  doc: PDFDocumentType
-): Promise<void> {
-  // Use a simpler approach with basic content for all export types
-  try {
-    doc.fontSize(14).text('Data Summary', { align: 'center' }).moveDown(1);
-    
-    // Add timestamp
-    doc.fontSize(10).text(`Export generated: ${new Date().toISOString()}`, { align: 'left' }).moveDown(1);
-    
-    // Simple message about which data is included
-    doc.fontSize(12).text(`This export contains your ${type} data.`, { align: 'left' }).moveDown(1);
-    
-    doc.fontSize(12).text(`For security reasons, this PDF contains minimal formatting.`, { align: 'left' }).moveDown(0.5);
-    doc.fontSize(12).text(`For complete data with formatting, please use the CSV export option.`, { align: 'left' }).moveDown(2);
-    
-    // Basic content based on type
-    if (type === "emotions" || type === "all") {
-      const emotions = await storage.getEmotionRecordsByUser(targetUserId);
-      doc.fontSize(12).text(`Emotion Records: ${emotions?.length || 0}`, { align: 'left' }).moveDown(1);
-    }
-    
-    if (type === "thoughts" || type === "all") {
-      const thoughts = await storage.getThoughtRecordsByUser(targetUserId);
-      doc.fontSize(12).text(`Thought Records: ${thoughts?.length || 0}`, { align: 'left' }).moveDown(1);
-    }
-    
-    if (type === "journals" || type === "all") {
-      const journals = await storage.getJournalEntriesByUser(targetUserId);
-      doc.fontSize(12).text(`Journal Entries: ${journals?.length || 0}`, { align: 'left' }).moveDown(1);
-    }
-    
-    if (type === "goals" || type === "all") {
-      const goals = await storage.getGoalsByUser(targetUserId);
-      doc.fontSize(12).text(`Goals: ${goals?.length || 0}`, { align: 'left' }).moveDown(1);
-    }
-    
-    // Add recommendation for complete data
-    doc.moveDown(2);
-    doc.fontSize(11).text(`Note: This PDF contains only summary information.`, { align: 'left' }).moveDown(0.5);
-    doc.fontSize(11).text(`To access your complete data with all details, please use the CSV export option.`, { align: 'left' });
-  } catch (error) {
-    // If anything fails, add a simple error message
-    doc.fontSize(12).text(`An error occurred while generating the content.`, { align: 'center' }).moveDown(1);
-    doc.fontSize(10).text(`Please try the CSV export option instead.`, { align: 'center' });
-    console.error('Error generating PDF content:', error);
-  }
-}
-
-async function generateEmotionsContent(
-  targetUserId: number,
-  storage: IStorage,
-  doc: PDFDocumentType
-): Promise<void> {
-  const emotions = await storage.getEmotionRecordsByUser(targetUserId);
-  
-  // Title
-  doc.fontSize(16)
-     
-     .text('Emotion Records', { align: 'center' })
-     .moveDown(1);
-  
-  if (emotions && emotions.length > 0) {
-    // Table headers
-    doc.fontSize(10)
-       
-       .text('Date', 50, doc.y, { width: 100 })
-       .text('Core Emotion', 150, doc.y - 10, { width: 100 })
-       .text('Primary Emotion', 250, doc.y - 10, { width: 100 })
-       .text('Tertiary Emotion', 350, doc.y - 10, { width: 100 })
-       .text('Intensity', 450, doc.y - 10, { width: 50 })
-       .moveDown(0.5);
-    
-    // Horizontal line
-    doc.moveTo(50, doc.y)
-       .lineTo(doc.page.width - 50, doc.y)
-       .stroke()
-       .moveDown(0.5);
-    
-    // Table rows
-    emotions.forEach((record, index) => {
-      // Add page break if needed
-      if (doc.y > doc.page.height - 100) {
-        doc.addPage();
-        
-        // Repeat headers on new page
-        doc.fontSize(10)
-           
-           .text('Date', 50, 70, { width: 100 })
-           .text('Core Emotion', 150, 70, { width: 100 })
-           .text('Primary Emotion', 250, 70, { width: 100 })
-           .text('Tertiary Emotion', 350, 70, { width: 100 })
-           .text('Intensity', 450, 70, { width: 50 })
-           .moveDown(0.5);
-        
-        // Horizontal line
-        doc.moveTo(50, doc.y)
-           .lineTo(doc.page.width - 50, doc.y)
-           .stroke()
-           .moveDown(0.5);
-      }
-      
-      const date = new Date(record.timestamp).toLocaleDateString();
-      
-      doc.fontSize(10)
-         
-         .text(date, 50, doc.y, { width: 100 })
-         .text(record.coreEmotion || '', 150, doc.y - 10, { width: 100 })
-         .text(record.primaryEmotion || '', 250, doc.y - 10, { width: 100 })
-         .text(record.tertiaryEmotion || '', 350, doc.y - 10, { width: 100 })
-         .text(record.intensity?.toString() || '', 450, doc.y - 10, { width: 50 })
-         .moveDown(0.5);
-      
-      // Add situation on a new line if it exists
-      if (record.situation) {
-        doc.fontSize(9)
-           
-           .text(`Situation: ${record.situation}`, 70, doc.y, { width: 450 })
-           .moveDown(0.5);
-      }
-      
-      // Add a separator line between records
-      if (index < emotions.length - 1) {
-        doc.moveTo(50, doc.y)
-           .lineTo(doc.page.width - 50, doc.y)
-           .stroke({ dash: [3, 3] })
-           .moveDown(0.5);
-      }
-    });
-  } else {
-    doc.fontSize(12)
-       
-       .text('No emotion records found.', { align: 'center' })
-       .moveDown(1);
-  }
-}
-
-async function generateThoughtsContent(
-  targetUserId: number,
-  storage: IStorage,
-  doc: PDFDocumentType
-): Promise<void> {
-  const thoughts = await storage.getThoughtRecordsByUser(targetUserId);
-  
-  // Title
-  doc.fontSize(16)
-     
-     .text('Thought Records', { align: 'center' })
-     .moveDown(1);
-  
-  if (thoughts && thoughts.length > 0) {
-    thoughts.forEach((record, index) => {
-      // Add page break if getting close to the bottom
-      if (doc.y > doc.page.height - 200) {
-        doc.addPage();
-      }
-      
-      const date = new Date(record.createdAt).toLocaleDateString();
-      
-      doc.fontSize(12)
-         
-         .text(`Record #${record.id} - ${date}`, { underline: true })
-         .moveDown(0.5);
-      
-      doc.fontSize(10)
-         
-         .text('Automatic Thoughts:')
-         
-         .text(record.automaticThoughts || 'None recorded', { indent: 20 })
-         .moveDown(0.5);
-      
-      doc
-         .text('Cognitive Distortions:')
-         
-         .text(record.cognitiveDistortions?.join(', ') || 'None identified', { indent: 20 })
-         .moveDown(0.5);
-      
-      if (record.evidenceFor) {
-        doc
-           .text('Evidence For:')
-           
-           .text(record.evidenceFor, { indent: 20 })
-           .moveDown(0.5);
-      }
-      
-      if (record.evidenceAgainst) {
-        doc
-           .text('Evidence Against:')
-           
-           .text(record.evidenceAgainst, { indent: 20 })
-           .moveDown(0.5);
-      }
-      
-      if (record.alternativePerspective) {
-        doc
-           .text('Alternative Perspective:')
-           
-           .text(record.alternativePerspective, { indent: 20 })
-           .moveDown(0.5);
-      }
-      
-      // Add a separator between records
-      if (index < thoughts.length - 1) {
-        doc.moveDown(0.5)
-           .moveTo(50, doc.y)
-           .lineTo(doc.page.width - 50, doc.y)
-           .stroke({ dash: [3, 3] })
-           .moveDown(1);
-      }
-    });
-  } else {
-    doc.fontSize(12)
-       
-       .text('No thought records found.', { align: 'center' })
-       .moveDown(1);
-  }
-}
-
-async function generateJournalsContent(
-  targetUserId: number,
-  storage: IStorage,
-  doc: PDFDocumentType
-): Promise<void> {
-  const journals = await storage.getJournalEntriesByUser(targetUserId);
-  
-  // Title
-  doc.fontSize(16)
-     
-     .text('Journal Entries', { align: 'center' })
-     .moveDown(1);
-  
-  if (journals && journals.length > 0) {
-    journals.forEach((entry, index) => {
-      // Add page break if getting close to the bottom
-      if (doc.y > doc.page.height - 200) {
-        doc.addPage();
-      }
-      
-      const date = new Date(entry.createdAt).toLocaleDateString();
-      
-      doc.fontSize(12)
-         
-         .text(`${entry.title || 'Untitled Entry'} - ${date}`, { underline: true })
-         .moveDown(0.5);
-      
-      doc.fontSize(10)
-         
-         .text(entry.content || 'No content', { indent: 20 })
-         .moveDown(1);
-      
-      if (entry.mood) {
-        doc
-           .text('Mood:')
-           
-           .text(entry.mood.toString(), { indent: 20 })
-           .moveDown(0.5);
-      }
-      
-      if (entry.selectedTags && entry.selectedTags.length > 0) {
-        doc
-           .text('Tags:')
-           
-           .text(entry.selectedTags.join(', '), { indent: 20 })
-           .moveDown(0.5);
-      }
-      
-      // Add a separator between entries
-      if (index < journals.length - 1) {
-        doc.moveDown(0.5)
-           .moveTo(50, doc.y)
-           .lineTo(doc.page.width - 50, doc.y)
-           .stroke({ dash: [3, 3] })
-           .moveDown(1);
-      }
-    });
-  } else {
-    doc.fontSize(12)
-       
-       .text('No journal entries found.', { align: 'center' })
-       .moveDown(1);
-  }
-}
-
-async function generateGoalsContent(
-  targetUserId: number,
-  storage: IStorage,
-  doc: PDFDocumentType
-): Promise<void> {
-  const goals = await storage.getGoalsByUser(targetUserId);
-  
-  // Title
-  doc.fontSize(16)
-     
-     .text('Goals', { align: 'center' })
-     .moveDown(1);
-  
-  if (goals && goals.length > 0) {
-    goals.forEach((goal, index) => {
-      // Add page break if getting close to the bottom
-      if (doc.y > doc.page.height - 200) {
-        doc.addPage();
-      }
-      
-      const date = new Date(goal.createdAt).toLocaleDateString();
-      const deadline = goal.deadline ? new Date(goal.deadline).toLocaleDateString() : 'No deadline';
-      
-      doc.fontSize(12)
-         
-         .text(`Goal: ${goal.title}`, { underline: true })
-         .moveDown(0.5);
-      
-      doc.fontSize(10)
-         
-         .text('Created:')
-         
-         .text(date, { indent: 20 })
-         .moveDown(0.25);
-      
-      doc
-         .text('Deadline:')
-         
-         .text(deadline, { indent: 20 })
-         .moveDown(0.25);
-      
-      doc
-         .text('Status:')
-         
-         .text(goal.status || 'Not set', { indent: 20 })
-         .moveDown(0.5);
-      
-      doc
-         .text('Description:')
-         
-         .text((goal as any).description || 'No description', { indent: 20 })
-         .moveDown(0.5);
-      
-      // Add a separator between goals
-      if (index < goals.length - 1) {
-        doc.moveDown(0.5)
-           .moveTo(50, doc.y)
-           .lineTo(doc.page.width - 50, doc.y)
-           .stroke({ dash: [3, 3] })
-           .moveDown(1);
-      }
-    });
-  } else {
-    doc.fontSize(12)
-       
-       .text('No goals found.', { align: 'center' })
-       .moveDown(1);
-  }
-}
-
-async function generateAllContent(
-  targetUserId: number,
-  storage: IStorage,
-  doc: PDFDocumentType
-): Promise<void> {
-  // First section - Emotions
-  doc.fontSize(16)
-     
-     .text('1. Emotion Records', { align: 'center' })
-     .moveDown(1);
-  
-  const emotions = await storage.getEmotionRecordsByUser(targetUserId);
-  
-  if (emotions && emotions.length > 0) {
-    doc.fontSize(10)
-       
-       .text('Date', 50, doc.y, { width: 100 })
-       .text('Core Emotion', 150, doc.y - 10, { width: 100 })
-       .text('Primary Emotion', 250, doc.y - 10, { width: 100 })
-       .text('Intensity', 350, doc.y - 10, { width: 50 })
-       .moveDown(0.5);
-    
-    doc.moveTo(50, doc.y)
-       .lineTo(doc.page.width - 50, doc.y)
-       .stroke()
-       .moveDown(0.5);
-    
-    emotions.slice(0, 10).forEach((record, index) => { // Limit to 10 for "all" export
-      const date = new Date(record.timestamp).toLocaleDateString();
-      
-      doc.fontSize(10)
-         
-         .text(date, 50, doc.y, { width: 100 })
-         .text(record.coreEmotion || '', 150, doc.y - 10, { width: 100 })
-         .text(record.primaryEmotion || '', 250, doc.y - 10, { width: 100 })
-         .text(record.intensity?.toString() || '', 350, doc.y - 10, { width: 50 })
-         .moveDown(0.5);
-      
-      if (index < Math.min(emotions.length, 10) - 1) {
-        doc.moveTo(50, doc.y)
-           .lineTo(doc.page.width - 50, doc.y)
-           .stroke({ dash: [1, 1] })
-           .moveDown(0.5);
-      }
-    });
-    
-    if (emotions.length > 10) {
-      doc
-         .text(`...and ${emotions.length - 10} more emotion records`, { align: 'center' })
-         .moveDown(0.5);
-    }
-  } else {
-    doc.fontSize(10)
-       
-       .text('No emotion records found.', { align: 'center' })
-       .moveDown(1);
-  }
-  
-  // Second Section - Thought Records
-  doc.addPage();
-  doc.fontSize(16)
-     
-     .text('2. Thought Records', { align: 'center' })
-     .moveDown(1);
-  
-  const thoughts = await storage.getThoughtRecordsByUser(targetUserId);
-  
-  if (thoughts && thoughts.length > 0) {
-    thoughts.slice(0, 5).forEach((record, index) => { // Limit to 5 for "all" export
-      const date = new Date(record.createdAt).toLocaleDateString();
-      
-      doc.fontSize(12)
-         
-         .text(`Record #${record.id} - ${date}`, { underline: true })
-         .moveDown(0.5);
-      
-      doc.fontSize(10)
-         
-         .text('Automatic Thoughts:')
-         
-         .text(record.automaticThoughts || 'None recorded', { indent: 20 })
-         .moveDown(0.5);
-      
-      doc
-         .text('Cognitive Distortions:')
-         
-         .text(record.cognitiveDistortions?.join(', ') || 'None identified', { indent: 20 })
-         .moveDown(0.5);
-      
-      // Add a separator between thoughts
-      if (index < Math.min(thoughts.length, 5) - 1) {
-        doc.moveDown(0.5)
-           .moveTo(50, doc.y)
-           .lineTo(doc.page.width - 50, doc.y)
-           .stroke({ dash: [3, 3] })
-           .moveDown(1);
-      }
-    });
-    
-    if (thoughts.length > 5) {
-      doc
-         .text(`...and ${thoughts.length - 5} more thought records`, { align: 'center' })
-         .moveDown(0.5);
-    }
-  } else {
-    doc.fontSize(10)
-       
-       .text('No thought records found.', { align: 'center' })
-       .moveDown(1);
-  }
-  
-  // Third Section - Journals
-  doc.addPage();
-  doc.fontSize(16)
-     
-     .text('3. Journal Entries', { align: 'center' })
-     .moveDown(1);
-  
-  const journals = await storage.getJournalEntriesByUser(targetUserId);
-  
-  if (journals && journals.length > 0) {
-    journals.slice(0, 3).forEach((entry, index) => { // Limit to 3 for "all" export
-      const date = new Date(entry.createdAt).toLocaleDateString();
-      
-      doc.fontSize(12)
-         
-         .text(`${entry.title || 'Untitled Entry'} - ${date}`, { underline: true })
-         .moveDown(0.5);
-      
-      // Limit content length for combined report
-      let content = entry.content || 'No content';
-      if (content.length > 300) {
-        content = content.substring(0, 300) + '...';
-      }
-      
-      doc.fontSize(10)
-         
-         .text(content, { indent: 20 })
-         .moveDown(0.5);
-      
-      // Add a separator between entries
-      if (index < Math.min(journals.length, 3) - 1) {
-        doc.moveDown(0.5)
-           .moveTo(50, doc.y)
-           .lineTo(doc.page.width - 50, doc.y)
-           .stroke({ dash: [3, 3] })
-           .moveDown(1);
-      }
-    });
-    
-    if (journals.length > 3) {
-      doc
-         .text(`...and ${journals.length - 3} more journal entries`, { align: 'center' })
-         .moveDown(0.5);
-    }
-  } else {
-    doc.fontSize(10)
-       
-       .text('No journal entries found.', { align: 'center' })
-       .moveDown(1);
-  }
-  
-  // Fourth Section - Goals
-  doc.addPage();
-  doc.fontSize(16)
-     
-     .text('4. Goals', { align: 'center' })
-     .moveDown(1);
-  
-  const goals = await storage.getGoalsByUser(targetUserId);
-  
-  if (goals && goals.length > 0) {
-    goals.forEach((goal, index) => {
-      doc.fontSize(12)
-         
-         .text(`Goal: ${goal.title}`, { underline: true })
-         .moveDown(0.5);
-      
-      doc.fontSize(10)
-         
-         .text('Status:')
-         
-         .text(goal.status || 'Not set', { indent: 20 })
-         .moveDown(0.25);
-      
-      doc
-         .text('Description:')
-         
-         .text((goal as any).description || 'No description', { indent: 20 })
-         .moveDown(0.5);
-      
-      // Add a separator between goals
-      if (index < goals.length - 1) {
-        doc.moveDown(0.5)
-           .moveTo(50, doc.y)
-           .lineTo(doc.page.width - 50, doc.y)
-           .stroke({ dash: [3, 3] })
-           .moveDown(1);
-      }
-    });
-  } else {
-    doc.fontSize(10)
-       
-       .text('No goals found.', { align: 'center' })
-       .moveDown(1);
-  }
+  const buffer = await bytes;
+  res.type("application/pdf");
+  res.attachment(`resiliencehub-${type}-${period}.pdf`);
+  res.send(buffer);
 }

@@ -13,6 +13,7 @@ import resourcesRouter from "./resources.routes";
 import translateRouter from "./translate.routes";
 import transcribeRouter from "./transcribe.routes";
 import invitationsRouter from "./invitations.routes";
+import exportRouter from "./export.routes";
 
 const router = Router();
 
@@ -20,6 +21,7 @@ const router = Router();
 router.use("/subscription-plans", subscriptionsRouter); // Updated base path
 router.use("/subscription", subscriptionsRouter);
 router.use("/auth", authRouter);
+router.use("/export", exportRouter);
 router.use("/users", usersRouter);
 router.use("/users/:userId/emotions", emotionsRouter);
 // Note: thoughtsRouter contains both / (mounted at /users/:userId/thoughts) AND /thoughts/...

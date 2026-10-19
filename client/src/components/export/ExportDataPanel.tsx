@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useClientContext } from '@/context/ClientContext';
 import { Button } from '@/components/ui/button';
-import { User } from '@shared/schema';
+import { downloadPDF, openPDF, pdfExportUrl } from '@/lib/pdf-download';
 import {
   Card,
   CardHeader,
@@ -59,6 +59,11 @@ export function ExportDataPanel() {
       setIsExporting(true);
       setExportError(null);
 
+      if (exportFormat === 'pdf') {
+        await downloadPDF(pdfExportUrl(exportType, "all", isTherapistWithClient ? viewingClientId : undefined));
+        return;
+      }
+
       let url = `${apiBaseUrl}/export`;
       if (exportFormat === 'csv') {
         url = `${apiBaseUrl}/export/csv`;
@@ -81,86 +86,20 @@ export function ExportDataPanel() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (error) {
-      console.error('Export error:', error);
+    } catch {
       setExportError('Failed to export data. Please try again later.');
     } finally {
       setIsExporting(false);
     }
   };
 
-  // HTML to PDF alternative approach
   const handlePrintablePDF = async () => {
     try {
       setIsPDFExporting(true);
       setExportError(null);
-
-      // Determine the URL to fetch HTML data
-      let url = `${apiBaseUrl}/export/html`;
-      
-      // Add query parameters
-      url += `?type=${exportType}`;
-      
-      // If the user is a therapist/admin and a client is selected, include the clientId
-      if (isTherapistWithClient && viewingClientId) {
-        url += `&clientId=${viewingClientId}`;
-      }
-
-      // Fetch the HTML content
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch printable data');
-      }
-      
-      const htmlContent = await response.text();
-
-      // Build the full printable document entirely on the client side.
-      // All user-supplied data has been HTML-escaped by the server before being
-      // embedded in htmlContent, so it is safe to include in the HTML structure.
-      // A strict Content-Security-Policy meta tag is added as defence-in-depth to
-      // block any script execution even if a future regression were to occur.
-      const fullHtml = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'" />
-  <title>CBT Export</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 40px; }
-    h1, h2, h3 { color: #333; }
-    table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-    th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-    th { background-color: #f2f2f2; }
-    .instructions { background: #f2f2f2; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
-    .print-btn { background: #4F46E5; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
-    @media print { .instructions { display: none; } }
-  </style>
-</head>
-<body>
-  <div class="instructions">
-    <h3>Print Instructions</h3>
-    <p>To save as PDF: Use your browser's Print feature (Ctrl+P or Cmd+P) and select "Save as PDF" as the destination.</p>
-    <p>This method avoids antivirus concerns with downloaded PDF files.</p>
-  </div>
-  ${htmlContent}
-</body>
-</html>`;
-
-      // Open the document as a Blob URL so the content is rendered in a fresh
-      // browsing context rather than being injected via document.write().
-      const blob = new Blob([fullHtml], { type: 'text/html' });
-      const blobUrl = URL.createObjectURL(blob);
-      const printWindow = window.open(blobUrl, '_blank');
-      if (!printWindow) {
-        URL.revokeObjectURL(blobUrl);
-        throw new Error('Pop-up blocked. Please allow pop-ups and try again.');
-      }
-      // Clean up the object URL after a short delay to ensure the window has loaded it.
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
-      
-    } catch (error) {
-      console.error('Printable PDF error:', error);
-      setExportError('Failed to generate printable view. Please try again or use CSV export.');
+      await openPDF(pdfExportUrl(exportType, "all", isTherapistWithClient ? viewingClientId : undefined));
+    } catch {
+      setExportError('Failed to open PDF. Please allow pop-ups and try again.');
     } finally {
       setIsPDFExporting(false);
     }
@@ -273,18 +212,12 @@ export function ExportDataPanel() {
             </SelectContent>
           </Select>
           
-          {exportFormat === 'pdf' && (
-            <div className="text-xs text-amber-600 mt-1 flex items-center">
-              <Info size={12} className="mr-1" />
-              Note: If your antivirus blocks PDF downloads, please use CSV format instead.
-            </div>
-          )}
         </div>
       </CardContent>
       <CardFooter className="flex flex-col space-y-2">
         <Button
           onClick={handleExport}
-          disabled={isExporting}
+          disabled={isExporting || isPDFExporting}
           className="w-full"
         >
           {isExporting ? (
@@ -300,11 +233,10 @@ export function ExportDataPanel() {
           )}
         </Button>
         
-        {/* Add a special Print-friendly PDF button that avoids antivirus issues */}
         <div className="w-full text-center mt-2">
           <Button
             onClick={handlePrintablePDF}
-            disabled={isPDFExporting}
+            disabled={isPDFExporting || isExporting}
             variant="outline"
             className="w-full"
           >
@@ -316,7 +248,7 @@ export function ExportDataPanel() {
             ) : (
               <>
                 <Printer className="mr-2 h-4 w-4" />
-                Print-friendly PDF (Avoids Antivirus Issues)
+                Open PDF to print
               </>
             )}
           </Button>
