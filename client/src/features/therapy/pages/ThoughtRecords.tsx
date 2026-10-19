@@ -10,6 +10,7 @@ import useActiveUser from "@/hooks/use-active-user";
 import { ClientDebug } from "@/features/admin/components/debug/ClientDebug";
 import { useLocation, useSearch } from "wouter";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { useLocalization } from "@/lib/localize.tsx";
 
 type ThoughtRecord = BaseThoughtRecord;
@@ -82,10 +83,17 @@ export default function ThoughtRecords() {
   }, [tabParam, isViewingClientData, user?.role]);
   
   // Fetch thought records for the active user
-  const { data: thoughtRecords = [] } = useQuery<ThoughtRecord[]>({
+  const thoughtQuery = useQuery<ThoughtRecord[]>({
     queryKey: activeUserId ? [`/api/users/${activeUserId}/thoughts`] : [],
     enabled: !!activeUserId,
   });
+  const thoughtRecords = thoughtQuery.data ?? [];
+  const hasRecords = thoughtQuery.data !== undefined;
+  const readStatus = hasRecords
+    ? thoughtQuery.isError
+      ? t("Cached data — refresh failed")
+      : thoughtQuery.isFetching ? t("Cached data — refreshing") : null
+    : thoughtQuery.isError ? t("Thought history could not load.") : t("Loading thought history...");
   
   // Calculate progress stats
   const totalThoughts = thoughtRecords.length;
@@ -153,7 +161,8 @@ export default function ThoughtRecords() {
             </div>
 
             {/* Thought Challenge Rate strip */}
-            <div className="mt-6 bg-white/5 rounded-xl border border-white/10 p-4">
+            <div data-testid="thought-summary" className="mt-6 bg-white/5 rounded-xl border border-white/10 p-4">
+              {hasRecords ? <>
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
                   <Brain className="h-3.5 w-3.5 text-teal-300" />
@@ -166,6 +175,7 @@ export default function ThoughtRecords() {
                 <div className="h-full bg-gradient-to-r from-teal-500 to-sky-400 rounded-full transition-all duration-700" style={{ width: `${totalThoughts > 0 ? Math.round((challengedThoughts / totalThoughts) * 100) : 0}%` }} />
               </div>
               <p className="text-[11px] text-teal-300/60 mt-1.5">{tNum(challengedThoughts)} {t("of")} {tNum(totalThoughts)} {t("thoughts challenged — reframing builds cognitive flexibility.")}</p>
+              </> : <p className="text-sm text-teal-100">{t("Thought statistics are unavailable until history loads.")}</p>}
             </div>
           </div>
         </div>
@@ -173,6 +183,30 @@ export default function ThoughtRecords() {
         {/* Main Body Layout */}
         <div className="max-w-5xl mx-auto pb-10 pt-6 space-y-5">
           <BackToClientsButton />
+
+          {readStatus && (
+            <div
+              data-testid="thought-read-status"
+              role={thoughtQuery.isError ? "alert" : "status"}
+              className="rounded-xl border bg-white p-4 flex flex-col sm:flex-row sm:items-center gap-3"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold">{readStatus}</p>
+                {hasRecords && <p className="text-sm text-slate-600">{t("Showing previously loaded thought history and insights.")}</p>}
+                {!hasRecords && thoughtQuery.isError && <p className="text-sm text-slate-600">{t("Your history is unavailable, not empty. Please try again.")}</p>}
+              </div>
+              {thoughtQuery.isError && (
+                <Button
+                  variant="outline"
+                  data-testid="retry-thought-history"
+                  disabled={thoughtQuery.isFetching}
+                  onClick={() => { void thoughtQuery.refetch(); }}
+                >
+                  {thoughtQuery.isFetching ? t("Retrying...") : t("Retry")}
+                </Button>
+              )}
+            </div>
+          )}
 
           {/* Custom Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} activationMode="manual" className={isRecordTab ? "space-y-3" : "space-y-5"}>
@@ -231,14 +265,14 @@ export default function ThoughtRecords() {
                   icon={<ClipboardList className="h-4 w-4" />}
                   label={isViewingClientData ? t("Client Thought History") : t("Thought History")}
                 />
-                <ThoughtRecordsList onEditRecord={handleEditThought} />
+                {hasRecords && <ThoughtRecordsList thoughtRecords={thoughtRecords} onEditRecord={handleEditThought} />}
               </div>
             </TabsContent>
             
             <TabsContent value="insights" className="mt-0">
               <div className="space-y-4">
                 <SectionLabel icon={<TrendingUp className="h-4 w-4" />} label={t("Thought Insights")} />
-                {activeUserId && <ThoughtInsights userId={activeUserId} />}
+                {hasRecords && activeUserId && <ThoughtInsights userId={activeUserId} thoughtRecords={thoughtRecords} />}
               </div>
             </TabsContent>
           </Tabs>

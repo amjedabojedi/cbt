@@ -11,9 +11,11 @@ import useActiveUser from "@/hooks/use-active-user";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { recordedBeliefRatings } from "@shared/progress-metrics";
+import type { ThoughtRecord } from "@shared/schema";
 
 interface ThoughtInsightsProps {
   userId: number;
+  thoughtRecords?: ThoughtRecord[];
 }
 
 const ANT_COLORS = [
@@ -31,7 +33,7 @@ const ANT_COLORS = [
   "#f43f5e", // Pinkish red
 ];
 
-export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
+export default function ThoughtInsights({ userId, thoughtRecords }: ThoughtInsightsProps) {
   const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("month");
   const { t, tNum, isRTL } = useLocalization();
   const { user } = useAuth();
@@ -39,10 +41,11 @@ export default function ThoughtInsights({ userId }: ThoughtInsightsProps) {
   const [, navigate] = useLocation();
 
   // Fetch thought records
-  const { data: thoughts = [], isLoading } = useQuery<any[]>({
+  const { data: fetchedThoughts = [], isLoading } = useQuery<any[]>({
     queryKey: [`/api/users/${userId}/thoughts`],
-    enabled: !!userId,
+    enabled: !!userId && !thoughtRecords,
   });
+  const thoughts = thoughtRecords ?? fetchedThoughts;
 
   // Fetch emotions for linking analysis
   const { data: emotions = [] } = useQuery<any[]>({

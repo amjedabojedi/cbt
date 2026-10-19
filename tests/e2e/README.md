@@ -189,6 +189,13 @@ authorization, validation, and successful writes use the real backend.
 
 Coverage:
 
+- Thought History availability (`thought-history-availability.spec.ts`) on
+  desktop and phone Chromium and iPhone WebKit, for clients and therapists
+  viewing a selected client: loading without invented zero counts, persisted
+  synthetic records hidden by failed reads, explicit retry, cached history and
+  insights after refresh failure, recovery, and normal loaded-empty history.
+  `thought-save-actions.spec.ts` also checks that a confirmed save and its
+  challenge action remain successful when the background History read fails.
 - Progress availability on desktop and phone (Chromium and iPhone WebKit), for
   clients and therapists viewing a selected client: persisted thought with a
   failed read, successful retry, cached data after failed refresh, reporting

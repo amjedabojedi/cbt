@@ -257,7 +257,7 @@ export default function ThoughtRecordsList({
     return !!(record.evidenceFor || record.evidenceAgainst || record.alternativePerspective);
   };
   
-  if (isLoading) {
+  if (!providedRecords && isLoading) {
     return (
       <Card dir={isRTL ? "rtl" : "ltr"} className="text-start">
         <CardHeader>
@@ -272,7 +272,7 @@ export default function ThoughtRecordsList({
     );
   }
   
-  if (error) {
+  if (!providedRecords && error) {
     return (
       <Card dir={isRTL ? "rtl" : "ltr"} className="text-start">
         <CardHeader>

@@ -127,5 +127,25 @@ for (const phone of [false, true]) {
         id: record.id, automaticThoughts: "Synthetic thought for save-action verification.",
       })]));
     });
+
+    test("a confirmed save remains successful when the background History read fails", async ({ page }) => {
+      const endpoint = `/api/users/${userId}/thoughts`;
+      await page.route(`**${endpoint}`, route => route.request().method() === "GET"
+        ? route.fulfill({ status: 503, json: { message: "Synthetic read failure after save" } })
+        : route.continue());
+      const saved = page.waitForResponse(r =>
+        r.url().endsWith(endpoint) && r.request().method() === "POST" && r.status() === 201);
+      await press(page, "button-submit-wizard");
+      const record = await (await saved).json();
+      await expect(page.getByTestId("dialog-thought-success")).toBeVisible({ timeout: 3000 });
+      await expect(page.getByTestId("button-challenge-thought")).toBeEnabled();
+      await expect(page.getByTestId("thought-read-status")).toContainText("Cached data — refresh failed", { timeout: 20000 });
+      await expect(page.getByTestId("dialog-thought-success")).toBeVisible();
+      await expect(page.getByTestId("thought-save-error")).toHaveCount(0);
+      const records = await (await page.request.get(endpoint)).json();
+      expect(records.some((item: { id: number }) => item.id === record.id)).toBe(true);
+      await press(page, "button-challenge-thought");
+      await expect(page.getByTestId("button-start-challenge")).toBeVisible();
+    });
   });
 }
