@@ -70,9 +70,12 @@ export async function getAdminStats(req: Request, res: Response) {
     const mostActiveTherapist = therapists.find((t: any) => t.id === mostActiveTherapistId)?.name || 'N/A';
     
     // Find most active client (client with most emotion records)
+    const clientIds = new Set(clients.map(client => client.id));
     const clientEmotionCounts: Record<number, number> = {};
     emotionRecords.forEach((emotion: any) => {
-      clientEmotionCounts[emotion.userId] = (clientEmotionCounts[emotion.userId] || 0) + 1;
+      if (clientIds.has(emotion.userId)) {
+        clientEmotionCounts[emotion.userId] = (clientEmotionCounts[emotion.userId] || 0) + 1;
+      }
     });
     
     let mostActiveClientId: number | null = null;
