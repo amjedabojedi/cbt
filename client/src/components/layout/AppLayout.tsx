@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -61,10 +62,11 @@ export default function AppLayout({ children, title = "Dashboard" }: AppLayoutPr
       <Sidebar isCollapsed={sidebarCollapsed} onToggle={handleSidebarToggle} />
       <div className="min-w-0 flex-1 flex flex-col overflow-hidden">
         <Header title={title} />
-        <main className="flex-1 overflow-y-auto bg-neutral-50 px-2 sm:px-4 pb-16 md:pb-4">
+        <main className="flex-1 overflow-y-auto bg-neutral-50 px-2 sm:px-4 pb-24 md:pb-4">
           {children}
         </main>
       </div>
+      <MobileBottomNav />
     </div>
   );
 }

@@ -126,13 +126,15 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="relationships">Therapist-Client</TabsTrigger>
-            <TabsTrigger value="users">User Stats</TabsTrigger>
-            <TabsTrigger value="content">Content Stats</TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="overview" className="min-w-0 space-y-4">
+          <div className="max-w-full overflow-x-auto" data-testid="admin-tab-scroll">
+            <TabsList className="w-max">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="relationships">Therapist-Client</TabsTrigger>
+              <TabsTrigger value="users">User Stats</TabsTrigger>
+              <TabsTrigger value="content">Content Stats</TabsTrigger>
+            </TabsList>
+          </div>
           
           <TabsContent value="overview" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

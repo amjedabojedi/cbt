@@ -19,12 +19,16 @@ Coordinate runtime setup and browser use with a kernel lock; never delete a live
 
 **Why:** File locks protect an inode, so unlinking the file lets concurrent commands acquire different locks. Interrupted ELF writes may be corrupt even if Playwright's download-complete marker remains present.
 
-**How to apply:** Hold the same cache lock through setup and the entire WebKit journey/shutdown, retain it in active runtime children, and reinstall an interrupted revision before patching again. Test concurrency in disposable checkouts, not by allowing caller-selected browser paths.
-Headless EGL's GLVND setting is `__EGL_VENDOR_LIBRARY_FILENAMES`, not
-`__EGL_VENDOR_FILENAMES`.
+**How to apply:** Hold the same cache lock through setup and the entire WebKit journey/shutdown, retain it in active runtime children, and reinstall an interrupted revision before patching again. Run concurrency and negative setup probes in disposable checkouts, not by allowing caller-selected browser paths. Even setup that fails before downloading can create a lockfile and invalidate a subsequent clean-cache check.
 
-**Why:** A misspelled setting is ignored and leaves the browser unable to create
-a display even when the matching 64-bit Mesa vendor configuration is available.
+Declare runtime orchestration tools in the pure CI shell, not just native browser dependencies.
 
-**How to apply:** Diagnose actual page creation separately from the Ubuntu host
-heuristic; neither a dependency marker nor a successful launch proves rendering.
+**Why:** A working development host can hide missing commands that a clean worker needs before browser rendering even starts.
+
+**How to apply:** When adding a setup or runner subprocess, verify its executable is supplied by the pinned CI toolchain. Validate both clean setup and real page rendering/journeys rather than trusting the host PATH or a dependency marker.
+
+Keep application-owned runtime sentinels outside Playwright's browser-folder naming namespace.
+
+**Why:** Playwright garbage-collects unreferenced cache entries with browser-name prefixes, including sibling interruption markers. A warm-cache test double can miss this download-time behavior.
+
+**How to apply:** Preserve interruption evidence across downloads and simulate upstream garbage collection in recovery tests. Require a fresh browser-cache setup as well as reusable-cache checks.

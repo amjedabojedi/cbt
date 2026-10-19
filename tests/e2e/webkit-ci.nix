@@ -8,7 +8,7 @@ let
 in
 pkgs.mkShell {
   packages = with pkgs; [
-    nodejs_22 postgresql_16 nix cacert git bash coreutils
+    nodejs_22 postgresql_16 nix cacert git bash coreutils util-linux
     # npm native modules may need node-gyp when no prebuilt binary is available.
     python3 gnumake gcc
   ];

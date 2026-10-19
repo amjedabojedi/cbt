@@ -91,9 +91,14 @@ async function fixture(t) {
     ldd: path.join(root, "tools/ldd"), libraryPath: root, driPath: root, fontConfig: root,
   }));
   await executable("node_modules/playwright/cli.js", `
-    import { mkdirSync, existsSync, writeFileSync, readFileSync } from "node:fs";
+    import { mkdirSync, existsSync, writeFileSync, readFileSync, readdirSync, rmSync } from "node:fs";
     import { root, directory, event } from "../../tools/common.mjs";
     event("install");
+    // Match Playwright's cleanup of unreferenced browser-prefixed siblings.
+    for (const name of readdirSync(root + "/.cache/ms-playwright")) {
+      if (name.startsWith("webkit-") && name !== "webkit-${revision}")
+        rmSync(root + "/.cache/ms-playwright/" + name, { recursive: true, force: true });
+    }
     if (!existsSync(directory)) {
       for (const variant of ["minibrowser-wpe", "minibrowser-gtk"]) {
         mkdirSync(directory + "/" + variant, { recursive: true });
@@ -109,6 +114,8 @@ async function fixture(t) {
     import assert from "node:assert/strict";
     // This fixture stands in for rendering, not for lock/repair behavior.
     assert.ok(!existsSync(directory + "/resilience-runtime.json"));
+    assert.ok(existsSync(directory + "/../.resilience-webkit-${revision}-incomplete"),
+      "the interrupted-setup sentinel must survive Playwright garbage collection");
     event("smoke");
   `);
   for (const command of ["initdb", "pg_ctl", "createdb"]) {
@@ -191,7 +198,7 @@ test("simultaneous setups serialize mutation and leave one verified matching rev
   const marker = JSON.parse(await readFile(path.join(f.cache, `webkit-${revision}/resilience-runtime.json`), "utf8"));
   assert.equal(marker.revision, revision);
   assert.equal(marker.schema, 1);
-  await assert.rejects(readFile(path.join(f.cache, `webkit-${revision}.resilience-incomplete`)), { code: "ENOENT" });
+  await assert.rejects(readFile(path.join(f.cache, `.resilience-webkit-${revision}-incomplete`)), { code: "ENOENT" });
 });
 
 test("an active iPhone journey blocks setup until the browser runner exits", { timeout: 25_000 }, async t => {
@@ -207,6 +214,20 @@ test("an active iPhone journey blocks setup until the browser runner exits", { t
   await Promise.all([succeeded(journey), succeeded(setup)]);
   const names = (await f.events()).map(e => e.name);
   assert.ok(names.indexOf("journey-end") < names.lastIndexOf("nix"));
+});
+
+test("legacy interrupted-setup markers still block journeys and require reinstall", { timeout: 25_000 }, async t => {
+  const f = await fixture(t);
+  await succeeded(f.start());
+  await mkdir(path.join(f.cache, `webkit-${revision}.resilience-incomplete`));
+  const journey = f.start("run.mjs", ["--browser=webkit"]);
+  assert.equal((await journey.done).code, 1);
+  assert.match(journey.output, /setup was interrupted/);
+  assert.equal((await f.events()).some(e => e.name === "initdb"), false);
+  const repair = f.start();
+  await succeeded(repair);
+  assert.match(repair.output, /Recovering interrupted WebKit/);
+  assert.equal((await f.events()).filter(e => e.name === "download").length, 2);
 });
 
 for (const signal of ["SIGTERM", "SIGKILL"]) {

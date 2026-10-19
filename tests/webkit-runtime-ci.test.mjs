@@ -37,6 +37,11 @@ test("verification workflow remains read-only, uncached and separate from publis
   for (const name of ["summary.json", "setup.log", "journeys.log"]) assert.ok(uploads.includes(name));
 });
 
+test("pure CI toolchain provides the kernel browser-cache lock command", async () => {
+  const toolchain = await readFile("tests/e2e/webkit-ci.nix", "utf8");
+  assert.match(toolchain, /\butil-linux\b/, "flock must be available without inheriting the host PATH");
+});
+
 // Synthetic orchestration tests supplement (never replace) the real Nix job.
 for (const failure of ["none", "setup", "marker", "journeys"]) {
   test(`verification propagates ${failure === "none" ? "success" : `${failure} failure`} and records only its stages`, async () => {

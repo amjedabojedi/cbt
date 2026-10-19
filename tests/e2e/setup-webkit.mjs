@@ -68,11 +68,18 @@ async function installRuntime(env) {
   const marker = path.join(directory, "resilience-runtime.json");
   // The sibling survives even an interrupted download/deletion. Do not retry
   // patchelf on possibly half-written ELF files: reinstall that revision.
-  const incomplete = path.join(browserCache, `webkit-${revision}.resilience-incomplete`);
+  // Playwright garbage-collects unrecognized siblings beginning with webkit-.
+  // Our interrupted-setup sentinel must live outside that browser namespace.
+  const incomplete = path.join(browserCache, `.resilience-webkit-${revision}-incomplete`);
+  const legacyIncomplete = `${directory}.resilience-incomplete`;
+  let reinstall = (await readdir(browserCache)).includes(path.basename(legacyIncomplete));
   try {
     await mkdir(incomplete);
   } catch (error) {
     if (error.code !== "EEXIST") throw error;
+    reinstall = true;
+  }
+  if (reinstall) {
     console.log(`Recovering interrupted WebKit ${revision} setup: reinstalling the revision.`);
     await rm(directory, { recursive: true, force: true });
   }
@@ -132,6 +139,7 @@ async function installRuntime(env) {
   await writeFile(path.join(directory, "DEPENDENCIES_VALIDATED"), "");
   await writeFile(marker, JSON.stringify({ revision, runtimeFile, schema: 1 }) + "\n");
   await rm(incomplete, { recursive: true });
+  await rm(legacyIncomplete, { recursive: true, force: true });
   console.log(`WebKit ${revision}: x86-64 dependencies and page rendering verified. Run npm run test:e2e -- --browser=webkit`);
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
+import { mkdtemp, writeFile, readFile, rm, mkdir, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
@@ -53,10 +53,19 @@ test("setup rejects configuration and URL arguments before running downloads", (
 test("actual setup child gets no caller secrets or browser/Nix overrides", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "webkit-setup-env-"));
   try {
+    // Exercise the real setup entry point in a disposable checkout: acquiring
+    // its lock must not contaminate the clean CI checkout's browser cache.
+    const scripts = path.join(root, "tests/e2e");
+    await mkdir(scripts, { recursive: true });
+    for (const name of ["setup-webkit.mjs", "browser-cache-lock.mjs"]) {
+      await writeFile(path.join(scripts, name),
+        await readFile(path.join(projectRoot, "tests/e2e", name), "utf8"));
+    }
+    await symlink(path.join(projectRoot, "node_modules"), path.join(root, "node_modules"), "dir");
     const probe = path.join(root, "nix-build");
     // Stop before any browser download or modification. Values here are synthetic.
     await writeFile(probe, `#!${process.execPath}\nconsole.error(JSON.stringify(process.env));process.exit(9);\n`, { mode: 0o755 });
-    const result = spawnSync(process.execPath, ["tests/e2e/setup-webkit.mjs"], {
+    const result = spawnSync(process.execPath, [path.join(scripts, "setup-webkit.mjs")], {
       env: {
         ...cleanEnvironment(), PATH: `${root}:${process.env.PATH}`,
         DATABASE_URL: "synthetic-secret", APP_URL: "https://example.invalid",
@@ -68,7 +77,7 @@ test("actual setup child gets no caller secrets or browser/Nix overrides", async
     assert.match(result.stderr, /nix-build failed/);
     assert.doesNotMatch(result.stderr, /synthetic-secret|example\.invalid|untrusted-/);
     assert.match(result.stderr, /PLAYWRIGHT_BROWSERS_PATH/);
-    assert.ok(result.stderr.includes(browserCache));
+    assert.ok(result.stderr.includes(path.join(root, ".cache/ms-playwright")));
   } finally {
     await rm(root, { recursive: true, force: true });
   }

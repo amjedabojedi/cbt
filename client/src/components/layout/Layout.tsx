@@ -15,7 +15,7 @@ export default function Layout({ children, title = "Dashboard" }: LayoutProps) {
       
       <div className="min-w-0 flex-1 flex flex-col">
         <Header title={title} />
-        <main className="flex-1 overflow-auto pb-16 md:pb-0">
+        <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto pb-24 md:pb-0">
           {children}
         </main>
       </div>

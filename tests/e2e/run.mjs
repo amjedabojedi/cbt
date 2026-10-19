@@ -29,11 +29,16 @@ async function withSelectedRuntime(operation) {
     const revision = await webkitRevision();
     const directory = path.join(browserCache, `webkit-${revision}`);
     try {
-      try {
-        await access(`${directory}.resilience-incomplete`);
-        throw new Error("interrupted setup");
-      } catch (error) {
-        if (error.code !== "ENOENT") throw error;
+      for (const incomplete of [
+        path.join(browserCache, `.resilience-webkit-${revision}-incomplete`),
+        `${directory}.resilience-incomplete`,
+      ]) {
+        try {
+          await access(incomplete);
+          throw new Error("interrupted setup");
+        } catch (error) {
+          if (error.code !== "ENOENT") throw error;
+        }
       }
       let marker;
       try {

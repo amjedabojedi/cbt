@@ -51,3 +51,20 @@ export function getPrimaryNavigation(role?: string, viewingClient = false): Prim
     { href: "/reports", label: "My Progress", icon: BarChart },
   ];
 }
+
+/** Shortcuts are a subset of the full menu, never an independent role policy. */
+export function getBottomNavigation(role?: string, viewingClient = false): PrimaryNavigationItem[] {
+  const shortcuts: Record<string, string> = role === "admin"
+    ? { "/admin": "Admin", "/admin/users": "Users", "/admin/logs": "Logs",
+        "/admin/notifications": "Notifications", "/library": "Library" }
+    : role === "therapist"
+      ? viewingClient
+        ? { "/clients": "My Clients", "/dashboard": "Overview", "/emotions": "Emotions",
+            "/thoughts": "Thoughts", "/reports": "Progress" }
+        : { "/dashboard": "Dashboard", "/clients": "My Clients", "/library": "Library" }
+      : { "/dashboard": "Home", "/emotions": "Emotions", "/thoughts": "Thoughts",
+          "/journal": "Journal", "/reports": "Reports" };
+  return getPrimaryNavigation(role, viewingClient)
+    .filter(item => item.href in shortcuts)
+    .map(item => ({ ...item, label: shortcuts[item.href] }));
+}
