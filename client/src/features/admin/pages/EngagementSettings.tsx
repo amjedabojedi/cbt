@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { reminderDeliverySummary, type ReminderDeliverySummary } from "../reminderDeliverySummary";
 
 interface EngagementSettings {
   reminderEnabled: boolean;
@@ -44,6 +45,7 @@ export default function EngagementSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [deliveryResult, setDeliveryResult] = useState<ReminderDeliverySummary | null>(null);
   const [reportDays, setReportDays] = useState(3);
   const [statsAvailable, setStatsAvailable] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -170,27 +172,28 @@ Best regards,
   };
 
   const sendManualReminders = async () => {
-    if (!window.confirm(`Send real reminders to eligible clients inactive for ${reportDays} days?`)) return;
+    if (!window.confirm(`Send real reminders to eligible clients inactive for ${reportDays} days? Sending again may duplicate reminders that already succeeded.`)) return;
     setSending(true);
     try {
       const response = await apiRequest("POST", "/api/admin/inactivity/send-reminders", { days: reportDays });
 
       if (response.ok) {
         const result = await response.json();
-        toast({
-          title: "Reminders Sent",
-          description: `Sent ${result.emailsSent} emails and ${result.notificationsSent} notifications.`
-        });
+        const summary = reminderDeliverySummary(result);
+        setDeliveryResult(summary);
+        toast(summary);
         fetchStats(reportDays); // Refresh stats
       } else {
         throw new Error("Failed to send reminders");
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send reminders. Please try again.",
-        variant: "destructive"
-      });
+      const summary: ReminderDeliverySummary = {
+        title: "Reminder Delivery Unconfirmed",
+        description: "Could not confirm delivery. Some reminders may already have been sent. Sending again may duplicate them.",
+        variant: "destructive",
+      };
+      setDeliveryResult(summary);
+      toast(summary);
     } finally {
       setSending(false);
     }
@@ -752,6 +755,12 @@ The ResilienceHub Team`}
                 
                 {!statsAvailable && (
                   <p role="alert">Engagement statistics are unavailable. Reload before sending manual reminders.</p>
+                )}
+                {deliveryResult && (
+                  <div role={deliveryResult.variant === "destructive" ? "alert" : "status"} aria-label="Manual reminder delivery result" className="rounded-md border p-4 space-y-2">
+                    <p className="font-medium">{deliveryResult.title}</p>
+                    <p className="text-sm">{deliveryResult.description}</p>
+                  </div>
                 )}
                 <Button onClick={sendManualReminders} disabled={sending || !statsAvailable}>
                   {sending ? (

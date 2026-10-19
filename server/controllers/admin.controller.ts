@@ -7,6 +7,7 @@ import { sendNotificationToUser } from "../services/websocket";
 import { isEmailEnabled, sendWeeklyProgressDigest, sendEmotionTrackingReminder } from "../services/email";
 import { updateGoalStatusBasedOnMilestones } from "./goals.controller";
 import { engagementDays, getAdminClientEngagement } from "../services/adminEngagement";
+import type { ReminderDeliveryResult } from "@shared/reminderDelivery";
 
 // Get admin statistics (admin only)
 export async function getAdminStats(req: Request, res: Response) {
@@ -429,8 +430,13 @@ export async function checkInactiveClients(req: Request, res: Response) {
 
 // Send reminders to inactive clients
 export async function sendInactivityReminders(req: Request, res: Response) {
+  let daysThreshold: number;
   try {
-    const daysThreshold = engagementDays(req.body?.days);
+    daysThreshold = engagementDays(req.body?.days);
+  } catch {
+    return res.status(400).json({ success: false, message: "Days must be a whole number between 1 and 365" });
+  }
+  try {
     console.log(`Looking for clients inactive for ${daysThreshold} days...`);
     
     const clients = await getAdminClientEngagement(daysThreshold);
@@ -439,7 +445,10 @@ export async function sendInactivityReminders(req: Request, res: Response) {
     
     // Send notifications and emails
     let notificationsSent = 0;
+    let notificationsFailed = 0;
     let emailsSent = 0;
+    let emailsFailed = 0;
+    const emailsEnabled = isEmailEnabled();
     
     for (const client of inactiveClients) {
        // Create notification in database
@@ -471,39 +480,45 @@ export async function sendInactivityReminders(req: Request, res: Response) {
         // Try to send real-time notification through WebSocket if available
         try {
           sendNotificationToUser(client.id, notificationResult.rows[0]);
-        } catch (wsError) {
-          console.log('WebSocket notification sending failed (not critical):', wsError);
+        } catch {
+          // The saved in-app notification is still available without live delivery.
+          console.log("Live reminder update unavailable; in-app notification saved.");
         }
         
         notificationsSent++;
-      } catch (notificationError) {
-        console.error(`Error creating notification for user ${client.id}:`, notificationError);
+      } catch {
+        notificationsFailed++;
+        console.error("In-app reminder could not be saved.");
       }
       
       // Send email if SparkPost is configured
-      if (isEmailEnabled()) {
+      if (emailsEnabled) {
         try {
           const emailSent = await sendEmotionTrackingReminder(client.email, client.name);
           if (emailSent) emailsSent++;
-        } catch (emailError) {
-          console.error(`Error sending email to client ${client.id}:`, emailError);
+          else emailsFailed++;
+        } catch {
+          emailsFailed++;
+          console.error("Reminder email delivery failed.");
         }
       }
     }
     
-    return res.status(200).json({
+    const hasFailures = notificationsFailed + emailsFailed > 0;
+    const result: ReminderDeliveryResult = {
       success: true,
       inactiveClients: inactiveClients.length,
       notificationsSent,
+      notificationsFailed,
       emailsSent,
-      emailsEnabled: isEmailEnabled(),
-      message: `Sent ${notificationsSent} in-app notifications and ${emailsSent} emails to inactive clients`
-    });
-  } catch (error) {
-    if (error instanceof RangeError) {
-      return res.status(400).json({ success: false, message: error.message });
-    }
-    console.error("Error sending inactivity reminders:", error);
+      emailsFailed,
+      emailsEnabled,
+      hasFailures,
+      message: `In-app notifications: ${notificationsSent} sent, ${notificationsFailed} failed. Emails: ${emailsSent} sent, ${emailsFailed} failed.${emailsEnabled ? "" : " Email delivery is disabled."}`
+    };
+    return res.status(200).json(result);
+  } catch {
+    console.error("Inactivity reminder request failed.");
     return res.status(500).json({ 
       success: false, 
       message: "Error sending inactivity reminders" 
