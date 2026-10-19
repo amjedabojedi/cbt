@@ -11,9 +11,10 @@ export function engagementDays(value: unknown): number {
   return days;
 }
 
-// Shared by the report, inactivity preview, and admin manual delivery.
+// Shared by reports, inactivity previews, manual delivery, and automatic reminders.
 // Read only activity dates, never the contents of therapy records.
 export async function getAdminClientEngagement(days: number, now = new Date()) {
+  days = engagementDays(days);
   const cutoff = now.getTime() - days * 24 * 60 * 60 * 1000;
   const result = await pool.query<{
     id: number;

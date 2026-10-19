@@ -668,7 +668,8 @@ The ResilienceHub Team`}
               exactly at the cutoff. For clients with no emotion records, the period starts at account
               creation. The saved date is used, not the emotion&apos;s recorded date. Other tools do not
               reset this period. Recently joined clients are counted as within the period, not as
-              having recorded activity. Automatic reminders use a separate activity check.
+              having recorded activity. Automatic reminders use this same rule with the saved
+              inactivity period, and run only when daily reminders are enabled.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>

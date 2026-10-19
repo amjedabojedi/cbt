@@ -1,8 +1,7 @@
-import { db } from '../db';
 import { sendEmail } from './email';
-import { users, emotionRecords } from '@shared/schema';
-import { eq, lt, and, sql, or } from 'drizzle-orm';
 import { createNotification } from './notificationService';
+import { engagementDays, getAdminClientEngagement } from './adminEngagement';
+import { AdminRepository } from '../repositories/admin.repository';
 
 /**
  * System for detecting client inactivity and sending reminders
@@ -23,7 +22,7 @@ const REMINDER_EMAIL_TEMPLATE = `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
   <div style="text-align: center; margin-bottom: 20px;">
     <h1 style="color: #3b82f6; margin-bottom: 10px;">ResilienceHub™ Activity Reminder</h1>
-    <p style="color: #4b5563; font-size: 16px;">We've noticed you haven't been active on ResilienceHub™ recently.</p>
+    <p style="color: #4b5563; font-size: 16px;">It's been a while since you saved an emotion record on ResilienceHub™. If you haven't saved one yet, this is a reminder to get started when you're ready.</p>
   </div>
   
   <div style="margin-bottom: 20px; padding: 15px; background-color: #f9fafb; border-radius: 6px;">
@@ -48,57 +47,15 @@ const REMINDER_EMAIL_TEMPLATE = `
 `;
 
 /**
- * Find clients who haven't recorded emotions in the specified number of days
+ * Use the same eligible accounts, saved dates, grace period, and inclusive
+ * full-day cutoff as the admin report. Other tools do not reset this clock.
  */
-export async function findInactiveClients(days: number): Promise<any[]> {
-  try {
-    const now = new Date();
-    const cutoffDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-    
-    // First get clients who have at least one emotion record
-    const activeUsersQuery = db.select({ userId: emotionRecords.userId })
-      .from(emotionRecords)
-      .groupBy(emotionRecords.userId);
-    
-    // Get the list of client IDs who have logged emotions before
-    const activeUserResults = await activeUsersQuery;
-    const activeUserIds = activeUserResults.map(result => result.userId);
-    
-    if (activeUserIds.length === 0) {
-      return [];
-    }
-    
-    // Find clients who haven't recorded emotions since the cutoff date
-    const inactiveClientsQuery = db.select({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      therapistId: users.therapistId,
-      lastActivity: sql<string>`MAX(${emotionRecords.timestamp})`.as('last_activity')
-    })
-    .from(users)
-    .leftJoin(emotionRecords, eq(users.id, emotionRecords.userId))
-    .where(
-      and(
-        eq(users.role, 'client'),
-        eq(users.status, 'active'),
-        sql`${users.id} IN (${activeUserIds.join(',')})`
-      )
-    )
-    .groupBy(users.id)
-    .having(
-      or(
-        sql`MAX(${emotionRecords.timestamp}) < ${cutoffDate.toISOString()}`,
-        sql`MAX(${emotionRecords.timestamp}) IS NULL`
-      )
-    );
-    
-    const inactiveClients = await inactiveClientsQuery;
-    return inactiveClients;
-  } catch (error) {
-    console.error('Error finding inactive clients:', error);
-    return [];
-  }
+export async function findInactiveClients(days: number) {
+  const clients = await getAdminClientEngagement(engagementDays(days));
+  return clients.filter(client => client.inactive).map(client => ({
+    ...client,
+    lastActivity: client.lastEmotionAt ?? client.createdAt,
+  }));
 }
 
 /**
@@ -136,7 +93,7 @@ export async function sendReminderToClient(
         await createNotification({
           userId: clientId,
           title: 'ResilienceHub™ Activity Reminder',
-          body: `It's been ${config.inactivityThreshold} days since you last used ResilienceHub™. Regular tracking of emotions, thoughts, and activities helps build self-awareness and improve therapy outcomes.`,
+          body: `You haven't saved an emotion record in at least ${config.inactivityThreshold} days, or haven't saved your first one yet. You can record how you're feeling when you're ready.`,
           type: 'reminder',
           isRead: false
         });
@@ -156,11 +113,19 @@ export async function sendReminderToClient(
 /**
  * Main function to check for inactive clients and send reminders
  */
-export async function processInactivityReminders(config: ReminderConfig = { 
-  inactivityThreshold: 3, // Default: 3 days of inactivity 
-  sendEmails: true,
-  createNotifications: true
-}): Promise<{ sent: number, failed: number }> {
+export async function processInactivityReminders(config?: ReminderConfig): Promise<{ sent: number, failed: number }> {
+  // Scheduled runs (including the admin scheduler trigger) use persisted settings.
+  // Explicit configs are reserved for callers intentionally choosing a threshold.
+  if (!config) {
+    const settings = await new AdminRepository().getEngagementSettings();
+    if (settings?.reminderEnabled === false) return { sent: 0, failed: 0 };
+    config = {
+      inactivityThreshold: engagementDays(settings?.reminderDays),
+      sendEmails: true,
+      createNotifications: true,
+    };
+  }
+  config = { ...config, inactivityThreshold: engagementDays(config.inactivityThreshold) };
   console.log(`[${new Date().toISOString()}] Starting inactivity reminder process`);
   console.log(`Checking for clients inactive for ${config.inactivityThreshold} days or more`);
   
@@ -196,6 +161,6 @@ export async function processInactivityReminders(config: ReminderConfig = {
     return { sent, failed };
   } catch (error) {
     console.error('Error processing inactivity reminders:', error);
-    return { sent, failed };
+    throw error;
   }
 }

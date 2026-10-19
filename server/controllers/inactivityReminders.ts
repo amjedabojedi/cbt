@@ -3,6 +3,12 @@ import { sendEmotionTrackingReminder, isEmailEnabled } from '../services/email';
 import { sendNotificationToUser } from '../services/websocket';
 import { Request, Response } from 'express';
 
+// Legacy controller: not mounted by server/routes/index.ts. The active admin
+// endpoints live in admin.controller.ts and automatic delivery in reminderService.
+// Its historical multi-tool definition is NOT the automatic/admin inactivity rule.
+// Do not mount this controller as a second engagement audience without an explicit
+// product decision and authorization review.
+
 /**
  * Find clients who haven't performed any activity in the specified number of days
  * Activity includes: emotion records, thought records, journal entries, and goals

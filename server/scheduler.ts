@@ -1,6 +1,4 @@
 import { processInactivityReminders } from './services/reminderService';
-// @ts-ignore -- send_weekly_digests is a .cjs file with no type declarations
-import { processWeeklyDigests } from '../scripts/send_weekly_digests';
 
 /**
  * Automatic engagement reminder scheduler
@@ -74,11 +72,8 @@ class EngagementScheduler {
     try {
       console.log('[Scheduler] Running daily inactivity reminders...');
       
-      const results = await processInactivityReminders({
-        inactivityThreshold: 3, // 3 days of inactivity
-        sendEmails: true,
-        createNotifications: true
-      });
+      // The service reads the saved enabled flag and inactivity threshold.
+      const results = await processInactivityReminders();
       
       console.log(`[Scheduler] Daily reminders completed: ${results.sent} sent, ${results.failed} failed`);
     } catch (error) {

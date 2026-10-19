@@ -55,7 +55,7 @@ test("admin report and confirmed manual delivery use the same threshold and rule
   await expect(page.getByRole("tabpanel")).toContainText("active client accounts");
   await expect(page.getByRole("tabpanel")).toContainText("7 full 24-hour days");
   await expect(page.getByRole("tabpanel")).toContainText("exactly at the cutoff");
-  await expect(page.getByRole("tabpanel")).toContainText("Automatic reminders use a separate activity check");
+  await expect(page.getByRole("tabpanel")).toContainText("Automatic reminders use this same rule");
   await page.screenshot({ path: test.info().outputPath("engagement-statistics.png"), fullPage: true });
 
   await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
@@ -110,8 +110,15 @@ for (const scenario of [
     let sends = 0;
     await page.route("**/api/admin/inactivity/send-reminders", route => {
       sends++;
+      const hasFailures = scenario.notificationsFailed + scenario.emailsFailed > 0;
       return route.fulfill({ json: {
-        ...scenario, success: true, hasFailures: scenario.notificationsFailed + scenario.emailsFailed > 0,
+        success: !hasFailures, hasFailures,
+        inactiveClients: scenario.inactiveClients,
+        notificationsSent: scenario.notificationsSent,
+        notificationsFailed: scenario.notificationsFailed,
+        emailsSent: scenario.emailsSent,
+        emailsFailed: scenario.emailsFailed,
+        emailsEnabled: scenario.emailsEnabled,
       } });
     });
     await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
