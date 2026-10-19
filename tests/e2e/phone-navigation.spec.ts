@@ -37,6 +37,121 @@ async function expectBottomLinks(page: Page, hrefs: string[], width: number) {
   expect(box!.y + box!.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
 }
 
+const shortcutLabels = {
+  en: {
+    "/dashboard": "Home", "/emotions": "Emotions", "/thoughts": "Thoughts",
+    "/journal": "Journal", "/reports": "Reports", "/admin": "Admin",
+    "/admin/users": "Users", "/admin/logs": "Logs", "/admin/notifications": "Notifications",
+    "/library": "Library", "/clients": "My Clients",
+  },
+  ar: {
+    "/dashboard": "المنزل", "/emotions": "المشاعر", "/thoughts": "الأفكار",
+    "/journal": "اليوميات", "/reports": "التقارير", "/admin": "الإدارة",
+    "/admin/users": "المستخدمون", "/admin/logs": "السجلات", "/admin/notifications": "الإشعارات",
+    "/library": "المكتبة", "/clients": "عملائي",
+  },
+};
+
+for (const width of [320, 390]) {
+  for (const language of ["en", "ar"] as const) {
+    test.describe(`localized shortcuts ${language} at ${width}px`, { tag: "@phone" }, () => {
+      test.use({ viewport: { width, height: 568 }, isMobile: true, hasTouch: true });
+      for (const role of ["client", "admin", "assigned"] as const) {
+        test(`${role} labels, full menu and real shortcut taps`, async ({ page }) => {
+          await login(page, role);
+          await page.addInitScript(lang => localStorage.setItem("resiliencehub_lang", lang), language);
+          await page.goto(role === "admin" ? "/admin" : role === "assigned" ? "/clients" : "/dashboard");
+          await expect(page.locator("html")).toHaveAttribute("dir", language === "ar" ? "rtl" : "ltr");
+          const nav = page.getByRole("navigation", {
+            name: language === "ar" ? "اختصارات التنقل" : "Bottom shortcuts", exact: true,
+          });
+
+          const checkAndTap = async (hrefs: string[], labels: Record<string, string>, taps = hrefs) => {
+            await expect(nav).toBeVisible();
+            expect(await nav.locator("a").evaluateAll(links =>
+              links.map(link => link.getAttribute("href")))).toEqual(hrefs);
+            await expect(nav.locator("a span")).toHaveText(hrefs.map(href => labels[href]));
+            await expectHorizontalBounds(nav.locator("a, a span"), width);
+            // Check glyph rectangles against their own tap target, not merely the viewport.
+            expect(await nav.locator("a").evaluateAll(links => links.every(link => {
+              const span = link.querySelector("span")!;
+              const range = document.createRange();
+              range.selectNodeContents(span);
+              const bounds = link.getBoundingClientRect();
+              return Array.from(range.getClientRects()).every(rect =>
+                rect.left >= bounds.left - 1 && rect.right <= bounds.right + 1 &&
+                rect.top >= bounds.top - 1 && rect.bottom <= bounds.bottom + 1);
+            }))).toBe(true);
+            const box = await nav.boundingBox();
+            expect(box!.y).toBeGreaterThanOrEqual(0);
+            expect(box!.y + box!.height).toBeLessThanOrEqual(569);
+            const positions = await nav.locator("a").evaluateAll(links =>
+              links.map(link => link.getBoundingClientRect().x));
+            expect(positions[0] < positions[1]).toBe(language === "en");
+            for (const href of taps) {
+              const link = nav.getByRole("link", { name: labels[href], exact: true });
+              await link.tap();
+              await expect(page).toHaveURL(new RegExp(`${href}$`));
+              await expect(link).toHaveAttribute("aria-current", "page");
+              await expect(nav.locator('a[aria-current="page"]')).toHaveCount(1);
+            }
+          };
+
+          const checkFullMenu = async (hrefs: string[]) => {
+            await page.getByRole("button", { name: "Open navigation menu", exact: true }).tap();
+            const menu = page.getByRole("dialog", { name: "Navigation Menu", exact: true });
+            await expect(menu).toBeVisible();
+            expect(await menu.locator("nav a").evaluateAll(links =>
+              links.map(link => link.getAttribute("href")))).toEqual(hrefs);
+            await menu.getByRole("button", { name: "Close", exact: true }).tap();
+          };
+
+          if (role === "admin") {
+            await checkAndTap(["/admin", "/admin/users", "/admin/logs", "/admin/notifications", "/library"],
+              shortcutLabels[language]);
+            await checkFullMenu(["/admin", "/admin/users", "/admin/engagement-settings", "/admin/logs",
+              "/admin/notifications", "/subscriptions", "/emotion-mapping", "/library"]);
+          } else if (role === "client") {
+            await checkAndTap(["/dashboard", "/emotions", "/thoughts", "/journal", "/reports"],
+              shortcutLabels[language]);
+            await checkFullMenu(["/dashboard", "/emotions", "/thoughts", "/reframe-coach",
+              "/journal", "/goals", "/library", "/reports"]);
+          } else {
+            const labels = { ...shortcutLabels[language],
+              "/dashboard": language === "ar" ? "لوحة التحكم" : "Dashboard" };
+            await checkAndTap(["/dashboard", "/clients", "/library"], labels);
+            await checkFullMenu(["/dashboard", "/clients", "/library"]);
+            await nav.getByRole("link", { name: labels["/clients"], exact: true }).tap();
+            await page.getByRole("button", { name: shortcutLabels[language]["/thoughts"], exact: true }).tap();
+            await expect(page).toHaveURL(/\/thoughts$/);
+            await checkFullMenu(["/clients", "/dashboard", "/emotions", "/thoughts", "/reframe-coach",
+              "/journal", "/goals", "/reports"]);
+            const selectedLabels = { ...labels,
+              "/dashboard": language === "ar" ? "نظرة عامة" : "Overview",
+              "/reports": language === "ar" ? "التقدم" : "Progress" };
+            // Exercise every selected-client module before the return shortcut clears context.
+            await checkAndTap(["/clients", "/dashboard", "/emotions", "/thoughts", "/reports"],
+              selectedLabels, ["/dashboard", "/emotions", "/thoughts", "/reports"]);
+            expect(await page.evaluate(() => localStorage.getItem("viewingClientId"))).toBe(String(userId));
+            const cleared = page.waitForResponse(r =>
+              r.url().endsWith("/api/users/current-viewing-client") && r.request().method() === "POST");
+            await nav.getByRole("link", { name: labels["/clients"], exact: true }).tap();
+            const response = await cleared;
+            expect(response.status()).toBe(200);
+            expect(response.request().postDataJSON()).toEqual({ clientId: null });
+            await expect(page).toHaveURL(/\/clients$/);
+            expect(await page.evaluate(() => localStorage.getItem("viewingClientId"))).toBeNull();
+            await checkAndTap(["/dashboard", "/clients", "/library"], labels);
+          }
+          await page.screenshot({
+            path: test.info().outputPath(`shortcuts-${role}-${language}-${width}.png`), animations: "disabled",
+          });
+        });
+      }
+    });
+  }
+}
+
 async function checkAdminTabs(page: Page, width: number, touch: boolean) {
   await expect(page.getByRole("heading", { name: "Admin Dashboard", exact: true })).toBeVisible();
   const strip = page.getByTestId("admin-tab-scroll");

@@ -17,6 +17,13 @@ declare global {
 // English and Arabic translation mapping for the SideNavBar and layout
 export const translations: Record<string, Record<string, string>> = {
   en: {
+    // Short phone navigation labels (full-menu labels stay separate).
+    "Bottom shortcuts": "Bottom shortcuts",
+    "Admin": "Admin",
+    "Users": "Users",
+    "Logs": "Logs",
+    "Library": "Library",
+    "Reports": "Reports",
     "Syncing practice data…": "Syncing practice data…",
     "Access individual client records, launch clinical modules, and manage your practice connections.": "Access individual client records, launch clinical modules, and manage your practice connections.",
     "Clients": "Clients",
@@ -1502,6 +1509,13 @@ export const translations: Record<string, Record<string, string>> = {
     "No activity recorded yet": "لم يتم تسجيل أي نشاط بعد",
     "Thought": "فكرة",
     "Thought record": "سجل فكرة",
+    // Short phone navigation labels (full-menu labels stay separate).
+    "Bottom shortcuts": "اختصارات التنقل",
+    "Admin": "الإدارة",
+    "Users": "المستخدمون",
+    "Logs": "السجلات",
+    "Library": "المكتبة",
+    "Reports": "التقارير",
     // Admin Sidebar
     "Admin Dashboard": "لوحة تحكم المسؤول",
     "User Management": "إدارة المستخدمين",
