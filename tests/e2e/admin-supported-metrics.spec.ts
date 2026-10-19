@@ -102,6 +102,7 @@ for (const count of [7, 39, 0, undefined, null, -1, 1.5, "24"]) {
       has: page.getByText("Resources", { exact: true }),
     });
     const valid = typeof resourceCount === "number" && Number.isInteger(resourceCount) && resourceCount >= 0;
+
     await expect(resources.getByText(valid ? String(resourceCount) : "Unavailable", { exact: true })).toBeVisible();
     await expect(resources).toContainText(valid ? "Resources in library" : "Resource count is not available");
     if (count === 7) await page.screenshot({ path: test.info().outputPath("resource-count.png") });

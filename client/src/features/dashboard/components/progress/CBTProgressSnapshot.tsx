@@ -115,7 +115,7 @@ export default function CBTProgressSnapshot({
               value={milestone.percent}
               className="h-1.5 [&>div]:bg-teal-600"
             />
-            <p className="text-xs text-slate-500 mt-2">{t("Practice milestones: 3, 10, 25, 50, then every 50 activities. These are encouragement, not treatment targets or a measure of recovery.")}</p>
+            <p className="text-xs text-slate-500 mt-2">{tNum(t("Practice milestones: 3, 10, 25, 50, then every 50 activities. These are encouragement, not treatment targets or a measure of recovery."))}</p>
           </div>
           </ProgressDataBoundary>
         </CardContent>
@@ -173,14 +173,14 @@ export default function CBTProgressSnapshot({
           </div>}
 
           <p className="text-xs text-slate-500">
-            {t(timeRange === "all"
+            {tNum(t(timeRange === "all"
               ? "Intensity compares the last 30 days with the previous 30 days."
-              : "Intensity compares the most recent half with the earlier half of the selected period.")}
+              : "Intensity compares the most recent half with the earlier half of the selected period."))}
             {" "}{t("Both periods need recorded feelings in the same category. Missing entries are not zero intensity or evidence of improvement.")}
           </p>
           <div className="pt-2 border-t border-slate-50 flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
             <span>{t(clinicalView ? "Affect Intensity" : "Feeling intensity")}</span>
-            <span className="text-rose-500 font-extrabold">{t("1-10 Scale")}</span>
+            <span className="text-rose-500 font-extrabold">{tNum(t("1-10 Scale"))}</span>
           </div>
           </ProgressDataBoundary>
         </CardContent>

@@ -80,7 +80,7 @@ function TimelineTitle({ item }: { item: TimelineItem }) {
 }
 
 export default function ActivityTimeline({ timeline, isLoading }: ActivityTimelineProps) {
-  const { t, isRTL } = useLocalization();
+  const { t, isRTL, tNum } = useLocalization();
   const dateLocale = isRTL ? ar : undefined;
 
   const header = (
@@ -183,10 +183,10 @@ export default function ActivityTimeline({ timeline, isLoading }: ActivityTimeli
                   <p className="text-sm font-bold text-slate-700 truncate leading-snug group-hover:text-teal-700 transition-colors">
                     <TimelineTitle item={item} />
                   </p>
-                  <div className="flex items-center gap-2 mt-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                    <span>{formatDistanceToNow(item.date, { addSuffix: true, locale: dateLocale })}</span>
+                  <div className="flex flex-wrap items-center gap-2 mt-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                    <span>{tNum(formatDistanceToNow(item.date, { addSuffix: true, locale: dateLocale }))}</span>
                     <span>•</span>
-                    <span>{format(item.date, "MMM d, h:mm a", { locale: dateLocale })}</span>
+                    <span>{tNum(format(item.date, "MMM d, h:mm a", { locale: dateLocale }))}</span>
                   </div>
                 </div>
               </div>

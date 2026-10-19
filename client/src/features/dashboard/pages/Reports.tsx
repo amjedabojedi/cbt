@@ -155,7 +155,7 @@ export default function Reports() {
 
             <div className="mt-6 bg-white/5 rounded-xl border border-white/10 p-4">
               <ProgressDataBoundary status={insights.status}>
-              <div className="flex items-center justify-between mb-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-3.5 w-3.5 text-teal-300" />
                   <span className="text-xs font-bold text-teal-200 uppercase tracking-widest">
@@ -173,7 +173,7 @@ export default function Reports() {
                 />
               </div>
               <p className="text-[11px] text-teal-300/60 mt-1.5">
-                {t("Practice milestones (3, 10, 25, 50, then every 50 activities) are encouragement, not treatment targets or a measure of recovery.")}
+                {tNum(t("Practice milestones (3, 10, 25, 50, then every 50 activities) are encouragement, not treatment targets or a measure of recovery."))}
               </p>
               </ProgressDataBoundary>
             </div>

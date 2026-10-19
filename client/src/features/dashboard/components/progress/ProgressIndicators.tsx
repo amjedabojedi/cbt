@@ -206,7 +206,7 @@ export default function ProgressIndicators({
                     )}
                     {rec.type === "info" && <Info className="h-4.5 w-4.5 text-teal-700" />}
                   </div>
-                  <p className="text-xs font-semibold leading-relaxed">{t(rec.messageKey)}</p>
+                  <p className="text-xs font-semibold leading-relaxed">{tNum(t(rec.messageKey))}</p>
                 </div>
               ))
             ) : (
