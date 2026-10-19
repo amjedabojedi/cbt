@@ -16,6 +16,8 @@ import {
   UserCheck, AlertTriangle, Medal, Share2, BookmarkCheck, Calendar
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Stats card component
 const StatCard = ({
@@ -67,12 +69,14 @@ export default function AdminDashboard() {
     mostUsedResource: '',
     topResources: [] as any[],
   });
-  const [loading, setLoading] = useState(true);
+  const [loadStatus, setLoadStatus] = useState<"loading" | "error" | "success">("loading");
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   // Get system stats when the component mounts
   useEffect(() => {
+    if (!user) return;
     // Only admins should be able to access this page
-    if (user && user.role !== "admin") {
+    if (user.role !== "admin") {
       toast({
         title: "Access Denied",
         description: "You do not have permission to access this page.",
@@ -82,35 +86,67 @@ export default function AdminDashboard() {
       return;
     }
 
+    let cancelled = false;
     const fetchStats = async () => {
+      setLoadStatus("loading");
       try {
-        setLoading(true);
         // Fetch admin stats from our dedicated endpoint
         const response = await apiRequest("GET", "/api/admin/stats");
         const adminStats = await response.json();
         
         // Update state with real data from the server
+        if (cancelled) return;
         setStats(adminStats);
+        setLoadStatus("success");
       } catch (error) {
+        if (cancelled) return;
+        setLoadStatus("error");
         console.error("Error fetching stats:", error);
         toast({
           title: "Error",
           description: "Failed to load dashboard data",
           variant: "destructive",
         });
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchStats();
-  }, [user, navigate, toast]);
+    return () => { cancelled = true; };
+  }, [user, navigate, toast, loadAttempt]);
 
-  if (loading) {
+  if (loadStatus === "loading") {
     return (
       <Layout title="Admin Dashboard">
-        <div className="flex items-center justify-center min-h-[500px]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div role="status" className="flex items-center justify-center gap-2 min-h-[500px]">
+          <Loader2 aria-hidden="true" className="h-8 w-8 animate-spin text-primary" />
+          <span>Loading dashboard statistics…</span>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (loadStatus === "error") {
+    return (
+      <Layout title="Admin Dashboard">
+        <div className="container mx-auto px-4 py-6">
+          <h1 className="mb-6 text-2xl font-bold">Admin Dashboard</h1>
+          <Alert variant="destructive">
+            <AlertTriangle aria-hidden="true" className="h-4 w-4" />
+            <AlertTitle>Unable to load dashboard statistics</AlertTitle>
+            <AlertDescription>
+              Statistics are unavailable right now. This does not mean the system has no records.
+            </AlertDescription>
+            <Button
+              className="mt-4"
+              variant="outline"
+              onClick={() => {
+                setLoadStatus("loading");
+                setLoadAttempt(attempt => attempt + 1);
+              }}
+            >
+              Retry
+            </Button>
+          </Alert>
         </div>
       </Layout>
     );
