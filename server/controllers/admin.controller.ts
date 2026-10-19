@@ -25,7 +25,9 @@ export async function getAdminStats(req: Request, res: Response) {
         .filter(c => c.therapistId)
         .map(c => c.therapistId)
     );
-    const therapistsWithoutClients = therapists.length - therapistsWithClients.size;
+    const therapistsWithoutClients = therapists.filter(
+      therapist => !therapistsWithClients.has(therapist.id)
+    ).length;
     
     // Fetch emotion records
     const emotionRecords = await storage.getAllEmotionRecords();
