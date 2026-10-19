@@ -116,6 +116,48 @@ describe("getAdminStats dashboard response contract (synthetic storage only)", (
     useFixtures();
   });
 
+  it.each([
+    "getAllUsers",
+    "getAllEmotionRecords",
+    "getAllThoughtRecords",
+    "getAllGoals",
+    "getAllResources",
+    "getAllResourceAssignments",
+  ] as const)("returns only a generic HTTP 500 response when %s rejects", async (method) => {
+    useFixtures({
+      users: [
+        { id: 1, role: "therapist", status: "active", name: "Synthetic therapist" },
+        { id: 2, role: "client", status: "active", therapistId: 1, name: "Synthetic client" },
+      ],
+      emotions: [{ id: 1, userId: 2 }],
+      thoughts: [{ id: 1, userId: 2 }],
+      goals: [{ id: 1, userId: 2 }],
+      resources: [{ id: 10, title: "Synthetic resource" }],
+      assignments: [{ id: 1, resourceId: 10 }],
+    });
+    vi.mocked(storage[method]).mockRejectedValueOnce(
+      new Error(`Synthetic private storage failure: ${method}`),
+    );
+    const res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis(),
+    };
+    // Keep expected synthetic errors out of test output without changing how
+    // the real controller handles rejected reads. Always restore the logger.
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      await getAdminStats({} as Request, res as unknown as Response);
+
+      expect(storage[method]).toHaveBeenCalledTimes(1);
+      expect(res.status).toHaveBeenCalledExactlyOnceWith(500);
+      expect(res.json).toHaveBeenCalledExactlyOnceWith({
+        message: "Failed to retrieve admin statistics",
+      });
+    } finally {
+      errorLog.mockRestore();
+    }
+  });
+
   it("returns every required numeric field as zero and string labels when storage is empty", async () => {
     const payload = await getSuccessfulAggregate();
     for (const field of numericFields) expect(payload[field], field).toBe(0);
