@@ -603,13 +603,20 @@ export default function Dashboard() {
   const motivationalLine = t(motivationalLines[new Date().getDay() % motivationalLines.length]);
 
   const todayFocus = [
-    { Icon: Heart, label: t("Track Emotion"), href: "/emotions", done: practice.rawData.emotions.some(e => isRecordedToday(e.timestamp || e.createdAt)), locked: false, color: "text-rose-500", bg: "bg-rose-50", border: "border-rose-200" },
-    { Icon: Brain, label: t("Record Thought"), href: "/thoughts", done: practice.rawData.thoughts.some(e => isRecordedToday(e.createdAt)), locked: false, color: "text-teal-700", bg: "bg-teal-50", border: "border-teal-200" },
-    { Icon: Lightbulb, label: t("Reframe Coach"), href: "/reframe-coach", done: practice.rawData.reframeResults.some(e => isRecordedToday(e.createdAt)), locked: practice.rawData.thoughts.length === 0, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
-    { Icon: BookOpen, label: t("Write Journal"), href: "/journal", done: practice.rawData.journals.some(e => isRecordedToday(e.createdAt)), locked: false, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
-    { Icon: Target, label: t("Set a Goal"), href: "/goals", done: practice.rawData.goals.some(e => isRecordedToday(e.createdAt)), locked: false, color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-200" },
+    { module: "emotions" as const, Icon: Heart, label: t("Track Emotion"), href: "/emotions", done: practice.rawData.emotions.some(e => isRecordedToday(e.timestamp || e.createdAt)), locked: false, color: "text-rose-500", bg: "bg-rose-50", border: "border-rose-200" },
+    { module: "thoughts" as const, Icon: Brain, label: t("Record Thought"), href: "/thoughts", done: practice.rawData.thoughts.some(e => isRecordedToday(e.createdAt)), locked: false, color: "text-teal-700", bg: "bg-teal-50", border: "border-teal-200" },
+    { module: "reframe" as const, Icon: Lightbulb, label: t("Reframe Coach"), href: "/reframe-coach", done: practice.rawData.reframeResults.some(e => isRecordedToday(e.createdAt)),
+      // Only a successful, settled read can establish this prerequisite is missing.
+      locked: practice.modules.thoughts.available && !practice.modules.thoughts.error && !practice.modules.thoughts.refreshing && practice.rawData.thoughts.length === 0,
+      color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
+    { module: "journals" as const, Icon: BookOpen, label: t("Write Journal"), href: "/journal", done: practice.rawData.journals.some(e => isRecordedToday(e.createdAt)), locked: false, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
+    { module: "goals" as const, Icon: Target, label: t("Set a Goal"), href: "/goals", done: practice.rawData.goals.some(e => isRecordedToday(e.createdAt)), locked: false, color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-200" },
   ];
-  const completedSteps = todayFocus.filter((f) => f.done).length;
+  const completedSteps = todayFocus.filter((f) => practice.modules[f.module].available && f.done).length;
+  const focusStatusLabel = (status: typeof practice.status) => !status.available
+    ? t(status.loading ? "Loading" : "Unavailable — could not load records")
+    : status.error ? t("Cached data — refresh failed")
+    : status.refreshing ? t("Cached data — refreshing") : null;
 
   const clientModules = [
     {
@@ -758,17 +765,28 @@ export default function Dashboard() {
         <div className="max-w-5xl mx-auto pt-6 pb-10 space-y-5">
 
           {/* Today's Focus */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5" data-testid="dashboard-today-focus">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4 text-teal-700" />
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("Today's Focus")}</span>
               </div>
-              <span className="text-xs font-semibold text-slate-400">{tNum(`${completedSteps}/5`)} {t("done")}</span>
+              <span className="text-xs font-semibold text-slate-500 text-end" role="status" data-testid="dashboard-focus-summary">
+                {practice.status.available
+                  ? <>{tNum(`${completedSteps}/5`)} {t("done")}</>
+                  : t(practice.status.loading ? "Loading today's completion" : "Today's completion is unavailable")}
+                {practice.status.available && focusStatusLabel(practice.status) && (
+                  <span className="block">{focusStatusLabel(practice.status)}</span>
+                )}
+              </span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {todayFocus.map(({ Icon, label, href, done, locked, color, bg, border }) => (
-                <Link key={href} href={locked ? "/thoughts" : href} aria-label={locked ? t("Record a thought first to use Reframe Coach") : label}>
+              {todayFocus.map(({ module, Icon, label, href, done: recordedToday, locked, color, bg, border }) => {
+                const status = practice.modules[module];
+                const done = status.available && recordedToday;
+                const statusLabel = focusStatusLabel(status);
+                return (
+                <Link key={href} href={locked ? "/thoughts" : href} aria-label={locked ? t("Record a thought first to use Reframe Coach") : label} data-testid={`dashboard-focus-${module}`}>
                   <div className={cn(
                     "relative flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
                     done
@@ -776,7 +794,7 @@ export default function Dashboard() {
                       : cn(border, bg, "hover:border-teal-200 hover:bg-white")
                   )}>
                     {done && (
-                      <CheckCircle2 className="absolute top-2 right-2 h-3 w-3 text-emerald-500" />
+                      <CheckCircle2 aria-label={t("Done today")} className="absolute top-2 right-2 h-3 w-3 text-emerald-500" />
                     )}
                     <div className={cn("p-1.5 rounded-lg shrink-0", done ? "bg-emerald-100" : bg)}>
                       <Icon className={cn("h-4 w-4", done ? "text-emerald-500" : color)} />
@@ -786,12 +804,31 @@ export default function Dashboard() {
                       done ? "text-emerald-600" : "text-slate-600"
                     )}>
                       {label}
+                      <span className="block text-[10px] font-normal mt-1">
+                        {statusLabel || t(done ? "Done today" : "Not done today")}
+                      </span>
                       {locked && <span className="block text-[10px] font-normal mt-1">{t("Record a thought first")}</span>}
+                      {module === "reframe" && focusStatusLabel(practice.modules.thoughts) && (
+                        <span className="block text-[10px] font-normal mt-1">
+                          {t("Thought Records")}: {focusStatusLabel(practice.modules.thoughts)}
+                        </span>
+                      )}
                     </span>
                   </div>
                 </Link>
-              ))}
+              ); })}
             </div>
+            {practice.status.error && (
+              <button
+                type="button"
+                className="mt-3 text-sm font-semibold text-teal-700 underline disabled:opacity-50"
+                disabled={practice.status.refreshing}
+                onClick={() => { void practice.retry(); }}
+                data-testid="dashboard-retry-practice"
+              >
+                {t(practice.status.refreshing ? "Retrying..." : "Retry")}
+              </button>
+            )}
             <p className="text-xs text-slate-500 mt-3">{t("Optional suggestions, not daily requirements. Completion uses today's date on your device.")}</p>
           </div>
 

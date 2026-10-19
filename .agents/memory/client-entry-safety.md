@@ -51,6 +51,12 @@ Keep read availability distinct from activity counts; a failed read is not a loa
 
 **How to apply:** Carry per-module availability through derived metrics. Preserve and label previously loaded in-memory data after refresh failure, suppress unsupported totals and recommendations, identify incomplete timelines, and retry reads independently of save confirmation.
 
+Do not use cached absence as proof that a tool's prerequisite is missing.
+
+**Why:** A cached empty thought list may predate a successful save. Redirecting Reframe Coach on that evidence can deny access to an available tool when the refresh fails.
+
+**How to apply:** Keep tool navigation available while prerequisite reads are loading, refreshing, or failed, including when an empty list is cached. Only a successful settled read may establish absence.
+
 Never reconstruct missing historical belief ratings or treat original-versus-alternative belief ratings as a measured change over time.
 
 **Why:** The challenge asks about two different thoughts at the same point in time. Their difference is not a before/after measurement, and older missing ratings cannot be recovered from the alternative rating.

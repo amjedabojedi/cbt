@@ -1404,6 +1404,10 @@ export const translations: Record<string, Record<string, string>> = {
     "Display language set to Arabic.": "Display language set to Arabic."
   },
   ar: {
+    "Loading today's completion": "جارٍ تحميل إنجازات اليوم",
+    "Today's completion is unavailable": "إنجازات اليوم غير متاحة",
+    "Done today": "تم اليوم",
+    "Not done today": "لم يتم اليوم",
     "Reporting period": "الفترة المشمولة بالتقرير",
     "Record availability": "توفر السجلات",
     "Counts use the selected reporting period. Unavailable records are not zero.": "تُحسب الأعداد ضمن الفترة المحددة. السجلات غير المتاحة لا تعني صفرًا.",

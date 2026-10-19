@@ -17,7 +17,8 @@ environment overrides are not inherited. Do not invoke Playwright directly.
 The `iphone-webkit` project runs the `@phone` journeys in
 `thought-challenge-flow.spec.ts`, `phone-navigation.spec.ts`, and
 `thought-save-actions.spec.ts`, `unsaved-work-navigation.spec.ts`, and
-`thought-challenge-unsaved.spec.ts`, plus `progress-availability.spec.ts`; the
+`thought-challenge-unsaved.spec.ts`, plus `progress-availability.spec.ts` and
+`dashboard-availability.spec.ts`; the
 remaining desktop/access/record checks continue to run in Chromium. Both projects
 use the same assertions, no retries, and real isolated-backend saves. Explicit
 engine selection never silently falls back to Chromium if WebKit is unavailable.
