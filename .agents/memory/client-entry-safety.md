@@ -45,6 +45,12 @@ Treat practice milestones as encouragement, never a recovery score or a validate
 
 **How to apply:** Keep count definitions explicit and consistent across dashboard and progress views, label the reporting period, and do not infer clinical outcomes from usage totals alone.
 
+Keep read availability distinct from activity counts; a failed read is not a loaded empty dataset.
+
+**Why:** A confirmed saved thought followed by a failed report read previously appeared as zero activity with no warning. Combined metrics can be misleading even when the other modules load successfully.
+
+**How to apply:** Carry per-module availability through derived metrics. Preserve and label previously loaded in-memory data after refresh failure, suppress unsupported totals and recommendations, identify incomplete timelines, and retry reads independently of save confirmation.
+
 Never reconstruct missing historical belief ratings or treat original-versus-alternative belief ratings as a measured change over time.
 
 **Why:** The challenge asks about two different thoughts at the same point in time. Their difference is not a before/after measurement, and older missing ratings cannot be recovered from the alternative rating.

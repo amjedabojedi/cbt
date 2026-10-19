@@ -6,8 +6,11 @@ import { useLocalization } from "@/lib/localize.tsx";
 import { practiceMilestone } from "@/utils/practiceProgress";
 import { useAuth } from "@/lib/auth";
 import type { EmotionalBalance, ReportingPeriod } from "@shared/progress-metrics";
+import { type ProgressModules, combineProgressStatus } from "@/hooks/use-progress-insights";
+import ProgressDataBoundary from "./ProgressDataBoundary";
 
 interface CBTProgressSnapshotProps {
+  modules: ProgressModules;
   totalActivities: number;
   emotionalBalance: EmotionalBalance;
   timeRange: ReportingPeriod;
@@ -23,7 +26,6 @@ interface CBTProgressSnapshotProps {
     pending: number;
     total: number;
   };
-  isLoading: boolean;
 }
 
 const TrendIndicator = ({
@@ -76,27 +78,13 @@ export default function CBTProgressSnapshot({
   emotionalBalance,
   thoughtChallengeRate,
   goalProgress,
-  isLoading,
   timeRange,
+  modules,
 }: CBTProgressSnapshotProps) {
   const { t, tNum } = useLocalization();
   const { user } = useAuth();
   const clinicalView = user?.role === "therapist" || user?.role === "admin";
   const milestone = practiceMilestone(totalActivities);
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse bg-white border border-slate-100 rounded-2xl">
-            <CardContent className="pt-6">
-              <div className="h-24 bg-slate-100 rounded-xl" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -115,6 +103,7 @@ export default function CBTProgressSnapshot({
           </div>
         </CardHeader>
         <CardContent className="pt-0 pb-4 px-5">
+          <ProgressDataBoundary status={combineProgressStatus(Object.values(modules))}>
           <div className="text-3xl font-extrabold text-slate-800 mb-1">{tNum(totalActivities)}</div>
           <p className="text-xs font-semibold text-slate-500 mb-3">{t("Saved emotions, thoughts, journal entries, goals and reframe sessions in the selected period. Each counts once.")}</p>
           <div className="pt-2.5 border-t border-slate-50">
@@ -128,6 +117,7 @@ export default function CBTProgressSnapshot({
             />
             <p className="text-xs text-slate-500 mt-2">{t("Practice milestones: 3, 10, 25, 50, then every 50 activities. These are encouragement, not treatment targets or a measure of recovery.")}</p>
           </div>
+          </ProgressDataBoundary>
         </CardContent>
       </Card>
 
@@ -146,6 +136,7 @@ export default function CBTProgressSnapshot({
           </div>
         </CardHeader>
         <CardContent className="pt-0 pb-4 px-5 space-y-3">
+          <ProgressDataBoundary status={modules.emotions}>
           {emotionalBalance.negativeFrequency + emotionalBalance.positiveFrequency === 0 ? (
             <p className="text-sm text-slate-500 py-4">{t("Not enough data yet. Record feelings to see patterns over time.")}</p>
           ) : <div className="grid grid-cols-2 gap-2">
@@ -191,6 +182,7 @@ export default function CBTProgressSnapshot({
             <span>{t(clinicalView ? "Affect Intensity" : "Feeling intensity")}</span>
             <span className="text-rose-500 font-extrabold">{t("1-10 Scale")}</span>
           </div>
+          </ProgressDataBoundary>
         </CardContent>
       </Card>
 
@@ -209,6 +201,7 @@ export default function CBTProgressSnapshot({
           </div>
         </CardHeader>
         <CardContent className="pt-0 pb-4 px-5">
+          <ProgressDataBoundary status={modules.thoughts}>
           <div className="text-3xl font-extrabold text-slate-800 mb-1">
             {tNum(thoughtChallengeRate.rate)}%
           </div>
@@ -222,6 +215,7 @@ export default function CBTProgressSnapshot({
             </div>
             <Progress value={thoughtChallengeRate.rate} className="h-1.5 [&>div]:bg-indigo-600" />
           </div>
+          </ProgressDataBoundary>
         </CardContent>
       </Card>
 
@@ -240,6 +234,7 @@ export default function CBTProgressSnapshot({
           </div>
         </CardHeader>
         <CardContent className="pt-0 pb-4 px-5">
+          <ProgressDataBoundary status={modules.goals}>
           <div className="text-3xl font-extrabold text-slate-800 mb-1">
             {tNum(goalProgress.completionRate)}%
           </div>
@@ -253,6 +248,7 @@ export default function CBTProgressSnapshot({
             </div>
             <Progress value={goalProgress.completionRate} className="h-1.5 [&>div]:bg-fuchsia-600" />
           </div>
+          </ProgressDataBoundary>
         </CardContent>
       </Card>
     </div>

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import AppLayout from "@/components/layout/AppLayout";
 import { useToast } from "@/hooks/use-toast";
-import { useProgressInsights } from "@/hooks/use-progress-insights";
+import { useProgressInsights, combineProgressStatus } from "@/hooks/use-progress-insights";
+import ProgressDataBoundary from "@/features/dashboard/components/progress/ProgressDataBoundary";
 import CBTProgressSnapshot from "@/features/dashboard/components/progress/CBTProgressSnapshot";
 import ModuleQuickLinks from "@/features/dashboard/components/progress/ModuleQuickLinks";
 import ActivityTimeline from "@/features/dashboard/components/progress/ActivityTimeline";
@@ -82,7 +83,7 @@ export default function Reports() {
                   onValueChange={(value) => setTimeRange(value as TimeRange)}
                   data-testid="select-timerange"
                 >
-                  <SelectTrigger className="w-full sm:w-[170px] bg-white/10 hover:bg-white/15 border-teal-500/30 text-white rounded-xl backdrop-blur-md shadow-sm transition-all focus:ring-teal-500">
+                  <SelectTrigger aria-label={t("Reporting period")} className="w-full sm:w-[170px] bg-white/10 hover:bg-white/15 border-teal-500/30 text-white rounded-xl backdrop-blur-md shadow-sm transition-all focus:ring-teal-500">
                     <SelectValue placeholder={t("Select time range")} />
                   </SelectTrigger>
                   <SelectContent className="bg-teal-800 border-teal-700 text-white rounded-xl shadow-xl">
@@ -153,6 +154,7 @@ export default function Reports() {
             </div>
 
             <div className="mt-6 bg-white/5 rounded-xl border border-white/10 p-4">
+              <ProgressDataBoundary status={insights.status}>
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-3.5 w-3.5 text-teal-300" />
@@ -173,39 +175,70 @@ export default function Reports() {
               <p className="text-[11px] text-teal-300/60 mt-1.5">
                 {t("Practice milestones (3, 10, 25, 50, then every 50 activities) are encouragement, not treatment targets or a measure of recovery.")}
               </p>
+              </ProgressDataBoundary>
             </div>
           </div>
         </div>
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+          <section aria-label={t("Record availability")} className="bg-white border rounded-xl p-4 space-y-3" data-testid="progress-availability">
+            <h2 className="font-semibold">{t("Record availability")}</h2>
+            <p className="text-sm text-slate-600">{t("Counts use the selected reporting period. Unavailable records are not zero.")}</p>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+              {([
+                ["emotions", "Emotion Tracking", insights.emotionCount],
+                ["thoughts", "Thought Records", insights.thoughtCount],
+                ["journals", "Journal", insights.journalCount],
+                ["goals", "Smart Goals", insights.goalCount],
+                ["reframe", "Reframe Coach", insights.reframeCount],
+              ] as const).map(([key, label, count]) => {
+                const status = insights.modules[key];
+                return <li key={key} data-testid={`availability-${key}`}>
+                  <span className="font-semibold">{t(label)}: </span>
+                  {status.available
+                    ? <>{tNum(count)} — {t(status.error ? "Cached data — refresh failed" : status.refreshing ? "Cached data — refreshing" : "Loaded")}</>
+                    : t(status.loading ? "Loading" : "Unavailable — could not load records")}
+                </li>;
+              })}
+            </ul>
+            {insights.status.error && <Button variant="outline" disabled={insights.status.refreshing} onClick={() => { void insights.retry(); }} data-testid="retry-progress">
+              {t(insights.status.refreshing ? "Retrying..." : "Retry")}
+            </Button>}
+          </section>
           <CBTProgressSnapshot
+            modules={insights.modules}
             totalActivities={insights.totalActivities}
             emotionalBalance={insights.emotionalBalance}
             thoughtChallengeRate={insights.thoughtChallengeRate}
             goalProgress={insights.goalProgress}
-            isLoading={insights.isLoading}
             timeRange={timeRange}
           />
 
           <ModuleQuickLinks />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ActivityTimeline timeline={insights.timeline} isLoading={insights.isLoading} />
+            <ProgressDataBoundary status={insights.status} allowPartial={insights.timeline.length > 0}>
+              <ActivityTimeline timeline={insights.timeline} isLoading={false} />
+            </ProgressDataBoundary>
 
+            <ProgressDataBoundary status={combineProgressStatus([insights.modules.emotions, insights.modules.thoughts])}>
             <CBTTriangleConnections
               topCognitiveDistortion={insights.topCognitiveDistortion}
               emotions={insights.rawData.emotions}
               thoughts={insights.rawData.thoughts}
-              isLoading={insights.isLoading}
+              isLoading={false}
             />
+            </ProgressDataBoundary>
           </div>
 
+          <ProgressDataBoundary status={insights.status}>
           <ProgressIndicators
             emotionalBalance={insights.emotionalBalance}
             thoughtChallengeRate={insights.thoughtChallengeRate}
             totalActivities={insights.totalActivities}
-            isLoading={insights.isLoading}
+            isLoading={false}
           />
+          </ProgressDataBoundary>
         </div>
       </div>
     </AppLayout>

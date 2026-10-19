@@ -17,7 +17,7 @@ environment overrides are not inherited. Do not invoke Playwright directly.
 The `iphone-webkit` project runs the `@phone` journeys in
 `thought-challenge-flow.spec.ts`, `phone-navigation.spec.ts`, and
 `thought-save-actions.spec.ts`, `unsaved-work-navigation.spec.ts`, and
-`thought-challenge-unsaved.spec.ts`; the
+`thought-challenge-unsaved.spec.ts`, plus `progress-availability.spec.ts`; the
 remaining desktop/access/record checks continue to run in Chromium. Both projects
 use the same assertions, no retries, and real isolated-backend saves. Explicit
 engine selection never silently falls back to Chromium if WebKit is unavailable.
@@ -148,9 +148,9 @@ npm run setup:e2e:webkit
 npm run test:e2e -- --browser=webkit
 ```
 
-The focused run currently collects seven `@phone` journeys (including all five
-original journeys). Setup success alone is not
-a journey result: the second command must report **7 passed**. No normal app,
+The focused run includes the thought, navigation and Progress `@phone` journeys.
+Setup success alone is not a journey result: the second command must report all
+collected journeys passing. No normal app,
 external account, paid AI service, or production endpoint is used.
 
 On a supported non-Nix Linux host, Playwright's ordinary
@@ -189,6 +189,10 @@ authorization, validation, and successful writes use the real backend.
 
 Coverage:
 
+- Progress availability on desktop and phone (Chromium and iPhone WebKit), for
+  clients and therapists viewing a selected client: persisted thought with a
+  failed read, successful retry, cached data after failed refresh, reporting
+  periods, incomplete timelines, all-source failures and genuinely empty reads.
 - iPhone/WebKit and Chromium phone journeys: final thought review; visible HTTP
   503 save failure with thought and situation retained; unchanged retry payload
   and exactly one persisted record; the post-save challenge action; real

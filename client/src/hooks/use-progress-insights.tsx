@@ -3,7 +3,28 @@ import type { EmotionRecord, ThoughtRecord, Goal, JournalEntry, ReframePracticeR
 import { subDays } from "date-fns";
 import { emotionalBalance, goalProgress, type EmotionalBalance } from "@shared/progress-metrics";
 
+export interface ProgressDataStatus {
+  available: boolean;
+  loading: boolean;
+  refreshing: boolean;
+  error: boolean;
+}
+
+export type ProgressModules = Record<"emotions" | "thoughts" | "journals" | "goals" | "reframe", ProgressDataStatus>;
+
+export function combineProgressStatus(statuses: ProgressDataStatus[]): ProgressDataStatus {
+  return {
+    available: statuses.every(status => status.available),
+    loading: statuses.some(status => status.loading),
+    refreshing: statuses.some(status => status.refreshing),
+    error: statuses.some(status => status.error),
+  };
+}
+
 interface ProgressInsights {
+  modules: ProgressModules;
+  status: ProgressDataStatus;
+  retry: () => Promise<unknown>;
   // Activity metrics
   totalActivities: number;
   emotionCount: number;
@@ -63,32 +84,48 @@ interface ProgressInsights {
 
 export function useProgressInsights(userId: number | undefined, timeRange: "week" | "month" | "all" = "month"): ProgressInsights {
   // Fetch all module data
-  const { data: emotions = [], isLoading: emotionsLoading } = useQuery<EmotionRecord[]>({
+  const emotionsQuery = useQuery<EmotionRecord[]>({
     queryKey: [`/api/users/${userId}/emotions`],
     enabled: !!userId,
   });
   
-  const { data: thoughts = [], isLoading: thoughtsLoading } = useQuery<ThoughtRecord[]>({
+  const thoughtsQuery = useQuery<ThoughtRecord[]>({
     queryKey: [`/api/users/${userId}/thoughts`],
     enabled: !!userId,
   });
   
-  const { data: journals = [], isLoading: journalsLoading } = useQuery<JournalEntry[]>({
+  const journalsQuery = useQuery<JournalEntry[]>({
     queryKey: [`/api/users/${userId}/journal`],
     enabled: !!userId,
   });
   
-  const { data: goals = [], isLoading: goalsLoading } = useQuery<Goal[]>({
+  const goalsQuery = useQuery<Goal[]>({
     queryKey: [`/api/users/${userId}/goals`],
     enabled: !!userId,
   });
   
-  const { data: reframeResults = [], isLoading: reframeLoading } = useQuery<ReframePracticeResult[]>({
+  const reframeQuery = useQuery<ReframePracticeResult[]>({
     queryKey: [`/api/users/${userId}/reframe-coach/results`],
     enabled: !!userId,
   });
   
-  const isLoading = emotionsLoading || thoughtsLoading || journalsLoading || goalsLoading || reframeLoading;
+  const queries = { emotions: emotionsQuery, thoughts: thoughtsQuery, journals: journalsQuery, goals: goalsQuery, reframe: reframeQuery };
+  const modules = Object.fromEntries(Object.entries(queries).map(([key, query]) => [key, {
+    available: query.data !== undefined,
+    loading: query.data === undefined && query.isPending,
+    refreshing: query.isFetching,
+    error: query.isError,
+  }])) as ProgressModules;
+  const status = combineProgressStatus(Object.values(modules));
+  const retry = () => Promise.all(Object.values(queries)
+    .filter(query => query.isError && !query.isFetching)
+    .map(query => query.refetch()));
+  const emotions = emotionsQuery.data ?? [];
+  const thoughts = thoughtsQuery.data ?? [];
+  const journals = journalsQuery.data ?? [];
+  const goals = goalsQuery.data ?? [];
+  const reframeResults = reframeQuery.data ?? [];
+  const isLoading = status.loading;
   
   // Filter data by time range - no generic, just use actual types
   const filterEmotions = (data: EmotionRecord[]): EmotionRecord[] => {
@@ -282,6 +319,9 @@ export function useProgressInsights(userId: number | undefined, timeRange: "week
   };
   
   return {
+    modules,
+    status,
+    retry,
     totalActivities,
     emotionCount: filteredEmotions.length,
     thoughtCount: filteredThoughts.length,

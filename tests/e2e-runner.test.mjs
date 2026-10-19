@@ -64,7 +64,8 @@ for (const selection of ["all", "chromium", "webkit"]) {
       assert.match(iphone.userAgent, /iPhone.*Safari/);
       assert.equal(iphone.executable, undefined);
       assert.deepEqual(iphone.specs, ["thought-challenge-flow.spec.ts", "phone-navigation.spec.ts", "thought-save-actions.spec.ts",
-        "unsaved-work-navigation.spec.ts", "thought-challenge-unsaved.spec.ts"]);
+        "unsaved-work-navigation.spec.ts", "thought-challenge-unsaved.spec.ts", "thought-history-handoff.spec.ts",
+        "progress-availability.spec.ts"]);
       assert.equal(iphone.grep, "/@phone/");
     }
   });
