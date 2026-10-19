@@ -46,8 +46,11 @@ export async function getAdminStats(req: Request, res: Response) {
     const resourceAssignments = await storage.getAllResourceAssignments();
     
     // Calculate averages
-    const avgGoalsPerClient = clients.length ? (goalsResult.length / clients.length) : 0;
-    const avgEmotionsPerClient = clients.length ? (emotionRecords.length / clients.length) : 0;
+    const clientIds = new Set(clients.map(client => client.id));
+    const clientGoalCount = goalsResult.filter(goal => clientIds.has(goal.userId)).length;
+    const clientEmotionCount = emotionRecords.filter(emotion => clientIds.has(emotion.userId)).length;
+    const avgGoalsPerClient = clients.length ? (clientGoalCount / clients.length) : 0;
+    const avgEmotionsPerClient = clients.length ? (clientEmotionCount / clients.length) : 0;
     
     // Find most active therapist (therapist with most clients)
     const therapistClientCounts: Record<number, number> = {};
