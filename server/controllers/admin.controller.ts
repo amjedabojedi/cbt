@@ -345,6 +345,17 @@ export async function updateEngagementSettings(req: Request, res: Response) {
       escalationDays,
       escalationTemplates
     } = req.body;
+
+    if (reminderTime !== undefined && (
+      typeof reminderTime !== "string" ||
+      reminderTime.length !== 5 ||
+      !/^([01]\d|2[0-3]):[0-5]\d$/.test(reminderTime)
+    )) {
+      res.status(400).json({
+        message: "reminderTime must be a valid 24-hour time in HH:mm format (00:00–23:59)",
+      });
+      return;
+    }
     
     // Save settings to database
     const updatedSettings = await storage.updateEngagementSettings({

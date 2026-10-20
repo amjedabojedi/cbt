@@ -157,6 +157,71 @@ describe("admin engagement settings", () => {
     expect(res.json.mock.calls[0][0].settings).toBe(saved);
   });
 
+  it.each([
+    "", "9:00", "09:0", "24:00", "23:60", "-1:00", "12:30:00",
+    "noon", " 09:00", "09:00 ", "09:00\n", "09:00\r\n", "０９:００",
+    null, 900, true, {}, ["09:00"],
+  ])("rejects invalid daily reminder time %j before writing any settings", async (reminderTime) => {
+    // The full payload disables reminders: disabled schedules must still be valid.
+    const payload = { ...settingsPayload(), reminderTime };
+    const res = response();
+
+    await updateEngagementSettings({ body: payload } as Request, res as unknown as Response);
+
+    expect(mocks.storage.updateEngagementSettings).not.toHaveBeenCalled();
+    expect(mocks.storage.getEngagementSettings).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledExactlyOnceWith(400);
+    expect(res.json).toHaveBeenCalledExactlyOnceWith({
+      message: "reminderTime must be a valid 24-hour time in HH:mm format (00:00–23:59)",
+    });
+  });
+
+  it.each(["00:00", "09:00", "12:30", "23:59"])(
+    "saves valid daily reminder time %s unchanged",
+    async (reminderTime) => {
+      const payload = { ...settingsPayload(), reminderEnabled: true, reminderTime };
+      const saved = { ...payload, id: 904 };
+      mocks.storage.updateEngagementSettings.mockResolvedValue(saved);
+      const res = response();
+
+      await updateEngagementSettings({ body: payload } as Request, res as unknown as Response);
+
+      expect(mocks.storage.updateEngagementSettings).toHaveBeenCalledExactlyOnceWith(payload);
+      expect(res.status).toHaveBeenCalledExactlyOnceWith(200);
+      expect(res.json).toHaveBeenCalledExactlyOnceWith({
+        message: "Settings updated successfully",
+        settings: saved,
+      });
+    },
+  );
+
+  it.each([
+    { reminderEnabled: false },
+    { reminderDays: 7 },
+    { weeklyDigestTime: "11:15", weeklyDigestEnabled: false },
+    { reminderEmailSubject: "Synthetic updated subject" },
+    { reminderTime: "00:00" },
+    {},
+  ])("preserves partial updates %j without requiring a daily reminder time", async (payload) => {
+    const saved = { ...settingsPayload(), ...payload, id: 905 };
+    mocks.storage.updateEngagementSettings.mockResolvedValue(saved);
+    const res = response();
+
+    await updateEngagementSettings({ body: payload } as Request, res as unknown as Response);
+
+    expect(mocks.storage.updateEngagementSettings).toHaveBeenCalledTimes(1);
+    const written = mocks.storage.updateEngagementSettings.mock.calls[0][0];
+    expect(Object.fromEntries(
+      Object.entries(written).filter(([, value]) => value !== undefined),
+    )).toEqual(payload);
+    expect(mocks.storage.getEngagementSettings).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledExactlyOnceWith(200);
+    expect(res.json).toHaveBeenCalledExactlyOnceWith({
+      message: "Settings updated successfully",
+      settings: saved,
+    });
+  });
+
   it("does not confirm a save while the storage write is still pending", async () => {
     const payload = settingsPayload();
     const saved = { ...payload, id: 903 };
