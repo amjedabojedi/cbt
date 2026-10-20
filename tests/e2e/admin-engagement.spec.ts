@@ -1,8 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
 
-async function setup(page: Page, unavailable = false) {
+async function setup(page: Page, { unavailable = false, realSettings = false }: {
+  unavailable?: boolean;
+  realSettings?: boolean;
+} = {}) {
   // The runner owns a disposable database containing synthetic login accounts.
-  // Every engagement read and send below is intercepted: no actual delivery.
+  // Only the persistence check uses real settings reads/writes. Report reads
+  // and delivery stay mocked; the harness has no scheduler or outbound access.
   await page.route("**/*", route =>
     new URL(route.request().url()).origin === process.env.E2E_BASE_URL
       ? route.continue() : route.abort("blockedbyclient"));
@@ -11,7 +15,7 @@ async function setup(page: Page, unavailable = false) {
     data: { username: "e2e-admin", password: "Synthetic-test-password-42" },
   });
   expect(login.status()).toBe(200);
-  await page.route("**/api/admin/engagement-settings", route => route.fulfill({
+  if (!realSettings) await page.route("**/api/admin/engagement-settings", route => route.fulfill({
     json: {
       reminderEnabled: true, reminderDays: 7, reminderTime: "09:00",
       weeklyDigestEnabled: true, weeklyDigestDay: 0, weeklyDigestTime: "08:00",
@@ -74,7 +78,7 @@ test("admin report and confirmed manual delivery use the same threshold and rule
 });
 
 test("a failed report is unavailable, not zero inactivity, and blocks manual sends", async ({ page }) => {
-  const { sends } = await setup(page, true);
+  const { sends } = await setup(page, { unavailable: true });
   await page.getByRole("tab", { name: "Statistics", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText("Engagement statistics are unavailable");
   await expect(page.getByText("Eligible for Manual Reminders", { exact: true }).locator("../..")).toContainText("Unavailable");
@@ -110,6 +114,49 @@ test("daily reminder time is explicitly UTC and saves the selected minute", asyn
   await page.reload();
   await expect(page.locator('input[type="time"]').first()).toHaveValue("16:45");
   await page.screenshot({ path: test.info().outputPath("daily-reminder-time-utc.png"), fullPage: true });
+});
+
+test("daily reminder settings persist through real endpoints when the screen is reopened", async ({ page }) => {
+  // Do not intercept settings GET/POST: exercise the browser request envelope,
+  // controller and storage together, exclusively against run.mjs's database.
+  const { sends } = await setup(page, { realSettings: true });
+  const timeInput = page.locator('input[type="time"]').first();
+  const enabledSwitch = page.getByRole("switch").first();
+  await expect(timeInput).toHaveValue("09:00");
+  await expect(enabledSwitch).toBeChecked();
+  await timeInput.fill("16:45");
+  await enabledSwitch.uncheck();
+
+  const savedResponse = page.waitForResponse(response =>
+    new URL(response.url()).pathname === "/api/admin/engagement-settings"
+      && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Save Settings", exact: true }).click();
+  const saved = await savedResponse;
+  expect(saved.status()).toBe(200);
+  expect(await saved.json()).toMatchObject({
+    settings: { reminderTime: "16:45", reminderEnabled: false },
+  });
+  await expect(page.getByText("Settings Saved", { exact: true })).toBeVisible();
+
+  // A new document cannot retain the form's React state or query cache.
+  const reopened = await page.context().newPage();
+  try {
+    const settingsResponse = reopened.waitForResponse(response =>
+      new URL(response.url()).pathname === "/api/admin/engagement-settings"
+        && response.request().method() === "GET");
+    const { sends: reopenedSends } = await setup(reopened, { realSettings: true });
+    const persisted = await settingsResponse;
+    expect(persisted.status()).toBe(200);
+    expect(await persisted.json()).toMatchObject({
+      reminderTime: "16:45", reminderEnabled: false,
+    });
+    await expect(reopened.locator('input[type="time"]').first()).toHaveValue("16:45");
+    await expect(reopened.getByRole("switch").first()).not.toBeChecked();
+    expect(sends).toEqual([]);
+    expect(reopenedSends).toEqual([]);
+  } finally {
+    await reopened.close();
+  }
 });
 
 for (const scenario of [

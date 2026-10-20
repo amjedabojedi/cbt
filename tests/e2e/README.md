@@ -241,3 +241,11 @@ by default.
 These checks supplement `tests/client-ux-browser.mjs`, whose deliberately
 browser-only fixtures cover discard/navigation interactions. They do not
 exercise paid AI services, actual email delivery, or billing.
+
+`admin-engagement.spec.ts` includes a settings persistence round trip through
+the real GET/POST endpoints: save a non-default UTC reminder time and disabled
+flag, then verify the response and controls in a newly opened page. Only this
+journey leaves settings requests unmocked; engagement reports and manual
+delivery remain intercepted. It uses the runner's synthetic admin and disposable
+database, with no scheduler or external delivery. Run it with
+`npm run test:e2e -- --browser=chromium admin-engagement.spec.ts`.

@@ -313,8 +313,8 @@ for (const width of [320, 390]) {
       await expect(page).toHaveURL(/\/emotions$/);
       // Selection must survive module navigation, not just the initial directory action.
       expect(await page.evaluate(() => localStorage.getItem("viewingClientId"))).toBe(String(userId));
-      const cleared = page.waitForResponse(r =>
-        r.url().endsWith("/api/users/current-viewing-client") && r.request().method() === "POST");
+    const cleared = page.waitForResponse(r =>
+      r.url().endsWith("/api/users/current-viewing-client") && r.request().method() === "POST");
       await nav.getByRole("link", { name: "My Clients", exact: true }).tap();
       expect((await cleared).status()).toBe(200);
       expect((await cleared).request().postDataJSON()).toEqual({ clientId: null });
@@ -335,13 +335,13 @@ for (const width of [320, 390]) {
       expect(response.status()).toBe(201);
       const record = await response.json();
       await page.goto("/thoughts");
-      const main = await page.locator("main").boundingBox();
+    const main = await page.locator("main").boundingBox();
       expect.soft(main!.x + main!.width, "Main content must fit the phone").toBeLessThanOrEqual(width + 1);
       const menuButton = page.getByRole("button", { name: "Open navigation menu", exact: true });
       await expect(menuButton).toHaveCount(1);
       await expect(page.getByRole("button", { name: "Open menu", exact: true })).toHaveCount(0);
       await menuButton.tap({ timeout: 5000 });
-      const menu = page.getByRole("dialog", { name: "Navigation Menu" });
+    const menu = page.getByRole("dialog", { name: "Navigation Menu" });
       await expect(menu).toBeVisible();
       await expect(menu.getByRole("button", { name: "Logout", exact: true }))
         .toBeInViewport({ ratio: 1 });

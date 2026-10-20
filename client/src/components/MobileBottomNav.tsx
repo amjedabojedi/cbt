@@ -71,5 +71,4 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
     </div>
   );
 }
-
 export default MobileBottomNav;
