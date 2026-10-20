@@ -2,6 +2,10 @@
  * Shared automatic-run policy. Defaults match engagement_settings and the admin UI.
  * Times use the server's local timezone, just like daily reminders.
  * Only a missing row gets defaults; malformed saved settings fail closed.
+ *
+ * @param {{ weekly_digest_enabled: boolean, weekly_digest_day: number, weekly_digest_time: string } | null | undefined} settings
+ * @param {Date} [now]
+ * @param {boolean} [scheduled]
  */
 function weeklyDigestSlot(settings, now = new Date(), scheduled = true) {
   const config = settings == null ? {
