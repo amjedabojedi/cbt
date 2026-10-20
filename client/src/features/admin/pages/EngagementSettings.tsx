@@ -43,6 +43,7 @@ interface ReminderStats {
 export default function EngagementSettingsPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [settingsAvailable, setSettingsAvailable] = useState(false);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [deliveryResult, setDeliveryResult] = useState<ReminderDeliverySummary | null>(null);
@@ -112,18 +113,19 @@ Best regards,
   }, []);
 
   const fetchSettings = async () => {
-    let days = 3;
+    setLoading(true);
+    setSettingsAvailable(false);
     try {
       const response = await apiRequest("GET", "/api/admin/engagement-settings");
-      if (response.ok) {
-        const data = await response.json();
-        setSettings(data);
-        days = data.reminderDays;
-      }
+      if (!response.ok) throw new Error("Failed to fetch engagement settings");
+      const data = await response.json();
+      setSettings(data);
+      setSettingsAvailable(true);
+      await fetchStats(data.reminderDays);
     } catch (error) {
       console.error("Failed to fetch engagement settings:", error);
     } finally {
-      fetchStats(days);
+      setLoading(false);
     }
   };
 
@@ -139,12 +141,11 @@ Best regards,
       }
     } catch (error) {
       console.error("Failed to fetch engagement stats:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
   const saveSettings = async () => {
+    if (loading || !settingsAvailable) return;
     setSaving(true);
     try {
       const response = await apiRequest("POST", "/api/admin/engagement-settings", settings);
@@ -267,6 +268,28 @@ Best regards,
       <AppLayout title="Engagement Settings">
         <div className="flex items-center justify-center min-h-[500px]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!settingsAvailable) {
+    return (
+      <AppLayout title="Engagement Settings">
+        <div className="container mx-auto px-4 py-6">
+          <Card>
+            <CardHeader>
+              <CardTitle role="heading" aria-level={1}>Engagement settings are unavailable</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p role="alert">
+                We couldn&apos;t load the saved reminder settings. Editing and saving are
+                unavailable until the settings load successfully. Your saved settings
+                have not been changed.
+              </p>
+              <Button onClick={fetchSettings}>Retry loading settings</Button>
+            </CardContent>
+          </Card>
         </div>
       </AppLayout>
     );

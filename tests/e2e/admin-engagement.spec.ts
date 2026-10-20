@@ -1,8 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
 
-async function setup(page: Page, { unavailable = false, realSettings = false }: {
+async function setup(page: Page, { unavailable = false, realSettings = false, settingsFailure }: {
   unavailable?: boolean;
   realSettings?: boolean;
+  settingsFailure?: "http" | "network";
 } = {}) {
   // The runner owns a disposable database containing synthetic login accounts.
   // Only the persistence check uses real settings reads/writes. Report reads
@@ -15,13 +16,24 @@ async function setup(page: Page, { unavailable = false, realSettings = false }: 
     data: { username: "e2e-admin", password: "Synthetic-test-password-42" },
   });
   expect(login.status()).toBe(200);
-  if (!realSettings) await page.route("**/api/admin/engagement-settings", route => route.fulfill({
-    json: {
+  const settingsSaves: Record<string, unknown>[] = [];
+  let settingsReads = 0;
+  if (!realSettings) await page.route("**/api/admin/engagement-settings", route => {
+    if (route.request().method() === "POST") {
+      settingsSaves.push(route.request().postDataJSON());
+      return route.fulfill({ json: { message: "Settings updated successfully" } });
+    }
+    settingsReads++;
+    if (settingsFailure === "network") return route.abort("failed");
+    if (settingsFailure === "http") return route.fulfill({
+      status: 503, json: { message: "Synthetic settings read failure" },
+    });
+    return route.fulfill({ json: {
       reminderEnabled: true, reminderDays: 7, reminderTime: "09:00",
       weeklyDigestEnabled: true, weeklyDigestDay: 0, weeklyDigestTime: "08:00",
       escalationEnabled: false, escalationDays: [7, 14, 30], escalationTemplates: [],
-    },
-  }));
+    } });
+  });
   const reportRequests: string[] = [];
   await page.route("**/api/admin/engagement-stats?*", route => {
     reportRequests.push(route.request().url());
@@ -46,8 +58,70 @@ async function setup(page: Page, { unavailable = false, realSettings = false }: 
     throw new Error("Admin screen called the incompatible reminder system");
   });
   await page.goto("/admin/engagement-settings");
-  await expect(page.getByRole("tab", { name: "Statistics", exact: true })).toBeVisible();
-  return { reportRequests, sends };
+  if (settingsFailure) {
+    await expect(page.getByRole("heading", { name: "Engagement settings are unavailable" })).toBeVisible();
+  } else {
+    await expect(page.getByRole("tab", { name: "Statistics", exact: true })).toBeVisible();
+  }
+  return { reportRequests, sends, settingsSaves, settingsReads: () => settingsReads };
+}
+
+for (const settingsFailure of ["http", "network"] as const) {
+  test(`a failed settings ${settingsFailure} read blocks defaults and saves until a successful retry`, async ({ page }) => {
+    const { reportRequests, sends, settingsSaves, settingsReads } = await setup(page, { settingsFailure });
+    const assertBlocked = async () => {
+      await expect(page.getByRole("alert")).toContainText("Editing and saving are unavailable");
+      await expect(page.getByRole("button", { name: /^Save (Settings|Templates)$/ })).toHaveCount(0);
+      await expect(page.getByRole("tab")).toHaveCount(0);
+      await expect(page.locator('input, textarea, [role="switch"]')).toHaveCount(0);
+      expect(settingsSaves).toEqual([]);
+      expect(reportRequests).toEqual([]);
+      expect(sends).toEqual([]);
+    };
+    await assertBlocked();
+    expect(settingsReads()).toBe(1);
+    await page.getByRole("button", { name: "Retry loading settings", exact: true }).click();
+    await expect.poll(settingsReads).toBe(2);
+    await assertBlocked();
+    await page.screenshot({ path: test.info().outputPath(`settings-unavailable-${settingsFailure}.png`), fullPage: true });
+
+    const storedSettings = {
+      reminderEnabled: true, reminderDays: 11, reminderTime: "17:25",
+      weeklyDigestEnabled: false, weeklyDigestDay: 4, weeklyDigestTime: "14:35",
+      emailTemplate: "", reminderEmailSubject: "Synthetic saved reminder",
+      reminderEmailTemplate: "Synthetic saved reminder body",
+      weeklyDigestSubject: "Synthetic saved digest", weeklyDigestTemplate: "Synthetic saved digest body",
+      escalationEnabled: false, escalationDays: [8, 16, 32], escalationTemplates: [],
+    };
+    let releaseRead!: () => void;
+    const readGate = new Promise<void>(resolve => { releaseRead = resolve; });
+    await page.route("**/api/admin/engagement-settings", async route => {
+      if (route.request().method() !== "GET") return route.fallback();
+      await readGate;
+      return route.fulfill({ json: storedSettings });
+    });
+    const retryRequest = page.waitForRequest(request =>
+      request.url().endsWith("/api/admin/engagement-settings") && request.method() === "GET");
+    await page.getByRole("button", { name: "Retry loading settings", exact: true }).click();
+    await retryRequest;
+    await expect(page.getByRole("button", { name: /^Save (Settings|Templates)$/ })).toHaveCount(0);
+    await expect(page.locator('input, textarea, [role="switch"]')).toHaveCount(0);
+    expect(settingsSaves).toEqual([]);
+    releaseRead();
+
+    const timeInput = page.locator('input[type="time"]').first();
+    await expect(timeInput).toHaveValue("17:25");
+    await expect(page.getByRole("spinbutton").first()).toHaveValue("11");
+    await expect(page.getByRole("switch").nth(1)).not.toBeChecked();
+    await expect(page.getByRole("alert")).toHaveCount(0);
+    expect(reportRequests).toHaveLength(1);
+    expect(new URL(reportRequests[0]).searchParams.get("days")).toBe("11");
+    await timeInput.fill("18:40");
+    await page.getByRole("button", { name: "Save Settings", exact: true }).click();
+    await expect(page.getByText("Settings Saved", { exact: true })).toBeVisible();
+    expect(settingsSaves).toEqual([{ ...storedSettings, reminderTime: "18:40" }]);
+    expect(sends).toEqual([]);
+  });
 }
 
 test("admin report and confirmed manual delivery use the same threshold and rule", async ({ page }) => {
