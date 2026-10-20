@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { reminderDeliverySummary, type ReminderDeliverySummary } from "../reminderDeliverySummary";
+import { reminderDeliveryReceiptSchema, reminderDeliverySummary, type ReminderDeliverySummary } from "../reminderDeliverySummary";
 import { z } from "zod";
 
 const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
@@ -190,7 +190,8 @@ Best regards,
       const response = await apiRequest("POST", "/api/admin/inactivity/send-reminders", { days: reportDays });
 
       if (response.ok) {
-        const result = await response.json();
+        // A successful HTTP response alone cannot confirm delivery.
+        const result = reminderDeliveryReceiptSchema.parse(await response.json());
         const summary = reminderDeliverySummary(result);
         setDeliveryResult(summary);
         toast(summary);

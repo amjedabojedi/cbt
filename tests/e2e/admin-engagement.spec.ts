@@ -37,6 +37,55 @@ const validReport = {
   activeClients: 2, inactiveClients: 3, totalEmailsSent: 0,
   totalNotificationsSent: 0, lastRunTime: null,
 };
+const validDeliveryReceipt = {
+  success: true, inactiveClients: 3, emailsSent: 3, notificationsSent: 3,
+  emailsFailed: 0, notificationsFailed: 0, emailsEnabled: true, hasFailures: false,
+  message: "Synthetic delivery receipt",
+};
+const deliveryCountFields = [
+  "inactiveClients", "notificationsSent", "notificationsFailed", "emailsSent", "emailsFailed",
+] as const;
+const malformedDeliveryReceipts = [
+  { name: "null", data: null },
+  { name: "empty object", data: {} },
+  { name: "array", data: [] },
+  { name: "primitive", data: "not a delivery receipt" },
+  ...Object.keys(validDeliveryReceipt).map(key => ({
+    name: `missing ${key}`,
+    data: Object.fromEntries(Object.entries(validDeliveryReceipt).filter(([field]) => field !== key)),
+  })),
+  ...deliveryCountFields.flatMap(field => [
+    { name: `string ${field}`, data: { ...validDeliveryReceipt, [field]: "3" } },
+    { name: `null ${field}`, data: { ...validDeliveryReceipt, [field]: null } },
+    { name: `negative ${field}`, data: { ...validDeliveryReceipt, [field]: -1 } },
+    { name: `fractional ${field}`, data: { ...validDeliveryReceipt, [field]: 1.5 } },
+    { name: `unsafe ${field}`, data: { ...validDeliveryReceipt, [field]: Number.MAX_SAFE_INTEGER + 1 } },
+  ]),
+  { name: "string success", data: { ...validDeliveryReceipt, success: "true" } },
+  { name: "false success", data: { ...validDeliveryReceipt, success: false } },
+  { name: "string email flag", data: { ...validDeliveryReceipt, emailsEnabled: "false" } },
+  { name: "null failure flag", data: { ...validDeliveryReceipt, hasFailures: null } },
+  { name: "object message", data: { ...validDeliveryReceipt, message: { private: "Synthetic private receipt" } } },
+  { name: "eligible clients but no attempts", data: {
+    ...validDeliveryReceipt, notificationsSent: 0, emailsSent: 0,
+  } },
+  { name: "notification total below eligible clients", data: { ...validDeliveryReceipt, notificationsSent: 2 } },
+  { name: "notification total above eligible clients", data: { ...validDeliveryReceipt, notificationsSent: 4 } },
+  { name: "email total below eligible clients", data: { ...validDeliveryReceipt, emailsSent: 2 } },
+  { name: "email total above eligible clients", data: { ...validDeliveryReceipt, emailsSent: 4 } },
+  { name: "email sent while disabled", data: { ...validDeliveryReceipt, emailsEnabled: false } },
+  { name: "email failed while disabled", data: {
+    ...validDeliveryReceipt, emailsEnabled: false, emailsSent: 0, emailsFailed: 1, hasFailures: true,
+  } },
+  { name: "failure flag without failures", data: { ...validDeliveryReceipt, hasFailures: true } },
+  { name: "notification failures without failure flag", data: {
+    ...validDeliveryReceipt, notificationsSent: 2, notificationsFailed: 1,
+  } },
+  { name: "email failures without failure flag", data: {
+    ...validDeliveryReceipt, emailsSent: 2, emailsFailed: 1,
+  } },
+  { name: "sent counts without eligible clients", data: { ...validDeliveryReceipt, inactiveClients: 0 } },
+];
 async function setup(page: Page, { unavailable = false, realSettings = false, settingsFailure, report = validReport }: {
   unavailable?: boolean;
   realSettings?: boolean;
@@ -83,10 +132,7 @@ async function setup(page: Page, { unavailable = false, realSettings = false, se
   const sends: unknown[] = [];
   await page.route("**/api/admin/inactivity/send-reminders", route => {
     sends.push(route.request().postDataJSON());
-    return route.fulfill({ json: {
-      success: true, inactiveClients: 3, emailsSent: 3, notificationsSent: 3,
-      emailsFailed: 0, notificationsFailed: 0, emailsEnabled: true, hasFailures: false,
-    } });
+    return route.fulfill({ json: validDeliveryReceipt });
   });
   // The old, incompatible route must never be used by this screen.
   await page.route("**/api/client-engagement/send-reminders", () => {
@@ -275,6 +321,11 @@ test("daily reminder settings persist through real endpoints when the screen is 
 
 for (const scenario of [
   {
+    name: "complete delivery", notificationsSent: 3, notificationsFailed: 0, emailsSent: 3, emailsFailed: 0,
+    emailsEnabled: true, inactiveClients: 3, title: "Reminders Sent",
+    detail: "In-app notifications: 3 sent, 0 failed. Emails: 3 sent, 0 failed.", role: "status",
+  },
+  {
     name: "partial delivery", notificationsSent: 2, notificationsFailed: 1, emailsSent: 1, emailsFailed: 2,
     emailsEnabled: true, inactiveClients: 3, title: "Reminders Partially Sent",
     detail: "In-app notifications: 2 sent, 1 failed. Emails: 1 sent, 2 failed.", role: "alert",
@@ -302,7 +353,7 @@ for (const scenario of [
       sends++;
       const hasFailures = scenario.notificationsFailed + scenario.emailsFailed > 0;
       return route.fulfill({ json: {
-        success: !hasFailures, hasFailures,
+        ...validDeliveryReceipt, hasFailures,
         inactiveClients: scenario.inactiveClients,
         notificationsSent: scenario.notificationsSent,
         notificationsFailed: scenario.notificationsFailed,
@@ -329,6 +380,42 @@ for (const scenario of [
     });
     await page.getByRole("button", { name: "Send Manual Reminders", exact: true }).click();
     expect(sends).toBe(1);
+  });
+}
+
+for (const { name, data } of malformedDeliveryReceipts) {
+  test(`a malformed delivery receipt (${name}) remains unconfirmed without automatic retries`, async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", error => pageErrors.push(error.message));
+    await setup(page);
+    let sends = 0;
+    await page.route("**/api/admin/inactivity/send-reminders", route => {
+      sends++;
+      // Explicit JSON serialization also covers the literal null response.
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(data) });
+    });
+    await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+    page.once("dialog", dialog => dialog.accept());
+    const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
+    await sendButton.click();
+    const result = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
+    await expect(result).toContainText("Reminder Delivery Unconfirmed");
+    await expect(result).toContainText("Some reminders may already have been sent");
+    await expect(result).toContainText("Sending again may duplicate them");
+    await expect(result).not.toContainText(/undefined|NaN|Please try again|Synthetic private/);
+    // Both the persistent result and toast must avoid claiming success.
+    await expect(page.getByText("Reminders Sent", { exact: true })).toHaveCount(0);
+    await expect(sendButton).toBeEnabled();
+    await page.getByRole("tab", { name: "Statistics", exact: true }).click();
+    await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+    await expect(result).toContainText("Reminder Delivery Unconfirmed");
+    page.once("dialog", dialog => {
+      expect(dialog.message()).toContain("may duplicate");
+      return dialog.dismiss();
+    });
+    await sendButton.click();
+    expect(sends).toBe(1);
+    expect(pageErrors).toEqual([]);
   });
 }
 
