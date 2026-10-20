@@ -14,6 +14,13 @@ Daily reminder scheduling uses UTC rather than guessing a regional timezone from
 **Why:** Saved settings contain a time but no timezone. An explicit UTC contract avoids silently changing delivery when hosting location or daylight-saving offsets change. No regional business timezone has been established.
 
 **How to apply:** Keep the admin-facing timezone explanation consistent with scheduling. A future regional-timezone feature needs an explicit product decision, including missing/repeated local times; do not infer it from Arabic UI or hosting settings. Durable retry and cross-process duplicate prevention remain separate from time selection.
+
+Delivery-history reporting does not imply permission to introduce a delivery ledger or infer lifetime history from individual manual-send receipts.
+
+**Why:** The reporting work deliberately chose an honest not-tracked state rather than introducing persistence without defined history coverage and retention requirements.
+
+**How to apply:** Keep audience eligibility independent of history availability. Establish the intended channels, historical coverage start, retention, and meaning of a successful send before adding durable history.
+
 Weekly summaries must remain separate from the daily inactivity audience.
 
 **Why:** The user explicitly stated that weekly summaries have their own purpose; aligning daily reminders is not permission to restrict weekly summaries to inactive clients.

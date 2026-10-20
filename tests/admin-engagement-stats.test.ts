@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
+import { engagementStatsSchema } from "../shared/engagementStats";
 
 const mocks = vi.hoisted(() => ({
   storage: { getAllUsers: vi.fn(), getEmotionRecordsByUser: vi.fn() },
@@ -109,7 +110,8 @@ describe("shared admin engagement definition", () => {
 
     expect(stats.status).toBe(200);
     expect(stats.body).toEqual({
-      lastRunTime: null, totalEmailsSent: 0, totalNotificationsSent: 0,
+      deliveryHistoryStatus: "not_tracked",
+      lastRunTime: null, totalEmailsSent: null, totalNotificationsSent: null,
       activeClients: inactive ? 0 : 1, inactiveClients: inactive ? 1 : 0,
     });
     expect(preview.status).toBe(200);
@@ -121,6 +123,9 @@ describe("shared admin engagement definition", () => {
     expect(send.body.inactiveClients).toBe(preview.body.count);
     expect(send.body.notificationsSent).toBe(preview.body.count);
     expect(send.body.emailsSent).toBe(preview.body.count);
+    // Successful per-request receipts must not turn unknown lifetime totals into zero.
+    const refreshed = await invoke(getEngagementStats);
+    expect(engagementStatsSchema.parse(refreshed.body)).toEqual(stats.body);
     expect(mocks.notify).toHaveBeenCalledTimes(inactive ? 1 : 0);
     expect(mocks.reminder).toHaveBeenCalledTimes(inactive ? 1 : 0);
     expectSelectionQuery();

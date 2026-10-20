@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { reminderDeliveryReceiptSchema, reminderDeliverySummary, type ReminderDeliverySummary } from "../reminderDeliverySummary";
 import { z } from "zod";
+import { engagementAudienceSchema, untrackedDeliveryHistorySchema } from "@shared/engagementStats";
 
 const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const engagementSettingsSchema = z.object({
@@ -37,17 +38,7 @@ const engagementSettingsSchema = z.object({
 
 type EngagementSettings = z.infer<typeof engagementSettingsSchema>;
 
-const reportCountSchema = z.number().int().nonnegative().safe();
-const reminderStatsSchema = z.object({
-  lastRunTime: z.string().datetime({ offset: true })
-    .refine(value => Number.isFinite(Date.parse(value))).nullable(),
-  totalEmailsSent: reportCountSchema,
-  totalNotificationsSent: reportCountSchema,
-  activeClients: reportCountSchema,
-  inactiveClients: reportCountSchema,
-});
-
-type ReminderStats = z.infer<typeof reminderStatsSchema>;
+type ReminderStats = z.infer<typeof engagementAudienceSchema>;
 
 export default function EngagementSettingsPage() {
   const { toast } = useToast();
@@ -58,6 +49,7 @@ export default function EngagementSettingsPage() {
   const [deliveryResult, setDeliveryResult] = useState<ReminderDeliverySummary | null>(null);
   const [reportDays, setReportDays] = useState(3);
   const [statsAvailable, setStatsAvailable] = useState(false);
+  const [historyNotTracked, setHistoryNotTracked] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewContent, setPreviewContent] = useState({ subject: "", body: "", type: "" });
   const [settings, setSettings] = useState<EngagementSettings>({
@@ -108,9 +100,6 @@ Best regards,
     ]
   });
   const [stats, setStats] = useState<ReminderStats>({
-    lastRunTime: null,
-    totalEmailsSent: 0,
-    totalNotificationsSent: 0,
     activeClients: 0,
     inactiveClients: 0
   });
@@ -142,12 +131,15 @@ Best regards,
 
   const fetchStats = async (days: number) => {
     setStatsAvailable(false);
+    setHistoryNotTracked(false);
     try {
       const response = await apiRequest("GET", `/api/admin/engagement-stats?days=${days}`);
       if (response.ok) {
-        const parsed = reminderStatsSchema.safeParse(await response.json());
+        const data: unknown = await response.json();
+        const parsed = engagementAudienceSchema.safeParse(data);
         if (!parsed.success) throw new Error("Invalid engagement statistics response");
         setStats(parsed.data);
+        setHistoryNotTracked(untrackedDeliveryHistorySchema.safeParse(data).success);
         setReportDays(days);
         setStatsAvailable(true);
       }
@@ -730,7 +722,7 @@ The ResilienceHub Team`}
                   <CardTitle className="text-sm font-medium">Emails Sent</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{statsAvailable ? stats.totalEmailsSent : "Unavailable"}</div>
+                  <div className="text-2xl font-bold text-blue-600">{historyNotTracked ? "Not tracked" : "Unavailable"}</div>
                 </CardContent>
               </Card>
 
@@ -739,10 +731,16 @@ The ResilienceHub Team`}
                   <CardTitle className="text-sm font-medium">Notifications Sent</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-teal-700">{statsAvailable ? stats.totalNotificationsSent : "Unavailable"}</div>
+                  <div className="text-2xl font-bold text-teal-700">{historyNotTracked ? "Not tracked" : "Unavailable"}</div>
                 </CardContent>
               </Card>
             </div>
+
+            <p className="text-sm text-muted-foreground">
+              {historyNotTracked
+                ? "Delivery history is not stored. Cumulative email and notification totals and the last reminder run are not tracked. Manual-send results describe only that request, not delivery history."
+                : "Delivery history is unavailable. Current audience counts, when available, are independent of delivery history."}
+            </p>
 
             <Card>
               <CardHeader>
@@ -753,7 +751,7 @@ The ResilienceHub Team`}
                   <div className="flex justify-between">
                     <span>Last reminder run:</span>
                     <span className="text-muted-foreground">
-                      {!statsAvailable ? "Unavailable" : stats.lastRunTime ? new Date(stats.lastRunTime).toLocaleString() : "Never"}
+                      {historyNotTracked ? "Not tracked" : "Unavailable"}
                     </span>
                   </div>
                   <div className="flex justify-between">

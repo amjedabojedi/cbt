@@ -34,8 +34,8 @@ const malformedSettings = [
 ];
 
 const validReport = {
-  activeClients: 2, inactiveClients: 3, totalEmailsSent: 0,
-  totalNotificationsSent: 0, lastRunTime: null,
+  activeClients: 2, inactiveClients: 3, deliveryHistoryStatus: "not_tracked",
+  totalEmailsSent: null, totalNotificationsSent: null, lastRunTime: null,
 };
 const validDeliveryReceipt = {
   success: true, inactiveClients: 3, emailsSent: 3, notificationsSent: 3,
@@ -537,11 +537,11 @@ const malformedReports = [
   { name: "empty object", data: {} },
   { name: "array", data: [] },
   { name: "primitive", data: "not a report" },
-  ...Object.keys(validReport).map(key => ({
+  ...["activeClients", "inactiveClients"].map(key => ({
     name: `missing ${key}`,
     data: Object.fromEntries(Object.entries(validReport).filter(([field]) => field !== key)),
   })),
-  ...["activeClients", "inactiveClients", "totalEmailsSent", "totalNotificationsSent"]
+  ...["activeClients", "inactiveClients"]
     .flatMap(key => [
       { name: `null ${key}`, data: { ...validReport, [key]: null } },
       { name: `string ${key}`, data: { ...validReport, [key]: "3" } },
@@ -551,10 +551,6 @@ const malformedReports = [
       { name: `fractional ${key}`, data: { ...validReport, [key]: 1.5 } },
       { name: `unsafe ${key}`, data: { ...validReport, [key]: Number.MAX_SAFE_INTEGER + 1 } },
     ]),
-  ...["not a date", "", "2026-02-30T09:00:00Z", 42, {}, []].map(value => ({
-    name: `invalid lastRunTime ${JSON.stringify(value)}`,
-    data: { ...validReport, lastRunTime: value },
-  })),
 ];
 
 async function expectReportUnavailable(page: Page) {
@@ -607,12 +603,9 @@ for (const scenario of malformedReports) {
 test("a malformed HTTP 200 report after a valid report hides stale values and blocks delivery", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", error => pageErrors.push(error.message));
-  const { sends } = await setup(page, { report: {
-    ...validReport, totalEmailsSent: 12, totalNotificationsSent: 15,
-    lastRunTime: "2026-10-20T09:00:00Z",
-  } });
+  const { sends } = await setup(page);
   await page.getByRole("tab", { name: "Statistics", exact: true }).click();
-  await expect(page.getByText("Emails Sent", { exact: true }).locator("../..")).toContainText("12");
+  await expect(page.getByText("Emails Sent", { exact: true }).locator("../..")).toContainText("Not tracked");
   await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
   await expect(page.getByRole("button", { name: "Send Manual Reminders", exact: true })).toBeEnabled();
   await page.route("**/api/admin/engagement-stats?*", route => route.fulfill({
@@ -626,16 +619,62 @@ test("a malformed HTTP 200 report after a valid report hides stale values and bl
   expect(pageErrors).toEqual([]);
 });
 
-test("a valid zero-count report with no previous run remains available", async ({ page }) => {
+test("zero audience counts remain available without claiming zero delivery or no previous run", async ({ page }) => {
   const { sends } = await setup(page, { report: {
-    activeClients: 0, inactiveClients: 0, totalEmailsSent: 0,
-    totalNotificationsSent: 0, lastRunTime: null,
+    ...validReport, activeClients: 0, inactiveClients: 0,
   } });
   await page.getByRole("tab", { name: "Statistics", exact: true }).click();
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page.getByText("Eligible for Manual Reminders", { exact: true }).locator("../..")).toContainText("0");
-  await expect(page.getByText("Last reminder run:", { exact: true }).locator("..")).toContainText("Never");
+  await expect(page.getByText("Last reminder run:", { exact: true }).locator("..")).toContainText("Not tracked");
+  for (const title of ["Emails Sent", "Notifications Sent"]) {
+    await expect(page.getByText(title, { exact: true }).locator("../..")).toContainText("Not tracked");
+  }
+  await expect(page.getByRole("tabpanel")).not.toContainText("Never");
   await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
   await expect(page.getByRole("button", { name: "Send Manual Reminders", exact: true })).toBeEnabled();
   expect(sends).toEqual([]);
+});
+
+for (const history of [
+  {},
+  { totalEmailsSent: 0, totalNotificationsSent: 0, lastRunTime: null },
+  { ...validReport, deliveryHistoryStatus: "tracked" },
+  { ...validReport, totalEmailsSent: 12 },
+  { ...validReport, totalNotificationsSent: 0 },
+  { ...validReport, lastRunTime: "2026-10-20T09:00:00Z" },
+]) {
+  test(`unavailable or inconsistent history preserves audience counts (${JSON.stringify(history)})`, async ({ page }) => {
+    const { sends } = await setup(page, { report: { ...history, activeClients: 2, inactiveClients: 3 } });
+    await page.getByRole("tab", { name: "Statistics", exact: true }).click();
+    await expect(page.getByText("Within Inactivity Period", { exact: true }).locator("../..")).toContainText("2");
+    await expect(page.getByText("Eligible for Manual Reminders", { exact: true }).locator("../..")).toContainText("3");
+    for (const title of ["Emails Sent", "Notifications Sent"]) {
+      await expect(page.getByText(title, { exact: true }).locator("../..")).toContainText("Unavailable");
+    }
+    await expect(page.getByText("Last reminder run:", { exact: true }).locator("..")).toContainText("Unavailable");
+    await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Send Manual Reminders", exact: true })).toBeEnabled();
+    expect(sends).toEqual([]);
+  });
+}
+
+test("a successful manual send and reload do not fabricate delivery history", async ({ page }) => {
+  const { sends } = await setup(page);
+  await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+  page.once("dialog", dialog => dialog.accept());
+  await page.getByRole("button", { name: "Send Manual Reminders", exact: true }).click();
+  await expect.poll(() => sends.length).toBe(1);
+  await expect(page.getByRole("button", { name: "Send Manual Reminders", exact: true })).toBeEnabled();
+  for (const reload of [false, true]) {
+    if (reload) await page.reload();
+    await page.getByRole("tab", { name: "Statistics", exact: true }).click();
+    for (const title of ["Emails Sent", "Notifications Sent"]) {
+      await expect(page.getByText(title, { exact: true }).locator("../..")).toContainText("Not tracked");
+    }
+    await expect(page.getByText("Last reminder run:", { exact: true }).locator("..")).toContainText("Not tracked");
+    await expect(page.getByText("Eligible for Manual Reminders", { exact: true }).locator("../..")).toContainText("3");
+  }
+  expect(sends).toEqual([{ days: 7 }]);
+  await page.screenshot({ path: test.info().outputPath("untracked-delivery-history.png"), fullPage: true });
 });

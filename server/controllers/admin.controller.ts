@@ -8,6 +8,7 @@ import { isEmailEnabled, sendWeeklyProgressDigest, sendEmotionTrackingReminder }
 import { updateGoalStatusBasedOnMilestones } from "./goals.controller";
 import { engagementDays, getAdminClientEngagement } from "../services/adminEngagement";
 import type { ReminderDeliveryResult } from "@shared/reminderDelivery";
+import type { EngagementStats } from "@shared/engagementStats";
 
 // Get admin statistics (admin only)
 export async function getAdminStats(req: Request, res: Response) {
@@ -391,10 +392,11 @@ export async function getEngagementStats(req: Request, res: Response) {
     const inactiveClients = clients.filter(client => client.inactive).length;
     const activeClients = clients.length - inactiveClients;
     
-    const stats = {
-      lastRunTime: null, // Would track this in database
-      totalEmailsSent: 0, // Would track this in database
-      totalNotificationsSent: 0, // Would track this in database
+    const stats: EngagementStats = {
+      deliveryHistoryStatus: "not_tracked",
+      lastRunTime: null,
+      totalEmailsSent: null,
+      totalNotificationsSent: null,
       activeClients,
       inactiveClients
     };
