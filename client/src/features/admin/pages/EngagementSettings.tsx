@@ -14,23 +14,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { reminderDeliverySummary, type ReminderDeliverySummary } from "../reminderDeliverySummary";
+import { z } from "zod";
 
-interface EngagementSettings {
-  reminderEnabled: boolean;
-  reminderDays: number;
-  reminderTime: string;
-  weeklyDigestEnabled: boolean;
-  weeklyDigestDay: number;
-  weeklyDigestTime: string;
-  emailTemplate: string;
-  reminderEmailSubject: string;
-  reminderEmailTemplate: string;
-  weeklyDigestSubject: string;
-  weeklyDigestTemplate: string;
-  escalationEnabled: boolean;
-  escalationDays: number[];
-  escalationTemplates: string[];
-}
+const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+const engagementSettingsSchema = z.object({
+  reminderEnabled: z.boolean(),
+  reminderDays: z.number().int(),
+  reminderTime: timeSchema,
+  weeklyDigestEnabled: z.boolean(),
+  weeklyDigestDay: z.number().int().min(0).max(6),
+  weeklyDigestTime: timeSchema,
+  // Legacy defaults include this field; persisted settings need not.
+  emailTemplate: z.string().optional(),
+  reminderEmailSubject: z.string(),
+  reminderEmailTemplate: z.string(),
+  weeklyDigestSubject: z.string(),
+  weeklyDigestTemplate: z.string(),
+  escalationEnabled: z.boolean(),
+  escalationDays: z.array(z.number().int()),
+  escalationTemplates: z.array(z.string()),
+}).passthrough();
+
+type EngagementSettings = z.infer<typeof engagementSettingsSchema>;
 
 interface ReminderStats {
   lastRunTime: string | null;
@@ -118,7 +123,9 @@ Best regards,
     try {
       const response = await apiRequest("GET", "/api/admin/engagement-settings");
       if (!response.ok) throw new Error("Failed to fetch engagement settings");
-      const data = await response.json();
+      const parsed = engagementSettingsSchema.safeParse(await response.json());
+      if (!parsed.success) throw new Error("Invalid engagement settings response");
+      const data = parsed.data;
       setSettings(data);
       setSettingsAvailable(true);
       await fetchStats(data.reminderDays);

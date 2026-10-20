@@ -1,9 +1,42 @@
 import { test, expect, type Page } from "@playwright/test";
 
+const validSettings = {
+  reminderEnabled: true, reminderDays: 7, reminderTime: "09:00",
+  weeklyDigestEnabled: true, weeklyDigestDay: 0, weeklyDigestTime: "08:00",
+  reminderEmailSubject: "", reminderEmailTemplate: "",
+  weeklyDigestSubject: "", weeklyDigestTemplate: "",
+  escalationEnabled: false, escalationDays: [7, 14, 30], escalationTemplates: [],
+};
+
+const malformedSettings = [
+  { name: "null", data: null },
+  { name: "empty object", data: {} },
+  { name: "array", data: [] },
+  { name: "primitive", data: "not settings" },
+  ...Object.keys(validSettings).map(key => ({
+    name: `missing ${key}`,
+    data: Object.fromEntries(Object.entries(validSettings).filter(([field]) => field !== key)),
+  })),
+  { name: "string boolean", data: { ...validSettings, reminderEnabled: "false" } },
+  { name: "null digest flag", data: { ...validSettings, weeklyDigestEnabled: null } },
+  { name: "numeric escalation flag", data: { ...validSettings, escalationEnabled: 1 } },
+  { name: "string threshold", data: { ...validSettings, reminderDays: "7" } },
+  { name: "fractional threshold", data: { ...validSettings, reminderDays: 1.5 } },
+  { name: "invalid reminder time", data: { ...validSettings, reminderTime: "25:00" } },
+  { name: "invalid digest time", data: { ...validSettings, weeklyDigestTime: null } },
+  { name: "invalid weekday", data: { ...validSettings, weeklyDigestDay: 7 } },
+  { name: "null subject", data: { ...validSettings, reminderEmailSubject: null } },
+  { name: "object template", data: { ...validSettings, weeklyDigestTemplate: {} } },
+  { name: "non-array escalation days", data: { ...validSettings, escalationDays: {} } },
+  { name: "invalid escalation day", data: { ...validSettings, escalationDays: [7, "14"] } },
+  { name: "non-array escalation templates", data: { ...validSettings, escalationTemplates: null } },
+  { name: "invalid escalation template", data: { ...validSettings, escalationTemplates: [42] } },
+];
+
 async function setup(page: Page, { unavailable = false, realSettings = false, settingsFailure }: {
   unavailable?: boolean;
   realSettings?: boolean;
-  settingsFailure?: "http" | "network";
+  settingsFailure?: "http" | "network" | { data: unknown };
 } = {}) {
   // The runner owns a disposable database containing synthetic login accounts.
   // Only the persistence check uses real settings reads/writes. Report reads
@@ -28,11 +61,10 @@ async function setup(page: Page, { unavailable = false, realSettings = false, se
     if (settingsFailure === "http") return route.fulfill({
       status: 503, json: { message: "Synthetic settings read failure" },
     });
-    return route.fulfill({ json: {
-      reminderEnabled: true, reminderDays: 7, reminderTime: "09:00",
-      weeklyDigestEnabled: true, weeklyDigestDay: 0, weeklyDigestTime: "08:00",
-      escalationEnabled: false, escalationDays: [7, 14, 30], escalationTemplates: [],
-    } });
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(typeof settingsFailure === "object" ? settingsFailure.data : validSettings),
+    });
   });
   const reportRequests: string[] = [];
   await page.route("**/api/admin/engagement-stats?*", route => {
@@ -66,8 +98,15 @@ async function setup(page: Page, { unavailable = false, realSettings = false, se
   return { reportRequests, sends, settingsSaves, settingsReads: () => settingsReads };
 }
 
-for (const settingsFailure of ["http", "network"] as const) {
-  test(`a failed settings ${settingsFailure} read blocks defaults and saves until a successful retry`, async ({ page }) => {
+for (const scenario of [
+  { name: "http", failure: "http" as const },
+  { name: "network", failure: "network" as const },
+  ...malformedSettings.map(({ name, data }) => ({ name: `malformed ${name}`, failure: { data } })),
+]) {
+  test(`a failed settings ${scenario.name} read blocks defaults and saves until a successful retry`, async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", error => pageErrors.push(error.message));
+    const settingsFailure = scenario.failure;
     const { reportRequests, sends, settingsSaves, settingsReads } = await setup(page, { settingsFailure });
     const assertBlocked = async () => {
       await expect(page.getByRole("alert")).toContainText("Editing and saving are unavailable");
@@ -77,13 +116,14 @@ for (const settingsFailure of ["http", "network"] as const) {
       expect(settingsSaves).toEqual([]);
       expect(reportRequests).toEqual([]);
       expect(sends).toEqual([]);
+      expect(pageErrors).toEqual([]);
     };
     await assertBlocked();
     expect(settingsReads()).toBe(1);
     await page.getByRole("button", { name: "Retry loading settings", exact: true }).click();
     await expect.poll(settingsReads).toBe(2);
     await assertBlocked();
-    await page.screenshot({ path: test.info().outputPath(`settings-unavailable-${settingsFailure}.png`), fullPage: true });
+    await page.screenshot({ path: test.info().outputPath("settings-unavailable.png"), fullPage: true });
 
     const storedSettings = {
       reminderEnabled: true, reminderDays: 11, reminderTime: "17:25",
@@ -121,6 +161,7 @@ for (const settingsFailure of ["http", "network"] as const) {
     await expect(page.getByText("Settings Saved", { exact: true })).toBeVisible();
     expect(settingsSaves).toEqual([{ ...storedSettings, reminderTime: "18:40" }]);
     expect(sends).toEqual([]);
+    expect(pageErrors).toEqual([]);
   });
 }
 
