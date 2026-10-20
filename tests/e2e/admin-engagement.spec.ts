@@ -350,3 +350,98 @@ test("an unconfirmed delivery warns about duplicates instead of recommending a r
   await expect(result).not.toContainText("Synthetic private");
   expect(sends).toBe(1);
 });
+
+for (const saveFailure of ["http", "network"] as const) {
+  for (const saveTab of ["Settings", "Templates"] as const) {
+    test(`${saveTab} retains edits after a ${saveFailure} save failure and retries only on explicit save`, async ({ page }) => {
+      const { reportRequests, sends, settingsReads } = await setup(page);
+      const expectedSettings = {
+        ...validSettings,
+        reminderEnabled: true, reminderDays: 11, reminderTime: "16:45",
+        weeklyDigestEnabled: false, weeklyDigestDay: 4, weeklyDigestTime: "14:35",
+        reminderEmailSubject: "Edited reminder for {{clientName}}",
+        reminderEmailTemplate: "Hello {{clientName}},\nCheck in: {{dashboardLink}}",
+        weeklyDigestSubject: "Edited weekly summary",
+        weeklyDigestTemplate: "This week: {{emotionsThisWeek}}\nFrom {{therapistName}}",
+        escalationEnabled: false, escalationDays: [7, 14, 30], escalationTemplates: [],
+      };
+      await page.getByRole("spinbutton").first().fill(String(expectedSettings.reminderDays));
+      await page.locator('input[type="time"]').first().fill(expectedSettings.reminderTime);
+      await page.getByRole("combobox").selectOption(String(expectedSettings.weeklyDigestDay));
+      await page.locator('input[type="time"]').nth(1).fill(expectedSettings.weeklyDigestTime);
+      await page.getByRole("switch").nth(1).uncheck();
+      await page.getByRole("tab", { name: "Templates", exact: true }).click();
+      const templateFields = [
+        ["Enter email subject line", expectedSettings.reminderEmailSubject],
+        ["Write your email template here...", expectedSettings.reminderEmailTemplate],
+        ["Enter weekly digest subject", expectedSettings.weeklyDigestSubject],
+        ["Write your weekly digest template here...", expectedSettings.weeklyDigestTemplate],
+      ] as const;
+      for (const [placeholder, value] of templateFields) {
+        await page.getByPlaceholder(placeholder, { exact: true }).fill(value);
+      }
+      await page.getByRole("tab", { name: saveTab, exact: true }).click();
+
+      const saves: Record<string, unknown>[] = [];
+      let releaseFailure!: () => void;
+      const failureGate = new Promise<void>(resolve => { releaseFailure = resolve; });
+      await page.route("**/api/admin/engagement-settings", async route => {
+        if (route.request().method() !== "POST") return route.fallback();
+        saves.push(route.request().postDataJSON());
+        if (saves.length === 1) {
+          await failureGate;
+          return saveFailure === "network"
+            ? route.abort("failed")
+            : route.fulfill({ status: 503, json: { message: "Synthetic settings save failure" } });
+        }
+        return route.fulfill({ json: { message: "Settings updated successfully" } });
+      });
+      const saveButton = page.getByRole("button", { name: `Save ${saveTab}`, exact: true });
+      const success = page.getByText("Settings Saved", { exact: true });
+      await saveButton.click();
+      try {
+        await expect.poll(() => saves.length).toBe(1);
+        expect(saves[0]).toEqual(expectedSettings);
+        await expect(page.getByRole("button", { name: "Saving...", exact: true })).toBeDisabled();
+        await expect(success).toHaveCount(0);
+      } finally {
+        releaseFailure();
+      }
+      await expect(page.getByText("Failed to save settings. Please try again.", { exact: true })).toBeVisible();
+      await expect(success).toHaveCount(0);
+      await expect(saveButton).toBeEnabled();
+      await expect(page.getByRole("button", { name: "Saving...", exact: true })).toHaveCount(0);
+
+      // Check both panels: a failed save must not reset either group of edits.
+      await page.getByRole("tab", { name: "Settings", exact: true }).click();
+      await expect(page.getByRole("spinbutton").first()).toHaveValue("11");
+      await expect(page.locator('input[type="time"]').first()).toHaveValue("16:45");
+      await expect(page.getByRole("switch").first()).toBeChecked();
+      await expect(page.getByRole("switch").nth(1)).not.toBeChecked();
+      await expect(page.getByRole("combobox")).toHaveValue("4");
+      await expect(page.locator('input[type="time"]').nth(1)).toHaveValue("14:35");
+      await page.getByRole("tab", { name: "Templates", exact: true }).click();
+      for (const [placeholder, value] of templateFields) {
+        await expect(page.getByPlaceholder(placeholder, { exact: true })).toHaveValue(value);
+      }
+      await page.getByRole("tab", { name: saveTab, exact: true }).click();
+      await expect(success).toHaveCount(0);
+      expect(saves).toEqual([expectedSettings]);
+      expect(settingsReads()).toBe(1);
+      expect(reportRequests).toHaveLength(1);
+      expect(new URL(reportRequests[0]).searchParams.get("days")).toBe("7");
+      expect(sends).toEqual([]);
+      await page.screenshot({ path: test.info().outputPath(`save-failed-${saveTab}-${saveFailure}.png`), fullPage: true });
+
+      // No re-entry, reload, or implicit retry: the restored control resends the same form.
+      await saveButton.click();
+      await expect(success).toBeVisible();
+      await expect(saveButton).toBeEnabled();
+      expect(saves).toEqual([expectedSettings, expectedSettings]);
+      await expect.poll(() => reportRequests.length).toBe(2);
+      expect(new URL(reportRequests[1]).searchParams.get("days")).toBe("11");
+      expect(settingsReads()).toBe(1);
+      expect(sends).toEqual([]);
+    });
+  }
+}
