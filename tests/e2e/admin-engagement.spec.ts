@@ -33,10 +33,15 @@ const malformedSettings = [
   { name: "invalid escalation template", data: { ...validSettings, escalationTemplates: [42] } },
 ];
 
-async function setup(page: Page, { unavailable = false, realSettings = false, settingsFailure }: {
+const validReport = {
+  activeClients: 2, inactiveClients: 3, totalEmailsSent: 0,
+  totalNotificationsSent: 0, lastRunTime: null,
+};
+async function setup(page: Page, { unavailable = false, realSettings = false, settingsFailure, report = validReport }: {
   unavailable?: boolean;
   realSettings?: boolean;
   settingsFailure?: "http" | "network" | { data: unknown };
+  report?: unknown;
 } = {}) {
   // The runner owns a disposable database containing synthetic login accounts.
   // Only the persistence check uses real settings reads/writes. Report reads
@@ -71,10 +76,8 @@ async function setup(page: Page, { unavailable = false, realSettings = false, se
     reportRequests.push(route.request().url());
     return route.fulfill({
       status: unavailable ? 503 : 200,
-      json: unavailable ? { message: "Synthetic unavailable read" } : {
-        activeClients: 2, inactiveClients: 3, totalEmailsSent: 0,
-        totalNotificationsSent: 0, lastRunTime: null,
-      },
+      contentType: "application/json",
+      body: JSON.stringify(unavailable ? { message: "Synthetic unavailable read" } : report),
     });
   });
   const sends: unknown[] = [];
@@ -194,11 +197,7 @@ test("admin report and confirmed manual delivery use the same threshold and rule
 
 test("a failed report is unavailable, not zero inactivity, and blocks manual sends", async ({ page }) => {
   const { sends } = await setup(page, { unavailable: true });
-  await page.getByRole("tab", { name: "Statistics", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("Engagement statistics are unavailable");
-  await expect(page.getByText("Eligible for Manual Reminders", { exact: true }).locator("../..")).toContainText("Unavailable");
-  await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Send Manual Reminders", exact: true })).toBeDisabled();
+  await expectReportUnavailable(page);
   expect(sends).toEqual([]);
 });
 
@@ -445,3 +444,111 @@ for (const saveFailure of ["http", "network"] as const) {
     });
   }
 }
+
+const malformedReports = [
+  { name: "null", data: null },
+  { name: "empty object", data: {} },
+  { name: "array", data: [] },
+  { name: "primitive", data: "not a report" },
+  ...Object.keys(validReport).map(key => ({
+    name: `missing ${key}`,
+    data: Object.fromEntries(Object.entries(validReport).filter(([field]) => field !== key)),
+  })),
+  ...["activeClients", "inactiveClients", "totalEmailsSent", "totalNotificationsSent"]
+    .flatMap(key => [
+      { name: `null ${key}`, data: { ...validReport, [key]: null } },
+      { name: `string ${key}`, data: { ...validReport, [key]: "3" } },
+      { name: `object ${key}`, data: { ...validReport, [key]: { count: 3 } } },
+      { name: `boolean ${key}`, data: { ...validReport, [key]: true } },
+      { name: `negative ${key}`, data: { ...validReport, [key]: -1 } },
+      { name: `fractional ${key}`, data: { ...validReport, [key]: 1.5 } },
+      { name: `unsafe ${key}`, data: { ...validReport, [key]: Number.MAX_SAFE_INTEGER + 1 } },
+    ]),
+  ...["not a date", "", "2026-02-30T09:00:00Z", 42, {}, []].map(value => ({
+    name: `invalid lastRunTime ${JSON.stringify(value)}`,
+    data: { ...validReport, lastRunTime: value },
+  })),
+];
+
+async function expectReportUnavailable(page: Page) {
+  await page.getByRole("tab", { name: "Statistics", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("Engagement statistics are unavailable");
+  for (const title of [
+    "Within Inactivity Period", "Eligible for Manual Reminders", "Emails Sent", "Notifications Sent",
+  ]) {
+    await expect(page.getByText(title, { exact: true }).locator("../..")).toContainText("Unavailable");
+  }
+  await expect(page.getByText("Last reminder run:", { exact: true }).locator("..")).toContainText("Unavailable");
+  await expect(page.getByRole("tabpanel")).not.toContainText("Invalid Date");
+  await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("Engagement statistics are unavailable");
+  const send = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
+  await expect(send).toBeDisabled();
+  await send.dispatchEvent("click");
+}
+
+for (const scenario of malformedReports) {
+  test(`a malformed HTTP 200 report (${scenario.name}) is unavailable and blocks manual sends`, async ({ page }) => {
+    const pageErrors: string[] = [];
+    const dialogs: string[] = [];
+    page.on("pageerror", error => pageErrors.push(error.message));
+    page.on("dialog", dialog => {
+      dialogs.push(dialog.message());
+      return dialog.dismiss();
+    });
+    const { sends, reportRequests } = await setup(page, { report: scenario.data });
+    await expectReportUnavailable(page);
+    expect(reportRequests).toHaveLength(1);
+    expect(sends).toEqual([]);
+    expect(dialogs).toEqual([]);
+    expect(pageErrors).toEqual([]);
+
+    // A fresh valid read must restore availability, not leave the screen stuck.
+    await page.route("**/api/admin/engagement-stats?*", route => route.fulfill({ json: validReport }));
+    await page.reload();
+    await page.getByRole("tab", { name: "Statistics", exact: true }).click();
+    await expect(page.getByRole("alert")).toHaveCount(0);
+    await expect(page.getByText("Eligible for Manual Reminders", { exact: true }).locator("../..")).toContainText("3");
+    await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Send Manual Reminders", exact: true })).toBeEnabled();
+    expect(sends).toEqual([]);
+    expect(dialogs).toEqual([]);
+    expect(pageErrors).toEqual([]);
+  });
+}
+
+test("a malformed HTTP 200 report after a valid report hides stale values and blocks delivery", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+  const { sends } = await setup(page, { report: {
+    ...validReport, totalEmailsSent: 12, totalNotificationsSent: 15,
+    lastRunTime: "2026-10-20T09:00:00Z",
+  } });
+  await page.getByRole("tab", { name: "Statistics", exact: true }).click();
+  await expect(page.getByText("Emails Sent", { exact: true }).locator("../..")).toContainText("12");
+  await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Send Manual Reminders", exact: true })).toBeEnabled();
+  await page.route("**/api/admin/engagement-stats?*", route => route.fulfill({
+    status: 200, contentType: "application/json", body: "null",
+  }));
+  await page.getByRole("tab", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Save Settings", exact: true }).click();
+  await expect(page.getByText("Settings Saved", { exact: true })).toBeVisible();
+  await expectReportUnavailable(page);
+  expect(sends).toEqual([]);
+  expect(pageErrors).toEqual([]);
+});
+
+test("a valid zero-count report with no previous run remains available", async ({ page }) => {
+  const { sends } = await setup(page, { report: {
+    activeClients: 0, inactiveClients: 0, totalEmailsSent: 0,
+    totalNotificationsSent: 0, lastRunTime: null,
+  } });
+  await page.getByRole("tab", { name: "Statistics", exact: true }).click();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByText("Eligible for Manual Reminders", { exact: true }).locator("../..")).toContainText("0");
+  await expect(page.getByText("Last reminder run:", { exact: true }).locator("..")).toContainText("Never");
+  await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Send Manual Reminders", exact: true })).toBeEnabled();
+  expect(sends).toEqual([]);
+});

@@ -37,13 +37,17 @@ const engagementSettingsSchema = z.object({
 
 type EngagementSettings = z.infer<typeof engagementSettingsSchema>;
 
-interface ReminderStats {
-  lastRunTime: string | null;
-  totalEmailsSent: number;
-  totalNotificationsSent: number;
-  activeClients: number;
-  inactiveClients: number;
-}
+const reportCountSchema = z.number().int().nonnegative().safe();
+const reminderStatsSchema = z.object({
+  lastRunTime: z.string().datetime({ offset: true })
+    .refine(value => Number.isFinite(Date.parse(value))).nullable(),
+  totalEmailsSent: reportCountSchema,
+  totalNotificationsSent: reportCountSchema,
+  activeClients: reportCountSchema,
+  inactiveClients: reportCountSchema,
+});
+
+type ReminderStats = z.infer<typeof reminderStatsSchema>;
 
 export default function EngagementSettingsPage() {
   const { toast } = useToast();
@@ -141,8 +145,9 @@ Best regards,
     try {
       const response = await apiRequest("GET", `/api/admin/engagement-stats?days=${days}`);
       if (response.ok) {
-        const data = await response.json();
-        setStats(data);
+        const parsed = reminderStatsSchema.safeParse(await response.json());
+        if (!parsed.success) throw new Error("Invalid engagement statistics response");
+        setStats(parsed.data);
         setReportDays(days);
         setStatsAvailable(true);
       }
@@ -178,6 +183,7 @@ Best regards,
   };
 
   const sendManualReminders = async () => {
+    if (sending || !statsAvailable) return;
     if (!window.confirm(`Send real reminders to eligible clients inactive for ${reportDays} days? Sending again may duplicate reminders that already succeeded.`)) return;
     setSending(true);
     try {
@@ -723,7 +729,7 @@ The ResilienceHub Team`}
                   <CardTitle className="text-sm font-medium">Emails Sent</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{stats.totalEmailsSent}</div>
+                  <div className="text-2xl font-bold text-blue-600">{statsAvailable ? stats.totalEmailsSent : "Unavailable"}</div>
                 </CardContent>
               </Card>
 
@@ -732,7 +738,7 @@ The ResilienceHub Team`}
                   <CardTitle className="text-sm font-medium">Notifications Sent</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-teal-700">{stats.totalNotificationsSent}</div>
+                  <div className="text-2xl font-bold text-teal-700">{statsAvailable ? stats.totalNotificationsSent : "Unavailable"}</div>
                 </CardContent>
               </Card>
             </div>
@@ -746,7 +752,7 @@ The ResilienceHub Team`}
                   <div className="flex justify-between">
                     <span>Last reminder run:</span>
                     <span className="text-muted-foreground">
-                      {stats.lastRunTime ? new Date(stats.lastRunTime).toLocaleString() : "Never"}
+                      {!statsAvailable ? "Unavailable" : stats.lastRunTime ? new Date(stats.lastRunTime).toLocaleString() : "Never"}
                     </span>
                   </div>
                   <div className="flex justify-between">

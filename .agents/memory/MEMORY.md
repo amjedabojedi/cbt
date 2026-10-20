@@ -7,3 +7,4 @@
 - [Production asset freshness](production-asset-freshness.md) — development tests cannot detect a production server serving old frontend files; verify the compiled output and live domains separately.
 - [Azure publishing process](azure-publishing-process.md) — the team uses Azure's pipeline; verification work must preserve publishing approvals.
 - [Admin engagement policy](admin-engagement-policy.md) — shared inactivity rule uses active accounts, saved emotion dates, and a full grace period for clients with no records.
+- [Concurrent completion changes](concurrent-completion-changes.md) — if completion changes the checkout, earlier test results do not verify the resulting combined files.
