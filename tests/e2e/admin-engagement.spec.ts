@@ -83,6 +83,35 @@ test("a failed report is unavailable, not zero inactivity, and blocks manual sen
   expect(sends).toEqual([]);
 });
 
+test("daily reminder time is explicitly UTC and saves the selected minute", async ({ page }) => {
+  await setup(page);
+  await expect(page.getByText("Send time (UTC)", { exact: true })).toBeVisible();
+  await expect(page.getByText("Daily time in UTC (not your local time). Changes apply after saving.", {
+    exact: true,
+  })).toBeVisible();
+  const timeInput = page.locator('input[type="time"]').first();
+  await expect(timeInput).toHaveValue("09:00");
+  await timeInput.fill("16:45");
+  const saves: Record<string, unknown>[] = [];
+  let savedSettings: Record<string, unknown>;
+  await page.route("**/api/admin/engagement-settings", async route => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: savedSettings });
+      return;
+    }
+    const data = route.request().postDataJSON();
+    savedSettings = data;
+    saves.push(data);
+    await route.fulfill({ json: { message: "Settings updated successfully", settings: data } });
+  });
+  await page.getByRole("button", { name: "Save Settings", exact: true }).click();
+  await expect.poll(() => saves.length).toBe(1);
+  expect(saves[0].reminderTime).toBe("16:45");
+  await page.reload();
+  await expect(page.locator('input[type="time"]').first()).toHaveValue("16:45");
+  await page.screenshot({ path: test.info().outputPath("daily-reminder-time-utc.png"), fullPage: true });
+});
+
 for (const scenario of [
   {
     name: "partial delivery", notificationsSent: 2, notificationsFailed: 1, emailsSent: 1, emailsFailed: 2,

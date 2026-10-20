@@ -147,9 +147,7 @@ Best regards,
   const saveSettings = async () => {
     setSaving(true);
     try {
-      const response = await apiRequest("POST", "/api/admin/engagement-settings", {
-        body: JSON.stringify(settings)
-      });
+      const response = await apiRequest("POST", "/api/admin/engagement-settings", settings);
 
       if (response.ok) {
         toast({
@@ -337,7 +335,7 @@ Best regards,
                   </div>
 
                   <div>
-                    <Label>Send time</Label>
+                    <Label>Send time (UTC)</Label>
                     <Input
                       type="time"
                       value={settings.reminderTime}
@@ -345,7 +343,7 @@ Best regards,
                       disabled={!settings.reminderEnabled}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Daily time to send reminders
+                      Daily time in UTC (not your local time). Changes apply after saving.
                     </p>
                   </div>
                 </div>

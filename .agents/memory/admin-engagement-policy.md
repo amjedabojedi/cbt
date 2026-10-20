@@ -8,3 +8,9 @@ Admin reports, inactivity checks, manual reminders, and automatic daily reminder
 **Why:** The user explicitly chose this shared definition instead of preserving the conflicting definitions and requested parity for automatic reminders. New clients must receive a full inactivity period before becoming eligible.
 
 **How to apply:** Use full 24-hour days, include the exact cutoff as inactive, and distinguish saved dates from emotion dates. Newly joined clients within their grace period are not evidence of recorded activity. Do not interpret historical multi-tool reminder code as approval for a different therapist-facing inactivity policy; establish that audience explicitly before exposing one.
+
+Daily reminder scheduling uses UTC rather than guessing a regional timezone from the language, server, or admin browser.
+
+**Why:** Saved settings contain a time but no timezone. An explicit UTC contract avoids silently changing delivery when hosting location or daylight-saving offsets change. No regional business timezone has been established.
+
+**How to apply:** Keep the admin-facing timezone explanation consistent with scheduling. A future regional-timezone feature needs an explicit product decision, including missing/repeated local times; do not infer it from Arabic UI or hosting settings. Durable retry and cross-process duplicate prevention remain separate from time selection.
