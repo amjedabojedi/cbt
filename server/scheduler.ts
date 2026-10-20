@@ -1,5 +1,6 @@
 import { processInactivityReminders } from './services/reminderService';
 import { AdminRepository } from './repositories/admin.repository';
+import { weeklyDigestSlot } from '../scripts/weekly_digest_schedule.cjs';
 
 /**
  * Automatic engagement reminder scheduler
@@ -8,10 +9,15 @@ import { AdminRepository } from './repositories/admin.repository';
 
 export class EngagementScheduler {
   private dailyReminderTimeout: NodeJS.Timeout | null = null;
+
   private weeklyDigestInterval: NodeJS.Timeout | null = null;
+
   private running = false;
+
   private generation = 0;
+
   private dailyCheckInFlight = false;
+
   private lastDailyAttemptDate: string | null = null;
 
   start() {
@@ -23,7 +29,7 @@ export class EngagementScheduler {
     // Saved daily time is UTC, independent of the host timezone and DST.
     this.scheduleDailyReminders();
     
-    // Weekly progress digests on Sundays at 8 AM
+    // Weekly progress digests use saved settings, refreshed every minute.
     this.scheduleWeeklyDigests();
     
     console.log('[Scheduler] Engagement reminder system started successfully');
@@ -84,17 +90,10 @@ export class EngagementScheduler {
   }
 
   private scheduleWeeklyDigests() {
-    // Check every hour to see if it's time to send weekly digests
-    this.weeklyDigestInterval = setInterval(async () => {
-      const now = new Date();
-      const hour = now.getHours();
-      const dayOfWeek = now.getDay(); // 0 = Sunday
-      
-      // Run weekly digests on Sundays at 8 AM
-      if (dayOfWeek === 0 && hour === 8) {
-        await this.runWeeklyDigests();
-      }
-    }, 60 * 60 * 1000); // Check every hour
+    this.weeklyDigestInterval = setInterval(() => {
+      void this.checkWeeklyDigests();
+    }, 60 * 1000);
+    void this.checkWeeklyDigests();
   }
 
   private async runDailyReminders() {
@@ -110,14 +109,17 @@ export class EngagementScheduler {
     }
   }
 
-  private async runWeeklyDigests() {
+  private async runWeeklyDigests(scheduled = true) {
     try {
       console.log('[Scheduler] Running weekly progress digests...');
       
       // Import and run the weekly digest processor
-      // @ts-ignore -- send_weekly_digests is a .cjs file with no type declarations
-      const { processWeeklyDigests } = await import('../scripts/send_weekly_digests');
-      const results = await processWeeklyDigests();
+      // @ts-ignore -- CommonJS entry point shared with standalone cron
+      const { createWeeklyDigestProcessor } = await import('../scripts/send_weekly_digests.cjs');
+      const { pool } = await import('./db');
+      const { sendEmail } = await import('./services/email');
+      const { processWeeklyDigests } = createWeeklyDigestProcessor({ pool, sendEmail });
+      const results = await processWeeklyDigests({ scheduled });
       
       console.log(`[Scheduler] Weekly digests completed:`, results);
     } catch (error) {
@@ -126,6 +128,7 @@ export class EngagementScheduler {
   }
 
   // Manual trigger methods for testing
+
   async triggerDailyReminders() {
     console.log('[Scheduler] Manually triggering daily reminders...');
     await this.runDailyReminders();
@@ -133,7 +136,32 @@ export class EngagementScheduler {
 
   async triggerWeeklyDigests() {
     console.log('[Scheduler] Manually triggering weekly digests...');
-    await this.runWeeklyDigests();
+    // Explicit admin trigger bypasses timing, never the saved enabled switch.
+    await this.runWeeklyDigests(false);
+  }
+
+  private lastWeeklySlot: string | null = null;
+
+  private weeklyRunning = false;
+
+  private async checkWeeklyDigests() {
+    if (this.weeklyRunning) return;
+    this.weeklyRunning = true;
+    try {
+      const settings = await new AdminRepository().getEngagementSettings();
+      const slot = weeklyDigestSlot(settings && {
+        weekly_digest_enabled: settings.weeklyDigestEnabled,
+        weekly_digest_day: settings.weeklyDigestDay,
+        weekly_digest_time: settings.weeklyDigestTime,
+      });
+      if (!slot || slot === this.lastWeeklySlot) return;
+      this.lastWeeklySlot = slot;
+      await this.runWeeklyDigests();
+    } catch {
+      console.error('[Scheduler] Weekly digest settings unavailable or invalid; delivery skipped');
+    } finally {
+      this.weeklyRunning = false;
+    }
   }
 }
 

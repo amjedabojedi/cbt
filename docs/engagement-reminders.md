@@ -34,6 +34,29 @@ therapist inactivity policy. Keep it unmounted unless a product decision and
 authorization review explicitly establish a new audience. Current admin routes
 use `admin.controller.ts`, not that controller.
 
+
+## Weekly digest scheduling
+
+Weekly summaries retain their own audience: all active users, regardless of daily
+inactivity eligibility. The automatic scheduler polls every minute and reads
+`weeklyDigestEnabled`, `weeklyDigestDay` (0 = Sunday through 6 = Saturday), and
+`weeklyDigestTime` (`HH:mm`) on each check. Changes take effect without a restart.
+The processor checks these settings again before reading users or therapy records
+or creating notifications/emails. Disabled digests do neither.
+
+Only an absent settings row uses the documented defaults: enabled, Sunday, 08:00.
+Unreadable or malformed saved settings abort delivery; they never enable defaults.
+Scheduling uses the server's local timezone (there is no saved timezone setting).
+An explicit admin trigger bypasses day/time, but still honors the enabled switch.
+For standalone cron, invoke `node scripts/send_weekly_digests.cjs` every minute
+instead of hardcoding a weekday/hour in cron. Do not run cron alongside the app's
+automatic scheduler.
+
+The scheduler prevents overlapping runs and repeats within the same scheduled
+minute in one process. There is no persistent cross-process delivery lock or
+catch-up after downtime: run one scheduler instance. The script owns/closes its
+pool only when invoked directly; imported processing reuses the caller's pool.
+
 ## Daily schedule
 
 `reminderTime` is a 24-hour `HH:mm` time in **UTC**, as labeled in the admin
@@ -76,3 +99,9 @@ the services. Email and notifications are mocked, and no existing therapy data
 is read or changed.
 Scheduler timing tests additionally use a fake clock, mocked settings reads,
 and a mocked reminder processor: no database or delivery transport is loaded.
+
+## Daily scheduling limits
+
+Daily audience alignment does not change email customization or escalation. Daily runs
+still use the scheduler's existing server-local 9 AM polling schedule; the saved
+reminder time is not applied by that mechanism.

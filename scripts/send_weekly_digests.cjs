@@ -1,18 +1,15 @@
 /**
  * Send weekly progress digest emails to all users
  * 
- * This script is designed to be run by a cron job, e.g.:
- * 0 8 * * 1 /path/to/node /path/to/send_weekly_digests.cjs
- * (This would run every Monday at 8:00 AM)
+ * Automatic runs honor saved engagement settings. For standalone cron use,
+ * invoke every minute; only the configured local day and minute will deliver.
  */
 
-// Setup database connection
-require('dotenv').config();
-const { Pool } = require('pg');
+const { weeklyDigestSlot } = require('./weekly_digest_schedule.cjs');
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
-});
+// Dependencies are explicit so imports never open a second database pool and
+// tests can use isolated data and mocked delivery without loading a transport.
+function createWeeklyDigestProcessor({ pool, sendEmail }) {
 
 function formatDate(date) {
   return date.toISOString().split('T')[0];
@@ -186,12 +183,12 @@ Resilience Counseling Research and Consultation Team
 async function sendDigestEmail(user, summary) {
   try {
     // If we have SparkPost API key, use real email system from server
-    if (process.env.SPARKPOST_API_KEY) {
+    if (sendEmail || process.env.SPARKPOST_API_KEY) {
       // Import actual email service
-      const { sendEmail } = require('../server/services/email');
+      const deliver = sendEmail || require('../server/services/email').sendEmail;
       const emailContent = generateEmailContent(user, summary);
       
-      return await sendEmail({
+      return await deliver({
         to: user.email,
         from: "reports@resiliencehub.app",
         subject: emailContent.subject,
@@ -260,8 +257,18 @@ async function createDigestNotification(userId, summary) {
 /**
  * Main function to process weekly digests
  */
-async function processWeeklyDigests() {
+async function processWeeklyDigests({ scheduled = true, now = new Date() } = {}) {
   try {
+    // Read settings before any user/activity query or notification/email write.
+    // Query errors are not equivalent to an absent row.
+    const settingsResult = await pool.query(`
+      SELECT weekly_digest_enabled, weekly_digest_day, weekly_digest_time
+      FROM engagement_settings
+      LIMIT 1
+    `);
+    if (!weeklyDigestSlot(settingsResult.rows[0], now, scheduled)) {
+      return { totalUsers: 0, notificationsSent: 0, emailsSent: 0, skipped: true };
+    }
     console.log('Starting weekly digest process...');
     
     // Get all active users
@@ -296,41 +303,42 @@ async function processWeeklyDigests() {
     
     console.log(`Weekly digest process complete. Sent ${notificationsSent} in-app notifications and ${emailsSent} emails.`);
     
-    // Close the database connection
-    await pool.end();
-    
     return {
       totalUsers: users.length,
       notificationsSent,
       emailsSent
     };
   } catch (error) {
-    console.error('Error processing weekly digests:', error);
-    await pool.end();
-    return { error: error.message };
+    console.error('Weekly digest processing failed; delivery stopped');
+    throw error;
   }
 }
 
-// If this script is run directly (not imported), execute the main function
-if (require.main === module) {
-  processWeeklyDigests()
-    .then(result => {
-      console.log('Process completed successfully:', result);
-      process.exit(0);
-    })
-    .catch(error => {
-      console.error('Process failed:', error);
-      process.exit(1);
-    });
-}
-
-// Export functions for use in other scripts or tests
-module.exports = {
+return {
   getUserWeeklySummary,
   generateEmailContent,
   sendDigestEmail,
   createDigestNotification,
   processWeeklyDigests
 };
+}
+
+// If this script is run directly (not imported), execute the main function
+if (require.main === module) {
+  require('dotenv').config();
+  const { Pool } = require('pg');
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  createWeeklyDigestProcessor({ pool }).processWeeklyDigests()
+    .then(result => {
+      console.log('Process completed successfully:', result);
+    })
+    .catch(() => {
+      console.error('Weekly digest process failed');
+      process.exitCode = 1;
+    })
+    .finally(() => pool.end());
+}
+
+module.exports = { createWeeklyDigestProcessor };
 
 
