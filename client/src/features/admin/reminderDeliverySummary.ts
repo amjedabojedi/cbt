@@ -1,4 +1,4 @@
-import type { ReminderDeliveryResult } from "@shared/reminderDelivery";
+import { reminderDeliveryChannels, type ReminderDeliveryResult } from "@shared/reminderDelivery";
 import { z } from "zod";
 
 const deliveryCountSchema = z.number().int().nonnegative().safe();
@@ -27,17 +27,18 @@ export interface ReminderDeliverySummary {
 }
 
 export function reminderDeliverySummary(result: ReminderDeliveryResult): ReminderDeliverySummary {
-  const hasFailures = result.notificationsFailed + result.emailsFailed > 0;
-  const anySent = result.notificationsSent + result.emailsSent > 0;
+  const hasFailures = reminderDeliveryChannels.some(channel => result[channel.failed] > 0);
+  const anySent = reminderDeliveryChannels.some(channel => result[channel.sent] > 0);
+  const channelDetails = reminderDeliveryChannels.map(channel =>
+    channel.enabledBy && !result[channel.enabledBy]
+      ? channel.disabledMessage
+      : `${channel.label}: ${result[channel.sent]} sent, ${result[channel.failed]} failed.`
+  );
   return {
     title: hasFailures
       ? (anySent ? "Reminders Partially Sent" : "No Reminders Sent")
       : (result.inactiveClients === 0 ? "No Eligible Clients" : "Reminders Sent"),
-    description: `In-app notifications: ${result.notificationsSent} sent, ${result.notificationsFailed} failed. ${
-      result.emailsEnabled
-        ? `Emails: ${result.emailsSent} sent, ${result.emailsFailed} failed.`
-        : "Email delivery is disabled; no emails attempted."
-    }${anySent ? " Sending again may duplicate reminders that already succeeded." : ""}`,
+    description: `${channelDetails.join(" ")}${anySent ? " Sending again may duplicate reminders that already succeeded." : ""}`,
     ...(hasFailures ? { variant: "destructive" as const } : {}),
   };
 }

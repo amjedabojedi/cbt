@@ -1,4 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
+import { reminderDeliveryReceiptSchema } from "../../client/src/features/admin/reminderDeliverySummary";
+import {
+  defineReminderDeliveryChannels,
+  type ReminderDeliveryResult,
+} from "../../shared/reminderDelivery";
 
 const validSettings = {
   reminderEnabled: true, reminderDays: 7, reminderTime: "09:00",
@@ -37,7 +42,7 @@ const validReport = {
   activeClients: 2, inactiveClients: 3, deliveryHistoryStatus: "not_tracked",
   totalEmailsSent: null, totalNotificationsSent: null, lastRunTime: null,
 };
-const validDeliveryReceipt = {
+const validDeliveryReceipt: ReminderDeliveryResult = {
   success: true, inactiveClients: 3, emailsSent: 3, notificationsSent: 3,
   emailsFailed: 0, notificationsFailed: 0, emailsEnabled: true, hasFailures: false,
   message: "Synthetic delivery receipt",
@@ -484,6 +489,95 @@ for (const scenario of [
     expect(sends).toBe(1);
   });
 }
+
+test("a newer manual reminder receipt includes every delivery channel and replaces its predecessor", async ({ page }) => {
+  const { sends: fallbackSends } = await setup(page);
+  const firstReceipt = reminderDeliveryReceiptSchema.parse({
+    ...validDeliveryReceipt,
+    emailsSent: 0,
+    emailsFailed: 0,
+    emailsEnabled: false,
+  });
+  const latestReceipt = reminderDeliveryReceiptSchema.parse({
+    ...validDeliveryReceipt,
+    notificationsSent: 2,
+    notificationsFailed: 1,
+    emailsSent: 1,
+    emailsFailed: 2,
+    emailsEnabled: true,
+    hasFailures: true,
+  });
+  // Keep this inventory independent from the formatter's registry. The shared
+  // helper rejects it at compile time if a receipt channel is not represented.
+  const expectedDeliveryChannels = defineReminderDeliveryChannels([
+    {
+      label: "In-app notifications",
+      sent: "notificationsSent",
+      failed: "notificationsFailed",
+    },
+    {
+      label: "Emails",
+      sent: "emailsSent",
+      failed: "emailsFailed",
+      enabledBy: "emailsEnabled",
+      disabledMessage: "Email delivery is disabled; no emails attempted.",
+    },
+  ] as const);
+  const receiptDetails = (receipt: ReminderDeliveryResult) =>
+    expectedDeliveryChannels
+      .map(channel => `${channel.label}: ${receipt[channel.sent]} sent, ${receipt[channel.failed]} failed.`)
+      .join(" ");
+  const priorDetail = "In-app notifications: 3 sent, 0 failed. Email delivery is disabled; no emails attempted.";
+  const latestDetail = receiptDetails(latestReceipt);
+  const sends: unknown[] = [];
+  await page.route("**/api/admin/inactivity/send-reminders", route => {
+    expect(route.request().method()).toBe("POST");
+    sends.push(route.request().postDataJSON());
+    return route.fulfill({ json: sends.length === 1 ? firstReceipt : latestReceipt });
+  });
+
+  await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+  const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
+  page.once("dialog", dialog => dialog.accept());
+  await sendButton.click();
+  const priorResult = page.getByRole("tabpanel").getByRole("status", { name: "Manual reminder delivery result" });
+  await expect(priorResult).toContainText("Reminders Sent");
+  await expect(priorResult).toContainText(priorDetail);
+  const priorToast = page.getByRole("status").filter({
+    has: page.getByText("Reminders Sent", { exact: true }),
+  }).filter({ has: page.locator("[toast-close]") });
+  await expect(priorToast).toContainText(priorDetail);
+  await priorToast.locator("[toast-close]").click();
+  await expect(sendButton).toBeEnabled();
+
+  page.once("dialog", dialog => dialog.accept());
+  await sendButton.click();
+  const latestResult = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
+  const latestToast = page.getByRole("status").filter({
+    has: page.getByText("Reminders Partially Sent", { exact: true }),
+  }).filter({ has: page.locator("[toast-close]") });
+  const assertLatestReceipt = async () => {
+    await expect(latestResult).toContainText("Reminders Partially Sent");
+    await expect(latestResult).toContainText(latestDetail);
+    await expect(latestResult).not.toContainText(priorDetail);
+    await expect(latestToast).toBeVisible();
+    await expect(latestToast).toContainText(latestDetail);
+    await expect(latestToast).not.toContainText(priorDetail);
+    await expect(sendButton).toBeEnabled();
+  };
+  await assertLatestReceipt();
+
+  for (const tab of ["Statistics", "Settings"] as const) {
+    await page.getByRole("tab", { name: tab, exact: true }).click();
+    await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+    await assertLatestReceipt();
+  }
+  expect(sends).toEqual([
+    { days: validSettings.reminderDays },
+    { days: validSettings.reminderDays },
+  ]);
+  expect(fallbackSends).toEqual([]);
+});
 
 for (const scenario of [
   {
