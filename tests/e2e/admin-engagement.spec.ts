@@ -542,6 +542,93 @@ for (const failure of ["network abort", "invalid JSON", "empty body"] as const) 
   });
 }
 
+for (const failure of ["network abort", "invalid JSON", "empty body"] as const) {
+  test(`a later manual delivery with ${failure} replaces a prior success with a persistent unconfirmed warning`, async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", error => pageErrors.push(error.message));
+    const { sends: fallbackSends } = await setup(page);
+    const sends: unknown[] = [];
+    await page.route("**/api/admin/inactivity/send-reminders", route => {
+      expect(route.request().method()).toBe("POST");
+      sends.push(route.request().postDataJSON());
+      // Intercept every attempt: only the first receives a confirmed receipt.
+      if (sends.length === 1) return route.fulfill({ json: validDeliveryReceipt });
+      if (failure === "network abort") return route.abort("failed");
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: failure === "invalid JSON" ? '{"success":true,' : "",
+      });
+    });
+
+    await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+    const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
+    const successResult = page.getByRole("tabpanel").getByRole("status", { name: "Manual reminder delivery result" });
+    page.once("dialog", dialog => dialog.accept());
+    await sendButton.click();
+    await expect(successResult).toContainText("Reminders Sent");
+    await expect(successResult).toContainText("In-app notifications: 3 sent, 0 failed. Emails: 3 sent, 0 failed.");
+    expect(sends).toEqual([{ days: validSettings.reminderDays }]);
+
+    // Remove the original success toast before the failed send so a fresh
+    // success toast cannot be mistaken for feedback from the first receipt.
+    const successToast = page.getByRole("status").filter({
+      has: page.getByText("Reminders Sent", { exact: true }),
+    }).filter({ has: page.locator("[toast-close]") });
+    await expect(successToast).toBeVisible();
+    await successToast.locator("[toast-close]").click();
+    await expect(successToast).toHaveCount(0);
+    await expect(sendButton).toBeEnabled();
+
+    let confirmations = 0;
+    page.once("dialog", dialog => {
+      confirmations++;
+      expect(dialog.type()).toBe("confirm");
+      expect(dialog.message()).toContain("may duplicate");
+      expect(sends).toHaveLength(1);
+      return dialog.accept();
+    });
+    await sendButton.click();
+    expect(confirmations).toBe(1);
+    const result = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
+    await expect(result).toContainText("Reminder Delivery Unconfirmed");
+    await expect(result).toContainText("Some reminders may already have been sent");
+    await expect(result).toContainText("Sending again may duplicate them");
+    await expect(result).not.toContainText(/undefined|NaN|Please try again|3 sent, 0 failed/);
+    await expect(successResult).toHaveCount(0);
+    await expect(page.getByText("Reminders Sent", { exact: true })).toHaveCount(0);
+    await expect(sendButton).toBeEnabled();
+
+    // Observe beyond the shared retry delays, then leave and reopen the tab:
+    // neither automatic retries nor the old success result may reappear.
+    await page.waitForTimeout(3_500);
+    expect(sends).toEqual([
+      { days: validSettings.reminderDays },
+      { days: validSettings.reminderDays },
+    ]);
+    await page.getByRole("tab", { name: "Settings", exact: true }).click();
+    await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+    await expect(result).toContainText("Reminder Delivery Unconfirmed");
+    await expect(result).toContainText("Sending again may duplicate them");
+    await expect(page.getByText("Reminders Sent", { exact: true })).toHaveCount(0);
+
+    page.once("dialog", dialog => {
+      confirmations++;
+      expect(dialog.type()).toBe("confirm");
+      expect(dialog.message()).toContain("may duplicate");
+      expect(sends).toHaveLength(2);
+      return dialog.dismiss();
+    });
+    await sendButton.click();
+    expect(confirmations).toBe(2);
+    expect(sends).toHaveLength(2);
+    await expect(result).toContainText("Reminder Delivery Unconfirmed");
+    await expect(page.getByText("Reminders Sent", { exact: true })).toHaveCount(0);
+    expect(fallbackSends).toEqual([]);
+    expect(pageErrors).toEqual([]);
+  });
+}
+
 test("an unconfirmed delivery warns about duplicates instead of recommending a retry", async ({ page }) => {
   await setup(page);
   let sends = 0;
