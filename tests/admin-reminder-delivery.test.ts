@@ -22,6 +22,7 @@ vi.mock("../server/services/adminEngagement", async importOriginal => ({
 }));
 
 import { sendInactivityReminders } from "../server/controllers/admin.controller";
+import { reminderDeliveryReceiptSchema } from "../client/src/features/admin/reminderDeliverySummary";
 
 const clients = [1, 2, 3].map(id => ({
   id, name: `Synthetic private name ${id}`, email: `${id}@example.invalid`, inactive: true,
@@ -62,6 +63,7 @@ describe("isolated manual reminder delivery accounting", () => {
       success: true, inactiveClients: 3, notificationsSent: 3, notificationsFailed: 0,
       emailsSent: 3, emailsFailed: 0, emailsEnabled: true, hasFailures: false,
     });
+    expect(reminderDeliveryReceiptSchema.parse(result.body)).toEqual(result.body);
     expect(mocks.notify).toHaveBeenCalledTimes(3);
     expect(mocks.reminder).toHaveBeenCalledTimes(3);
   });
@@ -89,7 +91,9 @@ describe("isolated manual reminder delivery accounting", () => {
   it("reports mixed successes, false email results and exceptions independently by channel", async () => {
     mocks.query.mockRejectedValueOnce(privateError);
     mocks.reminder.mockResolvedValueOnce(true).mockResolvedValueOnce(false).mockRejectedValueOnce(privateError);
-    const { body } = await invoke();
+    const { status, body } = await invoke();
+    expect(status).toBe(200);
+    expect(reminderDeliveryReceiptSchema.parse(body)).toEqual(body);
     expect(body).toMatchObject({
       success: true, inactiveClients: 3,
       notificationsSent: 2, notificationsFailed: 1, emailsSent: 1, emailsFailed: 2, hasFailures: true,
@@ -104,14 +108,19 @@ describe("isolated manual reminder delivery accounting", () => {
   it("reports total failure when neither channel succeeds", async () => {
     mocks.query.mockRejectedValue(privateError);
     mocks.reminder.mockResolvedValue(false);
-    expect((await invoke()).body).toMatchObject({
+    const { status, body } = await invoke();
+    expect(status).toBe(200);
+    expect(reminderDeliveryReceiptSchema.parse(body)).toEqual(body);
+    expect(body).toMatchObject({
       notificationsSent: 0, notificationsFailed: 3, emailsSent: 0, emailsFailed: 3, hasFailures: true,
     });
   });
 
   it("does not count disabled email as failed or attempt email delivery", async () => {
     mocks.enabled.mockReturnValue(false);
-    const { body } = await invoke();
+    const { status, body } = await invoke();
+    expect(status).toBe(200);
+    expect(reminderDeliveryReceiptSchema.parse(body)).toEqual(body);
     expect(body).toMatchObject({
       notificationsSent: 3, notificationsFailed: 0, emailsSent: 0, emailsFailed: 0,
       emailsEnabled: false, hasFailures: false,
@@ -131,7 +140,10 @@ describe("isolated manual reminder delivery accounting", () => {
 
   it("does not attempt delivery when no clients are eligible", async () => {
     mocks.clients.mockResolvedValue([{ ...clients[0], inactive: false }]);
-    expect((await invoke()).body).toMatchObject({
+    const { status, body } = await invoke();
+    expect(status).toBe(200);
+    expect(reminderDeliveryReceiptSchema.parse(body)).toEqual(body);
+    expect(body).toMatchObject({
       inactiveClients: 0, notificationsSent: 0, notificationsFailed: 0,
       emailsSent: 0, emailsFailed: 0, hasFailures: false,
     });
