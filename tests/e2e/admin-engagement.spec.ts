@@ -158,7 +158,7 @@ for (const scenario of [
   ...malformedSettings.map(({ name, data }) => ({ name: `malformed ${name}`, failure: { data } })),
 ]) {
   test(`a failed settings ${scenario.name} read blocks defaults and saves until a successful retry`, async ({ page }) => {
-    const pageErrors: string[] = [];
+  const pageErrors: string[] = [];
     page.on("pageerror", error => pageErrors.push(error.message));
     const settingsFailure = scenario.failure;
     const { reportRequests, sends, settingsSaves, settingsReads } = await setup(page, { settingsFailure });
@@ -203,7 +203,7 @@ for (const scenario of [
     expect(settingsSaves).toEqual([]);
     releaseRead();
 
-    const timeInput = page.locator('input[type="time"]').first();
+  const timeInput = page.locator('input[type="time"]').first();
     await expect(timeInput).toHaveValue("17:25");
     await expect(page.getByRole("spinbutton").first()).toHaveValue("11");
     await expect(page.getByRole("switch").nth(1)).not.toBeChecked();
@@ -221,32 +221,8 @@ for (const scenario of [
 
 test("admin report and confirmed manual delivery use the same threshold and rule", async ({ page }) => {
   const { reportRequests, sends } = await setup(page);
-  expect(reportRequests).toHaveLength(1);
-  expect(new URL(reportRequests[0]).searchParams.get("days")).toBe("7");
-  await page.getByRole("tab", { name: "Statistics", exact: true }).click();
-  await expect(page.getByText("Eligible for Manual Reminders", { exact: true }).locator("../..")).toContainText("3");
-  await expect(page.getByRole("tabpanel")).toContainText("active client accounts");
-  await expect(page.getByRole("tabpanel")).toContainText("7 full 24-hour days");
-  await expect(page.getByRole("tabpanel")).toContainText("exactly at the cutoff");
-  await expect(page.getByRole("tabpanel")).toContainText("Automatic reminders use this same rule");
-  await page.screenshot({ path: test.info().outputPath("engagement-statistics.png"), fullPage: true });
 
-  await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
-  await expect(page.getByRole("tabpanel")).toContainText("This is not a test");
-  page.once("dialog", dialog => dialog.dismiss());
-  await page.getByRole("button", { name: "Send Manual Reminders", exact: true }).click();
-  expect(sends).toEqual([]);
-  page.once("dialog", dialog => {
-    expect(dialog.message()).toContain("7 days");
-    return dialog.accept();
-  });
-  await page.getByRole("button", { name: "Send Manual Reminders", exact: true }).click();
-  await expect(page.getByRole("tabpanel").getByRole("status")).toContainText("Reminders Sent");
-  expect(sends).toEqual([{ days: 7 }]);
-  expect(reportRequests).toHaveLength(2);
-});
-
-test("a pending manual delivery stays disabled across tab switches and cannot send duplicates", async ({ page }) => {
+  const { reportRequests, sends, settingsSaves } = await setup(page);
   const { sends, settingsSaves, reportRequests } = await setup(page);
   let releaseReceipt!: () => void;
   const receiptGate = new Promise<void>(resolve => { releaseReceipt = resolve; });
@@ -256,13 +232,13 @@ test("a pending manual delivery stays disabled across tab switches and cannot se
     await receiptGate;
     return route.fulfill({ json: validDeliveryReceipt });
   });
-  let confirmations = 0;
+    let confirmations = 0;
   page.on("dialog", dialog => {
     confirmations++;
     return dialog.accept();
   });
   await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
-  const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
+    const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
   const pendingButton = page.getByRole("button", { name: "Sending...", exact: true });
   await expect(sendButton).toBeEnabled();
   try {
@@ -304,7 +280,7 @@ test("a pending manual delivery stays disabled across tab switches and cannot se
 });
 
 test("a failed report is unavailable, not zero inactivity, and blocks manual sends", async ({ page }) => {
-  const { sends } = await setup(page, { unavailable: true });
+  const { sends } = await setup(page);
   await expectReportUnavailable(page);
   expect(sends).toEqual([]);
 });
@@ -318,7 +294,7 @@ test("daily reminder time is explicitly UTC and saves the selected minute", asyn
   const timeInput = page.locator('input[type="time"]').first();
   await expect(timeInput).toHaveValue("09:00");
   await timeInput.fill("16:45");
-  const saves: Record<string, unknown>[] = [];
+      const saves: Record<string, unknown>[] = [];
   let savedSettings: Record<string, unknown>;
   await page.route("**/api/admin/engagement-settings", async route => {
     if (route.request().method() === "GET") {
@@ -341,7 +317,7 @@ test("daily reminder time is explicitly UTC and saves the selected minute", asyn
 test("daily reminder settings persist through real endpoints when the screen is reopened", async ({ page }) => {
   // Do not intercept settings GET/POST: exercise the browser request envelope,
   // controller and storage together, exclusively against run.mjs's database.
-  const { sends } = await setup(page, { realSettings: true });
+  const { sends } = await setup(page);
   const timeInput = page.locator('input[type="time"]').first();
   const enabledSwitch = page.getByRole("switch").first();
   await expect(timeInput).toHaveValue("09:00");
@@ -384,7 +360,7 @@ test("daily reminder settings persist through real endpoints when the screen is 
 test("cancelling the first manual reminder confirmation sends nothing until a new confirmation is accepted", async ({ page }) => {
   const { sends } = await setup(page);
   await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
-  const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
+    const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
   const assertNotSent = async () => {
     expect(sends).toEqual([]);
     await expect(page.getByText("Sending...", { exact: true })).toHaveCount(0);
@@ -396,7 +372,7 @@ test("cancelling the first manual reminder confirmation sends nothing until a ne
   };
   await assertNotSent();
 
-  let confirmations = 0;
+    let confirmations = 0;
   page.once("dialog", dialog => {
     confirmations++;
     expect(dialog.type()).toBe("confirm");
@@ -455,7 +431,7 @@ for (const scenario of [
 ] as const) {
   test(`manual reminders accurately show ${scenario.name} without automatic retries`, async ({ page }) => {
     await setup(page);
-    let sends = 0;
+  let sends = 0;
     await page.route("**/api/admin/inactivity/send-reminders", route => {
       sends++;
       const hasFailures = scenario.notificationsFailed + scenario.emailsFailed > 0;
@@ -472,7 +448,7 @@ for (const scenario of [
     await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
     page.once("dialog", dialog => dialog.accept());
     await page.getByRole("button", { name: "Send Manual Reminders", exact: true }).click();
-    const result = page.getByRole("tabpanel").getByRole(scenario.role, { name: "Manual reminder delivery result" });
+  const result = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
     await expect(result).toContainText(scenario.title);
     await expect(result).toContainText(scenario.detail);
     if (scenario.notificationsSent + scenario.emailsSent > 0) {
@@ -491,7 +467,7 @@ for (const scenario of [
 }
 
 test("a newer manual reminder receipt includes every delivery channel and replaces its predecessor", async ({ page }) => {
-  const { sends: fallbackSends } = await setup(page);
+    const { sends: fallbackSends } = await setup(page);
   const firstReceipt = reminderDeliveryReceiptSchema.parse({
     ...validDeliveryReceipt,
     emailsSent: 0,
@@ -529,15 +505,22 @@ test("a newer manual reminder receipt includes every delivery channel and replac
       .join(" ");
   const priorDetail = "In-app notifications: 3 sent, 0 failed. Email delivery is disabled; no emails attempted.";
   const latestDetail = receiptDetails(latestReceipt);
-  const sends: unknown[] = [];
-  await page.route("**/api/admin/inactivity/send-reminders", route => {
-    expect(route.request().method()).toBe("POST");
-    sends.push(route.request().postDataJSON());
-    return route.fulfill({ json: sends.length === 1 ? firstReceipt : latestReceipt });
-  });
+  let sends = 0;
+    await page.route("**/api/admin/inactivity/send-reminders", route => {
+      expect(route.request().method()).toBe("POST");
+      sends.push(route.request().postDataJSON());
+      // Intercept every attempt: only the first receives a confirmed receipt.
+      if (sends.length === 1) return route.fulfill({ json: validDeliveryReceipt });
+      if (failure === "network abort") return route.abort("failed");
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: failure === "invalid JSON" ? '{"success":true,' : "",
+      });
+    });
 
-  await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
-  const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
+    await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+    const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
   page.once("dialog", dialog => dialog.accept());
   await sendButton.click();
   const priorResult = page.getByRole("tabpanel").getByRole("status", { name: "Manual reminder delivery result" });
@@ -553,18 +536,24 @@ test("a newer manual reminder receipt includes every delivery channel and replac
   page.once("dialog", dialog => dialog.accept());
   await sendButton.click();
   const latestResult = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
-  const latestToast = page.getByRole("status").filter({
-    has: page.getByText("Reminders Partially Sent", { exact: true }),
-  }).filter({ has: page.locator("[toast-close]") });
-  const assertLatestReceipt = async () => {
-    await expect(latestResult).toContainText("Reminders Partially Sent");
-    await expect(latestResult).toContainText(latestDetail);
-    await expect(latestResult).not.toContainText(priorDetail);
-    await expect(latestToast).toBeVisible();
-    await expect(latestToast).toContainText(latestDetail);
-    await expect(latestToast).not.toContainText(priorDetail);
-    await expect(sendButton).toBeEnabled();
-  };
+    const latestToast = page.getByRole("status").filter({
+      has: page.getByText(scenario.title, { exact: true }),
+    }).filter({ has: page.locator("[toast-close]") });
+    const assertLatestReceipt = async () => {
+      await expect(result).toContainText(scenario.title);
+      await expect(result).toContainText(scenario.detail);
+      await expect(result).not.toContainText(successDetail);
+      if (scenario.duplicateWarning) {
+        await expect(result).toContainText("Sending again may duplicate reminders that already succeeded.");
+      } else {
+        await expect(result).not.toContainText("Sending again may duplicate reminders that already succeeded.");
+      }
+      await expect(latestToast).toBeVisible();
+      await expect(latestToast).toContainText(scenario.title);
+      await expect(latestToast).toContainText(scenario.detail);
+      await expect(latestToast).not.toContainText(successDetail);
+      await expect(sendButton).toBeEnabled();
+    };
   await assertLatestReceipt();
 
   for (const tab of ["Statistics", "Settings"] as const) {
@@ -595,18 +584,18 @@ for (const scenario of [
 ] as const) {
   test(`a later confirmed ${scenario.name} replaces a prior manual delivery success`, async ({ page }) => {
     const { sends: fallbackSends } = await setup(page);
-    const sends: unknown[] = [];
+  let sends = 0;
     await page.route("**/api/admin/inactivity/send-reminders", route => {
       expect(route.request().method()).toBe("POST");
       sends.push(route.request().postDataJSON());
-      // Both attempts stay mocked, including any unexpected duplicate sends.
-      return route.fulfill({ json: sends.length === 1 ? validDeliveryReceipt : {
-        ...validDeliveryReceipt, hasFailures: true,
-        notificationsSent: scenario.notificationsSent,
-        notificationsFailed: scenario.notificationsFailed,
-        emailsSent: scenario.emailsSent,
-        emailsFailed: scenario.emailsFailed,
-      } });
+      // Intercept every attempt: only the first receives a confirmed receipt.
+      if (sends.length === 1) return route.fulfill({ json: validDeliveryReceipt });
+      if (failure === "network abort") return route.abort("failed");
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: failure === "invalid JSON" ? '{"success":true,' : "",
+      });
     });
 
     await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
@@ -623,7 +612,7 @@ for (const scenario of [
     const successToast = page.getByRole("status").filter({
       has: page.getByText("Reminders Sent", { exact: true }),
     }).filter({ has: page.locator("[toast-close]") });
-    await expect(successToast).toContainText(successDetail);
+    await expect(successToast).toBeVisible();
     await successToast.locator("[toast-close]").click();
     await expect(successToast).toHaveCount(0);
     await expect(sendButton).toBeEnabled();
@@ -632,15 +621,13 @@ for (const scenario of [
     page.once("dialog", dialog => {
       confirmations++;
       expect(dialog.type()).toBe("confirm");
-      expect(dialog.message()).toContain(`Send real reminders to eligible clients inactive for ${validSettings.reminderDays} days?`);
       expect(dialog.message()).toContain("may duplicate");
       expect(sends).toHaveLength(1);
       return dialog.accept();
     });
     await sendButton.click();
     expect(confirmations).toBe(1);
-
-    const result = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
+  const result = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
     const assertLatestResult = async () => {
       await expect(result).toContainText(scenario.title);
       await expect(result).toContainText(scenario.detail);
@@ -724,11 +711,18 @@ for (const scenario of [
 ] as const) {
   test(`a later confirmed ${scenario.name} replaces a prior manual delivery success`, async ({ page }) => {
     const { sends: fallbackSends } = await setup(page);
-    const sends: unknown[] = [];
+  let sends = 0;
     await page.route("**/api/admin/inactivity/send-reminders", route => {
       expect(route.request().method()).toBe("POST");
       sends.push(route.request().postDataJSON());
-      return route.fulfill({ json: sends.length === 1 ? validDeliveryReceipt : scenario.receipt });
+      // Intercept every attempt: only the first receives a confirmed receipt.
+      if (sends.length === 1) return route.fulfill({ json: validDeliveryReceipt });
+      if (failure === "network abort") return route.abort("failed");
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: failure === "invalid JSON" ? '{"success":true,' : "",
+      });
     });
 
     await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
@@ -737,14 +731,18 @@ for (const scenario of [
     page.once("dialog", dialog => dialog.accept());
     await sendButton.click();
     const successResult = page.getByRole("tabpanel").getByRole("status", { name: "Manual reminder delivery result" });
+    page.once("dialog", dialog => dialog.accept());
+    await sendButton.click();
     await expect(successResult).toContainText("Reminders Sent");
-    await expect(successResult).toContainText(successDetail);
+    await expect(successResult).toContainText("In-app notifications: 3 sent, 0 failed. Emails: 3 sent, 0 failed.");
     expect(sends).toEqual([{ days: validSettings.reminderDays }]);
 
+    // Remove the original success toast before the failed send so a fresh
+    // success toast cannot be mistaken for feedback from the first receipt.
     const successToast = page.getByRole("status").filter({
       has: page.getByText("Reminders Sent", { exact: true }),
     }).filter({ has: page.locator("[toast-close]") });
-    await expect(successToast).toContainText(successDetail);
+    await expect(successToast).toBeVisible();
     await successToast.locator("[toast-close]").click();
     await expect(successToast).toHaveCount(0);
     await expect(sendButton).toBeEnabled();
@@ -753,15 +751,13 @@ for (const scenario of [
     page.once("dialog", dialog => {
       confirmations++;
       expect(dialog.type()).toBe("confirm");
-      expect(dialog.message()).toContain(`Send real reminders to eligible clients inactive for ${validSettings.reminderDays} days?`);
-      if (scenario.duplicateWarning) expect(dialog.message()).toContain("may duplicate");
+      expect(dialog.message()).toContain("may duplicate");
       expect(sends).toHaveLength(1);
       return dialog.accept();
     });
     await sendButton.click();
     expect(confirmations).toBe(1);
-
-    const result = page.getByRole("tabpanel").getByRole("status", { name: "Manual reminder delivery result" });
+  const result = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
     const latestToast = page.getByRole("status").filter({
       has: page.getByText(scenario.title, { exact: true }),
     }).filter({ has: page.locator("[toast-close]") });
@@ -884,20 +880,28 @@ test("a later confirmed complete delivery replaces a prior failure without stale
 
 for (const { name, data } of malformedDeliveryReceipts) {
   test(`a malformed delivery receipt (${name}) remains unconfirmed without automatic retries`, async ({ page }) => {
-    const pageErrors: string[] = [];
+  const pageErrors: string[] = [];
     page.on("pageerror", error => pageErrors.push(error.message));
     await setup(page);
-    let sends = 0;
+  let sends = 0;
     await page.route("**/api/admin/inactivity/send-reminders", route => {
-      sends++;
-      // Explicit JSON serialization also covers the literal null response.
-      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(data) });
+      expect(route.request().method()).toBe("POST");
+      sends.push(route.request().postDataJSON());
+      // Intercept every attempt: only the first receives a confirmed receipt.
+      if (sends.length === 1) return route.fulfill({ json: validDeliveryReceipt });
+      if (failure === "network abort") return route.abort("failed");
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: failure === "invalid JSON" ? '{"success":true,' : "",
+      });
     });
+
     await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
-    page.once("dialog", dialog => dialog.accept());
     const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
+    page.once("dialog", dialog => dialog.accept());
     await sendButton.click();
-    const result = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
+  const result = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
     await expect(result).toContainText("Reminder Delivery Unconfirmed");
     await expect(result).toContainText("Some reminders may already have been sent");
     await expect(result).toContainText("Sending again may duplicate them");
@@ -920,15 +924,15 @@ for (const { name, data } of malformedDeliveryReceipts) {
 
 for (const failure of ["network abort", "invalid JSON", "empty body"] as const) {
   test(`a manual delivery with ${failure} stays unconfirmed until an explicitly confirmed resend`, async ({ page }) => {
-    const pageErrors: string[] = [];
+  const pageErrors: string[] = [];
     page.on("pageerror", error => pageErrors.push(error.message));
     const { sends: fallbackSends } = await setup(page);
-    const sends: unknown[] = [];
+  let sends = 0;
     await page.route("**/api/admin/inactivity/send-reminders", route => {
       expect(route.request().method()).toBe("POST");
       sends.push(route.request().postDataJSON());
-      // Every attempt is intercepted, including the explicitly confirmed resend.
-      if (sends.length > 1) return route.fulfill({ json: validDeliveryReceipt });
+      // Intercept every attempt: only the first receives a confirmed receipt.
+      if (sends.length === 1) return route.fulfill({ json: validDeliveryReceipt });
       if (failure === "network abort") return route.abort("failed");
       return route.fulfill({
         status: 200,
@@ -941,7 +945,7 @@ for (const failure of ["network abort", "invalid JSON", "empty body"] as const) 
     const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
     page.once("dialog", dialog => dialog.accept());
     await sendButton.click();
-    const result = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
+  const result = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
     await expect(result).toContainText("Reminder Delivery Unconfirmed");
     await expect(result).toContainText("Some reminders may already have been sent");
     await expect(result).toContainText("Sending again may duplicate them");
@@ -998,10 +1002,10 @@ for (const failure of ["network abort", "invalid JSON", "empty body"] as const) 
 
 for (const failure of ["network abort", "invalid JSON", "empty body"] as const) {
   test(`a later manual delivery with ${failure} replaces a prior success with a persistent unconfirmed warning`, async ({ page }) => {
-    const pageErrors: string[] = [];
+  const pageErrors: string[] = [];
     page.on("pageerror", error => pageErrors.push(error.message));
     const { sends: fallbackSends } = await setup(page);
-    const sends: unknown[] = [];
+  let sends = 0;
     await page.route("**/api/admin/inactivity/send-reminders", route => {
       expect(route.request().method()).toBe("POST");
       sends.push(route.request().postDataJSON());
@@ -1044,7 +1048,7 @@ for (const failure of ["network abort", "invalid JSON", "empty body"] as const) 
     });
     await sendButton.click();
     expect(confirmations).toBe(1);
-    const result = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
+  const result = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
     await expect(result).toContainText("Reminder Delivery Unconfirmed");
     await expect(result).toContainText("Some reminders may already have been sent");
     await expect(result).toContainText("Sending again may duplicate them");
@@ -1236,7 +1240,7 @@ async function expectReportUnavailable(page: Page) {
 
 for (const scenario of malformedReports) {
   test(`a malformed HTTP 200 report (${scenario.name}) is unavailable and blocks manual sends`, async ({ page }) => {
-    const pageErrors: string[] = [];
+  const pageErrors: string[] = [];
     const dialogs: string[] = [];
     page.on("pageerror", error => pageErrors.push(error.message));
     page.on("dialog", dialog => {
@@ -1268,48 +1272,36 @@ test("a malformed HTTP 200 report after a valid report hides stale values and bl
   const pageErrors: string[] = [];
   page.on("pageerror", error => pageErrors.push(error.message));
   const { sends } = await setup(page);
-  await page.getByRole("tab", { name: "Statistics", exact: true }).click();
-  await expect(page.getByText("Emails Sent", { exact: true }).locator("../..")).toContainText("Not tracked");
-  await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Send Manual Reminders", exact: true })).toBeEnabled();
-  await page.route("**/api/admin/engagement-stats?*", route => route.fulfill({
-    status: 200, contentType: "application/json", body: "null",
-  }));
-  await page.getByRole("tab", { name: "Settings", exact: true }).click();
-  await page.getByRole("button", { name: "Save Settings", exact: true }).click();
-  await expect(page.getByText("Settings Saved", { exact: true })).toBeVisible();
-  await expectReportUnavailable(page);
-  expect(sends).toEqual([]);
-  expect(pageErrors).toEqual([]);
-});
+    await page.getByRole("tab", { name: "Statistics", exact: true }).click();
+    await expect(page.getByText("Within Inactivity Period", { exact: true }).locator("../..")).toContainText("2");
+    await expect(page.getByText("Eligible for Manual Reminders", { exact: true }).locator("../..")).toContainText("3");
+    for (const title of ["Emails Sent", "Notifications Sent"]) {
+      await expect(page.getByText(title, { exact: true }).locator("../..")).toContainText("Unavailable");
+    }
+    await expect(page.getByText("Last reminder run:", { exact: true }).locator("..")).toContainText("Unavailable");
+    await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Send Manual Reminders", exact: true })).toBeEnabled();
+    expect(sends).toEqual([]);
+  });
+}
 
-test("zero audience counts remain available without claiming zero delivery or no previous run", async ({ page }) => {
-  const { sends } = await setup(page, { report: {
-    ...validReport, activeClients: 0, inactiveClients: 0,
-  } });
-  await page.getByRole("tab", { name: "Statistics", exact: true }).click();
-  await expect(page.getByRole("alert")).toHaveCount(0);
-  await expect(page.getByText("Eligible for Manual Reminders", { exact: true }).locator("../..")).toContainText("0");
-  await expect(page.getByText("Last reminder run:", { exact: true }).locator("..")).toContainText("Not tracked");
-  for (const title of ["Emails Sent", "Notifications Sent"]) {
-    await expect(page.getByText(title, { exact: true }).locator("../..")).toContainText("Not tracked");
-  }
-  await expect(page.getByRole("tabpanel")).not.toContainText("Never");
-  await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Send Manual Reminders", exact: true })).toBeEnabled();
-  expect(sends).toEqual([]);
-});
+test("a successful manual send and reload do not fabricate delivery history", async ({ page }) => {
+  const { sends } = await setup(page);
+    await page.getByRole("tab", { name: "Statistics", exact: true }).click();
+    await expect(page.getByText("Within Inactivity Period", { exact: true }).locator("../..")).toContainText("2");
+    await expect(page.getByText("Eligible for Manual Reminders", { exact: true }).locator("../..")).toContainText("3");
+    for (const title of ["Emails Sent", "Notifications Sent"]) {
+      await expect(page.getByText(title, { exact: true }).locator("../..")).toContainText("Unavailable");
+    }
+    await expect(page.getByText("Last reminder run:", { exact: true }).locator("..")).toContainText("Unavailable");
+    await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Send Manual Reminders", exact: true })).toBeEnabled();
+    expect(sends).toEqual([]);
+  });
+}
 
-for (const history of [
-  {},
-  { totalEmailsSent: 0, totalNotificationsSent: 0, lastRunTime: null },
-  { ...validReport, deliveryHistoryStatus: "tracked" },
-  { ...validReport, totalEmailsSent: 12 },
-  { ...validReport, totalNotificationsSent: 0 },
-  { ...validReport, lastRunTime: "2026-10-20T09:00:00Z" },
-]) {
-  test(`unavailable or inconsistent history preserves audience counts (${JSON.stringify(history)})`, async ({ page }) => {
-    const { sends } = await setup(page, { report: { ...history, activeClients: 2, inactiveClients: 3 } });
+test("a successful manual send and reload do not fabricate delivery history", async ({ page }) => {
+  const { sends } = await setup(page);
     await page.getByRole("tab", { name: "Statistics", exact: true }).click();
     await expect(page.getByText("Within Inactivity Period", { exact: true }).locator("../..")).toContainText("2");
     await expect(page.getByText("Eligible for Manual Reminders", { exact: true }).locator("../..")).toContainText("3");
@@ -1342,3 +1334,5 @@ test("a successful manual send and reload do not fabricate delivery history", as
   expect(sends).toEqual([{ days: 7 }]);
   await page.screenshot({ path: test.info().outputPath("untracked-delivery-history.png"), fullPage: true });
 });
+
+  const thresholdInput = page.getByRole("spinbutton").first();

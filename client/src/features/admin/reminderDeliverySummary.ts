@@ -26,7 +26,7 @@ export interface ReminderDeliverySummary {
   variant?: "destructive";
 }
 
-export function reminderDeliverySummary(result: ReminderDeliveryResult): ReminderDeliverySummary {
+export function reminderDeliverySummary(result: ReminderDeliveryResult, thresholdDays?: number): ReminderDeliverySummary {
   const hasFailures = reminderDeliveryChannels.some(channel => result[channel.failed] > 0);
   const anySent = reminderDeliveryChannels.some(channel => result[channel.sent] > 0);
   const channelDetails = reminderDeliveryChannels.map(channel =>
@@ -38,7 +38,7 @@ export function reminderDeliverySummary(result: ReminderDeliveryResult): Reminde
     title: hasFailures
       ? (anySent ? "Reminders Partially Sent" : "No Reminders Sent")
       : (result.inactiveClients === 0 ? "No Eligible Clients" : "Reminders Sent"),
-    description: `${channelDetails.join(" ")}${anySent ? " Sending again may duplicate reminders that already succeeded." : ""}`,
+    description: `${channelDetails.join(" ")}${thresholdDays === undefined ? "" : ` Threshold used: ${thresholdDays} days.`}${anySent ? " Sending again may duplicate reminders that already succeeded." : ""}`,
     ...(hasFailures ? { variant: "destructive" as const } : {}),
   };
 }

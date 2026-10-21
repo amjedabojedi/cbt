@@ -104,6 +104,8 @@ Best regards,
     inactiveClients: 0
   });
 
+  const thresholdNeedsSave = settings.reminderDays !== reportDays;
+
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   useEffect(() => {
@@ -142,24 +144,27 @@ Best regards,
         setHistoryNotTracked(untrackedDeliveryHistorySchema.safeParse(data).success);
         setReportDays(days);
         setStatsAvailable(true);
+        return true;
       }
     } catch (error) {
       console.error("Failed to fetch engagement stats:", error);
     }
+    return false;
   };
 
   const saveSettings = async () => {
     if (loading || !settingsAvailable) return;
+    const settingsToSave = settings;
     setSaving(true);
     try {
-      const response = await apiRequest("POST", "/api/admin/engagement-settings", settings);
+      const response = await apiRequest("POST", "/api/admin/engagement-settings", settingsToSave);
 
       if (response.ok) {
         toast({
           title: "Settings Saved",
           description: "Engagement reminder settings have been updated successfully."
         });
-        fetchStats(settings.reminderDays);
+        await fetchStats(settingsToSave.reminderDays);
       } else {
         throw new Error("Failed to save settings");
       }
@@ -175,8 +180,9 @@ Best regards,
   };
 
   const sendManualReminders = async () => {
-    if (sending || !statsAvailable) return;
-    if (!window.confirm(`Send real reminders to eligible clients inactive for ${reportDays} days? Sending again may duplicate reminders that already succeeded.`)) return;
+    if (sending || saving || !statsAvailable || thresholdNeedsSave) return;
+    const days = reportDays;
+    if (!window.confirm(`Send real reminders to eligible clients inactive for ${days} days? Sending again may duplicate reminders that already succeeded.`)) return;
     setSending(true);
     try {
       const response = await apiRequest("POST", "/api/admin/inactivity/send-reminders", { days: reportDays });
@@ -184,10 +190,10 @@ Best regards,
       if (response.ok) {
         // A successful HTTP response alone cannot confirm delivery.
         const result = reminderDeliveryReceiptSchema.parse(await response.json());
-        const summary = reminderDeliverySummary(result);
+        const summary = reminderDeliverySummary(result, days);
         setDeliveryResult(summary);
         toast(summary);
-        fetchStats(reportDays); // Refresh stats
+        await fetchStats(days); // Refresh stats
       } else {
         throw new Error("Failed to send reminders");
       }
@@ -784,7 +790,10 @@ The ResilienceHub Team`}
                   This sends real notifications and, when email is enabled, real emails to active client
                   accounts inactive for at least {reportDays} full days. It uses the last saved emotion
                   record, or account creation if no records exist. This is not a test or an email-template
-                  preview. Save threshold changes before sending.
+                  preview.{" "}
+                  {thresholdNeedsSave
+                    ? "Save threshold changes before sending."
+                    : "Manual reminders use the saved threshold shown in Statistics."}
                 </p>
                 
                 {!statsAvailable && (
@@ -796,7 +805,7 @@ The ResilienceHub Team`}
                     <p className="text-sm">{deliveryResult.description}</p>
                   </div>
                 )}
-                <Button onClick={sendManualReminders} disabled={sending || !statsAvailable}>
+                <Button onClick={sendManualReminders} disabled={sending || saving || thresholdNeedsSave || !statsAvailable}>
                   {sending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
