@@ -419,6 +419,84 @@ for (const { name, data } of malformedDeliveryReceipts) {
   });
 }
 
+for (const failure of ["network abort", "invalid JSON", "empty body"] as const) {
+  test(`a manual delivery with ${failure} stays unconfirmed until an explicitly confirmed resend`, async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", error => pageErrors.push(error.message));
+    const { sends: fallbackSends } = await setup(page);
+    const sends: unknown[] = [];
+    await page.route("**/api/admin/inactivity/send-reminders", route => {
+      expect(route.request().method()).toBe("POST");
+      sends.push(route.request().postDataJSON());
+      // Every attempt is intercepted, including the explicitly confirmed resend.
+      if (sends.length > 1) return route.fulfill({ json: validDeliveryReceipt });
+      if (failure === "network abort") return route.abort("failed");
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: failure === "invalid JSON" ? '{"success":true,' : "",
+      });
+    });
+
+    await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+    const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
+    page.once("dialog", dialog => dialog.accept());
+    await sendButton.click();
+    const result = page.getByRole("tabpanel").getByRole("alert", { name: "Manual reminder delivery result" });
+    await expect(result).toContainText("Reminder Delivery Unconfirmed");
+    await expect(result).toContainText("Some reminders may already have been sent");
+    await expect(result).toContainText("Sending again may duplicate them");
+    await expect(result).not.toContainText(/undefined|NaN|Please try again/);
+    await expect(page.getByText("Reminders Sent", { exact: true })).toHaveCount(0);
+    await expect(sendButton).toBeEnabled();
+
+    // Observe beyond the shared mutation retry delays (1s + 2s): neither a
+    // transport error nor a JSON parse failure may trigger a duplicate send.
+    await page.waitForTimeout(3_500);
+    expect(sends).toEqual([{ days: validSettings.reminderDays }]);
+    await expect(result).toContainText("Reminder Delivery Unconfirmed");
+    await expect(page.getByText("Reminders Sent", { exact: true })).toHaveCount(0);
+    for (const tab of ["Settings", "Templates", "Statistics"]) {
+      await page.getByRole("tab", { name: tab, exact: true }).click();
+      await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+      await expect(result).toContainText("Reminder Delivery Unconfirmed");
+      await expect(result).toContainText("Sending again may duplicate them");
+    }
+
+    let confirmations = 0;
+    page.once("dialog", dialog => {
+      confirmations++;
+      expect(dialog.type()).toBe("confirm");
+      expect(dialog.message()).toContain("may duplicate");
+      expect(sends).toHaveLength(1);
+      return dialog.dismiss();
+    });
+    await sendButton.click();
+    expect(confirmations).toBe(1);
+    expect(sends).toHaveLength(1);
+    await expect(result).toContainText("Reminder Delivery Unconfirmed");
+    await expect(page.getByText("Reminders Sent", { exact: true })).toHaveCount(0);
+
+    page.once("dialog", dialog => {
+      confirmations++;
+      expect(dialog.type()).toBe("confirm");
+      expect(dialog.message()).toContain("may duplicate");
+      expect(sends).toHaveLength(1);
+      return dialog.accept();
+    });
+    await sendButton.click();
+    await expect(page.getByRole("tabpanel").getByRole("status", { name: "Manual reminder delivery result" }))
+      .toContainText("Reminders Sent");
+    expect(confirmations).toBe(2);
+    expect(sends).toEqual([
+      { days: validSettings.reminderDays },
+      { days: validSettings.reminderDays },
+    ]);
+    expect(fallbackSends).toEqual([]);
+    expect(pageErrors).toEqual([]);
+  });
+}
+
 test("an unconfirmed delivery warns about duplicates instead of recommending a retry", async ({ page }) => {
   await setup(page);
   let sends = 0;
