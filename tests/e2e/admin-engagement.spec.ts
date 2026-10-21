@@ -319,6 +319,51 @@ test("daily reminder settings persist through real endpoints when the screen is 
   }
 });
 
+test("cancelling the first manual reminder confirmation sends nothing until a new confirmation is accepted", async ({ page }) => {
+  const { sends } = await setup(page);
+  await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+  const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
+  const assertNotSent = async () => {
+    expect(sends).toEqual([]);
+    await expect(page.getByText("Sending...", { exact: true })).toHaveCount(0);
+    await expect(page.getByLabel("Manual reminder delivery result", { exact: true })).toHaveCount(0);
+    // Include toast feedback, not just the persistent delivery result.
+    await expect(page.getByText(/^(Reminders Sent|Reminders Partially Sent|No Reminders Sent|No Eligible Clients|Reminder Delivery Unconfirmed)$/))
+      .toHaveCount(0);
+    await expect(sendButton).toBeEnabled();
+  };
+  await assertNotSent();
+
+  let confirmations = 0;
+  page.once("dialog", dialog => {
+    confirmations++;
+    expect(dialog.type()).toBe("confirm");
+    expect(dialog.message()).toContain(`Send real reminders to eligible clients inactive for ${validSettings.reminderDays} days?`);
+    expect(sends).toEqual([]);
+    return dialog.dismiss();
+  });
+  await sendButton.click();
+  expect(confirmations).toBe(1);
+  await assertNotSent();
+  // Observe beyond the shared retry delays so a cancelled first attempt
+  // cannot silently queue a delivery before the next explicit confirmation.
+  await page.waitForTimeout(3_500);
+  await assertNotSent();
+
+  page.once("dialog", dialog => {
+    confirmations++;
+    expect(dialog.type()).toBe("confirm");
+    expect(sends).toEqual([]);
+    return dialog.accept();
+  });
+  await sendButton.click();
+  await expect(page.getByRole("tabpanel").getByRole("status", { name: "Manual reminder delivery result" }))
+    .toContainText("Reminders Sent");
+  expect(confirmations).toBe(2);
+  expect(sends).toEqual([{ days: validSettings.reminderDays }]);
+  await expect(sendButton).toBeEnabled();
+});
+
 for (const scenario of [
   {
     name: "complete delivery", notificationsSent: 3, notificationsFailed: 0, emailsSent: 3, emailsFailed: 0,
