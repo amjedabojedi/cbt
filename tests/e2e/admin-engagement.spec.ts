@@ -798,6 +798,90 @@ for (const scenario of [
   });
 }
 
+test("a later confirmed complete delivery replaces a prior failure without stale warnings", async ({ page }) => {
+  const { sends: fallbackSends } = await setup(page);
+  const sends: unknown[] = [];
+  const partialReceipt = {
+    ...validDeliveryReceipt,
+    hasFailures: true,
+    notificationsSent: 2,
+    notificationsFailed: 1,
+    emailsSent: 1,
+    emailsFailed: 2,
+  };
+  await page.route("**/api/admin/inactivity/send-reminders", route => {
+    expect(route.request().method()).toBe("POST");
+    sends.push(route.request().postDataJSON());
+    // Keep both deliveries in the browser-only mocked harness.
+    return route.fulfill({ json: sends.length === 1 ? partialReceipt : validDeliveryReceipt });
+  });
+
+  await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+  const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
+  const failureResult = page.getByRole("tabpanel").getByRole("alert", {
+    name: "Manual reminder delivery result",
+  });
+  page.once("dialog", dialog => dialog.accept());
+  await sendButton.click();
+  await expect(failureResult).toContainText("Reminders Partially Sent");
+  await expect(failureResult).toContainText("In-app notifications: 2 sent, 1 failed. Emails: 1 sent, 2 failed.");
+  await expect(failureResult).toContainText("Sending again may duplicate reminders that already succeeded.");
+  const failureToast = page.getByRole("status").filter({
+    has: page.getByText("Reminders Partially Sent", { exact: true }),
+  }).filter({ has: page.locator("[toast-close]") });
+  await expect(failureToast).toBeVisible();
+  await expect(failureToast).toHaveClass(/destructive/);
+  expect(sends).toEqual([{ days: validSettings.reminderDays }]);
+
+  page.once("dialog", dialog => {
+    expect(dialog.type()).toBe("confirm");
+    expect(dialog.message()).toContain("may duplicate");
+    return dialog.accept();
+  });
+  await sendButton.click();
+
+  const successResult = page.getByRole("tabpanel").getByRole("status", {
+    name: "Manual reminder delivery result",
+  });
+  const successDetail = "In-app notifications: 3 sent, 0 failed. Emails: 3 sent, 0 failed.";
+  await expect(successResult).toContainText("Reminders Sent");
+  await expect(successResult).toContainText(successDetail);
+  await expect(successResult).not.toContainText("Reminders Partially Sent");
+  await expect(failureResult).toHaveCount(0);
+  await expect(failureToast).toHaveCount(0);
+  const successToast = page.getByRole("status").filter({
+    has: page.getByText("Reminders Sent", { exact: true }),
+  }).filter({ has: page.locator("[toast-close]") });
+  await expect(successToast).toBeVisible();
+  await expect(successToast).toContainText(successDetail);
+  await expect(successToast).not.toContainText("Reminders Partially Sent");
+  await expect(successToast).not.toHaveClass(/destructive/);
+  expect(sends).toEqual([
+    { days: validSettings.reminderDays },
+    { days: validSettings.reminderDays },
+  ]);
+
+  // Leaving and reopening the panel must not restore the earlier failed receipt.
+  for (const tab of ["Statistics", "Settings"] as const) {
+    await page.getByRole("tab", { name: tab, exact: true }).click();
+    await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+    await expect(successResult).toContainText("Reminders Sent");
+    await expect(successResult).toContainText(successDetail);
+    await expect(failureResult).toHaveCount(0);
+    await expect(page.getByText("Reminders Partially Sent", { exact: true })).toHaveCount(0);
+  }
+
+  // A cancelled additional confirmation must not create another mocked request.
+  page.once("dialog", dialog => dialog.dismiss());
+  await sendButton.click();
+  await expect(successResult).toContainText("Reminders Sent");
+  expect(sends).toEqual([
+    { days: validSettings.reminderDays },
+    { days: validSettings.reminderDays },
+  ]);
+  expect(fallbackSends).toEqual([]);
+});
+
 for (const { name, data } of malformedDeliveryReceipts) {
   test(`a malformed delivery receipt (${name}) remains unconfirmed without automatic retries`, async ({ page }) => {
     const pageErrors: string[] = [];
