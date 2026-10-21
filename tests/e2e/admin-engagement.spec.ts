@@ -241,6 +241,63 @@ test("admin report and confirmed manual delivery use the same threshold and rule
   expect(reportRequests).toHaveLength(2);
 });
 
+test("a pending manual delivery stays disabled across tab switches and cannot send duplicates", async ({ page }) => {
+  const { sends, settingsSaves, reportRequests } = await setup(page);
+  let releaseReceipt!: () => void;
+  const receiptGate = new Promise<void>(resolve => { releaseReceipt = resolve; });
+  await page.route("**/api/admin/inactivity/send-reminders", async route => {
+    expect(route.request().method()).toBe("POST");
+    sends.push(route.request().postDataJSON());
+    await receiptGate;
+    return route.fulfill({ json: validDeliveryReceipt });
+  });
+  let confirmations = 0;
+  page.on("dialog", dialog => {
+    confirmations++;
+    return dialog.accept();
+  });
+  await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+  const sendButton = page.getByRole("button", { name: "Send Manual Reminders", exact: true });
+  const pendingButton = page.getByRole("button", { name: "Sending...", exact: true });
+  await expect(sendButton).toBeEnabled();
+  try {
+    await sendButton.click();
+    await expect.poll(() => sends.length).toBe(1);
+    await expect(pendingButton).toBeDisabled();
+
+    for (const awayTab of ["Statistics", "Settings"]) {
+      await page.getByRole("tab", { name: awayTab, exact: true }).click();
+      await expect(pendingButton).toHaveCount(0);
+      await page.getByRole("tab", { name: "Manual Reminders", exact: true }).click();
+      await expect(pendingButton).toBeDisabled();
+      await expect(sendButton).toHaveCount(0);
+      // Ordinary clicks wait for an enabled control. Dispatch repeated attempts
+      // directly instead, so the pending-state guard is exercised without waiting.
+      await pendingButton.dispatchEvent("click");
+      await pendingButton.dispatchEvent("click");
+      await expect(pendingButton).toBeDisabled();
+      await expect(page.getByLabel("Manual reminder delivery result", { exact: true })).toHaveCount(0);
+      expect(sends).toEqual([{ days: validSettings.reminderDays }]);
+      expect(confirmations).toBe(1);
+    }
+    expect(settingsSaves).toEqual([]);
+    expect(reportRequests).toHaveLength(1);
+    await page.screenshot({ path: test.info().outputPath("manual-delivery-pending.png"), fullPage: true });
+  } finally {
+    // Always unblock the intercepted request, including when an assertion fails.
+    releaseReceipt();
+  }
+
+  await expect(page.getByRole("tabpanel").getByRole("status", { name: "Manual reminder delivery result" }))
+    .toContainText("Reminders Sent");
+  await expect(sendButton).toBeEnabled();
+  await expect(pendingButton).toHaveCount(0);
+  await expect.poll(() => reportRequests.length).toBe(2);
+  expect(sends).toEqual([{ days: validSettings.reminderDays }]);
+  expect(confirmations).toBe(1);
+  expect(settingsSaves).toEqual([]);
+});
+
 test("a failed report is unavailable, not zero inactivity, and blocks manual sends", async ({ page }) => {
   const { sends } = await setup(page, { unavailable: true });
   await expectReportUnavailable(page);
