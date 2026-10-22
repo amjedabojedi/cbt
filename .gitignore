@@ -11,3 +11,6 @@ vite.config.ts.*
 .env.development.local
 .env.backup
 package-lock.json
+
+# Keep the Replit-only workflow out of Git sync
+/.github/workflows/webkit-runtime.yml
