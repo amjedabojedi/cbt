@@ -22,7 +22,8 @@ SELF="${BASH_SOURCE[0]:-}"
 # (an api.js loader, "node api.js" in package.json scripts, code hidden after a run of
 # tabs in *.config.js) or other common supply-chain implants. It runs before anything from
 # the new checkout is copied into APP_DIR or executed.
-# After reviewing a dependency's install script, approve it with ALLOW_INSTALL_SCRIPTS="name".
+# After reviewing a dependency's install script, add it to the allowlist below and update the
+# server's copy (see DEPLOY.md).
 check_source_tree() {
   local src="$1" problems="" f len run node_out
   # Payload markers and C2 hosts; the brackets keep this file from matching itself.
