@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -16,7 +24,7 @@ jobs:
         with:
           node-version: 18.19.1
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
       - name: Build Project
         run: npm run build
 
@@ -24,38 +32,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main'
+    timeout-minutes: 20
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: '${{ secrets.SSH_KEY }}'
-      - name: Deploy to Server
-        run: >
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            set -e
-            cd /var/www/cbt-client/cbt
-            echo "Pulling latest code..."
-            git restore -- server-dist || true
-            git pull origin main
-            echo "Installing dependencies..."
-            npm install --legacy-peer-deps
-            echo "Building project..."
-            npm run build
-            test -f dist/index.js
-            echo "Restarting backend (the build writes dist/index.js)..."
-            pm2 delete cbt-backend || true
-            pm2 start dist/index.js --name cbt-backend
-            pm2 save
-            echo "Checking that the backend answers..."
-            P=$(grep -E '^PORT=' .env | head -1 | cut -d= -f2)
-            sleep 5
-            curl -s -o /dev/null --max-time 10 http://127.0.0.1:${P:-5005}/ || { echo "Backend is not answering"; pm2 logs cbt-backend --lines 40 --nostream; exit 1; }
-            echo "Reloading Nginx..."
-            sudo systemctl reload nginx
-            echo "Deployment complete!"
-          EOF
+      # The key in CBT_DEPLOY_KEY can only run `sudo cbt-deploy` on the server (a forced command
+      # for the account cbt-ci). That script clones main from GitHub with this run's read-only
+      # token, checks it for malware and builds it as the unprivileged account cbt-web, so
+      # nothing in this workflow decides what runs on the server. See DEPLOY.md.
+      - name: Run the server's deploy script
+        env:
+          DEPLOY_KEY: ${{ secrets.CBT_DEPLOY_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          echo '20.62.161.79 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL4Wh1UYoxQorvUdDJSD0+YIEFji8/Er5JJtXIG3/H58' > ~/.ssh/known_hosts
+          # The token goes on stdin, not the command line; it expires when this job ends.
+          printf '%s\n' "$GITHUB_TOKEN" | ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes -o BatchMode=yes cbt-ci@20.62.161.79 deploy
 
   notify-on-failure:
     runs-on: ubuntu-latest

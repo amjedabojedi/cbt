@@ -1,5 +1,8 @@
 # CBT Application Deployment Guide
 
+> **Production deploys changed on 2026-11-03.** The app now runs as `cbt-web` and deploys only
+> through the server's `cbt-deploy` script. The server steps below are out of date; see DEPLOY.md.
+
 ## 🚀 Quick Fix for Current Issue
 
 If you're experiencing the "Could not find the build directory" error, run this on your server:
